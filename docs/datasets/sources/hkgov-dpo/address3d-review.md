@@ -150,13 +150,24 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
-Choi Yuen Food Court's July 22 and August 2026 records retain the reviewed newer point
-and link through Choi Yuen Plaza to Choi Yuen Estate. The explicit relationship lives in
+Chuk Yuen North Estate uses HA's preferred `Chuk Yuen (North) Estate` / `竹園北邨` name
+under `hkgov-dpo-address-estate-names.json`. All eight building names are corroborated
+and their 6,736-unit inventories are unchanged across thirty releases. Only canonical
+estate naming and display addresses change; raw spellings, identities and inventories
+remain intact. Chuk Yuen South Estate is distinct.
+
+Choi Yuen Food Court retains the reviewed July 22 point across all thirty releases and
+links through Choi Yuen Plaza to Choi Yuen Estate. The explicit relationship lives in
 `hkgov-dpo-address-nested-premises.json`. Match the named food court by CSU and both
 names, preserving the separate unnamed record with the same CSU. Reuse the curated
 estate complex where available, otherwise the guarded publisher estate-address record.
-No residential coverage is inferred. The older location and July absence are not
-backfilled by this containment decision.
+No residential coverage is inferred. `hkgov-dpo-address-premise-reconstructions.json`
+backfills the newer source representation into twenty-six earlier named records and the
+two July gaps. The exact original assertions are guarded and retained as provenance; the
+July 22 evidence is labelled with its actual date. Ordinary normalisation preserves one
+food-court identity through all thirty releases. The location correction neither
+overwrites source files nor removes unnamed same-CSU records.
+`bun scripts/verify-choi-yuen-food-court.ts` verifies all retained releases.
 
 Choi Ying Place retains one named shopping centre across all thirty releases under
 `hkgov-dpo-address-premise-consolidations.json`. Suppress the unnamed duplicate in its

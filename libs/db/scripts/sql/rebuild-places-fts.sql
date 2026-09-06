@@ -1,4 +1,7 @@
-CREATE VIRTUAL TABLE IF NOT EXISTS "placesFts" USING fts5(
+-- This is a derived index. Recreate it so the Drizzle mapping table cannot
+-- prevent installation of the actual FTS5 virtual table.
+DROP TABLE IF EXISTS "placesFts";
+CREATE VIRTUAL TABLE "placesFts" USING fts5(
   "snapshotId" UNINDEXED,
   "placeId" UNINDEXED,
   "locale" UNINDEXED,

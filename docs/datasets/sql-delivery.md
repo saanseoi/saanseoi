@@ -41,6 +41,12 @@ repeats remote writes. Independent Address 2D database groups may execute concur
 preserving each database's order. Address3D keeps collection transaction boundaries,
 parameter limits and prepared timestamps.
 
+Address3D explicitly groups bound collections independently by database. Alternating
+history/current collection writes therefore share bounded requests while retaining each
+database's statement order. A collection is never split between requests. SQL payloads
+flush all pending bound groups as an ordering barrier; other producers retain
+adjacent-only batching unless they explicitly declare independent target writes.
+
 Recovery groups receipt lookups by target database, checking up to 99 batch indices in
 each query. Local replay verifies all required receipts before any local payload runs.
 Remote resume groups checks for previously attempted batches; new writes and ambiguous

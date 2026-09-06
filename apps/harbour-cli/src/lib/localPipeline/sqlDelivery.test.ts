@@ -9,6 +9,11 @@ import { withDeliveryLock } from './sqlDeliveryFiles.ts'
 import { prepareReleaseSqlDelivery } from './releaseSqlDelivery.ts'
 import { captureSqlDeliveryBatches } from './sqlDeliveryBatchCapture.ts'
 import { executeSqlText } from './sqlImport.ts'
+import { buildStatisticSqlBatches } from '../statisticsSql/statisticSqlReplay.ts'
+import { geometryBuildUpsertSql } from '../divisionSql/processLocalDivisionGeometrySqlUpload.ts'
+import { buildPlaceSql } from '../placeSql/processLocalPlaceSqlUploadRows.ts'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures.ts'
 import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import {
   assertSqlDeliveryPlanningAllowed,
@@ -136,6 +141,66 @@ test('bound preparation rejects invalid statement budgets before sealing', () =>
       }),
     ).rejects.toThrow('budget exceeded')
     await expect(Bun.file(join(f.directory, 'plan.json')).exists()).resolves.toBe(false)
+  }))
+
+test('independent bound targets combine alternating collections without changing either database order', () =>
+  fixture(async f => {
+    const plan = await prepareReleaseSqlDelivery({
+      directory: f.directory,
+      context: {
+        state: {
+          target: 'preview',
+          dbCacheDir: f.root,
+          bindings: {
+            DB_CURRENT: { databaseId: 'current' },
+            DB_HISTORY: { databaseId: 'history' },
+          },
+        },
+      } as unknown as LocalAddressDbContext,
+      releaseId: 'release',
+      phase: 'address3d-data',
+      inputs: { independentBoundTargets: true },
+      generate: async capture => {
+        for (let collection = 0; collection < 100; collection++) {
+          for (const databaseId of ['history', 'current']) {
+            await capture(
+              { databaseId },
+              new TextEncoder().encode(
+                JSON.stringify(
+                  Array.from({ length: 3 }, (_, index) => ({
+                    sql: 'SELECT ?',
+                    params: [collection * 3 + index],
+                  })),
+                ),
+              ),
+              'bound',
+            )
+          }
+        }
+        await capture(
+          { databaseId: 'current' },
+          new TextEncoder().encode('SELECT 999;'),
+        )
+      },
+    })
+    expect(plan.batches).toHaveLength(11)
+    expect(plan.batches.at(-1)?.kind).toBe('sql')
+    for (const databaseId of ['history', 'current']) {
+      const values: number[] = []
+      for (const batch of plan.batches.filter(
+        batch => batch.kind === 'bound' && batch.target.databaseId === databaseId,
+      )) {
+        const statements = JSON.parse(
+          await readFile(join(f.directory, batch.file), 'utf8'),
+        )
+        expect(statements.length).toBeLessThanOrEqual(64)
+        expect(statements.length % 3).toBe(0)
+        values.push(
+          ...statements.map((statement: { params: number[] }) => statement.params[0]),
+        )
+      }
+      expect(values).toEqual(Array.from({ length: 300 }, (_, index) => index))
+    }
   }))
 
 test('release capture coalesces adjacent bound collections without splitting or reordering', () =>
@@ -350,6 +415,231 @@ async function createFixture() {
       }
     },
   }
+}
+
+test('generated Places and search recover in phase order against the current schema', () =>
+  fixture(async f => {
+    const baseline = new Database(':memory:')
+    const local = new Database(f.localPath)
+    try {
+      const schema = loadMigrationSql(
+        join(import.meta.dir, '../../../../../libs/db/migrations'),
+        ['current'],
+      )
+      for (const db of [baseline, local, f.remote]) db.exec(schema)
+      const places = Array.from({ length: 30 }, (_, index) => {
+        const place = normaliseOverturePlace(
+          {
+            id: `place-${index}`,
+            names: { primary: `Recoveryshop ${index}` },
+            geometry: { type: 'Point', coordinates: [114, 22] },
+          },
+          '2026-08-19.0',
+        )
+        if (!place) throw new Error('Invalid fixture Place')
+        return {
+          place,
+          address2dId: null,
+          address3dId: null,
+          divisionIds: [],
+          versionHash: `v-${index}`,
+          sourcePayloadHash: `s-${index}`,
+        }
+      })
+      const built = await buildPlaceSql(
+        {
+          activeHistoryBindingName: 'history',
+          activeSourceBindingName: 'source',
+          sourceBindingNames: ['source'],
+          datasetId: 'places',
+          message: {
+            releaseId: 'release',
+            sourceVersion: '2026-08-19.0',
+          } as Parameters<typeof buildPlaceSql>[0]['message'],
+          snapshots: {
+            snapshotId: 'snapshot',
+            addressSnapshotId: 'address',
+            divisionSnapshotId: 'division',
+          },
+          places,
+          historyRows: [],
+        },
+        { timestamp: '2026-09-07T00:00:00Z' },
+      )
+      const dataSql = built.currentSql.join('\n')
+      const searchSql = await readFile(
+        join(
+          import.meta.dir,
+          '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
+        ),
+        'utf8',
+      )
+      baseline.exec(dataSql)
+      baseline.exec(searchSql)
+      const plan = await prepareSqlDelivery(f.directory, f.context, append =>
+        captureSqlDeliveryBatches(
+          async (_, bytes) => {
+            await append({ bindingName: 'DB_CURRENT', databaseId: 'db' }, bytes)
+          },
+          () =>
+            executeSqlText({ databaseId: 'db', name: 'current' }, dataSql, {
+              isLocal: false,
+            }),
+          10_000,
+        ),
+      )
+      expect(plan.batches.length).toBeGreaterThan(1)
+      const searchDirectory = join(f.root, 'search-delivery')
+      await prepareSqlDelivery(
+        searchDirectory,
+        { ...f.context, phase: 'search' },
+        async append => {
+          await append(
+            { bindingName: 'DB_CURRENT', databaseId: 'db' },
+            new TextEncoder().encode(searchSql),
+          )
+        },
+      )
+      f.fail('after-commit')
+      await expect(
+        runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+      ).rejects.toThrow('connection lost')
+      f.fail('none')
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+      await runSqlDelivery(searchDirectory, { ...f.options, mode: 'remote' })
+      expect(
+        f.remote
+          .query(
+            "SELECT COUNT(*) AS n FROM placesFts WHERE placesFts MATCH 'Recoveryshop'",
+          )
+          .get(),
+      ).toEqual({ n: 30 })
+      await expect(
+        runSqlDelivery(f.directory, {
+          ...f.options,
+          mode: 'local',
+          onProgress: completed => {
+            if (completed === 1) throw new Error('mirror interrupted')
+          },
+        }),
+      ).rejects.toThrow('mirror interrupted')
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+      await runSqlDelivery(searchDirectory, { ...f.options, mode: 'local' })
+      for (const table of ['places', 'placesI18n', 'placesCells', 'placesFts']) {
+        const query = `SELECT * FROM ${table} ORDER BY rowid`
+        expect(local.query(query).all()).toEqual(baseline.query(query).all())
+        expect(f.remote.query(query).all()).toEqual(baseline.query(query).all())
+      }
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+      await runSqlDelivery(searchDirectory, { ...f.options, mode: 'remote' })
+      await runSqlDelivery(searchDirectory, { ...f.options, mode: 'local' })
+      expect(f.events.filter(event => event === 'ingest')).toHaveLength(
+        plan.batches.length + 1,
+      )
+    } finally {
+      baseline.close()
+      local.close()
+    }
+  }))
+
+for (const family of ['statistics', 'geometry'] as const) {
+  test(`${family} generated SQL survives lost remote acknowledgement and interrupted mirror replay`, () =>
+    fixture(async f => {
+      const geometry = { type: 'Polygon', coordinates: ['香港;'.repeat(40_000)] }
+      const schema =
+        family === 'geometry'
+          ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
+          : `CREATE TABLE hkgovCenstatdStatistics (
+            createdAt TEXT, isCurrent INTEGER, rawProperties TEXT, releaseId TEXT,
+            sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
+            validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
+            PRIMARY KEY(sourceRecordId,versionHash));`
+      const sql =
+        family === 'geometry'
+          ? geometryBuildUpsertSql('divisionAreas', [
+              { snapshotId: 'snapshot', id: 'area', geometry },
+            ])
+          : buildStatisticSqlBatches({
+              releaseId: 'release',
+              releaseCode: 'release-code',
+              source: {
+                table: 'hkgovCenstatdStatistics',
+                rows: Array.from({ length: 40 }, (_, index) => ({
+                  createdAt: '2026-09-07',
+                  updatedAt: '2026-09-07',
+                  isCurrent: true,
+                  rawProperties: {
+                    label: `香港 O'Brien; ${index}`,
+                    value: 'x'.repeat(5000),
+                  },
+                  releaseId: 'release',
+                  sourceRecordId: `row-${index}`,
+                  sources: [],
+                  sourceGeometry: null,
+                  validFromRelease: 'release-code',
+                  validToRelease: null,
+                  version: 1,
+                  versionHash: `hash-${index}`,
+                })),
+              },
+            }).source.join('\n')
+      const query =
+        family === 'geometry'
+          ? 'SELECT * FROM divisionAreas ORDER BY id'
+          : 'SELECT * FROM hkgovCenstatdStatistics ORDER BY sourceRecordId'
+      const baseline = new Database(':memory:')
+      const local = new Database(f.localPath)
+      try {
+        for (const db of [baseline, local, f.remote]) db.exec(schema)
+        baseline.exec(sql)
+        const expected = baseline.query(query).all()
+        const plan = await prepareSqlDelivery(f.directory, f.context, append =>
+          captureSqlDeliveryBatches(
+            async (target, bytes) => {
+              if (!target.databaseId) throw new Error('Missing fixture database ID')
+              await append(
+                { bindingName: 'DB_CURRENT', databaseId: target.databaseId },
+                bytes,
+              )
+            },
+            () =>
+              executeSqlText({ databaseId: 'db', name: 'current' }, sql, {
+                isLocal: false,
+              }),
+            100_000,
+          ),
+        )
+        expect(plan.batches.length).toBeGreaterThan(1)
+        f.fail('after-commit')
+        await expect(
+          runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+        ).rejects.toThrow('connection lost')
+        f.fail('none')
+        await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+        expect(f.remote.query(query).all()).toEqual(expected)
+        expect(f.events.filter(event => event === 'ingest')).toHaveLength(
+          plan.batches.length,
+        )
+        await expect(
+          runSqlDelivery(f.directory, {
+            ...f.options,
+            mode: 'local',
+            onProgress: completed => {
+              if (completed === 1) throw new Error('mirror interrupted')
+            },
+          }),
+        ).rejects.toThrow('mirror interrupted')
+        await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+        await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+        expect(local.query(query).all()).toEqual(expected)
+        expect(f.events.filter(event => event === 'ingest')).toHaveLength(
+          plan.batches.length,
+        )
+      } finally {
+        baseline.close()
+        local.close()
+      }
+    }))
 }
 
 test('interrupted remote delivery resumes after the committed batch, then replays exactly once locally', () =>

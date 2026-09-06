@@ -211,6 +211,7 @@ export const addressRoutes = [
         const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
         const result = await searchAddresses({
           currentDb: c.var.currentDb,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,

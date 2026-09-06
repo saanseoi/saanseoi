@@ -412,6 +412,7 @@ export async function processLocalAddressSqlUpload(
           releaseId,
           phase: 'address3d-data',
           inputs: {
+            independentBoundTargets: true,
             digest: prepared3d.digest,
             snapshotId: versionInsertContext.snapshotId,
             sourceVersion: previewPlan.sourceVersion,

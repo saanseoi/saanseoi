@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+ALS Address3D delivery groups independent history, current and source writes into
+bounded requests. Each database retains generation order and each collection stays
+within one transaction. The local mirror replays the same retained statements after
+remote confirmation.
+
 ALS supplies bilingual premise addresses. The
 [import specification](../../internal/hkgov/address.md) describes source preparation,
 identity curation and ingestion. The [Addresses family](../../families/addresses.md)
@@ -79,11 +84,18 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Chuk Yuen North Estate's reviewed preferred name is `Chuk Yuen (North) Estate` /
+`竹園北邨`, following HA's estate-specific parentheses. The estate-name fixture
+preserves ALS spellings and identity while updating canonical components and display
+addresses.
+
 Reviewed nested commercial premises use `hkgov-dpo-address-nested-premises.json`. Choi
-Yuen Food Court links to Choi Yuen Plaza, which links to Choi Yuen Estate, for the July
-22 and August 2026 source records. Raw components, identities and the newer food-court
-point remain unchanged. Containment neither merges the unnamed same-CSU record nor
-assigns residential inventory to the food court.
+Yuen Food Court links to Choi Yuen Plaza, which links to Choi Yuen Estate, across all
+retained releases. `hkgov-dpo-address-premise-reconstructions.json` backfills the July
+22 location into twenty-six older representations and both July gaps, retaining the
+actual evidence date and original publisher assertions. The food court has one
+normalised identity. Containment neither merges the unnamed same-CSU record nor assigns
+residential inventory to the food court.
 
 `hkgov-dpo-address-premise-consolidations.json` guards Choi Ying Place's reviewed
 cross-CSU consolidation. One named `CHOI YING PLACE / 彩盈坊` record is retained in each

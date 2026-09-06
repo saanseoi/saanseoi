@@ -4,7 +4,38 @@ import {
   captureSqlDeliveryBytes,
   withSqlDeliveryCapture,
 } from './sqlDeliveryCapture.ts'
-import { executeSqlText } from './sqlImport.ts'
+import { executeSqlText, importSqlArtefactKeys } from './sqlImport.ts'
+
+test('division artefact imports are captured and coalesced without a transport call', async () => {
+  const captured: string[] = []
+  const artefacts = new Map([
+    ['source', 'SELECT 1;'],
+    ['history', 'SELECT 2;'],
+  ])
+  await captureSqlDeliveryBatches(
+    async (_, bytes) => {
+      captured.push(new TextDecoder().decode(bytes))
+    },
+    async () => {
+      const stats = await importSqlArtefactKeys(
+        {
+          async get(key) {
+            const sql = artefacts.get(key)
+            return sql
+              ? { arrayBuffer: async () => new TextEncoder().encode(sql).buffer }
+              : null
+          },
+        },
+        { databaseId: 'db', name: 'source' },
+        ['source', 'history'],
+        { isLocal: false, remoteImportBatchBytes: 10 },
+        async () => {},
+      )
+      expect(stats.fileCount).toBe(2)
+    },
+  )
+  expect(captured).toEqual(['SELECT 1;\nSELECT 2;\n'])
+})
 
 test('capture intercepts both SQL paths without credentials or local writes', async () => {
   const captured: string[] = []
