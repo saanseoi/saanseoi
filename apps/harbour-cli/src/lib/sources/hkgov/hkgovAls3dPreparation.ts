@@ -6,11 +6,11 @@ import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
 import { resolveAlsAddressAliases, suppressAlsAddressAliases } from './hkgovAlsAliases'
 import { applyAls3dCorrections } from './hkgovAls3dCorrections'
+import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import {
   als3dHash,
   assertAddress3dRowBudget,
   normaliseAls3dInventory,
-  readAls3dFeatures,
   type Als3dLocale,
 } from './hkgovAls3d'
 
@@ -113,7 +113,11 @@ export async function prepareAls3dCollections(options: {
   try {
     // First pass establishes all source references and checks that repeated
     // physical-building inventories cannot escape into separate collections.
-    for await (const { feature, featureIndexOneBased } of readAls3dFeatures(file)) {
+    for await (const {
+      feature,
+      featureIndexOneBased,
+      backfill,
+    } of readAls3dWithBackfills(file, options.sourceVersion, options.rows)) {
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
       const zh = p.ChiPremisesAddress ?? {}
@@ -122,21 +126,36 @@ export async function prepareAls3dCollections(options: {
       sourceOccurrences.set(key, occurrence)
       const sourceRecordId = buildDeterministicUuidV5(
         SOURCE_NAMESPACE,
-        JSON.stringify([key, occurrence]),
+        JSON.stringify(backfill ? [key, occurrence, backfill.id] : [key, occurrence]),
       )
       const { corrections } = applyAls3dCorrections(feature, options.sourceVersion)
       const source = {
         kind: 'source' as const,
         sourceRecordId,
-        versionHash: als3dHash(corrections.length ? { feature, corrections } : feature),
+        versionHash: als3dHash(
+          backfill
+            ? { feature, backfill }
+            : corrections.length
+              ? { feature, corrections }
+              : feature,
+        ),
         rawProperties: feature,
         sources: [
           {
             dataset: 'hkgov-dpo-als-3d',
             sourceFile: basename(file),
             featureIndexOneBased,
-            sourceVersion: options.sourceVersion,
+            sourceVersion: backfill?.evidenceSourceVersion ?? options.sourceVersion,
           },
+          ...(backfill
+            ? [
+                {
+                  dataset: 'saanseoi-address3d-backfill',
+                  sourceFile: 'hkgov-dpo-address-3d-backfills.json',
+                  ...backfill,
+                },
+              ]
+            : []),
           ...corrections.map(correction => ({
             dataset: 'saanseoi-address3d-correction',
             fixtureVersion: 1,
@@ -173,7 +192,11 @@ export async function prepareAls3dCollections(options: {
       physicalOwners.set(physicalKey, owner)
       ownerSources.set(owner, [...(ownerSources.get(owner) ?? []), sourceRecordId])
     }
-    for await (const { feature } of readAls3dFeatures(file)) {
+    for await (const { feature } of readAls3dWithBackfills(
+      file,
+      options.sourceVersion,
+      options.rows,
+    )) {
       const p = feature.properties.Address.PremisesAddress
       if (
         !(
