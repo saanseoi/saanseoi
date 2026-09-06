@@ -72,10 +72,27 @@ checks all release guards and prepares the earliest and latest real inventories,
 requiring two collections, 808 distinct unit IDs and two unresolved children per owner.
 
 The ledger's `reviewedHierarchyDecisions` retains this limited approval when rebuilt.
+Lei Tim's three missing second-floor flats (207, 217 and 219) are reviewed as a
+publisher omission. The inventory-correction fixture backfills them into the nine
+retained releases from July through October 2024, giving 720 curated units in each. The
+original bilingual 717-unit assertions remain unchanged and the collection's source
+reference also records the correction decision. November 2024 supplies the corroborating
+720-unit inventory. This is a user-reviewed historical correction, not a publisher claim
+about the earlier dates.
+
+Decisions live in
+[`hkgov-dpo-address-hierarchies.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
+for containment and
+[`hkgov-dpo-address-3d-corrections.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json)
+for inventory corrections. The generated ledger includes `reviewedInventoryCorrections`
+and preserves its raw publisher timeline. `bun scripts/verify-lei-tim-address3d.ts`
+checks the nine corrected deliveries against November, including raw-source preservation
+and persisted correction provenance. Rules affect preparation; existing published
+snapshots are not rewritten by editing a fixture.
+
 The estate remains pending for its other baseline premises and chronological changes:
-Lei Tim's November 2024 inventory increase from 717 to 720, the February 2025 empty
-unnamed assertion, April 2026 component changes, and July 2026 empty-assertion
-replacement.
+the February 2025 empty unnamed assertion, April 2026 component changes, and July 2026
+empty-assertion replacement.
 
 ## Model Housing Estate
 
