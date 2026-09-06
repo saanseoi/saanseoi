@@ -1,6 +1,7 @@
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
   replayRemoteCacheWithRetry,
@@ -26,6 +27,7 @@ export async function replayGeometryIntoRemote(
   snapshotId: string,
   skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
+  preparedSha256: string,
 ) {
   const targetName = target.environment === 'production' ? 'production' : 'preview'
   const metaBindingName = 'DB_META'
@@ -134,10 +136,17 @@ export async function replayGeometryIntoRemote(
   ]
 
   try {
-    await replayRemoteCacheWithRetry(
-      targetName,
-      context.state.dbCacheDir,
-      releaseId,
+    await deliverSqlPhase(
+      {
+        context,
+        releaseId,
+        phase: `division-geometry-${plan.type.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
+          plan.transform ?? 'exact',
+        )
+          .replace(/[^a-z0-9-]/gi, '-')
+          .toLowerCase()}`,
+        inputs: { preparedSha256, snapshotId, sourceVersion: plan.sourceVersion },
+      },
       async () => {
         // A OperationProgress instance owns one in-place terminal row. Keep
         // remote table phases sequential so concurrent imports cannot leave
