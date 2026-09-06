@@ -1,4 +1,4 @@
-import { TileType } from 'pmtiles'
+import { ResolvedValueCache, TileType } from 'pmtiles'
 import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
   boundary_name,
@@ -55,6 +55,20 @@ export const isLatestRequest = (
   renderLatest: boolean,
   archiveVersion: string | null,
 ): boolean => (name.endsWith('-latest') && !archiveVersion) || renderLatest
+
+export function archiveVersionForRequest(
+  name: string,
+  tile: [number, number, number] | undefined,
+  currentArchiveVersion: string | undefined,
+  requestedArchiveVersion: string | null,
+) {
+  return (
+    currentArchiveVersion ??
+    (tile && name.endsWith('-latest')
+      ? (requestedArchiveVersion ?? undefined)
+      : undefined)
+  )
+}
 
 const accessResponse = (
   body: BodyInit | null,
@@ -251,8 +265,23 @@ export default {
         name.endsWith('-latest') && !tile
           ? await env.BUCKET.head(archiveKey)
           : undefined
-      const archiveVersion = latestArchive?.httpEtag ?? latestArchive?.etag
-      const pmtiles = openPmtiles(env, archiveKey, archiveVersion)
+      const archiveVersion = archiveVersionForRequest(
+        name,
+        tile,
+        latestArchive?.httpEtag ?? latestArchive?.etag,
+        url.searchParams.get('v'),
+      )
+      // An unversioned `-latest` tile deliberately bypasses the edge cache. It
+      // must also bypass the process-wide PMTiles header/directory cache:
+      // otherwise an empty tile or a newly added zoom level can remain hidden
+      // until the worker cache evicts the old archive metadata. Versioned tile
+      // URLs use the archive ETag in the normal shared cache key.
+      const pmtiles = openPmtiles(
+        env,
+        archiveKey,
+        archiveVersion,
+        latestRequest && !archiveVersion ? new ResolvedValueCache() : undefined,
+      )
       const header = await pmtiles.getHeader()
 
       if (!tile) {
