@@ -168,13 +168,9 @@ export class UpdateRow {
         this.progress.finish(message)
       }
     } else if (status === 'error') {
-      log.error(message, { spacing: 0, withGuide: false })
+      log.error(message, { spacing: 0, withGuide: true })
     } else {
-      // A completed download stops the spinner before any remaining release
-      // rows are rendered. Restart it so those rows retain the same Clack
-      // status prefix and version-column alignment as the download row.
-      this.progress.beginPhase(message, {})
-      this.progress.finish(message)
+      this.progress.writeResult(message)
     }
     this.active = false
   }

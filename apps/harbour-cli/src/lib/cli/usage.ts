@@ -2,6 +2,8 @@ import { resourceThemes, resourceTypes } from '@repo/core'
 
 export function printUsage() {
   console.log(`  Usage:
+  saanseoi sql:status --plan PATH --target preview|production
+  saanseoi sql:resume --plan PATH --target preview|production [--mode remote|local|both]
   saanseoi cache:gers [--source-root PATH] [--cache-file PATH] [--refresh] [--require-gers]
   saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry|places] [--cohort-key YYYY]
   saanseoi cache:seed-reset --target preview|production

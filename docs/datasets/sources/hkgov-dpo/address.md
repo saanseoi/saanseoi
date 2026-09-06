@@ -20,6 +20,11 @@ manual overrides and how changed evidence reopens review.
 
 ## SQL delivery
 
+ALS retains separate sealed delivery plans for Address 2D SQL and grouped Address3D
+bound batches. Source checksums bind these plans to their preparation; local replay uses
+the exact remote payloads and timestamps. Database receipts allow recovery after a lost
+acknowledgement. See [resumable SQL delivery](../../sql-delivery.md).
+
 The local D1 mirror supplies the identity and version context for ALS SQL preparation.
 Source, history and current artefacts retain that resolved context for remote import and
 local replay. Each history/current stage builds only its target's SQL. Insert batching
@@ -68,12 +73,19 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Explicit whole-inventory omissions use `hkgov-dpo-address-3d-backfills.json`. Ching Sum
+House's June 2025 gap receives 949 units corroborated by identical May and August
+inventories. The June bilingual parent must match the evidence premise, and the source
+CSU must be absent from that 3D delivery. Cross-release evidence retains its actual date
+and separate curation provenance; raw deliveries remain unchanged.
+
 Reviewed duplicate address descriptions are stored in `hkgov-dpo-address-aliases.json`.
-Cheung Lai House's Block 6 duplicate is suppressed after the shared inventory passes
-validation, leaving the named building as its sole canonical owner. Both raw 3D
-assertions and the suppressed 2D source components remain traceable. Matching CSU alone
-never authorises suppression; the bilingual components must match after removal of the
-explicitly reviewed block alias, with equal coordinates.
+The ten reviewed Cheung Wah Estate block-number duplicates are suppressed across the 30
+retained releases after their shared inventories pass validation, leaving ten named
+buildings as canonical owners of 5,120 units. All twenty raw 3D assertions and the
+suppressed 2D source components remain traceable. Matching CSU alone never authorises
+suppression; the bilingual components must match after removal of the explicitly
+reviewed block alias, with equal coordinates.
 
 The historical review policy automatically accepts exact same-floor A/B/C-to-base unit
 mergers when both languages and unchanged premise components agree. Accepted events

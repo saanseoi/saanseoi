@@ -20,11 +20,13 @@ import {
   REMOTE_CACHE_PARTIAL_DIR,
 } from './localDbCacheConfig.ts'
 import { hasExpectedTables } from './localDbCacheProfiles.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
 
 export async function ensureRemoteCachePaths(
   target: 'preview' | 'production',
   targets: D1TargetRecord[],
   options: {
+    resumeSqlDeliveryReleaseId?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
     requireExistingRemoteCache?: boolean
     refreshRemoteCache?: boolean
@@ -34,6 +36,7 @@ export async function ensureRemoteCachePaths(
   } = {},
 ) {
   const cacheDir = resolveRemoteCacheDir(target, options.remoteCacheScopeKey)
+  await assertSqlDeliveryPlanningAllowed(cacheDir, options.resumeSqlDeliveryReleaseId)
   const manifestPath = join(cacheDir, 'manifest.json')
   const invalidatedManifestPath = join(cacheDir, 'invalidated.json')
   const invalidatedManifest = await readInvalidatedManifest(invalidatedManifestPath)

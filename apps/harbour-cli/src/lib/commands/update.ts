@@ -24,7 +24,7 @@ import {
   dim,
   familyLabel,
   formatPublishedSourceRelease,
-  wrapUpdateMessage,
+  formatUpdateErrorSummary,
 } from './updateFormatting.ts'
 import type {
   DatasetUpdate,
@@ -246,14 +246,9 @@ export async function runUpdateCommand(
     }
   }
   if (errors.length > 0) {
-    log.error(
-      ['Update errors:', ...errors.flatMap(error => wrapUpdateMessage(error))].join(
-        '\n',
-      ),
-      {
-        spacing: 1,
-      },
-    )
+    log.error(formatUpdateErrorSummary(errors, datasets), {
+      spacing: 1,
+    })
   }
   await writeScheduledUpdateSummary({
     added: [...added.values()].map(({ dataset, version }) => ({

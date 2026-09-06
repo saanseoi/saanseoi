@@ -5,10 +5,12 @@ Overture release is processed as a complete replacement snapshot and includes th
 publisher source record in the source database.
 
 SQL generation uses the local D1 mirror as its planning context. Remote imports combine
-statements into payloads of up to 16 MiB within each generated row batch, while each
+statements into payloads of up to 64 MiB within each generated row batch, while each
 statement retains a 90,000-byte ceiling. Source, history, current and version-change
-writes retain their dependency order; local replay uses the same SQL with smaller
-execution batches. Oversized individual statements stop delivery.
+writes retain their dependency order. Oversized individual statements stop delivery.
+Sealed [delivery plans and receipts](../sql-delivery.md) let remote delivery and local
+replay recover independently. Local replay commits each payload and receipt in one
+transaction.
 
 Places has three required reference members:
 

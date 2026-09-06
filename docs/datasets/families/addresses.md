@@ -6,6 +6,10 @@ SQL artefact. Insert statements are bounded by escaped UTF-8 bytes, with oversiz
 individual rows rejected during generation. Remote delivery and local cache replay apply
 the generated artefacts in their required dependency order.
 
+Address 2D SQL and grouped Address3D bound batches use sealed
+[delivery plans and receipts](../sql-delivery.md), with independent remote delivery and
+local replay checkpoints. Recovery uses the original payloads and prepared timestamps.
+
 The default Address API domain is `saanseoi`, SaanSeoi's curated Hong Kong address
 collection. It requires the authoritative ALS `address/default` member and includes the
 accepted Overture Places `address/overture-places` member when available. Supplementary
@@ -79,10 +83,16 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
-A reviewed block-number alias need not become a separate address or section. Cheung Lai
-House retains one named building and one unit inventory; its suppressed Block 6
-description remains source evidence. This differs from identified High/Low sections,
-which retain separate section records.
+A reviewed missing inventory can be backfilled without changing the dated Address2D.
+Ching Sum House's June 2025 correction restores 949 units from matching bracketing
+inventories, retaining explicit cross-release provenance and unchanged publisher files.
+This approval is specific to the reviewed omission, not a general backfill policy.
+
+Cheung Wah Estate retains ten named buildings and 5,120 units, suppressing their ten
+reviewed block-number duplicates while preserving source evidence. A block-number alias
+does not imply a separate section. Matching block numbers across buildings do not
+establish equivalence. This differs from identified High/Low sections, which retain
+separate section records.
 
 Reviewed unit mergers preserve historical membership: predecessor units remain in
 earlier snapshots and the merged successor has its own unit ID. The ALS review can

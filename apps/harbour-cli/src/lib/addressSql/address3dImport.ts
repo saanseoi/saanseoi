@@ -127,6 +127,13 @@ export async function createAddress3dExecutor(
       if (statement.params.length > 100 || Buffer.byteLength(statement.sql) > 100_000)
         throw new Error('D1 statement budget exceeded')
     }
+    if (
+      options.captureQueries &&
+      statements.every(statement => !/^\s*SELECT\b/i.test(statement.sql))
+    ) {
+      await options.captureQueries(context, statements)
+      return []
+    }
     if (options.isLocal) {
       const binding = context.binding
       if (!binding?.prepare) throw new Error(`Missing ${target} D1 binding`)
@@ -297,13 +304,14 @@ export async function importAddress3dCollections(args: {
   snapshotId: string
   releaseId: string
   expectedDigest: string
+  timestamp?: string
   priorMembership: Array<{ recordType: string; recordId: string; locale: string }>
   execute: Awaited<ReturnType<typeof createAddress3dExecutor>>
 }) {
   const validated = await validateAddress3dPreparation(args.path, args.sourceVersion)
   if (validated.digest !== args.expectedDigest)
     throw new Error('Address3D preparation changed after validation')
-  const now = new Date().toISOString()
+  const now = args.timestamp ?? new Date().toISOString()
   // The snapshot is still draft; retries replace its complete collection set.
   await args.execute('current', [
     {

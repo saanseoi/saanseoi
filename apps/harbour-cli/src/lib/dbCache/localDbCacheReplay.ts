@@ -1,4 +1,4 @@
-import { mkdir, writeFile, rm } from 'node:fs/promises'
+import { mkdir, mkdtemp, writeFile, rm, rename } from 'node:fs/promises'
 import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
@@ -13,6 +13,7 @@ import {
 import { exportRemoteDatabase, importDatabaseDumpsToSqlite } from './localDbCacheIo.ts'
 import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts'
 import type { RemoteCacheReplayJournal } from './localDbCacheTypes.ts'
+import { readPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
 
 export async function refreshRemoteMetaCache(
   target: 'preview' | 'production',
@@ -26,19 +27,25 @@ export async function refreshRemoteMetaCache(
     throw new Error(`Could not resolve DB_META for ${target}.`)
   }
 
-  const workDir = resolve(CACHE_ROOT, `.refresh-meta-${target}`)
+  await mkdir(CACHE_ROOT, { recursive: true })
+  const workDir = await mkdtemp(resolve(CACHE_ROOT, `.refresh-meta-${target}-`))
   const dumpPath = resolve(workDir, 'DB_META.sql')
   const destinationPath = resolve(cacheDir, 'DB_META.sqlite')
-
-  await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
-  await mkdir(workDir, { recursive: true })
+  const refreshedPath = resolve(workDir, 'DB_META.sqlite')
 
   try {
     await retryRemoteCacheExport(() =>
       exportRemoteDatabase(targetRecord, target, dumpPath),
     )
-    await importDatabaseDumpsToSqlite([dumpPath], destinationPath)
-    await assertCachedDatabaseHasExpectedTables(destinationPath, 'DB_META')
+    await importDatabaseDumpsToSqlite([dumpPath], refreshedPath)
+    await assertCachedDatabaseHasExpectedTables(refreshedPath, 'DB_META')
+    const refreshed = new SQLiteDatabase(refreshedPath)
+    try {
+      refreshed.exec('PRAGMA wal_checkpoint(TRUNCATE);')
+    } finally {
+      refreshed.close()
+    }
+    await rename(refreshedPath, destinationPath)
   } finally {
     await rm(workDir, { force: true, recursive: true }).catch(() => undefined)
   }
@@ -272,6 +279,11 @@ export async function replayRemoteCacheWithRetry(
   }
 
   const reason = lastError instanceof Error ? lastError.message : String(lastError)
+  if (await readPendingSqlDelivery(cacheDir)) {
+    throw new Error(
+      `Local SQL replay failed; the retained delivery and mirror are available for sql:resume. ${reason}`,
+    )
+  }
   await invalidateRemoteDbCache(target, cacheDir, reason)
   throw new Error(
     `Updating the ${target} local cache failed after ${REMOTE_CACHE_REPLAY_RETRY_LIMIT} idempotent replay attempts. The cache was invalidated. ${reason}`,

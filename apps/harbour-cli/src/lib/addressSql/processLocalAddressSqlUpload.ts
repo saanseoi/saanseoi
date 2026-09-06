@@ -29,6 +29,9 @@ import {
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
   importAddressSqlArtefactsAndPublish,
+  importAddressSqlArtefacts,
+  completeAddressSqlGenerationPhases,
+  publishImportedAddressSqlRelease,
   type AddressSqlImportStageOptions,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import {
@@ -81,6 +84,13 @@ import {
   writeAddressCurrentLookupCache,
 } from './addressCurrentLookupCache.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
+import {
+  prepareReleaseSqlDelivery,
+  executeReleaseSqlDelivery,
+  readDeliveryPlan,
+} from '../localPipeline/releaseSqlDelivery.ts'
+import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
+import { runReportedSqlImportPhase } from '../localPipeline/sqlImport.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
 import {
@@ -90,7 +100,6 @@ import {
   buildHistoricalAddressMatchKeyLookup,
   normaliseError,
   refreshRemoteMetaCacheAfterReplay,
-  replayAddressSqlIntoRemoteCache,
   requireString,
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,
@@ -156,6 +165,24 @@ export async function processLocalAddressSqlUpload(
   )
 
   await mkdir(releaseRoot, { recursive: true })
+  const deliveryDirectory = resolve(releaseRoot, 'sql-delivery-address')
+  const retainedDelivery = target.remote
+    ? await readDeliveryPlan(deliveryDirectory)
+    : null
+  const preparedSha256 = target.remote
+    ? await fileSha256(preparedUpload.filePath)
+    : undefined
+  if (
+    retainedDelivery &&
+    (retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
+      retainedDelivery.context.inputs.address3dSha256 !==
+        (prepared3d?.digest ?? null) ||
+      retainedDelivery.context.releaseId !== releaseId)
+  ) {
+    throw new Error(
+      'Prepared ALS data does not match the retained SQL delivery. Resume its exact plan with sql:resume.',
+    )
+  }
 
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
@@ -173,6 +200,7 @@ export async function processLocalAddressSqlUpload(
       previewPlan.regionCode,
       shardYear,
       {
+        resumeSqlDeliveryReleaseId: releaseId,
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -200,6 +228,7 @@ export async function processLocalAddressSqlUpload(
       ),
     )
   }
+  const mirrorPreparationMs = Date.now() - dbCacheStartedAt
   await syncStagedReleaseIntoLocalMetaCache(
     dbContext.metaDb,
     {
@@ -275,7 +304,12 @@ export async function processLocalAddressSqlUpload(
   }
 
   assertRemoteAddressImportPrerequisites(target, dbContext, importOptions)
-  const processingRunStartedAt = new Date().toISOString()
+  const processingRunStartedAt = retainedDelivery
+    ? String(
+        (retainedDelivery.context.inputs.message as AddressPipelineMessage)
+          .processingRunStartedAt,
+      )
+    : new Date().toISOString()
   let shouldRefreshRemoteMetaCache = false
   let postPublishCacheError: Error | null = null
   let publishResult: PublishDatasetResult | void | null = null
@@ -353,18 +387,56 @@ export async function processLocalAddressSqlUpload(
         : []
     const import3d = async (writeOptions: AddressSqlImportStageOptions) => {
       if (!prepared3d) return
-      await importAddress3dCollections({
-        path: address3dPath,
-        sourceVersion: previewPlan.sourceVersion,
-        snapshotId: versionInsertContext.snapshotId,
-        releaseId,
-        expectedDigest: prepared3d.digest,
-        priorMembership: prior3d,
-        execute: await createAddress3dExecutor(
-          dbContext.metaDb,
-          initialMessage,
-          writeOptions,
-        ),
+      const generate3d = async (executionOptions: AddressSqlImportStageOptions) => {
+        await importAddress3dCollections({
+          path: address3dPath,
+          sourceVersion: previewPlan.sourceVersion,
+          snapshotId: versionInsertContext.snapshotId,
+          releaseId,
+          expectedDigest: prepared3d.digest,
+          timestamp: processingRunStartedAt,
+          priorMembership: prior3d,
+          execute: await createAddress3dExecutor(
+            dbContext.metaDb,
+            initialMessage,
+            executionOptions,
+          ),
+        })
+      }
+      if (!target.remote) return generate3d(writeOptions)
+      const directory = resolve(releaseRoot, 'sql-delivery-address3d')
+      if (!writeOptions.isLocal) {
+        await prepareReleaseSqlDelivery({
+          directory,
+          context: dbContext,
+          releaseId,
+          phase: 'address3d-data',
+          inputs: {
+            digest: prepared3d.digest,
+            snapshotId: versionInsertContext.snapshotId,
+            sourceVersion: previewPlan.sourceVersion,
+          },
+          generate: capture =>
+            generate3d({
+              ...writeOptions,
+              captureQueries: (target, statements) =>
+                capture(
+                  target,
+                  new TextEncoder().encode(JSON.stringify(statements)),
+                  'bound',
+                ),
+            }),
+        })
+      }
+      await executeReleaseSqlDelivery({
+        directory,
+        context: dbContext,
+        ...importOptions,
+        mode: writeOptions.isLocal ? 'local' : 'remote',
+        onProgress: (completed, total) =>
+          progress.message(
+            `Address3D ${writeOptions.isLocal ? 'replay' : 'delivery'}: ${completed}/${total} batches`,
+          ),
       })
     }
     importOptions.beforePublish = () => import3d(importOptions)
@@ -408,211 +480,212 @@ export async function processLocalAddressSqlUpload(
             previewPlan.regionCode,
           )
         : null
-    const chunkMessages: AddressPipelineMessage[] = buildChunkRanges(
-      previewPlan.rowCount,
-      ADDRESS_CHUNK_SIZE,
-    ).map(
-      range =>
-        ({
-          addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
-          addressHistoricalParentSnapshotId: historicalParentVersions
-            ? (versionInsertContext.parentSnapshotId ?? undefined)
-            : undefined,
-          addressHistoricalParentVersions: historicalParentVersions,
-          ...initialMessage,
-          addressStage: 'normalise',
-          chunkSize: ADDRESS_CHUNK_SIZE,
-          processingRunStartedAt,
-          rowStart: range.rowStart,
-          rowEnd: range.rowEnd,
-          totalRows: previewPlan.rowCount,
-        }) satisfies AddressPipelineMessage,
-    )
+    const finalMessageWithMeta = retainedDelivery
+      ? (retainedDelivery.context.inputs.message as AddressPipelineMessage)
+      : await (async () => {
+          const chunkMessages: AddressPipelineMessage[] = buildChunkRanges(
+            previewPlan.rowCount,
+            ADDRESS_CHUNK_SIZE,
+          ).map(
+            range =>
+              ({
+                addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
+                addressHistoricalParentSnapshotId: historicalParentVersions
+                  ? (versionInsertContext.parentSnapshotId ?? undefined)
+                  : undefined,
+                addressHistoricalParentVersions: historicalParentVersions,
+                ...initialMessage,
+                addressStage: 'normalise',
+                chunkSize: ADDRESS_CHUNK_SIZE,
+                processingRunStartedAt,
+                rowStart: range.rowStart,
+                rowEnd: range.rowEnd,
+                totalRows: previewPlan.rowCount,
+              }) satisfies AddressPipelineMessage,
+          )
 
-    const normalisedMessages = await runLocalGenerationPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Normalise'),
-          colorTeal('records'),
-          previewPlan.rowCount,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Normalise'),
-          colorTeal('records'),
-          0,
-          previewPlan.rowCount,
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Normalise'),
-            colorTeal('records'),
-            current,
-            previewPlan.rowCount,
+          const normalisedMessages = await runLocalGenerationPhase(
+            progress,
+            harbourClient,
+            {
+              completionLabel: formatCompletedPhaseLabel(
+                colorTeal('Normalise'),
+                colorTeal('records'),
+                previewPlan.rowCount,
+              ),
+              label: formatRunningPhaseLabel(
+                colorTeal('Normalise'),
+                colorTeal('records'),
+                0,
+                previewPlan.rowCount,
+              ),
+              labelForProgress(current: number) {
+                return formatRunningPhaseLabel(
+                  colorTeal('Normalise'),
+                  colorTeal('records'),
+                  current,
+                  previewPlan.rowCount,
+                )
+              },
+              phase: 'normaliseAddressSql',
+              releaseCode,
+              releaseId,
+              totalUnits: previewPlan.rowCount,
+              unitsForMessage(message) {
+                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
+              },
+            },
+            chunkMessages,
+            GENERATION_CONCURRENCY,
+            message =>
+              normaliseAddressSqlChunkStage(
+                dbContext.metaDb,
+                dbContext.currentDb,
+                bucket,
+                message,
+              ),
           )
-        },
-        phase: 'normaliseAddressSql',
-        releaseCode,
-        releaseId,
-        totalUnits: previewPlan.rowCount,
-        unitsForMessage(message) {
-          return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-        },
-      },
-      chunkMessages,
-      GENERATION_CONCURRENCY,
-      message =>
-        normaliseAddressSqlChunkStage(
-          dbContext.metaDb,
-          dbContext.currentDb,
-          bucket,
-          message,
-        ),
-    )
-    const sourceMessages = await runLocalGenerationPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('source'),
-          previewPlan.rowCount,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('source'),
-          0,
-          previewPlan.rowCount,
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Generate SQL'),
-            colorRed('source'),
-            current,
-            previewPlan.rowCount,
+          const sourceMessages = await runLocalGenerationPhase(
+            progress,
+            harbourClient,
+            {
+              completionLabel: formatCompletedPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('source'),
+                previewPlan.rowCount,
+              ),
+              label: formatRunningPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('source'),
+                0,
+                previewPlan.rowCount,
+              ),
+              labelForProgress(current: number) {
+                return formatRunningPhaseLabel(
+                  colorTeal('Generate SQL'),
+                  colorRed('source'),
+                  current,
+                  previewPlan.rowCount,
+                )
+              },
+              phase: 'generateAddressSqlSource',
+              releaseCode,
+              releaseId,
+              totalUnits: previewPlan.rowCount,
+              unitsForMessage(message) {
+                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
+              },
+            },
+            normalisedMessages,
+            GENERATION_CONCURRENCY,
+            message =>
+              writeAddressSourceSqlChunkStage(dbContext.sourceDb, bucket, message),
           )
-        },
-        phase: 'generateAddressSqlSource',
-        releaseCode,
-        releaseId,
-        totalUnits: previewPlan.rowCount,
-        unitsForMessage(message) {
-          return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-        },
-      },
-      normalisedMessages,
-      GENERATION_CONCURRENCY,
-      message => writeAddressSourceSqlChunkStage(dbContext.sourceDb, bucket, message),
-    )
-    const historyMessages = await runLocalGenerationPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('history'),
-          previewPlan.rowCount,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('history'),
-          0,
-          previewPlan.rowCount,
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Generate SQL'),
-            colorRed('history'),
-            current,
-            previewPlan.rowCount,
+          const historyMessages = await runLocalGenerationPhase(
+            progress,
+            harbourClient,
+            {
+              completionLabel: formatCompletedPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('history'),
+                previewPlan.rowCount,
+              ),
+              label: formatRunningPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('history'),
+                0,
+                previewPlan.rowCount,
+              ),
+              labelForProgress(current: number) {
+                return formatRunningPhaseLabel(
+                  colorTeal('Generate SQL'),
+                  colorRed('history'),
+                  current,
+                  previewPlan.rowCount,
+                )
+              },
+              phase: 'generateAddressSqlHistory',
+              releaseCode,
+              releaseId,
+              totalUnits: previewPlan.rowCount,
+              unitsForMessage(message) {
+                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
+              },
+            },
+            sourceMessages,
+            GENERATION_CONCURRENCY,
+            message =>
+              writeAddressHistorySqlChunkStage(
+                dbContext.metaDb,
+                dbContext.historyDb,
+                bucket,
+                message,
+                {
+                  previousHistoryDbs: dbContext.historyTargets
+                    .filter(targetContext => targetContext.db !== dbContext.historyDb)
+                    .map(targetContext => targetContext.db as HistoryDatabase),
+                },
+              ),
           )
-        },
-        phase: 'generateAddressSqlHistory',
-        releaseCode,
-        releaseId,
-        totalUnits: previewPlan.rowCount,
-        unitsForMessage(message) {
-          return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-        },
-      },
-      sourceMessages,
-      GENERATION_CONCURRENCY,
-      message =>
-        writeAddressHistorySqlChunkStage(
-          dbContext.metaDb,
-          dbContext.historyDb,
-          bucket,
-          message,
-          {
-            previousHistoryDbs: dbContext.historyTargets
-              .filter(targetContext => targetContext.db !== dbContext.historyDb)
-              .map(targetContext => targetContext.db as HistoryDatabase),
-          },
-        ),
-    )
-    const currentMessages = await runLocalGenerationPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('current'),
-          previewPlan.rowCount,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('current'),
-          0,
-          previewPlan.rowCount,
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Generate SQL'),
-            colorRed('current'),
-            current,
-            previewPlan.rowCount,
+          const currentMessages = await runLocalGenerationPhase(
+            progress,
+            harbourClient,
+            {
+              completionLabel: formatCompletedPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('current'),
+                previewPlan.rowCount,
+              ),
+              label: formatRunningPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('current'),
+                0,
+                previewPlan.rowCount,
+              ),
+              labelForProgress(current: number) {
+                return formatRunningPhaseLabel(
+                  colorTeal('Generate SQL'),
+                  colorRed('current'),
+                  current,
+                  previewPlan.rowCount,
+                )
+              },
+              phase: 'generateAddressSqlCurrent',
+              releaseCode,
+              releaseId,
+              totalUnits: previewPlan.rowCount,
+              unitsForMessage(message) {
+                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
+              },
+            },
+            historyMessages,
+            GENERATION_CONCURRENCY,
+            message =>
+              writeAddressCurrentSqlChunkStage(
+                dbContext.metaDb,
+                dbContext.currentDb,
+                bucket,
+                message,
+              ),
           )
-        },
-        phase: 'generateAddressSqlCurrent',
-        releaseCode,
-        releaseId,
-        totalUnits: previewPlan.rowCount,
-        unitsForMessage(message) {
-          return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-        },
-      },
-      historyMessages,
-      GENERATION_CONCURRENCY,
-      message =>
-        writeAddressCurrentSqlChunkStage(
-          dbContext.metaDb,
-          dbContext.currentDb,
-          bucket,
-          message,
-        ),
-    )
 
-    const finalMessage = buildFinalImportMessage(
-      initialMessage,
-      processingRunStartedAt,
-      currentMessages,
-      previewPlan.rowCount,
-    )
-    const addressStats = addAddressPipelineStats(
-      EMPTY_ADDRESS_PIPELINE_STATS,
-      finalMessage.addressStats ?? {},
-    )
-    await replaceDatasetStats(
-      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      releaseId,
-      buildAddressReleaseStatsRows({ ...addressStats, quality: options.quality }),
-    )
-    const finalMessageWithMeta = await writeAddressReleaseMetaSqlFile(
-      dbContext.metaDb,
-      bucket,
-      finalMessage,
-    )
+          const finalMessage = buildFinalImportMessage(
+            initialMessage,
+            processingRunStartedAt,
+            currentMessages,
+            previewPlan.rowCount,
+          )
+          const addressStats = addAddressPipelineStats(
+            EMPTY_ADDRESS_PIPELINE_STATS,
+            finalMessage.addressStats ?? {},
+          )
+          await replaceDatasetStats(
+            dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+            releaseId,
+            buildAddressReleaseStatsRows({ ...addressStats, quality: options.quality }),
+          )
+          return writeAddressReleaseMetaSqlFile(dbContext.metaDb, bucket, finalMessage)
+        })()
     const importProgressClient = createLocalImportProgressClient(
       harbourClient,
       progress,
@@ -621,23 +694,88 @@ export async function processLocalAddressSqlUpload(
       ),
     )
 
-    publishResult = await importAddressSqlArtefactsAndPublish(
-      importProgressClient,
-      dbContext.metaDb,
-      bucket,
-      finalMessageWithMeta,
-      importOptions,
-      { deferApiReleaseSet: options.deferApiReleaseSet },
-    )
+    if (target.remote) {
+      const noopClient = {
+        async publishDataset() {},
+        async stageRunning() {},
+        async stageCompleted() {},
+        async stageFailed() {},
+      }
+      await prepareReleaseSqlDelivery({
+        directory: deliveryDirectory,
+        context: dbContext,
+        releaseId,
+        phase: 'address-data',
+        inputs: retainedDelivery?.context.inputs ?? {
+          parallelTargets: true,
+          preparedSha256,
+          address3dSha256: prepared3d?.digest ?? null,
+          message: finalMessageWithMeta,
+        },
+        timings: {
+          mirrorPreparationMs,
+          sqlGenerationMs: Date.now() - Date.parse(processingRunStartedAt),
+        },
+        generate: captureSql =>
+          importAddressSqlArtefacts(
+            noopClient,
+            dbContext.metaDb,
+            bucket,
+            finalMessageWithMeta,
+            { ...importOptions, captureSql },
+          ),
+      })
+      await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
+      await runReportedSqlImportPhase(
+        harbourClient,
+        releaseId,
+        releaseCode,
+        'deliverAddressSql',
+        report =>
+          executeReleaseSqlDelivery({
+            directory: deliveryDirectory,
+            context: dbContext,
+            ...importOptions,
+            mode: 'remote',
+            onProgress: (completed, total) => {
+              progress.message(`Deliver SQL: ${completed}/${total} batches`)
+              return report({ processedFiles: completed, totalFiles: total })
+            },
+          }),
+      )
+      await import3d(importOptions)
+      publishResult = await publishImportedAddressSqlRelease(
+        importProgressClient,
+        finalMessageWithMeta,
+        { deferApiReleaseSet: options.deferApiReleaseSet },
+      )
+    } else
+      publishResult = await importAddressSqlArtefactsAndPublish(
+        importProgressClient,
+        dbContext.metaDb,
+        bucket,
+        finalMessageWithMeta,
+        importOptions,
+        { deferApiReleaseSet: options.deferApiReleaseSet },
+      )
     if (target.remote) {
       try {
-        shouldRefreshRemoteMetaCache = await replayAddressSqlIntoRemoteCache(
-          target,
-          dbContext,
-          bucket,
-          finalMessageWithMeta,
-          importOptions,
+        await runReportedSqlImportPhase(
+          harbourClient,
+          releaseId,
+          releaseCode,
+          'replayAddressSql',
+          () =>
+            executeReleaseSqlDelivery({
+              directory: deliveryDirectory,
+              context: dbContext,
+              ...importOptions,
+              mode: 'local',
+              onProgress: (completed, total) =>
+                progress.message(`Replay SQL: ${completed}/${total} batches`),
+            }),
         )
+        shouldRefreshRemoteMetaCache = true
         await import3d({ ...importOptions, isLocal: true })
       } catch (error) {
         postPublishCacheError = normaliseError(error)
@@ -681,6 +819,8 @@ export async function processLocalAddressSqlUpload(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
         )
+        if (!postPublishCacheError)
+          await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }

@@ -1,5 +1,10 @@
 import type { UploadTarget } from '../cli/options.ts'
 import {
+  prepareReleaseSqlDelivery,
+  executeReleaseSqlDelivery,
+} from '../localPipeline/releaseSqlDelivery.ts'
+import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
+import {
   executeSqlText,
   REMOTE_IMPORT_BATCH_BYTES,
   type SqlImportExecutionOptions,
@@ -64,7 +69,45 @@ export async function importPlaceSqlBatches(
   timestamp: string,
   options: SqlImportExecutionOptions,
   onProgress?: (event: PlaceSqlProgressEvent) => void,
+  delivery?: {
+    directory: string
+    context: LocalAddressDbContext
+    releaseId: string
+    inputs: Record<string, unknown>
+    accountId?: string
+    apiToken?: string
+    timings?: { mirrorPreparationMs?: number }
+  },
 ) {
+  if (delivery) {
+    if (!options.isLocal) {
+      await prepareReleaseSqlDelivery({
+        ...delivery,
+        phase: 'places-data',
+        generate: captureSql =>
+          importPlaceSqlBatches(
+            targets,
+            input,
+            path,
+            totalRows,
+            timestamp,
+            { ...options, captureSql },
+            onProgress,
+          ),
+      })
+    }
+    await executeReleaseSqlDelivery({
+      ...delivery,
+      mode: options.isLocal ? 'local' : 'remote',
+      onProgress: (completed, total) =>
+        onProgress?.({
+          current: completed === total ? totalRows : 0,
+          detail: `${options.isLocal ? 'replay' : 'delivery'} ${completed}/${total} SQL batches`,
+          phase: 'import',
+        }),
+    })
+    return
+  }
   let completedBatches = 0
   for await (const sql of buildPlaceSqlBatches(input, path, timestamp, onProgress)) {
     const batchEnd = Math.min(totalRows, (completedBatches + 1) * PLACE_SQL_BATCH_SIZE)

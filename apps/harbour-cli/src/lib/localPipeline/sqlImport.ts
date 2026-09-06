@@ -29,6 +29,8 @@ export type SqlImportTargetContext = {
 }
 
 export type SqlImportExecutionOptions = {
+  /** Collect exact remote payloads without sending them to D1. */
+  captureSql?: (target: SqlImportTargetContext, bytes: Uint8Array) => Promise<void>
   accountId?: string
   apiToken?: string
   metaDatabaseId?: string | null
@@ -298,6 +300,10 @@ async function importSqlWithD1RestApi(
   },
   options: SqlImportExecutionOptions,
 ) {
+  if (options.captureSql) {
+    await options.captureSql(target, artefact.bytes)
+    return
+  }
   const accountId = options.accountId?.trim()
   const apiToken = options.apiToken?.trim()
   const databaseId = target.databaseId?.trim()

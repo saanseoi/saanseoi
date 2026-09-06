@@ -34,6 +34,10 @@ current source does not provide Simplified Chinese or street geometry. LandsD Ro
 Centreline is an optional composition member which can later enrich streets for
 approximate location lookup and map labelling.
 
+HyD street evidence uses explicit quarterly source-schema mappings and native layer
+validation. Road Centreline retains publisher integer street codes as decimal text, with
+the original values preserved in its native source properties.
+
 Current snapshots contain active streets. When lifecycle revisions are published,
 deleted states remain in immutable history and notice events appear in the changelog.
 API history and changelog reads must remain bounded by published snapshots.
