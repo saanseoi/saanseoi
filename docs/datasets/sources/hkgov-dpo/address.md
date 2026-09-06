@@ -75,6 +75,12 @@ section records, but it must not be presented as section-specific unit attributi
 
 ## Grouped inventories and estate hierarchy
 
+The estate review cohort consists of names present in any retained ALS
+public-rental-housing 3D delivery, not every development named in 2D addresses. Review
+the earliest baseline followed by chronological deltas; preserve exact release presence
+and explicit curation bounds. See the report for the separate 2D-only inventory and
+one-estate-at-a-time review queue.
+
 ALS 3D inventories use one collection per reviewed Address2D owner. The
 [hierarchy review report](address3d-review.md) records guarded estate relationships,
 official corroborating evidence, source-release coverage and outstanding decisions.
