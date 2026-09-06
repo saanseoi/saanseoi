@@ -826,3 +826,23 @@ test('wraps update errors to the guided output width, including long URLs', () =
   expect(lines.every(line => line.length <= 117)).toBe(true)
   expect(lines.join('\n')).toContain('Download failed:')
 })
+test('metadata review remains pending when declined or non-interactive', async () => {
+  const { resolveMetadataReview, shouldRecordUpdateStateAfterProcessing } =
+    await import('./update.ts')
+  let prompts = 0
+  const declined = await resolveMetadataReview(false, async () => {
+    prompts++
+    return false
+  })
+  const unattended = await resolveMetadataReview(true, async () => {
+    prompts++
+    return true
+  })
+  expect(prompts).toBe(1)
+  expect(declined).toBe('review-required')
+  expect(unattended).toBe('review-required')
+  expect(shouldRecordUpdateStateAfterProcessing({ status: 'review' }, declined)).toBe(
+    false,
+  )
+  expect(await resolveMetadataReview(false, async () => true)).toBe('reviewed')
+})
