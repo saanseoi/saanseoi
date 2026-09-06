@@ -2540,7 +2540,13 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'places') {
-      return ['places', 'placesI18n', 'snapshotVersionChanges']
+      return [
+        'places',
+        'placesI18n',
+        'address2d',
+        'address2dI18n',
+        'snapshotVersionChanges',
+      ]
     }
 
     if (

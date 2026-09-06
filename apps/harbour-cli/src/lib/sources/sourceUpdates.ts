@@ -10,6 +10,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import { datasetVariantForSource, type ResourceType } from '@repo/core'
 
 import {
   LANDSD_STREET_NAMING_URL,
@@ -530,7 +531,11 @@ function datasetCompositionMembers(dataset: DatasetFixture) {
           resourceType === 'divisionArea' ||
           resourceType === 'divisionBoundary'
             ? (dataset.sourceVariant ?? dataset.publisherCode)
-            : 'default',
+            : datasetVariantForSource(
+                resourceType as ResourceType,
+                dataset.publisherCode,
+                { datasetCode: dataset.code },
+              ),
       }),
   )
 }
@@ -1044,7 +1049,11 @@ async function lookupOverture({
       ? await listOverturistReleaseVersions()
       : []
   const version = s3Versions[0] ?? payload.latest
-  const resourceType = requireSingleResourceType(dataset)
+  // The Places processor materialises its supplementary Address output from
+  // the same retained Place input; there is no separate upstream Address file.
+  const resourceType = dataset.code.endsWith('-overture-place')
+    ? 'place'
+    : requireSingleResourceType(dataset)
   const outputFileName = overtureOutputFileName(resourceType)
   const latestUpdate = createOvertureUpdate({
     dataset,

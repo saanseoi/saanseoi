@@ -1,10 +1,5 @@
-import {
-  ensureIngestRunStarted,
-  getDatasetRecordByReleaseId,
-  updateDatasetStatus,
-  updateLatestOpenIngestRun,
-  upsertIngestRunStatus,
-} from '@repo/core/db/metaRegistry'
+import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
+import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { runWithWriteRetry, type WriteRetryEvent } from '@repo/core/pipeline/utils'
@@ -35,27 +30,11 @@ export function createLocalControlClient(
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, releaseId)
-          const now = new Date().toISOString()
-          const updatedExistingRun = await updateLatestOpenIngestRun(
+          await recordDatasetStage(
             db,
-            dataset.releaseId,
-            phase,
+            { releaseId: dataset.releaseId, phase, stats },
             'completed',
-            now,
-            stats ?? null,
           )
-
-          if (!updatedExistingRun) {
-            await upsertIngestRunStatus(
-              db,
-              dataset.releaseId,
-              phase,
-              'completed',
-              now,
-              now,
-              stats ?? null,
-            )
-          }
         },
         options,
         targetName,
@@ -65,34 +44,11 @@ export function createLocalControlClient(
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, releaseId)
-          const now = new Date().toISOString()
-          const errorJson = JSON.stringify({
-            message: error || 'Unknown processing error.',
-          })
-
-          await updateDatasetStatus(db, dataset.releaseId, 'failed')
-          const updatedExistingRun = await updateLatestOpenIngestRun(
+          await recordDatasetStage(
             db,
-            dataset.releaseId,
-            phase,
+            { releaseId: dataset.releaseId, phase, stats, error },
             'error',
-            now,
-            stats ?? null,
-            errorJson,
           )
-
-          if (!updatedExistingRun) {
-            await upsertIngestRunStatus(
-              db,
-              dataset.releaseId,
-              phase,
-              'error',
-              now,
-              now,
-              stats ?? null,
-              errorJson,
-            )
-          }
         },
         options,
         targetName,
@@ -102,13 +58,11 @@ export function createLocalControlClient(
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, releaseId)
-          const now = new Date().toISOString()
-
-          if (phase === 'processDataset') {
-            await updateDatasetStatus(db, dataset.releaseId, 'processing')
-          }
-
-          await ensureIngestRunStarted(db, dataset.releaseId, phase, stats ?? null, now)
+          await recordDatasetStage(
+            db,
+            { releaseId: dataset.releaseId, phase, stats },
+            'running',
+          )
         },
         options,
         targetName,

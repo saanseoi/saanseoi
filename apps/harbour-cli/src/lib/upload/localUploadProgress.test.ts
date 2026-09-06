@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 
 describe('LocalUploadProgress', () => {
   test('includes the underlying error in a failed phase label', async () => {
@@ -8,16 +8,19 @@ describe('LocalUploadProgress', () => {
     const createRenderer = (kind: string) => {
       rendererKinds.push(kind)
       return {
+        isCancelled: false,
+        cancel() {},
         advance() {},
         clear() {},
         message() {},
         start() {},
-        stop(label: string) {
+        error(label: string) {
           stoppedLabels.push(label)
         },
+        stop() {},
       }
     }
-    mock.module('@clack/prompts', () => ({
+    const ui = {
       progress() {
         return createRenderer('progress')
       },
@@ -35,10 +38,10 @@ describe('LocalUploadProgress', () => {
           staticLabels.push(['success', label])
         },
       },
-    }))
+    }
 
     const { LocalUploadProgress } = await import('./localUploadProgress.ts')
-    const progress = new LocalUploadProgress({ renderAnimated: true })
+    const progress = new LocalUploadProgress({ renderAnimated: true, ui })
     progress.beginPhase('Calculate release statistics', {})
     progress.fail(new Error('database is locked'))
 
@@ -47,7 +50,7 @@ describe('LocalUploadProgress', () => {
     ])
     expect(rendererKinds).toEqual(['spinner'])
 
-    const staticProgress = new LocalUploadProgress({ renderAnimated: false })
+    const staticProgress = new LocalUploadProgress({ renderAnimated: false, ui })
     staticProgress.beginPhase('Normalise records', { max: null })
     staticProgress.update(1, {
       label: 'Normalise records (182,441)',
@@ -64,6 +67,7 @@ describe('LocalUploadProgress', () => {
 
     const compactLabelsStart = staticLabels.length
     const compactProgress = new LocalUploadProgress({
+      ui,
       compact: true,
       renderAnimated: false,
     })

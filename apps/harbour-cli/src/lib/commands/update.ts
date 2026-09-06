@@ -46,6 +46,7 @@ type UpdateProcessingResult =
   | 'ingested'
   | 'mirrored'
   | 'reviewed'
+  | 'review-required'
   | 'skipped'
   | 'uploaded'
 
@@ -523,6 +524,11 @@ async function processPlannedUpdates(
         updateIndex,
         updateTotal: plan.updates.length,
       })
+      if (result === 'review-required') {
+        options.errors.push(
+          `${plan.dataset.code}: metadata review required; run update interactively after investigating the change.`,
+        )
+      }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
         const publishedVersion = requirePublishedTargetVersion(
           update,
@@ -834,8 +840,7 @@ async function processUpdate(
   },
 ): Promise<UpdateProcessingResult> {
   if (update.status === 'review') {
-    await askToInvestigate(update)
-    return 'reviewed' as const
+    return resolveMetadataReview(options.skipPrompts, () => askToInvestigate(update))
   }
   if (update.status === 'error' || update.status === 'manual') return 'skipped' as const
   if (update.ingest) {
@@ -1039,13 +1044,21 @@ async function askToIngest(
 
 async function askToInvestigate(update: DatasetUpdate) {
   const answer = await confirm({
-    message: `${formatDatasetPromptLabel(update.dataset)} ${dim('·')} metadata changed — investigate before publishing?`,
-    initialValue: true,
+    message: `${formatDatasetPromptLabel(update.dataset)} ${dim('·')} metadata changed — have you reviewed and accepted this change?`,
+    initialValue: false,
     withGuide: false,
   })
   if (isCancel(answer)) throw new Error('Update cancelled.')
   clearResolvedPrompt()
   return answer
+}
+
+export async function resolveMetadataReview(
+  skipPrompts: boolean,
+  confirmReview: () => Promise<boolean>,
+): Promise<'reviewed' | 'review-required'> {
+  if (skipPrompts) return 'review-required'
+  return (await confirmReview()) ? 'reviewed' : 'review-required'
 }
 
 async function downloadWithSpinner(

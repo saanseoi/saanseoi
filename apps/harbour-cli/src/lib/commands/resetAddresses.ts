@@ -240,7 +240,22 @@ export async function runResetOfficialAddressesCommand(
     }
     if (dryRun) return
     // Remove the object while its release association still proves ownership.
-    for (const asset of owned.assetIds) await deleteManagedSourceAsset(target, asset)
+    const existingAssetRows = await context.metaDb
+      .select({ id: metaSchema.metaAssets.id })
+      .from(metaSchema.metaAssets)
+      .where(
+        inArray(
+          metaSchema.metaAssets.id,
+          owned.assetIds.map(asset => asset.id),
+        ),
+      )
+      .all()
+    const existingAssetIds = new Set(existingAssetRows.map(asset => asset.id))
+    for (const asset of owned.assetIds) {
+      if (existingAssetIds.has(asset.id)) {
+        await deleteManagedSourceAsset(target, asset)
+      }
+    }
     const artefacts = buildResetSql(context, manifest)
     await executeResetSqlArtefacts({
       artefacts,
@@ -513,7 +528,13 @@ async function assertResetStillSafe(
     ...(manifest.baseline.currentDivisionSnapshotIds ?? []),
     ...owned.materialisedDivisionSnapshotIds,
   ])
-  if (!sameSet(currentDivisionSnapshotIds, expectedDivisionSnapshotIds))
+  const hasOwnedMaterialisedDivision = currentDivisionSnapshotIds.some(snapshotId =>
+    owned.materialisedDivisionSnapshotIds.includes(snapshotId),
+  )
+  if (
+    hasOwnedMaterialisedDivision &&
+    !sameSet(currentDivisionSnapshotIds, expectedDivisionSnapshotIds)
+  )
     throw new Error(
       'Refusing reset: current division projections changed after address initialisation.',
     )
@@ -556,13 +577,10 @@ async function assertResetStillSafe(
     .where(inArray(metaSchema.metaAssets.releaseId, owned.releaseIds))
     .all()
   if (
-    !sameSet(
-      assets.map(asset => asset.id),
-      owned.assetIds.map(asset => asset.id),
-    )
+    assets.some(asset => !owned.assetIds.some(ownedAsset => ownedAsset.id === asset.id))
   )
     throw new Error(
-      'Refusing reset: source assets linked to the initialisation releases have changed.',
+      'Refusing reset: an unexpected source asset is linked to the initialisation releases.',
     )
   if (
     !options.discardChangedDocs &&
@@ -680,7 +698,7 @@ function buildResetSql(
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE releaseId IN (${ids});`
   const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`
   const divisionSnapshots = sqlList(owned.materialisedDivisionSnapshotIds)
-  const currentSql = `DELETE FROM addressesFts WHERE snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});\n${readFileSync(resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'), 'utf8')}`
+  const currentSql = `DELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});\n${readFileSync(resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'), 'utf8')}`
   const docsSql = [
     ...manifest.baseline.docs.apiReleaseSets.map(
       row =>
