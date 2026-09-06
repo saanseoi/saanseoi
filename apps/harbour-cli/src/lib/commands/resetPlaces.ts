@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { lte, not } from 'drizzle-orm'
+import { like, lte, not } from 'drizzle-orm'
 import {
   and,
   currentSchema,
@@ -29,6 +29,7 @@ import {
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 import { supplementaryEntryLedgerPath } from '../placeSql/processLocalPlaceSqlUploadConfig.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
+import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../placeSql/supplementaryPlaceAddressRows.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
@@ -324,8 +325,12 @@ export async function runResetOverturePlacesCommand(
 }
 
 type OwnedPlaces = {
+  addressReleaseIds: string[]
+  addressSnapshotIds: string[]
   apiReleaseSetIds: string[]
   assets: Array<{ assetKey: string; id: string; releaseId: string | null }>
+  placeReleaseIds: string[]
+  placeSnapshotIds: string[]
   releaseCodes: string[]
   releaseIds: string[]
   snapshotIds: string[]
@@ -337,6 +342,7 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .select({
       code: metaSchema.metaReleases.code,
       id: metaSchema.metaReleases.id,
+      resourceType: metaSchema.metaReleases.resourceType,
       sourceReleaseId: metaSchema.metaReleases.sourceReleaseId,
     })
     .from(metaSchema.metaReleases)
@@ -344,17 +350,20 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
       metaSchema.metaDatasets,
       eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
     )
-    .where(
-      and(
-        eq(metaSchema.metaDatasets.code, DATASET_CODE),
-        eq(metaSchema.metaReleases.resourceType, 'place'),
-      ),
-    )
+    .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
   const releaseIds = releases.map(row => row.id)
+  const addressReleaseIds = releases
+    .filter(row => row.resourceType === 'address')
+    .map(row => row.id)
+  const placeReleaseIds = releases
+    .filter(row => row.resourceType === 'place')
+    .map(row => row.id)
   const snapshotRows = await db
     .select({
+      resourceType: metaSchema.metaSnapshots.resourceType,
       snapshotId: metaSchema.metaSnapshots.id,
+      variant: metaSchema.metaSnapshotLineages.variant,
     })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
@@ -371,13 +380,28 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .where(
       and(
         eq(metaSchema.metaDatasets.code, DATASET_CODE),
-        eq(metaSchema.metaSnapshots.resourceType, 'place'),
-        eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
-        eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+        or(
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+          ),
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.variant, SUPPLEMENTARY_ADDRESS_VARIANT),
+          ),
+        ),
       ),
     )
     .all()
   const snapshotIds = [...new Set(snapshotRows.map(row => row.snapshotId))]
+  const addressSnapshotIds = snapshotRows
+    .filter(row => row.resourceType === 'address')
+    .map(row => row.snapshotId)
+  const placeSnapshotIds = snapshotRows
+    .filter(row => row.resourceType === 'place')
+    .map(row => row.snapshotId)
   const apiReleaseSetRows = await db
     .select({
       apiReleaseSetId: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
@@ -404,6 +428,8 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .all()
 
   return {
+    addressReleaseIds,
+    addressSnapshotIds,
     apiReleaseSetIds: [
       ...new Set(
         apiReleaseSetRows
@@ -412,6 +438,8 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
       ),
     ],
     assets,
+    placeReleaseIds,
+    placeSnapshotIds,
     releaseCodes: releases.map(row => row.code),
     releaseIds,
     snapshotIds,
@@ -554,7 +582,32 @@ async function assertPlacesResetStillSafe(
   const snapshots = await context.metaDb
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
-    .where(eq(metaSchema.metaSnapshots.resourceType, 'place'))
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .innerJoin(
+      metaSchema.metaDatasets,
+      eq(metaSchema.metaSnapshotLineages.primaryDatasetId, metaSchema.metaDatasets.id),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaDatasets.code, DATASET_CODE),
+        or(
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+          ),
+          and(
+            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.variant, SUPPLEMENTARY_ADDRESS_VARIANT),
+          ),
+        ),
+      ),
+    )
     .all()
   if (
     !sameSet(
@@ -569,12 +622,28 @@ async function assertPlacesResetStillSafe(
   const unexpectedCurrent = await context.currentDb
     .select({ snapshotId: currentSchema.places.snapshotId })
     .from(currentSchema.places)
-    .where(not(inArray(currentSchema.places.snapshotId, owned.snapshotIds)))
+    .where(not(inArray(currentSchema.places.snapshotId, owned.placeSnapshotIds)))
     .limit(1)
     .get()
   if (unexpectedCurrent)
     throw new Error(
       'Refusing reset: current Places rows are not owned by this initialisation.',
+    )
+
+  const unexpectedSupplementaryAddress = await context.currentDb
+    .select({ snapshotId: currentSchema.address2d.snapshotId })
+    .from(currentSchema.address2d)
+    .where(
+      and(
+        like(currentSchema.address2d.id, 'opa-%'),
+        not(inArray(currentSchema.address2d.snapshotId, owned.addressSnapshotIds)),
+      ),
+    )
+    .limit(1)
+    .get()
+  if (unexpectedSupplementaryAddress)
+    throw new Error(
+      'Refusing reset: supplementary Address rows are not owned by this initialisation.',
     )
 
   for (const target of context.historyTargets) {
@@ -583,8 +652,8 @@ async function assertPlacesResetStillSafe(
       .from(historySchema.places)
       .where(
         or(
-          not(inArray(historySchema.places.snapshotId, owned.snapshotIds)),
-          not(inArray(historySchema.places.sourceReleaseId, owned.releaseIds)),
+          not(inArray(historySchema.places.snapshotId, owned.placeSnapshotIds)),
+          not(inArray(historySchema.places.sourceReleaseId, owned.placeReleaseIds)),
         ),
       )
       .limit(1)
@@ -594,12 +663,36 @@ async function assertPlacesResetStillSafe(
         `Refusing reset: ${target.bindingName} contains Places history not owned by this initialisation.`,
       )
   }
+  for (const target of context.historyTargets) {
+    const unexpectedAddressHistory = await (target.db as HarbourReadableDb)
+      .select({ snapshotId: historySchema.address2d.snapshotId })
+      .from(historySchema.address2d)
+      .where(
+        and(
+          like(historySchema.address2d.id, 'opa-%'),
+          or(
+            not(inArray(historySchema.address2d.snapshotId, owned.addressSnapshotIds)),
+            not(
+              inArray(historySchema.address2d.sourceReleaseId, owned.addressReleaseIds),
+            ),
+          ),
+        ),
+      )
+      .limit(1)
+      .get()
+    if (unexpectedAddressHistory)
+      throw new Error(
+        `Refusing reset: ${target.bindingName} contains supplementary Address history not owned by this initialisation.`,
+      )
+  }
   for (const target of context.sourceTargets) {
     const unexpectedSource = await (target.db as HarbourReadableDb)
       .select({ releaseId: sourceSchema.sourceOverturePlaces.releaseId })
       .from(sourceSchema.sourceOverturePlaces)
       .where(
-        not(inArray(sourceSchema.sourceOverturePlaces.releaseId, owned.releaseIds)),
+        not(
+          inArray(sourceSchema.sourceOverturePlaces.releaseId, owned.placeReleaseIds),
+        ),
       )
       .limit(1)
       .get()
@@ -687,31 +780,42 @@ async function writePlacesManifest(path: string, manifest: PlacesInitManifest) {
   await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
 }
 
-function buildResetArtefacts(
-  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  owned: OwnedPlaces,
-) {
+export function buildPlacesResetSql(owned: OwnedPlaces) {
   const releaseIds = sqlList(owned.releaseIds)
   const snapshots = sqlList(owned.snapshotIds)
+  const addressReleases = sqlList(owned.addressReleaseIds)
+  const addressSnapshots = sqlList(owned.addressSnapshotIds)
+  const placeReleases = sqlList(owned.placeReleaseIds)
+  const placeSnapshots = sqlList(owned.placeSnapshotIds)
   const sourceReleases = sqlList(owned.sourceReleaseIds)
   const apiReleaseSets = sqlList(owned.apiReleaseSetIds)
   const assets = sqlList(owned.assets.map(asset => asset.id))
   const currentSql = [
-    `DELETE FROM placesCells WHERE snapshotId IN (${snapshots});`,
-    `DELETE FROM placesDivision WHERE placeSnapshotId IN (${snapshots});`,
-    `DELETE FROM placesI18n WHERE snapshotId IN (${snapshots});`,
-    `DELETE FROM places WHERE snapshotId IN (${snapshots});`,
+    `DELETE FROM placesCells WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM placesDivision WHERE placeSnapshotId IN (${placeSnapshots});`,
+    `DELETE FROM placesI18n WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM places WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots});`,
     readFileSync(
       resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-places-fts.sql'),
       'utf8',
     ),
+    readFileSync(
+      resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'),
+      'utf8',
+    ),
   ].join('\n')
   const historySql = [
-    `DELETE FROM placesI18n WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${releaseIds});`,
-    `DELETE FROM places WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM placesI18n WHERE snapshotId IN (${placeSnapshots}) OR sourceReleaseId IN (${placeReleases});`,
+    `DELETE FROM places WHERE snapshotId IN (${placeSnapshots}) OR sourceReleaseId IN (${placeReleases});`,
+    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
+    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
+    `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`,
   ].join('\n')
-  const sourceSql = `DELETE FROM overturePlaces WHERE releaseId IN (${releaseIds});`
+  const sourceSql = `DELETE FROM overturePlaces WHERE releaseId IN (${placeReleases});`
   const metaSql = [
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
@@ -729,6 +833,14 @@ function buildResetArtefacts(
     `DELETE FROM sourceReleases WHERE id IN (${sourceReleases}) AND NOT EXISTS (SELECT 1 FROM releases WHERE releases.sourceReleaseId = sourceReleases.id);`,
   ].join('\n')
 
+  return { currentSql, historySql, sourceSql, metaSql }
+}
+
+function buildResetArtefacts(
+  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  owned: OwnedPlaces,
+) {
+  const { currentSql, historySql, sourceSql, metaSql } = buildPlacesResetSql(owned)
   const artefacts: ResetSqlArtefact[] = [
     ...context.sourceTargets.map(target => ({
       sql: sourceSql,

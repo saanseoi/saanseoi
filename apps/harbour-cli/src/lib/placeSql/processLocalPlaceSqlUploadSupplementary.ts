@@ -33,6 +33,7 @@ import {
   parseSupplementaryCuration,
   parseSupplementaryEntryLedger,
   type AddressResolution,
+  type StagedAddressResolution,
   type SupplementaryEntryLedger,
 } from './supplementaryPlaceAddress.ts'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
@@ -332,52 +333,59 @@ async function prepareSupplementaryAddressesLocked(
     }
   }
   const resolutionPath = resolve(input.releaseRoot, 'overture-place-address.jsonl')
-  const resolutionTempPath = `${resolutionPath}.tmp`
+  const resolutionTempPath = temporaryPath(resolutionPath)
   const resolutionOutput = await open(resolutionTempPath, 'w')
-  const supplementaryResolutions: AddressResolution[] = []
+  const supplementaryResolutions: StagedAddressResolution[] = []
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
   const resolutionReasons = new Map<AddressResolution['tier'], Set<string>>()
   try {
-    for await (const place of input.places) {
-      const previous = previousById.get(place.id)
-      const resolution = analyse(
-        {
-          placeId: place.id,
-          sourceRelease: input.plan.sourceVersion,
-          texts: extractPlaceAddressTexts(place.raw.addresses, place),
-          lng: place.lng,
-          lat: place.lat,
-        },
-        previous?.address2dId
-          ? {
-              addressId: previous.address2dId,
-              addressSnapshotId: previous.addressSnapshotId,
-              fingerprint: addressFingerprint(
-                Array.isArray(previous.addresses)
-                  ? previous.addresses.filter(
-                      (value): value is string => typeof value === 'string',
-                    )
-                  : [],
-              ),
-            }
-          : null,
-      )
-      const stagedResolution = compactAddressResolution(resolution)
-      await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
-      resolutionCounts.set(
-        resolution.tier,
-        (resolutionCounts.get(resolution.tier) ?? 0) + 1,
-      )
-      const reasons = resolutionReasons.get(resolution.tier) ?? new Set<string>()
-      reasons.add(resolution.reason)
-      resolutionReasons.set(resolution.tier, reasons)
-      if (resolution.tier === 'supplementary')
-        supplementaryResolutions.push(stagedResolution)
+    try {
+      for await (const place of input.places) {
+        const previous = previousById.get(place.id)
+        const resolution = analyse(
+          {
+            placeId: place.id,
+            sourceRelease: input.plan.sourceVersion,
+            texts: extractPlaceAddressTexts(place.raw.addresses, place),
+            lng: place.lng,
+            lat: place.lat,
+          },
+          previous?.address2dId
+            ? {
+                addressId: previous.address2dId,
+                addressSnapshotId: previous.addressSnapshotId,
+                fingerprint: addressFingerprint(
+                  Array.isArray(previous.addresses)
+                    ? previous.addresses.filter(
+                        (value): value is string => typeof value === 'string',
+                      )
+                    : [],
+                ),
+              }
+            : null,
+        )
+        const stagedResolution = compactAddressResolution(resolution)
+        await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
+        resolutionCounts.set(
+          resolution.tier,
+          (resolutionCounts.get(resolution.tier) ?? 0) + 1,
+        )
+        const reasons = resolutionReasons.get(resolution.tier) ?? new Set<string>()
+        reasons.add(resolution.reason)
+        resolutionReasons.set(resolution.tier, reasons)
+        if (resolution.tier === 'supplementary')
+          supplementaryResolutions.push(stagedResolution)
+      }
+    } finally {
+      await resolutionOutput.close()
     }
-  } finally {
-    await resolutionOutput.close()
+    await rename(resolutionTempPath, resolutionPath)
+  } catch (error) {
+    await unlink(resolutionTempPath).catch(cleanupError => {
+      if (errorCode(cleanupError) !== 'ENOENT') throw cleanupError
+    })
+    throw error
   }
-  await rename(resolutionTempPath, resolutionPath)
   const reviewCount = resolutionCounts.get('review') ?? 0
   const actions: ReleaseProcessingAction[] = [
     ...input.actions,
@@ -751,39 +759,50 @@ async function writeSupplementaryReviewArtefact(input: {
   reviewPath: string
   sourceRelease: string
 }) {
-  const tempPath = `${input.reviewPath}.tmp`
+  const tempPath = temporaryPath(input.reviewPath)
   const output = await open(tempPath, 'w')
   try {
-    const header = JSON.stringify(
-      {
-        addressSnapshotId: input.addressSnapshotId,
-        authority: input.authority,
-        placeReleaseId: input.placeReleaseId,
-        policies: input.policies,
-        reviewRequired: input.reviewCount,
-        sourceRelease: input.sourceRelease,
-        version: 1,
-        results: null,
-      },
-      null,
-      2,
-    )
-    await output.write(
-      `${header.replace('\n  "results": null\n}', '\n  "results": [')}`,
-    )
-    let first = true
-    for await (const resolution of readStagedJsonLines<AddressResolution>(
-      input.resolutionPath,
-    )) {
-      if (resolution.tier !== 'review') continue
-      await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
-      first = false
+    try {
+      const header = JSON.stringify(
+        {
+          addressSnapshotId: input.addressSnapshotId,
+          authority: input.authority,
+          placeReleaseId: input.placeReleaseId,
+          policies: input.policies,
+          reviewRequired: input.reviewCount,
+          sourceRelease: input.sourceRelease,
+          version: 1,
+          results: null,
+        },
+        null,
+        2,
+      )
+      await output.write(
+        `${header.replace('\n  "results": null\n}', '\n  "results": [')}`,
+      )
+      let first = true
+      for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
+        input.resolutionPath,
+      )) {
+        if (resolution.tier !== 'review') continue
+        await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
+        first = false
+      }
+      await output.write('\n  ]\n}\n')
+    } finally {
+      await output.close()
     }
-    await output.write('\n  ]\n}\n')
-  } finally {
-    await output.close()
+    await rename(tempPath, input.reviewPath)
+  } catch (error) {
+    await unlink(tempPath).catch(cleanupError => {
+      if (errorCode(cleanupError) !== 'ENOENT') throw cleanupError
+    })
+    throw error
   }
-  await rename(tempPath, input.reviewPath)
+}
+
+function temporaryPath(path: string) {
+  return `${path}.${process.pid}.${crypto.randomUUID()}.tmp`
 }
 
 async function importSupplementarySql(

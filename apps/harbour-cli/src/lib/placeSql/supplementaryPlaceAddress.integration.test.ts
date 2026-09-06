@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { test, expect } from 'bun:test'
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -18,6 +18,7 @@ import {
 import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
 import policy from './testFixtures/supplementaryAddressPolicy.json'
+import { buildPlacesResetSql, collectOwnedPlaces } from '../commands/resetPlaces.ts'
 
 test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
@@ -250,6 +251,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     const retry = await prepareSupplementaryAddresses(input)
     expect(retry.snapshotId).toBe(first.snapshotId)
+    expect((await readdir(root)).filter(name => name.endsWith('.tmp'))).toEqual([])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
     const changed = {
       ...place,
@@ -278,6 +280,42 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(review.results[0].tier).toBe('review')
     expect(review.results[0].previous.addressId).toBe(first.addresses[0]?.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
+
+    const resolutionBeforeFailure = await readFile(
+      resolve(root, 'overture-place-address.jsonl'),
+      'utf8',
+    )
+    await expect(
+      prepareSupplementaryAddresses({
+        ...input,
+        places: (async function* () {
+          yield place
+          throw new Error('source stream interrupted')
+        })(),
+      }),
+    ).rejects.toThrow('source stream interrupted')
+    expect((await readdir(root)).filter(name => name.endsWith('.tmp'))).toEqual([])
+    expect(await readFile(resolve(root, 'overture-place-address.jsonl'), 'utf8')).toBe(
+      resolutionBeforeFailure,
+    )
+
+    const reset = buildPlacesResetSql(await collectOwnedPlaces(db))
+    current.exec('PRAGMA foreign_keys = ON;')
+    current.exec(reset.currentSql)
+    history.exec(reset.historySql)
+    expect(current.query('SELECT id FROM address2d').all()).toEqual([
+      { id: 'als-citygate' },
+    ])
+    expect(current.query('SELECT DISTINCT addressId FROM addressesFts').all()).toEqual([
+      { addressId: 'als-citygate' },
+    ])
+    expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 0 })
+    expect(history.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
+      n: 0,
+    })
+    expect(
+      history.query('SELECT count(*) AS n FROM snapshotVersionChanges').get(),
+    ).toEqual({ n: 0 })
   } finally {
     meta.close()
     current.close()

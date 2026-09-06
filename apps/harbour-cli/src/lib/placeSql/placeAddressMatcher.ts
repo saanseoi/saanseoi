@@ -595,11 +595,15 @@ function preparedDefinitionComponents(
   ].flatMap(([kind, name]) => {
     const present = text(name)
     if (!present) return []
+    const normalisedName = normaliseAddressText(present)
+    // Unqualified references and country labels cannot identify a premise in
+    // free text. Keep them in the canonical record, but out of the vocabulary.
+    if (/^(?:[A-Z]|\d+[A-Z]?|HONG KONG|HK|香港)$/u.test(normalisedName)) return []
     return [
       {
         kind: kind as ParsedAddress2dComponent['kind'],
         name: present,
-        normalisedName: normaliseAddressText(present),
+        normalisedName,
       },
     ]
   })

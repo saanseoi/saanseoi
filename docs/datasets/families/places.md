@@ -124,6 +124,9 @@ ALS definitions because the Places composition does not declare a Streets member
 staged LandsD baseline is not a published lookup dependency and must not be read
 directly during publication.
 
+Bare numeric or single-letter components and country-only labels cannot supply free-text
+premise evidence; their canonical source values are retained.
+
 A parsed premise candidate which has no ALS match is not promoted into the official ALS
 source. The Overture Places supplementary Address source retains its Overture Place,
 source-release, selected candidate evidence, and confidence provenance. Policies,
@@ -133,13 +136,17 @@ matches remain for later processing rather than becoming identity-curation work.
 partial canonical name is premise evidence only when the same candidate also matches the
 canonical street, unless an explicit reviewed alias applies. Only a candidate which
 independently clears the automatic threshold can require review for contradictory or
-insufficiently separated evidence. The required matcher tiers, curation artefacts,
-provenance, materialisation order, and publication stops are specified in the
+insufficiently separated evidence. Review artefacts retain one source parse plus compact
+candidate score evidence instead of repeating the parse for every candidate. The
+required matcher tiers, curation artefacts, provenance, materialisation order, and
+publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
 To remove the bounded Overture Places initialisation from a target, use the
-family-specific reset command. It reports its release-owned rows first and keeps a
-dry-run and confirmation boundary:
+family-specific reset command. It owns both `place/default` and
+`address/overture-places`, removes their current and historical rows, and rebuilds
+Address search while preserving ALS snapshots. It reports its release-owned rows first
+and keeps a dry-run and confirmation boundary:
 
 ```sh
 ./bin/saanseoi reset:places:overture --target local --dry-run

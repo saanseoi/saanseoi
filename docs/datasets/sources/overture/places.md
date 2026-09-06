@@ -129,6 +129,11 @@ deterministic replacement policy or an explicit curation decision.
 
 ### Four matching tiers
 
+Free-text component recognition excludes bare numeric or single-letter references and
+country-only labels (`HONG KONG`, `HK`, `香港`). These values remain in canonical source
+records but cannot supply premise evidence or contradictions. Qualified names such as
+`PHASE 1` and `HONG KONG CULTURAL CENTRE` remain recognisable.
+
 1. **Direct canonical Address match.** Parse against the selected ALS snapshot. Exact
    formatted-address evidence, or an unambiguous combination of canonical building,
    estate, block or phase evidence with street/number evidence, links the Place directly
@@ -224,16 +229,24 @@ entries. Conflicting ALS derivations for a shared identity stop materialisation.
 
 Every analysis writes `overture-place-address-review.json` inside the target's
 `.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the
-selected ALS snapshot, parsed source evidence, candidates, scores, distances, previous
-link and disposition for review-required rows only. Accepted entries are saved only when
-the cohort has no unresolved review, so a review stop leaves both the checked-in policy
-and generated ledger unchanged. Record reviewed aliases or decisions in the fixture and
-retry the same upload; `--yes` cannot bypass review. A decision records `placeId`,
-`fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`, `addressId` and a
-non-empty `reason`. `keep` retains the previous ID, `retire` selects no ID, and
-`replace` selects an official ID or a reproducible supplementary entry. Generated
-entries may record `retiredAtSourceRelease`; published history remains the durable
-replay source.
+selected ALS snapshot, parsed source evidence, candidate score breakdowns, distances,
+previous link and disposition for review-required rows only. The source parse is stored
+once per result rather than repeated inside every candidate. Accepted entries are saved
+only when the cohort has no unresolved review, so a review stop leaves both the
+checked-in policy and generated ledger unchanged. Record reviewed aliases or decisions
+in the fixture and retry the same upload; `--yes` cannot bypass review. A decision
+records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`,
+`addressId` and a non-empty `reason`. `keep` retains the previous ID, `retire` selects
+no ID, and `replace` selects an official ID or a reproducible supplementary entry.
+Generated entries may record `retiredAtSourceRelease`; published history remains the
+durable replay source. Artefacts use unique temporary files and replace their
+destination only after a complete write; interrupted writes remove their temporary
+files.
+
+The Overture Places family reset owns both `place/default` and `address/overture-places`
+snapshots and their resource releases. It removes supplementary Address current and
+historical rows, rebuilds Address search, and preserves the ALS snapshots used as
+derivation evidence.
 
 Supplementary snapshots are complete, including when there are no accepted rows. Their
 assembly records retain a materialisation hash, combined policy/entry-ledger hash and
