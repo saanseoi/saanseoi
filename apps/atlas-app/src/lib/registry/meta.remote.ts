@@ -13,6 +13,7 @@ import {
   listRegistrySourcesPage,
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
 import {
   and,
   currentSchema,
@@ -72,6 +73,8 @@ const registryAccessMetricsSchema = z.object({
   entityId: registryCodeSchema,
   scope: z.enum(['publisher', 'dataset', 'source_release', 'api_release_set']),
 })
+const SOURCE_RELEASE_CODE_BATCH_SIZE = getMaxItemsPerInClause(1, 1)
+
 export const getRegistryAccessMetricsData = query.batch(
   registryAccessMetricsSchema,
   async inputs => {
@@ -562,57 +565,73 @@ export const getApiReleasePageData = query(
           .map(source => source.sourceReleaseCode) ?? [],
       ),
     ]
+    const sourceReleaseCodeBatches = chunkArray(
+      sourceReleaseCodes,
+      SOURCE_RELEASE_CODE_BATCH_SIZE,
+    )
     const archives = sourceReleaseCodes.length
-      ? await db
-          .select({
-            assetId: metaAssets.id,
-            mediaType: metaAssets.mediaType,
-            releaseCode: metaSourceReleases.code,
-          })
-          .from(metaAssets)
-          .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
-          .innerJoin(
-            metaSourceReleases,
-            eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
-          )
-          .where(
-            and(
-              eq(metaAssets.role, 'sourceArchive'),
-              inArray(metaSourceReleases.code, sourceReleaseCodes),
+      ? (
+          await Promise.all(
+            sourceReleaseCodeBatches.map(releaseCodes =>
+              db
+                .select({
+                  assetId: metaAssets.id,
+                  mediaType: metaAssets.mediaType,
+                  releaseCode: metaSourceReleases.code,
+                })
+                .from(metaAssets)
+                .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+                .innerJoin(
+                  metaSourceReleases,
+                  eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+                )
+                .where(
+                  and(
+                    eq(metaAssets.role, 'sourceArchive'),
+                    inArray(metaSourceReleases.code, releaseCodes),
+                  ),
+                )
+                .orderBy(desc(metaAssets.retrievedAt))
+                .all(),
             ),
           )
-          .orderBy(desc(metaAssets.retrievedAt))
-          .all()
+        ).flat()
       : []
     const archiveByReleaseCode = new Map(
       [...archives].reverse().map(archive => [archive.releaseCode, archive] as const),
     )
     const districtStats = sourceReleaseCodes.length
-      ? await db
-          .select({
-            dimension: stats.dimension,
-            groupBy: stats.groupBy,
-            groupValue: stats.groupValue,
-            metric: stats.metric,
-            metricUnit: stats.metricUnit,
-            releaseCode: metaSourceReleases.code,
-            value: stats.value,
-          })
-          .from(stats)
-          .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
-          .innerJoin(
-            metaSourceReleases,
-            eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
-          )
-          .where(
-            and(
-              inArray(metaSourceReleases.code, sourceReleaseCodes),
-              eq(stats.dimension, 'records'),
-              eq(stats.metric, 'distribution'),
-              eq(stats.groupBy, 'district'),
+      ? (
+          await Promise.all(
+            sourceReleaseCodeBatches.map(releaseCodes =>
+              db
+                .select({
+                  dimension: stats.dimension,
+                  groupBy: stats.groupBy,
+                  groupValue: stats.groupValue,
+                  metric: stats.metric,
+                  metricUnit: stats.metricUnit,
+                  releaseCode: metaSourceReleases.code,
+                  value: stats.value,
+                })
+                .from(stats)
+                .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
+                .innerJoin(
+                  metaSourceReleases,
+                  eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+                )
+                .where(
+                  and(
+                    inArray(metaSourceReleases.code, releaseCodes),
+                    eq(stats.dimension, 'records'),
+                    eq(stats.metric, 'distribution'),
+                    eq(stats.groupBy, 'district'),
+                  ),
+                )
+                .all(),
             ),
           )
-          .all()
+        ).flat()
       : []
     const districtStatsBySourceReleaseCode = new Map<string, typeof districtStats>()
     for (const stat of districtStats) {
