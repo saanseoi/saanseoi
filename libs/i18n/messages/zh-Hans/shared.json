@@ -577,6 +577,7 @@
   "auth_choose_new_password": "选择新密码",
   "auth_passwords_do_not_match": "密码不匹配。",
   "auth_reset_error": "无法重置你的密码。",
+  "auth_resetting": "正在重置…",
   "auth_reset_link_invalid": "此重置链接无效或已过期。",
   "auth_request_new_link": "获取新链接",
   "auth_password_reset_complete": "你的密码已重置。",

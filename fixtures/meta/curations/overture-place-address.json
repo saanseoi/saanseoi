@@ -7,7 +7,7 @@
       "automaticThreshold": 85,
       "reviewThreshold": 30,
       "separation": 20,
-      "distanceMetres": 150,
+      "distanceMetres": 50,
       "distanceMarginMetres": 100,
       "weights": {
         "buildingName": 55,
@@ -17,7 +17,7 @@
         "street": 30,
         "number": 15,
         "alias": 55,
-        "geometry": 20
+        "geometry": 25
       },
       "aliases": [],
       "replacement": "explicit-only"
