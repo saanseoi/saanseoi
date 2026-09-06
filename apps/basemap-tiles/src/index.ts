@@ -62,7 +62,10 @@ const accessResponse = (
   allowedOrigin: string,
 ): Response =>
   new Response(body, {
-    headers: applyAccessHeaders(new Headers(), allowedOrigin),
+    headers: applyAccessHeaders(
+      new Headers({ 'Cache-Control': 'no-store' }),
+      allowedOrigin,
+    ),
     status,
   })
 

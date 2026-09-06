@@ -74,8 +74,18 @@ export const applyAccessHeaders = (
   if (allowedOrigin) {
     responseHeaders.set('Access-Control-Allow-Origin', allowedOrigin)
     responseHeaders.set('Timing-Allow-Origin', allowedOrigin)
+  } else {
+    responseHeaders.delete('Access-Control-Allow-Origin')
+    responseHeaders.delete('Timing-Allow-Origin')
   }
-  responseHeaders.set('Vary', 'Origin')
+  const vary = responseHeaders.get('Vary')
+  if (
+    !vary
+      ?.split(',')
+      .some(value => ['origin', '*'].includes(value.trim().toLowerCase()))
+  ) {
+    responseHeaders.set('Vary', vary ? `${vary}, Origin` : 'Origin')
+  }
   return responseHeaders
 }
 
