@@ -38,6 +38,12 @@ HyD street evidence uses explicit quarterly source-schema mappings and native la
 validation. Road Centreline retains publisher integer street codes as decimal text, with
 the original values preserved in its native source properties.
 
+Native imports support retries and bounded SQL writes for large polygon values. Road
+Centreline review reports retain readable bilingual names, grouped segment evidence and
+the selected published snapshot IDs. District matching uses HaD district areas whose
+canonical IDs cover the street district references. Unresolved named segments require
+curation before publication.
+
 Current snapshots contain active streets. When lifecycle revisions are published,
 deleted states remain in immutable history and notice events appear in the changelog.
 API history and changelog reads must remain bounded by published snapshots.

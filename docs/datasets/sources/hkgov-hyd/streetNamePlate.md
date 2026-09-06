@@ -34,12 +34,26 @@ are included in every source record's provenance. The local source DB cache is u
 before the same SQL is imported to preview or production D1; the archive is never
 reloaded from managed storage during intake.
 
+Identical assertions repeated within an archive share one stored source-record version.
+Distinct assertions with the same `SNP_ID` remain separate versions; intake does not
+choose one publisher feature over another. Replaying an import restores its current
+assertions without duplicating their keys or replacing their first-seen timestamps.
+Publisher feature counts include repeated features.
+
+Large native polygon values are written in bounded SQL fragments, preserving every
+coordinate. A fragmented row becomes current only after its values are complete;
+retrying restarts its values before appending fragments.
+
 This belongs to the Streets API family as official street-name evidence. It is not a
 street-centreline or street-geometry dataset: the point is the sign location, and
 several points may carry the same `ROAD_NAME`. The point geometry is therefore retained
 as source provenance, rather than exposed as a false centreline geometry.
 
 ## Archive release notes
+
+Source releases `2025-Q1`, `2026-Q1`, and `2026-Q2` map to SaanSeoi source schema
+profile `1.0`. Each dataset also validates its native layer and required fields at
+intake; this profile does not bypass those checks.
 
 These observations are CSDI archive slots, not inferred quarter-end dates. Because the
 HyD and TD street datasets publish quarterly, the slot's quarter is their SaanSeoi
