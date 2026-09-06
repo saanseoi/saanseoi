@@ -99,6 +99,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./address3d": "./src/address3d.ts",
     "./apiFieldFixtures": "./src/apiFieldFixtures.ts",
     "./client": "./src/client.ts",
     "./registry": "./src/registry/index.ts",

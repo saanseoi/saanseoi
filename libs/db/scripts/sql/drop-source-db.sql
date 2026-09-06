@@ -18,6 +18,7 @@ DROP TABLE IF EXISTS `hkgovLandsdRoadCentrelineI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetNoticeI18n`;
 DROP TABLE IF EXISTS `hkgovPlandNewTowns`;
 DROP TABLE IF EXISTS `hkgovAlsAddresses2d`;
+DROP TABLE IF EXISTS `hkgovAlsAddresses3d`;
 DROP TABLE IF EXISTS `hkgovTdPedestrianStreetI18n`;
 DROP TABLE IF EXISTS `__new_hkgovTdPedestrianStreets`;
 DROP TABLE IF EXISTS `hkgovTdPedestrianStreets`;

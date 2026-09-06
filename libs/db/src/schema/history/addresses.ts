@@ -1,11 +1,10 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
-  jsonText,
   canonicalAddress2d,
   canonicalAddress2dBuildingNumberLookup,
   canonicalAddress2dI18n,
-  canonicalAddress3dUnitRefLookup,
+  canonicalAddress3d,
   canonicalAddress3dI18n,
 } from '../shared'
 import { historyI18nVersioning, historyVersioning } from './shared'
@@ -72,9 +71,7 @@ export const address2dBuildingNumberLookup = sqliteTable(
 export const address3d = sqliteTable(
   'address3d',
   {
-    id: text('id').notNull(),
-    address2dId: text('address2dId').notNull(),
-    sources: jsonText('sources'),
+    ...canonicalAddress3d,
     ...historyVersioning,
   },
   table => [
@@ -102,29 +99,6 @@ export const address3dI18n = sqliteTable(
     index('address3dI18n_current_lookup_idx').on(
       table.address3dId,
       table.locale,
-      table.isCurrent,
-    ),
-  ],
-)
-
-export const address3dUnitRefLookup = sqliteTable(
-  'address3dUnitRefLookup',
-  {
-    ...canonicalAddress3dUnitRefLookup,
-    ...historyI18nVersioning,
-  },
-  table => [
-    primaryKey({
-      columns: [table.address3dId, table.versionHash, table.unitRef],
-    }),
-    index('address3dUnitRefLookup_lookup_idx').on(
-      table.snapshotId,
-      table.unitRef,
-      table.isCurrent,
-    ),
-    index('address3dUnitRefLookup_numericStem_idx').on(
-      table.snapshotId,
-      table.numericStem,
       table.isCurrent,
     ),
   ],

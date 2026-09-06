@@ -38,6 +38,10 @@ export const places = sqliteTable(
       'places_address_snapshot_required_chk',
       sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,
     ),
+    check(
+      'places_address3d_unit_reference_chk',
+      sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
+    ),
     index('places_releaseId_idx').on(table.releaseId),
     index('places_category_idx').on(table.snapshotId, table.basicCategory),
     index('places_taxonomy_idx').on(table.snapshotId, table.taxonomyPrimary),
