@@ -33,7 +33,7 @@
           "resourceType": "street",
           "variant": "hkgov-landsd",
           "role": "primary",
-          "isRequired": false,
+          "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "priority": 0
         },
@@ -41,12 +41,12 @@
           "resourceType": "street",
           "variant": "hkgov-landsd-road-centreline",
           "role": "geometry",
-          "isRequired": true,
+          "isRequired": false,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "priority": 10
         }
       ]
     }
   ],
-  "versionHash": "sha256:75e19e6a69c42dd14c1acd26ed7b15b8918abfa8ddb1c62743faa5f2466f2e81"
+  "versionHash": "sha256:df787eff3403e308eb19ab913b3f445dc4d1f752338d2d348a5d9bfbf589e1b8"
 }

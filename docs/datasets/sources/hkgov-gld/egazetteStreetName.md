@@ -37,8 +37,9 @@ reads and stages only bilingual PDFs dated 19 May 2000 through 21 January 2016 b
 registering their managed assets. Notices from 22 January 2016 onward belong exclusively
 to the LandsD notice stage, so no event is duplicated in the assembled lifecycle ledger.
 Lifecycle links still require the LandsD curation workflow; `Previous G.N.` never
-resolves a street ID. Run `hkgov-landsd-streets:assemble` after all three street stages
-are ready to publish the combined snapshot revision.
+resolves a street ID. The staged records remain unpublished until a reviewed correction
+revision can prove that historical enrichment preserves the published current street set
+and canonical IDs.
 
 The command uses English text as the authoritative source for Government Notice
 identity, publication/effective dates, notice kind and `Previous G.N.` values. If an old
