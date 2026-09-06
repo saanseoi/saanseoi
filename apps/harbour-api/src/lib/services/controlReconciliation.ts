@@ -1,0 +1,406 @@
+import {
+  publishReleaseArtefacts,
+  ensureDraftReleaseSetForRelease,
+  getDatasetRecordByReleaseId,
+  listDraftReleaseSetPrimaryReleases,
+  listDraftReleaseSets,
+  listSnapshotsForRelease,
+  listCurrentApiCompositionMembersForType,
+  listApiReleaseSetSnapshots,
+  resolveLatestReleaseSetForTypeDomainCohort,
+} from '@repo/core/db/metaRegistry'
+import { datasetVariantForSource } from '@repo/core'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import {
+  and,
+  eq,
+  metaApiReleaseSets,
+  metaApiReleaseSetSnapshots,
+  metaApiVersions,
+  metaDatasets,
+  metaReleases,
+  metaSchema,
+  metaSnapshotSources,
+  or,
+} from '@repo/db'
+import type { ReleaseSetPublication } from './releaseDiscord'
+import type {
+  BootstrapStatsReleaseSetsRequest,
+  BootstrapStatsReleaseSetsResult,
+  ReconcileDraftReleaseSetsRequest,
+  ReconcileDraftReleaseSetsResult,
+} from './controlTypes.ts'
+import { ControlRequestError, runWithTransientControlRetry } from './controlRequests.ts'
+import { handlePublishDataset } from './control.ts'
+
+/**
+ * Re-evaluates every selected draft set against its already-published source
+ * snapshots. This makes a resumed backfill safe: no source release is
+ * re-ingested and no source-release lifecycle state is changed.
+ */
+export async function handleReconcileDraftReleaseSets(
+  db: HarbourReadableDb & HarbourWritableDb,
+  request: ReconcileDraftReleaseSetsRequest = {},
+): Promise<ReconcileDraftReleaseSetsResult> {
+  return runWithTransientControlRetry(async () => {
+    const [draftReleaseSets, primaryReleases, recoverableCurrentStatsTargets] =
+      await Promise.all([
+        listDraftReleaseSets(db, request),
+        listDraftReleaseSetPrimaryReleases(db, request),
+        listCurrentReleaseSetStatsTargets(db, request),
+      ])
+    const primaryReleaseByReleaseSetId = new Map(
+      primaryReleases.map(release => [release.apiReleaseSetId, release]),
+    )
+    const publishedReleaseSetCodes: string[] = []
+    const publishedReleaseSetAnnouncements: ReleaseSetPublication[] = []
+    const publishedReleaseSetPublications: ReleaseSetPublication[] = []
+    const pendingReleaseSetCodes: string[] = []
+    const publishedReleaseSetStatsTargets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] =
+      []
+
+    for (const releaseSet of draftReleaseSets) {
+      const primaryRelease = primaryReleaseByReleaseSetId.get(releaseSet.id)
+      if (!primaryRelease) {
+        pendingReleaseSetCodes.push(releaseSet.code)
+        continue
+      }
+
+      // A draft release set already contains the exact supporting snapshots
+      // selected when its primary dataset was materialised. Keep those
+      // selections during reconciliation; resolving them again by cohort can
+      // silently replace a historical Place's recorded address snapshot.
+      const carriedSnapshots = (await listApiReleaseSetSnapshots(db, releaseSet.id))
+        .filter(snapshot => snapshot.role !== 'primary')
+        .map(snapshot => ({
+          resourceType: snapshot.snapshotResourceType,
+          snapshotId: snapshot.snapshotId,
+          variant: snapshot.variant,
+        }))
+
+      const result = await handlePublishDataset(
+        db,
+        {
+          carriedSnapshots,
+          releaseId: primaryRelease.releaseId,
+          skipSnapshotCleanup: true,
+        },
+        undefined,
+        { reconcileDraftReleaseSet: true, releaseSet },
+      )
+      if (
+        result.apiReleaseSetPublications?.some(
+          publication => publication.apiReleaseSetCode === releaseSet.code,
+        )
+      ) {
+        publishedReleaseSetCodes.push(releaseSet.code)
+        if (
+          result.apiReleaseSetId &&
+          result.snapshotId &&
+          releaseSet.cohortKey &&
+          (request.apiFamily === 'divisions' ||
+            request.apiFamily === 'addresses' ||
+            request.apiFamily === 'places')
+        ) {
+          publishedReleaseSetStatsTargets.push({
+            apiReleaseSetId: result.apiReleaseSetId,
+            cohortKey: releaseSet.cohortKey,
+            family:
+              request.apiFamily === 'addresses'
+                ? 'address'
+                : request.apiFamily === 'divisions'
+                  ? 'division'
+                  : 'place',
+            releaseCode: result.releaseCode,
+            releaseId: result.releaseId,
+            snapshotId: result.snapshotId,
+          })
+        }
+        publishedReleaseSetAnnouncements.push(
+          ...(result.apiReleaseSetAnnouncements ?? []).filter(
+            publication => publication.apiReleaseSetCode === releaseSet.code,
+          ),
+        )
+        publishedReleaseSetPublications.push(
+          ...(result.apiReleaseSetPublications ?? []).filter(
+            publication => publication.apiReleaseSetCode === releaseSet.code,
+          ),
+        )
+      } else {
+        pendingReleaseSetCodes.push(releaseSet.code)
+      }
+    }
+
+    return {
+      inspected: draftReleaseSets.length,
+      pendingReleaseSetCodes,
+      publishedReleaseSetAnnouncements,
+      publishedReleaseSetPublications,
+      publishedReleaseSetCodes,
+      publishedReleaseSetStatsTargets: [
+        ...publishedReleaseSetStatsTargets,
+        ...recoverableCurrentStatsTargets,
+      ],
+    }
+  })
+}
+
+async function listCurrentReleaseSetStatsTargets(
+  db: HarbourReadableDb,
+  request: ReconcileDraftReleaseSetsRequest,
+) {
+  if (
+    request.apiFamily !== 'addresses' &&
+    request.apiFamily !== 'divisions' &&
+    request.apiFamily !== 'places'
+  ) {
+    return []
+  }
+
+  const rows = await db
+    .select({
+      apiReleaseSetId: metaApiReleaseSets.id,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      releaseCode: metaReleases.code,
+      releaseId: metaReleases.id,
+      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiReleaseSetSnapshots,
+      and(
+        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+        eq(metaApiReleaseSetSnapshots.role, 'primary'),
+      ),
+    )
+    .innerJoin(
+      metaSnapshotSources,
+      and(
+        eq(metaSnapshotSources.snapshotId, metaApiReleaseSetSnapshots.snapshotId),
+        eq(metaSnapshotSources.role, 'primary'),
+      ),
+    )
+    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .where(
+      and(
+        eq(metaApiReleaseSets.status, 'current'),
+        eq(
+          metaApiVersions.familyType,
+          request.apiFamily === 'addresses'
+            ? 'addresses'
+            : request.apiFamily === 'divisions'
+              ? 'divisions'
+              : 'places',
+        ),
+        request.regionCode
+          ? eq(metaApiReleaseSets.regionCode, request.regionCode)
+          : undefined,
+        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+      ),
+    )
+    .orderBy(metaApiReleaseSets.cohortKey, metaApiReleaseSets.revision)
+    .all()
+
+  const seenReleaseSetIds = new Set<string>()
+  const targets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] = []
+  for (const row of rows) {
+    if (seenReleaseSetIds.has(row.apiReleaseSetId)) continue
+    seenReleaseSetIds.add(row.apiReleaseSetId)
+
+    const existingStats = await db
+      .select({ id: metaSchema.stats.id })
+      .from(metaSchema.stats)
+      .where(eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId))
+      .limit(1)
+      .get()
+    if (existingStats) continue
+    if (!row.cohortKey) continue
+
+    targets.push({
+      apiReleaseSetId: row.apiReleaseSetId,
+      cohortKey: row.cohortKey,
+      family:
+        request.apiFamily === 'addresses'
+          ? 'address'
+          : request.apiFamily === 'divisions'
+            ? 'division'
+            : 'place',
+      releaseCode: row.releaseCode,
+      releaseId: row.releaseId,
+      snapshotId: row.snapshotId,
+    })
+  }
+
+  return targets
+}
+
+/**
+ * Creates the initial Statistics release set for every cohort that has prepared
+ * source snapshots but no published release set yet. This is intentionally a
+ * one-off launch operation: routine uploads continue to create later immutable
+ * revisions for a cohort.
+ */
+export async function handleBootstrapStatsReleaseSets(
+  db: HarbourReadableDb & HarbourWritableDb,
+  request: BootstrapStatsReleaseSetsRequest = {},
+): Promise<BootstrapStatsReleaseSetsResult> {
+  return runWithTransientControlRetry(async () => {
+    const regionCode = request.regionCode ?? 'hk'
+    const members = (
+      await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
+    ).filter(member => member.domainCode === 'official')
+    const memberVariants = new Set(members.map(member => member.variant))
+    // A Statistics source may publish DivisionArea artefacts as its primary
+    // resource while also materialising a linked divisionStatistic snapshot.
+    // Select the source family here; the snapshot lookup below remains the
+    // resource-type gate for the Statistics API release set.
+    const sourceReleases = await db
+      .select({ id: metaReleases.id })
+      .from(metaReleases)
+      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+      .where(
+        and(
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaDatasets.theme, 'stats'),
+          eq(metaReleases.status, 'published'),
+        ),
+      )
+      .all()
+
+    const candidatesByCohort = new Map<
+      string,
+      Array<{
+        dataset: NonNullable<Awaited<ReturnType<typeof getDatasetRecordByReleaseId>>>
+        snapshotId: string
+        variant: string
+      }>
+    >()
+
+    for (const sourceRelease of sourceReleases) {
+      const dataset = await getDatasetRecordByReleaseId(db, sourceRelease.id)
+      if (!dataset) continue
+      const variant = datasetVariantForSource('divisionStatistic', dataset.source, {
+        cohortKey: dataset.cohortKey,
+        datasetCode: dataset.datasetCode,
+        sourceVariant: dataset.sourceVariant,
+        sourceVersion: dataset.sourceVersion,
+      })
+      if (!memberVariants.has(variant)) continue
+
+      const snapshots = await listSnapshotsForRelease(
+        db,
+        sourceRelease.id,
+        'divisionStatistic',
+        {
+          variant,
+        },
+      )
+      for (const snapshot of snapshots) {
+        if (snapshot.status === 'archived') continue
+        const candidates = candidatesByCohort.get(snapshot.cohortKey) ?? []
+        candidates.push({ dataset, snapshotId: snapshot.id, variant })
+        candidatesByCohort.set(snapshot.cohortKey, candidates)
+      }
+    }
+
+    const createdReleaseSetCodes: string[] = []
+    const skippedCohortKeys: string[] = []
+    let inspectedSnapshots = 0
+
+    for (const [cohortKey, candidates] of [...candidatesByCohort.entries()].sort(
+      ([left], [right]) => left.localeCompare(right),
+    )) {
+      inspectedSnapshots += candidates.length
+      const existing = await resolveLatestReleaseSetForTypeDomainCohort(
+        db,
+        'divisionStatistic',
+        'official',
+        regionCode,
+        cohortKey,
+      )
+      if (existing) {
+        skippedCohortKeys.push(cohortKey)
+        continue
+      }
+
+      const existingDraft = await db
+        .select({ code: metaApiReleaseSets.code })
+        .from(metaApiReleaseSets)
+        .innerJoin(
+          metaApiVersions,
+          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        )
+        .where(
+          and(
+            eq(metaApiVersions.code, 'api-stats-v0.1'),
+            eq(metaApiReleaseSets.regionCode, regionCode),
+            eq(metaApiReleaseSets.domainCode, 'official'),
+            eq(metaApiReleaseSets.cohortKey, cohortKey),
+            eq(metaApiReleaseSets.status, 'draft'),
+          ),
+        )
+        .limit(1)
+        .get()
+      if (existingDraft && !existingDraft.code.endsWith('-r0')) {
+        skippedCohortKeys.push(cohortKey)
+        continue
+      }
+
+      const snapshotIdsByVariant = new Map<string, string>()
+      for (const candidate of candidates) {
+        const previousSnapshotId = snapshotIdsByVariant.get(candidate.variant)
+        if (previousSnapshotId && previousSnapshotId !== candidate.snapshotId) {
+          throw new ControlRequestError(
+            `Cannot bootstrap Statistics cohort ${cohortKey}: multiple snapshots are available for ${candidate.variant}.`,
+          )
+        }
+        snapshotIdsByVariant.set(candidate.variant, candidate.snapshotId)
+      }
+
+      const releaseSet = await ensureDraftReleaseSetForRelease(
+        db,
+        'divisionStatistic',
+        { cohortKey, regionCode },
+        { domainCode: 'official' },
+      )
+      const orderedCandidates = candidates
+        .slice()
+        .sort(
+          (left, right) =>
+            left.variant.localeCompare(right.variant) ||
+            left.snapshotId.localeCompare(right.snapshotId),
+        )
+      const finalCandidate = orderedCandidates.at(-1)
+      if (!finalCandidate) continue
+
+      for (const candidate of orderedCandidates) {
+        await publishReleaseArtefacts(db, {
+          carriedSnapshots: [],
+          currentRelease: null,
+          currentReleaseIsCorrected: false,
+          dataset: candidate.dataset,
+          publishedAt: new Date().toISOString(),
+          releaseSetId: releaseSet.id,
+          snapshotId: candidate.snapshotId,
+          type: 'divisionStatistic',
+          deferApiReleaseSet: true,
+        })
+      }
+
+      await publishReleaseArtefacts(db, {
+        carriedSnapshots: [],
+        currentRelease: null,
+        currentReleaseIsCorrected: false,
+        dataset: finalCandidate.dataset,
+        publishedAt: new Date().toISOString(),
+        releaseSetId: releaseSet.id,
+        snapshotId: finalCandidate.snapshotId,
+        type: 'divisionStatistic',
+      })
+      createdReleaseSetCodes.push(releaseSet.code)
+    }
+
+    return { createdReleaseSetCodes, inspectedSnapshots, skippedCohortKeys }
+  })
+}
