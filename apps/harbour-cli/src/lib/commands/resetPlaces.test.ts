@@ -6,6 +6,7 @@ import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import {
   assertPlacesInitialisationComplete,
   collectOwnedPlaces,
+  failRunningPlacesIngestRuns,
   failPlacesManifest,
   resumePlacesManifest,
 } from './resetPlaces.ts'
@@ -23,7 +24,26 @@ function createPlacesOwnershipDb() {
       sourceReleaseId TEXT NOT NULL,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
-      status TEXT NOT NULL
+      status TEXT NOT NULL,
+      updatedAt TEXT NOT NULL DEFAULT '2026-09-06T00:00:00.000Z'
+    );
+    CREATE TABLE sourceReleases (
+      id TEXT PRIMARY KEY,
+      status TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+    CREATE TABLE ingestRuns (
+      runId TEXT PRIMARY KEY,
+      releaseId TEXT NOT NULL,
+      phase TEXT NOT NULL,
+      status TEXT NOT NULL,
+      stats TEXT,
+      error TEXT,
+      startedAt TEXT NOT NULL,
+      finishedAt TEXT,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      UNIQUE (releaseId, phase)
     );
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
@@ -62,6 +82,8 @@ function createPlacesOwnershipDb() {
         'dr-hk-overture-place-2026-08-19.0',
         'staged'
       );
+    INSERT INTO sourceReleases (id, status, updatedAt) VALUES
+      ('places-source-release', 'processing', '2026-09-06T00:00:00.000Z');
     INSERT INTO snapshotLineages (
       id, primaryDatasetId, resourceType, variant
     ) VALUES
@@ -127,6 +149,44 @@ describe('Overture Places initialisation ownership', () => {
       snapshotIds: ['unlinked-draft'],
       sourceReleaseIds: ['places-source-release'],
     })
+
+    sqlite.close()
+  })
+
+  test('fails only abandoned Places phases last updated before the manifest failure', async () => {
+    const { db, sqlite } = createPlacesOwnershipDb()
+    sqlite.exec(`
+      INSERT INTO ingestRuns (
+        runId, releaseId, phase, status, startedAt, createdAt, updatedAt
+      ) VALUES
+        (
+          'abandoned', 'places-release', 'processDataset', 'running',
+          '2026-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z',
+          '2026-09-06T00:01:00.000Z'
+        ),
+        (
+          'newer', 'places-release', 'extractPlaces', 'running',
+          '2026-09-06T00:03:00.000Z', '2026-09-06T00:03:00.000Z',
+          '2026-09-06T00:03:00.000Z'
+        );
+    `)
+
+    expect(await failRunningPlacesIngestRuns(db, '2026-09-06T00:02:00.000Z')).toBe(1)
+    expect(
+      sqlite
+        .query('SELECT status, finishedAt, error FROM ingestRuns WHERE runId = ?')
+        .get('abandoned'),
+    ).toMatchObject({
+      error: expect.stringContaining('interrupted'),
+      finishedAt: expect.any(String),
+      status: 'error',
+    })
+    expect(
+      sqlite.query('SELECT status FROM releases WHERE id = ?').get('places-release'),
+    ).toEqual({ status: 'failed' })
+    expect(
+      sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('newer'),
+    ).toEqual({ status: 'running' })
 
     sqlite.close()
   })
