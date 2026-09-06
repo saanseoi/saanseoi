@@ -27,9 +27,13 @@ import {
 } from '@repo/core/pipeline/services/place'
 import {
   addressFingerprint,
+  compactAddressResolution,
   createSupplementaryAddressAnalyser,
+  emptySupplementaryEntryLedger,
   parseSupplementaryCuration,
+  parseSupplementaryEntryLedger,
   type AddressResolution,
+  type SupplementaryEntryLedger,
 } from './supplementaryPlaceAddress.ts'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import {
@@ -65,12 +69,14 @@ import {
 import {
   LOCAL_RELEASE_ROOT,
   SUPPLEMENTARY_CURATION_PATH,
+  supplementaryEntryLedgerPath,
 } from './processLocalPlaceSqlUploadConfig.ts'
 import { chunkStatements, insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
 import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 
 type PrepareSupplementaryAddressesInput = {
   curationPath?: string
+  entryLedgerPath?: string
   context: LocalAddressDbContext
   metaDb: HarbourReadableDb & HarbourWritableDb
   snapshots: {
@@ -95,10 +101,9 @@ export async function prepareSupplementaryAddresses(
   input: PrepareSupplementaryAddressesInput,
 ) {
   await mkdir(LOCAL_RELEASE_ROOT, { recursive: true })
-  const lockPath = resolve(
-    input.curationPath ? input.releaseRoot : LOCAL_RELEASE_ROOT,
-    'overture-place-address.lock',
-  )
+  const entryLedgerPath = resolveEntryLedgerPath(input)
+  await mkdir(resolve(entryLedgerPath, '..'), { recursive: true })
+  const lockPath = `${entryLedgerPath}.lock`
   const lock = await acquireSupplementaryAddressLock(lockPath)
   try {
     await lock.writeFile(
@@ -136,6 +141,42 @@ async function acquireSupplementaryAddressLock(lockPath: string) {
     } catch (error) {
       if (errorCode(error) !== 'ENOENT') throw error
     }
+  }
+}
+
+function resolveEntryLedgerPath(input: PrepareSupplementaryAddressesInput) {
+  if (input.entryLedgerPath) return input.entryLedgerPath
+  const target = input.importOptions.isLocal
+    ? 'local'
+    : input.targets.environment === 'production'
+      ? 'production'
+      : 'preview'
+  return supplementaryEntryLedgerPath(target)
+}
+
+async function readOptionalFile(path: string) {
+  try {
+    return await readFile(path, 'utf8')
+  } catch (error) {
+    if (errorCode(error) === 'ENOENT') return null
+    throw error
+  }
+}
+
+async function writeSupplementaryEntryLedger(
+  path: string,
+  ledger: SupplementaryEntryLedger,
+) {
+  const text = `${JSON.stringify(ledger, null, 2)}\n`
+  if ((await readOptionalFile(path)) === text) return
+  const tempPath = `${path}.${process.pid}.${crypto.randomUUID()}.tmp`
+  try {
+    await writeFile(tempPath, text, { flag: 'wx' })
+    await rename(tempPath, path)
+  } finally {
+    await unlink(tempPath).catch(error => {
+      if (errorCode(error) !== 'ENOENT') throw error
+    })
   }
 }
 
@@ -185,7 +226,12 @@ async function prepareSupplementaryAddressesLocked(
   const currentDb = input.context.currentDb as unknown as HarbourReadableDb
   const curationPath = input.curationPath ?? SUPPLEMENTARY_CURATION_PATH
   const fixtureText = await readFile(curationPath, 'utf8')
-  const fixture = parseSupplementaryCuration(JSON.parse(fixtureText))
+  const entryLedgerPath = resolveEntryLedgerPath(input)
+  const entryLedgerText = await readOptionalFile(entryLedgerPath)
+  const entryLedger = entryLedgerText
+    ? parseSupplementaryEntryLedger(JSON.parse(entryLedgerText))
+    : emptySupplementaryEntryLedger()
+  const fixture = parseSupplementaryCuration(JSON.parse(fixtureText), entryLedger)
   const official = (await currentDb
     .select({
       areaId: currentSchema.address2d.areaId,
@@ -316,7 +362,8 @@ async function prepareSupplementaryAddressesLocked(
             }
           : null,
       )
-      await resolutionOutput.write(`${JSON.stringify(resolution)}\n`)
+      const stagedResolution = compactAddressResolution(resolution)
+      await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
       resolutionCounts.set(
         resolution.tier,
         (resolutionCounts.get(resolution.tier) ?? 0) + 1,
@@ -324,7 +371,8 @@ async function prepareSupplementaryAddressesLocked(
       const reasons = resolutionReasons.get(resolution.tier) ?? new Set<string>()
       reasons.add(resolution.reason)
       resolutionReasons.set(resolution.tier, reasons)
-      if (resolution.tier === 'supplementary') supplementaryResolutions.push(resolution)
+      if (resolution.tier === 'supplementary')
+        supplementaryResolutions.push(stagedResolution)
     }
   } finally {
     await resolutionOutput.close()
@@ -375,15 +423,16 @@ async function prepareSupplementaryAddressesLocked(
   // Detect another ingester/reviewer changing the unversioned identity policy.
   if ((await readFile(curationPath, 'utf8')) !== fixtureText)
     throw new Error('Place Address curation changed during analysis; retry.')
-  const acceptedText = `${JSON.stringify(fixture, null, 2)}\n`
-  if (acceptedText !== fixtureText) {
-    await writeFile(`${curationPath}.tmp`, acceptedText, { flag: 'wx' })
-    await rename(`${curationPath}.tmp`, curationPath)
-  }
+  if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
+    throw new Error('Generated Place Address entries changed during analysis; retry.')
   if (reviewCount)
     throw new Error(
       `${reviewCount} Place Address identities require explicit curation in ${curationPath}. Review ${reviewPath}; --yes cannot select identities.`,
     )
+  await writeSupplementaryEntryLedger(entryLedgerPath, {
+    ...entryLedger,
+    entries: fixture.entries,
+  })
 
   const parentDataset = (await db
     .select()
@@ -521,7 +570,13 @@ async function prepareSupplementaryAddressesLocked(
         materialisationHash,
         policyVersion: fixture.activePolicy,
         policies,
-        curationHash: await createHash(fixture),
+        curationHash: await createHash({
+          policy: JSON.parse(fixtureText),
+          entryLedger: {
+            ...entryLedger,
+            entries: fixture.entries,
+          },
+        }),
         addressSnapshotId: input.snapshots.addressSnapshotId,
         reviewRequired: 0,
         rowCount: addresses.length,
@@ -720,6 +775,7 @@ async function writeSupplementaryReviewArtefact(input: {
     for await (const resolution of readStagedJsonLines<AddressResolution>(
       input.resolutionPath,
     )) {
+      if (resolution.tier !== 'review') continue
       await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
       first = false
     }

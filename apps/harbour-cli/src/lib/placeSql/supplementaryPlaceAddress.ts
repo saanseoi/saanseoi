@@ -40,7 +40,7 @@ export type SupplementaryEntry = {
   values: SupplementaryValues[]
   policyVersion: string
   score: number
-  evidence: Candidate[]
+  evidence: CandidateEvidence[]
   acceptanceMode: 'automatic' | 'curated'
   firstAcceptedSourceRelease: string
   retiredAtSourceRelease?: string
@@ -62,6 +62,12 @@ export type SupplementaryCuration = {
   entries: SupplementaryEntry[]
   decisions: SupplementaryDecision[]
 }
+export type SupplementaryEntryLedger = {
+  authority: 'overture-place-address-entries'
+  version: 1
+  generationVersion: 1
+  entries: SupplementaryEntry[]
+}
 export type Candidate = {
   addressId: string
   score: number
@@ -71,6 +77,7 @@ export type Candidate = {
   parsed: ParsedPlaceAddress
   locale: string
 }
+export type CandidateEvidence = Omit<Candidate, 'parsed'>
 export type AddressObservation = {
   placeId: string
   sourceRelease: string
@@ -94,6 +101,18 @@ export type AddressResolution = {
   candidates: Candidate[]
   reason: string
   parsed: ParsedPlaceAddress[]
+}
+
+/**
+ * Keeps the durable resolution stream bounded. Full parses and candidate sets
+ * are useful only when a reviewer must decide an identity; enrichment needs
+ * the selected ID and accepted supplementary entry only.
+ */
+export function compactAddressResolution(
+  resolution: AddressResolution,
+): AddressResolution {
+  if (resolution.tier === 'review') return resolution
+  return { ...resolution, candidates: [], parsed: [] }
 }
 
 export function addressFingerprint(texts: string[]) {
@@ -131,8 +150,46 @@ export function supplementaryIdentity(values: SupplementaryValues[]) {
   return { identityKey: key, addressId: `opa-${digest(key)}` }
 }
 
-export function parseSupplementaryCuration(value: unknown): SupplementaryCuration {
-  const fixture = value as SupplementaryCuration
+export function emptySupplementaryEntryLedger(): SupplementaryEntryLedger {
+  return {
+    authority: 'overture-place-address-entries',
+    version: 1,
+    generationVersion: 1,
+    entries: [],
+  }
+}
+
+export function parseSupplementaryEntryLedger(
+  value: unknown,
+): SupplementaryEntryLedger {
+  const ledger = value as SupplementaryEntryLedger
+  if (
+    ledger?.authority !== 'overture-place-address-entries' ||
+    ledger.version !== 1 ||
+    ledger.generationVersion !== 1 ||
+    !Array.isArray(ledger.entries)
+  ) {
+    throw new Error('Invalid generated Overture Place Address entry ledger.')
+  }
+  return ledger
+}
+
+export function parseSupplementaryCuration(
+  value: unknown,
+  entryLedger: SupplementaryEntryLedger = emptySupplementaryEntryLedger(),
+): SupplementaryCuration {
+  const policy = value as Omit<SupplementaryCuration, 'entries'> & {
+    entries?: unknown
+  }
+  const fixture = {
+    ...policy,
+    entries:
+      policy.entries === undefined
+        ? entryLedger.entries
+        : Array.isArray(policy.entries)
+          ? policy.entries
+          : null,
+  } as SupplementaryCuration
   if (
     fixture?.authority !== 'overture-place-address' ||
     fixture.version !== 1 ||
@@ -336,13 +393,7 @@ export function createSupplementaryAddressAnalyser(
       if (decision.addressId && officialIds.has(decision.addressId))
         return result('direct', decision.addressId, 'explicit_decision')
       if (entry?.addressId === decision.addressId && reproducible(entry)) {
-        return result(
-          'supplementary',
-          entry.addressId,
-          'explicit_decision',
-          entry.evidence,
-          entry,
-        )
+        return result('supplementary', entry.addressId, 'explicit_decision', [], entry)
       }
       return result('review', null, 'decision_target_not_reproducible')
     }
@@ -371,13 +422,7 @@ export function createSupplementaryAddressAnalyser(
       reproducible(entry) &&
       (!previous || previous.addressId === entry.addressId)
     ) {
-      return result(
-        'supplementary',
-        entry.addressId,
-        'accepted_curation',
-        entry.evidence,
-        entry,
-      )
+      return result('supplementary', entry.addressId, 'accepted_curation', [], entry)
     }
 
     const candidatesById = new Map<string, Candidate>()
@@ -480,7 +525,8 @@ export function createSupplementaryAddressAnalyser(
         ...(matcher.byExactText.get(item.normalisedAddress2dText) ?? []),
       ]),
     )
-    const best = candidates[0]
+    const premiseCandidates = candidates.filter(hasPremiseIdentityEvidence)
+    const best = premiseCandidates[0]
     if (exactIds.size > 1)
       return result('review', null, 'ambiguous_exact_addresses', candidates)
     if (
@@ -514,7 +560,8 @@ export function createSupplementaryAddressAnalyser(
     if (
       best.contradictions.length ||
       best.score < policy.automaticThreshold ||
-      (candidates[1] && best.score - candidates[1].score < policy.separation)
+      (premiseCandidates[1] &&
+        best.score - premiseCandidates[1].score < policy.separation)
     ) {
       return result(
         'review',
@@ -560,7 +607,7 @@ export function createSupplementaryAddressAnalyser(
       values,
       policyVersion: fixture.activePolicy,
       score: best.score,
-      evidence: candidates,
+      evidence: [candidateEvidence(best)],
       acceptanceMode: 'automatic',
       firstAcceptedSourceRelease: observation.sourceRelease,
     }
@@ -582,6 +629,21 @@ export function createSupplementaryAddressAnalyser(
       accepted,
     )
   }
+}
+
+function hasPremiseIdentityEvidence(candidate: Candidate) {
+  return [
+    'buildingName',
+    'estateName',
+    'blockExpression',
+    'phaseExpression',
+    'alias',
+  ].some(key => candidate.breakdown[key])
+}
+
+function candidateEvidence(candidate: Candidate): CandidateEvidence {
+  const { parsed: _parsed, ...evidence } = candidate
+  return evidence
 }
 
 /**

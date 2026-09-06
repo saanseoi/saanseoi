@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import policyFixture from './testFixtures/supplementaryAddressPolicy.json'
 import {
   addressFingerprint,
+  compactAddressResolution,
   createSupplementaryAddressAnalyser,
   parseSupplementaryCuration,
   supplementaryIdentity,
@@ -140,6 +141,28 @@ describe('supplementary Place Address policy', () => {
     const bare = analyse(observation('20'), null)
     expect(bare.tier).toBe('delayed')
     expect(bare.candidates).toHaveLength(0)
+  })
+  test('street-only and number-conflicting street evidence remain delayed', () => {
+    const { analyse } = setup()
+    const streetOnly = analyse(observation('Tat Tung Road'), null)
+    expect(streetOnly.tier).toBe('delayed')
+    expect(streetOnly.reason).toBe('no_useful_partial_match')
+    expect(streetOnly.candidates[0]?.breakdown).toEqual({ street: 30 })
+
+    const wrongNumber = analyse(observation('99 Tat Tung Road'), null)
+    expect(wrongNumber.tier).toBe('delayed')
+    expect(wrongNumber.candidates[0]?.contradictions).toContain('number')
+  })
+  test('compacts non-review resolutions but retains review evidence', () => {
+    const { analyse } = setup([citygate, { ...citygate, addressId: 'other' }])
+    const delayed = analyse(observation('Tat Tung Road'), null)
+    expect(compactAddressResolution(delayed)).toMatchObject({
+      candidates: [],
+      parsed: [],
+      tier: 'delayed',
+    })
+    const review = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
+    expect(compactAddressResolution(review).candidates.length).toBeGreaterThan(0)
   })
   test('geometry adds 25 points only to a nearby named candidate', () => {
     const { analyse, geometry } = setup([citygate, { ...citygate, addressId: 'other' }])

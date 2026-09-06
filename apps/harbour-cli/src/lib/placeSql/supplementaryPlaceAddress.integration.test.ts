@@ -248,13 +248,25 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       ...place,
       raw: { ...place.raw, addresses: [{ freeform: 'Citygate Annex, Tat Tung Road' }] },
     }
+    const additionalAccepted = {
+      ...place,
+      id: 'citygate-place-2',
+      raw: { ...place.raw, id: 'citygate-place-2' },
+    }
+    const curationBeforeReview = await readFile(curationPath, 'utf8')
     await expect(
-      prepareSupplementaryAddresses({ ...input, places: [changed] }),
+      prepareSupplementaryAddresses({
+        ...input,
+        places: [changed, additionalAccepted],
+      }),
     ).rejects.toThrow('require explicit curation')
+    expect(await readFile(curationPath, 'utf8')).toBe(curationBeforeReview)
     const review = JSON.parse(
       await readFile(resolve(root, 'overture-place-address-review.json'), 'utf8'),
     )
     expect(review.reviewRequired).toBe(1)
+    expect(review.results).toHaveLength(1)
+    expect(review.results[0].tier).toBe('review')
     expect(review.results[0].previous.addressId).toBe(first.addresses[0]!.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
   } finally {
