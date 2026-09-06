@@ -34,11 +34,11 @@ import type {
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import {
-  getDistrictCoverageMapData,
   getRegistryAccessMetricsData,
   getSourceReleaseAuditActionPage,
   getSourceReleaseAuditData,
 } from '#lib/registry/meta.remote.js'
+import { getDistrictCoverageMapData } from '#lib/registry/district.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'

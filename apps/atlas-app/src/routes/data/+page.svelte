@@ -21,7 +21,7 @@ import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import {
   getDataReleasesPageData,
   type DataPageRelease,
-} from '#lib/registry/meta.remote.js'
+} from '#lib/registry/data.remote.js'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,

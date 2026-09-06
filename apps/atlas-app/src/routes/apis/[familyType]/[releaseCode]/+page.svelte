@@ -18,9 +18,9 @@ import {
   getApiReleaseAuditActionPage,
   getApiReleaseAuditData,
   getApiReleasePageData,
-  getDistrictCoverageMapData,
   getRegistryAccessMetricsData,
 } from '#lib/registry/meta.remote.js'
+import { getDistrictCoverageMapData } from '#lib/registry/district.remote.js'
 import { diffMarkdown } from '#lib/registry/markdown.js'
 import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
 import { resolveReleaseSetRef } from '#lib/registry/releaseSetRef.js'

@@ -17,3 +17,11 @@ export function getAuthRedirectPath(
     return fallback
   }
 }
+
+export function getSignInHref(redirectPath: string) {
+  return `/sign-in?next=${encodeURIComponent(redirectPath)}`
+}
+
+export function getSignUpHref(redirectPath: string) {
+  return `/sign-up?continue=${encodeURIComponent(redirectPath)}`
+}
