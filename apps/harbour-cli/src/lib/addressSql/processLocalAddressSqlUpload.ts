@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -8,7 +8,17 @@ import {
   hasCurrentAddressVersions,
   prepareAddressVersionInsertContext,
 } from '@repo/core/pipeline/db/address'
-import { resolveLatestPublishedSnapshotForLineage } from '@repo/core/db/metaRegistry'
+import {
+  resolveLatestPublishedSnapshotForLineage,
+  resolveSnapshotReplayPlan,
+} from '@repo/core/db/metaRegistry'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
+import {
+  createAddress3dExecutor,
+  fileSha256,
+  importAddress3dCollections,
+  validateAddress3dPreparation,
+} from './address3dImport'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
@@ -114,6 +124,25 @@ export async function processLocalAddressSqlUpload(
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
+  const address3dPath = `${preparedUpload.filePath}.address3d.jsonl`
+  const prepared3d =
+    previewPlan.source === 'hkgov-dpo'
+      ? await validateAddress3dPreparation(address3dPath, previewPlan.sourceVersion)
+      : undefined
+  if (prepared3d) {
+    const seal = JSON.parse(
+      await readFile(`${preparedUpload.filePath}.address3d.meta.json`, 'utf8'),
+    )
+    if (
+      seal.sourceVersion !== previewPlan.sourceVersion ||
+      seal.sidecarSha256 !== prepared3d.digest ||
+      seal.parquetSha256 !== (await fileSha256(preparedUpload.filePath))
+    ) {
+      throw new Error(
+        'ALS 2D and 3D preparation do not belong together; prepare the release again',
+      )
+    }
+  }
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
@@ -299,6 +328,46 @@ export async function processLocalAddressSqlUpload(
       dbContext.metaDb as unknown as HarbourReadableDb,
       versionInsertContext.snapshotLineageId,
     )
+    const prior3d =
+      prepared3d && versionInsertContext.parentSnapshotId
+        ? [
+            ...(
+              await resolveSnapshotVersionState(
+                await resolveSnapshotReplayPlan(
+                  dbContext.metaDb as unknown as HarbourReadableDb,
+                  versionInsertContext.parentSnapshotId,
+                ),
+                new Map(
+                  dbContext.historyTargets.map(target => [
+                    target.bindingName,
+                    {
+                      bindingName: target.bindingName,
+                      db: target.db as HarbourReadableDb,
+                    },
+                  ]),
+                ),
+                ['address3d', 'address3dI18n'],
+              )
+            ).values(),
+          ]
+        : []
+    const import3d = async (writeOptions: AddressSqlImportStageOptions) => {
+      if (!prepared3d) return
+      await importAddress3dCollections({
+        path: address3dPath,
+        sourceVersion: previewPlan.sourceVersion,
+        snapshotId: versionInsertContext.snapshotId,
+        releaseId,
+        expectedDigest: prepared3d.digest,
+        priorMembership: prior3d,
+        execute: await createAddress3dExecutor(
+          dbContext.metaDb,
+          initialMessage,
+          writeOptions,
+        ),
+      })
+    }
+    importOptions.beforePublish = () => import3d(importOptions)
     const isHistoricalBranch =
       versionInsertContext.parentSnapshotId !== null &&
       activeSnapshot?.id !== versionInsertContext.parentSnapshotId
@@ -569,6 +638,7 @@ export async function processLocalAddressSqlUpload(
           finalMessageWithMeta,
           importOptions,
         )
+        await import3d({ ...importOptions, isLocal: true })
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }

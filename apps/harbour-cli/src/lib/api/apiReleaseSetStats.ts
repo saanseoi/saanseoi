@@ -290,12 +290,20 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     ),
   ])
   const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
+  const unitStats = await db
+    .select({
+      count: sql<number>`COALESCE(SUM(${currentSchema.address3d.unitCount}), 0)`,
+    })
+    .from(currentSchema.address3d)
+    .where(eq(currentSchema.address3d.snapshotId, snapshotId))
+    .get()
 
   return buildAddressApiReleaseSetStatsRows({
     address2dCount,
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
+    address3dUnitCount: Number(unitStats?.count ?? 0),
     areaLinkedCount,
     byDistrict,
     componentCounts,
