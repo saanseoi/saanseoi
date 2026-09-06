@@ -53,6 +53,7 @@ export type SupplementaryDecision = {
   resolution: 'keep' | 'retire' | 'replace'
   addressId: string | null
   reason: string
+  address?: { baseAddressId: string; values: SupplementaryValues[] }
 }
 export type SupplementaryCuration = {
   authority: 'overture-place-address'
@@ -301,6 +302,23 @@ export function parseSupplementaryCuration(
       throw new Error('Invalid or duplicate supplementary identity decision.')
     }
     decisions.add(key)
+    if (decision.address) {
+      const { baseAddressId, values } = decision.address
+      if (
+        decision.resolution !== 'replace' ||
+        !baseAddressId ||
+        !Array.isArray(values) ||
+        values.length === 0 ||
+        values.some(
+          value =>
+            !['en', 'zh-hant'].includes(value.locale) ||
+            !value.formattedAddress?.trim(),
+        ) ||
+        new Set(values.map(value => value.locale)).size !== values.length ||
+        supplementaryIdentity(values).addressId !== decision.addressId
+      )
+        throw new Error('Invalid edited supplementary address decision.')
+    }
   }
   return fixture
 }
@@ -382,12 +400,50 @@ export function createSupplementaryAddressAnalyser(
     )
     if (decision) {
       if (
-        decision.previousAddressId !== (previous?.addressId ?? entry?.addressId ?? null)
+        decision.previousAddressId !==
+          (previous?.addressId ?? entry?.addressId ?? null) &&
+        !(
+          decision.address &&
+          entry?.addressId === decision.addressId &&
+          entry.fingerprint === fingerprint
+        )
       ) {
         return result('review', null, 'decision_previous_link_mismatch')
       }
       if (decision.resolution === 'retire')
         return result('delayed', null, 'explicit_retirement')
+      if (decision.address) {
+        if (!officialIds.has(decision.address.baseAddressId))
+          return result('review', null, 'decision_base_not_available')
+        const accepted: SupplementaryEntry = {
+          placeId: observation.placeId,
+          ...supplementaryIdentity(decision.address.values),
+          fingerprint,
+          normalisedPublisherAddress: observation.texts.map(normaliseAddressText),
+          baseAddressId: decision.address.baseAddressId,
+          values: decision.address.values,
+          policyVersion: fixture.activePolicy,
+          score: 0,
+          evidence: [],
+          acceptanceMode: 'curated',
+          firstAcceptedSourceRelease: observation.sourceRelease,
+        }
+        if (entry && entry.addressId !== accepted.addressId)
+          entry.retiredAtSourceRelease = observation.sourceRelease
+        if (!entry || entry.addressId !== accepted.addressId)
+          fixture.entries.push(accepted)
+        byPlace.set(
+          observation.placeId,
+          fixture.entries.filter(value => value.placeId === observation.placeId),
+        )
+        return result(
+          'supplementary',
+          accepted.addressId,
+          'explicit_edited_address',
+          [],
+          accepted,
+        )
+      }
       if (
         decision.resolution === 'keep' &&
         decision.addressId !== decision.previousAddressId
