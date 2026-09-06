@@ -7,7 +7,9 @@ import {
 import {
   listSnapshotSourceReleases,
   resolveApiReleaseSetSnapshotsForRequest,
+  resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
@@ -27,6 +29,7 @@ import {
 import { attachAddress3dCoverage, getAddress3dCollection } from '../db/address3d'
 import type { Address3dCoverage } from '@repo/db/address3d'
 import { listDivisionRecordsCurrentByIds } from '../db/divisions'
+import { listReplayedDivisionRecords } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
 import {
   buildApiVersionMetadata,
@@ -185,6 +188,8 @@ type AddressDetailDocument = {
 
 async function loadIncludedAddressHierarchy(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
+  metaDb: AppEnv['Variables']['metaDb']
   records: AddressRecord[]
   snapshotId: string
   routeState: AddressRouteState
@@ -205,12 +210,34 @@ async function loadIncludedAddressHierarchy(args: {
     Awaited<ReturnType<typeof listDivisionRecordsCurrentByIds>>[number]
   >()
   for (const [snapshotId, divisionIds] of idsBySnapshot) {
-    const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
-      snapshotId,
-      divisionIds: [...divisionIds],
-      localeSelection: args.routeState.localeSelection,
-    })
-    for (const record of records) recordsById.set(record.division.id, record)
+    if (args.historyDbsByBinding) {
+      const plan = await resolveSnapshotReplayPlan(args.metaDb as never, snapshotId)
+      const shards = new Map(
+        Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
+          bindingName,
+          { bindingName, db },
+        ]),
+      )
+      const versions = await resolveSnapshotVersionState(plan, shards as never, [
+        'division',
+        'divisionI18n',
+      ])
+      const records = await listReplayedDivisionRecords(
+        versions.values() as never,
+        snapshotId,
+        args.routeState.localeSelection,
+      )
+      for (const record of records)
+        if (divisionIds.has(record.division.id))
+          recordsById.set(record.division.id, record)
+    } else {
+      const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
+        snapshotId,
+        divisionIds: [...divisionIds],
+        localeSelection: args.routeState.localeSelection,
+      })
+      for (const record of records) recordsById.set(record.division.id, record)
+    }
   }
   const records = [...recordsById.values()]
   return records.map(record =>
@@ -654,6 +681,8 @@ export async function listAddresses(args: {
   const included = await runWithD1ReadRetry(() =>
     loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
+      historyDbsByBinding: args.historyDbsByBinding,
+      metaDb: args.metaDb,
       records,
       snapshotId: activeSnapshot.divisionSnapshotId,
       routeState,
@@ -809,6 +838,8 @@ export async function searchAddresses(args: {
   const included = await runWithD1ReadRetry(() =>
     loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
+      historyDbsByBinding: args.historyDbsByBinding,
+      metaDb: args.metaDb,
       records,
       snapshotId: activeSnapshot.divisionSnapshotId,
       routeState,
@@ -908,6 +939,8 @@ export async function getAddressDetail(args: {
   const included = await runWithD1ReadRetry(() =>
     loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
+      historyDbsByBinding: args.historyDbsByBinding,
+      metaDb: args.metaDb,
       records: [record],
       snapshotId: activeSnapshot.divisionSnapshotId,
       routeState,
