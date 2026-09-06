@@ -1,6 +1,39 @@
 import { describe, expect, test } from 'bun:test'
 
 describe('OperationProgress', () => {
+  test('redraws through the terminal logging pipe and keeps non-interactive output static', () => {
+    const source = `
+      import { OperationProgress } from ${JSON.stringify(`${import.meta.dir}/operationProgress.ts`)};
+      const progress = new OperationProgress();
+      progress.beginPhase('Normalise records (0/10)', { max: 10 });
+      await Bun.sleep(120);
+      progress.update(10, { label: 'Normalise records (10/10)' });
+      await Bun.sleep(120);
+      progress.complete('Normalise records complete');
+    `
+    for (const mode of [
+      { interactive: '1', term: 'xterm-256color', ci: 'false', animated: true },
+      { interactive: '', term: 'xterm-256color', ci: 'false', animated: false },
+      { interactive: '1', term: 'dumb', ci: 'false', animated: false },
+      { interactive: '1', term: 'xterm-256color', ci: 'true', animated: false },
+    ]) {
+      const result = Bun.spawnSync([process.execPath, '--eval', source], {
+        env: {
+          ...process.env,
+          SAANSEOI_TERMINAL_INTERACTIVE: mode.interactive,
+          TERM: mode.term,
+          CI: mode.ci,
+        },
+        stdout: 'pipe',
+        stderr: 'pipe',
+      })
+      expect(result.exitCode).toBe(0)
+      const output = result.stdout.toString()
+      expect(output).toContain('Normalise records complete')
+      expect(output.includes('\u001b[1G\u001b[J')).toBe(mode.animated)
+    }
+  })
+
   test('includes the underlying error in a failed phase label', async () => {
     const stoppedLabels: string[] = []
     const rendererKinds: string[] = []
