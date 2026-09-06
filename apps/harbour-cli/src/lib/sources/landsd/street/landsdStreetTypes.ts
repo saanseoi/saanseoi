@@ -101,6 +101,8 @@ export type LandsdGovernmentNoticePdfParse = {
       language: string | null
       method: 'native-text' | 'ocr'
       model?: string
+      revision?: string
+      rawPages?: string[]
       nativeTextStatus?: 'unparseable'
       renderDpi?: number
     }

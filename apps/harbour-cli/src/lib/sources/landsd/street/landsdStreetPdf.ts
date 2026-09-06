@@ -216,7 +216,9 @@ export function isGovernmentNoticePostamble(
   locale: LandsdStreetPageLocale,
 ) {
   return locale === 'en'
-    ? /^\s*A copy of (?:Plan No\.|this notice)/i.test(line)
+    ? /^\s*(?:A copy of (?:Plan No\.|this notice)|Plan No\..*\bmay be inspected\b)/i.test(
+        line,
+      )
     : /^\s*查\s*閱\s*第?.*(?:圖\s*則|本\s*公\s*告)/u.test(line)
 }
 

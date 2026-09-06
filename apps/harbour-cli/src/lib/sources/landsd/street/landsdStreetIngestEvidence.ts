@@ -26,9 +26,9 @@ import {
   isLifecycleCurationNotice,
   pdfToText,
   runCommand,
-  runCommandStdout,
 } from './landsdStreetIngestIo.ts'
-import { PADDLE_OCR_PYTHON, PADDLE_OCR_SCRIPT } from './landsdStreetIngestConfig.ts'
+import { runQianfanOcr } from '../../../qianfanOcr.ts'
+import { qianfanMarkdownToLayout } from '../../../qianfanLayout.ts'
 
 export function getEvidence(
   evidence: Map<string, PublishedPreparedAsset>,
@@ -269,11 +269,13 @@ async function extractChineseEgazetteNoticeText(input: {
       diagnostics: {
         ...parsed.diagnostics,
         extraction: {
-          engine: 'PaddleOCR',
+          engine: 'Qianfan-OCR',
           engineVersion: ocr.engineVersion,
           language: 'zh-Hant',
           method: 'ocr' as const,
           model: ocr.model,
+          revision: ocr.revision,
+          rawPages: ocr.rawPages,
           nativeTextStatus: 'unparseable' as const,
           renderDpi: 300,
         },
@@ -290,101 +292,43 @@ function hasUsableChineseNoticeRows(
   )
 }
 
-/**
- * PaddleOCR word coordinates are rebuilt into sparse fixed-width lines so the
- * existing Gazette parser keeps responsibility for table interpretation.
- */
 async function ocrPdfToTraditionalChineseText(pdfPath: string) {
   const temporaryDir = await mkdtemp(join(tmpdir(), 'saanseoi-egazette-ocr-'))
   try {
-    const prefix = join(temporaryDir, 'page')
-    await runCommand('pdftoppm', ['-r', '300', '-png', pdfPath, prefix])
+    await runCommand('pdftoppm', [
+      '-r',
+      '300',
+      '-png',
+      pdfPath,
+      join(temporaryDir, 'page'),
+    ])
     const images = (await readdir(temporaryDir))
-      .filter(file => /^page-\d+\.png$/.test(file))
-      .sort((left, right) => left.localeCompare(right, undefined, { numeric: true }))
-    if (images.length === 0) {
-      throw new Error(`OCR could not render any pages from ${pdfPath}.`)
+      .filter(file => /^page-\\d+\\.png$/.test(file))
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+    if (!images.length) throw new Error('pdftoppm rendered no pages.')
+    const pages = []
+    for (const image of images)
+      pages.push(await runQianfanOcr(join(temporaryDir, image)))
+    const first = pages[0]?.page
+    if (!first) throw new Error('Qianfan OCR produced no pages.')
+    if (pages.some(({ page }) => page.engineVersion !== first.engineVersion))
+      throw new Error('Qianfan runtime changed between pages.')
+    return {
+      engineVersion: first.engineVersion,
+      model: first.model,
+      revision: first.revision,
+      rawPages: pages.map(({ raw }) => raw),
+      text: pages
+        .map(({ page }) => qianfanMarkdownToLayout(page.text))
+        .join('\\n\\f\\n'),
     }
-    const pages: string[] = []
-    let engineVersion: string | undefined
-    let model: string | undefined
-    for (const image of images) {
-      const output = await runCommandStdout(PADDLE_OCR_PYTHON, [
-        PADDLE_OCR_SCRIPT,
-        join(temporaryDir, image),
-      ])
-      const page = parsePaddleOcrOutput(output)
-      engineVersion ??= page.engineVersion
-      model ??= page.model
-      pages.push(layoutPaddleOcrWords(page.words))
-    }
-    return { engineVersion, model, text: pages.join('\n') }
   } catch (error) {
     throw new Error(
-      `Traditional Chinese e-Gazette OCR failed for ${pdfPath}. Ensure the UV runtime is installed with \`uv sync --project apps/harbour-dataops --python 3.12\` and that PaddleOCR can download or access its initial model weights (the underlying error identifies the missing runtime or model): ${error instanceof Error ? error.message : String(error)}`,
+      `Traditional Chinese e-Gazette Qianfan OCR failed for ${pdfPath}: ${error instanceof Error ? error.message : String(error)}`,
     )
   } finally {
     await rm(temporaryDir, { recursive: true, force: true })
   }
-}
-
-function parsePaddleOcrOutput(value: string) {
-  type Word = { left: number; text: string; top: number }
-  let engineVersion: string | undefined
-  let model: string | undefined
-  const words: Word[] = []
-  for (const [index, line] of value.split(/\r?\n/).entries()) {
-    if (!line.trim()) continue
-    let item: Record<string, unknown>
-    try {
-      item = JSON.parse(line) as Record<string, unknown>
-    } catch {
-      throw new Error(`PaddleOCR emitted invalid JSON on line ${index + 1}.`)
-    }
-    if (item.type === 'metadata') {
-      if (typeof item.engineVersion === 'string') engineVersion = item.engineVersion
-      if (typeof item.model === 'string') model = item.model
-      continue
-    }
-    if (
-      item.type === 'word' &&
-      typeof item.left === 'number' &&
-      typeof item.top === 'number' &&
-      typeof item.text === 'string' &&
-      item.text.trim()
-    ) {
-      words.push({ left: item.left, text: item.text.trim(), top: item.top })
-    }
-  }
-  if (!engineVersion || !model || words.length === 0) {
-    throw new Error('PaddleOCR returned no recognized Traditional Chinese text.')
-  }
-  return { engineVersion, model, words }
-}
-
-function layoutPaddleOcrWords(
-  words: Array<{ left: number; text: string; top: number }>,
-) {
-  const lines = new Map<string, Array<{ left: number; text: string; top: number }>>()
-  for (const word of words) {
-    // Separate table columns often become separate OCR blocks. Group by their
-    // visual baseline instead, preserving the column positions below.
-    const key = Math.round(word.top / 16).toString()
-    const line = lines.get(key) ?? []
-    line.push(word)
-    lines.set(key, line)
-  }
-  return [...lines.values()]
-    .map(words => {
-      const sorted = [...words].sort((left, right) => left.left - right.left)
-      let line = ''
-      for (const word of sorted) {
-        const column = Math.max(0, Math.round(word.left / 8))
-        line += `${' '.repeat(Math.max(1, column - line.length))}${word.text}`
-      }
-      return line
-    })
-    .join('\n')
 }
 
 /**

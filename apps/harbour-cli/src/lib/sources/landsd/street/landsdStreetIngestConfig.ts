@@ -18,12 +18,3 @@ export const DEFAULT_EGAZETTE_ARCHIVE_DIR = join(
   REPO_ROOT,
   'data/hkgov/gld/egazette/street-name',
 )
-
-export const PADDLE_OCR_SCRIPT = join(
-  REPO_ROOT,
-  'apps/harbour-dataops/paddleocrTraditional.py',
-)
-
-export const PADDLE_OCR_PYTHON =
-  process.env.SAANSEOI_PADDLEOCR_PYTHON ??
-  join(REPO_ROOT, 'apps/harbour-dataops/.venv/bin/python')
