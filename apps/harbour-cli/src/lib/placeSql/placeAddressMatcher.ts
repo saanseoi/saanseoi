@@ -99,6 +99,7 @@ type PreparedAddressComponent = ParsedAddress2dComponent & {
 }
 
 export type PlaceAddressMatcher = {
+  definitions: PreparedAddressDefinition[]
   byBuildingNumberAndStreet: Map<string, PreparedAddressDefinition[]>
   byCanonicalComponent: Map<string, PreparedAddressDefinition[]>
   byExactText: Map<string, Set<string>>
@@ -131,6 +132,7 @@ export function createPlaceAddressMatcher(
   const byBuildingNumberAndStreet = new Map<string, PreparedAddressDefinition[]>()
   const byCanonicalComponent = new Map<string, PreparedAddressDefinition[]>()
   const byExactText = new Map<string, Set<string>>()
+  const preparedDefinitions: PreparedAddressDefinition[] = []
   const componentsByKey = new Map<string, PreparedAddressComponent>()
   const streetsByKey = new Map<string, PreparedStreetDefinition>()
 
@@ -149,6 +151,7 @@ export function createPlaceAddressMatcher(
       normalisedFormattedAddress: normaliseOptional(definition.formattedAddress),
       normalisedStreetName: streetName ? normaliseAddressText(streetName) : '',
     }
+    preparedDefinitions.push(prepared)
     if (streetName) {
       addPreparedStreet(streetsByKey, {
         locale,
@@ -198,6 +201,7 @@ export function createPlaceAddressMatcher(
   }
 
   return {
+    definitions: preparedDefinitions,
     byBuildingNumberAndStreet,
     byCanonicalComponent,
     byExactText,
@@ -821,7 +825,7 @@ function canonicalComponentKey(
   return `${kind}\0${normalisedName}`
 }
 
-function normaliseAddressText(value: string) {
+export function normaliseAddressText(value: string) {
   const expanded = normaliseChineseNumbers(value.normalize('NFKC'))
     .toLocaleUpperCase('en')
     .replaceAll(/[’']/g, '')
