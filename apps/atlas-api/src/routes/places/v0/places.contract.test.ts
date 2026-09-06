@@ -12,6 +12,8 @@ const PUBLISHED_AT = '2026-09-05T00:00:00.000Z'
 const RELEASE_SET = 'data-hk-places-2026-08-19.0'
 const PLACE_SNAPSHOT = 'snapshot-places-2026-08-19'
 const DIVISION_SNAPSHOT = 'snapshot-divisions-2026-08-19'
+const ADDRESS_SNAPSHOT = 'snapshot-address-2026-08-19'
+const HISTORY_BINDING = 'DB_HISTORY_HK_2026'
 
 type MockStatement = {
   bind: (...values: SQLQueryBindings[]) => MockStatement
@@ -93,6 +95,7 @@ function seedMeta(sqlite: Database) {
   const snapshots: Array<[string, string, string]> = [
     [PLACE_SNAPSHOT, 'place', 'ss-hk-place-2026-08-19.0'],
     [DIVISION_SNAPSHOT, 'division', 'ss-hk-division-overture-2026-08-19.0'],
+    [ADDRESS_SNAPSHOT, 'address', 'ss-hk-address-2026-08-19.0'],
   ]
   for (const [id, resourceType, code] of snapshots) {
     run(
@@ -157,6 +160,34 @@ function seedMeta(sqlite: Database) {
         'exact_ref',
         PUBLISHED_AT,
       ],
+    )
+  }
+  run(
+    sqlite,
+    `INSERT INTO dataShards
+      (id, shardType, regionCode, year, environment, databaseName, databaseId,
+       bindingName, status, versionHash, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'history-shard-2026',
+      'history',
+      'hk',
+      '2026',
+      'preview',
+      'history-shard-2026',
+      'history-shard-2026-db',
+      HISTORY_BINDING,
+      'active',
+      'history-shard-2026-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  for (const snapshotId of [PLACE_SNAPSHOT, DIVISION_SNAPSHOT, ADDRESS_SNAPSHOT]) {
+    run(
+      sqlite,
+      `INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES (?, ?)`,
+      [snapshotId, 'history-shard-2026'],
     )
   }
   run(
@@ -300,18 +331,218 @@ function seedCurrent(sqlite: Database) {
   }
 }
 
+function seedHistory(sqlite: Database) {
+  run(
+    sqlite,
+    `INSERT INTO divisions
+      (id, level, type, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'division-central',
+      2,
+      'district',
+      'division-central-v1',
+      'release-overture-2026-08-19',
+      DIVISION_SNAPSHOT,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO divisionsI18n
+      (divisionId, locale, name, isLocaleInferred, versionHash, sourceReleaseId,
+       snapshotId, isCurrent, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'division-central',
+      'en',
+      'Central and Western',
+      0,
+      'division-central-en-v1',
+      'release-overture-2026-08-19',
+      DIVISION_SNAPSHOT,
+      1,
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO snapshotVersionChanges
+      (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      DIVISION_SNAPSHOT,
+      'division',
+      'division-central',
+      '',
+      'division-central-v1',
+      'upsert',
+      'release-overture-2026-08-19',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO snapshotVersionChanges
+      (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      DIVISION_SNAPSHOT,
+      'divisionI18n',
+      'division-central',
+      'en',
+      'division-central-en-v1',
+      'upsert',
+      'release-overture-2026-08-19',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+
+  for (const [id, name, category, taxonomy, point] of [
+    ['place-ramen', 'Ramen House', 'restaurant', 'ramen_restaurant', [114.155, 22.285]],
+    ['place-cafe', 'Coffee House', 'cafe', 'cafe', [114.156, 22.286]],
+  ] as const) {
+    const addressId = `address-${id}`
+    const placeHash = `${id}-v1`
+    const i18nHash = `${id}-en-v1`
+    run(
+      sqlite,
+      `INSERT INTO address2d
+        (id, granularity, districtId, geometry, bbox, identifiers, sources,
+         versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        addressId,
+        'building',
+        'division-central',
+        JSON.stringify({ type: 'Point', coordinates: point }),
+        JSON.stringify([...point, ...point]),
+        '{}',
+        '{}',
+        `${addressId}-v1`,
+        'release-overture-2026-08-19',
+        ADDRESS_SNAPSHOT,
+        1,
+        PUBLISHED_AT,
+        PUBLISHED_AT,
+      ],
+    )
+    run(
+      sqlite,
+      `INSERT INTO snapshotVersionChanges
+        (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ADDRESS_SNAPSHOT,
+        'address2d',
+        addressId,
+        '',
+        `${addressId}-v1`,
+        'upsert',
+        'release-overture-2026-08-19',
+        PUBLISHED_AT,
+        PUBLISHED_AT,
+      ],
+    )
+    run(
+      sqlite,
+      `INSERT INTO places
+        (id, releaseId, addressSnapshotId, address2dId, lng, lat, bbox,
+         operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy,
+         taxonomyAlternates, websites, confidence, sources, firstSeenMonth,
+         lastSeenMonth, versionHash, sourceReleaseId, snapshotId, isCurrent,
+         createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        'release-overture-2026-08-19',
+        ADDRESS_SNAPSHOT,
+        addressId,
+        point[0],
+        point[1],
+        JSON.stringify([...point, ...point]),
+        'open',
+        category,
+        taxonomy,
+        JSON.stringify(['food_and_drink', taxonomy]),
+        '[]',
+        JSON.stringify(['https://example.com']),
+        0.9,
+        '{}',
+        '2026-08',
+        '2026-08',
+        placeHash,
+        'release-overture-2026-08-19',
+        PLACE_SNAPSHOT,
+        1,
+        PUBLISHED_AT,
+        PUBLISHED_AT,
+      ],
+    )
+    run(
+      sqlite,
+      `INSERT INTO placesI18n
+        (placeId, locale, name, freeformAddress, provenance, versionHash,
+         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        'en',
+        name,
+        'Central, Hong Kong',
+        '{}',
+        i18nHash,
+        'release-overture-2026-08-19',
+        PLACE_SNAPSHOT,
+        1,
+        PUBLISHED_AT,
+        PUBLISHED_AT,
+      ],
+    )
+    for (const [recordType, locale, versionHash] of [
+      ['place', '', placeHash],
+      ['placeI18n', 'en', i18nHash],
+    ] as const) {
+      run(
+        sqlite,
+        `INSERT INTO snapshotVersionChanges
+          (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          PLACE_SNAPSHOT,
+          recordType,
+          id,
+          locale,
+          versionHash,
+          'upsert',
+          'release-overture-2026-08-19',
+          PUBLISHED_AT,
+          PUBLISHED_AT,
+        ],
+      )
+    }
+  }
+}
+
 function createFixtureEnvironment() {
   const metaSqlite = initSqlite(['meta'])
   const currentSqlite = initSqlite(['current'])
+  const historySqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
   seedCurrent(currentSqlite)
+  seedHistory(historySqlite)
   return {
     env: {
       DB_META: createMockD1(metaSqlite),
       DB_CURRENT: createMockD1(currentSqlite),
-      DB_HISTORY_HK_BEFORE: createMockD1(currentSqlite),
-      DB_HISTORY_HK_2025: createMockD1(currentSqlite),
-      DB_HISTORY_HK_2026: createMockD1(currentSqlite),
+      DB_HISTORY_HK_BEFORE: createMockD1(historySqlite),
+      DB_HISTORY_HK_2025: createMockD1(historySqlite),
+      DB_HISTORY_HK_2026: createMockD1(historySqlite),
       DB_SOURCE_HK_BEFORE: createMockD1(currentSqlite),
       DB_SOURCE_HK_2025: createMockD1(currentSqlite),
       DB_SOURCE_HK_2026: createMockD1(currentSqlite),
@@ -325,6 +556,7 @@ function createFixtureEnvironment() {
     close() {
       metaSqlite.close()
       currentSqlite.close()
+      historySqlite.close()
     },
   }
 }
