@@ -36,6 +36,26 @@ export async function prepareReleaseSqlDelivery(input: {
       cachePreparedAt: mirror.preparedAt,
     },
     async append => {
+      // Opt-in only: the producer must guarantee no cross-database dependencies.
+      // Each target retains its own order, including initial deletes and final closures.
+      const independent = new Map<
+        string,
+        {
+          target: SqlDeliveryTarget
+          statements: Array<{ sql: string; params: unknown[] }>
+          bytes: number
+        }
+      >()
+      const flushIndependent = async (databaseId: string) => {
+        const group = independent.get(databaseId)
+        if (!group) return
+        await append(
+          group.target,
+          new TextEncoder().encode(JSON.stringify(group.statements)),
+          'bound',
+        )
+        independent.delete(databaseId)
+      }
       let bound: Array<{ sql: string; params: unknown[] }> = []
       let boundBytes = 0
       let boundTarget: SqlDeliveryTarget | undefined
@@ -62,6 +82,24 @@ export async function prepareReleaseSqlDelivery(input: {
         const resolved = { bindingName: binding[0], databaseId: target.databaseId }
         if (kind === 'bound') {
           const statements = readBoundDeliveryStatements(bytes)
+          if (input.inputs.independentBoundTargets === true) {
+            const previous = independent.get(resolved.databaseId)
+            if (
+              previous &&
+              (previous.statements.length + statements.length > 64 ||
+                previous.bytes + bytes.byteLength > 16 * 1024 * 1024)
+            )
+              await flushIndependent(resolved.databaseId)
+            const group = independent.get(resolved.databaseId) ?? {
+              target: resolved,
+              statements: [],
+              bytes: 0,
+            }
+            group.statements.push(...statements)
+            group.bytes += bytes.byteLength
+            independent.set(resolved.databaseId, group)
+            return
+          }
           if (
             boundTarget &&
             (boundTarget.databaseId !== resolved.databaseId ||
@@ -73,11 +111,14 @@ export async function prepareReleaseSqlDelivery(input: {
           bound.push(...statements)
           boundBytes += bytes.byteLength
         } else {
+          for (const databaseId of independent.keys())
+            await flushIndependent(databaseId)
           await flushBound()
           await append(resolved, bytes, kind)
         }
       })
       await flushBound()
+      for (const databaseId of independent.keys()) await flushIndependent(databaseId)
     },
     input.timings,
   )

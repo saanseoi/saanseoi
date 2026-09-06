@@ -19,7 +19,11 @@ import {
   type AddressLocaleValue,
   type AddressRecord,
 } from '../db/addresses'
-import { listReplayedAddressRecords } from '../db/addressesHistory'
+import {
+  listReplayedAddressRecords,
+  selectReplayedAddressLocales,
+  searchReplayedAddressRecords,
+} from '../db/addressesHistory'
 import { attachAddress3dCoverage, getAddress3dCollection } from '../db/address3d'
 import type { Address3dCoverage } from '@repo/db/address3d'
 import { listDivisionRecordsCurrentByIds } from '../db/divisions'
@@ -404,8 +408,11 @@ function createAddressResource(args: {
   activeSnapshot: ActiveAddressSnapshot
 }): AddressResourcePayload {
   const { address } = args.record
+  const datasetCode = args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)
+  if (!datasetCode)
+    throw new Error(`Missing dataset for address snapshot ${address.snapshotId}.`)
   const attributes: AddressResourcePayload['attributes'] = {
-    datasetCode: args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)!,
+    datasetCode,
     parentAddressId: address.parentAddressId,
     granularity: address.granularity,
     address3dCoverage: args.record.address3dCoverage ?? { kind: 'none' },
@@ -688,6 +695,7 @@ export async function listAddresses(args: {
 
 export async function searchAddresses(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedAddressVersion
@@ -726,49 +734,76 @@ export async function searchAddresses(args: {
       : {}),
   }
 
-  let search: { addressIds: string[]; total: number }
-  try {
-    search = await runWithD1ReadRetry(() =>
-      searchAddressIdsCurrent(args.currentDb, {
+  let records: AddressRecord[]
+  let total: number
+  const historyDbsByBinding = args.historyDbsByBinding
+  if (historyDbsByBinding) {
+    const selected = await runWithD1ReadRetry(() =>
+      listReplayedAddressRecords({
+        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+        historyDbsByBinding,
+        // Current FTS searches every locale; project the requested locales only
+        // after matching so a locale parameter cannot hide historical records.
+        localeSelection: { mode: 'all', locales: ['*'] },
+        metaDb: args.metaDb,
         snapshotIds: activeSnapshot.snapshotIds,
+      }),
+    )
+    const matched = searchReplayedAddressRecords(selected, {
+      component: args.query.component,
+      mode: args.query.match,
+      query: args.query.q,
+    }).filter(record => addressMatchesFilters(record, filters))
+    total = matched.length
+    records = selectReplayedAddressLocales(
+      matched.slice(offset, offset + limit),
+      routeState.localeSelection,
+    )
+  } else {
+    let search: { addressIds: string[]; total: number }
+    try {
+      search = await runWithD1ReadRetry(() =>
+        searchAddressIdsCurrent(args.currentDb, {
+          snapshotIds: activeSnapshot.snapshotIds,
+          countryId: filters.country,
+          areaId: filters.area,
+          districtId: filters.district,
+          component: args.query.component,
+          limit,
+          mode: args.query.match,
+          offset,
+          query: args.query.q,
+        }),
+      )
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('FTS index is not initialised')
+      ) {
+        return {
+          status: 503,
+          body: {
+            httpStatus: 503,
+            error: 'fts_not_ready',
+            message:
+              'FTS index is not initialised. Rebuild addressesFts before using search.',
+          },
+        }
+      }
+      throw error
+    }
+    records = await runWithD1ReadRetry(() =>
+      listAddressRecordsCurrentByIds(args.currentDb, {
+        snapshotIds: activeSnapshot.snapshotIds,
+        addressIds: search.addressIds,
         countryId: filters.country,
         areaId: filters.area,
         districtId: filters.district,
-        component: args.query.component,
-        limit,
-        mode: args.query.match,
-        offset,
-        query: args.query.q,
+        localeSelection: routeState.localeSelection,
       }),
     )
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.includes('FTS index is not initialised')
-    ) {
-      return {
-        status: 503,
-        body: {
-          httpStatus: 503,
-          error: 'fts_not_ready',
-          message:
-            'FTS index is not initialised. Rebuild addressesFts before using search.',
-        },
-      }
-    }
-    throw error
+    total = search.total
   }
-
-  const records = await runWithD1ReadRetry(() =>
-    listAddressRecordsCurrentByIds(args.currentDb, {
-      snapshotIds: activeSnapshot.snapshotIds,
-      addressIds: search.addressIds,
-      countryId: filters.country,
-      areaId: filters.area,
-      districtId: filters.district,
-      localeSelection: routeState.localeSelection,
-    }),
-  )
   await attachAddress3dCoverage({ ...args, records })
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
@@ -793,13 +828,13 @@ export async function searchAddresses(args: {
     ),
     limit,
     offset,
-    total: search.total,
+    total,
     included: included.length > 0 ? included : undefined,
     meta: buildMetadata({
       routeState,
       activeSnapshot,
       filters,
-      page: { limit, offset, total: search.total },
+      page: { limit, offset, total },
       search: {
         ...(args.query.component ? { component: args.query.component } : {}),
         mode: args.query.match,

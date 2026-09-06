@@ -1,5 +1,9 @@
 # Places dataset family
 
+The Places search rebuild recreates the derived `placesFts` index as an FTS5 virtual
+table. Verification includes `MATCH` queries against the migrated schema, not just
+index-row counts.
+
 Metadata, search and supplementary Address SQL use
 [sealed delivery phases](../sql-delivery.md) alongside Places data. Review and
 publication remain separate lifecycle steps. Local Places search replay follows local

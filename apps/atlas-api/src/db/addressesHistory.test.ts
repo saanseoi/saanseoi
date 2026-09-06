@@ -4,7 +4,11 @@ import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../libs/core/src/testing/metaFixtures'
 import { createLocalHarbourDb } from '../../../../libs/core/src/testing/localDb'
 
-import { listReplayedAddressRecords } from './addressesHistory'
+import {
+  listReplayedAddressRecords,
+  selectReplayedAddressLocales,
+  searchReplayedAddressRecords,
+} from './addressesHistory'
 
 const MIGRATIONS_DIR = resolve(import.meta.dir, '../../../../libs/db/migrations')
 const TIMESTAMP = '2025-09-24T00:00:00.000Z'
@@ -95,6 +99,22 @@ test('replays the selected address snapshot from its assigned history shard', as
         },
       }),
     ])
+    expect(
+      searchReplayedAddressRecords(records, {
+        mode: 'full-text',
+        query: 'Historic Road',
+      }).map(record => record.address.id),
+    ).toEqual(['historic-address'])
+    expect(
+      selectReplayedAddressLocales(records, { mode: 'requested', locales: ['en'] }),
+    ).toEqual(records)
+    expect(
+      searchReplayedAddressRecords(records, {
+        component: 'building',
+        mode: 'component',
+        query: 'Historic',
+      }).map(record => record.address.id),
+    ).toEqual(['historic-address'])
   } finally {
     meta.close()
     history.close()

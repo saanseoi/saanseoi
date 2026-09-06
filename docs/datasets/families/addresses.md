@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Grouped Address3D delivery batches independent database targets separately, retaining
+per-database statement order and whole-collection transaction boundaries. See
+[SQL delivery](../sql-delivery.md) for receipts and recovery.
+
 SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
 relationships before remote delivery. History and current stages each generate their own
 SQL artefact. Insert statements are bounded by escaped UTF-8 bytes, with oversized
@@ -88,10 +92,17 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Chuk Yuen (North) Estate retains HA's estate-specific parentheses in canonical naming;
+the original ALS spelling and identities remain source evidence.
+
 Commercial containment can have multiple levels: Choi Yuen Food Court → Choi Yuen Plaza
 → Choi Yuen Estate. These parent-address links do not imply shared identity or
 residential-unit coverage. An omitted raw estate component remains source evidence even
 when reviewed containment establishes the ancestry.
+
+The reviewed food-court location and ancestry apply from the first retained release. Its
+newer source representation is backfilled through the two July 2026 gaps, with original
+dated assertions preserved and one normalised food-court identity.
 
 Explicit premise consolidation can suppress a reviewed underspecified duplicate and
 backfill a corrected display name while preserving every raw assertion. Choi Ying Place

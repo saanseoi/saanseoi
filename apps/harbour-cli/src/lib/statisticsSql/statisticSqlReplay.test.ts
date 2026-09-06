@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { captureSqlDeliveryBatches } from '../localPipeline/sqlDeliveryBatchCapture.ts'
 
 import {
   buildStatisticSqlBatches,
@@ -200,6 +201,48 @@ describe('buildStatisticSqlBatches', () => {
 })
 
 describe('replayStatisticSqlBatches', () => {
+  test('the real replay adapter captures only remote copies before touching the mirror', async () => {
+    const captured: Array<{ databaseId: string | null; sql: string }> = []
+    const binding = {
+      prepare() {
+        throw new Error('Mirror write during capture')
+      },
+    }
+    const context = {
+      sourceBinding: binding,
+      historyBinding: binding,
+      sourceTargets: [
+        { bindingName: 'DB_SOURCE_HK_BEFORE', databaseId: 'source-d1', year: 'BEFORE' },
+      ],
+      historyTargets: [
+        {
+          bindingName: 'DB_HISTORY_HK_BEFORE',
+          databaseId: 'history-d1',
+          year: 'BEFORE',
+        },
+      ],
+    } as unknown as Parameters<typeof replayStatisticSqlBatches>[1]
+    await captureSqlDeliveryBatches(
+      async (target, bytes) => {
+        captured.push({
+          databaseId: target.databaseId,
+          sql: new TextDecoder().decode(bytes),
+        })
+      },
+      () =>
+        replayStatisticSqlBatches(
+          { remote: true, environment: 'production' },
+          context,
+          '2022',
+          { source: ['SELECT 1;', 'SELECT 2;'], history: ['SELECT 3;'] },
+          { importOptions: { accountId: 'fixture', apiToken: 'fixture' } },
+        ),
+    )
+    expect(captured).toEqual([
+      { databaseId: 'source-d1', sql: 'SELECT 1;\nSELECT 2;\n' },
+      { databaseId: 'history-d1', sql: 'SELECT 3;\n' },
+    ])
+  })
   test('checks remote prerequisites before mutating the local cache', async () => {
     const calls: string[] = []
     await expect(

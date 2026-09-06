@@ -1,5 +1,9 @@
 # Overture Places
 
+Search delivery recreates the derived `placesFts` virtual table from the current Place
+projection. It supports recovery after data delivery and before the local search replay;
+the retained search payload runs after the mirror's Place data has been reconciled.
+
 Places metadata, search and supplementary Address SQL are retained as receipt-backed
 [delivery phases](../../sql-delivery.md). Supplementary SQL capture excludes policy
 review and row verification. Search derives unit text from the linked `address3dUnitId`

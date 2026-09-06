@@ -2,7 +2,12 @@ import type { HistoryDatabase } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 import { getReplayedAddressVersionMap } from '@repo/core/pipeline/db/address.ts'
 
-import type { AddressLocaleValue, AddressRecord } from './addresses'
+import type {
+  AddressLocaleValue,
+  AddressRecord,
+  AddressSearchComponent,
+  AddressSearchMode,
+} from './addresses'
 
 type HistoryShard = {
   bindingName: string
@@ -112,4 +117,128 @@ export async function listReplayedAddressRecords(args: {
       ),
     }))
   })
+}
+
+export function selectReplayedAddressLocales(
+  records: AddressRecord[],
+  selection: RequestedApiLocaleSelection,
+) {
+  return records.map(record => ({
+    ...record,
+    i18n: Object.fromEntries(
+      Object.entries(record.i18n).filter(([locale]) =>
+        localeIsSelected(selection, locale),
+      ),
+    ),
+  }))
+}
+
+const ADDRESS_SEARCH_FIELD_BY_COMPONENT: Record<
+  AddressSearchComponent,
+  keyof AddressLocaleValue | readonly (keyof AddressLocaleValue)[]
+> = {
+  block: 'blockExpression',
+  building: 'buildingName',
+  estate: 'estateName',
+  formatted: 'formattedAddress',
+  number: ['buildingNumberExpression', 'buildingNumberFrom', 'buildingNumberTo'],
+  phase: 'phaseExpression',
+  street: 'streetName',
+}
+const ADDRESS_SEARCH_ALL_FIELDS: readonly (keyof AddressLocaleValue)[] = [
+  'formattedAddress',
+  'buildingName',
+  'buildingNumberExpression',
+  'buildingNumberFrom',
+  'buildingNumberTo',
+  'blockExpression',
+  'phaseExpression',
+  'estateName',
+  'streetName',
+]
+
+const ADDRESS_SEARCH_ALIAS_GROUPS: readonly (readonly string[])[] = [
+  ['blk', 'blks', 'block', 'blocks'],
+  ['bldg', 'bldgs', 'building', 'buildings'],
+  ['twr', 'tower', 'towers'],
+  ['hse', 'hses', 'house', 'houses'],
+  ['apt', 'apts', 'apartment', 'apartments'],
+]
+const ADDRESS_SEARCH_ALIASES = new Map<string, readonly string[]>(
+  ADDRESS_SEARCH_ALIAS_GROUPS.flatMap(values =>
+    values.map(value => [value, values] as const),
+  ),
+)
+
+function searchTokens(value: string) {
+  return value
+    .normalize('NFKC')
+    .trim()
+    .split(/[\s,;，、]+/u)
+    .map(token => token.replaceAll(/[^\p{L}\p{N}]+/gu, '').toLocaleLowerCase('en'))
+    .filter(Boolean)
+}
+
+function searchTextMatches(
+  value: string,
+  queryTokens: string[],
+  mode: AddressSearchMode,
+) {
+  const textTokens = new Set(searchTokens(value))
+  return queryTokens.every(token =>
+    (ADDRESS_SEARCH_ALIASES.get(token) ?? [token]).some(alias =>
+      mode === 'prefix'
+        ? [...textTokens].some(text => text.startsWith(alias))
+        : textTokens.has(alias),
+    ),
+  )
+}
+
+/** Searches replayed records using the same token vocabulary as the current FTS index. */
+export function searchReplayedAddressRecords(
+  records: AddressRecord[],
+  lookup: {
+    component?: AddressSearchComponent
+    mode: AddressSearchMode
+    query: string
+  },
+) {
+  const queryTokens = searchTokens(lookup.query)
+  if (queryTokens.length === 0) return []
+
+  if (lookup.mode === 'exact' || lookup.mode === 'range') {
+    const number = lookup.query.normalize('NFKC').trim().toLocaleUpperCase('en')
+    if (!/^\d+[A-Z]?$/.test(number)) return []
+    return records.filter(record =>
+      Object.values(record.i18n).some(value => {
+        const from = value.buildingNumberFrom
+          ?.normalize('NFKC')
+          .trim()
+          .toLocaleUpperCase('en')
+        const to = value.buildingNumberTo
+          ?.normalize('NFKC')
+          .trim()
+          .toLocaleUpperCase('en')
+        return from === number || (lookup.mode === 'range' && to === number)
+      }),
+    )
+  }
+
+  const field = lookup.component
+    ? ADDRESS_SEARCH_FIELD_BY_COMPONENT[lookup.component]
+    : undefined
+  return records.filter(record =>
+    Object.values(record.i18n).some(value => {
+      const values = field
+        ? typeof field === 'string'
+          ? [value[field]]
+          : field.map(key => value[key])
+        : ADDRESS_SEARCH_ALL_FIELDS.map(key => value[key])
+      return searchTextMatches(
+        values.filter((item): item is string => typeof item === 'string').join(' '),
+        queryTokens,
+        lookup.mode,
+      )
+    }),
+  )
 }
