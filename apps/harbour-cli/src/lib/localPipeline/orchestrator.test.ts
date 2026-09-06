@@ -1,6 +1,65 @@
 import { describe, expect, test } from 'bun:test'
 
 describe('local import progress orchestration', () => {
+  test('drains active workers and stops claiming work after failure', async () => {
+    const { mapWithConcurrency } = await import('./orchestrator.ts')
+    const events: string[] = []
+    const failed = Promise.withResolvers<void>()
+    const failure = new Error('first worker failed')
+    await expect(
+      mapWithConcurrency([0, 1, 2, 3], 2, async item => {
+        events.push(`start:${item}`)
+        if (item === 0) {
+          failed.resolve()
+          throw failure
+        }
+        await failed.promise
+        await Bun.sleep(5)
+        events.push(`finish:${item}`)
+        return item
+      }).catch(error => {
+        events.push('caller cleanup')
+        throw error
+      }),
+    ).rejects.toBe(failure)
+    expect(events).toEqual(['start:0', 'start:1', 'finish:1', 'caller cleanup'])
+  })
+
+  test('does not commit a success line when completion cannot be persisted', async () => {
+    const { createLocalImportProgressClient } = await import('./orchestrator.ts')
+    const events: string[] = []
+    const phase = {
+      phase: 'publishDataset',
+      completedLabel: 'Published',
+      runningLabel: () => 'Publishing',
+      totalUnits: 1,
+    }
+    const client = createLocalImportProgressClient(
+      {
+        async publishDataset() {},
+        async stageRunning() {},
+        async stageFailed() {},
+        async stageCompleted() {
+          throw new Error('API unavailable')
+        },
+      },
+      {
+        update() {},
+        complete() {
+          events.push('success')
+        },
+      } as never,
+      {
+        cleanup: { ...phase, phase: 'cleanup' },
+        importPhases: [],
+        publish: phase,
+      },
+    )
+    await expect(client.stageCompleted('release', 'publishDataset')).rejects.toThrow(
+      'API unavailable',
+    )
+    expect(events).toEqual([])
+  })
   test('labels address SQL pre-import bookkeeping before import starts', async () => {
     const events: Array<{ label: string; type: string }> = []
 
