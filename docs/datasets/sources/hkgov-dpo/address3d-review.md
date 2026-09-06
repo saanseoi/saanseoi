@@ -2,19 +2,47 @@
 
 ## Scope and evidence
 
-The retained audit covers 30 ALS releases and 3,888 distinct estate names. The latest
-delivery, `2026-08-19.0`, contains 239 estates with nonempty unit inventories. The
+The review runs earliest to latest across 30 retained ALS releases, starting with
+`20240725-1048-ALS-GeoJSON`. Its inclusion rule is a named estate appearing in any
+retained ALS public-rental-housing 3D file. This gives 241 names, including empty
+inventories and estates absent from the latest delivery. Source-file membership is not a
+claim about current housing tenure. The latest delivery, `2026-08-19.0`, contains 239
+estates with nonempty unit inventories. The
 [hierarchy fixture](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
 contains 201 estate relationships and 1,281 building rules, guarded to that release.
-Historical deliveries are inventoried, not automatically authorised by current Housing
-Authority profiles. The remaining 38 latest estates require hierarchy review.
+Each estate has an earliest observed baseline followed by chronological deltas. Existing
+latest-release curation bounds remain explicit and do not approve an earlier baseline.
+The remaining 38 latest estates require hierarchy review independently of the historical
+changes.
 
 The
-[all-estate inventory](../../../../fixtures/meta/curations/hkgov-dpo-address-estate-audit.json)
-records release presence, source ambiguities, historical 3D presence, current Housing
-Authority corroboration and review reasons. Its 3,649 names without a latest nonempty
-inventory are not a claim of externally verified hierarchy. Machine corroboration is not
-itself an approval: only guarded fixture relationships affect preparation.
+[chronological review ledger](../../../../fixtures/meta/curations/hkgov-dpo-address-estate-audit.json)
+records exact release presence, baseline assertions and added/removed/changed comparison
+groups. Change fields distinguish coordinates, street components, inventory hashes and
+occurrence counts. Feature order is ignored; repeated source assertions are preserved.
+Names are not automatically linked across renames. The retained 2D audit supplies
+record/building-name counts, not a complete per-address 2D component diff.
+
+The
+[separate 2D-only inventory](../../../../fixtures/meta/curations/hkgov-dpo-address-2d-estate-inventory.json)
+contains 3,647 other names, including private developments such as 21 Borrett Road. They
+never appear in the retained 3D files and are outside this unit-inventory review.
+Unnamed 3D premises remain in a separate per-release list rather than being discarded.
+
+`reviewQueue` contains 138 estate candidates with source ambiguity, current-profile
+mismatches, unresolved 2D hierarchy checks or non-coordinate historical changes. This is
+not a list of 138 incorrect estates. Coordinate-only updates remain in the ledger but do
+not alone create an ownership-review case. Current-profile name checks are
+corroboration, not historical fact. Top-level `status` and `buildingReviews` describe
+the latest assessment; chronological event decisions are separately pending.
+
+Review one estate at a time in first-3D-appearance order, alphabetically within a
+release: establish its earliest baseline, then work through its deltas. Retain the
+user's decisions as source- and release-bounded curation, and only carry them forwards
+through matching evidence. Do not infer unit partitions from shared names or repeated
+inventories. `bun scripts/build-als-estate-review.ts` rebuilds the ledger; latest-only
+automatic hierarchy generation refuses this chronological format without changing
+existing relationships.
 
 Official evidence:
 

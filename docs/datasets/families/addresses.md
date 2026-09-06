@@ -35,6 +35,13 @@ missing numbered addresses. See the
 
 ## Grouped unit inventories
 
+ALS estate review starts from the earliest retained release and proceeds through
+chronological changes. Its cohort is estate names present in any retained ALS
+public-rental-housing 3D file, including empty inventories, not all ALS 2D estate names.
+Private/other 2D-only names are retained in a separate inventory. Review decisions are
+release-bounded; current Housing Authority name corroboration cannot approve historical
+ownership by itself.
+
 One `address3d` collection belongs to one Address2D owner per snapshot. Its shared
 `units` JSON contains stable unit IDs and compact unit/floor codes; `address3dI18n`
 stores locale-specific expressions keyed by those IDs. Full expressions are retained;
