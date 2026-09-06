@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import policyFixture from '../../../../../fixtures/meta/curations/overture-place-address.json'
+import policyFixture from './testFixtures/supplementaryAddressPolicy.json'
 import {
   addressFingerprint,
   createSupplementaryAddressAnalyser,
@@ -87,6 +87,32 @@ describe('supplementary Place Address policy', () => {
     expect(result.entry?.baseAddressId).toBe('als-citygate')
     expect(parseSupplementaryCuration(fixture).entries).toHaveLength(1)
   })
+
+  test('keeps only the premise-side building text', () => {
+    const chinaFenHin: PlaceAddressDefinition = {
+      ...citygate,
+      addressId: 'als-china-fen-hin',
+      buildingName: 'China Fen Hin Building',
+      buildingNumberExpression: '5',
+      buildingNumberFrom: '5',
+      formattedAddress: 'China Fen Hin Building, 5 Cheung Yue Street',
+      streetName: 'Cheung Yue Street',
+    }
+    const { analyse } = setup([chinaFenHin])
+
+    const withTrailingLocality = analyse(
+      observation(
+        'China Fen Hin Building, 5 Cheung Yue St Cheung Sha Wan',
+        'china-fen-hin-locality',
+      ),
+      null,
+    )
+    expect(withTrailingLocality.entry?.values[0]).toMatchObject({
+      buildingName: 'CHINA FEN HIN BUILDING',
+      buildingNumberExpression: '5',
+      streetName: 'Cheung Yue Street',
+    })
+  })
   test('shares 2D identities across Places with distinct shops and floors', () => {
     const { analyse } = setup()
     const a = analyse(
@@ -115,13 +141,15 @@ describe('supplementary Place Address policy', () => {
     expect(bare.tier).toBe('delayed')
     expect(bare.candidates).toHaveLength(0)
   })
-  test('geometry only disambiguates named candidates with the configured margin', () => {
+  test('geometry adds 25 points only to a nearby named candidate', () => {
     const { analyse, geometry } = setup([citygate, { ...citygate, addressId: 'other' }])
     geometry.set(citygate.addressId, { lng: 113.941, lat: 22.29 })
     geometry.set('other', { lng: 114.041, lat: 22.29 })
+    const result = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
+    expect(result.addressId).toStartWith('opa-')
     expect(
-      analyse(observation('Citygate Outlets, Tat Tung Road'), null).addressId,
-    ).toStartWith('opa-')
+      result.candidates.find(row => row.addressId === citygate.addressId)?.breakdown,
+    ).toMatchObject({ geometry: 25 })
   })
   test('accepted curation wins over a new exact ALS match and changed scores', () => {
     const { fixture, analyse } = setup()

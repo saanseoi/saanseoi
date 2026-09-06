@@ -275,6 +275,9 @@ export function parsePlaceAddress(
   const recognised2dComponents = findCanonicalComponentMatches(
     normalisedAddress2dText,
     matcher?.componentsByLongestName ?? [],
+    [streetMatch, buildingNumberMatch].flatMap(match =>
+      match ? [{ end: match.end, start: match.start }] : [],
+    ),
   )
   const unclassified2dText = removeRecognised2dComponents(
     normalisedAddress2dText,
@@ -531,7 +534,7 @@ function findBuildingNumberBesideStreet(
     }
   }
 
-  const beforeMatch = /(\d+[A-Z]?)(?:號)?\s*$/u.exec(before)
+  const beforeMatch = /(?:NO\s+)?(\d+[A-Z]?)(?:號)?\s*$/u.exec(before)
   if (beforeMatch?.[1] && beforeMatch.index !== undefined) {
     const beforeNumber = before.slice(0, beforeMatch.index)
     const preposition = /(?:^|\s)ON\s*$/u.exec(beforeNumber)
@@ -543,7 +546,9 @@ function findBuildingNumberBesideStreet(
   }
 
   const after = normalisedAddress.slice(street.end)
-  const afterMatch = /^\s*(\d+[A-Z]?(?:\s*-\s*\d+[A-Z]?)?)(?:\s*號)?/u.exec(after)
+  const afterMatch = /^\s*(?:NO\s+)?(\d+[A-Z]?(?:\s*-\s*\d+[A-Z]?)?)(?:\s*號)?/u.exec(
+    after,
+  )
   if (!afterMatch?.[1]) return null
   return {
     end: street.end + afterMatch[0].length,
@@ -603,12 +608,14 @@ function preparedDefinitionComponents(
 function findCanonicalComponentMatches(
   normalisedAddress: string,
   components: PreparedAddressComponent[],
+  excludedRanges: Array<{ start: number; end: number }>,
 ) {
   const matches: Array<ParsedAddress2dComponent & { start: number; end: number }> = []
   for (const component of components) {
     const start = componentStart(normalisedAddress, component.normalisedName)
     if (start < 0) continue
     const end = start + component.normalisedName.length
+    if (excludedRanges.some(range => rangesOverlap(range, { start, end }))) continue
     if (matches.some(match => rangesOverlap(match, { start, end }))) continue
     matches.push({
       end,

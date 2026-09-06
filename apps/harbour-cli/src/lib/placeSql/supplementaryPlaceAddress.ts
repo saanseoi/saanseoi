@@ -487,12 +487,8 @@ export function createSupplementaryAddressAnalyser(
       exactIds.size === 1 &&
       !candidates.some(candidate => candidate.contradictions.length)
     ) {
-      return result(
-        'direct',
-        [...exactIds][0] ?? null,
-        'exact_formatted_address',
-        candidates,
-      )
+      const exactId = [...exactIds][0]
+      return result('direct', exactId ?? null, 'exact_formatted_address', candidates)
     }
     // Residual premise text is never silently discarded to make an ALS link.
     const canonical = candidates.filter(
@@ -531,27 +527,7 @@ export function createSupplementaryAddressAnalyser(
     if (parsed.length !== 1)
       return result('review', null, 'multiple_address_localisations', candidates)
     const value = best.parsed
-    let supplementaryBuilding = value.normalisedAddress2dText
-    for (const component of value.recognised2dComponents.filter(
-      item => item.kind !== 'buildingName',
-    ))
-      supplementaryBuilding = supplementaryBuilding.replace(
-        component.normalisedName,
-        '',
-      )
-    if (value.street)
-      supplementaryBuilding = supplementaryBuilding.replace(
-        value.street.normalisedName,
-        '',
-      )
-    if (value.buildingNumberExpression)
-      supplementaryBuilding = supplementaryBuilding.replace(
-        normaliseAddressText(value.buildingNumberExpression),
-        '',
-      )
-    supplementaryBuilding = supplementaryBuilding
-      .replace(/^[\s,;/-]+|[\s,;/-]+$/g, '')
-      .trim()
+    const supplementaryBuilding = supplementaryBuildingName(value)
     const values: SupplementaryValues[] = [
       {
         locale: /\p{Script=Han}/u.test(value.address2dText) ? 'zh-hant' : 'en',
@@ -606,6 +582,55 @@ export function createSupplementaryAddressAnalyser(
       accepted,
     )
   }
+}
+
+/**
+ * A supplementary building name comes from the premise side of the street, not
+ * from every residual token in the address.  The latter would turn trailing
+ * localities and a street-number introducer ("No.") into building text.
+ */
+function supplementaryBuildingName(value: ParsedPlaceAddress) {
+  const building = value.recognised2dComponents.find(
+    item => item.kind === 'buildingName',
+  )
+  const streetStart = value.street
+    ? value.normalisedAddress2dText.indexOf(value.street.normalisedName)
+    : -1
+  const buildingStart = building
+    ? value.normalisedAddress2dText.indexOf(building.normalisedName)
+    : -1
+
+  // Hong Kong addresses may put the building after the street and number. In
+  // that form, retain the authoritative matched building rather than the
+  // locality before the street.
+  if (building && streetStart >= 0 && buildingStart >= streetStart)
+    return building.normalisedName
+
+  let candidate =
+    streetStart >= 0
+      ? value.normalisedAddress2dText.slice(0, streetStart)
+      : value.normalisedAddress2dText
+  for (const component of value.recognised2dComponents.filter(
+    item => item.kind !== 'buildingName',
+  ))
+    candidate = candidate.replace(component.normalisedName, '')
+  candidate = removeStreetNumberIntroducer(candidate, value.buildingNumberExpression)
+  candidate = candidate.replace(/\s+/g, ' ').trim()
+  return candidate || building?.normalisedName || null
+}
+
+function removeStreetNumberIntroducer(
+  value: string,
+  buildingNumberExpression: string | null,
+) {
+  if (!buildingNumberExpression) return value
+  const number = normaliseAddressText(buildingNumberExpression).replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&',
+  )
+  return value
+    .replace(new RegExp(`(?:^|\\s)NO\\s+${number}\\s*$`, 'u'), ' ')
+    .replace(new RegExp(`(?:^|\\s)${number}\\s*$`, 'u'), ' ')
 }
 
 function contains(text: string, component: string) {
