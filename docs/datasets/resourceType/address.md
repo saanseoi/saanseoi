@@ -43,7 +43,13 @@ and exposed as `attributes.parentAddressId` in every Address API profile. It is 
 same-snapshot foreign key: the parent can come from another Address member of the
 selected release set. Parent existence, self-references and cycles must be checked when
 assigning links. The separate `address3d.address2dId` reference identifies the premise
-for a 3D address.
+owning one grouped 3D unit collection. `address3d.units` stores shared token/code
+values; `address3dI18n.units` stores expressions keyed by the same stable unit IDs.
+Current collections are unique by snapshot and owner. History replays collection
+versions and membership journals from the selected snapshot, not the latest current
+collection. `hkgovAlsAddresses3d` retains release-scoped source occurrences
+independently of canonical collection deduplication. Its lifecycle does not use the 2D
+source validity columns described below.
 
 `address2d.granularity` uses the
 [Address family vocabulary](../families/addresses.md#granularity) and defaults to
@@ -86,6 +92,7 @@ The registry declares the address endpoints in
 - `GET /addresses/v0`
 - `GET /addresses/v0/{id}`
 - `GET /addresses/v0/search`
+- `GET /addresses/v0/{id}/units` (also available under `/addresses/v0.1`)
 
 The SaanSeoi API implements these as JSON:API list and detail resources. The address
 composition uses the default `saanseoi` domain: the required ALS address member and any

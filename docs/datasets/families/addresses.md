@@ -26,11 +26,31 @@ the address. A parent can belong to another selected Address dataset; resolve it
 the same API release set. A dataset filter can omit the parent from a list response.
 Null means no parent has been established, not that the address has no possible parent.
 
-ALS and supplementary materialisation initialise this field to null. An ALS derivation
-base, shared estate name, coordinate or building-number range does not establish a
-parent. Parent assignment requires evidence and validation of the selected parent and
-its ancestor chain; this storage foundation does not assign links or generate missing
-numbered addresses.
+Uncurated ALS and supplementary materialisation initialise this field to null. An ALS
+derivation base, shared estate name, coordinate or building-number range does not
+establish a parent. Guarded estate curation can establish complex/building/section
+relationships and create explicitly reviewed building parents, without generating
+missing numbered addresses. See the
+[ALS hierarchy review](../sources/hkgov-dpo/address3d-review.md).
+
+## Grouped unit inventories
+
+One `address3d` collection belongs to one Address2D owner per snapshot. Its shared
+`units` JSON contains stable unit IDs and compact unit/floor codes; `address3dI18n`
+stores locale-specific expressions keyed by those IDs. Full expressions are retained;
+`formattedAddressPart` is only an optional formatting override. Access instructions
+belong to Place localisation (`accessHint`), not the address inventory.
+
+Ordinary address responses expose `address3dCoverage`, without loading unit arrays.
+`GET /addresses/v0.1/{id}/units` explicitly fetches the selected collection. Direct
+coverage has established owner membership. An explicitly listed section can expose
+ancestor coverage with unresolved membership: the units belong to the parent building,
+not necessarily that section. Containment alone never supplies residential coverage.
+
+A Place retains its precise `address2dId` and selected `addressSnapshotId`; an optional
+unit reference includes `address3dId`, `address3dUnitId`, and `address3dMembership`.
+Resolve all references within that snapshot. Never display unresolved section membership
+as a verified entrance or partition of the parent's units.
 
 ## Granularity
 

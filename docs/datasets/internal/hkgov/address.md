@@ -22,8 +22,28 @@ Related docs:
   that lookup requirement and its selection rule.
 - The addresses API has one composition domain, `saanseoi`; its release codes therefore
   do not include a domain suffix.
-- The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
-  `als_addresses_3d_*` file.
+- The CLI reads all 2D district GeoJSON files and the separate `als_addresses_3d_*`
+  inventory in one ALS release. Grouped collections are prepared in a streaming sidecar
+  sealed to the Parquet SHA-256 and source version. Missing, incomplete or mismatched
+  preparations stop import before publication.
+
+## Grouped Address3D preparation
+
+The preparer pairs bilingual floor/unit tokens, preserves full expressions and retains
+every source occurrence, including empty inventories. Empty features create no
+residential collection. Nonempty features require an exact bilingual premise match;
+shared identifiers do not authorise merging different owners. Reviewed hierarchy rules
+are guarded by release bounds, source identifiers, components and expected row counts.
+Derived parents retain curation provenance and are excluded from publisher 2D rows.
+
+The Harbour CLI writes collection JSON through bound D1 statements before publication,
+including history journals and release-scoped `hkgovAlsAddresses3d` source rows. The
+queued SQL-stage path rejects ALS because it does not carry the bound collection
+sidecar. A conservative per-row UTF-8 budget is checked during preparation; SQL text and
+bound-parameter budgets are checked separately during execution.
+
+See [hierarchy evidence and pending review](../../sources/hkgov-dpo/address3d-review.md)
+for the supported release bounds and known ingestion blockers.
 
 The automatic updater queries the DATA.GOV.HK historical file-version endpoint for the
 official `ALS-GeoJSON.zip` resource. It treats the newest publisher timestamp as the new

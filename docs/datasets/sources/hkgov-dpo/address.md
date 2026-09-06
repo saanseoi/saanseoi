@@ -5,7 +5,7 @@ ALS supplies bilingual premise addresses. The
 identity curation and ingestion. The [Addresses family](../../families/addresses.md)
 describes their canonical role.
 
-Canonical `parentAddressId` is initialised to null. ALS component names and number
+Uncurated `parentAddressId` is initialised to null. ALS component names and number
 ranges alone do not establish a containing Address or justify creating missing numbers.
 
 The shared normalisation stage classifies `granularity` after guarded component
@@ -72,3 +72,11 @@ whereas `MAN HONG HSE / 民康樓` has separate records for 762, 764, 766, 768, 
 King's Road. The 3D entries contain floor and unit references only; they do not identify
 an entrance or street number. A repeated unit payload can therefore be shared across
 section records, but it must not be presented as section-specific unit attribution.
+
+## Grouped inventories and estate hierarchy
+
+ALS 3D inventories use one collection per reviewed Address2D owner. The
+[hierarchy review report](address3d-review.md) records guarded estate relationships,
+official corroborating evidence, source-release coverage and outstanding decisions.
+Repeated source features remain independently traceable even when their identical unit
+inventories share one curated building owner. Source names are retained, not translated.
