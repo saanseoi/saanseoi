@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import {
   buildAls2dBackfillFeatures,
   labelAls2dBackfillRows,
@@ -200,6 +201,7 @@ export async function prepareHkgovAlsAddressParquet(
     })
     assertUniquePreparedRowIds(rows)
   }
+  applyAlsEstateNames(rows, options.sourceVersion)
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,

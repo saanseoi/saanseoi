@@ -150,6 +150,14 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
+Choi Wan (1) Estate is corroborated against Housing Authority's Choi Wan (I) Estate: all
+sixteen building names match and all thirty retained inventories contain the same 5,927
+units. `hkgov-dpo-address-estate-names.json` records the preferred names
+`Choi Wan (I) Estate` / `彩雲一邨`. Canonical estate components and formatted addresses
+use those names after identity and inventory ownership resolution; ALS raw names and IDs
+remain intact. HA's mix of Arabic and Roman numerals is preserved estate by estate, not
+normalised by a blanket conversion rule. Choi Wan (2) Estate remains distinct.
+
 Choi Fook Estate's July 2026 unnamed premise change retains publisher history. CSU
 `4037020934T20090625` is replaced by `4046820907T20090625`; both carry zero units. The
 replacement's point coincides with Choi Foon House, but its supplied components name
