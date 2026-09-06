@@ -1,5 +1,11 @@
 # Statistics dataset family
 
+Source, canonical and release-metadata SQL use
+[sealed delivery phases](../sql-delivery.md). Adjacent batches for the same database are
+combined into bounded uploads. Receipts and separate local checkpoints allow interrupted
+imports to resume from retained SQL without calculating replacement SQL from a partially
+updated mirror.
+
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
 metadata database. Its canonical record is `statsRecords`: an immutable publisher

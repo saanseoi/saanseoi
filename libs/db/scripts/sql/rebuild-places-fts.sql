@@ -36,7 +36,17 @@ SELECT
   ) AS "taxonomyText",
   TRIM(
     COALESCE(a2."formattedAddress", '') || ' ' ||
-    COALESCE(a3."formattedAddressPart", '')
+    COALESCE(
+      json_extract(a3unit.value, '$.formattedAddressPart'),
+      CASE WHEN pi."locale" = 'zh-hant' THEN
+        COALESCE(json_extract(a3unit.value, '$.floorExpression'), '') ||
+        COALESCE(json_extract(a3unit.value, '$.unitExpression'), '')
+      ELSE
+        COALESCE(json_extract(a3unit.value, '$.unitExpression'), '') || ' ' ||
+        COALESCE(json_extract(a3unit.value, '$.floorExpression'), '')
+      END,
+      ''
+    )
   ) AS "addressText",
   COALESCE(GROUP_CONCAT(DISTINCT di."name"), '') AS "divisionText",
   COALESCE(MAX(si."name"), '') AS "streetText"
@@ -52,6 +62,8 @@ LEFT JOIN "address3dI18n" a3
   ON a3."snapshotId" = p."addressSnapshotId"
  AND a3."address3dId" = p."address3dId"
  AND a3."locale" = pi."locale"
+LEFT JOIN json_each(a3."units") a3unit
+  ON a3unit.key = p."address3dUnitId"
 LEFT JOIN "streetsAddress" sa
   ON sa."addressSnapshotId" = p."addressSnapshotId"
  AND sa."addressId" = p."address2dId"
@@ -78,4 +90,4 @@ GROUP BY
   p."taxonomyPrimary",
   p."taxonomyHierarchy",
   a2."formattedAddress",
-  a3."formattedAddressPart";
+  a3unit.value;

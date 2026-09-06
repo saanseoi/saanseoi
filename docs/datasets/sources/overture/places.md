@@ -1,5 +1,10 @@
 # Overture Places
 
+Places metadata, search and supplementary Address SQL are retained as receipt-backed
+[delivery phases](../../sql-delivery.md). Supplementary SQL capture excludes policy
+review and row verification. Search derives unit text from the linked `address3dUnitId`
+within the localised collection, using a formatting override when present.
+
 Supplementary Address materialisation initialises `parentAddressId` to null. The
 selected ALS derivation base supplies evidence and Division context; it is not an
 assertion that the supplementary Address is contained by that ALS Address.

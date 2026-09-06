@@ -1,5 +1,10 @@
 # Planning Department TPU and subunit areas
 
+SQL generation uses the release-scoped planning mirror.
+[Sealed delivery phases](../../sql-delivery.md) retain the generated payloads and replay
+confirmed imports into the shared mirror before publication. Recovery targets that
+shared mirror, not the disposable planning clone.
+
 This profile records the Planning Department source-specific adapter. The source-neutral
 geometry contract remains in
 [`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).

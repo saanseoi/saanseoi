@@ -422,12 +422,22 @@ async function prepareSupplementaryAddressesLocked(
       .from(metaSchema.releaseProcessingActions)
       .where(eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId))
       .all()
-    for (const sql of chunkStatements([
-      `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
-      ...stored.map(row => insertSql('releaseProcessingActions', row)),
-    ])) {
-      await executeSqlText(input.targets.meta, sql, input.importOptions)
-    }
+    await deliverSqlPhase(
+      {
+        context: input.context,
+        releaseId: input.releaseId,
+        phase: 'places-address-actions',
+        inputs: { plan: input.plan, snapshots: input.snapshots },
+      },
+      async () => {
+        for (const sql of chunkStatements([
+          `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
+          ...stored.map(row => insertSql('releaseProcessingActions', row)),
+        ])) {
+          await executeSqlText(input.targets.meta, sql, input.importOptions)
+        }
+      },
+    )
   }
   // Always replace the release-owned review artefact, including on a successful retry.
   input.onStage?.('write Address review artefact')
@@ -626,116 +636,126 @@ async function prepareSupplementaryAddressesLocked(
     if (currentShard)
       await upsertSnapshotShardAssignment(db, snapshot.id, currentShard.id)
     if (historyShard) await upsertReleaseShardAssignment(db, releaseId, historyShard.id)
-    if (!input.importOptions.isLocal) {
-      await executeSqlText(
-        input.targets.meta,
-        [
-          insertSql('datasetResourceTypes', { datasetId, resourceType: 'address' }),
-          insertSql('releases', release),
-          await buildPlaceMetadataSql(db, snapshot.id, releaseId),
-        ].join('\n'),
-        input.importOptions,
-      )
-    }
-    const currentSql = [
-      `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(snapshot.id)};`,
-      `DELETE FROM address2dI18n WHERE snapshotId = ${lit(snapshot.id)};`,
-      `DELETE FROM address2d WHERE snapshotId = ${lit(snapshot.id)};`,
-    ]
-    for (const target of input.targets.historyByBinding.values()) {
-      await importSupplementarySql(
-        target,
-        "UPDATE address2d SET isCurrent = 0 WHERE id LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dI18n SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dBuildingNumberLookup SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1;",
-        input.importOptions,
-      )
-    }
-    const historySql: string[] = []
-    const changes: string[] = [
-      `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${lit(snapshot.id)};`,
-    ]
-    for (const row of addresses) {
-      const version = {
-        versionHash: row.versionHash,
-        snapshotId: snapshot.id,
-        sourceReleaseId: releaseId,
-        isCurrent: 1,
-        createdAt: now,
-        updatedAt: now,
-      }
-      currentSql.push(
-        insertSql('address2d', { ...row.current, createdAt: now, updatedAt: now }),
-      )
-      historySql.push(insertSql('address2d', { ...row.canonical, ...version }))
-      for (const lookup of buildAddressBuildingNumberLookupRows(row.i18n)) {
-        currentSql.push(
-          insertSql('address2dBuildingNumberLookup', {
-            ...lookup,
-            snapshotId: snapshot.id,
-            createdAt: now,
-            updatedAt: now,
-          }),
-        )
-        historySql.push(
-          insertSql('address2dBuildingNumberLookup', { ...lookup, ...version }),
-        )
-      }
-      changes.push(
-        insertSql('snapshotVersionChanges', {
-          snapshotId: snapshot.id,
-          recordType: 'address2d',
-          recordId: row.current.id,
-          locale: '',
-          versionHash: row.versionHash,
-          operation: 'upsert',
-          sourceReleaseId: releaseId,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
-      for (const value of row.i18n) {
-        currentSql.push(
-          insertSql('address2dI18n', {
-            ...value,
-            snapshotId: snapshot.id,
-            createdAt: now,
-            updatedAt: now,
-          }),
-        )
-        historySql.push(insertSql('address2dI18n', { ...value, ...version }))
-        changes.push(
-          insertSql('snapshotVersionChanges', {
-            snapshotId: snapshot.id,
-            recordType: 'address2dI18n',
-            recordId: row.current.id,
-            locale: value.locale,
+    await deliverSqlPhase(
+      {
+        context: input.context,
+        releaseId: input.releaseId,
+        phase: 'places-address-data',
+        inputs: { materialisationHash, snapshotId: snapshot.id },
+      },
+      async () => {
+        if (!input.importOptions.isLocal) {
+          await executeSqlText(
+            input.targets.meta,
+            [
+              insertSql('datasetResourceTypes', { datasetId, resourceType: 'address' }),
+              insertSql('releases', release),
+              await buildPlaceMetadataSql(db, snapshot.id, releaseId),
+            ].join('\n'),
+            input.importOptions,
+          )
+        }
+        const currentSql = [
+          `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(snapshot.id)};`,
+          `DELETE FROM address2dI18n WHERE snapshotId = ${lit(snapshot.id)};`,
+          `DELETE FROM address2d WHERE snapshotId = ${lit(snapshot.id)};`,
+        ]
+        for (const target of input.targets.historyByBinding.values()) {
+          await importSupplementarySql(
+            target,
+            "UPDATE address2d SET isCurrent = 0 WHERE id LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dI18n SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dBuildingNumberLookup SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1;",
+            input.importOptions,
+          )
+        }
+        const historySql: string[] = []
+        const changes: string[] = [
+          `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${lit(snapshot.id)};`,
+        ]
+        for (const row of addresses) {
+          const version = {
             versionHash: row.versionHash,
-            operation: 'upsert',
+            snapshotId: snapshot.id,
             sourceReleaseId: releaseId,
+            isCurrent: 1,
             createdAt: now,
             updatedAt: now,
-          }),
+          }
+          currentSql.push(
+            insertSql('address2d', { ...row.current, createdAt: now, updatedAt: now }),
+          )
+          historySql.push(insertSql('address2d', { ...row.canonical, ...version }))
+          for (const lookup of buildAddressBuildingNumberLookupRows(row.i18n)) {
+            currentSql.push(
+              insertSql('address2dBuildingNumberLookup', {
+                ...lookup,
+                snapshotId: snapshot.id,
+                createdAt: now,
+                updatedAt: now,
+              }),
+            )
+            historySql.push(
+              insertSql('address2dBuildingNumberLookup', { ...lookup, ...version }),
+            )
+          }
+          changes.push(
+            insertSql('snapshotVersionChanges', {
+              snapshotId: snapshot.id,
+              recordType: 'address2d',
+              recordId: row.current.id,
+              locale: '',
+              versionHash: row.versionHash,
+              operation: 'upsert',
+              sourceReleaseId: releaseId,
+              createdAt: now,
+              updatedAt: now,
+            }),
+          )
+          for (const value of row.i18n) {
+            currentSql.push(
+              insertSql('address2dI18n', {
+                ...value,
+                snapshotId: snapshot.id,
+                createdAt: now,
+                updatedAt: now,
+              }),
+            )
+            historySql.push(insertSql('address2dI18n', { ...value, ...version }))
+            changes.push(
+              insertSql('snapshotVersionChanges', {
+                snapshotId: snapshot.id,
+                recordType: 'address2dI18n',
+                recordId: row.current.id,
+                locale: value.locale,
+                versionHash: row.versionHash,
+                operation: 'upsert',
+                sourceReleaseId: releaseId,
+                createdAt: now,
+                updatedAt: now,
+              }),
+            )
+          }
+        }
+        for (const [target, statements] of [
+          [input.targets.current, currentSql],
+          [input.targets.history, [...historySql, ...changes]],
+        ] as const) {
+          input.onStage?.(`import supplementary Addresses into ${target.name}`)
+          for (const sql of chunkStatements(statements))
+            await importSupplementarySql(target, sql, input.importOptions)
+        }
+        input.onStage?.('rebuild supplementary Address search index')
+        await importSupplementarySql(
+          input.targets.current,
+          readFileSync(
+            resolve(
+              import.meta.dir,
+              '../../../../../libs/db/scripts/sql/rebuild-addresses-fts.sql',
+            ),
+            'utf8',
+          ),
+          input.importOptions,
         )
-      }
-    }
-    for (const [target, statements] of [
-      [input.targets.current, currentSql],
-      [input.targets.history, [...historySql, ...changes]],
-    ] as const) {
-      input.onStage?.(`import supplementary Addresses into ${target.name}`)
-      for (const sql of chunkStatements(statements))
-        await importSupplementarySql(target, sql, input.importOptions)
-    }
-    input.onStage?.('rebuild supplementary Address search index')
-    await importSupplementarySql(
-      input.targets.current,
-      readFileSync(
-        resolve(
-          import.meta.dir,
-          '../../../../../libs/db/scripts/sql/rebuild-addresses-fts.sql',
-        ),
-        'utf8',
-      ),
-      input.importOptions,
+      },
     )
     input.onStage?.('verify supplementary Address rows')
     await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
@@ -751,13 +771,22 @@ async function prepareSupplementaryAddressesLocked(
   if (!input.importOptions.isLocal) {
     input.onStage?.('sync supplementary Address metadata')
     // Retry a metadata-publication failure after the data import without rewriting Address rows.
-    await executeSqlText(
-      input.targets.meta,
-      [
-        await buildPlaceMetadataSql(db, snapshot.id, releaseId),
-        `UPDATE releases SET status = 'published' WHERE id = ${lit(releaseId)};`,
-      ].join('\n'),
-      input.importOptions,
+    await deliverSqlPhase(
+      {
+        context: input.context,
+        releaseId: input.releaseId,
+        phase: 'places-address-metadata',
+        inputs: { materialisationHash, snapshotId: snapshot.id },
+      },
+      async () =>
+        executeSqlText(
+          input.targets.meta,
+          [
+            await buildPlaceMetadataSql(db, snapshot.id, releaseId),
+            `UPDATE releases SET status = 'published' WHERE id = ${lit(releaseId)};`,
+          ].join('\n'),
+          input.importOptions,
+        ),
     )
   }
   await recordSnapshotLookupDependency(db, {
@@ -889,3 +918,4 @@ async function assertSupplementaryAddressRows(
     }
   }
 }
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'

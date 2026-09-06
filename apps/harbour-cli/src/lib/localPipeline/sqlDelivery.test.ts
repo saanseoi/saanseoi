@@ -7,6 +7,8 @@ import { createHash } from 'node:crypto'
 import { prepareSqlDelivery, runSqlDelivery } from './sqlDelivery.ts'
 import { withDeliveryLock } from './sqlDeliveryFiles.ts'
 import { prepareReleaseSqlDelivery } from './releaseSqlDelivery.ts'
+import { captureSqlDeliveryBatches } from './sqlDeliveryBatchCapture.ts'
+import { executeSqlText } from './sqlImport.ts'
 import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import {
   assertSqlDeliveryPlanningAllowed,
@@ -25,6 +27,51 @@ async function fixture(
     await rm(f.root, { recursive: true, force: true })
   }
 }
+
+test('captured family SQL seals once and replays exact bytes remotely then locally', () =>
+  fixture(async f => {
+    let generated = 0
+    const prepare = () =>
+      prepareReleaseSqlDelivery({
+        directory: f.directory,
+        context: {
+          state: {
+            target: 'preview',
+            dbCacheDir: f.root,
+            bindings: { DB_CURRENT: { databaseId: 'db' } },
+          },
+        } as unknown as LocalAddressDbContext,
+        releaseId: 'release',
+        phase: 'family',
+        inputs: { sourceSha: 'frozen' },
+        generate: capture =>
+          captureSqlDeliveryBatches(capture, async () => {
+            generated++
+            const target = { name: 'current' as const, databaseId: 'db' }
+            for (let i = 0; i < 3; i++) {
+              await executeSqlText(target, 'UPDATE counter SET n = n + 1;', {
+                isLocal: true,
+              })
+              await executeSqlText(target, 'UPDATE counter SET n = n + 1;', {
+                isLocal: false,
+              })
+            }
+          }),
+      })
+    const plan = await prepare()
+    expect(plan.batches).toHaveLength(1)
+    expect(f.localValue()).toEqual({ n: 0 })
+    expect(f.events).toHaveLength(0)
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+    await prepare()
+    expect(generated).toBe(1)
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+    expect(f.localValue()).toEqual({ n: 3 })
+    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 3 })
+    expect(f.events.filter(event => event === 'ingest')).toHaveLength(1)
+  }))
 
 test('100 completed batches use three receipt reads for resume and local replay', () =>
   fixture(async f => {
