@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "automaticPolicies": [
+    {
+      "id": "same-floor-abc-unit-merger",
+      "revision": 1,
+      "enabled": true,
+      "authority": "User decision, 2026-09-07: Yep -- and please just auto-accept merges like this.",
+      "rule": "Accept an exact same-premise, same-floor merger of numeric unit A/B/C into its unsuffixed numeric unit when English and Traditional Chinese agree and all other unit expressions are unchanged. Preserve dated publisher history; never backfill or reuse predecessor IDs. Other inventory changes remain pending.",
+      "confirmedExamples": [
+        "CHEUNG HANG ESTATE / HANG CHI HOUSE: 601A, 601B, 601C to 601 on 6/F, April 2025",
+        "CHEUNG HANG ESTATE / HANG YIP HOUSE: 1021A, 1021B, 1021C to 1021 on 10/F, April 2025"
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "choi-fook-estate-july-2026-unnamed-premise-change",
+      "estate": "CHOI FOOK ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "9e63c6646005ef5075a6dc6d250109cdfe398358a80301f7cb118b70c7faa7cf",
+      "csu": "4046820907T20090625",
+      "previousCsu": "4037020934T20090625",
+      "action": "retain_publisher_history",
+      "interpretation": "estate_level_premise_change_without_inventory_change",
+      "decision": "Retain the dated unnamed estate-level source records and July 2026 CSU and point change. Do not merge the replacement record into Choi Foon House merely because their coordinates match. Neither unnamed record owns units; keep all five building inventories unchanged and do not backfill.",
+      "authority": "User decision, 2026-09-07: Ok... yeah do it, approving the dated estate-level change with no building merge and no backfill.",
+      "evidence": [
+        "The July 2026 event removes unnamed CSU 4037020934T20090625 and adds unnamed CSU 4046820907T20090625, both with zero units; no building inventories change.",
+        "The replacement supplies only Choi Fook Estate / 彩福邨 and 58 Choi Wing Road / 彩榮路58號, without a building name. Its point 114.21764,22.32719 matches Choi Foon House, whose distinct CSU 4053020870T20090625 retains 915 units."
+      ]
+    },
+    {
+      "id": "cheung-hong-hong-shun-a1614-removal",
+      "estate": "CHEUNG HONG ESTATE",
+      "release": "20250123-1031-ALS-GeoJSON",
+      "expectedFingerprint": "ae596b879c77e6cd494c7bd659a904c5ad4e4a1d368af429f16d14632ef0b284",
+      "csu": "2834623438T20050430",
+      "action": "retain_publisher_history",
+      "interpretation": "publisher_recorded_removal",
+      "floor": "16",
+      "removedUnits": ["A1614"],
+      "decision": "Retain A1614 in earlier inventories and honour its removal from the January 2025 delivery, reducing 1138 units to 1137. Do not backfill or infer a physical cause for the removal.",
+      "authority": "User decision, 2026-09-07: we cannot discover what's happened -- but let's respect the upstream authority and not backfill.",
+      "evidence": [
+        "The December 2024 to January 2025 bilingual source diff removes only flat A1614 on 16/F and adds no replacement unit."
+      ]
+    },
+    {
+      "id": "cheung-ching-ching-ho-no-backfill",
+      "estate": "CHEUNG CHING ESTATE",
+      "release": "20250123-1031-ALS-GeoJSON",
+      "expectedFingerprint": "deee3d2f82cfab5fcd058484addb1ef682071fae052bcb612f2f38c4a296eafd",
+      "csu": "2911623349T20240814",
+      "action": "retain_publisher_history",
+      "interpretation": "new_building_inventory",
+      "decision": "Do not backfill Ching Ho House. Retain its November 2024 first 2D appearance and January 2025 first 851-unit inventory separately.",
+      "authority": "User decision, 2026-09-07: seems like it was built then so should NOT be backfilled.",
+      "evidence": [
+        "https://zh.wikipedia.org/wiki/長青邨 identifies Ching Ho House as a new 851-flat building completed in 2024.",
+        "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/6.json lists estate intake years 1977 and 2024; this is estate-level corroboration, not an exact building completion date."
+      ]
+    },
+    {
+      "id": "cheung-hang-hang-chi-121-merger",
+      "estate": "CHEUNG HANG ESTATE",
+      "release": "20250123-1031-ALS-GeoJSON",
+      "expectedFingerprint": "5f1403babe151e8e9fad7105bff1dc8dab56e43031276a14c5618f9e24457719",
+      "csu": "2821824153T20050430",
+      "action": "retain_publisher_history",
+      "interpretation": "unit_merger",
+      "floor": "1",
+      "predecessorUnits": ["121A", "121B", "121C"],
+      "successorUnits": ["121"],
+      "decision": "Preserve three separate units before the January 2025 delivery and unit 121 afterwards. The inventory falls from 718 to 716. Do not backfill the merger or reuse a predecessor unit ID for the successor.",
+      "authority": "User decision, 2026-09-07: that's fine -- it's just merging 3 units.",
+      "evidence": [
+        "The December 2024 to January 2025 raw bilingual diff removes only 1/F units 121A, 121B and 121C and adds only 1/F unit 121. The delivery date is the observed change boundary, not an established physical conversion date."
+      ]
+    }
+  ]
+}
