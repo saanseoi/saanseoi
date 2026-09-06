@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+The Address API's `saanseoi` domain and `filter[dataset]` select the curated address
+collection independently of the Places endpoint. The tutorial's Places queries and
+free-form address display require no selector changes.
+
 | Objective          | Setup path                                                                                  | Render                                                                  | Basemap                                | Style                                     | Data                                                  | Copy review |
 | ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | ----------- |
 | Local              | OS-specific Bun install and the existing local Vite commands                                | MapLibre, Mapbox and Leaflet starter snippets                           | Direct `pk.` key and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |

@@ -60,21 +60,24 @@ relationship remains separate and authoritative.
 
 `premise-candidate` is parser evidence, not an official ALS acceptance decision. An
 unmatched observation such as `19B Ap Lei Chau Praya Road` remains unlinked even when
-its street and building number parse cleanly. The planned Overture Places supplementary
-Address source will accept fixture-curated candidates only. Each entry must retain the
-Place, source release, partial-match evidence, and confidence; deterministic
-high-confidence candidates can be added to the curation, weaker candidates must enter
-the address-identity review workflow, and unsupported candidates remain for later
-processing. The supplementary source needs its own dataset, composition contract, and
-materialiser; it must not mint an official ALS address during Places ingestion.
+its street and building number parse cleanly. The Overture Places supplementary Address
+source accepts fixture-curated candidates only. Each entry retains the Place, source
+release, partial-match evidence, and confidence; deterministic high-confidence
+candidates can be added to the curation, weaker candidates must enter the
+address-identity review workflow, and unsupported candidates remain for later
+processing. The `ds-hk-overture-place` dataset declares both `place` and `address`
+resources. Both resource releases share the original publisher source release; the
+Address output has its own `address/overture-places` snapshot and resource release. The
+default Address API domain, `saanseoi`, combines this member with ALS addresses.
+Consumers can select either dataset with `filter[dataset]` on list and search requests.
 
 ## Supplementary address materialisation
 
-This section specifies the Places-ingest extension which creates Overture Places
-supplementary Address rows. It is deliberately a two-phase part of Places ingestion:
-analyse the Place source release first, then materialise accepted supplementary Address
-rows before finalising the Place snapshot. That ordering lets a final Place row point to
-an Address row with ordinary source provenance and, where justified, division IDs.
+The Places-ingest extension creates Overture Places supplementary Address rows. It is
+deliberately a two-phase part of Places ingestion: analyse the Place source release
+first, then materialise accepted supplementary Address rows before finalising the Place
+snapshot. That ordering lets a final Place row point to an Address row with ordinary
+source provenance and, where justified, division IDs.
 
 ### Inputs and durable outputs
 
@@ -157,7 +160,7 @@ derive a public Address field from a future re-parse of mutable source text. Typ
 unit/floor fragments remain source evidence until an Address3D materialisation policy is
 introduced.
 
-Materialise the row under an Overture Places Address dataset/source, distinct from
+Materialise the row under the original Overture Places dataset/source, distinct from
 `hkgov-dpo` and the official `address/default` member. Its provenance must name the
 Overture Place ID, Place source release, original address value or hash, curation entry,
 policy version, score, and selected ALS base candidate. The supplementary Address ID is
@@ -187,6 +190,41 @@ continues to be indexed in H3 cells and returned by cell and search queries.
    supplementary source snapshot is missing, or if a Place/Address link cannot be
    reproduced from the recorded source release, fixture, and dependency snapshots.
 
+### Matching policy and review operation
+
+`supplementary-v1` assigns 55 points for a canonical building name or reviewed alias, 45
+for an estate, 20 each for a block or phase, 30 for a street, and 15 for a building
+number. The automatic threshold is 85, the review threshold is 30, and the required lead
+over the second candidate is 20. Geometry adds 20 points only to a named candidate
+within 150 metres, with a 100-metre distance lead over the next named candidate. Aliases
+are explicit locale/address-ID entries; the initial list is empty. Street and number
+evidence alone cannot reach the automatic threshold. Replacement of an accepted
+supplementary link with ALS requires an explicit decision.
+
+The fixture keeps policies by version, per-Place `entries`, and explicit `decisions`. An
+entry's `values` contains the public 2D localisations. Its identity key includes those
+normalised 2D values and excludes Place IDs, source release, unit and floor fragments.
+Places with the same identity share the `opa-` Address ID and retain separate curation
+entries. Conflicting ALS derivations for a shared identity stop materialisation.
+
+Every analysis writes `overture-place-address-review.json` inside the target's
+`.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the
+selected ALS snapshot, parsed source evidence, candidates, scores, distances, previous
+link and disposition. Accepted entries are saved before a review stop. Correct the
+fixture and retry the same upload; `--yes` cannot bypass review. A decision records
+`placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`,
+`addressId` and a non-empty `reason`. `keep` retains the previous ID, `retire` selects
+no ID, and `replace` selects an official ID or a reproducible curated supplementary
+entry. Retire superseded entries with `retiredAtSourceRelease`; retain them for
+historical replay.
+
+Supplementary snapshots are complete, including when there are no accepted rows. Their
+assembly records retain a materialisation hash, curation hash and policy versions.
+Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
+existing published supplementary snapshot must reproduce its recorded materialisation;
+an incompatible fixture edit requires a source-release revision. The initializer does
+not discover or upload the supplementary dataset separately.
+
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
 as one `overture_place_country_review_required` action per Place in the release Audit.
@@ -211,6 +249,11 @@ snapshot and its address, division, and street joins have been materialised.
 
 ## ZH-HANT
 
+補充地址使用獨立的 `address/overture-places`
+快照，並在地點資料實體化之前完成。相同的正規化二維地址共用 Address
+ID，但每個地點保留獨立的策展決定。自動接受門檻為 85 分，審核門檻為 30 分，候選領先差距為 20 分；不明確的配對及身分變更必須審核，`--yes`
+不會略過。分區只可來自記錄中的 ALS 基礎地址，沒有基礎地址的補充地址不會連結分區。單位及樓層片段保留為來源證據。
+
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 會按腳本獨立解析並保留來源值。未標記漢字在香港資料中通常推斷為
 `zh-hant`；這代表繁體中文腳本，不代表粵語。衝突的語言標籤及來源值會記錄在發布審核動作中，混合腳本不會自行拆分。公開 Place 不再提供
@@ -218,6 +261,11 @@ Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 `freeformAddress`；選定的 ALS 關係仍然獨立且具權威性。地點名稱、品牌及自由格式地址均不使用機器翻譯。
 
 ## ZH-HANS
+
+补充地址使用独立的 `address/overture-places`
+快照，并在地点数据实体化之前完成。相同的规范化二维地址共用 Address
+ID，但每个地点保留独立的策展决定。自动接受门槛为 85 分，审核门槛为 30 分，候选领先差距为 20 分；不明确的匹配及身份变更必须审核，`--yes`
+不会跳过。分区只可来自记录中的 ALS 基础地址，没有基础地址的补充地址不会链接分区。单位及楼层片段保留为来源证据。
 
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 会按脚本独立解析并保留源值。未标记汉字在香港资料中通常推断为

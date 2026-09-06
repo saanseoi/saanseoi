@@ -4,17 +4,37 @@ The Places API family publishes Overture `place` records for the selected region
 Overture release is processed as a complete replacement snapshot and includes the raw
 publisher source record in the source database.
 
-Places has two required reference members:
+Places has three required reference members:
 
 - the default canonical address snapshot;
+- the cohort's Overture Places supplementary address snapshot
+  (`address/overture-places`);
 - the Overture canonical division snapshot.
 
-Reference members use `latest_at_or_before_or_earliest_after_cohort`. This is
-intentional: Overture releases are monthly, while the authoritative ALS address dataset
-is released irregularly. A Places release therefore records the newest published
+The official reference members use `latest_at_or_before_or_earliest_after_cohort`. This
+is intentional: Overture releases are monthly, while the authoritative ALS address
+dataset is released irregularly. A Places release therefore records the newest published
 compatible reference snapshot available at its cohort, falling forward only when no
 earlier snapshot exists. The selected snapshot IDs are recorded as lookup provenance and
 are used by both publication and replay.
+
+The supplementary member uses `exact_ref` and is produced within Places ingestion. The
+Overture Places dataset declares both resource types and retains one publisher source
+release for the Place and Address resource releases. Address output includes its number
+lookup and full-text index. Once the data imports succeed, ingestion publishes an
+Address release set in the `saanseoi` domain with the selected ALS and supplementary
+snapshots; the shared source release is finalised only after both outputs succeed. The
+Address list and search endpoints expose `filter[dataset]` while preserving the combined
+default. Address analysis and curation finish before supplementary Address rows, then
+Place rows, are materialised. Canonical ALS matches create no supplementary rows.
+Accepted partial matches retain Overture provenance and may derive division IDs from a
+recorded ALS base; curated rows without a base have no division IDs. Shared normalised
+2D identities share an Address ID across Places. Unit and floor observations remain
+source evidence. Review-required candidates stop ingestion before Place writes,
+including with `--yes`. Unmatched Places remain available through H3 cells and search.
+See the
+[source policy](../sources/overture/places.md#matching-policy-and-review-operation) for
+thresholds, identity decisions and retry behaviour.
 
 The normal upload lifecycle is shared with the other API families:
 

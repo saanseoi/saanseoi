@@ -70,14 +70,23 @@ The registry declares the address endpoints in
 - `GET /addresses/v0/search`
 
 The SaanSeoi API implements these as JSON:API list and detail resources. The address
-composition uses the `official` domain, with an address snapshot as the primary member
-and a cohort-compatible Overture division snapshot as a required supporting member. List
-requests support catalogue/cohort/release-set selection, profiles and locale projection,
-pagination, and country/area/district filters. Address relationships identify all
-available canonical containment levels: `country`, `area`, `district`, `town`,
-`macrohood`, `neighbourhood`, `microhood`, `village`, and `hamlet`. They do not join
-division data by default; `include=hierarchy` returns deduplicated Division resources in
-JSON:API `included` using bounded D1 batches.
+composition uses the default `saanseoi` domain: the required ALS address member and any
+selected Overture Places supplementary member form one curated collection. A
+cohort-compatible Overture division snapshot is required. List requests support
+catalogue/cohort/release-set selection, profiles and locale projection, pagination, and
+dataset/country/area/district filters. Address relationships identify all available
+canonical containment levels: `country`, `area`, `district`, `town`, `macrohood`,
+`neighbourhood`, `microhood`, `village`, and `hamlet`. They do not join division data by
+default; `include=hierarchy` returns deduplicated Division resources in JSON:API
+`included` using bounded D1 batches.
+
+List and search requests accept `filter[dataset]=ds-hk-hkgov-dpo-address` for ALS or
+`filter[dataset]=ds-hk-overture-place` for supplementary addresses. Omitting the filter
+queries all selected Address members. A dataset outside the selected release set returns
+an empty collection. Filtering precedes global counting and pagination, and links retain
+the filter. Every profile exposes `attributes.datasetCode`; `full` also exposes the
+record's detailed source evidence. Detail requests resolve IDs across both members.
+Direct ALS matches create no duplicate supplementary Address.
 
 `GET /addresses/v0/search` requires a declared `match` mode, so callers can make the
 precision/recall trade-off visible in their request. `exact` searches only published
