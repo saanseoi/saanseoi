@@ -29,6 +29,7 @@ import {
 import {
   beginOverturePlacesInitialisation,
   completeOverturePlacesInitialisation,
+  markOverturePlacesInitialisationFailed,
   runResetOverturePlacesCommand,
 } from './lib/commands/resetPlaces.ts'
 import {
@@ -143,6 +144,9 @@ async function main() {
       return
     case 'init:places:overture:complete':
       await completeOverturePlacesInitialisation(target)
+      return
+    case 'init:places:overture:fail':
+      await markOverturePlacesInitialisationFailed(target)
       return
     case 'version:bump':
       await runVersionBumpCommand(args)

@@ -25,18 +25,20 @@ import {
   validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
+import { supplementaryEntryLedgerPath } from '../placeSql/processLocalPlaceSqlUploadConfig.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
 const RELEASE_ARTEFACT_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 const DATASET_CODE = 'ds-hk-overture-place'
 
-type PlacesInitManifest = {
+export type PlacesInitManifest = {
   createdAt: string
   completedAt?: string
+  failedAt?: string
   owned?: OwnedPlaces
   runId: string
-  status: 'running' | 'complete'
+  status: 'running' | 'failed' | 'complete'
   target: 'local' | 'preview' | 'production'
   version: 1
 }
@@ -61,7 +63,10 @@ export async function beginOverturePlacesInitialisation(
   const path = manifestPath(target)
   if (existsSync(path)) {
     const existing = await readPlacesManifest(path)
-    if (options.continue && existing.status === 'running') {
+    if (options.continue && ['running', 'failed'].includes(existing.status)) {
+      if (existing.status === 'failed') {
+        await writePlacesManifest(path, resumePlacesManifest(existing))
+      }
       note(formatField('manifest', path), 'RESUMING OVERTURE PLACES INITIALISATION')
       return
     }
@@ -78,6 +83,7 @@ export async function beginOverturePlacesInitialisation(
   })
   try {
     await assertCleanPlacesBaseline(context)
+    await rm(supplementaryEntryLedgerPath(targetName(target)), { force: true })
     const manifest: PlacesInitManifest = {
       createdAt: new Date().toISOString(),
       runId: crypto.randomUUID(),
@@ -86,11 +92,38 @@ export async function beginOverturePlacesInitialisation(
       version: 1,
     }
     await mkdir(dirname(path), { recursive: true })
-    await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
+    await writePlacesManifest(path, manifest)
     note(formatField('manifest', path), 'OVERTURE PLACES INITIALISATION')
   } finally {
     context.cleanup()
   }
+}
+
+/** Record that the coordinator stopped before the Places run completed. */
+export async function markOverturePlacesInitialisationFailed(target: UploadTarget) {
+  const path = manifestPath(target)
+  const manifest = await readPlacesManifest(path)
+  if (manifest.status === 'complete')
+    throw new Error('A completed Overture Places initialisation cannot be failed.')
+  if (manifest.status === 'failed') return
+  await writePlacesManifest(path, failPlacesManifest(manifest))
+}
+
+export function resumePlacesManifest(manifest: PlacesInitManifest): PlacesInitManifest {
+  if (!['running', 'failed'].includes(manifest.status))
+    throw new Error('A completed Overture Places initialisation cannot be resumed.')
+  const { failedAt: _failedAt, ...resumed } = manifest
+  return { ...resumed, status: 'running' }
+}
+
+export function failPlacesManifest(
+  manifest: PlacesInitManifest,
+  failedAt = new Date().toISOString(),
+): PlacesInitManifest {
+  if (manifest.status === 'complete')
+    throw new Error('A completed Overture Places initialisation cannot be failed.')
+  if (manifest.status === 'failed') return manifest
+  return { ...manifest, failedAt, status: 'failed' }
 }
 
 /** Complete the Places manifest after release-set and documentation work. */
@@ -116,7 +149,7 @@ export async function completeOverturePlacesInitialisation(target: UploadTarget)
     manifest.owned = owned
     manifest.completedAt = new Date().toISOString()
     manifest.status = 'complete'
-    await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
+    await writePlacesManifest(path, manifest)
   } finally {
     context.cleanup()
   }
@@ -148,14 +181,14 @@ export async function runResetOverturePlacesCommand(
     requireExistingRemoteCache: target.remote,
   })
   try {
-    if (!['running', 'complete'].includes(manifest.status))
+    if (!['running', 'failed', 'complete'].includes(manifest.status))
       throw new Error(
         'Reset requires an active Overture Places initialisation manifest.',
       )
     const owned =
-      manifest.status === 'running'
-        ? await collectOwnedPlaces(context.metaDb as unknown as HarbourReadableDb)
-        : manifest.owned
+      manifest.status === 'complete'
+        ? manifest.owned
+        : await collectOwnedPlaces(context.metaDb as unknown as HarbourReadableDb)
     if (!owned)
       throw new Error(
         'Overture Places initialisation manifest is missing owned records.',
@@ -184,6 +217,7 @@ export async function runResetOverturePlacesCommand(
     }
     if (dryRun) return
 
+    await rm(supplementaryEntryLedgerPath(targetName(target)), { force: true })
     for (const asset of owned.assets) await deleteManagedSourceAsset(target, asset)
     const artefacts = buildResetArtefacts(context, owned)
     await executeResetSqlArtefacts({
@@ -549,13 +583,20 @@ async function readPlacesManifest(path: string): Promise<PlacesInitManifest> {
   if (
     !value ||
     typeof value !== 'object' ||
-    (value as { version?: unknown }).version !== 1
+    (value as { version?: unknown }).version !== 1 ||
+    !['running', 'failed', 'complete'].includes(
+      String((value as { status?: unknown }).status),
+    )
   ) {
     throw new Error(
       'Overture Places initialisation manifest has an unsupported format.',
     )
   }
   return value as PlacesInitManifest
+}
+
+async function writePlacesManifest(path: string, manifest: PlacesInitManifest) {
+  await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
 }
 
 function buildResetArtefacts(

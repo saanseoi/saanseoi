@@ -6,6 +6,7 @@ import {
   createSupplementaryAddressAnalyser,
   emptySupplementaryEntryLedger,
   parseSupplementaryCuration,
+  parseSupplementaryEntryLedger,
   supplementaryIdentity,
   type SupplementaryEntry,
 } from './supplementaryPlaceAddress.ts'
@@ -55,6 +56,26 @@ function setup(definitions = [citygate]) {
 }
 
 describe('supplementary Place Address policy', () => {
+  test('keeps generated entries out of the version-controlled policy', () => {
+    expect(() => parseSupplementaryCuration({ ...policyFixture, entries: [] })).toThrow(
+      'must not contain generated entries',
+    )
+
+    expect(
+      parseSupplementaryCuration(policyFixture, emptySupplementaryEntryLedger())
+        .entries,
+    ).toEqual([])
+  })
+
+  test('rejects generated ledgers from another generation format', () => {
+    expect(() =>
+      parseSupplementaryEntryLedger({
+        ...emptySupplementaryEntryLedger(),
+        generationVersion: 2,
+      }),
+    ).toThrow('Invalid generated Overture Place Address entry ledger')
+  })
+
   test('every Places cohort has a provenance signature for the supplementary source', () => {
     for (const anchor of fieldsFixture.lineageAnchors) {
       expect(anchor.sourceSchemas['ds-hk-overture-place']).toBeDefined()
@@ -186,6 +207,7 @@ describe('supplementary Place Address policy', () => {
   test('accepted curation wins over a new exact ALS match and changed scores', () => {
     const { fixture, analyse } = setup()
     const first = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
+    if (!first.addressId) throw new Error('Expected a supplementary Address ID.')
     const later = createSupplementaryAddressAnalyser(
       [
         citygate,
@@ -201,7 +223,7 @@ describe('supplementary Place Address policy', () => {
     )
     expect(
       later(observation('Citygate Outlets, Tat Tung Road', 'place-1', '2026-09-23.0'), {
-        addressId: first.addressId!,
+        addressId: first.addressId,
         fingerprint: first.fingerprint,
       }).addressId,
     ).toBe(first.addressId)
@@ -249,6 +271,7 @@ describe('supplementary Place Address policy', () => {
   test('a unit change carries the curated 2D address forward', () => {
     const { analyse } = setup()
     const first = analyse(observation('Shop 12, Citygate Outlets, Tat Tung Road'), null)
+    if (!first.addressId) throw new Error('Expected a supplementary Address ID.')
     expect(
       analyse(
         observation(
@@ -257,7 +280,7 @@ describe('supplementary Place Address policy', () => {
           '2026-09-23.0',
         ),
         {
-          addressId: first.addressId!,
+          addressId: first.addressId,
           fingerprint: first.fingerprint,
         },
       ).addressId,
@@ -266,7 +289,9 @@ describe('supplementary Place Address policy', () => {
   test('rejects tampered identity keys and invalid thresholds', () => {
     const { fixture, analyse } = setup()
     analyse(observation('Citygate Outlets, Tat Tung Road'), null)
-    fixture.entries[0]!.addressId = 'arbitrary'
+    const [entry] = fixture.entries
+    if (!entry) throw new Error('Expected a generated entry.')
+    entry.addressId = 'arbitrary'
     expect(() =>
       parseSupplementaryCuration(policyFixture, {
         ...emptySupplementaryEntryLedger(),

@@ -18,6 +18,7 @@ export function printUsage() {
   saanseoi init:places:overture [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:places:overture:begin [--target local|preview|production] [--continue]
   saanseoi init:places:overture:complete [--target local|preview|production]
+  saanseoi init:places:overture:fail [--target local|preview|production]
   saanseoi init:streets:hkgov-landsd [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
   saanseoi tiles:import --region gba|hk|mo --date YYYY-MM-DD --file PATH --boundary PATH [--dry-run]

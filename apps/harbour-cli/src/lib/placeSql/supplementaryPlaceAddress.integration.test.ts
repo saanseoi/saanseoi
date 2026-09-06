@@ -134,7 +134,8 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         addresses: [{ freeform: 'Citygate Outlets, Tat Tung Road', country: 'HK' }],
       },
       '2026-08-19.0',
-    )!
+    )
+    if (!place) throw new Error('Expected the Place fixture to normalise.')
     const input = {
       curationPath,
       entryLedgerPath,
@@ -229,6 +230,10 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         .get('source-place-release'),
     ).toEqual({ status: 'processing' })
     expect(first.addresses).toHaveLength(1)
+    expect(JSON.parse(await readFile(curationPath, 'utf8'))).not.toHaveProperty(
+      'entries',
+    )
+    expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toHaveLength(1)
     expect(
       current
         .query('SELECT countryId FROM address2d WHERE snapshotId = ?')
@@ -271,7 +276,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(review.reviewRequired).toBe(1)
     expect(review.results).toHaveLength(1)
     expect(review.results[0].tier).toBe('review')
-    expect(review.results[0].previous.addressId).toBe(first.addresses[0]!.current.id)
+    expect(review.results[0].previous.addressId).toBe(first.addresses[0]?.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
   } finally {
     meta.close()

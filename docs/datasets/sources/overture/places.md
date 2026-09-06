@@ -151,8 +151,8 @@ deterministic replacement policy or an explicit curation decision.
    can keep, retire, or replace it explicitly.
 4. **No usable match.** A result below the review band, including no candidate at all,
    is recorded as delayed and ignored for current Address matching. Do not manufacture a
-   nearest Address or a curation entry. Retain the Place source value and release action
-   so a later matcher policy or address release can reconsider it.
+   nearest Address or a generated entry. Retain the Place source value and release
+   action so a later matcher policy or address release can reconsider it.
 
 The thresholds, score weights, alias rules, candidate-distance margin, and replacement
 policy belong in the checked-in curation policy or its referenced policy version. They
@@ -169,10 +169,10 @@ materialisation policy is introduced.
 
 Materialise the row under the original Overture Places dataset/source, distinct from
 `hkgov-dpo` and the official `address/default` member. Its provenance must name the
-Overture Place ID, Place source release, original address value or hash, curation entry,
-policy version, score, and selected ALS base candidate. The supplementary Address ID is
-deterministic from that durable identity key; any incompatible change follows the same
-identity-drift review process as other Address sources.
+Overture Place ID, Place source release, original address value or hash, generated
+entry, policy version, score, and selected ALS base candidate. The supplementary Address
+ID is deterministic from that durable identity key; any incompatible change follows the
+same identity-drift review process as other Address sources.
 
 An accepted ALS base candidate may supply division IDs only as recorded derivation
 evidence on the supplementary row. A supplementary row without that base has no division
@@ -214,7 +214,7 @@ The version-controlled fixture keeps policies by version, reviewed aliases, and 
 `decisions`. The target-specific `.local` ledger keeps generated per-Place `entries`. An
 entry's `values` contains the public 2D localisations. Its identity key includes those
 normalised 2D values and excludes Place IDs, source release, unit and floor fragments.
-Places with the same identity share the `opa-` Address ID and retain separate curation
+Places with the same identity share the `opa-` Address ID and retain separate generated
 entries. Conflicting ALS derivations for a shared identity stop materialisation.
 
 Every analysis writes `overture-place-address-review.json` inside the target's
@@ -226,9 +226,9 @@ and generated ledger unchanged. Record reviewed aliases or decisions in the fixt
 retry the same upload; `--yes` cannot bypass review. A decision records `placeId`,
 `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`, `addressId` and a
 non-empty `reason`. `keep` retains the previous ID, `retire` selects no ID, and
-`replace` selects an official ID or a reproducible curated supplementary entry.
-Generated entries may record `retiredAtSourceRelease`; published history remains the
-durable replay source.
+`replace` selects an official ID or a reproducible supplementary entry. Generated
+entries may record `retiredAtSourceRelease`; published history remains the durable
+replay source.
 
 Supplementary snapshots are complete, including when there are no accepted rows. Their
 assembly records retain a materialisation hash, combined policy/entry-ledger hash and

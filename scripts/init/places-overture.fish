@@ -11,6 +11,8 @@ end
 
 init_run_step ./bin/saanseoi init:places:overture:begin \
     --target $saanseoi_init_target $continue_args
+set -g saanseoi_init_failure_command ./bin/saanseoi init:places:overture:fail \
+    --target $saanseoi_init_target
 
 set -l root "$saanseoi_init_repo/data/overture"
 # 2025-11-19.0 is intentionally absent: its retained mirror contains only
