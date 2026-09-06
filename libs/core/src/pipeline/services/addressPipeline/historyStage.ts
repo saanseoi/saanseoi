@@ -164,7 +164,9 @@ export async function buildResolvedAddressChunkArtefact(
   for (const row of normalisedRows) {
     const matchedCurrent =
       currentAddressLookup.byId.get(row.canonicalId) ??
-      (row.matchKey ? currentAddressLookup.byMatchKey.get(row.matchKey) : null) ??
+      (!row.raw.hierarchyCuration && row.matchKey
+        ? currentAddressLookup.byMatchKey.get(row.matchKey)
+        : null) ??
       null
     const addressId = matchedCurrent?.id ?? row.canonicalId
     const now = artefact.processingRunStartedAt

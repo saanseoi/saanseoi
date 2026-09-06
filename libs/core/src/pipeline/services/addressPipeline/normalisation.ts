@@ -72,6 +72,9 @@ export async function isUnchangedHkgovAlsSourcePayload(
 }
 
 const HKGOV_ALS_SOURCE_HASH_OMITTED_KEYS = new Set([
+  'parentAddressId',
+  'curatedGranularity',
+  'hierarchyCuration',
   'areaId',
   'canonicalId',
   'cohortKey',
@@ -213,13 +216,20 @@ function normalisePreparedHkgovAddressRow(
       streetName: otStreet,
     }),
     base: {
-      parentAddressId: null,
-      granularity: establishAddressGranularity({
-        addressId: canonicalId,
-        values: i18n,
-        sourceVersion: typeof sourceVersion === 'string' ? sourceVersion : undefined,
-        componentCorrections,
-      }).granularity,
+      parentAddressId: asNonEmptyString(row.parentAddressId),
+      granularity:
+        row.hierarchyCuration &&
+        (row.curatedGranularity === 'complex' ||
+          row.curatedGranularity === 'building' ||
+          row.curatedGranularity === 'section')
+          ? row.curatedGranularity
+          : establishAddressGranularity({
+              addressId: canonicalId,
+              values: i18n,
+              sourceVersion:
+                typeof sourceVersion === 'string' ? sourceVersion : undefined,
+              componentCorrections,
+            }).granularity,
       divisionSnapshotId: requireText(
         row.divisionSnapshotId,
         'Prepared HKGov ALS row is missing `divisionSnapshotId`.',

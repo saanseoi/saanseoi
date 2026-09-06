@@ -1,6 +1,7 @@
 import { createHash } from '../utils'
 
 export type PlaceI18nRecord = {
+  accessHint?: string | null
   locale: string
   name: string | null
   nameAlts: string | null
@@ -172,6 +173,9 @@ export async function hashPlaceMaterialisation(
     addressId: string | null
     divisionIds: string[]
     contentHash?: string
+    address3dId?: string | null
+    address3dUnitId?: string | null
+    address3dMembership?: 'established' | 'unresolved' | null
   },
 ) {
   return createHash({
@@ -179,6 +183,9 @@ export async function hashPlaceMaterialisation(
     addressSnapshotId: references.addressSnapshotId,
     divisionSnapshotId: references.divisionSnapshotId,
     addressId: references.addressId,
+    address3dId: references.address3dId ?? null,
+    address3dUnitId: references.address3dUnitId ?? null,
+    address3dMembership: references.address3dMembership ?? null,
     divisionIds: references.divisionIds,
   })
 }
