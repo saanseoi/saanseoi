@@ -104,6 +104,40 @@ test('extracts free-form address text and ignores publisher identifiers', () => 
   ).toEqual(['1 Example Road', '2 Example Road'])
 })
 
+test('removes only complete Place names and brands before address parsing', () => {
+  const place = normaliseOverturePlace(
+    {
+      id: 'place-address-labels',
+      geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+      names: { en: 'Hong Kong Aircraft Engineering Co. Ltd' },
+      brand: { names: { en: 'HAECO' } },
+    },
+    '2026-08-19.0',
+  )
+  if (!place) throw new Error('Expected a normalised place.')
+
+  expect(
+    extractPlaceAddressTexts(
+      [
+        {
+          freeform:
+            'Hong Kong Aircraft Engineering Co. Ltd, 80 South Perimeter Road, Hong Kong International Airport',
+        },
+        { freeform: 'HAECO, 80 South Perimeter Road' },
+        {
+          freeform:
+            'Hong Kong Aircraft Engineering Co. Ltd (Airport), 80 South Perimeter Road',
+        },
+      ],
+      place,
+    ),
+  ).toEqual([
+    '80 South Perimeter Road, Hong Kong International Airport',
+    '80 South Perimeter Road',
+    'Hong Kong Aircraft Engineering Co. Ltd (Airport), 80 South Perimeter Road',
+  ])
+})
+
 test('unwraps free-form addresses into canonical strings only', () => {
   expect(
     buildPlaceAddresses([

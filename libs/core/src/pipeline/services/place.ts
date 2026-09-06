@@ -183,26 +183,112 @@ export async function hashPlaceMaterialisation(
   })
 }
 
-/** Extracts publisher free-form address text for a best-effort ALS match.
- * Publisher identifiers are deliberately ignored: Overture does not provide
- * the SaanSeoi ALS premise identities used by the canonical Address tables.
+/**
+ * Extracts publisher free-form address text for a best-effort ALS match.
+ *
+ * Overture commonly prefixes an address with the Place name or brand.  Remove
+ * only an exact, punctuation-insensitive label span before it reaches the
+ * address parser; a partial label is meaningful place qualification and must
+ * remain intact. Publisher identifiers are deliberately ignored: Overture does
+ * not provide the SaanSeoi ALS premise identities used by the canonical Address
+ * tables.
  */
-export function extractPlaceAddressTexts(value: unknown): PlaceAddressTexts {
+export function extractPlaceAddressTexts(
+  value: unknown,
+  place?: Pick<NormalisedPlace, 'i18n'>,
+): PlaceAddressTexts {
   const records = Array.isArray(value) ? value : [value]
   const texts = new Set<string>()
+  const labels = place ? placeAddressLabels(place.i18n) : []
 
   for (const record of records) {
     if (typeof record === 'string') {
-      if (record.trim()) texts.add(record.trim())
+      if (record.trim()) texts.add(stripPlaceAddressLabels(record, labels))
       continue
     }
     const object = asRecord(record)
     if (!object) continue
     const freeform = asString(object.freeform)
-    if (freeform) texts.add(freeform)
+    if (freeform) texts.add(stripPlaceAddressLabels(freeform, labels))
   }
 
   return [...texts]
+}
+
+function placeAddressLabels(localisations: PlaceI18nRecord[]) {
+  const labels = new Set<string>()
+  for (const localisation of localisations) {
+    for (const value of [
+      localisation.name,
+      ...(localisation.nameVariant ?? []),
+      localisation.brandName,
+      ...(localisation.brandNameVariant ?? []),
+    ]) {
+      const label = normalisePlaceAddressLabel(value)
+      if (label) labels.add(label)
+    }
+  }
+  return [...labels].sort(
+    (left, right) => right.split(' ').length - left.split(' ').length,
+  )
+}
+
+function stripPlaceAddressLabels(value: string, labels: string[]) {
+  const tokens = [...value.matchAll(/[\p{L}\p{N}]+/gu)].map(match => ({
+    end: (match.index ?? 0) + match[0].length,
+    start: match.index ?? 0,
+    value: match[0].normalize('NFKC').toLocaleLowerCase('en'),
+  }))
+  const ranges: Array<{ start: number; end: number }> = []
+
+  for (const label of labels) {
+    const labelTokens = label.split(' ')
+    if (labelTokens.length === 0) continue
+    for (let index = 0; index <= tokens.length - labelTokens.length; index++) {
+      const matched = labelTokens.every(
+        (token, offset) => tokens[index + offset]?.value === token,
+      )
+      if (!matched) continue
+
+      const start = tokens[index]?.start
+      const end = tokens[index + labelTokens.length - 1]?.end
+      if (start === undefined || end === undefined) continue
+      // A bare label preceding a parenthesised qualifier is not a full place
+      // label. Keep it so, for example, "Example Cafe (Airport)" is not reduced
+      // to "(Airport)" unless the supplied name includes that qualifier too.
+      if (/^\s*\(/u.test(value.slice(end))) continue
+      if (ranges.some(range => rangesOverlap(range, { start, end }))) continue
+      ranges.push({ start, end })
+      break
+    }
+  }
+
+  return ranges
+    .sort((left, right) => right.start - left.start)
+    .reduce(
+      (result, range) => `${result.slice(0, range.start)} ${result.slice(range.end)}`,
+      value,
+    )
+    .replaceAll(/\s*,\s*,+/g, ',')
+    .replaceAll(/^[\s,;/-]+|[\s,;/-]+$/g, '')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
+}
+
+function rangesOverlap(
+  left: { start: number; end: number },
+  right: { start: number; end: number },
+) {
+  return left.start < right.end && right.start < left.end
+}
+
+function normalisePlaceAddressLabel(value: string | null) {
+  return value
+    ?.normalize('NFKC')
+    .toLocaleLowerCase('en')
+    .replaceAll(/[^\p{L}\p{N}]+/gu, ' ')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
 }
 
 /** Reads the publisher country used by the Hong Kong Places inclusion filter. */
