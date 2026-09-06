@@ -17,7 +17,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
-import policy from '../../../../../fixtures/meta/curations/overture-place-address.json'
+import policy from './testFixtures/supplementaryAddressPolicy.json'
 
 test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
@@ -177,6 +177,10 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       importOptions: { isLocal: true },
       actions: [],
     } as unknown as Parameters<typeof prepareSupplementaryAddresses>[0]
+    await writeFile(
+      resolve(root, 'overture-place-address.lock'),
+      JSON.stringify({ pid: process.pid + 1_000_000, releaseId: 'interrupted-run' }),
+    )
     const failedImport = {
       ...input,
       targets: {

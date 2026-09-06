@@ -625,6 +625,67 @@ describe('Overture Place address parsing', () => {
       },
     })
   })
+
+  test('does not interpret a directional street word as a block expression', () => {
+    const matcher = createPlaceAddressMatcher([
+      {
+        addressId: 'airport-address',
+        locale: 'en',
+        formattedAddress: '80 South Perimeter Road, Hong Kong International Airport',
+        buildingName: null,
+        buildingNumberExpression: '80',
+        buildingNumberFrom: '80',
+        buildingNumberTo: null,
+        blockExpression: 'SOUTH',
+        phaseExpression: null,
+        estateName: 'HONG KONG INTERNATIONAL AIRPORT',
+        streetName: 'SOUTH PERIMETER ROAD',
+      },
+    ])
+
+    expect(
+      parsePlaceAddress(
+        '80 South Perimeter Road, Hong Kong International Airport',
+        matcher,
+      ),
+    ).toMatchObject({
+      buildingNumberExpression: '80',
+      recognised2dComponents: [
+        {
+          kind: 'estateName',
+          name: 'HONG KONG INTERNATIONAL AIRPORT',
+        },
+      ],
+      street: expect.objectContaining({ name: 'SOUTH PERIMETER ROAD' }),
+      unclassified2dText: null,
+    })
+  })
+
+  test('absorbs No. into the adjacent street number', () => {
+    const matcher = createPlaceAddressMatcher([
+      {
+        addressId: 'china-fen-hin',
+        locale: 'en',
+        formattedAddress: 'China Fen Hin Building, 5 Cheung Yue Street',
+        buildingName: 'China Fen Hin Building',
+        buildingNumberExpression: '5',
+        buildingNumberFrom: '5',
+        buildingNumberTo: null,
+        blockExpression: null,
+        phaseExpression: null,
+        estateName: null,
+        streetName: 'Cheung Yue Street',
+      },
+    ])
+
+    expect(
+      parsePlaceAddress('China Fen Hin Building No. 5 Cheung Yue Street', matcher),
+    ).toMatchObject({
+      buildingNumberExpression: '5',
+      buildingNumbers: ['5'],
+      unclassified2dText: null,
+    })
+  })
 })
 
 describe('Overture Place first-cohort uncovered address shapes', () => {
