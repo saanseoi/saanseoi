@@ -1,12 +1,8 @@
 import { mkdir } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
-import { availableParallelism, cpus } from 'node:os'
 import { resolve } from 'node:path'
-
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
-
 import {
   getReplayedAddressVersionMap,
   hasCurrentAddressVersions,
@@ -22,7 +18,6 @@ import {
 } from '@repo/core/pipeline/db/processingActions'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
-  importAddressSqlDataArtefacts,
   importAddressSqlArtefactsAndPublish,
   type AddressSqlImportStageOptions,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
@@ -47,7 +42,6 @@ import {
   buildMatchKey,
   normaliseAddressI18nSnapshotRow,
 } from '@repo/core/pipeline/services/addressPipeline/normalisation'
-
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -77,49 +71,35 @@ import {
   writeAddressCurrentLookupCache,
 } from './addressCurrentLookupCache.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
 import {
-  invalidateRemoteDbCache,
-  replayRemoteCacheWithRetry,
-  refreshRemoteMetaCache,
-  resolveLocalAddressDbContext,
-  type LocalDbCacheProgressEvent,
-} from '../dbCache/localDbCache.ts'
-
-type UploadResult = {
-  datasetCode?: string
-  datasetId?: string
-  rawObjectKey?: string
-  releaseCode?: string
-  releaseId?: string
-}
-
-type UploadPlan = {
-  cohortKey: string
-  regionCode: 'hk' | 'mo'
-  releaseCode: string
-  rowCount: number
-  source: string
-  sourceVersion: string
-  theme: 'addresses'
-  type: 'address'
-}
-
-type ChunkRange = {
-  rowEnd: number
-  rowStart: number
-}
-
-const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
-const LOCAL_RELEASE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
-const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
-  REPO_ROOT,
-  'apps/harbour-workers/wrangler.jsonc',
-)
-const ADDRESS_CHUNK_SIZE = 16_384
-const GENERATION_CONCURRENCY = Math.max(1, Math.min(resolveCpuCount(), 4))
-const LOCAL_SQL_WRITE_RETRY_LIMIT = 8
-const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
-const SQL_STATEMENT_BYTE_TARGET = 99_000
+  assertRemoteAddressImportPrerequisites,
+  buildChunkRanges,
+  buildFinalImportMessage,
+  buildHistoricalAddressMatchKeyLookup,
+  normaliseError,
+  refreshRemoteMetaCacheAfterReplay,
+  replayAddressSqlIntoRemoteCache,
+  requireString,
+  resolveCloudflareAccountId,
+  resolveCloudflareD1ApiToken,
+  resolveShardYear,
+  resolveTargetName,
+  shouldIncludePreviousShardYears,
+} from './processLocalAddressSqlUploadImport.ts'
+import {
+  ADDRESS_CHUNK_SIZE,
+  GENERATION_CONCURRENCY,
+  LOCAL_RELEASE_ROOT,
+  LOCAL_SQL_WRITE_RETRY_LIMIT,
+  REMOTE_IMPORT_BATCH_BYTES,
+  SQL_STATEMENT_BYTE_TARGET,
+} from './processLocalAddressSqlUploadConfig.ts'
+import {
+  buildAddressImportProgressConfig,
+  updateDbCacheProgress,
+} from './processLocalAddressSqlUploadProgress.ts'
 
 export async function processLocalAddressSqlUpload(
   target: UploadTarget,
@@ -642,481 +622,4 @@ export async function processLocalAddressSqlUpload(
   }
 
   return { publishResult }
-}
-
-async function replayAddressSqlIntoRemoteCache(
-  target: UploadTarget,
-  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  bucket: LocalPipelineBucket,
-  message: DatasetProcessingMessage,
-  importOptions: AddressSqlImportStageOptions,
-) {
-  const targetName = target.environment === 'production' ? 'production' : 'preview'
-  const cacheImportOptions: AddressSqlImportStageOptions = {
-    ...importOptions,
-    accountId: undefined,
-    apiToken: undefined,
-    isLocal: true,
-  }
-
-  try {
-    await replayRemoteCacheWithRetry(
-      targetName,
-      dbContext.state.dbCacheDir,
-      message.releaseCode ?? message.releaseId ?? 'unknown-release',
-      () =>
-        importAddressSqlDataArtefacts(
-          createNoopHarbourClient(),
-          dbContext.metaDb,
-          bucket,
-          message,
-          cacheImportOptions,
-        ),
-    )
-    return true
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
-    throw new Error(
-      `Remote upload succeeded, but updating the ${targetName} local cache failed. ${reason}`,
-    )
-  }
-}
-
-async function refreshRemoteMetaCacheAfterReplay(
-  targetName: 'preview' | 'production',
-  cacheDir: string,
-) {
-  try {
-    await refreshRemoteMetaCache(targetName, cacheDir)
-  } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error)
-
-    await invalidateRemoteDbCache(targetName, cacheDir, reason)
-    throw new Error(
-      `Remote upload succeeded, but refreshing the ${targetName} local meta cache failed. The cache was invalidated and future uploads will stop until it is rebuilt explicitly. ${reason}`,
-    )
-  }
-}
-
-function createNoopHarbourClient(): HarbourClient {
-  return {
-    async publishDataset() {},
-    async stageCompleted() {},
-    async stageFailed() {},
-    async stageRunning() {},
-  }
-}
-
-function normaliseError(error: unknown) {
-  return error instanceof Error ? error : new Error(String(error))
-}
-
-function shouldIncludePreviousShardYears(cohortKey: string) {
-  return /^\d{4}-01(?:-\d{2})?/.test(cohortKey)
-}
-
-function buildHistoricalAddressMatchKeyLookup(
-  versions: NonNullable<AddressPipelineMessage['addressHistoricalParentVersions']>,
-) {
-  const byMatchKey = new Map<string, { churnHash: string; id: string }>()
-  for (const version of versions.values()) {
-    if (!version.matchKey || byMatchKey.has(version.matchKey)) continue
-    byMatchKey.set(version.matchKey, {
-      churnHash: version.churnHash,
-      id: version.id,
-    })
-  }
-  return byMatchKey
-}
-
-function updateDbCacheProgress(
-  progress: OperationProgress,
-  event: LocalDbCacheProgressEvent,
-) {
-  if (event.target !== 'preview' && event.target !== 'production') {
-    return
-  }
-
-  const label = formatDbCacheProgressLabel(event)
-  const current = Math.min(event.current, event.total)
-
-  if (!progress.hasActivePhase()) {
-    progress.beginPhase(label, {
-      current,
-      max: event.total,
-    })
-  } else {
-    progress.update(current, {
-      label,
-      max: event.total,
-    })
-  }
-
-  if (event.action === 'reuse-cache') {
-    progress.complete(
-      appendPhaseDetails(
-        formatCompletedPhaseLabel(colorTeal('Cache'), colorRed('hit'), 0),
-        ['0 ms'],
-      ),
-    )
-  }
-}
-
-function formatDbCacheProgressLabel(event: LocalDbCacheProgressEvent) {
-  const subject = describeDbCacheSubject(event)
-
-  return formatRunningPhaseLabel(
-    colorTeal('Clone cache'),
-    colorRed(subject),
-    Math.min(event.current, event.total),
-    event.total,
-  )
-}
-
-function describeDbCacheSubject(event: LocalDbCacheProgressEvent) {
-  const tableName = event.tableName
-    ? event.filter
-      ? `${event.tableName}:${event.filter}`
-      : event.tableName
-    : null
-
-  switch (event.action) {
-    case 'check-cache':
-      return `${event.target}.manifest`
-    case 'export-binding':
-      return tableName
-        ? `${event.bindingName}.${tableName}`
-        : `${event.bindingName}.export`
-    case 'reuse-cache':
-      return `${event.target}.reuse`
-    case 'mirror-table':
-      return tableName ? `${event.bindingName}.${tableName}` : event.bindingName
-    case 'copy-binding':
-      return `${event.bindingName}.sqlite`
-    case 'validate-binding':
-      return `${event.bindingName}.validate`
-  }
-}
-
-function buildFinalImportMessage(
-  initialMessage: DatasetProcessingMessage,
-  processingRunStartedAt: string,
-  messages: AddressPipelineMessage[],
-  totalRows: number,
-) {
-  const addressStats = messages.reduce(
-    (stats, message) =>
-      addAddressPipelineStats(
-        stats,
-        message.addressStats ?? EMPTY_ADDRESS_PIPELINE_STATS,
-      ),
-    EMPTY_ADDRESS_PIPELINE_STATS,
-  )
-  const addressSqlArtefactKeys = messages.flatMap(
-    message => message.addressSqlArtefactKeys ?? [],
-  )
-
-  return {
-    ...initialMessage,
-    addressSqlArtefactKeys,
-    addressStage: 'sql-import-source',
-    addressStats,
-    chunkSize: ADDRESS_CHUNK_SIZE,
-    processingMode: 'sql',
-    processingRunStartedAt,
-    rowEnd: totalRows,
-    rowStart: 0,
-    totalRows,
-  } satisfies AddressPipelineMessage
-}
-
-function buildChunkRanges(rowCount: number, chunkSize: number): ChunkRange[] {
-  const ranges: ChunkRange[] = []
-
-  for (let rowStart = 0; rowStart < rowCount; rowStart += chunkSize) {
-    ranges.push({
-      rowEnd: Math.min(rowStart + chunkSize, rowCount),
-      rowStart,
-    })
-  }
-
-  return ranges
-}
-
-function buildAddressImportProgressConfig(keys: string[]) {
-  const currentKeys = keys.filter(key => key.includes('/sql/current/'))
-  const metaKeys = keys.filter(key => key.includes('/sql/meta/'))
-  const totalImportFiles =
-    keys.filter(key => key.includes('/sql/source/')).length +
-    keys.filter(key => key.includes('/sql/history/')).length +
-    keys.filter(key => key.includes('/sql/history-apply/')).length +
-    currentKeys.length +
-    metaKeys.length
-
-  return {
-    cleanup: {
-      completedLabel: formatCompletedPhaseLabel(
-        colorTeal('Cleanup'),
-        colorRed('staging'),
-      ),
-      phase: 'cleanupAddressSqlStaging',
-      runningLabel(current: number) {
-        return formatRunningPhaseLabel(
-          colorTeal('Cleanup'),
-          colorRed('staging'),
-          current,
-          3,
-        )
-      },
-      totalUnits: 3,
-    },
-    importPhases: [
-      {
-        completedLabel: formatCompletedPhaseLabel(
-          colorTeal('Import'),
-          colorRed('SQL'),
-          totalImportFiles,
-        ),
-        phase: 'importAddressSqlSource',
-        runningLabel(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Import'),
-            colorRed('SQL'),
-            current,
-            totalImportFiles,
-          )
-        },
-        totalUnits: keys.filter(key => key.includes('/sql/source/')).length,
-      },
-      {
-        completedLabel: formatCompletedPhaseLabel(
-          colorTeal('Import'),
-          colorRed('SQL'),
-          totalImportFiles,
-        ),
-        phase: 'importAddressSqlHistory',
-        runningLabel(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Import'),
-            colorRed('SQL'),
-            current,
-            totalImportFiles,
-          )
-        },
-        totalUnits:
-          keys.filter(key => key.includes('/sql/history/')).length +
-          keys.filter(key => key.includes('/sql/history-apply/')).length,
-      },
-      {
-        completedLabel: formatCompletedPhaseLabel(
-          colorTeal('Import'),
-          colorRed('SQL'),
-          totalImportFiles,
-        ),
-        phase: 'importAddressSqlCurrentInit',
-        runningLabel(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Import'),
-            colorRed('SQL'),
-            current,
-            totalImportFiles,
-          )
-        },
-        totalUnits: currentKeys.filter(isCurrentInitSqlKey).length,
-      },
-      {
-        completedLabel: formatCompletedPhaseLabel(
-          colorTeal('Import'),
-          colorRed('SQL'),
-          totalImportFiles,
-        ),
-        phase: 'importAddressSqlCurrent',
-        runningLabel(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Import'),
-            colorRed('SQL'),
-            current,
-            totalImportFiles,
-          )
-        },
-        totalUnits: currentKeys.filter(key => !isCurrentInitSqlKey(key)).length,
-      },
-      {
-        completedLabel: formatCompletedPhaseLabel(
-          colorTeal('Import'),
-          colorRed('SQL'),
-          totalImportFiles,
-        ),
-        phase: 'importAddressSqlStats',
-        runningLabel(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Import'),
-            colorRed('SQL'),
-            current,
-            totalImportFiles,
-          )
-        },
-        totalUnits: metaKeys.length,
-      },
-    ],
-    publish: {
-      completedLabel: formatCompletedPhaseLabel(
-        colorTeal('Publish'),
-        colorRed('release'),
-      ),
-      phase: 'publishDataset',
-      runningLabel(current: number) {
-        return formatRunningPhaseLabel(
-          colorTeal('Publish'),
-          colorRed('release'),
-          current,
-          1,
-        )
-      },
-      totalUnits: 1,
-    },
-  }
-}
-
-function isCurrentInitSqlKey(key: string) {
-  return /-current-init\.sql$/.test(key)
-}
-
-function requireString(value: string | undefined, label: string) {
-  if (!value?.trim()) {
-    throw new Error(`Missing ${label} for local SQL processing.`)
-  }
-
-  return value
-}
-
-function resolveShardYear(cohortKey: string, sourceVersion: string) {
-  const cohortYear = cohortKey.slice(0, 4)
-
-  if (/^\d{4}$/.test(cohortYear)) {
-    return cohortYear
-  }
-
-  const sourceYear = sourceVersion.slice(0, 4)
-
-  if (/^\d{4}$/.test(sourceYear)) {
-    return sourceYear
-  }
-
-  throw new Error(
-    `Could not resolve shard year from cohortKey=${cohortKey} and sourceVersion=${sourceVersion}.`,
-  )
-}
-
-function resolveTargetName(target: UploadTarget) {
-  if (!target.remote) {
-    return 'local'
-  }
-
-  return target.environment === 'production' ? 'production' : 'preview'
-}
-
-function resolveCloudflareAccountId(target: UploadTarget) {
-  const fromEnv = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
-
-  if (fromEnv) {
-    return fromEnv
-  }
-
-  const rawConfig = readFileSync(HARBOUR_WORKERS_WRANGLER_PATH, 'utf8')
-  const config = JSON.parse(rawConfig) as {
-    vars?: Record<string, unknown>
-    env?: {
-      preview?: {
-        vars?: Record<string, unknown>
-      }
-      production?: {
-        vars?: Record<string, unknown>
-      }
-    }
-  }
-  const targetName = resolveTargetName(target)
-  const vars =
-    targetName === 'production'
-      ? config.env?.production?.vars
-      : targetName === 'preview'
-        ? config.env?.preview?.vars
-        : config.vars
-  const accountId = vars?.CLOUDFLARE_ACCOUNT_ID
-
-  if (typeof accountId === 'string' && accountId.trim()) {
-    return accountId.trim()
-  }
-
-  return undefined
-}
-
-function resolveCloudflareD1ApiToken() {
-  const token = process.env.CLOUDFLARE_D1_TOKEN?.trim()
-
-  return token || undefined
-}
-
-function assertRemoteAddressImportPrerequisites(
-  target: UploadTarget,
-  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  options: AddressSqlImportStageOptions,
-) {
-  if (!target.remote) {
-    return
-  }
-
-  const missing: string[] = []
-
-  if (!options.accountId?.trim()) {
-    missing.push('CLOUDFLARE_ACCOUNT_ID')
-  }
-
-  if (!options.apiToken?.trim()) {
-    missing.push('CLOUDFLARE_D1_TOKEN')
-  }
-
-  if (!dbContext.state.bindings.DB_CURRENT?.databaseId?.trim()) {
-    missing.push('current.databaseId')
-  }
-
-  if (!dbContext.state.bindings.DB_META?.databaseId?.trim()) {
-    missing.push('meta.databaseId')
-  }
-
-  if (
-    !dbContext.historyTargets.some(targetContext =>
-      Boolean(targetContext.databaseId?.trim()),
-    )
-  ) {
-    missing.push('history.databaseId')
-  }
-
-  if (
-    !dbContext.sourceTargets.some(targetContext =>
-      Boolean(targetContext.databaseId?.trim()),
-    )
-  ) {
-    missing.push('source.databaseId')
-  }
-
-  if (missing.length === 0) {
-    return
-  }
-
-  throw new Error(
-    [
-      `Remote SQL import prerequisites are incomplete for ${resolveTargetName(target)}.`,
-      `Missing: ${missing.join(', ')}.`,
-      'Define CLOUDFLARE_D1_TOKEN in your shell or repo .env before running preview/production SQL uploads.',
-    ].join(' '),
-  )
-}
-
-function resolveCpuCount() {
-  if (typeof availableParallelism === 'function') {
-    return availableParallelism()
-  }
-
-  return cpus().length
 }
