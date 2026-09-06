@@ -63,9 +63,9 @@ relationship remains separate and authoritative.
 `premise-candidate` is parser evidence, not an official ALS acceptance decision. An
 unmatched observation such as `19B Ap Lei Chau Praya Road` remains unlinked even when
 its street and building number parse cleanly. The Overture Places supplementary Address
-source accepts fixture-curated candidates only. Each entry retains the Place, source
-release, partial-match evidence, and confidence; deterministic high-confidence
-candidates can be added to the curation, weaker candidates must enter the
+source accepts policy-governed candidates only. Each generated entry retains the Place,
+source release, compact selected evidence, and confidence; deterministic high-confidence
+candidates can be added to the local entry ledger, weaker candidates must enter the
 address-identity review workflow, and unsupported candidates remain for later
 processing. The `ds-hk-overture-place` dataset declares both `place` and `address`
 resources. Both resource releases share the original publisher source release; the
@@ -86,13 +86,17 @@ source provenance and, where justified, division IDs.
 - Read only the Place release's retained publisher address, parsed 2D/3D evidence, Place
   geometry, and the Places release's selected ALS snapshot. Do not read an unrecorded
   current snapshot.
-- Store accepted decisions in `fixtures/meta/curations/overture-place-address.json`.
-  Like the ALS identity curation, this is an unversioned identity-policy fixture, not an
-  ignored cache or a list copied once per release. An entry identifies the stable
+- Store policies, reviewed aliases, and explicit human decisions in
+  `fixtures/meta/curations/overture-place-address.json`. This compact identity-policy
+  document is version controlled and must never contain generated entries.
+- Store automatically accepted entries in the target-specific generated ledger at
+  `.local/overture-places/address-entries/{target}.json`. An entry identifies the stable
   Overture Place ID, supplementary Address identity key and ID, normalised publisher
   address, selected ALS base candidate when one exists, structured supplementary 2D
-  values, score/evidence, and acceptance mode. It also records its first accepted source
-  release and any explicit retirement or replacement decision.
+  values, compact selected evidence, acceptance mode, and first accepted source release.
+  It is derived from retained source records, the cohort-selected ALS snapshot, and the
+  checked-in policy. A clean initialisation or family reset removes it; `--continue`
+  retains it across cohorts in the same initialisation.
 - Write weaker candidates to a release-owned review artefact under `.local/`; include
   every candidate, score breakdown, residual text, geometry distance, and the reason it
   was not accepted. Its shape and stop/retry behaviour follow the ALS identity-drift
@@ -109,7 +113,7 @@ fingerprint agree with the previous Place version and the Address ID materialise
 currently selected official or supplementary Address member. This applies to a prior
 direct ALS link as well as a supplementary link.
 
-Then look up an accepted, non-retired curation entry by the stable Overture Place ID.
+Then look up an accepted, non-retired generated entry by the stable Overture Place ID.
 Reuse its supplementary Address ID when the supplementary identity key still agrees with
 the retained publisher address evidence and the Address ID materialises in the selected
 supplementary snapshot. This is the ordinary subsequent-release path: a Place whose GERS
@@ -138,7 +142,7 @@ deterministic replacement policy or an explicit curation decision.
    may disambiguate named candidates; it must never create a candidate from a bare
    number or be the only positive evidence. If one candidate clears the configured
    deterministic automatic threshold and separation from the next candidate, append an
-   accepted fixture entry. Citygate Outlets is the intended shape: it can be a
+   accepted generated entry. Citygate Outlets is the intended shape: it can be a
    supplementary building name with Citygate/20 Tat Tung Road as evidenced context,
    while retaining Overture rather than ALS provenance.
 3. **Review candidate.** A meaningful partial match in the review score band, a tie, or
@@ -151,16 +155,17 @@ deterministic replacement policy or an explicit curation decision.
    so a later matcher policy or address release can reconsider it.
 
 The thresholds, score weights, alias rules, candidate-distance margin, and replacement
-policy belong in the curation fixture or its referenced policy version. They are not
-implicit matcher constants, so a released result remains explainable and replayable.
+policy belong in the checked-in curation policy or its referenced policy version. They
+are not implicit matcher constants, so a released result remains explainable and
+replayable.
 
 ### Curation and row materialisation
 
-An accepted fixture entry is the authority to create a supplementary Address record. It
-must contain enough structured, locale-specific 2D content to reproduce the row; never
-derive a public Address field from a future re-parse of mutable source text. Typed Place
-unit/floor fragments remain source evidence until an Address3D materialisation policy is
-introduced.
+An accepted generated entry is the reproducible input used to create a supplementary
+Address record. It must contain enough structured, locale-specific 2D content to
+reproduce the row; never derive a public Address field from a future re-parse of mutable
+source text. Typed Place unit/floor fragments remain source evidence until an Address3D
+materialisation policy is introduced.
 
 Materialise the row under the original Overture Places dataset/source, distinct from
 `hkgov-dpo` and the official `address/default` member. Its provenance must name the
@@ -181,16 +186,18 @@ continues to be indexed in H3 cells and returned by cell and search queries.
 
 1. Load the cohort-selected ALS Address and Division snapshots and build the canonical
    matcher indexes.
-2. Parse and run the four tiers for every retained publisher address; write the accepted
-   curation update or the review artefact before any Place rows are finalised.
-3. Validate and carry forward accepted curation entries, then materialise the accepted
+2. Parse and run the four tiers for every retained publisher address; write the review
+   artefact before any Place rows are finalised.
+3. When no reviews remain, atomically update the target's generated entry ledger,
+   validate and carry forward its accepted entries, then materialise the accepted
    Overture Places supplementary Address source snapshot and record it as a Places
    release dependency.
 4. Resolve each Place against the union of the selected official and supplementary
    Address members, then materialise Place, PlaceI18n, H3, and `placesDivision` rows.
 5. Refuse publication if a review-required candidate lacks a curation decision, if the
    supplementary source snapshot is missing, or if a Place/Address link cannot be
-   reproduced from the recorded source release, fixture, and dependency snapshots.
+   reproduced from the recorded source release, checked-in decisions, generated entry
+   ledger, and dependency snapshots.
 
 ### Matching policy and review operation
 
@@ -203,7 +210,8 @@ are explicit locale/address-ID entries; the initial list is empty. Street and nu
 evidence alone cannot reach the automatic threshold. Replacement of an accepted
 supplementary link with ALS requires an explicit decision.
 
-The fixture keeps policies by version, per-Place `entries`, and explicit `decisions`. An
+The version-controlled fixture keeps policies by version, reviewed aliases, and explicit
+`decisions`. The target-specific `.local` ledger keeps generated per-Place `entries`. An
 entry's `values` contains the public 2D localisations. Its identity key includes those
 normalised 2D values and excludes Place IDs, source release, unit and floor fragments.
 Places with the same identity share the `opa-` Address ID and retain separate curation
@@ -213,20 +221,21 @@ Every analysis writes `overture-place-address-review.json` inside the target's
 `.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the
 selected ALS snapshot, parsed source evidence, candidates, scores, distances, previous
 link and disposition for review-required rows only. Accepted entries are saved only when
-the cohort has no unresolved review, so a review stop leaves the curation fixture
-unchanged. Correct the fixture and retry the same upload; `--yes` cannot bypass review.
-A decision records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`,
-`resolution`, `addressId` and a non-empty `reason`. `keep` retains the previous ID,
-`retire` selects no ID, and `replace` selects an official ID or a reproducible curated
-supplementary entry. Retire superseded entries with `retiredAtSourceRelease`; retain
-them for historical replay.
+the cohort has no unresolved review, so a review stop leaves both the checked-in policy
+and generated ledger unchanged. Record reviewed aliases or decisions in the fixture and
+retry the same upload; `--yes` cannot bypass review. A decision records `placeId`,
+`fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`, `addressId` and a
+non-empty `reason`. `keep` retains the previous ID, `retire` selects no ID, and
+`replace` selects an official ID or a reproducible curated supplementary entry.
+Generated entries may record `retiredAtSourceRelease`; published history remains the
+durable replay source.
 
 Supplementary snapshots are complete, including when there are no accepted rows. Their
-assembly records retain a materialisation hash, curation hash and policy versions.
-Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
-existing published supplementary snapshot must reproduce its recorded materialisation;
-an incompatible fixture edit requires a source-release revision. The initializer does
-not discover or upload the supplementary dataset separately.
+assembly records retain a materialisation hash, combined policy/entry-ledger hash and
+policy versions. Address history and `snapshotVersionChanges` reproduce each snapshot
+independently. An existing published supplementary snapshot must reproduce its recorded
+materialisation; an incompatible fixture edit requires a source-release revision. The
+initializer does not discover or upload the supplementary dataset separately.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded

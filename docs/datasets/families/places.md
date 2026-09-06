@@ -125,14 +125,14 @@ staged LandsD baseline is not a published lookup dependency and must not be read
 directly during publication.
 
 A parsed premise candidate which has no ALS match is not promoted into the official ALS
-source. The planned Overture Places supplementary Address source will be fixture-curated
-and retain its Overture Place, source-release, candidate-evidence, and confidence
-provenance. Candidates over its deterministic acceptance threshold can be recorded in
-that curation; weaker partial matches must stop in the same review workflow used for
-address identity drift, while candidates without meaningful evidence remain for later
-processing. It requires its own dataset, composition variant/domain, and address
-materialisation path before Places can select it. The required matcher tiers, curation
-artefacts, provenance, materialisation order, and publication stops are specified in the
+source. The Overture Places supplementary Address source retains its Overture Place,
+source-release, selected candidate evidence, and confidence provenance. Policies,
+reviewed aliases, and human identity decisions are version controlled; deterministic
+accepted entries are regenerated into a target-specific `.local` ledger. Weaker partial
+matches stop in the address identity-drift review workflow, while candidates without
+meaningful premise evidence remain for later processing. The required matcher tiers,
+curation artefacts, provenance, materialisation order, and publication stops are
+specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
 To remove the bounded Overture Places initialisation from a target, use the
