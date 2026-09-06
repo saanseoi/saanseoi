@@ -1,4 +1,4 @@
-import { ResolvedValueCache, TileType } from 'pmtiles'
+import { EtagMismatch, ResolvedValueCache, TileType } from 'pmtiles'
 import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
   boundary_name,
@@ -268,7 +268,7 @@ export default {
       const archiveVersion = archiveVersionForRequest(
         name,
         tile,
-        latestArchive?.httpEtag ?? latestArchive?.etag,
+        latestArchive?.etag ?? latestArchive?.httpEtag,
         url.searchParams.get('v'),
       )
       // An unversioned `-latest` tile deliberately bypasses the edge cache. It
@@ -327,6 +327,13 @@ export default {
 
       return responseCache.response(tileData.data, headers, 200)
     } catch (error) {
+      if (error instanceof EtagMismatch) {
+        return responseCache.response(
+          'The requested basemap archive version is no longer available. Please reload the map.',
+          headers,
+          409,
+        )
+      }
       if (error instanceof KeyNotFoundError) {
         return responseCache.response('Archive not found', headers, 404)
       }
