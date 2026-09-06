@@ -5,7 +5,10 @@ import {
   type ApiProfileName,
   type RequestedApiLocaleSelection,
 } from '@repo/core'
-import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
+import {
+  resolveApiReleaseSetSnapshotsForRequest,
+  resolveSnapshotReplayPlan,
+} from '@repo/core/db/metaRegistry'
 
 import {
   countPlaceRecordsCurrent,
@@ -13,7 +16,12 @@ import {
   type PlaceLocaleValue,
   type PlaceRecord,
 } from '../db/places'
-import { listDivisionRecordsCurrentByIds } from '../db/divisions'
+import {
+  listDivisionRecordsCurrentByIds,
+  listReplayedDivisionRecords,
+} from '../db/divisions'
+import { listReplayedPlaceRecords } from '../db/placesHistory'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import {
   buildApiVersionMetadata,
   buildJsonApiListDocument,
@@ -342,6 +350,8 @@ function buildPlacePermalink(args: {
 
 async function loadIncludedDivisions(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
+  metaDb: AppEnv['Variables']['metaDb']
   activeSnapshot: ActivePlaceSnapshot
   records: PlaceRecord[]
   routeState: ReturnType<typeof buildPlaceRouteState>
@@ -351,6 +361,41 @@ async function loadIncludedDivisions(args: {
   if (args.include !== 'divisions') return []
 
   const divisionIds = [...new Set(args.records.flatMap(record => record.divisionIds))]
+  if (divisionIds.length === 0) return []
+
+  if (args.historyDbsByBinding) {
+    const plan = await resolveSnapshotReplayPlan(
+      args.metaDb as never,
+      args.activeSnapshot.divisionSnapshotId,
+    )
+    const shards = new Map(
+      Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
+        bindingName,
+        { bindingName, db },
+      ]),
+    )
+    const versions = await resolveSnapshotVersionState(plan, shards as never, [
+      'division',
+      'divisionI18n',
+    ])
+    const records = await listReplayedDivisionRecords(
+      versions.values() as never,
+      args.activeSnapshot.divisionSnapshotId,
+      args.routeState.localeSelection,
+    )
+    return records
+      .filter(record => divisionIds.includes(record.division.id))
+      .map(record =>
+        createIncludedDivisionResource({
+          baseUrl: args.baseUrl,
+          requestedVersionPath: 'divisions/v0.1',
+          profile: args.routeState.profile as DivisionProfile,
+          localeSelection: args.routeState.localeSelection,
+          record,
+        }),
+      )
+  }
+
   const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
     snapshotId: args.activeSnapshot.divisionSnapshotId,
     divisionIds,
@@ -369,6 +414,7 @@ async function loadIncludedDivisions(args: {
 
 export async function listPlaces(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   region: 'hk' | 'mo'
@@ -429,23 +475,55 @@ export async function listPlaces(args: {
     divisionId: filters.division,
     localeSelection: routeState.localeSelection,
   }
-  const [records, total] = await runWithD1ReadRetry(() =>
-    Promise.all([
-      listPlaceRecordsCurrent(args.currentDb, lookup),
-      countPlaceRecordsCurrent(args.currentDb, {
+  let records: PlaceRecord[]
+  let total: number
+  if (args.historyDbsByBinding) {
+    const historyDbsByBinding = args.historyDbsByBinding
+    const selected = await runWithD1ReadRetry(() =>
+      listReplayedPlaceRecords({
+        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+        historyDbsByBinding,
+        localeSelection: routeState.localeSelection,
+        metaDb: args.metaDb,
         snapshotId: activeSnapshot.snapshotId,
-        basicCategory: filters.basicCategory,
-        taxonomyPrimary: filters.taxonomyPrimary,
-        operatingStatus: filters.operatingStatus,
-        divisionId: filters.division,
       }),
-    ]),
-  )
+    )
+    const matching = selected
+      .filter(record => {
+        const { place } = record
+        return (
+          (!filters.basicCategory || place.basicCategory === filters.basicCategory) &&
+          (!filters.taxonomyPrimary ||
+            place.taxonomyPrimary === filters.taxonomyPrimary) &&
+          (!filters.operatingStatus ||
+            place.operatingStatus === filters.operatingStatus) &&
+          (!filters.division || record.divisionIds.includes(filters.division))
+        )
+      })
+      .sort((left, right) => left.place.id.localeCompare(right.place.id))
+    total = matching.length
+    records = matching.slice(offset, offset + limit)
+  } else {
+    ;[records, total] = await runWithD1ReadRetry(() =>
+      Promise.all([
+        listPlaceRecordsCurrent(args.currentDb, lookup),
+        countPlaceRecordsCurrent(args.currentDb, {
+          snapshotId: activeSnapshot.snapshotId,
+          basicCategory: filters.basicCategory,
+          taxonomyPrimary: filters.taxonomyPrimary,
+          operatingStatus: filters.operatingStatus,
+          divisionId: filters.division,
+        }),
+      ]),
+    )
+  }
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
     loadIncludedDivisions({
       currentDb: args.currentDb,
+      historyDbsByBinding: args.historyDbsByBinding,
+      metaDb: args.metaDb,
       activeSnapshot,
       records,
       routeState,

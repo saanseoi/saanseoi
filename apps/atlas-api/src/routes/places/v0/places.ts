@@ -471,6 +471,7 @@ export const placeRoutes = [
         const { region } = c.req.valid('param')
         const result = await listPlaces({
           currentDb: c.var.currentDb,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           region,
