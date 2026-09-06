@@ -47,36 +47,45 @@ After retrieval, create derived OCR evidence with:
 bun run dataops -- hkgov-hkgro-street-names:ocr --target local
 ```
 
-The historical HKGRO scans are image-only and predominantly English, so this uses
-PaddleOCR's `en` model after rendering each page at 300 DPI. It writes one result per
-unique retrieved candidate under `ocr/YYYY/<HKGRO-id>.ocr.json` plus
-`ocr-manifest.json`. Each result preserves the source PDF path, byte length and SHA-256,
-PaddleOCR engine/version/model/language, raw page-level PaddleOCR NDJSON, recognised
-words with coordinates and confidence, and a layout-derived convenience text field. The
-PDF remains the source evidence; the JSON is explicitly derived with `method: "ocr"`,
-never publisher-native text.
+The historical HKGRO scans are image-only and predominantly English. Qianfan-OCR
+(`baidu/Qianfan-OCR`, revision `623bf5d20d446abdb36606aa4547cd0c18886fe5`) transcribes
+each page rendered at 300 DPI with the prompt `Parse this document to Markdown.` It uses
+FP16, eager attention and deterministic generation with thinking disabled. No expected
+answers or other OCR text are supplied.
 
-OCR validates the current PDF header, byte length and hash before it starts. Completed
-results are resumed only when their stored provenance matches those same source bytes.
-An unreadable PDF, failed rendering, unavailable runtime/model, malformed PaddleOCR
-output, or no recognised text records an `unparseable` attempt with the source path and
-full failure detail in `ocr-manifest.json`, then stops immediately. Once corrected, a
-rerun retries that record. Whole-document rendering also stops after five minutes. Use
-`--year 1901,1902` for a bounded OCR or repair run. Use `--hkgro-pdf-id 460097` to
-inspect or repair a specific retrieved scan.
+Results live under `ocr/qianfan-<revision>/YYYY/<HKGRO-id>.ocr.json`, with
+`manifest.json` in the same engine/revision directory. Each result retains the PDF path,
+byte length and SHA-256, engine/runtime version, model revision, language, DPI, raw page
+JSON (including image hash, prompt and generation settings), and Markdown text. The PDF
+remains the source evidence; OCR is derived with `method: "ocr"`. Coordinates and
+confidence scores are not supplied by this model.
 
-The OCR environment remains UV-managed:
+OCR checks the PDF header, byte length and hash before running. Reuse requires valid
+source-bound results for the pinned engine/revision. Rendering failures, unavailable
+GPU/runtime/model, malformed output, empty text or token-limit truncation record an
+`unparseable` attempt and stop the command. A rerun retries failed records. Rendering
+has a five-minute timeout; inference has a twenty-minute per-page timeout and an
+8,192-token output limit. Set `SAANSEOI_QIANFAN_TIMEOUT_MS` to a positive millisecond
+value to adjust the inference timeout. Use `--year 1901,1902` or `--hkgro-pdf-id 460097`
+for bounded runs.
+
+The local AMD/Linux x86-64 runtime uses Python 3.12 and ROCm 6.3 PyTorch:
 
 ```bash
-uv sync --project apps/harbour-dataops --python 3.12
+uv sync --project apps/harbour-dataops --python 3.12 --locked
 ```
 
-Set `SAANSEOI_PADDLEOCR_PYTHON` only to point at an alternative compatible UV Python.
-PaddleOCR downloads its initial English model weights on first use, so that first run
-needs network access or a pre-seeded PaddleOCR cache. A single OCR page has a two-minute
-timeout so an unavailable model host cannot hang the archive; set
-`SAANSEOI_PADDLEOCR_TIMEOUT_MS` to a larger positive millisecond value only after
-confirming that the runtime and model download are healthy.
+The runner uses the cached runtime at `.cache/qianfan-ocr/.venv/bin/python` when
+present, otherwise `apps/harbour-dataops/.venv/bin/python`. `SAANSEOI_QIANFAN_PYTHON`
+selects an explicit compatible GPU Python environment. Model weights use
+`.cache/qianfan-ocr/huggingface` by default; `HF_HOME` overrides this location. First
+use needs Hugging Face access or the pinned model already cached. Poppler's `pdftoppm`
+and GPU device access are required. The RX 6900 XT trial used approximately 10 GiB
+allocated VRAM; runtime and model downloads require additional disk space. Run OCR
+sequentially on this GPU.
+
+Names and numeric tables require source review even when the transcription is fluent.
+OCR does not authorise lifecycle changes or publication.
 
 ## Discovery review
 

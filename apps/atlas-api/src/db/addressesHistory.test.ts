@@ -41,14 +41,16 @@ test('replays the selected address snapshot from its assigned history shard', as
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, parentAddressId, countryId, geometry, bbox, identifiers, sources, versionHash,
+        id, granularity, parentAddressId, countryId, geometry, bbox, identifiers, sources, versionHash,
         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
       ) VALUES (
-        'historic-address', 'historic-complex', 'hk', '{"type":"Point","coordinates":[114.1,22.3]}',
+        'historic-address', 'building', 'historic-complex', 'hk', '{"type":"Point","coordinates":[114.1,22.3]}',
         '[114.1,22.3,114.1,22.3]', '{"source":"historic"}',
         '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1',
         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'
       );
+      INSERT INTO address2d (id, granularity, versionHash, sourceReleaseId, snapshotId, isCurrent)
+      VALUES ('historic-address', 'unit', 'historic-address-v2', 'later-release', 'later-snapshot', 1);
       INSERT INTO address2dI18n (
         addressId, locale, formattedAddress, buildingName, versionHash,
         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
@@ -85,6 +87,7 @@ test('replays the selected address snapshot from its assigned history shard', as
           divisionSnapshotId: 'division-snapshot-2025',
           id: 'historic-address',
           parentAddressId: 'historic-complex',
+          granularity: 'building',
           snapshotId: 'address-snapshot-2025',
         }),
         i18n: {

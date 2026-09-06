@@ -5,6 +5,9 @@ ALS supplies bilingual premise addresses. The
 identity curation and ingestion. The [Addresses family](../../families/addresses.md)
 describes their canonical role.
 
+Canonical `parentAddressId` is initialised to null. ALS component names and number
+ranges alone do not establish a containing Address or justify creating missing numbers.
+
 ## Component correction fixture
 
 [`hkgov-dpo-address-components.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-components.json)
