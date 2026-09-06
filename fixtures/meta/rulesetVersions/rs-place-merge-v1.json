@@ -1,11 +1,119 @@
 {
-  "versionHash": "sha256:5e1f4d5da058aea5f129f0943e3a0a9934f902f949bba8a86e2ebf1c1d2dfd9d",
+  "versionHash": "sha256:2e56e0f9ccf72957111522945f96ea4aa478d8ab266863b187e08496c2d7f36f",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
   "version": "1",
   "notes": "Resolves Overture Place localisation from script evidence, excludes CN or MO address country codes, retains null-country Places, and records review evidence.",
   "mergeRules": [
+    {
+      "operationCode": "overture_place_address_direct",
+      "type": "record",
+      "sourceFieldPath": "addresses[].freeform",
+      "targetFieldPath": "places.address2dId",
+      "condition": "Links an existing ALS Address using the recorded relationship or canonical evidence.",
+      "mappings": [
+        {
+          "from": "Recorded Place address evidence and selected ALS snapshot",
+          "to": "direct; fixtures/meta/curations/overture-place-address.json"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Links an existing ALS Address using the recorded relationship or canonical evidence."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "按記錄的關係或標準地址證據連結現有 ALS 地址。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "按记录的关系或标准地址证据链接现有 ALS 地址。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_place_address_supplementary",
+      "type": "record",
+      "sourceFieldPath": "addresses[].freeform",
+      "targetFieldPath": "places.address2dId",
+      "condition": "Materialises a curated Overture supplementary Address before finalising Places.",
+      "mappings": [
+        {
+          "from": "Recorded Place address evidence and selected ALS snapshot",
+          "to": "supplementary; fixtures/meta/curations/overture-place-address.json"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Materialises a curated Overture supplementary Address before finalising Places."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "在地點實體化之前建立經策展的 Overture 補充地址。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "在地点实体化之前建立经策展的 Overture 补充地址。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_place_address_review",
+      "type": "record",
+      "sourceFieldPath": "addresses[].freeform",
+      "targetFieldPath": "places.address2dId",
+      "condition": "Stops ingestion for ambiguous candidates or identity drift; explicit curation is required.",
+      "mappings": [
+        {
+          "from": "Recorded Place address evidence and selected ALS snapshot",
+          "to": "review; fixtures/meta/curations/overture-place-address.json"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Stops ingestion for ambiguous candidates or identity drift; explicit curation is required."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "候選不明確或身分變更時停止匯入，必須明確策展。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "候选不明确或身份变更时停止导入，必须明确策展。"
+        }
+      ]
+    },
+    {
+      "operationCode": "overture_place_address_delayed",
+      "type": "record",
+      "sourceFieldPath": "addresses[].freeform",
+      "targetFieldPath": "places.address2dId",
+      "condition": "Retains unsupported publisher addresses for reconsideration without creating an Address link.",
+      "mappings": [
+        {
+          "from": "Recorded Place address evidence and selected ALS snapshot",
+          "to": "delayed; fixtures/meta/curations/overture-place-address.json"
+        }
+      ],
+      "i18n": [
+        {
+          "locale": "en",
+          "description": "Retains unsupported publisher addresses for reconsideration without creating an Address link."
+        },
+        {
+          "locale": "zh-hant",
+          "description": "保留證據不足的發布者地址以供重新考慮，不建立地址連結。"
+        },
+        {
+          "locale": "zh-hans",
+          "description": "保留证据不足的发布者地址以供重新考虑，不建立地址链接。"
+        }
+      ]
+    },
     {
       "operationCode": "overture_place_locale_conflict",
       "type": "record",

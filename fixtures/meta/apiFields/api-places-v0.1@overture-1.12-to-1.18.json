@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8b780e909a51152f556b3bd3aa56c9be72d1348bd7f88b98544cfe66f6d931da",
+  "versionHash": "sha256:254a66ab9bc9fe648084b907e8ee9ee513ef9c856c88873b4636fa09ed7261bb",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-place-v1",
@@ -264,6 +264,15 @@
       "resolverCode": "lookup_fk",
       "contributionType": "enrichment",
       "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.relationships.address",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "id",
+      "resolverCode": "lookup_fk",
+      "contributionType": "enrichment",
+      "priority": 10,
       "confidence": 1
     }
   ]
