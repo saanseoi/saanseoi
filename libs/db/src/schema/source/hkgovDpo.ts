@@ -1,7 +1,25 @@
 import { index, primaryKey, real, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { jsonText } from '../shared'
-import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
+import {
+  sourceAssertionColumns,
+  sourceVersionIndexes,
+  sourceReleaseRevisionAssertionColumns,
+  sourceReleaseRevisionIndexes,
+} from './shared'
+
+/** Every publisher 3D occurrence is retained, even when its inventory is shared. */
+export const sourceHkgovAlsAddresses3d = sqliteTable(
+  'hkgovAlsAddresses3d',
+  {
+    ...sourceReleaseRevisionAssertionColumns(),
+    rawProperties: jsonText('rawProperties').notNull(),
+  },
+  table => [
+    primaryKey({ columns: [table.releaseId, table.sourceRecordId] }),
+    ...sourceReleaseRevisionIndexes(table, 'hkgovAlsAddresses3d'),
+  ],
+)
 
 /**
  * Publisher-supplied ALS address components in one language. These paired values

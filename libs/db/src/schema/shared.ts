@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
 import { addressGranularities } from '../addressGranularity'
+import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
 
 export const streetEvidenceAssetRoles = [
   'gazettePlan',
@@ -416,31 +417,6 @@ export const addressBlockTypes = [
 
 export type AddressBlockType = (typeof addressBlockTypes)[number]
 
-export const addressUnitTypes = [
-  'flat',
-  'room',
-  'shop',
-  'suite',
-  'unit',
-  'stall',
-  'kiosk',
-  'office',
-  'other',
-] as const
-
-export const addressFloorTypes = [
-  'floor',
-  'ground_floor',
-  'upper_ground_floor',
-  'lower_ground_floor',
-  'basement',
-  'mezzanine',
-  'concourse',
-  'podium',
-  'roof',
-  'other',
-] as const
-
 export const canonicalAddress2dI18n = {
   addressId: text('addressId').notNull(),
   locale: text('locale').notNull(),
@@ -486,25 +462,18 @@ export const canonicalAddress2dBuildingNumberLookup = {
 export const canonicalAddress3dI18n = {
   address3dId: text('address3dId').notNull(),
   locale: text('locale').notNull(),
-  formattedAddressPart: text('formattedAddressPart').notNull(),
-  accessHint: text('accessHint'),
-  unitPortion: text('unitPortion'),
-  unitExpression: text('unitExpression'),
-  unitRef: text('unitRef'),
-  unitType: text('unitType', { enum: addressUnitTypes }),
-  floorExpression: text('floorExpression'),
-  floorRef: text('floorRef'),
-  floorType: text('floorType', { enum: addressFloorTypes }),
+  units: jsonText<Record<string, Address3dUnitI18n>>('units').notNull(),
 }
 
-export const canonicalAddress3dUnitRefLookup = {
-  address3dId: text('address3dId').notNull(),
-  unitRef: text('unitRef').notNull(),
-  numericStem: text('numericStem'),
-  evidence: text('evidence', { enum: addressReferenceLookupEvidences }).notNull(),
-  derivation: text('derivation', {
-    enum: addressReferenceLookupDerivations,
-  }),
+export const canonicalAddress3d = {
+  id: text('id').notNull(),
+  address2dId: text('address2dId').notNull(),
+  units: jsonText<Address3dUnit[]>('units').notNull(),
+  unitCount: integer('unitCount').notNull(),
+  contentHash: text('contentHash').notNull(),
+  /** Explicitly reviewed children whose unit membership remains unresolved. */
+  unresolvedSectionIds: jsonText<string[]>('unresolvedSectionIds').notNull(),
+  sources: jsonText('sources'),
 }
 
 export const canonicalPlace = {
@@ -513,6 +482,10 @@ export const canonicalPlace = {
   addressSnapshotId: text('addressSnapshotId'),
   address2dId: text('address2dId'),
   address3dId: text('address3dId'),
+  address3dUnitId: text('address3dUnitId'),
+  address3dMembership: text('address3dMembership', {
+    enum: ['established', 'unresolved'],
+  }),
   lng: real('lng').notNull(),
   lat: real('lat').notNull(),
   bbox: jsonText('bbox'),
@@ -543,6 +516,7 @@ export const canonicalPlaceI18n = {
   brandNameVariant: jsonText('brandNameVariant'),
   brandNameAlts: text('brandNameAlts'),
   freeformAddress: text('freeformAddress'),
+  accessHint: text('accessHint'),
   provenance: jsonText<PlaceI18nProvenance>('provenance'),
 }
 
