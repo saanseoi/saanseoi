@@ -37,6 +37,12 @@ repeats remote writes. Independent Address 2D database groups may execute concur
 preserving each database's order. Address3D keeps collection transaction boundaries,
 parameter limits and prepared timestamps.
 
+Recovery groups receipt lookups by target database, checking up to 99 batch indices in
+each query. Local replay verifies all required receipts before any local payload runs.
+Remote resume groups checks for previously attempted batches; new writes and ambiguous
+outcomes retain their individual receipt checks. Positive results are held only for the
+current locked invocation, not persisted as a substitute for remote verification.
+
 An unfinished delivery leaves `pending-sql-delivery.json` in its mirror directory. Other
 releases cannot plan against that mirror until it is reconciled. Cache-wide and
 plan-specific advisory locks prevent competing local recovery writers. Receipts prove
