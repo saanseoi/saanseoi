@@ -59,10 +59,17 @@ export class DiscordClient {
 
   private async request<T>(path: string): Promise<T> {
     for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
-      const response = await this.fetch(`${DISCORD_API}${path}`, {
-        headers: { authorization: `Bot ${this.botToken}` },
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
+      let response: Response
+      try {
+        response = await this.fetch(`${DISCORD_API}${path}`, {
+          headers: { authorization: `Bot ${this.botToken}` },
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        })
+      } catch (error) {
+        if (attempt === MAX_RETRIES - 1) throw error
+        await this.delay(retryDelay(attempt))
+        continue
+      }
       const retryable = response.status === 429 || response.status >= 500
       if (retryable) {
         const retryAfter =
