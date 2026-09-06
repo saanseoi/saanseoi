@@ -3,6 +3,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import {
+  buildAls2dBackfillFeatures,
+  labelAls2dBackfillRows,
+} from './hkgovAls2dBackfills'
 import { fileSha256 } from '../../addressSql/address3dImport'
 import { buildHkgovAlsProvisionalId } from './hkgovAlsIdentity.ts'
 import {
@@ -86,6 +90,9 @@ export async function prepareHkgovAlsAddressParquet(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  sourceFeatures.push(
+    ...buildAls2dBackfillFeatures(sourceFeatures, options.sourceVersion),
+  )
   const {
     duplicateGroups: sourceDuplicateFeatureGroups,
     features: uniqueSourceFeatures,
@@ -139,6 +146,7 @@ export async function prepareHkgovAlsAddressParquet(
       numericPhaseFamilies,
     ),
   )
+  labelAls2dBackfillRows(rows)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
