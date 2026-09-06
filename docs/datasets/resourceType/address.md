@@ -45,6 +45,16 @@ selected release set. Parent existence, self-references and cycles must be check
 assigning links. The separate `address3d.address2dId` reference identifies the premise
 for a 3D address.
 
+`address2d.granularity` uses the
+[Address family vocabulary](../families/addresses.md#granularity) and defaults to
+`unknown`. Ingestion derives it after component correction, honours guarded overrides,
+and versions the resulting value with the canonical address. SQL and Worker
+current/history paths retain this value, which appears in all Address API profiles.
+Operational classification metadata and review evidence belong in codebase curations,
+not database columns or public responses. Scope is independent of 2D/3D storage: an
+explicitly reviewed street-level shop can be a `unit` without creating a 3D subpremise
+record.
+
 Source rows are keyed by `sourceRecordId + versionHash`. Current rows use
 `isCurrent = 1`; prior versions are closed with `validToRelease`. Canonical snapshots
 are cloned for an incoming release, changed rows create new versions, and rows seen in

@@ -4,6 +4,15 @@ Supplementary Address materialisation initialises `parentAddressId` to null. The
 selected ALS derivation base supplies evidence and Division context; it is not an
 assertion that the supplementary Address is contained by that ALS Address.
 
+Supplementary Addresses receive `granularity` from the shared classifier over accepted
+structured components. Operational review evidence is retained in codebase curations,
+not materialised database rows or public responses. Guarded overrides in
+`address-granularity.json` use the shared canonical Address ID and component
+fingerprint. A curated match does not itself verify the granularity heuristic. Publisher
+unit/floor text excluded from the shared 2D identity does not reclassify that shared
+Address as a unit or floor. Granularity review does not create subpremise addresses or
+infer parent links from overlapping numbers.
+
 Overture Places are ingested from the monthly `place` reference-data parquet layer. The
 accepted source contract is versioned in `libs/core/src/sourceRecordSchemas.ts` and
 includes the publisher geometry, multilingual names, categories, contact fields, brand

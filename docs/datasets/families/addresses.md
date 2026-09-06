@@ -32,6 +32,81 @@ parent. Parent assignment requires evidence and validation of the selected paren
 its ancestor chain; this storage foundation does not assign links or generate missing
 numbered addresses.
 
+## Granularity
+
+`attributes.granularity` describes address scope in every API profile, independently of
+validity, verification and Place category. It has no score or universal ordering.
+
+| Value       | Scope                                                                                                                               |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `unknown`   | The scope is not established.                                                                                                       |
+| `site`      | Whole premises or grounds without an established internal complex structure, such as a standalone yard, work site or sports ground. |
+| `complex`   | An organised development or facility containing constituent premises: an estate, shopping complex, airport or station campus.       |
+| `phase`     | A named development phase.                                                                                                          |
+| `building`  | An individual building or block.                                                                                                    |
+| `section`   | A wing, zone or other named subdivision whose level depends on context.                                                             |
+| `floor`     | A floor or level.                                                                                                                   |
+| `unit`      | A shop, flat, suite, office, stall or other separately identified unit.                                                             |
+| `room`      | An individual room.                                                                                                                 |
+| `room_part` | An identified part of a room.                                                                                                       |
+
+`site` requires positive evidence that the address identifies the whole premises; it is
+not a fallback for an unexplained number. A school with two established constituent
+buildings can be a `complex`, with `building` addresses underneath it. A school name can
+also identify just one building. Countries and districts belong to Division context.
+
+Ingestion classifies corrected components. Recognised building/block descriptors and
+unambiguous building labels suggest `building`; phase components suggest `phase`; an
+estate component without a more specific component suggests `complex`. These are
+heuristics, even when their input components have been reviewed. Facility names such as
+schools or airports in `buildingName`, ambiguous block descriptors and conflicting
+locale classifications produce `unknown` with a reason for review.
+
+Neither a number nor its inclusion in another address's range establishes granularity or
+containment. Addresses 134, 136 and 138 may be shops within a building addressed
+134–138; addresses 60 and 62 may be separate school buildings within a campus addressed
+60–62. Review the actual premises before classifying or linking these records.
+
+Only the resulting `granularity` is stored, versioned and served by the Address API.
+Operational review metadata belongs in codebase curations. The classifier can produce
+transient review details (method, policy version, fingerprint, rule, evidence and review
+reason) for a reviewer; these are not included in database rows, canonical hashes or API
+responses. Changes to review notes alone do not create Address versions. Unknown records
+can be ingested; no unit, room, parent or missing address is fabricated.
+
+## Granularity curation
+
+[`address-granularity.json`](../../../fixtures/meta/curations/address-granularity.json)
+provides explicit overrides for ALS and supplementary Addresses. Use the canonical
+Address ID and run `establishAddressGranularity` from
+`libs/core/src/pipeline/services/addressPipeline/granularity.ts` against the corrected
+localised components. Its transient `review.inputFingerprint` identifies that input;
+`addressGranularityFingerprint` computes the same fingerprint directly. Retain the
+reviewed decision, reason and evidence in the fixture's `overrides` array:
+
+```json
+{
+  "id": "review-example-premises",
+  "revision": 1,
+  "addressId": "<canonical Address ID>",
+  "inputFingerprint": "<fingerprint from the classification>",
+  "granularity": "site",
+  "reason": "The address identifies the whole yard.",
+  "evidence": ["Reviewed site plan and its source reference."],
+  "sourceVersionFrom": "2026-09-06.0",
+  "sourceVersionTo": null
+}
+```
+
+An override requires a unique decision ID, positive revision, granularity, reason and
+nonempty evidence. Optional source-version bounds are inclusive; omit them for all
+source versions with that input. Only one override is allowed per Address ID. Every enum
+value, including `unknown`, can be selected explicitly. A changed fingerprint, invalid
+decision or duplicate override stops affected ingestion with `requires review`,
+including unattended runs. Review the evidence before updating its fingerprint and
+revision. Ingestion reports per-chunk classification counts under `addressGranularity`.
+Overrides classify addresses; they do not assign parent links or modify components.
+
 See the [Address resource contract](../resourceType/address.md),
 [ALS processing](../internal/hkgov/address.md) and
 [supplementary curation policy](../sources/overture/places.md).
