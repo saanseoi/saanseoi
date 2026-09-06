@@ -325,10 +325,10 @@ const providerDetails = (providerId: string) =>
             </div>
             <div>
               <p class="font-body font-semibold text-foreground">
-                {passkey.name ?? m.account_passkey()}
+                {passkey.name?.trim() || m.account_saved_passkey()}
               </p>
               <p class="mt-1 font-body text-sm text-foreground-alt">
-                {m.account_connected_method()}
+                {m.account_passkey_added_on({ date: new Intl.DateTimeFormat(getCurrentLocale(), { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Hong_Kong' }).format(new Date(passkey.createdAt)) })}
               </p>
             </div>
           </div>
@@ -349,7 +349,9 @@ const providerDetails = (providerId: string) =>
             <Icon icon="ion:key-outline" class="size-5" />
           </div>
           <div>
-            <p class="font-body font-semibold text-foreground">{m.account_passkey()}</p>
+            <p class="font-body font-semibold text-foreground">
+              {passkeys.length ? m.account_add_another_passkey() : m.account_add_passkey()}
+            </p>
             <p class="mt-1 font-body text-sm text-foreground-alt">
               {m.account_passkey_description()}
             </p>
@@ -365,7 +367,7 @@ const providerDetails = (providerId: string) =>
             icon={addingPasskey ? 'ion:reload-outline' : 'ion:key-outline'}
             class="size-4 {addingPasskey ? 'motion-safe:animate-spin' : ''}"
             aria-hidden="true"
-          />{m.account_add_passkey()}</Button
+          />{passkeys.length ? m.account_add_another_passkey() : m.account_add_passkey()}</Button
         >
       </article>
       {#if !linked('credential')}
