@@ -67,7 +67,7 @@ test('successful tile bodies remain cacheable with access headers set per caller
   } as unknown as CacheStorage
   const options = {
     request: new Request('https://tiles.example/hk-dated/0/0/0.mvt'),
-    env: { CACHE_CONTROL: 'public, max-age=31536000, immutable' },
+    env: { CACHE_CONTROL: 'public, max-age=31536000, immutable' as const },
     ctx: {
       waitUntil: (promise: Promise<unknown>) => pending.push(promise),
     } as unknown as ExecutionContext,

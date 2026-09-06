@@ -14,6 +14,8 @@ const PROPAGATION_BUFFER_MS = 2 * 60 * 1_000
 type ApiKeyRecord = {
   id: string
   revokedAt: number | null
+  requestsPerDay: number | null
+  requestsPerMonth: number | null
 }
 
 type OriginPolicyRecord = {
@@ -72,7 +74,8 @@ export class PublicKeyLeaseCoordinator {
     }
 
     const key = await this.env.DB_META.prepare(
-      `SELECT id, revoked_at AS revokedAt
+      `SELECT id, revoked_at AS revokedAt,
+         requests_per_day AS requestsPerDay, requests_per_month AS requestsPerMonth
        FROM api_key
        WHERE key_digest = ?
        LIMIT 1`,
@@ -82,10 +85,11 @@ export class PublicKeyLeaseCoordinator {
     if (!key || key.revokedAt !== null) return null
 
     const originPolicy = await this.getOriginPolicy(key.id)
+    const quota = await this.getQuotaStatus(key, now)
     const lease: PublicKeyLease = {
       keyId: key.id,
-      status: 'active',
-      nextCheckAt: now + LEASE_MS,
+      ...quota,
+      nextCheckAt: Math.min(now + LEASE_MS, quota.resetAt ?? Infinity),
       originPolicy,
     }
 
@@ -99,6 +103,41 @@ export class PublicKeyLeaseCoordinator {
     ])
     this.#leases.set(digest, lease)
     return lease
+  }
+
+  /** Quotas use settled usage; edge rate limits remain the immediate abuse guard. */
+  async getQuotaStatus(
+    key: ApiKeyRecord,
+    now: number,
+  ): Promise<Pick<PublicKeyLease, 'status' | 'resetAt'>> {
+    if (key.requestsPerDay == null && key.requestsPerMonth == null)
+      return { status: 'active' }
+    const day = new Date(now)
+    day.setUTCHours(0, 0, 0, 0)
+    const month = new Date(day)
+    month.setUTCDate(1)
+    const nextMonth = new Date(month)
+    nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1)
+    const usage = await this.env.DB_META.prepare(
+      `SELECT window, request_count AS requestCount FROM api_key_usage
+       WHERE api_key_id = ? AND (
+         (window = 'day' AND window_started_at = ?) OR
+         (window = 'month' AND window_started_at = ?)
+       )`,
+    )
+      .bind(key.id, day.getTime(), month.getTime())
+      .all<{ window: 'day' | 'month'; requestCount: number }>()
+    let resetAt: number | undefined
+    for (const [window, limit, reset] of [
+      ['day', key.requestsPerDay, day.getTime() + 86_400_000],
+      ['month', key.requestsPerMonth, nextMonth.getTime()],
+    ] as const) {
+      const count = usage.results.find(row => row.window === window)?.requestCount ?? 0
+      if (limit != null && count >= limit) resetAt = Math.max(resetAt ?? 0, reset)
+    }
+    return resetAt === undefined
+      ? { status: 'active' }
+      : { status: 'exhausted', resetAt }
   }
 
   async getOriginPolicy(keyId: string) {
