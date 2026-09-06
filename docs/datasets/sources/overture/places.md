@@ -195,8 +195,8 @@ continues to be indexed in H3 cells and returned by cell and search queries.
 `supplementary-v1` assigns 55 points for a canonical building name or reviewed alias, 45
 for an estate, 20 each for a block or phase, 30 for a street, and 15 for a building
 number. The automatic threshold is 85, the review threshold is 30, and the required lead
-over the second candidate is 20. Geometry adds 20 points only to a named candidate
-within 150 metres, with a 100-metre distance lead over the next named candidate. Aliases
+over the second candidate is 20. Geometry adds 25 points only to a named candidate
+within 50 metres, with a 100-metre distance lead over the next named candidate. Aliases
 are explicit locale/address-ID entries; the initial list is empty. Street and number
 evidence alone cannot reach the automatic threshold. Replacement of an accepted
 supplementary link with ALS requires an explicit decision.

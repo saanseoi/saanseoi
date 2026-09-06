@@ -108,6 +108,7 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'areaId'
   | 'bbox'
   | 'countryId'
+  | 'createdAt'
   | 'districtId'
   | 'geometry'
   | 'hamletId'
@@ -119,6 +120,7 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'sources'
   | 'streetId'
   | 'townId'
+  | 'updatedAt'
   | 'versionHash'
   | 'villageId'
 >
@@ -188,10 +190,12 @@ function selectCurrentAddressVersionFields() {
     districtId: historySchema.address2d.districtId,
     areaId: historySchema.address2d.areaId,
     countryId: historySchema.address2d.countryId,
+    createdAt: historySchema.address2d.createdAt,
     geometry: historySchema.address2d.geometry,
     identifiers: historySchema.address2d.identifiers,
     bbox: historySchema.address2d.bbox,
     sources: historySchema.address2d.sources,
+    updatedAt: historySchema.address2d.updatedAt,
     versionHash: historySchema.address2d.versionHash,
   }
 }
