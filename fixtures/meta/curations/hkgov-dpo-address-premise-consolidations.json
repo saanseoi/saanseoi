@@ -1,0 +1,1966 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "choi-ying-place-specified-premise",
+      "estate": "CHOI YING ESTATE",
+      "csus": ["4012721017T20080331", "4013721048T20080331"],
+      "enBuildingName": "CHOI YING PLACE",
+      "zhBuildingName": "彩盈坊",
+      "authority": "User decision, 2026-09-07: remove the underspecified duplicate from all and backfill the correct name.",
+      "decision": "Retain one consistently identified named shopping centre across all retained releases. Suppress the underspecified duplicate wherever present and backfill the corrected Chinese name. Preserve all publisher components, CSU changes, coordinates and discarded assertions as evidence. No residential inventory backfill.",
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈商場"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.2144, 22.32819]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "expected": [
+            {
+              "csu": "4012721017T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                }
+              }
+            },
+            {
+              "csu": "4013721048T20080331",
+              "geoAddress": "4012721017T20080331",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.21433, 22.32818]
+              },
+              "en": {
+                "BuildingName": "CHOI YING PLACE",
+                "EngEstate": {
+                  "EstateName": "CHOI YING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "79",
+                  "StreetName": "CHOI HA ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "zh": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "彩霞道",
+                  "BuildingNoFrom": "79"
+                },
+                "ChiEstate": {
+                  "EstateName": "彩盈邨"
+                },
+                "BuildingName": "彩盈坊"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

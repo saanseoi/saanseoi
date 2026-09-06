@@ -1,0 +1,1315 @@
+{
+  "version": 1,
+  "reconstructions": [
+    {
+      "id": "choi-yuen-food-court-corrected-location",
+      "estate": "CHOI YUEN ESTATE",
+      "enName": "CHOI YUEN FOOD COURT",
+      "oldCsu": "3113140047T20050430",
+      "newCsu": "3106540101T20050430",
+      "plazaCsu": "3108440149T20050430",
+      "authority": "User decision, 2026-09-07: yes, backfill the corrected location and Food Court to Plaza to Estate hierarchy into earlier releases, including the July gap.",
+      "decision": "Replace older named food-court representations with the reviewed July 22 evidence and reconstruct the named food court in July 8 and July 10. Keep original source assertions and the independent unnamed same-CSU record as provenance or separate records respectively. Do not fabricate residential inventory.",
+      "evidence": {
+        "sourceVersion": "2026-07-22.0",
+        "sourceFile": "als_addresses_(north_district).geojson",
+        "featureIndexOneBased": 3953,
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [114.12591, 22.50083]
+          },
+          "properties": {
+            "Northing": 840136,
+            "Easting": 831024,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3106540101T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiStreet": {
+                    "StreetName": "彩園路",
+                    "BuildingNoFrom": "8"
+                  },
+                  "BuildingName": "彩園邨美食中心"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "CHOI YUEN FOOD COURT",
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "CHOI YUEN ROAD"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3102440136P20050729"
+              }
+            }
+          }
+        }
+      },
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12691, 22.50004]
+              },
+              "properties": {
+                "Northing": 840048,
+                "Easting": 831127,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12695, 22.50003]
+              },
+              "properties": {
+                "Northing": 840047,
+                "Easting": 831131,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12695, 22.50003]
+              },
+              "properties": {
+                "Northing": 840047,
+                "Easting": 831131,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "expected": [
+            {
+              "type": "Feature",
+              "geometry": {
+                "type": "Point",
+                "coordinates": [114.12695, 22.50003]
+              },
+              "properties": {
+                "Northing": 840047,
+                "Easting": 831131,
+                "Address": {
+                  "PremisesAddress": {
+                    "BuildingCsuInformation": {
+                      "CsuId": "3113140047T20050430"
+                    },
+                    "ChiPremisesAddress": {
+                      "Region": "新界",
+                      "ChiDistrict": "北區",
+                      "ChiStreet": {
+                        "StreetName": "彩園路",
+                        "BuildingNoFrom": "8"
+                      },
+                      "ChiEstate": {
+                        "EstateName": "彩園邨"
+                      },
+                      "BuildingName": "彩園邨美食中心"
+                    },
+                    "EngPremisesAddress": {
+                      "BuildingName": "CHOI YUEN FOOD COURT",
+                      "EngEstate": {
+                        "EstateName": "CHOI YUEN ESTATE"
+                      },
+                      "EngStreet": {
+                        "BuildingNoFrom": "8",
+                        "StreetName": "CHOI YUEN ROAD"
+                      },
+                      "EngDistrict": "NORTH DISTRICT",
+                      "Region": "NT"
+                    },
+                    "GeoAddress": "3113140047T20050430"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "expected": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "expected": []
+        }
+      ]
+    }
+  ]
+}
