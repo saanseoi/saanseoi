@@ -60,6 +60,18 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+User satellite-map review identifies CSU `3363111709T20141201` as Lei Fook Low Block in
+the July and August 2026 deliveries. Its publisher identity and point represent the
+section, with unresolved coverage of Lei Fook's combined 404-unit inventory. The raw
+unnamed source remains intact. This is distinct from the Lei Moon Low Block premise.
+
+The user-identified Lei Moon Low Block premise, CSU `3370111759T20150127`, supplies the
+section's source identity and point in its February 2025–10 July 2026 deliveries. It
+replaces the derived Low Block child in those releases and has unresolved coverage of
+Lei Moon's building inventory. Raw unnamed components remain unchanged; section
+identification is curation evidence. A nonempty inventory on this section requires
+review.
+
 Inventory corrections are stored in
 [`hkgov-dpo-address-3d-corrections.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json).
 Each rule specifies source versions, CSU, expected building components, original and
