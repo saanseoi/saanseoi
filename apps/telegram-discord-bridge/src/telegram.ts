@@ -58,12 +58,19 @@ export class TelegramClient {
 
   private async request<T>(method: string, body: Record<string, unknown>): Promise<T> {
     for (let attempt = 0; attempt < TELEGRAM_MAX_RETRIES; attempt += 1) {
-      const response = await this.fetch(`${TELEGRAM_API}${this.botToken}/${method}`, {
-        body: JSON.stringify(body),
-        headers: { 'content-type': 'application/json' },
-        method: 'POST',
-        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      })
+      let response: Response
+      try {
+        response = await this.fetch(`${TELEGRAM_API}${this.botToken}/${method}`, {
+          body: JSON.stringify(body),
+          headers: { 'content-type': 'application/json' },
+          method: 'POST',
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        })
+      } catch (error) {
+        if (attempt === TELEGRAM_MAX_RETRIES - 1) throw error
+        await this.delay(retryDelay(attempt))
+        continue
+      }
       const payload = await jsonOrUndefined<TelegramResponse<T>>(response)
       const retryable = response.status === 429 || response.status >= 500
       if (retryable && attempt < TELEGRAM_MAX_RETRIES - 1) {
