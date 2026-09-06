@@ -128,11 +128,12 @@ A parsed premise candidate which has no ALS match is not promoted into the offic
 source. The Overture Places supplementary Address source retains its Overture Place,
 source-release, selected candidate evidence, and confidence provenance. Policies,
 reviewed aliases, and human identity decisions are version controlled; deterministic
-accepted entries are regenerated into a target-specific `.local` ledger. Weaker partial
-matches stop in the address identity-drift review workflow, while candidates without
-meaningful premise evidence remain for later processing. A partial canonical name is
-premise evidence only when the same candidate also matches the canonical street, unless
-an explicit reviewed alias applies. The required matcher tiers, curation artefacts,
+accepted entries are regenerated into a target-specific `.local` ledger. Weak partial
+matches remain for later processing rather than becoming identity-curation work. A
+partial canonical name is premise evidence only when the same candidate also matches the
+canonical street, unless an explicit reviewed alias applies. Only a candidate which
+independently clears the automatic threshold can require review for contradictory or
+insufficiently separated evidence. The required matcher tiers, curation artefacts,
 provenance, materialisation order, and publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 

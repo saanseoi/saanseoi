@@ -87,6 +87,7 @@ import {
  * also succeeded.
  */
 export async function ingestLandsdStreetSource(options: {
+  baselineSourceVersion?: string
   curationPath?: string
   baselineCandidates?: readonly LandsdStreetBaselineCandidate[]
   egazetteArchiveDir?: string
@@ -737,11 +738,14 @@ export async function ingestLandsdStreetSource(options: {
         baselineRows,
         allNoticeRecords,
         baselineCandidatesByRecordKey,
+        [baselineAsset.link],
       )
     : { records: [] }
 
   reportProgress({ message: 'Writing release payload and operator report' })
   const releases = await writeReleasePayloads({
+    baselineSourceVersion:
+      options.baselineSourceVersion ?? baselineAcquisitionVersion(baselineAsset?.link),
     baselineRecords: baseline.records,
     noticeRecords: allNoticeRecords,
     outputDir,
@@ -768,10 +772,18 @@ export async function ingestLandsdStreetSource(options: {
   }
 }
 
-export {
-  LANDSD_STREET_DATASET_CODE,
-  LANDSD_STREET_INITIAL_SOURCE_VERSION,
-} from './landsdStreetIngestConfig.ts'
+function baselineAcquisitionVersion(asset: LandsdStreetAssetLink | undefined) {
+  if (!asset) return undefined
+  const date = asset.retrievedAt.match(/^(\d{4}-\d{2}-\d{2})T/)?.[1]
+  if (!date) {
+    throw new Error(
+      `LandsD baseline asset ${asset.assetId} has no ISO retrieval date for release versioning.`,
+    )
+  }
+  return `${date}.0`
+}
+
+export { LANDSD_STREET_DATASET_CODE } from './landsdStreetIngestConfig.ts'
 
 export type {
   LandsdStreetAssetLink,

@@ -449,11 +449,20 @@ export function createSupplementaryAddressAnalyser(
         if (!officialIds.has(definition.addressId)) continue
         const breakdown: Record<string, number> = {}
         const contradictions: string[] = []
-        for (const component of item.recognised2dComponents) {
-          const canonical = definition[component.kind]
-          if (canonical && normaliseAddressText(canonical) === component.normalisedName)
-            breakdown[component.kind] = policy.weights[component.kind]
-          else if (canonical) contradictions.push(component.kind)
+        const componentsByKind = Map.groupBy(
+          item.recognised2dComponents,
+          component => component.kind,
+        )
+        for (const [kind, components] of componentsByKind) {
+          const canonical = definition[kind]
+          if (!canonical) continue
+          if (
+            components.some(
+              component => normaliseAddressText(canonical) === component.normalisedName,
+            )
+          )
+            breakdown[kind] = policy.weights[kind]
+          else contradictions.push(kind)
         }
         if (item.street) {
           if (item.street.normalisedName === definition.normalisedStreetName)
@@ -550,13 +559,16 @@ export function createSupplementaryAddressAnalyser(
         'canonical_components',
         candidates,
       )
-    if (best?.contradictions.length)
-      return result('review', null, 'contradictory_components', candidates)
     if (!best || best.score < policy.reviewThreshold)
       return result('delayed', null, 'no_useful_partial_match', candidates)
+    // A weak partial match is evidence for a future matcher, not enough evidence
+    // to ask a reviewer to choose an Address identity. Only candidates which
+    // independently clear the automatic threshold can become review work because
+    // of contradictory evidence or insufficient separation.
+    if (best.score < policy.automaticThreshold)
+      return result('delayed', null, 'below_automatic_threshold', candidates)
     if (
       best.contradictions.length ||
-      best.score < policy.automaticThreshold ||
       (premiseCandidates[1] &&
         best.score - premiseCandidates[1].score < policy.separation)
     ) {

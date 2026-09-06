@@ -2,11 +2,14 @@ import { join, resolve } from 'node:path'
 
 export const LANDSD_STREET_DATASET_CODE = 'ds-hk-hkgov-landsd-street'
 
-export const LANDSD_STREET_INITIAL_SOURCE_VERSION = '2016-01-01.0'
-
 export const DEFAULT_CURATION_PATH = resolve(
   import.meta.dir,
   '../../../../../../../fixtures/meta/curations/hkgov-landsd-street.json',
+)
+
+export const DEFAULT_BASELINE_REGISTRY_PATH = resolve(
+  import.meta.dir,
+  '../../../../../../../fixtures/meta/curations/hkgov-landsd-street-baseline.json',
 )
 
 export const REPO_ROOT = resolve(import.meta.dir, '../../../../../../..')
