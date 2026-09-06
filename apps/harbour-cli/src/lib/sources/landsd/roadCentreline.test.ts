@@ -95,10 +95,48 @@ describe('LandsD Road Centreline matching', () => {
       geometry: { type: 'LineString' },
       properties: {
         ENGLISHSTREETNAME: 'FUNG KAM STREET',
+        CHINESESTREETNAME: '鳳琴街',
         STREETCENTRELINEID: 1810253285,
       },
     })
+    for (const archive of [legacy, current]) {
+      if (!archive) throw new Error('Expected both native Road Centreline archives.')
+      const result = normaliseRoadCentrelineFeatures({
+        features: archive.features,
+        releaseId: 'test-native-release',
+        streets: [],
+      })
+      expect(result.records).toHaveLength(archive.sourceFeatureCount)
+      for (const record of result.records) {
+        expect(record.streetCode).toBe(
+          String(record.rawProperties.STREET_CODE ?? record.rawProperties.STREETCODE),
+        )
+      }
+    }
   })
+
+  test.each([0, 40050, '00400'])('preserves street code %s as text', streetCode => {
+    const result = normaliseRoadCentrelineFeatures({
+      features: [feature({ STREET_CODE: streetCode })],
+      releaseId: 'test',
+      streets: [],
+    })
+    expect(result.records[0]?.streetCode).toBe(String(streetCode))
+    expect(result.records[0]?.rawProperties.STREET_CODE).toBe(streetCode)
+  })
+
+  test.each([null, undefined, '', 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid street code %s',
+    streetCode => {
+      expect(() =>
+        normaliseRoadCentrelineFeatures({
+          features: [feature({ STREET_CODE: streetCode })],
+          releaseId: 'test',
+          streets: [],
+        }),
+      ).toThrow('Road Centreline feature requires STREET_CODE or STREETCODE.')
+    },
+  )
 
   test('retains native EPSG:2326 geometry and uses English plus derived district IDs to resolve a collision', () => {
     const result = normaliseRoadCentrelineFeatures({
