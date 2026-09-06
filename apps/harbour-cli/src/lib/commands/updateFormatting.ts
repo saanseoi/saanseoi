@@ -148,11 +148,51 @@ export function formatCheckLine(
   return formatUpdateLine(dataset, version, targetVersion, status)
 }
 
+/** A skip is one physical terminal line, including its reason. */
+export function formatSkippedDatasetLine(dataset: DatasetFixture, reason: string) {
+  return formatUpdateGridRow(dataset, `SKIPPED: ${reason}`)
+}
+
+function gridCell(value: string, width: number) {
+  const plain = value.replace(ANSI_SGR, '').replace(/\s+/g, ' ').trim()
+  return (plain.length > width ? `${plain.slice(0, width - 1)}…` : plain).padEnd(width)
+}
+
+/** Fixed columns shared by checks, skips, downloads and live progress. */
+export function formatUpdateGridRow(
+  dataset: DatasetFixture,
+  status: string,
+  version?: string,
+  targetVersion?: string | null,
+) {
+  const parts = datasetLabelParts(dataset)
+  const width = updateLineWidth()
+  const publisherWidth = 9
+  const resourceWidth = 16
+  const statusWidth = 30
+  const versionsWidth = 27
+  const datasetWidth = Math.max(
+    8,
+    width - publisherWidth - resourceWidth - statusWidth - versionsWidth - 8,
+  )
+  const versions = version
+    ? `v${ownVersion(version)}${targetVersion && releasesDiffer(version, targetVersion) ? ` ← v${ownVersion(targetVersion)}` : ''}`
+    : targetVersion
+      ? `v${ownVersion(targetVersion)}`
+      : '—'
+  return [
+    colorize(gridCell(parts.publisher, publisherWidth), 36),
+    colorize(gridCell(parts.type, resourceWidth), 35),
+    colorize(gridCell(parts.subtype || '—', datasetWidth), 33),
+    gridCell(status, statusWidth),
+    gridCell(versions, versionsWidth),
+  ]
+    .join('  ')
+    .trimEnd()
+}
+
 export function formatUpdateProgressLine(dataset: DatasetFixture, stage: string) {
-  const label = formatDatasetCheckLabel(dataset)
-  const stageColumn = updateLineWidth() - 5 - VERSION_COLUMN_WIDTH * 2
-  const padding = Math.max(1, stageColumn - visibleWidth(label))
-  return `${label}${' '.repeat(padding)}${stage}`
+  return formatUpdateGridRow(dataset, stage)
 }
 
 export function formatIngestProgressLine(
@@ -217,27 +257,7 @@ function formatDownloadResultLine(
   version: string | undefined,
   targetVersion: string | null | undefined,
 ) {
-  const versions = formatVersionColumns(version, targetVersion)
-  const label = formatDatasetCheckLabel(dataset)
-  const padding = Math.max(
-    2,
-    updateLineWidth() -
-      visibleWidth(label) -
-      visibleWidth(release) -
-      visibleWidth(versions),
-  )
-  const line = `${label}${' '.repeat(padding)}${release}${versions}`
-  if (visibleWidth(line) <= updateLineWidth()) return line
-
-  // Completed downloads include both the release position and version
-  // columns. On a narrow terminal, do not let terminal wrapping detach those
-  // details from their dataset label.
-  const compactLabel = formatDatasetCheckLabel(dataset, true)
-  const compactVersions = formatCompactVersionColumns(version, targetVersion)
-  const compactLine = `${compactLabel}  ${release}  ${compactVersions}`
-  if (visibleWidth(compactLine) <= updateLineWidth()) return compactLine
-
-  return `${compactLabel}  ${release}\n  ${compactVersions}`
+  return formatUpdateGridRow(dataset, release, version, targetVersion)
 }
 
 export function formatDatasetCheckLine(
@@ -245,43 +265,17 @@ export function formatDatasetCheckLine(
   updates: DatasetUpdate[],
   targetVersions: ReadonlyMap<string, string | null>,
 ) {
-  const label = formatDatasetCheckLabel(dataset)
-  const orderedUpdates = orderUpdatesForDisplay(dataset, updates)
-  if (orderedUpdates.length === 1) {
-    const update = orderedUpdates[0] as DatasetUpdate
-    const targetVersion = targetVersionForUpdate(update, dataset, targetVersions)
-    return formatUpdateLineWithLabel(
-      label,
-      update.version,
-      targetVersion,
-      updateStatusLabel(update, targetVersion),
-    )
-  }
-
-  const first = orderedUpdates[0] as DatasetUpdate
-  const releaseLines = orderedUpdates.slice(1).map(update => {
-    const continuation = `${dim('│')} ${' '.repeat(
-      Math.max(0, visibleWidth(label) - 2),
-    )}`
-    const targetVersion = targetVersionForUpdate(update, dataset, targetVersions)
-    return formatUpdateLineWithLabel(
-      continuation,
-      update.version,
-      targetVersion,
-      updateStatusLabel(update, targetVersion),
-      UPDATE_LINE_WIDTH + CLACK_STATUS_PREFIX_WIDTH,
-    )
-  })
-  const firstTargetVersion = targetVersionForUpdate(first, dataset, targetVersions)
-  return [
-    formatUpdateLineWithLabel(
-      label,
-      first.version,
-      firstTargetVersion,
-      updateStatusLabel(first, firstTargetVersion),
-    ),
-    ...releaseLines,
-  ].join('\n')
+  return orderUpdatesForDisplay(dataset, updates)
+    .map(update => {
+      const targetVersion = targetVersionForUpdate(update, dataset, targetVersions)
+      return formatUpdateGridRow(
+        dataset,
+        updateStatusLabel(update, targetVersion),
+        update.version,
+        targetVersion,
+      )
+    })
+    .join('\n')
 }
 
 function orderUpdatesForDisplay(dataset: DatasetFixture, updates: DatasetUpdate[]) {
@@ -327,14 +321,7 @@ export function formatUpdateLine(
   width = UPDATE_LINE_WIDTH,
   showEmptyVersionPlaceholder = true,
 ) {
-  return formatUpdateLineWithLabel(
-    formatDatasetCheckLabel(dataset),
-    version,
-    targetVersion,
-    status,
-    width,
-    showEmptyVersionPlaceholder,
-  )
+  return formatUpdateGridRow(dataset, status ?? '', version, targetVersion)
 }
 
 function formatUpdateLineWithLabel(

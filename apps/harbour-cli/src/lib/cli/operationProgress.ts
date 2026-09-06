@@ -220,7 +220,7 @@ export class OperationProgress {
       this.progressBar.stop(finalLabel)
       this.progressBar = null
     } else if (this.staticPhaseActive || !this.renderAnimated) {
-      this.ui.log.success(finalLabel)
+      this.ui.log.success(finalLabel, { spacing: 0, withGuide: true })
     }
     this.currentLabel = null
     this.state = null

@@ -38,4 +38,10 @@ test('renders a completed update row without requiring a previous live phase', (
   expect(messages).toHaveLength(1)
   expect(messages[0]).toContain('UPLOADED')
   expect(progress.hasActivePhase()).toBe(false)
+  messages.length = 0
+  row.skipped('target release report unavailable')
+  expect(messages).toHaveLength(1)
+  expect(messages[0]).toContain('SKIPPED · target release report unavailable')
+  expect(messages[0]).not.toContain('\n')
+  expect(messages[0]?.length).toBeLessThanOrEqual(120)
 })
