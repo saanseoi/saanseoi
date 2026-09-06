@@ -1,6 +1,7 @@
 import { and, desc, eq } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
 import {
   buildReleaseCountPlans,
   buildReportFilterWhereClause,
@@ -67,11 +68,21 @@ export async function listIngestRuns(
   }
 
   const whereClause = buildReportFilterWhereClause(options)
+  const releaseIdBatches = chunkArray(
+    releaseIds,
+    getMaxItemsPerInClause(1, countReportFilterVariables(options)),
+  )
   const rows = (
-    whereClause
-      ? await query.where(and(whereClause, inArray(metaReleases.id, releaseIds))).all()
-      : await query.where(inArray(metaReleases.id, releaseIds)).all()
-  ) as IngestRunReportRow[]
+    await Promise.all(
+      releaseIdBatches.map(releaseIdBatch =>
+        whereClause
+          ? query
+              .where(and(whereClause, inArray(metaReleases.id, releaseIdBatch)))
+              .all()
+          : query.where(inArray(metaReleases.id, releaseIdBatch)).all(),
+      ),
+    )
+  ).flat() as IngestRunReportRow[]
 
   return rows.map(row => ({
     ...row,
@@ -169,11 +180,21 @@ export async function listProcessingActions(
   if (releaseIds.length === 0) return []
 
   const whereClause = buildReportFilterWhereClause(options)
+  const releaseIdBatches = chunkArray(
+    releaseIds,
+    getMaxItemsPerInClause(1, countReportFilterVariables(options)),
+  )
   const rows = (
-    whereClause
-      ? await query.where(and(whereClause, inArray(metaReleases.id, releaseIds))).all()
-      : await query.where(inArray(metaReleases.id, releaseIds)).all()
-  ) as ProcessingActionQueryRow[]
+    await Promise.all(
+      releaseIdBatches.map(releaseIdBatch =>
+        whereClause
+          ? query
+              .where(and(whereClause, inArray(metaReleases.id, releaseIdBatch)))
+              .all()
+          : query.where(inArray(metaReleases.id, releaseIdBatch)).all(),
+      ),
+    )
+  ).flat() as ProcessingActionQueryRow[]
 
   return rows.map(row => ({
     ...row,
@@ -290,6 +311,16 @@ async function listLatestIngestRunReleaseIds(
   ) as Array<{ releaseId: string }>
 
   return rows.map(row => row.releaseId)
+}
+
+function countReportFilterVariables(options: ReportFilters) {
+  return [
+    options.datasetCode,
+    options.releaseCode,
+    options.releaseId,
+    options.source,
+    options.type,
+  ].filter(value => value !== undefined).length
 }
 
 async function listReleaseRowCounts(
