@@ -902,6 +902,30 @@ describe('atlas-api', () => {
     }
   })
 
+  test('an exhausted public-key lease is rejected before metering', async () => {
+    let charges = 0
+    const { env } = createEnv({
+      AUTH_MODE: 'required',
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'api-key-1',
+          status: 'exhausted',
+          nextCheckAt: Date.now() + 60_000,
+        }),
+      } as unknown as KVNamespace,
+      API_RATE_LIMIT: {
+        limit: async () => {
+          charges++
+          return { success: true }
+        },
+      } as RateLimit,
+    })
+    const response = await app.fetch(apiRequest('http://localhost/divisions/v0.1'), env)
+    expect(response.status).toBe(429)
+    expect(await response.json()).toMatchObject({ error: 'quota_exceeded' })
+    expect(charges).toBe(0)
+  })
+
   test('URL-shaped Origin values do not qualify for the first-party exemption', async () => {
     const { env } = createEnv({ AUTH_MODE: 'required' })
     for (const origin of [

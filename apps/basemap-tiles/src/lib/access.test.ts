@@ -8,6 +8,7 @@ import {
 } from './access'
 import { authenticatePublicKeyRequest } from './public-key-access'
 import worker from '../index'
+import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 
 const config: OriginAccessConfig = {
   DIAGNOSTIC_ORIGINS: 'https://maplibre.org',
@@ -17,6 +18,77 @@ const config: OriginAccessConfig = {
   PREVIEW_PREFIXES: 'preview.',
   EXTERNAL_ORIGINS: '',
 }
+
+test('tiles reject an expired coordinator lease rather than extending revoked access', async () => {
+  const expired = { keyId: 'key-1', status: 'active', nextCheckAt: Date.now() - 1 }
+  const env = {
+    AUTH_MODE: 'required',
+    PUBLIC_KEY_LEASES: { get: async () => expired },
+    PUBLIC_KEY_LEASE_COORDINATOR: {
+      getByName: () => ({ fetch: async () => Response.json(expired) }),
+    },
+  } as unknown as Parameters<typeof authenticatePublicKeyRequest>[1]
+  await assert.rejects(
+    authenticatePublicKeyRequest(
+      new Request(
+        `https://tiles.example/hk-latest.json?access_token=pk.${'a'.repeat(43)}`,
+      ),
+      env,
+    ),
+    PublicKeyLeaseUnavailableError,
+  )
+})
+
+test('tiles do not use stale KV leases after the coordinator reports revocation', async () => {
+  const env = {
+    AUTH_MODE: 'required',
+    PUBLIC_KEY_LEASES: {
+      get: async () => ({ keyId: 'key-1', status: 'active', nextCheckAt: 0 }),
+    },
+    PUBLIC_KEY_LEASE_COORDINATOR: {
+      getByName: () => ({ fetch: async () => new Response(null, { status: 401 }) }),
+    },
+  } as unknown as Parameters<typeof authenticatePublicKeyRequest>[1]
+  assert.equal(
+    await authenticatePublicKeyRequest(
+      new Request(
+        `https://tiles.example/hk-latest.json?access_token=pk.${'a'.repeat(43)}`,
+      ),
+      env,
+    ),
+    null,
+  )
+})
+
+test('exhausted leases cannot reach tile metering or a warm body cache', async () => {
+  let charges = 0
+  const response = await worker.fetch(
+    new Request(
+      `https://tiles.saanseoi.hk/hk-latest.json?access_token=pk.${'a'.repeat(43)}`,
+    ),
+    {
+      ...config,
+      AUTH_MODE: 'required',
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'key-123',
+          status: 'exhausted',
+          nextCheckAt: Date.now() + 60_000,
+        }),
+      },
+      TILE_RATE_LIMIT: {
+        limit: async () => {
+          charges++
+          throw new Error('Must not meter an exhausted key')
+        },
+      },
+    } as unknown as CloudflareBindings,
+    {} as ExecutionContext,
+  )
+  assert.equal(response.status, 429)
+  assert.equal(response.headers.get('cache-control'), 'no-store')
+  assert.equal(charges, 0)
+})
 
 test('allows configured, derived preview, and SaanSeoi origins', () => {
   assert.equal(getAllowedOrigin('https://maplibre.org', config), 'https://maplibre.org')

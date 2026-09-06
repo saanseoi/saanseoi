@@ -55,7 +55,7 @@ export const rollUpApiKeyUsage = async (
 
   await runWithTransientD1WriteRetry(() => writeMinuteUsage(env.DB_META, minuteUsage))
   await runWithTransientD1WriteRetry(() =>
-    writeDerivedUsage(env.DB_META, minuteUsage.keys(), rollupEnd),
+    writeDerivedUsage(env.DB_META, minuteUsage.values(), rollupEnd),
   )
   return {
     apiKeys: new Set([...minuteUsage.values()].map(row => row.apiKeyId)).size,
@@ -167,21 +167,31 @@ const writeMinuteUsage = async (
 
 const writeDerivedUsage = async (
   db: D1Database,
-  keys: Iterable<string>,
+  rows: Iterable<AnalyticsUsageRow>,
   now: number,
 ) => {
-  const dayStartedAt = startOfDay(now)
-  const monthStartedAt = startOfMonth(now)
-  const apiKeyIds = new Set<string>()
-  for (const key of keys) {
-    const [apiKeyId] = key.split(':', 1)
-    if (apiKeyId) apiKeyIds.add(apiKeyId)
+  // The overlap can correct minutes from the previous day or month. Rebuild
+  // every affected window, including the ones that have just closed.
+  const statements = new Map<string, D1PreparedStatement>()
+  for (const row of rows) {
+    const dayStartedAt = startOfDay(row.windowStartedAt)
+    const monthStartedAt = startOfMonth(row.windowStartedAt)
+    const nextMonth = new Date(monthStartedAt)
+    nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1)
+    for (const [window, start, end] of [
+      ['day', dayStartedAt, dayStartedAt + 86_400_000],
+      ['month', monthStartedAt, nextMonth.getTime()],
+    ] as const) {
+      const key = JSON.stringify([row.apiKeyId, window, start])
+      if (!statements.has(key)) {
+        statements.set(
+          key,
+          derivedUsageStatement(db, row.apiKeyId, window, start, Math.min(end, now)),
+        )
+      }
+    }
   }
-  const statements = [...apiKeyIds].flatMap(apiKeyId => [
-    derivedUsageStatement(db, apiKeyId, 'day', dayStartedAt, now),
-    derivedUsageStatement(db, apiKeyId, 'month', monthStartedAt, now),
-  ])
-  await runBatches(db, statements)
+  await runBatches(db, [...statements.values()])
 }
 
 const derivedUsageStatement = (
