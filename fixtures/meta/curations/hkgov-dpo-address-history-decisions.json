@@ -15,6 +15,24 @@
   ],
   "decisions": [
     {
+      "id": "choi-ying-place-december-consolidation",
+      "estate": "CHOI YING ESTATE",
+      "release": "20241212-1050-ALS-GeoJSON",
+      "expectedFingerprint": "d798fc31a9767a8fe23af724f4cf18a0c67a39b02775fe1f3f66911181f72dab",
+      "action": "reviewed_premise_consolidation",
+      "decision": "Keep one Choi Ying Place / 彩盈坊 throughout retained history. Suppress the underspecified duplicate wherever present and backfill the corrected name using hkgov-dpo-address-premise-consolidations.json. Residential inventories remain unchanged.",
+      "authority": "User decision, 2026-09-07: remove the underspecified duplicate from all and backfill the correct name."
+    },
+    {
+      "id": "choi-ying-place-february-duplicate-return",
+      "estate": "CHOI YING ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "ca29239cd77e13eab113479b372e7a8f9291a16dcf182670446aab09d29a0104",
+      "action": "reviewed_premise_consolidation",
+      "decision": "Suppress the returning underspecified duplicate and retain the named centre with the same reviewed identity. Keep all raw publisher assertions as provenance; no residential inventory change.",
+      "authority": "User decision, 2026-09-07: remove the underspecified duplicate from all and backfill the correct name."
+    },
+    {
       "id": "choi-fook-estate-july-2026-unnamed-premise-change",
       "estate": "CHOI FOOK ESTATE",
       "release": "20260722-1931-ALS-GeoJSON",
