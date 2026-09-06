@@ -580,6 +580,7 @@
   "auth_choose_new_password": "Choose a new password",
   "auth_passwords_do_not_match": "Passwords do not match.",
   "auth_reset_error": "Unable to reset your password.",
+  "auth_resetting": "Resetting…",
   "auth_reset_link_invalid": "This reset link is invalid or has expired.",
   "auth_request_new_link": "Request a new link",
   "auth_password_reset_complete": "Your password has been reset.",
