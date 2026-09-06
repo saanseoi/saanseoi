@@ -1,5 +1,9 @@
 # Overture Places
 
+Supplementary Address materialisation initialises `parentAddressId` to null. The
+selected ALS derivation base supplies evidence and Division context; it is not an
+assertion that the supplementary Address is contained by that ALS Address.
+
 Overture Places are ingested from the monthly `place` reference-data parquet layer. The
 accepted source contract is versioned in `libs/core/src/sourceRecordSchemas.ts` and
 includes the publisher geometry, multilingual names, categories, contact fields, brand
@@ -129,6 +133,19 @@ deterministic replacement policy or an explicit curation decision.
 
 ### Four matching tiers
 
+The English-language Clack review defers source addresses containing Chinese characters,
+including mixed-language source values. These items remain unresolved in the review
+artefact and continue to block publication; skipping them records no identity decision
+or retirement. The review reports how many such items it deferred.
+
+Automatic Address selection, including exact-text, canonical-component and supplementary
+matches, requires known coordinates within 50 metres and a lead of at least 20 points
+over the next candidate before conflicting or distant rivals are excluded. Stricter
+configured distance and separation limits apply. Every supplied building, block and
+phase component must match the selected candidate; missing candidate values and extra
+conflicting names prevent automatic acceptance. Estate evidence is optional, but
+conflicting supplied estate values prevent acceptance. Explicit curation is separate.
+
 Interactive terminal uploads open a Clack review for unresolved Place Address
 identities. Each item shows source evidence, its previous link, candidate scores and
 conflicts. Inspect a candidate to see labelled, colour-coded components: cyan building,
@@ -236,14 +253,31 @@ normalised 2D values and excludes Place IDs, source release, unit and floor frag
 Places with the same identity share the `opa-` Address ID and retain separate generated
 entries. Conflicting ALS derivations for a shared identity stop materialisation.
 
-In interactive review, select an ALS candidate and choose **Edit address components** to
-edit building, estate, block, phase, street, and building number start/end. Confirm the
-formatted address before saving. The selected action supplies the decision reason
-automatically; review does not ask for written justification. The decision stores
-`address.values` and `address.baseAddressId`; these regenerate a curated supplementary
-identity without modifying the ALS source record. Editing one language stores only that
-reviewed localisation, so other language values are not silently copied with stale
-numbers.
+Interactive review displays source text, readable parsing reasons, present components
+from small to large, and a previous address only when one exists. Candidates show their
+English ALS address with coloured components and dim `(score @ distance !conflicts)`
+evidence; conflicts are omitted when absent. `multiple_close_matches` displays as
+“Several candidates have similar scores”.
+
+Selecting a candidate or **New Address** opens an English component menu for building,
+estate, block, phase, street, and building number start/end, followed by **Save** and
+**Back**. Saving unchanged candidate components links ALS. Editing them saves a
+supplementary address with the ALS derivation reference. New Address starts from parsed
+components with no ALS base or inherited divisions. The selected action supplies the
+reason automatically; no justification or extra confirmation is required.
+
+The decision stores `address.values` and nullable `address.baseAddressId`. Chinese
+components preserve existing names where English is unchanged, carry edited numbers,
+translate controlled block/tower and phase expressions, and retain changed proper names
+as entered. Per-language `provenance` in the curation values records verified English
+fields and generated, unverified Chinese fields. Materialisation retains this metadata
+in each Address source record's `localisationProvenance`; Address localisation rows do
+not have a dedicated provenance column.
+
+**Skip as Unresolved** leaves the item for a later run. **Skip as Unlinked** records a
+durable retirement and the parsed `address2dFingerprint`: unit/floor-only changes remain
+unlinked, while changed 2D source text requires review. **Save & Exit** retains all
+decisions already saved.
 
 Every analysis writes `overture-place-address-review.json` inside the target's
 `.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the
@@ -254,8 +288,10 @@ only when the cohort has no unresolved review, so a review stop leaves both the
 checked-in policy and generated ledger unchanged. Record reviewed aliases or decisions
 in the fixture and retry the same upload; `--yes` cannot bypass review. A decision
 records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`,
-`addressId` and a non-empty `reason`. `keep` retains the previous ID, `retire` selects
-no ID, and `replace` selects an official ID or a reproducible supplementary entry.
+`addressId` and a non-empty `reason`. `link_existing` links an ALS address;
+`create_supplementary` creates and links the address described by `address.values`;
+`keep_existing` retains the previous ID; and `leave_unlinked` records no address link.
+Only `create_supplementary` includes `address` values and their optional ALS base.
 Generated entries may record `retiredAtSourceRelease`; published history remains the
 durable replay source. Artefacts use unique temporary files and replace their
 destination only after a complete write; interrupted writes remove their temporary
