@@ -307,7 +307,12 @@ export async function processLocalPlaceSqlUpload(
     if (target.remote) {
       await runPlaceProgressPhase(progress, 'Import SQL', 'snapshot metadata', () =>
         deliverSqlPhase(
-          { context, releaseId, phase: 'places-metadata', inputs: sqlDelivery!.inputs },
+          {
+            context,
+            releaseId,
+            phase: 'places-metadata',
+            inputs: sqlDelivery?.inputs ?? {},
+          },
           () =>
             buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId).then(sql =>
               executeSqlText(targets.meta, sql, importOptions),

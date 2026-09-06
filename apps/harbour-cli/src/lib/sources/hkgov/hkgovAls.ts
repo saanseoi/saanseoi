@@ -5,6 +5,10 @@ import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsNestedPremises } from './hkgovAlsNestedPremises'
+import {
+  reconstructAlsPremises,
+  labelAlsPremiseReconstructions,
+} from './hkgovAlsPremiseReconstructions'
 import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
 import {
   buildAls2dBackfillFeatures,
@@ -93,6 +97,10 @@ export async function prepareHkgovAlsAddressParquet(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  const reconstructedPremises = reconstructAlsPremises(
+    sourceFeatures,
+    options.sourceVersion,
+  )
   sourceFeatures.push(
     ...buildAls2dBackfillFeatures(sourceFeatures, options.sourceVersion),
   )
@@ -150,6 +158,7 @@ export async function prepareHkgovAlsAddressParquet(
     ),
   )
   labelAls2dBackfillRows(rows)
+  labelAlsPremiseReconstructions(rows, reconstructedPremises)
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
