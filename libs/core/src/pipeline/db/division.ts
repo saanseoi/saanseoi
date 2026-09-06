@@ -513,32 +513,45 @@ export async function getDivisionCurrentSnapshotTraceState(
     >()
   }
 
-  const baseRows = await db
-    .select({
-      id: currentSchema.divisions.id,
-    })
-    .from(currentSchema.divisions)
-    .where(
-      and(
-        eq(currentSchema.divisions.snapshotId, snapshotId),
-        inArray(currentSchema.divisions.id, uniqueIds),
+  const idChunks = chunkArray(uniqueIds, getMaxItemsPerInClause(1, 1))
+  const baseRows = (
+    await Promise.all(
+      idChunks.map(ids =>
+        db
+          .select({
+            id: currentSchema.divisions.id,
+          })
+          .from(currentSchema.divisions)
+          .where(
+            and(
+              eq(currentSchema.divisions.snapshotId, snapshotId),
+              inArray(currentSchema.divisions.id, ids),
+            ),
+          )
+          .all(),
       ),
     )
-    .all()
-  const i18nRows = await db
-    .select({
-      count: sql<number>`count(*)`,
-      divisionId: currentSchema.divisionsI18n.divisionId,
-    })
-    .from(currentSchema.divisionsI18n)
-    .where(
-      and(
-        eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-        inArray(currentSchema.divisionsI18n.divisionId, uniqueIds),
+  ).flat()
+  const i18nRows = (
+    await Promise.all(
+      idChunks.map(ids =>
+        db
+          .select({
+            count: sql<number>`count(*)`,
+            divisionId: currentSchema.divisionsI18n.divisionId,
+          })
+          .from(currentSchema.divisionsI18n)
+          .where(
+            and(
+              eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+              inArray(currentSchema.divisionsI18n.divisionId, ids),
+            ),
+          )
+          .groupBy(currentSchema.divisionsI18n.divisionId)
+          .all(),
       ),
     )
-    .groupBy(currentSchema.divisionsI18n.divisionId)
-    .all()
+  ).flat()
 
   const i18nCountsByDivisionId = new Map(
     i18nRows.map(row => [row.divisionId, Number(row.count ?? 0)]),
