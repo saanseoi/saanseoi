@@ -273,7 +273,13 @@ export class OperationProgress {
 }
 
 function canRenderAnimatedProgress() {
-  return process.stdout.isTTY === true && process.env.TERM !== 'dumb'
+  // The wrapper captures this before tee turns stdout into a pipe.
+  return (
+    (process.stdout.isTTY === true ||
+      process.env.SAANSEOI_TERMINAL_INTERACTIVE === '1') &&
+    process.env.TERM !== 'dumb' &&
+    process.env.CI !== 'true'
+  )
 }
 
 function createProgressRenderer(
