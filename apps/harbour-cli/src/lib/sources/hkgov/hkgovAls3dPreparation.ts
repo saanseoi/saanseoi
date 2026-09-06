@@ -4,6 +4,7 @@ import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
+import { resolveAlsAddressAliases, suppressAlsAddressAliases } from './hkgovAlsAliases'
 import { applyAls3dCorrections } from './hkgovAls3dCorrections'
 import {
   als3dHash,
@@ -70,6 +71,17 @@ export async function prepareAls3dCollections(options: {
   if (input.length !== 1)
     throw new Error(`Expected one ALS 3D delivery, found ${input.length}`)
   const ownership = applyAlsAddressHierarchies(options.rows, options.sourceVersion)
+  const aliases = resolveAlsAddressAliases(options.rows, options.sourceVersion)
+  for (const [duplicateId, { owner }] of aliases) {
+    ownership.set(
+      duplicateId,
+      ownership.get(owner.id) ?? {
+        ownerId: owner.id,
+        physicalBuildingId: owner.canonicalId,
+        unresolvedSectionIds: [],
+      },
+    )
+  }
   const byKey = new Map<string, PreparedHkgovAlsRow[]>()
   for (const row of options.rows) {
     if (!row.engPremisesAddressJson || !row.chiPremisesAddressJson) continue
@@ -211,6 +223,7 @@ export async function prepareAls3dCollections(options: {
     })
     writer.end()
     await once(writer, 'finish')
+    suppressAlsAddressAliases(options.rows, aliases)
   } finally {
     writer.destroy()
   }

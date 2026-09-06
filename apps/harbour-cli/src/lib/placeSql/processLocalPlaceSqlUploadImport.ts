@@ -1,6 +1,7 @@
 import type { UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,
+  REMOTE_IMPORT_BATCH_BYTES,
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
@@ -20,13 +21,16 @@ import {
   PLACE_SQL_BATCH_SIZE,
 } from './processLocalPlaceSqlUploadConfig.ts'
 
-async function importSqlChunks(
+export async function importPlaceSqlChunks(
   targets: Awaited<ReturnType<typeof placeTargets>>,
   sql: Awaited<ReturnType<typeof buildPlaceSql>>,
   options: SqlImportExecutionOptions,
   onProgress?: (completed: number, total: number) => void,
 ) {
-  const totalChunks = countSqlChunks(sql)
+  const batchBytes = options.isLocal
+    ? MAX_SQL_BYTES
+    : (options.remoteImportBatchBytes ?? REMOTE_IMPORT_BATCH_BYTES)
+  const totalChunks = countSqlChunks(sql, batchBytes)
   let completedChunks = 0
   const executeChunk = async (target: SqlImportTargetContext, chunk: string) => {
     await executeSqlText(target, chunk, options)
@@ -37,16 +41,18 @@ async function importSqlChunks(
   for (const [bindingName, statements] of sql.sourceSqlByBinding) {
     const target = targets.sourceByBinding.get(bindingName)
     if (!target) throw new Error(`Missing Places source target ${bindingName}.`)
-    for (const chunk of chunkStatements(statements)) await executeChunk(target, chunk)
+    for (const chunk of chunkStatements(statements, batchBytes))
+      await executeChunk(target, chunk)
   }
   for (const [bindingName, statements] of sql.historySqlByBinding) {
     const target = targets.historyByBinding.get(bindingName)
     if (!target) throw new Error(`Missing Places history target ${bindingName}.`)
-    for (const chunk of chunkStatements(statements)) await executeChunk(target, chunk)
+    for (const chunk of chunkStatements(statements, batchBytes))
+      await executeChunk(target, chunk)
   }
-  for (const chunk of chunkStatements(sql.currentSql))
+  for (const chunk of chunkStatements(sql.currentSql, batchBytes))
     await executeChunk(targets.current, chunk)
-  for (const chunk of chunkStatements(sql.changes))
+  for (const chunk of chunkStatements(sql.changes, batchBytes))
     await executeChunk(targets.history, chunk)
 }
 
@@ -62,7 +68,7 @@ export async function importPlaceSqlBatches(
   let completedBatches = 0
   for await (const sql of buildPlaceSqlBatches(input, path, timestamp, onProgress)) {
     const batchEnd = Math.min(totalRows, (completedBatches + 1) * PLACE_SQL_BATCH_SIZE)
-    await importSqlChunks(targets, sql, options, (completed, total) =>
+    await importPlaceSqlChunks(targets, sql, options, (completed, total) =>
       onProgress?.({
         current: batchEnd,
         detail: `import ${completed}/${total} SQL chunks`,
@@ -102,40 +108,56 @@ export function normaliseError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error))
 }
 
-export function* chunkStatements(statements: readonly string[]) {
-  let current = ''
-  for (const statement of statements) {
-    const candidate = current + statement
-    if (current && Buffer.byteLength(candidate) > MAX_SQL_BYTES) {
-      yield current
-      current = statement
-      continue
-    }
-    current = candidate
+export function* chunkStatements(
+  statements: readonly string[],
+  maxBatchBytes = MAX_SQL_BYTES,
+) {
+  if (!Number.isSafeInteger(maxBatchBytes) || maxBatchBytes <= 0) {
+    throw new Error('Places SQL batch byte limit must be a positive safe integer.')
   }
-  if (current) yield current
+  let current: string[] = []
+  let currentBytes = 0
+  for (const statement of statements) {
+    const statementBytes = Buffer.byteLength(statement)
+    if (statementBytes > MAX_SQL_BYTES || statementBytes > maxBatchBytes) {
+      throw new Error(
+        'A Places SQL statement exceeds the statement or batch byte limit.',
+      )
+    }
+    if (currentBytes && currentBytes + statementBytes > maxBatchBytes) {
+      yield current.join('')
+      current = []
+      currentBytes = 0
+    }
+    current.push(statement)
+    currentBytes += statementBytes
+  }
+  if (currentBytes) yield current.join('')
 }
 
-function countSqlChunks(sql: Awaited<ReturnType<typeof buildPlaceSql>>) {
+function countSqlChunks(
+  sql: Awaited<ReturnType<typeof buildPlaceSql>>,
+  maxBatchBytes: number,
+) {
   const countMapChunks = (groups: Map<string, string[]>) =>
     [...groups.values()].reduce(
-      (total, statements) => total + countStatementChunks(statements),
+      (total, statements) => total + countStatementChunks(statements, maxBatchBytes),
       0,
     )
   return (
     countMapChunks(sql.sourceSqlByBinding) +
     countMapChunks(sql.historySqlByBinding) +
-    countStatementChunks(sql.currentSql) +
-    countStatementChunks(sql.changes)
+    countStatementChunks(sql.currentSql, maxBatchBytes) +
+    countStatementChunks(sql.changes, maxBatchBytes)
   )
 }
 
-function countStatementChunks(statements: string[]) {
+function countStatementChunks(statements: string[], maxBatchBytes: number) {
   let chunks = 0
   let currentBytes = 0
   for (const statement of statements) {
     const statementBytes = Buffer.byteLength(statement)
-    if (currentBytes && currentBytes + statementBytes > MAX_SQL_BYTES) {
+    if (currentBytes && currentBytes + statementBytes > maxBatchBytes) {
       chunks += 1
       currentBytes = statementBytes
     } else {
