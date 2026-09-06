@@ -244,3 +244,11 @@ export const apiKeyUsage = sqliteTable(
     primaryKey({ columns: [table.apiKeyId, table.window, table.windowStartedAt] }),
   ],
 )
+
+/** Atomic usage replay checkpoint; revision protects against overlapping jobs. */
+export const apiKeyUsageRollup = sqliteTable('api_key_usage_rollup', {
+  id: text('id').primaryKey(),
+  datasets: text('datasets').notNull(),
+  revision: text('revision').notNull(),
+  completedThrough: betterAuthTimestamp('completed_through').notNull(),
+})

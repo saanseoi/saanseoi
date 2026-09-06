@@ -130,6 +130,7 @@ DROP TABLE IF EXISTS `divisionBoundaries`;
 DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `entityAliases`;
 DROP TABLE IF EXISTS `api_key_usage`;
+DROP TABLE IF EXISTS `api_key_usage_rollup`;
 DROP TABLE IF EXISTS `accessAnalyticsRollups`;
 DROP TABLE IF EXISTS `accessAnalyticsDaily`;
 DROP TABLE IF EXISTS `api_key_origin_policy`;
