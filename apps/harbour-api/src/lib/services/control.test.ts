@@ -17,8 +17,10 @@ import {
   ensureDraftSnapshotForRelease,
   getDatasetRecordByReleaseId,
   upsertSnapshotSource,
+  publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
 
 const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
@@ -1577,7 +1579,13 @@ describe('control service', () => {
         )
       }
 
-      const carriedSnapshots =
+      const carriedSnapshots:
+        | Array<{
+            resourceType: 'address' | 'division'
+            snapshotId: string
+            variant?: string
+          }>
+        | undefined =
         datasetType === 'place'
           ? (() => {
               const addressSnapshotId = seedSnapshot(sqlite, {
@@ -1608,6 +1616,59 @@ describe('control service', () => {
             })()
           : undefined
 
+      if (datasetType === 'place') {
+        await expect(
+          handlePublishDataset(db, { releaseId, deferApiReleaseSet: true }),
+        ).rejects.toThrow('supplementary Address analysis')
+        const supplementaryReleaseId = `supplementary-${releaseId}`
+        sqlite
+          .query(`INSERT INTO releases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
+          SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'published', createdAt, updatedAt FROM releases WHERE id = ?`)
+          .run(supplementaryReleaseId, `supplementary-${releaseCode}`, releaseId)
+        const supplementary = await ensureDraftSnapshotForRelease(db, 'address', {
+          cohortKey: '2026-06',
+          datasetId,
+          datasetCode: 'ds-hk-overture-place',
+          regionCode: 'hk',
+          sourceReleaseId: supplementaryReleaseId,
+          variant: 'overture-places',
+        })
+        await upsertSnapshotSource(
+          db,
+          supplementary.id,
+          datasetId,
+          supplementaryReleaseId,
+          'primary',
+          { anchorReleaseId: releaseId },
+        )
+        await publishSnapshot(db, supplementary.id)
+        await upsertSnapshotSource(
+          db,
+          snapshotId,
+          datasetId,
+          supplementaryReleaseId,
+          'lookup',
+          {
+            selectedByRule:
+              'api-composition:places/overture:place/default->address/overture-places',
+          },
+        )
+        await recordPlaceAddressAssembly(db, {
+          snapshotId,
+          resourceType: 'place',
+          anchorReleaseId: releaseId,
+          anchorCohortKey: '2026-06',
+          selectionSummaryJson: {
+            supplementaryAddressSnapshotId: supplementary.id,
+            addressReviewRequired: 0,
+          },
+        })
+        carriedSnapshots?.push({
+          resourceType: 'address',
+          snapshotId: supplementary.id,
+          variant: 'overture-places',
+        })
+      }
       const result = await handlePublishDataset(db, {
         ...(carriedSnapshots ? { carriedSnapshots } : {}),
         ...(datasetType === 'place' ? { deferApiReleaseSet: true } : {}),
@@ -1729,6 +1790,7 @@ describe('control service', () => {
           ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
           : [
               { code: 'ss-hk-address-historical-selection', role: 'supporting' },
+              { code: 'ss-hk-address-overture-places-2026-06', role: 'supporting' },
               { code: 'ss-hk-division-historical-selection', role: 'supporting' },
             ],
       )

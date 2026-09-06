@@ -1,7 +1,7 @@
+import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
 import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
-  ensureIngestRunStarted,
   getDatasetRecordByReleaseId,
   getCurrentReleaseForDatasetId,
   listDraftReleaseSetPrimaryReleases,
@@ -19,9 +19,7 @@ import {
   resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveReleaseSetForRelease,
   resolveSnapshotForRelease,
-  updateLatestOpenIngestRun,
   updateDatasetStatus,
-  upsertIngestRunStatus,
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import {
@@ -166,35 +164,11 @@ export async function handleStageRunning(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-
-    if (request.phase === 'processDataset') {
-      await updateDatasetStatus(db, dataset.releaseId, 'processing')
-    }
-
-    if (
-      request.phase === 'processDataset' ||
-      isAddressSqlGenerationProgressPhase(request.phase)
-    ) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'running',
-        now,
-        null,
-        request.stats ?? null,
-      )
-    } else {
-      await ensureIngestRunStarted(
-        db,
-        dataset.releaseId,
-        request.phase,
-        request.stats ?? null,
-        now,
-      )
-    }
-
+    await recordDatasetStage(
+      db,
+      { ...request, releaseId: dataset.releaseId },
+      'running',
+    )
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
@@ -211,29 +185,11 @@ export async function handleStageCompleted(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-
-    const updatedExistingRun = await updateLatestOpenIngestRun(
+    await recordDatasetStage(
       db,
-      dataset.releaseId,
-      request.phase,
+      { ...request, releaseId: dataset.releaseId },
       'completed',
-      now,
-      request.stats ?? null,
     )
-
-    if (!updatedExistingRun) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'completed',
-        now,
-        now,
-        request.stats ?? null,
-      )
-    }
-
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
@@ -250,35 +206,7 @@ export async function handleStageFailed(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-    const errorJson = stringifyOptional({
-      message: request.error ?? 'Unknown processing error.',
-    })
-
-    await updateDatasetStatus(db, dataset.releaseId, 'failed')
-    const updatedExistingRun = await updateLatestOpenIngestRun(
-      db,
-      dataset.releaseId,
-      request.phase,
-      'error',
-      now,
-      request.stats ?? null,
-      errorJson,
-    )
-
-    if (!updatedExistingRun) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'error',
-        now,
-        now,
-        request.stats ?? null,
-        errorJson,
-      )
-    }
-
+    await recordDatasetStage(db, { ...request, releaseId: dataset.releaseId }, 'error')
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
@@ -287,6 +215,94 @@ export async function handleStageFailed(
       status: 'error',
     }
   })
+}
+
+export async function assertPlaceAddressDependencies(
+  db: HarbourReadableDb,
+  snapshotId: string,
+  releaseId: string,
+) {
+  const reviews = await db
+    .select()
+    .from(metaSchema.releaseProcessingActions)
+    .where(
+      and(
+        eq(metaSchema.releaseProcessingActions.releaseId, releaseId),
+        eq(metaSchema.releaseProcessingActions.action, 'overture_place_address_review'),
+      ),
+    )
+    .all()
+  if (reviews.some(review => Number(review.affectedRecordCount) > 0)) {
+    throw new ControlRequestError(
+      'Places publication has outstanding Address identity reviews.',
+    )
+  }
+  const runs = await db
+    .select()
+    .from(metaSchema.metaSnapshotAssemblyRuns)
+    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
+    .all()
+  const summary = runs
+    .map(
+      run =>
+        run.selectionSummaryJson as {
+          supplementaryAddressSnapshotId?: string
+          addressReviewRequired?: number
+        } | null,
+    )
+    .find(value => value?.supplementaryAddressSnapshotId)
+  if (!summary?.supplementaryAddressSnapshotId || summary.addressReviewRequired !== 0) {
+    throw new ControlRequestError(
+      'Places publication requires completed supplementary Address analysis with no outstanding identity reviews.',
+    )
+  }
+  const supplementary = await db
+    .select({
+      id: metaSnapshots.id,
+      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+    })
+    .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+    )
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(metaSchema.metaSnapshotLineages.id, metaSnapshots.snapshotLineageId),
+    )
+    .where(
+      and(
+        eq(metaSnapshots.id, summary.supplementaryAddressSnapshotId),
+        eq(metaSnapshots.status, 'published'),
+        eq(metaSnapshots.resourceType, 'address'),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
+        eq(metaSnapshotSources.role, 'primary'),
+        eq(metaSnapshotSources.anchorReleaseId, releaseId),
+      ),
+    )
+    .get()
+  if (!supplementary)
+    throw new ControlRequestError(
+      'Places supplementary Address snapshot is missing or does not belong to this Place release.',
+    )
+  const sources = await db
+    .select()
+    .from(metaSnapshotSources)
+    .where(eq(metaSnapshotSources.snapshotId, snapshotId))
+    .all()
+  if (
+    !sources.some(
+      source =>
+        source.role === 'lookup' &&
+        source.sourceReleaseId === supplementary.sourceReleaseId &&
+        source.selectedByRule ===
+          'api-composition:places/overture:place/default->address/overture-places',
+    )
+  ) {
+    throw new ControlRequestError(
+      'Places supplementary Address dependency is not recorded.',
+    )
+  }
 }
 
 export async function handlePublishDataset(
@@ -405,6 +421,10 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
       )
+    }
+
+    if (datasetType === 'place') {
+      await assertPlaceAddressDependencies(db, firstSnapshot.id, dataset.releaseId)
     }
 
     if (request.deferStatsReleaseSet) {
@@ -1636,19 +1656,6 @@ async function waitForSnapshotsForRelease(
   }
 
   return []
-}
-
-function stringifyOptional(value?: Record<string, unknown>) {
-  return value ? JSON.stringify(value) : null
-}
-
-function isAddressSqlGenerationProgressPhase(phase: string) {
-  return (
-    phase === 'normaliseAddressSql' ||
-    phase === 'generateAddressSqlSource' ||
-    phase === 'generateAddressSqlHistory' ||
-    phase === 'generateAddressSqlCurrent'
-  )
 }
 
 export function isTransientControlError(error: unknown) {
