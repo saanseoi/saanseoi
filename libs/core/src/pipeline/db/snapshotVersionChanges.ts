@@ -16,6 +16,7 @@ export type SnapshotVersionRecordType =
   | 'placeI18n'
   | 'street'
   | 'streetI18n'
+  | 'streetChangelog'
 
 type SnapshotVersionChangeInput = {
   recordId: string

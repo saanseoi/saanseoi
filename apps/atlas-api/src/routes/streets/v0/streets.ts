@@ -119,7 +119,7 @@ export const streetRoutes = [
     route: streetChangelogRoute,
     handler: async c => {
       const result = await replayHongKongStreetChangelog({
-        historyDbs: c.var.historyDbs,
+        historyDbsByBinding: c.var.historyDbsByBinding,
         metaDb: c.var.metaDb,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
@@ -147,7 +147,7 @@ export const streetRoutes = [
     handler: async c => {
       const { id } = c.req.valid('param')
       const result = await listHongKongStreetVersions({
-        historyDbs: c.var.historyDbs,
+        historyDbsByBinding: c.var.historyDbsByBinding,
         id,
         metaDb: c.var.metaDb,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
@@ -162,7 +162,7 @@ export const streetRoutes = [
     handler: async c => {
       const { id, version } = c.req.valid('param')
       const result = await getHongKongStreetVersion({
-        historyDbs: c.var.historyDbs,
+        historyDbsByBinding: c.var.historyDbsByBinding,
         id,
         metaDb: c.var.metaDb,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),

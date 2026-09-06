@@ -227,8 +227,227 @@ function streetRows(query: string): unknown[][] {
       versionHash,
     ])
 
+  if (query.includes('from "snapshotVersionChanges"')) {
+    return [
+      [
+        'street',
+        'landsd-street-notice-example',
+        '',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'street',
+        'landsd-street-notice-example',
+        '',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'en',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'zh-Hant',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'en',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'zh-Hant',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetChangelog',
+        'street-changelog-version-1',
+        '',
+        'street-changelog-version-1',
+        'upsert',
+        'release-1',
+      ],
+    ]
+  }
+  if (query.includes('from "snapshots"')) return [['street-snapshot', null]]
+  if (query.includes('from "snapshotShardAssignments"')) {
+    return [['history-shard-1', 'DB_HISTORY_HK_2026']]
+  }
   if (query.includes('from "streetChangelog"')) {
+    if (query.includes('"versionHash"')) {
+      return [
+        [
+          'landsd-street-notice-example',
+          'landsd-street-notice-example',
+          'gazette',
+          0,
+          '2026-07-03',
+          null,
+          'history-shard-1',
+          'G.N. 4034',
+          assetLinks,
+          'street-changelog-version-1',
+          'release-1',
+          'street-snapshot',
+          1,
+          '2026-07-03T00:00:00.000Z',
+          '2026-07-03T00:00:00.000Z',
+        ],
+        [
+          'landsd-street-notice-example',
+          'landsd-street-notice-example-future',
+          'gazette',
+          0,
+          '2026-09-01',
+          null,
+          'history-shard-1',
+          'G.N. 9999',
+          assetLinks,
+          'street-changelog-version-3',
+          'release-2',
+          'future-street-snapshot',
+          1,
+          '2026-09-01T00:00:00.000Z',
+          '2026-09-01T00:00:00.000Z',
+        ],
+      ]
+    }
     return [changelog]
+  }
+  if (query.includes('from "streets"') && query.includes('"versionHash"')) {
+    const sources = JSON.stringify({ hkgovLandsd: { noticeRecordKeys: [] } })
+    return [
+      [
+        'landsd-street-notice-example',
+        1,
+        'active',
+        null,
+        districtIds,
+        '2026-07-03',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-1',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-07-03T00:00:00.000Z',
+        '2026-07-03T00:00:00.000Z',
+      ],
+      [
+        'landsd-street-notice-example',
+        2,
+        'deleted',
+        '2026-08-01',
+        districtIds,
+        '2026-08-01',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-2',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-08-01T00:00:00.000Z',
+        '2026-08-01T00:00:00.000Z',
+      ],
+      [
+        'landsd-street-notice-example',
+        3,
+        'active',
+        null,
+        districtIds,
+        '2026-09-01',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-3',
+        'release-2',
+        'future-street-snapshot',
+        1,
+        '2026-09-01T00:00:00.000Z',
+        '2026-09-01T00:00:00.000Z',
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"') && query.includes('"versionHash"')) {
+    return [
+      ...localizations('street-version-1', null).map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-1',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-07-03T00:00:00.000Z',
+        '2026-07-03T00:00:00.000Z',
+      ]),
+      ...localizations('street-version-2', 'Deleted by Government Notice.').map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-2',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-08-01T00:00:00.000Z',
+        '2026-08-01T00:00:00.000Z',
+      ]),
+      ...localizations(
+        'street-version-3',
+        'Published after the selected snapshot.',
+      ).map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-3',
+        'release-2',
+        'future-street-snapshot',
+        1,
+        '2026-09-01T00:00:00.000Z',
+        '2026-09-01T00:00:00.000Z',
+      ]),
+    ]
   }
   if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
     return [['street-snapshot']]
