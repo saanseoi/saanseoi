@@ -1,5 +1,5 @@
 import { isCancel, note, select } from '@clack/prompts'
-import { open, readFile, rename, unlink } from 'node:fs/promises'
+import { mkdir, open, readFile, rename, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
@@ -28,6 +28,45 @@ const components = [
   ['buildingNumberExpression', 'Number', 32],
   ['streetName', 'Street', 34],
 ] as const
+
+const mapPreviewAssets = new Set([
+  'index.html',
+  'maplibre-gl.css',
+  'maplibre-gl.mjs',
+  'maplibre-gl-shared.mjs',
+  'maplibre-gl-worker.mjs',
+])
+const mapPreviewDirectories = new Map<string, string>()
+let mapPreviewServer: { port: number } | undefined
+
+function getMapPreviewServer() {
+  if (mapPreviewServer) return mapPreviewServer
+  const server = Bun.serve({
+    hostname: '127.0.0.1',
+    port: 0,
+    fetch(request) {
+      const [previewId, ...path] = new URL(request.url).pathname.slice(1).split('/')
+      const file = path.join('/') || 'index.html'
+      const directory = previewId ? mapPreviewDirectories.get(previewId) : undefined
+      if (!directory || !mapPreviewAssets.has(file))
+        return new Response('Not found', { status: 404 })
+      const extension = file.slice(file.lastIndexOf('.'))
+      const contentType: Record<string, string> = {
+        '.css': 'text/css',
+        '.html': 'text/html',
+        '.mjs': 'text/javascript',
+      }
+      return new Response(Bun.file(join(directory, file)), {
+        headers: { 'content-type': contentType[extension] ?? 'text/plain' },
+      })
+    },
+  })
+  server.unref()
+  if (!server.port) throw new Error('Could not start address map server.')
+  const previewServer = { port: server.port }
+  mapPreviewServer = previewServer
+  return previewServer
+}
 
 export function formatPlaceAddressComponents(
   value: Partial<PlaceAddressDefinition>,
@@ -245,8 +284,8 @@ export async function showCandidatesOnMap(
   })
   const title = escapeHtml(row.sourceTexts.join(' / '))
   const html = `<!doctype html><meta charset="utf-8"><title>Address candidates</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@6.7.0/dist/maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.7.0/dist/maplibre-gl.js"></script><script>
+<link rel="stylesheet" href="maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
+<script type="module">import * as maplibregl from './maplibre-gl.mjs';
 const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
 const map=new maplibregl.Map({container:'map',style:'https://tiles.hype.hk/basemap/hongkong-latest.json',center:source,zoom:16}); map.addControl(new maplibregl.NavigationControl());
 map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',score:c.score,label:c.label}}))];
@@ -254,16 +293,35 @@ map.addSource('address-review',{type:'geojson',data:{type:'FeatureCollection',fe
 map.on('click',['candidates','place-source'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(e.features[0].properties.kind==='source'?'<b>Place source</b><br>'+e.features[0].properties.label:'<b>Score '+e.features[0].properties.score+'</b><br>'+e.features[0].properties.label).addTo(map));
 const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidates) bounds.extend([c.lng,c.lat]); if(candidates.length) map.fitBounds(bounds,{padding:60,maxZoom:17});});
 </script>`
-  const path = join(tmpdir(), `saanseoi-address-candidates-${crypto.randomUUID()}.html`)
-  await Bun.write(path, html)
+  const previewId = crypto.randomUUID()
+  const directory = join(tmpdir(), `saanseoi-address-candidates-${previewId}`)
+  await mkdir(directory)
+  const maplibreDirectory = new URL(
+    '../../../../../node_modules/maplibre-gl/dist/',
+    import.meta.url,
+  )
+  for (const asset of [
+    'maplibre-gl.css',
+    'maplibre-gl.mjs',
+    'maplibre-gl-shared.mjs',
+    'maplibre-gl-worker.mjs',
+  ])
+    await Bun.write(
+      join(directory, asset),
+      await readFile(new URL(asset, maplibreDirectory)),
+    )
+  await Bun.write(join(directory, 'index.html'), html)
+  mapPreviewDirectories.set(previewId, directory)
+  const server = getMapPreviewServer()
   const command =
     process.platform === 'darwin'
       ? 'open'
       : process.platform === 'win32'
         ? 'start'
         : 'xdg-open'
-  Bun.spawn([command, path], { stdout: 'ignore', stderr: 'ignore' })
-  note(`Opened candidate map: ${path}`, 'Show on Map')
+  const url = `http://127.0.0.1:${server.port}/${previewId}/`
+  Bun.spawn([command, url], { stdout: 'ignore', stderr: 'ignore' })
+  note(`Opened candidate map: ${url}`, 'Show on Map')
 }
 
 const reasonLabels: Record<string, string> = {
