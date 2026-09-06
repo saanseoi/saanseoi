@@ -636,7 +636,7 @@ export async function listDivisionRecordsCurrentByIds(
           .from(divisions)
           .where(
             and(
-              inArray(divisions.snapshotId, lookup.snapshotIds ?? [lookup.snapshotId]),
+              sql`${divisions.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds ?? [lookup.snapshotId])}))`,
               inArray(divisions.id, divisionIds),
             ),
           )
