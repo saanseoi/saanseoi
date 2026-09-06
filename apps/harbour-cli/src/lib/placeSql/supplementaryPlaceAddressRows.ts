@@ -122,11 +122,11 @@ export async function buildSupplementaryAddressRows(input: {
     const canonical = {
       id,
       parentAddressId: null,
-      ...establishAddressGranularity({
+      granularity: establishAddressGranularity({
         addressId: id,
         values: entry.values,
         sourceVersion: input.sourceVersion,
-      }),
+      }).granularity,
       ...divisions,
       streetId: null,
       geometry: null,

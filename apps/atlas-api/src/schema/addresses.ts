@@ -1,6 +1,6 @@
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
-import { addressBlockTypes } from '@repo/db'
+import { addressBlockTypes, addressGranularities } from '@repo/db'
 
 import { openApiText } from '../lib/openapi-i18n'
 import {
@@ -195,6 +195,9 @@ const AddressI18nSchema = z
 
 const AddressAttributesSchema = z
   .object({
+    granularity: z.enum(addressGranularities).openapi({
+      description: openApiText('openapi_addresses_granularity_description'),
+    }),
     parentAddressId: IdSchema.nullable().openapi({
       description: openApiText('openapi_addresses_parent_address_id_description'),
     }),

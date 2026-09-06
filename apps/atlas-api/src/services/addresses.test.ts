@@ -157,6 +157,7 @@ test('publishes and serves a curated Address union with dataset filtering, globa
           divisionSnapshotId,
           countryId,
           parentAddressId: id === 'b' ? 'a' : null,
+          granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
         })
         .run()
       for (const locale of ['en', 'zh-hant', 'zh-hans']) {
@@ -209,6 +210,29 @@ test('publishes and serves a curated Address union with dataset filtering, globa
     expect(all.body.data[1]?.attributes.datasetCode).toBe('ds-hk-overture-place')
     expect(all.body.data[0]?.attributes.parentAddressId).toBeNull()
     expect(all.body.data[1]?.attributes.parentAddressId).toBe('a')
+    expect(all.body.data[0]?.attributes.granularity).toBe('complex')
+    expect(all.body.data[1]?.attributes.granularity).toBe('unit')
+    expect(all.body.data[2]?.attributes.granularity).toBe('unknown')
+    const full = await getAddressDetail({
+      ...args,
+      id: 'b',
+      query: { profile: 'full' },
+    })
+    expect(full.status === 200 && full.body.data.attributes.granularity).toBe('unit')
+    expect(full.status === 200 && full.body.data.attributes).not.toHaveProperty(
+      'granularityProvenance',
+    )
+    const compact = await getAddressDetail({
+      ...args,
+      id: 'b',
+      query: { profile: 'compact' },
+    })
+    expect(compact.status === 200 && compact.body.data.attributes.granularity).toBe(
+      'unit',
+    )
+    expect(compact.status === 200 && compact.body.data.attributes).not.toHaveProperty(
+      'granularityProvenance',
+    )
     const page = await listAddresses({
       ...args,
       query: { 'page[limit]': 2, 'page[offset]': 1 },

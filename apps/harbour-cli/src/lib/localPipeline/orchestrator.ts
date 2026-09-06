@@ -86,28 +86,43 @@ export async function runLocalProgressPhase<T>(
   ) => Promise<T> | T,
 ) {
   const totalUnits = normalisePositiveInteger(phase.totalUnits)
-  const labelForProgress = (current?: number, subject = phase.subject) =>
-    formatRunningPhaseLabel(
-      colorTeal(phase.action),
-      colorRed(subject),
-      totalUnits === undefined ? undefined : current,
-      totalUnits,
-    )
   const startedAt = Date.now()
+  const labelForProgress = (current?: number, subject = phase.subject) =>
+    appendPhaseDetails(
+      formatRunningPhaseLabel(
+        colorTeal(phase.action),
+        colorRed(subject),
+        totalUnits === undefined ? undefined : current,
+        totalUnits,
+      ),
+      [formatDurationMs(Date.now() - startedAt)],
+    )
+  let current = 0
+  let subject = phase.subject
 
   progress.beginPhase(labelForProgress(0), {
     current: 0,
     max: totalUnits ?? null,
   })
+  const elapsedTimer = setInterval(() => {
+    if (totalUnits === undefined) {
+      progress.message(labelForProgress(undefined, subject))
+      return
+    }
+    progress.update(current, { label: labelForProgress(current, subject) })
+  }, 1_000)
 
   try {
-    const result = await operation((current, subject) => {
+    const result = await operation((reportedCurrent, reportedSubject) => {
+      current = reportedCurrent
+      subject = reportedSubject ?? phase.subject
       if (totalUnits === undefined) {
-        if (subject) progress.message(labelForProgress(undefined, subject))
+        progress.message(labelForProgress(undefined, subject))
         return
       }
 
       const resolvedCurrent = Math.min(Math.max(0, Math.floor(current)), totalUnits)
+      current = resolvedCurrent
       progress.update(resolvedCurrent, {
         label: labelForProgress(resolvedCurrent, subject),
       })
@@ -132,6 +147,8 @@ export async function runLocalProgressPhase<T>(
   } catch (error) {
     progress.fail()
     throw error
+  } finally {
+    clearInterval(elapsedTimer)
   }
 }
 

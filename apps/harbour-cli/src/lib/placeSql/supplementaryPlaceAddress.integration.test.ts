@@ -212,7 +212,21 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         )
         .get(),
     ).toEqual({ n: 0 })
-    const first = await prepareSupplementaryAddresses(input)
+    const progressEvents: string[] = []
+    const first = await prepareSupplementaryAddresses({
+      ...input,
+      onProgress: current => progressEvents.push(`progress:${current}`),
+      onStage: stage => progressEvents.push(`stage:${stage}`),
+    })
+    expect(progressEvents).toEqual(
+      expect.arrayContaining([
+        'stage:official Address definitions',
+        'stage:Place Address candidates',
+        'progress:1',
+        'stage:materialise supplementary Addresses',
+        'stage:rebuild supplementary Address search index',
+      ]),
+    )
     expect(
       meta
         .query('SELECT datasetId, sourceReleaseId FROM releases WHERE id = ?')
@@ -232,6 +246,8 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         .get('source-place-release'),
     ).toEqual({ status: 'processing' })
     expect(first.addresses).toHaveLength(1)
+    expect(first.addresses[0]?.canonical.granularity).toBe('unknown')
+    expect(first.addresses[0]?.canonical).not.toHaveProperty('granularityProvenance')
     expect(JSON.parse(await readFile(curationPath, 'utf8'))).not.toHaveProperty(
       'entries',
     )

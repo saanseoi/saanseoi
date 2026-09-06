@@ -95,6 +95,10 @@ type PrepareSupplementaryAddressesInput = {
   targets: Awaited<ReturnType<typeof placeTargets>>
   importOptions: SqlImportExecutionOptions
   actions: ReleaseProcessingAction[]
+  /** Counts source Places whose Address candidates have been analysed. */
+  onProgress?: (current: number) => void
+  /** Names the current uncounted preparation or materialisation substage. */
+  onStage?: (stage: string) => void
 }
 
 const LOCK_INITIALISATION_GRACE_MS = 30_000
@@ -226,6 +230,7 @@ async function prepareSupplementaryAddressesLocked(
 ) {
   const db = input.metaDb
   const currentDb = input.context.currentDb as unknown as HarbourReadableDb
+  input.onStage?.('official Address definitions')
   const curationPath = input.curationPath ?? SUPPLEMENTARY_CURATION_PATH
   const fixtureText = await readFile(curationPath, 'utf8')
   const entryLedgerPath = resolveEntryLedgerPath(input)
@@ -302,6 +307,7 @@ async function prepareSupplementaryAddressesLocked(
     geometry,
     fixture,
   )
+  input.onStage?.('Place Address history')
   const previousById = new Map<string, PlaceHistoryRow>()
   for (const target of input.context.historyTargets) {
     const rows = (await (target.db as HarbourReadableDb)
@@ -333,12 +339,14 @@ async function prepareSupplementaryAddressesLocked(
         previousById.set(row.id, row)
     }
   }
+  input.onStage?.('Place Address candidates')
   const resolutionPath = resolve(input.releaseRoot, 'overture-place-address.jsonl')
   const resolutionTempPath = temporaryPath(resolutionPath)
   const resolutionOutput = await open(resolutionTempPath, 'w')
   const supplementaryResolutions: StagedAddressResolution[] = []
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
   const resolutionReasons = new Map<AddressResolution['tier'], Set<string>>()
+  let analysedRows = 0
   try {
     try {
       for await (const place of input.places) {
@@ -376,7 +384,10 @@ async function prepareSupplementaryAddressesLocked(
         resolutionReasons.set(resolution.tier, reasons)
         if (resolution.tier === 'supplementary')
           supplementaryResolutions.push(stagedResolution)
+        analysedRows += 1
+        if (analysedRows % 512 === 0) input.onProgress?.(analysedRows)
       }
+      input.onProgress?.(analysedRows)
     } finally {
       await resolutionOutput.close()
     }
@@ -388,6 +399,7 @@ async function prepareSupplementaryAddressesLocked(
     throw error
   }
   const reviewCount = resolutionCounts.get('review') ?? 0
+  input.onStage?.('record Address decisions')
   const actions: ReleaseProcessingAction[] = [
     ...input.actions,
     ...(['direct', 'supplementary', 'review', 'delayed'] as const).map(tier => ({
@@ -418,6 +430,7 @@ async function prepareSupplementaryAddressesLocked(
     }
   }
   // Always replace the release-owned review artefact, including on a successful retry.
+  input.onStage?.('write Address review artefact')
   const reviewPath = resolve(input.releaseRoot, 'overture-place-address-review.json')
   await writeSupplementaryReviewArtefact({
     addressSnapshotId: input.snapshots.addressSnapshotId,
@@ -452,6 +465,7 @@ async function prepareSupplementaryAddressesLocked(
     entries: fixture.entries,
   })
 
+  input.onStage?.('materialise supplementary Addresses')
   const parentDataset = (await db
     .select()
     .from(metaSchema.metaDatasets)
@@ -707,9 +721,11 @@ async function prepareSupplementaryAddressesLocked(
       [input.targets.current, currentSql],
       [input.targets.history, [...historySql, ...changes]],
     ] as const) {
+      input.onStage?.(`import supplementary Addresses into ${target.name}`)
       for (const sql of chunkStatements(statements))
         await importSupplementarySql(target, sql, input.importOptions)
     }
+    input.onStage?.('rebuild supplementary Address search index')
     await importSupplementarySql(
       input.targets.current,
       readFileSync(
@@ -721,6 +737,7 @@ async function prepareSupplementaryAddressesLocked(
       ),
       input.importOptions,
     )
+    input.onStage?.('verify supplementary Address rows')
     await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
     // Publication follows successful imports. A retry of a published snapshot must reproduce its hash.
     await publishSnapshot(db, snapshot.id)
@@ -732,6 +749,7 @@ async function prepareSupplementaryAddressesLocked(
     // The shared source is finalised by Places publication after both outputs succeed.
   }
   if (!input.importOptions.isLocal) {
+    input.onStage?.('sync supplementary Address metadata')
     // Retry a metadata-publication failure after the data import without rewriting Address rows.
     await executeSqlText(
       input.targets.meta,
