@@ -49,6 +49,7 @@ const socialSignUp = async (provider: SocialProvider) => {
   if (busy) return
   busy = true
   error = null
+  message = null
   pendingProvider = provider
   try {
     const result = await authClient.signIn.social({
