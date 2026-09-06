@@ -1,6 +1,7 @@
 import { and, eq, metaSchema } from '@repo/db'
 import { inArray } from 'drizzle-orm'
 import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
 import type { DataShardRecord } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { DatasetType } from '@repo/db'
@@ -18,6 +19,8 @@ export const {
 } = metaSchema
 
 export type ReportBindings = Record<string, unknown>
+
+const RELEASE_ASSIGNMENT_BATCH_SIZE = getMaxItemsPerInClause(1, 3)
 
 export type ReportRowCount = {
   kind: 'history' | 'source'
@@ -130,25 +133,31 @@ async function buildHistoryCountTargets(
 ) {
   const releaseIds = releases.map(release => release.releaseId)
   const assignedHistoryBindings = releaseIds.length
-    ? ((await db
-        .select({
-          bindingName: metaDataShards.bindingName,
-          releaseId: metaReleaseShardAssignments.releaseId,
-        })
-        .from(metaReleaseShardAssignments)
-        .innerJoin(
-          metaDataShards,
-          eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
-        )
-        .where(
-          and(
-            inArray(metaReleaseShardAssignments.releaseId, releaseIds),
-            eq(metaDataShards.shardType, 'history'),
-            eq(metaDataShards.environment, environment),
-            eq(metaDataShards.status, 'active'),
+    ? ((
+        await Promise.all(
+          chunkArray(releaseIds, RELEASE_ASSIGNMENT_BATCH_SIZE).map(ids =>
+            db
+              .select({
+                bindingName: metaDataShards.bindingName,
+                releaseId: metaReleaseShardAssignments.releaseId,
+              })
+              .from(metaReleaseShardAssignments)
+              .innerJoin(
+                metaDataShards,
+                eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
+              )
+              .where(
+                and(
+                  inArray(metaReleaseShardAssignments.releaseId, ids),
+                  eq(metaDataShards.shardType, 'history'),
+                  eq(metaDataShards.environment, environment),
+                  eq(metaDataShards.status, 'active'),
+                ),
+              )
+              .all(),
           ),
         )
-        .all()) as Array<{ bindingName: string; releaseId: string }>)
+      ).flat() as Array<{ bindingName: string; releaseId: string }>)
     : []
   const assignedHistoryBindingsByReleaseId = new Map(
     assignedHistoryBindings.map((row): [string, string] => [
@@ -192,25 +201,31 @@ async function buildSourceCountTargets(
 ) {
   const releaseIds = releases.map(release => release.releaseId)
   const assignedSourceBindings = releaseIds.length
-    ? ((await db
-        .select({
-          bindingName: metaDataShards.bindingName,
-          releaseId: metaReleaseShardAssignments.releaseId,
-        })
-        .from(metaReleaseShardAssignments)
-        .innerJoin(
-          metaDataShards,
-          eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
-        )
-        .where(
-          and(
-            inArray(metaReleaseShardAssignments.releaseId, releaseIds),
-            eq(metaDataShards.shardType, 'source'),
-            eq(metaDataShards.environment, environment),
-            eq(metaDataShards.status, 'active'),
+    ? ((
+        await Promise.all(
+          chunkArray(releaseIds, RELEASE_ASSIGNMENT_BATCH_SIZE).map(ids =>
+            db
+              .select({
+                bindingName: metaDataShards.bindingName,
+                releaseId: metaReleaseShardAssignments.releaseId,
+              })
+              .from(metaReleaseShardAssignments)
+              .innerJoin(
+                metaDataShards,
+                eq(metaReleaseShardAssignments.dataShardId, metaDataShards.id),
+              )
+              .where(
+                and(
+                  inArray(metaReleaseShardAssignments.releaseId, ids),
+                  eq(metaDataShards.shardType, 'source'),
+                  eq(metaDataShards.environment, environment),
+                  eq(metaDataShards.status, 'active'),
+                ),
+              )
+              .all(),
           ),
         )
-        .all()) as Array<{ bindingName: string; releaseId: string }>)
+      ).flat() as Array<{ bindingName: string; releaseId: string }>)
     : []
   const assignedSourceBindingsByReleaseId = new Map(
     assignedSourceBindings.map((row): [string, string] => [
