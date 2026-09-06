@@ -1,10 +1,11 @@
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
 
 import { and, desc, eq } from 'drizzle-orm'
 
 import { currentSchema, metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { decodeStoredGeoJsonGeometry } from '../../../harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadStatistics.ts'
 
 import type {
   ParsedArgs,
@@ -21,6 +22,7 @@ import {
   type RoadCentrelineStreet,
 } from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
 
 const PLACE_NAME_DATASET = 'ds-hk-hkgov-landsd-division'
 const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
@@ -85,6 +87,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   canonical: {
     districts?: RoadCentrelineDistrict[]
     streets?: RoadCentrelineStreet[]
+    snapshotIds?: { street: string; divisionArea: string }
   } = {},
 ) {
   const input = requireArchiveArguments(args, printUsage, ROAD_CENTRELINE_DATASET)
@@ -102,13 +105,38 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
     streets: resolvedCanonical.streets ?? [],
   })
   const summary = summariseRoadCentrelineMatching(archive.sourceFeatureCount, result)
+  const reviewPath = resolve('.cache/road-centreline-review', `${input.sha256}.json`)
+  await mkdir(dirname(reviewPath), { recursive: true })
+  await writeFile(
+    reviewPath,
+    `${JSON.stringify(
+      {
+        sourceVersion: input.sourceVersion,
+        sourceArchiveSha256: input.sha256,
+        sourceArchiveKey: input.key,
+        canonicalSnapshotIds: resolvedCanonical.snapshotIds ?? null,
+        summary,
+        groups: groupRoadCentrelineIssues(
+          result.issues,
+          resolvedCanonical.streets ?? [],
+        ),
+      },
+      null,
+      2,
+    )}\n`,
+  )
   if (args.options['dry-run'] === true) {
-    console.log(JSON.stringify(summary, null, 2))
+    console.log(JSON.stringify({ ...summary, reviewPath }, null, 2))
     return
   }
   // A source-only row is valid only when the publisher did not supply an
   // English label. Any named ambiguity is a curation gate, never a silent
   // partial street publication.
+  if (result.issues.length > 0) {
+    throw new Error(
+      `Road Centreline requires curation for ${result.issues.length} named segments. Grouped review: ${reviewPath}`,
+    )
+  }
   requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
     nameEn: record.nameEn,
@@ -170,6 +198,7 @@ async function loadRoadCentrelineCanonical(
 ): Promise<{
   districts: RoadCentrelineDistrict[]
   streets: RoadCentrelineStreet[]
+  snapshotIds: { street: string; divisionArea: string }
 }> {
   const shardYear = /^\d{4}/.exec(sourceVersion)?.[0]
   if (!shardYear) {
@@ -184,11 +213,11 @@ async function loadRoadCentrelineCanonical(
     const metaDb = context.metaDb as unknown as HarbourReadableDb
     const [streetSnapshot, divisionSnapshot] = await Promise.all([
       latestPublishedSnapshot(metaDb, 'street'),
-      latestPublishedSnapshot(metaDb, 'division'),
+      latestPublishedSnapshot(metaDb, 'divisionArea', 'hkgov-had'),
     ])
     if (!streetSnapshot || !divisionSnapshot) {
       throw new Error(
-        'Road Centreline intake requires published canonical street and division snapshots.',
+        'Road Centreline intake requires published canonical street and HaD district-area snapshots.',
       )
     }
     const streetRows = await context.currentDb
@@ -238,31 +267,37 @@ async function loadRoadCentrelineCanonical(
     const districtRows = await context.currentDb
       .select({
         geometry: currentSchema.divisionAreas.geometry,
-        id: currentSchema.divisions.id,
+        id: currentSchema.divisionAreas.divisionId,
       })
-      .from(currentSchema.divisions)
-      .innerJoin(
-        currentSchema.divisionAreas,
-        and(
-          eq(
-            currentSchema.divisions.snapshotId,
-            currentSchema.divisionAreas.snapshotId,
-          ),
-          eq(currentSchema.divisions.id, currentSchema.divisionAreas.divisionId),
-        ),
-      )
+      .from(currentSchema.divisionAreas)
       .where(
         and(
-          eq(currentSchema.divisions.snapshotId, divisionSnapshot.id),
-          eq(currentSchema.divisions.level, 2),
-          eq(currentSchema.divisions.type, 'district'),
+          eq(currentSchema.divisionAreas.snapshotId, divisionSnapshot.id),
+          eq(currentSchema.divisionAreas.variant, 'hkgov-had'),
         ),
       )
       .all()
-    const districts = districtRows.flatMap(row =>
-      isGeoJsonGeometry(row.geometry) ? [{ geometry: row.geometry, id: row.id }] : [],
-    )
-    return { districts, streets }
+    const districts = districtRows.map(row => {
+      const geometry = decodeStoredGeoJsonGeometry(row.geometry)
+      if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
+        throw new Error(`District ${row.id} has no polygonal geometry.`)
+      }
+      return { geometry, id: row.id }
+    })
+    const districtIds = new Set(districts.map(district => district.id))
+    if (
+      !districts.length ||
+      streets.some(street => street.districtIds.some(id => !districtIds.has(id)))
+    ) {
+      throw new Error(
+        'Published HaD district areas do not cover the canonical street district IDs.',
+      )
+    }
+    return {
+      districts,
+      streets,
+      snapshotIds: { street: streetSnapshot.id, divisionArea: divisionSnapshot.id },
+    }
   } finally {
     context.cleanup()
   }
@@ -270,7 +305,8 @@ async function loadRoadCentrelineCanonical(
 
 async function latestPublishedSnapshot(
   metaDb: HarbourReadableDb,
-  resourceType: 'division' | 'street',
+  resourceType: 'divisionArea' | 'street',
+  variant?: string,
 ) {
   return metaDb
     .select({ id: metaSchema.metaSnapshots.id })
@@ -287,6 +323,7 @@ async function latestPublishedSnapshot(
         eq(metaSchema.metaSnapshots.resourceType, resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
+        variant ? eq(metaSchema.metaSnapshotLineages.variant, variant) : undefined,
       ),
     )
     .orderBy(
@@ -295,12 +332,6 @@ async function latestPublishedSnapshot(
     )
     .limit(1)
     .get()
-}
-
-function isGeoJsonGeometry(
-  value: unknown,
-): value is RoadCentrelineDistrict['geometry'] {
-  return value !== null && typeof value === 'object' && 'type' in value
 }
 
 function requireArchiveArguments(

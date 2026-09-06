@@ -101,6 +101,11 @@ describe('LandsD Road Centreline matching', () => {
     })
     for (const archive of [legacy, current]) {
       if (!archive) throw new Error('Expected both native Road Centreline archives.')
+      const firstGeometry = archive.features[1]?.geometry
+      expect(firstGeometry?.type).toBe('LineString')
+      if (firstGeometry?.type !== 'LineString') throw new Error('Expected native line.')
+      expect(firstGeometry.coordinates[0]?.[0]).toBeGreaterThan(800000)
+      expect(firstGeometry.coordinates[0]?.[1]).toBeGreaterThan(800000)
       const result = normaliseRoadCentrelineFeatures({
         features: archive.features,
         releaseId: 'test-native-release',
