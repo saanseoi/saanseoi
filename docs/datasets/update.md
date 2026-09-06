@@ -99,34 +99,32 @@ The update report collapses already-current CSDI archive slots into one row per 
 release. The updater still retains and checks state for every archive slot; a newly
 changed publisher object remains visible as an actionable update.
 
-The LandsD street-name backfill is staged maintainer-only DataOps work. Preserve and
-parse the baseline, LandsD notices from 22 January 2016 onward, and the official
-e-Gazette notices from 19 May 2000 through 21 January 2016 separately. Then assemble the
-three stages once into the immutable street snapshot:
+Publish the current LandsD gazetted street-name register before preparing historical
+evidence. The current command pins the baseline PDF and canonical identities in the
+checked-in registry, publishes the source release and snapshot, and is a no-op when that
+exact cohort is already published:
 
 ```bash
-bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:assemble --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:current --target local|preview|production
 ```
 
-The stage artefacts and the final assembly must use the same target because their
-managed evidence-asset IDs are target-specific. The assembler is the only command that
-publishes a street release, snapshot revision, and cursor update. Later
-`saanseoi update --download` runs read the Government Notices table and write only
-notice rows not present in the saved source cursor, together with generated Markdown
-notes and local WebP plan conversions. `lastUpdated` in the dataset fixture is the
-checked-in bootstrap baseline; the live cursor belongs in the ignored update-state file.
+Historical backfill is maintainer-only staging for a later reviewed correction revision:
 
-For a remote target, the latest published LandsD source version is also a chronological
-high-water mark. A partial or stale local notice-ID cursor cannot enqueue notices at or
-before that release: the updater refreshes its cursor from the publisher pages and
-offers only later publication-date batches. When more than one later batch exists, each
-successful ingest becomes the comparison baseline for the next one; the confirmation
-prompt names its position in that sequence and the preceding target version. The target
-is authoritative, so a cursor advanced while updating another environment never hides a
-later batch from the selected target.
+```bash
+bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
+```
+
+Stage artefacts use separate directories per remote environment because managed
+evidence-asset IDs are target-specific. Historical source preparation does not publish
+or advance the current-release cursor. A future revision assembler must reuse the
+published canonical identity bridge and prove present-state parity before publication.
+`lastUpdated` in the dataset fixture is the checked-in bootstrap baseline; live update
+state belongs in the ignored update-state file.
+
+The LandsD updater publishes the pinned baseline cohort only. Historical notice dates
+are evidence dates, not current-register release versions, and do not enqueue automatic
+publications. Historical enrichment requires a separately reviewed revision.
 
 When `--target` is supplied, the updater first queries that SaanSeoi environment's
 `/v1/reports/releases` endpoint for each dataset. The returned latest release is used as

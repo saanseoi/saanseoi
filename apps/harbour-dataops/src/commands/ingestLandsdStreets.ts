@@ -20,7 +20,10 @@ import {
 } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetBaselineRegistry.ts'
 import { DEFAULT_BASELINE_REGISTRY_PATH } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetIngestConfig.ts'
 import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetPublish.ts'
-import { fetchTargetVersions } from '../../../harbour-cli/src/lib/commands/updateTargets.ts'
+import {
+  fetchTargetVersions,
+  requirePublishedTargetVersion,
+} from '../../../harbour-cli/src/lib/commands/updateTargets.ts'
 import {
   loadDatasetFixtures,
   recordUpdateState,
@@ -202,6 +205,7 @@ export async function runLandsdStreetCurrentCommand(
     })
 
     const dataset = await requireStreetDatasetFixture()
+    progress.show('Checking published street-name releases on the target')
     const targetVersions = await fetchTargetVersions(target, dataset)
     const alreadyPublished = targetVersions.get(dataset.code) === release.sourceVersion
     if (!alreadyPublished) {
@@ -211,6 +215,11 @@ export async function runLandsdStreetCurrentCommand(
         onProgress: ({ current, sourceVersion: version, total }) =>
           progress.show(`Publishing release ${current + 1}/${total} (${version})`),
       })
+      progress.show('Verifying the published street-name release on the target')
+      requirePublishedTargetVersion(
+        { sourceKey: dataset.code, version: release.sourceVersion },
+        await fetchTargetVersions(target, dataset),
+      )
     }
     await recordStreetSourceCursor(target, [], release.sourceVersion)
     progress.stop(
