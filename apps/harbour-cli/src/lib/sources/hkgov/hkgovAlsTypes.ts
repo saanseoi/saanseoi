@@ -143,6 +143,9 @@ export type HkgovLocalisedPremisesAddress = {
 }
 
 export type PreparedHkgovAlsRow = {
+  parentAddressId?: string
+  curatedGranularity?: 'complex' | 'building' | 'section'
+  hierarchyCuration?: string
   id: string
   canonicalId: string
   theme: 'addresses'

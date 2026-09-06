@@ -1,7 +1,9 @@
 import { globSync } from 'node:fs'
-import { mkdir, readFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
+import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import { fileSha256 } from '../../addressSql/address3dImport'
 import { buildHkgovAlsProvisionalId } from './hkgovAlsIdentity.ts'
 import {
   emptyHkgovAlsIdentityDecisions,
@@ -180,11 +182,33 @@ export async function prepareHkgovAlsAddressParquet(
   const divisionQuality = buildHkgovAlsDivisionQuality(rows)
 
   await mkdir(dirname(outputFile), { recursive: true })
+  const has3d = globSync(resolve(sourceDir, 'als_addresses_3d_*.geojson')).length > 0
+  if (options.writeOutput !== false && has3d) {
+    await prepareAls3dCollections({
+      sourceDir,
+      sourceVersion: options.sourceVersion,
+      outputFile,
+      rows,
+    })
+    assertUniquePreparedRowIds(rows)
+  }
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,
       rowGroupSize: 5000,
       columnData: [
+        stringColumn(
+          'parentAddressId',
+          rows.map(row => row.parentAddressId ?? null),
+        ),
+        stringColumn(
+          'curatedGranularity',
+          rows.map(row => row.curatedGranularity ?? null),
+        ),
+        stringColumn(
+          'hierarchyCuration',
+          rows.map(row => row.hierarchyCuration ?? null),
+        ),
         stringColumn(
           'id',
           rows.map(row => row.id),
@@ -438,6 +462,17 @@ export async function prepareHkgovAlsAddressParquet(
         ),
       ],
     })
+
+  if (options.writeOutput !== false && has3d) {
+    await writeFile(
+      `${outputFile}.address3d.meta.json`,
+      JSON.stringify({
+        sourceVersion: options.sourceVersion,
+        parquetSha256: await fileSha256(outputFile),
+        sidecarSha256: await fileSha256(`${outputFile}.address3d.jsonl`),
+      }),
+    )
+  }
 
   return {
     deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,

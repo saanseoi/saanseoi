@@ -241,6 +241,7 @@ export function resolveCacheTablesForBinding(
       'hkgovPlandPlanningCells',
       'hkgovPlandNewTowns',
       'hkgovAlsAddresses2d',
+      'hkgovAlsAddresses3d',
       'hkgovHydStreetNamePlates',
       'hkgovHydSensitiveStreets',
       'hkgovHydStrategicStreets',
