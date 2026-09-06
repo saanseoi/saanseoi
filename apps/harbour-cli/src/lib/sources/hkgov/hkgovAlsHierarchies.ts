@@ -127,6 +127,43 @@ export function applyAlsAddressHierarchies(
       const derivedSections =
         'derivedSections' in building ? building.derivedSections : undefined
       const derivedChildren = (derivedSections ?? []).map(section => {
+        const sourcePremise =
+          'sourcePremise' in section ? section.sourcePremise : undefined
+        if (
+          sourcePremise &&
+          sourceVersion >= sourcePremise.from &&
+          sourceVersion <= sourcePremise.to
+        ) {
+          const matches = sourceByCsu.get(sourcePremise.csu) ?? []
+          const source = matches[0]
+          if (
+            matches.length !== 1 ||
+            !source ||
+            source.enEstateName !== relationship.complex.enName ||
+            source.zhHantEstateName !== relationship.complex.zhHantName ||
+            source.enBuildingName ||
+            source.zhHantBuildingName ||
+            source.enBlockNumber ||
+            source.zhHantBlockNumber ||
+            source.enStreetNumberFrom !== '322' ||
+            source.zhHantStreetNumberFrom !== '322' ||
+            source.enStreetNumberTo ||
+            source.zhHantStreetNumberTo ||
+            (source.enStreetName !== null &&
+              source.enStreetName !== relationship.complex.streetName) ||
+            (source.zhHantStreetName !== null &&
+              source.zhHantStreetName !== relationship.complex.zhHantStreetName)
+          )
+            throw new Error(
+              `ALS hierarchy ${section.id}: source section changed; review required`,
+            )
+          source.parentAddressId = parent.id
+          source.curatedGranularity = 'section'
+          source.hierarchyCuration = section.id
+          // Retain this publisher address identity, components and point. The fixture
+          // supplies its reviewed section name; no duplicate derived child is needed.
+          return source
+        }
         const child = derivedRow(parent, section.id, {
           enBuildingName: section.enName,
           zhHantBuildingName: section.zhHantName,
