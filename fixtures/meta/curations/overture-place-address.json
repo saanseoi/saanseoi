@@ -23,5 +23,80 @@
       "replacement": "explicit-only"
     }
   },
-  "decisions": []
+  "decisions": [
+    {
+      "placeId": "82b49412-c741-43ee-a1e3-4d404174b0be",
+      "fingerprint": "f197dffc31a114e6f1215b174ad93c9162debd0a045d28ce80741f348ab1a1aa",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "link_existing",
+      "addressId": "ss-c54bdc15-af80-575e-8abd-c4ff69680350",
+      "reason": "OK"
+    },
+    {
+      "placeId": "4a04d607-daeb-4ba5-b76c-e335f3a80289",
+      "fingerprint": "6090fdd6f7026241ba8b1c9b2abb444b742b6324b3b3c1e1a6a8898a567e371b",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "link_existing",
+      "addressId": "ss-c8671018-85d2-5948-ae77-8cce8e6511fe",
+      "reason": "OK"
+    },
+    {
+      "placeId": "0c54c053-9582-4366-8257-609cd6d37cc1",
+      "fingerprint": "91b037600311102e19e8e5fd796bbd0ebbf8a4c5c76e24509c471549d0449e2f",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "create_supplementary",
+      "addressId": "opa-379a3538ebc82f8b4bd639b8d2d3c56147a746f7b24d4dfc98e7e58f328a406b",
+      "reason": "Edited supplementary address in interactive review.",
+      "address": {
+        "baseAddressId": "ss-2b077f6a-4a2a-59c0-aa1c-7097e7be70e6",
+        "values": [
+          {
+            "blockExpression": null,
+            "buildingName": "RESIDENCE 228",
+            "buildingNumberExpression": "228–234",
+            "buildingNumberFrom": "228",
+            "buildingNumberTo": "234",
+            "estateName": null,
+            "formattedAddress": "RESIDENCE 228, 228–234 FUK WING STREET",
+            "locale": "en",
+            "phaseExpression": null,
+            "streetName": "FUK WING STREET"
+          }
+        ]
+      }
+    },
+    {
+      "placeId": "469ebc90-152b-4e4d-8572-dbabb2f85b8b",
+      "fingerprint": "85dcb429ac6834c679d9bfbe9ca2c4c46a9122db65d2461cc343edeaf7a08b44",
+      "address2dFingerprint": "85dcb429ac6834c679d9bfbe9ca2c4c46a9122db65d2461cc343edeaf7a08b44",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "link_existing",
+      "addressId": "ss-103cb312-50c6-5049-9f8e-bce616855afe",
+      "reason": "Selected ALS identity in interactive review."
+    },
+    {
+      "placeId": "7060b31c-8a0f-48e3-b7b7-c8682fc6e7f6",
+      "fingerprint": "fd23c9ed410412f68200b7bdaa4b5087aa06ffd6c8b2ac4c77f206b59a34242e",
+      "address2dFingerprint": "fd23c9ed410412f68200b7bdaa4b5087aa06ffd6c8b2ac4c77f206b59a34242e",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "link_existing",
+      "addressId": "ss-51b12f93-53a1-5797-b9be-3f792e8a7aff",
+      "reason": "Selected ALS identity in interactive review."
+    },
+    {
+      "placeId": "a04b9b59-2ee3-4d2c-a074-ed5be70275cf",
+      "fingerprint": "86f7f7469b9b53a61af8a4102e823e97836169993f975c9ebd7b97f9bd628ab3",
+      "address2dFingerprint": "86f7f7469b9b53a61af8a4102e823e97836169993f975c9ebd7b97f9bd628ab3",
+      "sourceRelease": "2025-09-24.0",
+      "previousAddressId": null,
+      "resolution": "link_existing",
+      "addressId": "ss-51b12f93-53a1-5797-b9be-3f792e8a7aff",
+      "reason": "Selected ALS identity in interactive review."
+    }
+  ]
 }
