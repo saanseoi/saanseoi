@@ -40,6 +40,22 @@ segment. No link or exclusion decision is inferred from the report. The selected
 snapshots are the latest published snapshots of the required kinds; historical
 applicability must be checked when reviewing an older source archive.
 
+Pass `--review` to the same intake command to open the colour-coded terminal review.
+English names, Traditional Chinese names and district IDs use consistent colours for
+source and candidate streets. Suggestions use bilingual name and district evidence;
+reviewers can search canonical names or IDs, link a whole group, retain it as
+source-only evidence, skip it for investigation, or exit. Suggestions never establish
+identity. The review command saves decisions without importing or publishing a release.
+
+Each choice is saved atomically under
+`fixtures/meta/curations/road-centreline/{archive-sha256}.json`. Decisions are bound to
+the archive, source version, canonical snapshot IDs and complete review-group evidence.
+Rerunning resumes remaining groups; changed provenance requires a fresh review file.
+Intake consumes the saved decisions and blocks while any named segments remain
+unresolved. `--yes` cannot perform interactive review. Exclusion retains the complete
+native segment and does not create or delete a canonical street. Street links remain
+curation evidence for canonical composition; native source rows retain publisher data.
+
 The original publisher archive is the CSDI Road Centreline package. The CSDI
 old-Street-Name archive link is descriptive provenance only and is never an input to
 this pipeline. `hkgov-landsd:road-centreline` reads the locally mirrored FileGDB ZIP
