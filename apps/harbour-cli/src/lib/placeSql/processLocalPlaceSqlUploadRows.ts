@@ -182,6 +182,11 @@ export async function buildPlaceSql(
       )
     }
     for (const localised of place.i18n) {
+      const i18nVersionHash = await createHash({
+        placeVersionHash: row.versionHash,
+        locale: localised.locale,
+        localised,
+      })
       currentSql.push(
         insertSql('placesI18n', {
           snapshotId: input.snapshots.snapshotId,
@@ -206,7 +211,7 @@ export async function buildPlaceSql(
           recordType: 'placeI18n',
           recordId: place.id,
           locale: localised.locale,
-          versionHash: row.versionHash,
+          versionHash: i18nVersionHash,
           operation: 'upsert',
           sourceReleaseId: input.message.releaseId,
           createdAt: now,
