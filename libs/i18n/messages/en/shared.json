@@ -2679,6 +2679,7 @@
   "openapi_addresses_updated_at_description": "When SaanSeoi last updated this canonical address record.",
   "openapi_addresses_identifiers_description": "Identifiers supplied by SaanSeoi or the source publisher.",
   "openapi_addresses_sources_description": "Source attribution and premise-normalisation evidence for this address.",
+  "openapi_addresses_granularity_description": "The scope identified by this address, not a quality score. Unknown means the scope is not established. Number ranges alone do not identify a building, unit or containment relationship.",
   "openapi_addresses_parent_address_id_description": "The containing Address ID, or null when no parent has been established. This is an explicit containment reference, not an ALS derivation link or evidence that missing numbers in a range exist.",
   "openapi_addresses_i18n_field_description": "Localised address text and parsed components, keyed by requested locale.",
   "openapi_addresses_i18n_description": "Localised address text and parsed components, keyed by requested locale.",
