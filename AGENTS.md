@@ -4,6 +4,9 @@
 
 ### Task Execution & Autonomy
 
+- CET is short for "Continue the Errored Codex Thread which contains the text" and you
+  should then lookup the subsequent text in the current date's $HOME/.codex/sessions/ to
+  pick up a failed thread.
 - For implementation or fix requests, carry the authorized work through implementation
   and relevant verification. Do not stop at a proposed plan when you can proceed.
 - Make reasonable assumptions for routine, reversible decisions. Ask a focused question

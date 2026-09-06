@@ -2676,6 +2676,7 @@
   "openapi_addresses_updated_at_description": "SaanSeoi 最后更新此标准地址记录的时间。",
   "openapi_addresses_identifiers_description": "由 SaanSeoi 或来源发布者提供的标识符。",
   "openapi_addresses_sources_description": "此地址的来源归属及地址前提规范化证据。",
+  "openapi_addresses_parent_address_id_description": "包含此地址的上层地址 ID；尚未确立上层地址时为 null。此字段表示明确的包含关系，并非 ALS 衍生链接，也不能证明号码范围内缺漏的门牌确实存在。",
   "openapi_addresses_i18n_field_description": "按所要求的语言代码索引的本地化地址文本及解析组件。",
   "openapi_addresses_i18n_description": "按语言代码索引的本地化地址文本及解析组件。",
   "openapi_addresses_i18n_attributes_description": "一种语言的地址文本及解析组件。来源未提供的可选组件为 null。",
