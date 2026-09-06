@@ -42,6 +42,8 @@ export type AddressPipelineMessage = DatasetProcessingMessage & {
   /** Exact historical parent state, supplied only for a local branch backfill. */
   addressHistoricalParentVersions?: Map<string, ReplayedAddressVersionSnapshot>
   addressHistoricalParentSnapshotId?: string
+  /** Exact Division snapshot used to prepare this address release. */
+  addressDivisionSnapshotId?: string
   artefactKey?: string
   resolvedArtefactKey?: string
   addressSqlArtefactKeys?: string[]

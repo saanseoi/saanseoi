@@ -53,6 +53,9 @@ export async function writeAddressCurrentChunkStage(
     pipelineMessage.resolvedArtefactKey,
   )
   const artefactRows = dedupeResolvedAddressRows(artefact.rows)
+  const divisionSnapshotId =
+    pipelineMessage.addressDivisionSnapshotId ??
+    artefactRows[0]?.base.divisionSnapshotId
   console.info(
     JSON.stringify({
       changedRows: artefactRows.filter(row => row.changed).length,
@@ -83,7 +86,6 @@ export async function writeAddressCurrentChunkStage(
           `Address replay parent does not match snapshot ${versionInsertContext.snapshotId}.`,
         )
       }
-      const divisionSnapshotId = artefactRows[0]?.base.divisionSnapshotId
       if (!divisionSnapshotId) {
         throw new Error(
           `Address snapshot ${versionInsertContext.snapshotId} has no division snapshot for historical replay.`,
@@ -106,13 +108,12 @@ export async function writeAddressCurrentChunkStage(
       )
     }
 
-    const divisionSnapshotId = artefactRows[0]?.base.divisionSnapshotId
     if (divisionSnapshotId) {
       await recordSnapshotLookupDependency(metaRepoDb, {
         anchorReleaseId: versionInsertContext.releaseId,
         lookupSnapshotId: divisionSnapshotId,
         selectedByRule:
-          'api-composition:addresses/official:address/default->division/overture',
+          'api-composition:addresses/saanseoi:address/default->division/overture',
         selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
         snapshotId: versionInsertContext.snapshotId,
       })
@@ -148,6 +149,14 @@ export async function writeAddressCurrentChunkStage(
     artefact.processingRunStartedAt,
   )
 
+  if (artefact.rowEnd >= artefact.totalRows && divisionSnapshotId) {
+    await alignAddressCurrentDivisionSnapshot(
+      currentRepoDb,
+      versionInsertContext.snapshotId,
+      divisionSnapshotId,
+    )
+  }
+
   const chunkSize = resolveAddressChunkSize(message.chunkSize)
   const stats = addAddressPipelineStats(pipelineMessage.addressStats, {
     addedRows: artefact.addedRows,
@@ -179,6 +188,7 @@ export async function writeAddressCurrentChunkStage(
       ...pipelineMessage,
       addressStage: 'normalise',
       addressStats: stats,
+      addressDivisionSnapshotId: divisionSnapshotId,
       artefactKey: undefined,
       resolvedArtefactKey: undefined,
       chunkSize,
@@ -205,6 +215,7 @@ export async function writeAddressCurrentChunkStage(
     ...pipelineMessage,
     addressStage: 'finalise',
     addressStats: stats,
+    addressDivisionSnapshotId: divisionSnapshotId,
     artefactKey: undefined,
     resolvedArtefactKey: undefined,
     processingRunStartedAt: artefact.processingRunStartedAt,

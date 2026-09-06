@@ -1,7 +1,6 @@
 import type { DatasetProcessingMessage } from '../../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
-  and,
   eq,
   metaSchema,
   type CurrentDatabase,
@@ -199,9 +198,21 @@ export async function writeAddressCurrentSqlChunkStage(
     bucket,
     pipelineMessage.resolvedArtefactKey,
   )
-  const [currentFile] = buildAddressResolvedSqlImportFiles(message, artefact).filter(
-    file => file.target === 'current',
-  )
+  const currentDivisionSnapshotId = artefact.rows[0]?.base.divisionSnapshotId
+  const currentSnapshotId = artefact.rows[0]?.base.snapshotId
+  const selectedDivisionSnapshotId =
+    pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
+  const isFinalChunk = artefact.rowEnd >= artefact.totalRows
+  const [currentFile] = buildAddressResolvedSqlImportFiles(
+    message,
+    artefact,
+    isFinalChunk && selectedDivisionSnapshotId && currentSnapshotId
+      ? {
+          currentDivisionSnapshotId: selectedDivisionSnapshotId,
+          currentSnapshotId,
+        }
+      : undefined,
+  ).filter(file => file.target === 'current')
   if (artefact.rowStart === 0 && pipelineMessage.addressHistoricalParentVersions) {
     const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
     const versionInsertContext = await prepareAddressVersionInsertContext(
@@ -238,6 +249,7 @@ export async function writeAddressCurrentSqlChunkStage(
           currentDb,
           message,
           artefact.rows[0].base.snapshotId,
+          selectedDivisionSnapshotId,
         )
       : null
   const initArtefactKeys = initFile
@@ -274,6 +286,7 @@ export async function writeAddressCurrentSqlChunkStage(
       ...pipelineMessage,
       addressStage: 'normalise',
       addressStats: stats,
+      addressDivisionSnapshotId: selectedDivisionSnapshotId,
       addressSqlArtefactKeys: [
         ...(pipelineMessage.addressSqlArtefactKeys ?? []),
         ...initArtefactKeys,
@@ -294,6 +307,7 @@ export async function writeAddressCurrentSqlChunkStage(
     ...pipelineMessage,
     addressStage: 'sql-finalise',
     addressStats: stats,
+    addressDivisionSnapshotId: selectedDivisionSnapshotId,
     addressSqlArtefactKeys: [
       ...(pipelineMessage.addressSqlArtefactKeys ?? []),
       ...initArtefactKeys,
@@ -655,6 +669,7 @@ async function buildCurrentSnapshotInitSqlFile(
   _currentDb: CurrentDatabase,
   message: DatasetProcessingMessage,
   snapshotIdValue: string,
+  divisionSnapshotIdValue: string | undefined,
 ): Promise<AddressSqlImportFile> {
   const metaRepoDb = metaDb as unknown as HarbourReadableDb
   const previousSnapshot = await metaRepoDb
@@ -663,39 +678,9 @@ async function buildCurrentSnapshotInitSqlFile(
     .where(eq(metaSchema.metaSnapshots.id, snapshotIdValue))
     .limit(1)
     .get()
-  const divisionSnapshots = await metaDb
-    .select({
-      cohortKey: metaSchema.metaSnapshots.cohortKey,
-      id: metaSchema.metaSnapshots.id,
-    })
-    .from(metaSchema.metaSnapshots)
-    .innerJoin(
-      metaSchema.metaSnapshotLineages,
-      eq(
-        metaSchema.metaSnapshots.snapshotLineageId,
-        metaSchema.metaSnapshotLineages.id,
-      ),
-    )
-    .where(
-      and(
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
-        eq(metaSchema.metaSnapshots.status, 'published'),
-        eq(metaSchema.metaSnapshotLineages.regionCode, message.regionCode),
-        eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-      ),
-    )
-    .all()
-  const divisionSnapshot = divisionSnapshots.find(
-    snapshot =>
-      snapshot.cohortKey ===
-      resolveAddressDivisionCohortKey(
-        message,
-        divisionSnapshots.map(snapshot => snapshot.cohortKey),
-      ),
-  )
-  if (!divisionSnapshot) {
+  if (!divisionSnapshotIdValue) {
     throw new Error(
-      `Published division snapshot not found for ${message.regionCode}/${message.cohortKey}.`,
+      `Address snapshot ${snapshotIdValue} has no resolved division snapshot dependency.`,
     )
   }
   const snapshotId = sqlLiteral(snapshotIdValue)
@@ -757,7 +742,10 @@ ON CONFLICT(snapshotId, addressId, buildingNumber) DO NOTHING;`.trim(),
   }
 
   statements.push(
-    buildAlignAddressCurrentDivisionSnapshotSql(snapshotIdValue, divisionSnapshot.id),
+    buildAlignAddressCurrentDivisionSnapshotSql(
+      snapshotIdValue,
+      divisionSnapshotIdValue,
+    ),
   )
 
   const sql = `${statements.join('\n\n')}\n`

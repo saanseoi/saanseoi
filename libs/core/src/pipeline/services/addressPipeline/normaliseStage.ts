@@ -66,7 +66,7 @@ export async function normaliseAddressChunkStage(
     },
   })) {
     for (const row of batch) {
-      const normalised = normaliseAddressRowForPipeline(row)
+      const normalised = normaliseAddressRowForPipeline(row, message.sourceVersion)
       const i18n = dedupeAddressI18nRows(normalised.i18n, normalised.sourceId)
       const sourcePayloadHash = await createHash(buildHkgovAlsSourceHashInput(row))
 

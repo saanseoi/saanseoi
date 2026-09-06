@@ -60,6 +60,20 @@ describe('address SQL import staging cleanup', () => {
     )
   })
 
+  test('realigns the complete current snapshot after the final chunk', () => {
+    const currentFile = buildAddressResolvedSqlImportFiles(message, resolvedArtefact, {
+      currentDivisionSnapshotId: 'division-snapshot',
+      currentSnapshotId: 'snapshot-address',
+    }).find(file => file.target === 'current')
+
+    const applyIndex = currentFile?.sql.indexOf('INSERT INTO address2d (') ?? -1
+    const alignmentIndex = currentFile?.sql.lastIndexOf('UPDATE address2d\nSET') ?? -1
+
+    expect(alignmentIndex).toBeGreaterThan(applyIndex)
+    expect(currentFile?.sql).toContain("divisionSnapshotId = 'division-snapshot'")
+    expect(currentFile?.sql).toContain("WHERE snapshotId = 'snapshot-address';")
+  })
+
   test('writes a history-apply cleanup artefact even when there are no changes', () => {
     const historyApplyFile = buildAddressHistoryApplySqlImportFile(message, {
       hasChanges: false,
