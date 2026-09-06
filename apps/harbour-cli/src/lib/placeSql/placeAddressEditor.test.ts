@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import {
+  buildAddressEditorOptions,
   formatEditedAddress,
   localiseEditedAddress,
   parsedAddressSeed,
@@ -36,6 +37,15 @@ const chinese = {
 }
 const matcher = createPlaceAddressMatcher([english, chinese])
 const parse = (text: string) => parsePlaceAddress(text, matcher)
+
+test('address editor keeps geometry override immediately above Back', () => {
+  const options = buildAddressEditorOptions(english)
+  expect(options.at(-2)).toEqual({
+    value: 'save_override',
+    label: 'Save & Override Lat/Lng',
+  })
+  expect(options.at(-1)).toEqual({ value: 'back', label: 'Back' })
+})
 
 test('English edits preserve unchanged Chinese names, translate vocabulary and mark generated values unverified', () => {
   const edited = {
@@ -127,6 +137,65 @@ test('New Address decisions replay without an ALS base and retain localisation p
     rows[0]?.canonical.sources[0]?.localisationProvenance['zh-hant']?.isHumanVerified,
   ).toEqual([])
   expect(rows[0]?.i18n[1]).not.toHaveProperty('provenance')
+})
+
+test('Place geometry overrides replay from an explicit ALS decision', () => {
+  const source = {
+    placeId: 'place-geometry',
+    sourceRelease: '2026-09-01',
+    texts: ['Example House, 20 Example Road'],
+    lng: 114.1,
+    lat: 22.1,
+  }
+  const fixture = parseSupplementaryCuration(
+    {
+      ...structuredClone(policy),
+      decisions: [
+        {
+          placeId: source.placeId,
+          sourceRelease: source.sourceRelease,
+          fingerprint: addressFingerprint(source.texts),
+          previousAddressId: null,
+          resolution: 'link_existing',
+          addressId: english.addressId,
+          reason: 'Override geometry',
+          placeGeometryOverride: { lng: 114.2, lat: 22.2 },
+        },
+      ],
+    },
+    emptySupplementaryEntryLedger(),
+  )
+  const analyse = createSupplementaryAddressAnalyser(
+    [english],
+    new Set([english.addressId]),
+    new Map([[english.addressId, { lng: 114.2, lat: 22.2 }]]),
+    fixture,
+  )
+  const resolution = analyse(source, null)
+  expect(resolution.addressId).toBe(english.addressId)
+  expect(resolution.lng).toBe(114.2)
+  expect(resolution.lat).toBe(22.2)
+  expect(resolution.placeGeometryOverride).toEqual({ lng: 114.2, lat: 22.2 })
+})
+
+test('invalid Place geometry overrides are rejected', () => {
+  expect(() =>
+    parseSupplementaryCuration({
+      ...structuredClone(policy),
+      decisions: [
+        {
+          placeId: 'place-invalid-geometry',
+          sourceRelease: '2026-09-01',
+          fingerprint: 'fingerprint',
+          previousAddressId: null,
+          resolution: 'link_existing',
+          addressId: english.addressId,
+          reason: 'Invalid geometry',
+          placeGeometryOverride: { lng: 181, lat: 22 },
+        },
+      ],
+    }),
+  ).toThrow('Invalid Place geometry override')
 })
 
 test('unlinked decisions survive unit changes but reopen a changed 2D address', () => {

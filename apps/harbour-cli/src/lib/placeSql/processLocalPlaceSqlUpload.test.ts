@@ -234,6 +234,8 @@ describe('Places SQL materialisation', () => {
       historyRows: [],
       places: [
         {
+          effectiveLng: 114.2,
+          effectiveLat: 22.4,
           address2dId: 'supplementary-address',
           addressSnapshotId: 'supplementary-snapshot',
           address3dId: null,
@@ -303,6 +305,18 @@ describe('Places SQL materialisation', () => {
     })
     expect(history.query('SELECT COUNT(*) AS count FROM places').get()).toEqual({
       count: 1,
+    })
+    expect(sqlite.query('SELECT lng, lat FROM places').get()).toEqual({
+      lng: 114.2,
+      lat: 22.4,
+    })
+    expect(sqlite.query('SELECT lng, lat FROM overturePlaces').get()).toEqual({
+      lng: 114.1694,
+      lat: 22.3193,
+    })
+    expect(history.query('SELECT lng, lat FROM places').get()).toEqual({
+      lng: 114.2,
+      lat: 22.4,
     })
     for (const db of [sqlite, history]) {
       expect(

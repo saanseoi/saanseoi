@@ -98,6 +98,8 @@ export async function buildPlaceSql(
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
+    const lng = row.effectiveLng ?? place.lng
+    const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
     const firstSeenMonth =
       typeof previous?.row.firstSeenMonth === 'string'
@@ -145,8 +147,8 @@ export async function buildPlaceSql(
           : null,
         address2dId: row.address2dId,
         address3dId: row.address3dId,
-        lng: place.lng,
-        lat: place.lat,
+        lng,
+        lat,
         bbox: place.bbox,
         operatingStatus: place.operatingStatus,
         basicCategory: place.basicCategory,
@@ -173,7 +175,7 @@ export async function buildPlaceSql(
           snapshotId: input.snapshots.snapshotId,
           id: place.id,
           h3Level,
-          h3Cell: latLngToCell(place.lat, place.lng, h3Level),
+          h3Cell: latLngToCell(lat, lng, h3Level),
         }),
       )
     }
@@ -238,8 +240,8 @@ export async function buildPlaceSql(
             : null,
           address2dId: row.address2dId,
           address3dId: row.address3dId,
-          lng: place.lng,
-          lat: place.lat,
+          lng,
+          lat,
           bbox: place.bbox,
           operatingStatus: place.operatingStatus,
           basicCategory: place.basicCategory,

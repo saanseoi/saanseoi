@@ -374,6 +374,10 @@ export async function stageEnrichedPlaces(
             : undefined
           if (addressId && !address)
             throw new Error(`Place Address ${addressId} did not materialise.`)
+          const effectiveLng = resolution.lng ?? place.lng
+          const effectiveLat = resolution.lat ?? place.lat
+          const geometryOverridden =
+            effectiveLng !== place.lng || effectiveLat !== place.lat
           const referencedDivisionIds = address
             ? [
                 address.countryId,
@@ -390,8 +394,12 @@ export async function stageEnrichedPlaces(
               )
             : []
           const contentHash = await hashNormalisedPlace(place)
+          const materialisationContentHash = geometryOverridden
+            ? await createHash({ contentHash, effectiveLng, effectiveLat })
+            : contentHash
           const result = {
             place,
+            ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
             addressSnapshotId: addressId ? addressSnapshotId : null,
             address2dId: addressId,
             address3dId: null,
@@ -401,7 +409,7 @@ export async function stageEnrichedPlaces(
               divisionSnapshotId: snapshots.divisionSnapshotId,
               addressId,
               divisionIds: referencedDivisionIds,
-              contentHash,
+              contentHash: materialisationContentHash,
             }),
             sourcePayloadHash: await createHash(place.raw),
           }
