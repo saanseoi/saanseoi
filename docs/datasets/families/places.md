@@ -1,5 +1,11 @@
 # Places dataset family
 
+Metadata, search and supplementary Address SQL use
+[sealed delivery phases](../sql-delivery.md) alongside Places data. Review and
+publication remain separate lifecycle steps. Local Places search replay follows local
+data replay. Address search text selects the linked unit from the Address3D collection;
+it does not index neighbouring units in that collection.
+
 The Places API family publishes Overture `place` records for the selected region. Each
 Overture release is processed as a complete replacement snapshot and includes the raw
 publisher source record in the source database.

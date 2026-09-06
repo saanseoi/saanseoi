@@ -1,5 +1,11 @@
 # Census and Statistics Department division statistics
 
+Both district and general Statistics importers use
+[sealed delivery phases](../../sql-delivery.md) for source, canonical,
+release-statistics, processing-action and snapshot metadata SQL. Each phase combines
+adjacent same-database batches, records remote receipts and replays the exact retained
+payloads locally before publication.
+
 The following C&SD datasets are registered as Stats-family sources. They preserve
 publisher releases with their published geography cohort and measures. Each source
 release writes structural release-owned facts to `meta.stats` and materialises one

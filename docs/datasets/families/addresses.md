@@ -88,6 +88,11 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Commercial containment can have multiple levels: Choi Yuen Food Court → Choi Yuen Plaza
+→ Choi Yuen Estate. These parent-address links do not imply shared identity or
+residential-unit coverage. An omitted raw estate component remains source evidence even
+when reviewed containment establishes the ancestry.
+
 Explicit premise consolidation can suppress a reviewed underspecified duplicate and
 backfill a corrected display name while preserving every raw assertion. Choi Ying Place
 uses one reviewed identity across its temporary publisher CSU change; this does not

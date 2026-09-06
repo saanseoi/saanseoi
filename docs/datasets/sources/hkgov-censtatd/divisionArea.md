@@ -1,5 +1,10 @@
 # Census and Statistics Department District Council district areas
 
+Exact and simplified geometry imports use distinct
+[sealed delivery phases](../../sql-delivery.md). Each phase retains source-file and
+snapshot identities and confirms remote imports before replaying the same SQL into the
+mirror.
+
 ## Source releases
 
 The Census and Statistics Department (C&SD) publishes 18 District Council district

@@ -79,6 +79,12 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Reviewed nested commercial premises use `hkgov-dpo-address-nested-premises.json`. Choi
+Yuen Food Court links to Choi Yuen Plaza, which links to Choi Yuen Estate, for the July
+22 and August 2026 source records. Raw components, identities and the newer food-court
+point remain unchanged. Containment neither merges the unnamed same-CSU record nor
+assigns residential inventory to the food court.
+
 `hkgov-dpo-address-premise-consolidations.json` guards Choi Ying Place's reviewed
 cross-CSU consolidation. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
 release; the underspecified duplicate is suppressed wherever present and the corrected

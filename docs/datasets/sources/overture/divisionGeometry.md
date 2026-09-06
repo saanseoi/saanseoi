@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Geometry SQL uses [sealed delivery phases](../../sql-delivery.md) with source-file and
+snapshot identities. Remote delivery and exact mirror replay must complete before
+publication.
+
 Overture `division_area` and `division_boundary` parquet files are ingested as the
 `divisionArea` and `divisionBoundary` resource types. The local SQL importer accepts the
 documented geometry unions: Polygon and MultiPolygon for areas, LineString and

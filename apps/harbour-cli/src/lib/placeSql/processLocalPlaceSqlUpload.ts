@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
 import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type {
@@ -305,8 +306,12 @@ export async function processLocalPlaceSqlUpload(
     )
     if (target.remote) {
       await runPlaceProgressPhase(progress, 'Import SQL', 'snapshot metadata', () =>
-        buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId).then(sql =>
-          executeSqlText(targets.meta, sql, importOptions),
+        deliverSqlPhase(
+          { context, releaseId, phase: 'places-metadata', inputs: sqlDelivery!.inputs },
+          () =>
+            buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId).then(sql =>
+              executeSqlText(targets.meta, sql, importOptions),
+            ),
         ),
       )
     }
@@ -331,18 +336,30 @@ export async function processLocalPlaceSqlUpload(
         ),
       stagedEnrichedPlaces.processedRows,
     )
-    await runPlaceProgressPhase(progress, 'Rebuild', 'Places search index', () =>
-      executeSqlText(
-        targets.current,
-        readFileSync(
-          resolve(
-            import.meta.dir,
-            '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
+    const rebuildSearch = (mode: 'remote' | 'local') =>
+      deliverSqlPhase(
+        {
+          context,
+          releaseId,
+          phase: 'places-search',
+          inputs: sqlDelivery?.inputs ?? {},
+          mode,
+        },
+        () =>
+          executeSqlText(
+            targets.current,
+            readFileSync(
+              resolve(
+                import.meta.dir,
+                '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
+              ),
+              'utf8',
+            ),
+            importOptions,
           ),
-          'utf8',
-        ),
-        importOptions,
-      ),
+      )
+    await runPlaceProgressPhase(progress, 'Rebuild', 'Places search index', () =>
+      rebuildSearch('remote'),
     )
     await runPlaceProgressPhase(
       progress,
@@ -457,17 +474,7 @@ export async function processLocalPlaceSqlUpload(
                   stagedEnrichedPlaces.processedRows,
                   'remote cache search index',
                 )
-                await executeSqlText(
-                  targets.current,
-                  readFileSync(
-                    resolve(
-                      import.meta.dir,
-                      '../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
-                    ),
-                    'utf8',
-                  ),
-                  cacheImportOptions,
-                )
+                await rebuildSearch('local')
               },
             ),
           stagedEnrichedPlaces.processedRows,

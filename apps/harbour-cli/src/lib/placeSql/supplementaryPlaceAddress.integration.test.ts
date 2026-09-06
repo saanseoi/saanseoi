@@ -142,6 +142,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       curationPath,
       entryLedgerPath,
       context: {
+        state: { target: 'local' },
         currentDb,
         historyTargets: [
           {

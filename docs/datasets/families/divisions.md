@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Canonical, Planning Department and geometry SQL imports use
+[sealed delivery phases](../sql-delivery.md). The local mirror supplies the planning
+context. Remote receipts confirm each retained payload before the identical SQL reaches
+the shared mirror; publication follows delivery.
+
 The Divisions API family combines canonical divisions with geometry companions. Geometry
 variants are source-specific records and are not merged. The family currently requires
 canonical `division`, Overture `divisionArea`, Overture `divisionBoundary`, and the

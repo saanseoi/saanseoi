@@ -1,11 +1,15 @@
 # Resumable SQL delivery
 
-Address 2D, grouped Address3D and Places data delivery use the local D1 mirror as their
-planning context. Each delivery phase seals every payload before sending writes.
+Address 2D, grouped Address3D, Divisions, Statistics and Places SQL delivery use the
+local D1 mirror as their planning context. Each delivery phase seals every payload
+before sending writes.
 
 Plans live below `.local/harbour-sql/releases/{target}/{releaseCode}/`, in
-`sql-delivery-address`, `sql-delivery-address3d` or `sql-delivery-places`. Each
-contains:
+`sql-delivery-address`, `sql-delivery-address3d` or `sql-delivery-places`. Each contains
+the files below. Division, geometry, Statistics and Places auxiliary phases live under
+`.local/harbour-sql/deliveries/{target}/release-{encodedReleaseId}/{phase}/`.
+
+Each plan contains:
 
 - `plan.json`: release, environment, mirror generation, frozen inputs, ordered targets,
   payload byte lengths and SHA-256 checksums;
@@ -73,8 +77,18 @@ of a processing release retains mirror ownership. Metadata refresh validates a
 replacement SQLite file before replacing the existing metadata mirror.
 
 Recovery covers the named SQL phase. It does not publish releases, prepare sources,
-perform curation or skip other lifecycle stages. Places supplementary-address
-preparation and release publication retain their existing recovery boundaries.
+perform curation or skip other lifecycle stages. Places supplementary-address SQL is
+captured only after policy decisions and before row verification; curation, review
+artefacts and release publication remain lifecycle operations outside SQL recovery.
+
+Division and geometry imports and Statistics source, canonical and metadata phases
+combine adjacent same-database SQL into payloads of at most 64 MiB. Large generated
+artefacts split between statements; individual statement limits still apply. All SQL in
+a phase is sealed before delivery, then confirmed remotely before exact local replay.
+Planning Department releases use their scoped mirror for generation and the shared
+mirror for delivery receipts and replay. Places metadata and supplementary Address SQL
+use the same phase mechanism. Places search SQL is delivered remotely before publication
+and replayed locally only after the retained Places data has reached the mirror.
 
 ## Timings
 

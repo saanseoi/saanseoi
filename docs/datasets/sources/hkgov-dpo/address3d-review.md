@@ -150,6 +150,14 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
+Choi Yuen Food Court's July 22 and August 2026 records retain the reviewed newer point
+and link through Choi Yuen Plaza to Choi Yuen Estate. The explicit relationship lives in
+`hkgov-dpo-address-nested-premises.json`. Match the named food court by CSU and both
+names, preserving the separate unnamed record with the same CSU. Reuse the curated
+estate complex where available, otherwise the guarded publisher estate-address record.
+No residential coverage is inferred. The older location and July absence are not
+backfilled by this containment decision.
+
 Choi Ying Place retains one named shopping centre across all thirty releases under
 `hkgov-dpo-address-premise-consolidations.json`. Suppress the unnamed duplicate in its
 twenty-eight occurrences; retain the sole named record in December 2024 and
