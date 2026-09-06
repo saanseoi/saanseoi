@@ -3,7 +3,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { not } from 'drizzle-orm'
+import { lte, not } from 'drizzle-orm'
 import {
   and,
   currentSchema,
@@ -15,6 +15,8 @@ import {
   sourceSchema,
 } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import type { HarbourWritableDb } from '@repo/core/db/types'
+import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
@@ -26,6 +28,7 @@ import {
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 import { supplementaryEntryLedgerPath } from '../placeSql/processLocalPlaceSqlUploadConfig.ts'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
@@ -65,6 +68,7 @@ export async function beginOverturePlacesInitialisation(
     const existing = await readPlacesManifest(path)
     if (options.continue && ['running', 'failed'].includes(existing.status)) {
       if (existing.status === 'failed') {
+        await recoverFailedPlacesIngestRuns(target, existing)
         await writePlacesManifest(path, resumePlacesManifest(existing))
       }
       note(formatField('manifest', path), 'RESUMING OVERTURE PLACES INITIALISATION')
@@ -124,6 +128,88 @@ export function failPlacesManifest(
     throw new Error('A completed Overture Places initialisation cannot be failed.')
   if (manifest.status === 'failed') return manifest
   return { ...manifest, failedAt, status: 'failed' }
+}
+
+async function recoverFailedPlacesIngestRuns(
+  target: UploadTarget,
+  manifest: PlacesInitManifest,
+) {
+  if (!manifest.failedAt)
+    throw new Error('Failed Overture Places manifest is missing failedAt.')
+  const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
+    cacheTableProfile: 'places',
+    includeAllHistoryShardYears: true,
+    includeAllSourceShardYears: true,
+    requireExistingRemoteCache: target.remote,
+  })
+  try {
+    const remoteClient = target.remote ? createHarbourControlClient(target) : null
+    await failRunningPlacesIngestRuns(
+      context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      manifest.failedAt,
+      remoteClient
+        ? async run => {
+            await remoteClient.stageFailed(
+              run.releaseId,
+              run.phase,
+              'Overture Places initialisation was interrupted.',
+              undefined,
+              run.releaseCode,
+            )
+          }
+        : undefined,
+    )
+  } finally {
+    context.cleanup()
+  }
+}
+
+export async function failRunningPlacesIngestRuns(
+  db: HarbourReadableDb & HarbourWritableDb,
+  failedAt: string,
+  failRemote?: (run: {
+    phase: string
+    releaseCode: string
+    releaseId: string
+  }) => Promise<void>,
+) {
+  const runs = await db
+    .select({
+      phase: metaSchema.ingestRuns.phase,
+      releaseCode: metaSchema.metaReleases.code,
+      releaseId: metaSchema.ingestRuns.releaseId,
+    })
+    .from(metaSchema.ingestRuns)
+    .innerJoin(
+      metaSchema.metaReleases,
+      eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+    )
+    .innerJoin(
+      metaSchema.metaDatasets,
+      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+    )
+    .where(
+      and(
+        eq(metaSchema.metaDatasets.code, DATASET_CODE),
+        eq(metaSchema.ingestRuns.status, 'running'),
+        lte(metaSchema.ingestRuns.startedAt, failedAt),
+        lte(metaSchema.ingestRuns.updatedAt, failedAt),
+      ),
+    )
+    .all()
+  for (const run of runs) {
+    await failRemote?.(run)
+    await recordDatasetStage(
+      db,
+      {
+        error: 'Overture Places initialisation was interrupted.',
+        phase: run.phase,
+        releaseId: run.releaseId,
+      },
+      'error',
+    )
+  }
+  return runs.length
 }
 
 /** Complete the Places manifest after release-set and documentation work. */
@@ -586,7 +672,9 @@ async function readPlacesManifest(path: string): Promise<PlacesInitManifest> {
     (value as { version?: unknown }).version !== 1 ||
     !['running', 'failed', 'complete'].includes(
       String((value as { status?: unknown }).status),
-    )
+    ) ||
+    ((value as { status?: unknown }).status === 'failed' &&
+      typeof (value as { failedAt?: unknown }).failedAt !== 'string')
   ) {
     throw new Error(
       'Overture Places initialisation manifest has an unsupported format.',
