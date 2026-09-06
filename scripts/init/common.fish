@@ -3,9 +3,19 @@ set -g saanseoi_init_repo (command realpath "$saanseoi_init_script_dir/../..")
 
 builtin cd "$saanseoi_init_repo"; or exit 1
 
+function init_fail
+    set -l command_status $argv[1]
+    if set -q saanseoi_init_failure_command[1]
+        set -l failure_command $saanseoi_init_failure_command
+        set -e saanseoi_init_failure_command
+        $failure_command
+    end
+    exit $command_status
+end
+
 function init_run_step
     $argv
-    or exit $status
+    or init_fail $status
 end
 
 # The clean local and production coordinators reset their databases before
@@ -242,6 +252,6 @@ end
 
 function init_complete
     if test "$saanseoi_init_upload_failures" -ne 0
-        exit 1
+        init_fail 1
     end
 end

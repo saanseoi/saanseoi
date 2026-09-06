@@ -6,6 +6,8 @@ import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import {
   assertPlacesInitialisationComplete,
   collectOwnedPlaces,
+  failPlacesManifest,
+  resumePlacesManifest,
 } from './resetPlaces.ts'
 
 function createPlacesOwnershipDb() {
@@ -84,6 +86,29 @@ function createPlacesOwnershipDb() {
 }
 
 describe('Overture Places initialisation ownership', () => {
+  test('records failed runs and resumes them without retaining stale failure state', () => {
+    const running = {
+      createdAt: '2026-09-06T00:00:00.000Z',
+      runId: 'run-1',
+      status: 'running' as const,
+      target: 'local' as const,
+      version: 1 as const,
+    }
+    const failed = failPlacesManifest(running, '2026-09-06T00:01:00.000Z')
+    expect(failed).toMatchObject({
+      failedAt: '2026-09-06T00:01:00.000Z',
+      status: 'failed',
+    })
+    expect(resumePlacesManifest(failed)).toEqual(running)
+    expect(() =>
+      failPlacesManifest({
+        ...running,
+        completedAt: '2026-09-06T00:02:00.000Z',
+        status: 'complete',
+      }),
+    ).toThrow('cannot be failed')
+  })
+
   test('owns draft snapshots through their dataset lineage before source linkage', async () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     const owned = await collectOwnedPlaces(db)

@@ -8,7 +8,7 @@ import {
   unlink,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
   resolveShardForTypeRegionYear,
@@ -102,7 +102,7 @@ export async function prepareSupplementaryAddresses(
 ) {
   await mkdir(LOCAL_RELEASE_ROOT, { recursive: true })
   const entryLedgerPath = resolveEntryLedgerPath(input)
-  await mkdir(resolve(entryLedgerPath, '..'), { recursive: true })
+  await mkdir(dirname(entryLedgerPath), { recursive: true })
   const lockPath = `${entryLedgerPath}.lock`
   const lock = await acquireSupplementaryAddressLock(lockPath)
   try {
