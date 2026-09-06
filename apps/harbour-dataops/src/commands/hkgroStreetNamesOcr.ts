@@ -1,3 +1,10 @@
+import {
+  QIANFAN_CACHE_KEY,
+  QIANFAN_MODEL,
+  QIANFAN_REVISION,
+  parseQianfanOcrOutput,
+  runQianfanOcr,
+} from '../../../harbour-cli/src/lib/qianfanOcr.ts'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
@@ -18,40 +25,24 @@ import {
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 const DEFAULT_ARCHIVE_DIR = join(REPO_ROOT, 'data/hku/hkgro/street-name')
-const PADDLE_OCR_SCRIPT = join(
-  REPO_ROOT,
-  'apps/harbour-dataops/paddleocrTraditional.py',
-)
-const PADDLE_OCR_PYTHON =
-  process.env.SAANSEOI_PADDLEOCR_PYTHON ??
-  join(REPO_ROOT, 'apps/harbour-dataops/.venv/bin/python')
 const OCR_LANGUAGE = 'en'
 const OCR_RENDER_DPI = 300
 const PDF_RENDER_TIMEOUT_MS = 300_000
-const PADDLE_OCR_TIMEOUT_MS = readPositiveDuration(
-  process.env.SAANSEOI_PADDLEOCR_TIMEOUT_MS,
-  120_000,
-)
 
 type HkgroOcrStatus = 'complete' | 'unparseable'
-type HkgroOcrWord = {
-  confidence: number
-  left: number
-  text: string
-  top: number
-}
 type HkgroOcrPage = {
   pageNumber: number
-  rawPaddleOcrNdjson: string
-  words: HkgroOcrWord[]
+  rawQianfanJson: string
+  text: string
 }
 export type HkgroStreetNameOcrResult = {
   extraction: {
-    engine: 'PaddleOCR'
+    engine: 'Qianfan-OCR'
     engineVersion: string
     language: 'en'
     method: 'ocr'
     model: string
+    revision: string
     renderDpi: 300
   }
   pages: HkgroOcrPage[]
@@ -117,7 +108,7 @@ export async function ocrHkgroStreetNameArchive(input: {
       `HKGRO street-name OCR found no retrieved candidate PDFs${requestedYears ? ` for year ${[...requestedYears].join(', ')}` : ''}${requestedPdfIds ? ` with HKGRO PDF ID ${[...requestedPdfIds].join(', ')}` : ''}. Run hkgov-hkgro-street-names:retrieve first.`,
     )
   }
-  const manifestPath = join(archiveDir, 'ocr-manifest.json')
+  const manifestPath = join(archiveDir, `ocr/${QIANFAN_CACHE_KEY}/manifest.json`)
   const ocrManifest = await loadOcrManifest(manifestPath)
   const recordsByKey = new Map(
     ocrManifest.records.map(record => [ocrRecordKey(record), record]),
@@ -238,7 +229,7 @@ export function hkgroOcrOutputPath(year: number, hkgroPdfId: string) {
   const sourcePath = hkgroLocalPath(year, hkgroPdfId)
   return sourcePath
     .replace(/\.pdf$/, '.ocr.json')
-    .replace('/street-name/', '/street-name/ocr/')
+    .replace('/street-name/', `/street-name/ocr/${QIANFAN_CACHE_KEY}/`)
 }
 
 function uniqueRetrievedCandidates(records: HkgroTocRecord[]) {
@@ -289,95 +280,30 @@ async function ocrHkgroPdf(input: { pdfPath: string }) {
     const pages: HkgroOcrPage[] = []
     let extraction: HkgroStreetNameOcrResult['extraction'] | null = null
     for (const [index, image] of images.entries()) {
-      const rawPaddleOcrNdjson = await runCommandStdout(
-        PADDLE_OCR_PYTHON,
-        [PADDLE_OCR_SCRIPT, join(temporaryDir, image), OCR_LANGUAGE],
-        PADDLE_OCR_TIMEOUT_MS,
-      )
-      const parsed = parsePaddleOcrOutput(rawPaddleOcrNdjson)
-      if (extraction && extraction.engineVersion !== parsed.engineVersion) {
-        throw new Error(
-          `PaddleOCR engine version changed between rendered pages: ${extraction.engineVersion} and ${parsed.engineVersion}.`,
-        )
-      }
+      const { page, raw } = await runQianfanOcr(join(temporaryDir, image))
+      if (extraction && extraction.engineVersion !== page.engineVersion)
+        throw new Error('Qianfan runtime changed between pages.')
       extraction ??= {
-        engine: 'PaddleOCR',
-        engineVersion: parsed.engineVersion,
+        engine: 'Qianfan-OCR',
+        engineVersion: page.engineVersion,
         language: OCR_LANGUAGE,
         method: 'ocr',
-        model: parsed.model,
+        model: page.model,
+        revision: page.revision,
         renderDpi: OCR_RENDER_DPI,
       }
-      pages.push({ pageNumber: index + 1, rawPaddleOcrNdjson, words: parsed.words })
+      pages.push({ pageNumber: index + 1, rawQianfanJson: raw, text: page.text })
     }
-    if (!extraction) throw new Error('PaddleOCR produced no page metadata.')
-    const text = pages.map(page => layoutPaddleOcrWords(page.words)).join('\n\f\n')
-    if (!text.trim()) throw new Error('PaddleOCR returned no recognized English text.')
+    if (!extraction) throw new Error('Qianfan OCR produced no pages.')
+    const text = pages.map(page => page.text).join('\\n\\f\\n')
     return { extraction, pages, text }
   } catch (error) {
     throw new Error(
-      `Ensure the UV OCR runtime is installed with \`uv sync --project apps/harbour-dataops --python 3.12\`, that \`pdftoppm\` is installed, and that PaddleOCR can download or access its English model weights: ${error instanceof Error ? error.message : String(error)}`,
+      `Ensure the Qianfan GPU runtime, pinned model weights and pdftoppm are available. See docs/datasets/sources/hku-hkgro/streetName.md: ${error instanceof Error ? error.message : String(error)}`,
     )
   } finally {
     await rm(temporaryDir, { force: true, recursive: true })
   }
-}
-
-function parsePaddleOcrOutput(value: string) {
-  let engineVersion: string | undefined
-  let model: string | undefined
-  const words: HkgroOcrWord[] = []
-  for (const [index, line] of value.split(/\r?\n/).entries()) {
-    if (!line.trim()) continue
-    let item: Record<string, unknown>
-    try {
-      item = JSON.parse(line) as Record<string, unknown>
-    } catch {
-      throw new Error(`PaddleOCR emitted invalid JSON on line ${index + 1}.`)
-    }
-    if (item.type === 'metadata') {
-      if (typeof item.engineVersion === 'string') engineVersion = item.engineVersion
-      if (typeof item.model === 'string') model = item.model
-      continue
-    }
-    if (
-      item.type === 'word' &&
-      typeof item.left === 'number' &&
-      typeof item.top === 'number' &&
-      typeof item.text === 'string' &&
-      typeof item.confidence === 'number' &&
-      item.text.trim()
-    ) {
-      words.push({
-        confidence: item.confidence,
-        left: item.left,
-        text: item.text.trim(),
-        top: item.top,
-      })
-    }
-  }
-  if (!engineVersion || !model || !words.length)
-    throw new Error('PaddleOCR returned no recognized English text.')
-  return { engineVersion, model, words }
-}
-
-function layoutPaddleOcrWords(words: HkgroOcrWord[]) {
-  const lines = new Map<number, HkgroOcrWord[]>()
-  for (const word of words) {
-    const key = Math.round(word.top / 16)
-    const line = lines.get(key) ?? []
-    line.push(word)
-    lines.set(key, line)
-  }
-  return [...lines.entries()]
-    .sort(([left], [right]) => left - right)
-    .map(([, line]) =>
-      [...line]
-        .sort((left, right) => left.left - right.left)
-        .map(word => word.text)
-        .join(' '),
-    )
-    .join('\n')
 }
 
 async function writeOcrResult(input: {
@@ -467,12 +393,13 @@ function validateOcrResult(value: unknown, path: string): HkgroStreetNameOcrResu
     typeof source.hkgroPdfId !== 'string' ||
     typeof source.localPath !== 'string' ||
     !extraction ||
-    extraction.engine !== 'PaddleOCR' ||
+    extraction.engine !== 'Qianfan-OCR' ||
     extraction.method !== 'ocr' ||
     extraction.language !== OCR_LANGUAGE ||
     extraction.renderDpi !== OCR_RENDER_DPI ||
     typeof extraction.engineVersion !== 'string' ||
-    typeof extraction.model !== 'string' ||
+    extraction.model !== QIANFAN_MODEL ||
+    extraction.revision !== QIANFAN_REVISION ||
     !Array.isArray(result.pages) ||
     !result.pages.length ||
     !result.pages.every(isValidOcrPage) ||
@@ -487,22 +414,17 @@ function validateOcrResult(value: unknown, path: string): HkgroStreetNameOcrResu
 function isValidOcrPage(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const page = value as Record<string, unknown>
-  return (
-    Number.isInteger(page.pageNumber) &&
-    typeof page.rawPaddleOcrNdjson === 'string' &&
-    Array.isArray(page.words) &&
-    page.words.every(isValidOcrWord)
+  if (
+    !Number.isInteger(page.pageNumber) ||
+    Number(page.pageNumber) < 1 ||
+    typeof page.rawQianfanJson !== 'string'
   )
-}
-function isValidOcrWord(value: unknown) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  const word = value as Record<string, unknown>
-  return (
-    typeof word.text === 'string' &&
-    typeof word.left === 'number' &&
-    typeof word.top === 'number' &&
-    typeof word.confidence === 'number'
-  )
+    return false
+  try {
+    return parseQianfanOcrOutput(page.rawQianfanJson).text === page.text
+  } catch {
+    return false
+  }
 }
 
 async function loadOcrManifest(path: string): Promise<HkgroOcrManifest> {
@@ -654,38 +576,4 @@ async function runCommand(command: string, args: string[], timeoutMs: number) {
   }
   if (exitCode !== 0)
     throw new Error(`${command} failed: ${stderr.trim() || `exit code ${exitCode}`}`)
-}
-async function runCommandStdout(command: string, args: string[], timeoutMs?: number) {
-  const child = Bun.spawn([command, ...args], { stderr: 'pipe', stdout: 'pipe' })
-  let timedOut = false
-  const timeout = timeoutMs
-    ? setTimeout(() => {
-        timedOut = true
-        child.kill()
-      }, timeoutMs)
-    : null
-  const [exitCode, stdout, stderr] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ])
-  if (timeout) clearTimeout(timeout)
-  if (timedOut) {
-    throw new Error(
-      `${command} timed out after ${(timeoutMs ?? 0) / 1_000} seconds while running ${args[0]}. Set SAANSEOI_PADDLEOCR_TIMEOUT_MS to a larger positive millisecond value only when the runtime and model download are known to be healthy.`,
-    )
-  }
-  if (exitCode !== 0)
-    throw new Error(`${command} failed: ${stderr.trim() || `exit code ${exitCode}`}`)
-  return stdout
-}
-
-function readPositiveDuration(value: string | undefined, fallback: number) {
-  if (value === undefined) return fallback
-  const duration = Number(value)
-  if (!/^\d+$/.test(value) || !Number.isSafeInteger(duration) || duration < 1)
-    throw new Error(
-      'SAANSEOI_PADDLEOCR_TIMEOUT_MS must be a positive integer in milliseconds.',
-    )
-  return duration
 }

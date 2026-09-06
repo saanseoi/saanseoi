@@ -1,5 +1,10 @@
+import {
+  QIANFAN_CACHE_KEY,
+  QIANFAN_MODEL,
+  QIANFAN_REVISION,
+} from '../../../harbour-cli/src/lib/qianfanOcr.ts'
 import { describe, expect, test } from 'bun:test'
-import { mkdtemp, readFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -14,21 +19,33 @@ const TOC = `
   </table>
 `
 
+const rawPage = {
+  engine: 'Qianfan-OCR',
+  engineVersion: '5.16.1',
+  model: QIANFAN_MODEL,
+  revision: QIANFAN_REVISION,
+  prompt: 'Parse this document to Markdown.',
+  imageSha256: 'a'.repeat(64),
+  text: 'Market Street',
+  generatedTokens: 3,
+  maxNewTokens: 8192,
+  hitTokenLimit: false,
+}
 const ocrResult = {
   extraction: {
-    engine: 'PaddleOCR' as const,
-    engineVersion: '2.9.1',
+    engine: 'Qianfan-OCR' as const,
+    engineVersion: '5.16.1',
     language: 'en' as const,
     method: 'ocr' as const,
-    model: 'en',
+    model: QIANFAN_MODEL,
+    revision: QIANFAN_REVISION,
     renderDpi: 300 as const,
   },
   pages: [
     {
       pageNumber: 1,
-      rawPaddleOcrNdjson:
-        '{"type":"metadata","engine":"PaddleOCR","engineVersion":"2.9.1","model":"en"}\n{"type":"word","left":1,"top":2,"text":"Market Street","confidence":0.99}\n',
-      words: [{ confidence: 0.99, left: 1, text: 'Market Street', top: 2 }],
+      rawQianfanJson: JSON.stringify(rawPage),
+      text: rawPage.text,
     },
   ],
   text: 'Market Street',
@@ -48,6 +65,10 @@ describe('HKGRO street-name OCR', () => {
       years: [1901],
     })
     let runs = 0
+    const retainedPath = join(archiveDir, 'ocr', '1901', '460097.ocr.json')
+    await mkdir(join(archiveDir, 'ocr', '1901'), { recursive: true })
+    await writeFile(retainedPath, 'retained previous engine evidence')
+    await writeFile(join(archiveDir, 'ocr-manifest.json'), 'retained previous manifest')
     const runner = async () => {
       runs += 1
       return ocrResult
@@ -59,21 +80,30 @@ describe('HKGRO street-name OCR', () => {
       ocrHkgroStreetNameArchive({ archiveDir, runner, years: [1901] }),
     ).resolves.toMatchObject({ completeCount: 0, reusedCount: 1, sourceCount: 1 })
     expect(runs).toBe(1)
+    expect(await readFile(retainedPath, 'utf8')).toBe(
+      'retained previous engine evidence',
+    )
+    expect(await readFile(join(archiveDir, 'ocr-manifest.json'), 'utf8')).toBe(
+      'retained previous manifest',
+    )
     const result = JSON.parse(
-      await readFile(join(archiveDir, 'ocr', '1901', '460097.ocr.json'), 'utf8'),
+      await readFile(
+        join(archiveDir, 'ocr', QIANFAN_CACHE_KEY, '1901', '460097.ocr.json'),
+        'utf8',
+      ),
     )
     expect(result).toMatchObject({
       extraction: { language: 'en', method: 'ocr', renderDpi: 300 },
       pages: [
         {
-          rawPaddleOcrNdjson: expect.stringContaining('"type":"word"'),
-          words: [{ confidence: 0.99, text: 'Market Street' }],
+          rawQianfanJson: expect.stringContaining('Qianfan-OCR'),
+          text: 'Market Street',
         },
       ],
       source: { hkgroPdfId: '460097', year: 1901 },
     })
     expect(hkgroOcrOutputPath(1901, '460097')).toBe(
-      'data/hku/hkgro/street-name/ocr/1901/460097.ocr.json',
+      `data/hku/hkgro/street-name/ocr/${QIANFAN_CACHE_KEY}/1901/460097.ocr.json`,
     )
   })
 
@@ -99,7 +129,10 @@ describe('HKGRO street-name OCR', () => {
       }),
     ).rejects.toThrow('model weights unavailable')
     const manifest = JSON.parse(
-      await readFile(join(archiveDir, 'ocr-manifest.json'), 'utf8'),
+      await readFile(
+        join(archiveDir, 'ocr', QIANFAN_CACHE_KEY, 'manifest.json'),
+        'utf8',
+      ),
     )
     expect(manifest.records).toEqual([
       expect.objectContaining({
