@@ -26,9 +26,7 @@ to the one you need.
 To inspect the original Overture object behind this release, use the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
 with the required `sourceRelease` query parameter. The response returns the retained
-object under `rawProperties`. The canonical `attributes.hierarchy` is a normalised
-relationship. The original Overture hierarchy is available in the source-record response
-under `rawProperties.hierarchies`.
+object under `rawProperties`.
 
 ## Requesting Data
 
