@@ -53,6 +53,7 @@ type AddressResourcePayload = {
   attributes: {
     datasetCode: string
     parentAddressId: string | null
+    granularity: AddressRecord['address']['granularity']
     snapshotId?: string
     geometry?: JsonObject | null
     bbox?: BBox | null
@@ -296,10 +297,9 @@ function buildAddressRouteState(args: {
   requestedVersionPath: RequestedAddressVersion
   requestedApiVersion: RequestedAddressApiVersion
   resolvedApiVersion: ResolvedAddressApiVersion
-  profile?: string
-  locales?: string
+  query: { profile?: string; locales?: string }
 }) {
-  const profile = parseAddressProfile(args.profile)
+  const profile = parseAddressProfile(args.query.profile)
   const defaults: RequestedApiLocaleSelection =
     profile === 'full'
       ? { mode: 'all', locales: ['*'] }
@@ -311,7 +311,7 @@ function buildAddressRouteState(args: {
     requestedApiFamily: 'addresses',
     resolvedApiVersion: args.resolvedApiVersion,
     profile,
-    localeSelection: parseRequestedApiLocales(args.locales, defaults),
+    localeSelection: parseRequestedApiLocales(args.query.locales, defaults),
   } satisfies AddressRouteState
 }
 
@@ -360,6 +360,7 @@ function createAddressResource(args: {
   const attributes: AddressResourcePayload['attributes'] = {
     datasetCode: args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)!,
     parentAddressId: address.parentAddressId,
+    granularity: address.granularity,
   }
 
   if (args.routeState.profile !== 'compact') {

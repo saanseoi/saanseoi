@@ -1580,6 +1580,22 @@ describe('atlas-api', () => {
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')
+    const addressAttributes = addresses.components?.schemas?.AddressAttributes as {
+      properties: Record<string, { enum?: string[]; description?: string }>
+    }
+    expect(addressAttributes.properties.granularity?.enum).toEqual([
+      'unknown',
+      'site',
+      'complex',
+      'phase',
+      'building',
+      'section',
+      'floor',
+      'unit',
+      'room',
+      'room_part',
+    ])
+    expect(addressAttributes.properties).not.toHaveProperty('granularityProvenance')
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
     const addressI18n = addresses.components?.schemas?.AddressI18n as
       | { description?: string; 'x-recordKeyName'?: string }

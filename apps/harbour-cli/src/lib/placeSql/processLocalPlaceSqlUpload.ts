@@ -85,7 +85,7 @@ export async function processLocalPlaceSqlUpload(
   await mkdir(releaseRoot, { recursive: true })
 
   const bucket = new LocalPipelineBucket(releaseRoot)
-  const progress = new OperationProgress({ compact: true })
+  const progress = new OperationProgress()
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
@@ -203,20 +203,29 @@ export async function processLocalPlaceSqlUpload(
       previewPlan.regionCode,
       shardYear,
     )
-    const supplementary = await prepareSupplementaryAddresses({
-      context,
-      metaDb,
-      snapshots,
-      places: readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
-      historyRows,
-      releaseRoot,
-      plan: previewPlan,
-      releaseId,
-      datasetId,
-      targets,
-      importOptions,
-      actions: stagedPlaces.actions,
-    })
+    const supplementary = await runPlaceProgressPhase(
+      progress,
+      'Analyse',
+      'official Address definitions',
+      reportProgress =>
+        prepareSupplementaryAddresses({
+          context,
+          metaDb,
+          snapshots,
+          places: readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
+          historyRows,
+          releaseRoot,
+          plan: previewPlan,
+          releaseId,
+          datasetId,
+          targets,
+          importOptions,
+          actions: stagedPlaces.actions,
+          onProgress: current => reportProgress(current, 'Place Address candidates'),
+          onStage: subject => reportProgress(stagedPlaces.includedRows, subject),
+        }),
+      stagedPlaces.includedRows,
+    )
     const stagedEnrichedPlaces = await runPlaceProgressPhase(
       progress,
       'Match and enrich',

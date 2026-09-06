@@ -40,7 +40,6 @@ export type AddressRecord = {
     sources: unknown
     parentAddressId: string | null
     granularity: typeof address2d.$inferSelect.granularity
-    granularityProvenance: typeof address2d.$inferSelect.granularityProvenance
     countryId: string | null
     areaId: string | null
     districtId: string | null
@@ -118,7 +117,6 @@ type AddressRow = {
   sources: typeof address2d.$inferSelect.sources
   parentAddressId: string | null
   granularity: typeof address2d.$inferSelect.granularity
-  granularityProvenance: typeof address2d.$inferSelect.granularityProvenance
   countryId: string | null
   areaId: string | null
   districtId: string | null
@@ -221,7 +219,6 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       sources: row.sources,
       parentAddressId: row.parentAddressId,
       granularity: row.granularity,
-      granularityProvenance: row.granularityProvenance,
       countryId: row.countryId,
       areaId: row.areaId,
       districtId: row.districtId,
@@ -270,7 +267,6 @@ export async function getAddressRecordCurrent(
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
-      granularityProvenance: address2d.granularityProvenance,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
@@ -308,7 +304,6 @@ export async function listAddressRecordsCurrent(
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
-      granularityProvenance: address2d.granularityProvenance,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
@@ -352,7 +347,6 @@ export async function listAddressRecordsCurrentByIds(
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
-      granularityProvenance: address2d.granularityProvenance,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
