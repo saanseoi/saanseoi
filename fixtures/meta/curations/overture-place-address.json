@@ -1,0 +1,28 @@
+{
+  "authority": "overture-place-address",
+  "version": 1,
+  "activePolicy": "supplementary-v1",
+  "policies": {
+    "supplementary-v1": {
+      "automaticThreshold": 85,
+      "reviewThreshold": 30,
+      "separation": 20,
+      "distanceMetres": 150,
+      "distanceMarginMetres": 100,
+      "weights": {
+        "buildingName": 55,
+        "estateName": 45,
+        "blockExpression": 20,
+        "phaseExpression": 20,
+        "street": 30,
+        "number": 15,
+        "alias": 55,
+        "geometry": 20
+      },
+      "aliases": [],
+      "replacement": "explicit-only"
+    }
+  },
+  "entries": [],
+  "decisions": []
+}
