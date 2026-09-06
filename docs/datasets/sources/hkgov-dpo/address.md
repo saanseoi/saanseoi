@@ -79,6 +79,13 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+`hkgov-dpo-address-premise-consolidations.json` guards Choi Ying Place's reviewed
+cross-CSU consolidation. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
+release; the underspecified duplicate is suppressed wherever present and the corrected
+Chinese name is backfilled. Original components and discarded assertions are preserved
+as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
+does not generalise shared points or CSU values into permission to merge.
+
 Reviewed Housing Authority estate names are stored in
 `hkgov-dpo-address-estate-names.json`. Choi Wan uses the preferred `Choi Wan (I) Estate`
 / `彩雲一邨` names in canonical components and display addresses, preserving ALS `(1)` /

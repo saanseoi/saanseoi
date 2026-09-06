@@ -150,6 +150,16 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
+Choi Ying Place retains one named shopping centre across all thirty releases under
+`hkgov-dpo-address-premise-consolidations.json`. Suppress the unnamed duplicate in its
+twenty-eight occurrences; retain the sole named record in December 2024 and
+January 2025. Backfill `彩盈坊` over the ten early `彩盈商場` canonical names. Both
+publisher CSUs and all suppressed raw components remain provenance, while one explicit
+reviewed identity spans the temporary CSU change. Exact per-release bilingual
+components, GeoAddress and geometry are guarded before identity resolution. The five
+residential buildings and their 3,995 units are untouched; no shopping-centre units are
+inferred.
+
 Choi Wan (1) Estate is corroborated against Housing Authority's Choi Wan (I) Estate: all
 sixteen building names match and all thirty retained inventories contain the same 5,927
 units. `hkgov-dpo-address-estate-names.json` records the preferred names
