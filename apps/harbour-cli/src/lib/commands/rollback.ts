@@ -38,6 +38,7 @@ import {
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
 import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -315,75 +316,86 @@ export async function runRollbackReleaseCommand(
     }
 
     if (!options.dryRun) {
-      try {
-        for (const artefact of artefactStats) {
-          const counts = planCounts[artefact.name]
-          const startedAt = Date.now()
-          const label = formatRollbackStepLabel(
-            artefact.name,
-            counts,
-            0,
-            artefact.statementCount,
-          )
-
-          progress.beginPhase(label, {
-            current: 0,
-            max: Math.max(artefact.statementCount, 1),
-          })
-          const executedStatements = await executeSqlText(
-            artefact.target,
-            artefact.sql,
-            importOptions,
-          )
-
-          progress.update(Math.max(executedStatements, artefact.statementCount), {
-            label: formatRollbackStepLabel(
+      const execute = async () => {
+        try {
+          for (const artefact of artefactStats) {
+            const counts = planCounts[artefact.name]
+            const startedAt = Date.now()
+            const label = formatRollbackStepLabel(
               artefact.name,
               counts,
-              Math.max(executedStatements, artefact.statementCount),
+              0,
               artefact.statementCount,
-            ),
-          })
-          progress.complete(
-            appendPhaseDetails(
-              formatCompletedPhaseLabel(
-                colorTeal('Rollback'),
-                colorRed(artefact.name),
-                counts.rows,
+            )
+
+            progress.beginPhase(label, {
+              current: 0,
+              max: Math.max(artefact.statementCount, 1),
+            })
+            const executedStatements = await executeSqlText(
+              artefact.target,
+              artefact.sql,
+              importOptions,
+            )
+
+            progress.update(Math.max(executedStatements, artefact.statementCount), {
+              label: formatRollbackStepLabel(
+                artefact.name,
+                counts,
+                Math.max(executedStatements, artefact.statementCount),
+                artefact.statementCount,
               ),
-              [formatDurationMs(Date.now() - startedAt)],
-            ),
+            })
+            progress.complete(
+              appendPhaseDetails(
+                formatCompletedPhaseLabel(
+                  colorTeal('Rollback'),
+                  colorRed(artefact.name),
+                  counts.rows,
+                ),
+                [formatDurationMs(Date.now() - startedAt)],
+              ),
+            )
+          }
+        } catch (error) {
+          progress.fail()
+          throw error
+        }
+
+        if (target.remote) {
+          await replayRollbackSqlIntoRemoteCache(
+            target,
+            dbContext,
+            artefactStats,
+            progress,
+            release.releaseCode,
           )
         }
-      } catch (error) {
-        progress.fail()
-        throw error
-      }
 
+        if (operation === 'purge') {
+          await verifyPurgeResult(dbContext, {
+            apiReleaseSetId: releaseSet.id,
+            releaseId: release.releaseId,
+            snapshotId: snapshot.id,
+            tables: rollbackPlan,
+          })
+        } else {
+          await verifyRollbackResult(metaDb, {
+            previousReleaseId: previousRelease?.releaseId ?? null,
+            previousReleaseSetId: previousReleaseSet?.id ?? null,
+            releaseId: release.releaseId,
+            resourceType,
+          })
+        }
+      }
       if (target.remote) {
-        await replayRollbackSqlIntoRemoteCache(
-          target,
-          dbContext,
-          artefactStats,
-          progress,
-          release.releaseCode,
+        await withRemoteCacheMutation(
+          dbContext.state.dbCacheDir,
+          `Rollback ${release.releaseCode} has not completed remote execution and local replay; rebuild the cache before continuing.`,
+          execute,
         )
-      }
-
-      if (operation === 'purge') {
-        await verifyPurgeResult(dbContext, {
-          apiReleaseSetId: releaseSet.id,
-          releaseId: release.releaseId,
-          snapshotId: snapshot.id,
-          tables: rollbackPlan,
-        })
       } else {
-        await verifyRollbackResult(metaDb, {
-          previousReleaseId: previousRelease?.releaseId ?? null,
-          previousReleaseSetId: previousReleaseSet?.id ?? null,
-          releaseId: release.releaseId,
-          resourceType,
-        })
+        await execute()
       }
     }
 

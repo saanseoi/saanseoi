@@ -1,12 +1,19 @@
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 
 describe('local import progress orchestration', () => {
   test('labels address SQL pre-import bookkeeping before import starts', async () => {
     const events: Array<{ label: string; type: string }> = []
 
-    mock.module('@clack/prompts', () => ({
+    const ui = {
+      log: { step() {}, success() {}, error() {} },
+      spinner() {
+        throw new Error('Unexpected spinner')
+      },
       progress() {
         return {
+          isCancelled: false,
+          cancel() {},
+          error() {},
           advance(_value: number, label?: string) {
             if (label) {
               events.push({ label: stripAnsi(label), type: 'advance' })
@@ -24,7 +31,7 @@ describe('local import progress orchestration', () => {
           },
         }
       },
-    }))
+    }
 
     const { LocalUploadProgress } = await import('../upload/localUploadProgress.ts')
     const { createLocalImportProgressClient } = await import('./orchestrator.ts')
@@ -39,7 +46,7 @@ describe('local import progress orchestration', () => {
         controlEvents.push(`running:${phase}`)
       },
     }
-    const progress = new LocalUploadProgress()
+    const progress = new LocalUploadProgress({ renderAnimated: true, ui })
     const client = createLocalImportProgressClient(harbourClient, progress, {
       cleanup: {
         completedLabel: 'Cleanup staging',

@@ -275,7 +275,7 @@ export function initialApiReleaseSetNotesBody(apiFamily: string) {
 
 ## Revision log
 
-- \`r{{ revision }}\` adds official address records from the source releases listed
+- \`r{{ revision }}\` adds curated address records from the source releases listed
   below.
 
 ## Release scope
@@ -307,7 +307,7 @@ source releases contributed to this release set.
 
 ## 修訂紀錄
 
-- \`r{{ revision }}\` 新增了下列來源發布提供的官方地址記錄。
+- \`r{{ revision }}\` 新增了下列來源發布提供並經整理的地址記錄。
 
 ## 發布範圍
 
@@ -335,7 +335,7 @@ Addresses API 提供 {{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</b
 
 ## 修订记录
 
-- \`r{{ revision }}\` 新增了下列来源发布提供的官方地址记录。
+- \`r{{ revision }}\` 新增了下列来源发布提供并经整理的地址记录。
 
 ## 发布范围
 

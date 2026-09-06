@@ -22,7 +22,7 @@ export const apiFamilyLifecycles: readonly ApiFamilyLifecycle[] = [
     family: 'addresses',
     theme: 'addresses',
     cacheProfile: 'address',
-    resetDomains: ['official'],
+    resetDomains: ['saanseoi'],
   },
   {
     family: 'divisions',

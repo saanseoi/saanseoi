@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { invalidateRemoteDbCache } from '../dbCache/localDbCache.ts'
+import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,
@@ -50,11 +51,11 @@ export async function executeResetSqlArtefacts(options: {
     apiToken: process.env.CLOUDFLARE_D1_TOKEN,
     isLocal: !options.target.remote,
   }
-  for (const artefact of options.artefacts) {
-    await executeSqlText(artefact.target, artefact.sql, importOptions)
-  }
-
-  if (options.target.remote) {
+  const execute = async () => {
+    for (const artefact of options.artefacts) {
+      await executeSqlText(artefact.target, artefact.sql, importOptions)
+    }
+    if (!options.target.remote) return
     try {
       for (const artefact of options.artefacts) {
         await executeSqlText(artefact.target, artefact.sql, { isLocal: true })
@@ -69,6 +70,15 @@ export async function executeResetSqlArtefacts(options: {
         `${options.remoteCacheErrorMessage}; the local cache was invalidated.`,
       )
     }
+  }
+  if (options.target.remote) {
+    await withRemoteCacheMutation(
+      options.context.state.dbCacheDir,
+      'Dataset reset has not completed remote execution and local replay; rebuild the cache before continuing.',
+      execute,
+    )
+  } else {
+    await execute()
   }
 
   if (options.keepCache) return

@@ -518,17 +518,18 @@ async function assertPlacesResetStillSafe(
     .select()
     .from(metaSchema.metaApiReleaseSetSnapshots)
     .all()
+  // A Places API release set intentionally includes its supporting Address and
+  // Division snapshots. Those snapshots are not owned by this Places reset;
+  // deleting the owned release set removes only its links.
   if (
     linked.some(
       row =>
-        (owned.apiReleaseSetIds.includes(row.apiReleaseSetId) &&
-          !owned.snapshotIds.includes(row.snapshotId)) ||
-        (owned.snapshotIds.includes(row.snapshotId) &&
-          !owned.apiReleaseSetIds.includes(row.apiReleaseSetId)),
+        owned.snapshotIds.includes(row.snapshotId) &&
+        !owned.apiReleaseSetIds.includes(row.apiReleaseSetId),
     )
   )
     throw new Error(
-      'Refusing reset: Places API release-set ownership has changed since initialisation.',
+      'Refusing reset: a Places snapshot is linked to an API release set outside this initialisation.',
     )
 }
 

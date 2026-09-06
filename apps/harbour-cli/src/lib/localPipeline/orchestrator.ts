@@ -271,6 +271,7 @@ export function createLocalImportProgressClient(
       return harbourClient.publishDataset(releaseId, releaseCode, options)
     },
     async stageCompleted(releaseId, phase, stats, releaseCode) {
+      await harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
       const importPhase = importPhasesByName.get(phase)
       const completedDetails = formatCompletedStatsDetails(
         stats,
@@ -332,8 +333,6 @@ export function createLocalImportProgressClient(
           max: PRE_IMPORT_PHASES.length,
         })
       }
-
-      return harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
     },
     async stageFailed(releaseId, phase, error, stats, releaseCode) {
       progress.fail()
@@ -491,10 +490,12 @@ export async function mapWithConcurrency<TInput, TOutput>(
 
   const results = new Array<TOutput>(items.length)
   let nextIndex = 0
+  let failed = false
+  let firstError: unknown
 
   await Promise.all(
     Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-      while (nextIndex < items.length) {
+      while (!failed && nextIndex < items.length) {
         const index = nextIndex
         const item = items[index]
 
@@ -503,11 +504,18 @@ export async function mapWithConcurrency<TInput, TOutput>(
           continue
         }
 
-        results[index] = await worker(item, index)
+        try {
+          results[index] = await worker(item, index)
+        } catch (error) {
+          if (!failed) firstError = error
+          failed = true
+        }
       }
     }),
   )
 
+  // Callers can release database handles only once every active worker has settled.
+  if (failed) throw firstError
   return results
 }
 
