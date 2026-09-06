@@ -4,6 +4,10 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { page } from '$app/state'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
+
+const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 
 let email = $state('')
 let submitted = $state(false)
@@ -17,7 +21,7 @@ const requestReset = async () => {
   try {
     const result = await authClient.requestPasswordReset({
       email,
-      redirectTo: `${window.location.origin}/password/reset`,
+      redirectTo: `${window.location.origin}/password/reset?next=${encodeURIComponent(next)}`,
     })
     if (result.error) error = result.error.message ?? m.auth_reset_error()
     else submitted = true
@@ -41,7 +45,7 @@ const requestReset = async () => {
     {m.auth_reset_title()}
   </h1>
   {#if submitted}
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+    <p role="status" class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {m.auth_reset_sent()}
     </p>
   {:else}
@@ -72,7 +76,7 @@ const requestReset = async () => {
     </form>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
-    <a class="text-secondary hover:underline" href="/sign-in"
+    <a class="text-secondary hover:underline" href={getSignInHref(next)}
       >{m.auth_back_to_sign_in()}</a
     >
   </p>

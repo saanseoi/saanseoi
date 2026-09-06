@@ -5,9 +5,12 @@ import { authClient } from '#lib/auth-client.js'
 import { page } from '$app/state'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
 
+const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 const token = $derived(page.url.searchParams.get('token'))
-const invalid = $derived(page.url.searchParams.has('error') || !token)
+let rejectedToken = $state(false)
+const invalid = $derived(page.url.searchParams.has('error') || !token || rejectedToken)
 let password = $state('')
 let confirmation = $state('')
 let error = $state<string | null>(null)
@@ -15,7 +18,7 @@ let complete = $state(false)
 let busy = $state(false)
 
 const resetPassword = async () => {
-  if (busy) return
+  if (busy || invalid || complete) return
   if (password !== confirmation) {
     error = m.auth_passwords_do_not_match()
     return
@@ -28,8 +31,10 @@ const resetPassword = async () => {
       newPassword: password,
       token: token ?? undefined,
     })
-    if (result.error) error = result.error.message ?? m.auth_reset_error()
-    else complete = true
+    if (result.error) {
+      rejectedToken = result.error.code === 'INVALID_TOKEN'
+      error = result.error.message ?? m.auth_reset_error()
+    } else complete = true
   } catch {
     error = m.auth_reset_error()
   } finally {
@@ -54,16 +59,18 @@ const resetPassword = async () => {
     {m.auth_choose_new_password()}
   </h1>
   {#if invalid}
-    <p class="mt-5 font-body text-body-lg text-destructive">
+    <p role="alert" class="mt-5 font-body text-body-lg text-destructive">
       {m.auth_reset_link_invalid()}
-      <a class="text-secondary hover:underline" href="/password/forgot"
+      <a
+        class="text-secondary hover:underline"
+        href={`/password/forgot?next=${encodeURIComponent(next)}`}
         >{m.auth_request_new_link()}</a
       >.
     </p>
   {:else if complete}
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+    <p role="status" class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {m.auth_password_reset_complete()}
-      <a class="text-secondary hover:underline" href="/sign-in"
+      <a class="text-secondary hover:underline" href={getSignInHref(next)}
         >{m.auth_sign_in_title()}</a
       >.
     </p>

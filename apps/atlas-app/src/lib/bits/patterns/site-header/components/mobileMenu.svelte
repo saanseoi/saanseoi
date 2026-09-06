@@ -26,10 +26,21 @@ const closeMobileMenu = () => {
   mobileMenuOpen = false
 }
 
+let signOutError = $state<string | null>(null)
+let signingOut = $state(false)
 const handleSignOut = async () => {
-  const { error } = await authClient.signOut()
-  if (error) return
-  window.location.assign('/')
+  if (signingOut) return
+  signingOut = true
+  signOutError = null
+  try {
+    const result = await authClient.signOut()
+    if (result.error) signOutError = result.error.message ?? m.auth_sign_out_error()
+    else window.location.assign('/')
+  } catch {
+    signOutError = m.auth_sign_out_error()
+  } finally {
+    signingOut = false
+  }
 }
 </script>
 
@@ -62,6 +73,9 @@ const handleSignOut = async () => {
           {m.nav_mobile_description()}
         </Dialog.Description>
       </div>
+      {#if signOutError}
+        <p role="alert" class="text-sm text-destructive">{signOutError}</p>
+      {/if}
       <nav
         aria-label="Mobile navigation"
         class="flex flex-col border-t border-border-card/60 pt-2"
@@ -89,6 +103,7 @@ const handleSignOut = async () => {
           {#if user}
             <Button
               class="min-h-11 px-0! text-body-md font-medium! text-nowrap"
+              disabled={signingOut}
               onclick={handleSignOut}
               size="compact"
               variant="text"

@@ -3,6 +3,7 @@ import { refreshAll } from '$app/navigation'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
+import { getSignInHref } from '#lib/authRedirect.js'
 import type { SocialProvider } from '#lib/auth-providers.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
@@ -28,6 +29,9 @@ let linkingProvider = $state<SocialProvider | null>(null)
 let password = $state('')
 let currentPassword = $state('')
 let passwordMessage = $state<string | null>(null)
+let passwordSuccess = $state(false)
+let passwordBusy = $state(false)
+let signingOut = $state(false)
 let passwordDialogOpen = $state(false)
 let passwordDialogMode = $state<'add' | 'change'>('add')
 const providers = [
@@ -39,9 +43,35 @@ const linked = (provider: string) =>
   accounts.some(account => account.providerId === provider)
 
 const handleSignOut = async () => {
-  const { error } = await authClient.signOut()
-  if (error) return
-  window.location.assign('/')
+  if (signingOut) return
+  signingOut = true
+  error = null
+  try {
+    const result = await authClient.signOut()
+    if (result.error) error = result.error.message ?? m.auth_sign_out_error()
+    else window.location.assign('/')
+  } catch {
+    error = m.auth_sign_out_error()
+  } finally {
+    signingOut = false
+  }
+}
+
+const checkSession = async () => {
+  const result = await authClient.getSession()
+  if (result.error) throw new Error('Unable to check session')
+  if (result.data) return true
+  window.location.assign(getSignInHref('/account'))
+  return false
+}
+
+const openPasswordDialog = (mode: 'add' | 'change') => {
+  passwordDialogMode = mode
+  password = ''
+  currentPassword = ''
+  passwordMessage = null
+  passwordSuccess = false
+  passwordDialogOpen = true
 }
 
 $effect(() => {
@@ -54,6 +84,7 @@ const link = async (provider: SocialProvider) => {
   error = null
   linkingProvider = provider
   try {
+    if (!(await checkSession())) return
     const result = await authClient.linkSocial({ provider, callbackURL: '/account' })
     if (!result.error) return
     error = result.error.message ?? m.auth_sign_in_error()
@@ -69,6 +100,7 @@ const addPasskey = async () => {
   error = null
   addingPasskey = true
   try {
+    if (!(await checkSession())) return
     const result = await authClient.passkey.addPasskey()
     if (result.error) error = result.error.message ?? m.account_passkey_add_error()
     else await refreshAll()
@@ -84,12 +116,15 @@ const removePasskey = async (id: string) => {
   error = null
   removingPasskeyId = id
   try {
+    if (!(await checkSession())) return
     const result = await deletePasskeyForCurrentUser({
       id,
       locale: getCurrentLocale(),
     })
     if (!result.ok) error = result.message
     else await refreshAll()
+  } catch {
+    error = m.account_passkey_remove_error()
   } finally {
     removingPasskeyId = null
   }
@@ -100,6 +135,7 @@ const unlink = async (accountId: string, providerId: string) => {
   error = null
   unlinkingAccountId = accountId
   try {
+    if (!(await checkSession())) return
     const result = await unlinkAccountForCurrentUser({
       accountId,
       providerId,
@@ -107,36 +143,59 @@ const unlink = async (accountId: string, providerId: string) => {
     })
     if (!result.ok) error = result.message
     else await refreshAll()
+  } catch {
+    error = m.account_unlink_error()
   } finally {
     unlinkingAccountId = null
   }
 }
 
 const addPassword = async () => {
+  if (passwordBusy) return
+  passwordBusy = true
+  passwordSuccess = false
   passwordMessage = null
-  const result = await addPasswordForCurrentUser({
-    password,
-    locale: getCurrentLocale(),
-  })
-  passwordMessage = result.message
-  if (result.ok) {
-    password = ''
-    passwordDialogOpen = false
-    await refreshAll()
+  try {
+    if (!(await checkSession())) return
+    const result = await addPasswordForCurrentUser({
+      password,
+      locale: getCurrentLocale(),
+    })
+    passwordMessage = result.message
+    passwordSuccess = result.ok
+    if (result.ok) {
+      password = ''
+      await refreshAll()
+    }
+  } catch {
+    passwordMessage = m.account_password_add_error()
+  } finally {
+    passwordBusy = false
   }
 }
 
 const changePassword = async () => {
+  if (passwordBusy) return
+  passwordBusy = true
+  passwordSuccess = false
   passwordMessage = null
-  const result = await changePasswordForCurrentUser({
-    currentPassword,
-    newPassword: password,
-    locale: getCurrentLocale(),
-  })
-  passwordMessage = result.message
-  if (result.ok) {
-    currentPassword = ''
-    password = ''
+  try {
+    if (!(await checkSession())) return
+    const result = await changePasswordForCurrentUser({
+      currentPassword,
+      newPassword: password,
+      locale: getCurrentLocale(),
+    })
+    passwordMessage = result.message
+    passwordSuccess = result.ok
+    if (result.ok) {
+      currentPassword = ''
+      password = ''
+    }
+  } catch {
+    passwordMessage = m.account_password_change_error()
+  } finally {
+    passwordBusy = false
   }
 }
 
@@ -166,7 +225,9 @@ const providerDetails = (providerId: string) =>
   </p>
   <div class="mt-8 flex gap-3">
     <Button href="/api-keys" variant="primary">{m.account_manage_api_keys()}</Button>
-    <Button onclick={handleSignOut} variant="secondary">{m.account_sign_out()}</Button>
+    <Button disabled={signingOut} onclick={handleSignOut} variant="secondary"
+      >{m.account_sign_out()}</Button
+    >
   </div>
   <section class="mt-14 max-w-3xl">
     <h2 class="font-display text-headline-sm font-bold text-primary">
@@ -176,7 +237,7 @@ const providerDetails = (providerId: string) =>
       {m.account_methods_description()}
     </p>
     {#if error}
-      <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+      <p role="alert" class="mt-4 font-body text-body-sm text-destructive">{error}</p>
     {/if}
     <div
       class="mt-6 divide-y divide-border-card border border-border-card bg-background-alt"
@@ -200,7 +261,7 @@ const providerDetails = (providerId: string) =>
           <div class="flex items-center gap-2">
             {#if account.providerId === 'credential'}
               <Button
-                onclick={() => { passwordDialogMode = 'change'; passwordDialogOpen = true }}
+                onclick={() => openPasswordDialog('change')}
                 size="compact"
                 variant="secondary"
                 >{m.account_change_password()}</Button
@@ -268,7 +329,7 @@ const providerDetails = (providerId: string) =>
           </div>
           <Button
             onclick={() => removePasskey(passkey.id)}
-            disabled={removingPasskeyId !== null}
+            disabled={removingPasskeyId !== null || accounts.length + passkeys.length <= 1}
             size="compact"
             variant="secondary"
             >{removingPasskeyId === passkey.id ? m.account_removing() : m.account_remove()}</Button
@@ -320,7 +381,7 @@ const providerDetails = (providerId: string) =>
             </div>
           </div>
           <Button
-            onclick={() => { passwordDialogMode = 'add'; passwordDialogOpen = true }}
+            onclick={() => openPasswordDialog('add')}
             size="compact"
             variant="primary"
             >{m.account_add_password()}</Button
@@ -368,12 +429,20 @@ const providerDetails = (providerId: string) =>
           ></label
         >
         {#if passwordMessage}
-          <p class="mt-3 font-body text-sm text-destructive">{passwordMessage}</p>
+          <p
+            role={passwordSuccess ? 'status' : 'alert'}
+            class="mt-3 font-body text-sm {passwordSuccess ? 'text-secondary' : 'text-destructive'}"
+          >
+            {passwordMessage}
+          </p>
         {/if}
         <div class="mt-6 flex justify-end gap-3">
           <Button onclick={() => (passwordDialogOpen = false)} variant="secondary"
             >{m.common_cancel()}</Button
-          ><Button type="submit" variant="primary"
+          ><Button
+            disabled={passwordBusy || passwordSuccess}
+            type="submit"
+            variant="primary"
             >{passwordDialogMode === 'add' ? m.account_add_password() : m.account_change_password()}</Button
           >
         </div>
