@@ -4,6 +4,9 @@ import {
   normaliseDivisionI18nSnapshotRow,
 } from '@repo/core/pipeline/services/division'
 import { resolve } from 'node:path'
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
@@ -163,6 +166,7 @@ export async function processLocalDivisionSqlUpload(
         cacheTableProfile,
         includePreviousShardYears: true,
         refreshRemoteTables: false,
+        resumeSqlDeliveryReleaseId: releaseId,
         remoteCacheScopeKey,
       },
     )
@@ -601,98 +605,112 @@ export async function processLocalDivisionSqlUpload(
       ),
     )
 
-    await runDivisionSqlImportOperations(
-      [
-        async () => {
-          await runReportedSqlImportPhase(
-            importProgressClient,
-            releaseId,
-            releaseCode,
-            'importDivisionSqlSource',
-            progressReporter =>
-              importSqlArtefactKeys(
-                bucket,
-                importTargets.source,
-                [manifest.sourceKey],
-                importOptions,
-                progressReporter,
-              ),
-          )
-          for (const operation of extraSourceSqlOperations) {
-            await executeSqlText(operation.target, operation.sql, importOptions)
-          }
+    await deliverSqlPhase(
+      {
+        context: dbContext,
+        releaseId,
+        phase: 'division-data',
+        inputs: {
+          preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+          snapshotId: divisionState.snapshotId,
         },
-        async () => {
-          await runReportedSqlImportPhase(
-            importProgressClient,
-            releaseId,
-            releaseCode,
-            'importDivisionSqlHistory',
-            progressReporter =>
-              importSqlArtefactKeys(
-                bucket,
-                importTargets.history,
-                [manifest.historyKey],
-                importOptions,
-                progressReporter,
-              ),
-          )
-          for (const operation of extraHistorySqlOperations) {
-            await executeSqlText(operation.target, operation.sql, importOptions)
-          }
-        },
-        async () => {
-          const currentInitKey = manifest.currentInitKey
+        onProgress: (completed, total) =>
+          progress.message(`Division SQL delivery: ${completed}/${total} batches`),
+      },
+      () =>
+        runDivisionSqlImportOperations(
+          [
+            async () => {
+              await runReportedSqlImportPhase(
+                importProgressClient,
+                releaseId,
+                releaseCode,
+                'importDivisionSqlSource',
+                progressReporter =>
+                  importSqlArtefactKeys(
+                    bucket,
+                    importTargets.source,
+                    [manifest.sourceKey],
+                    importOptions,
+                    progressReporter,
+                  ),
+              )
+              for (const operation of extraSourceSqlOperations) {
+                await executeSqlText(operation.target, operation.sql, importOptions)
+              }
+            },
+            async () => {
+              await runReportedSqlImportPhase(
+                importProgressClient,
+                releaseId,
+                releaseCode,
+                'importDivisionSqlHistory',
+                progressReporter =>
+                  importSqlArtefactKeys(
+                    bucket,
+                    importTargets.history,
+                    [manifest.historyKey],
+                    importOptions,
+                    progressReporter,
+                  ),
+              )
+              for (const operation of extraHistorySqlOperations) {
+                await executeSqlText(operation.target, operation.sql, importOptions)
+              }
+            },
+            async () => {
+              const currentInitKey = manifest.currentInitKey
 
-          if (currentInitKey) {
-            await runReportedSqlImportPhase(
-              importProgressClient,
-              releaseId,
-              releaseCode,
-              'importDivisionSqlCurrentInit',
-              progressReporter =>
-                importSqlArtefactKeys(
-                  bucket,
-                  importTargets.current,
-                  [currentInitKey],
-                  importOptions,
-                  progressReporter,
-                ),
-            )
-          }
+              if (currentInitKey) {
+                await runReportedSqlImportPhase(
+                  importProgressClient,
+                  releaseId,
+                  releaseCode,
+                  'importDivisionSqlCurrentInit',
+                  progressReporter =>
+                    importSqlArtefactKeys(
+                      bucket,
+                      importTargets.current,
+                      [currentInitKey],
+                      importOptions,
+                      progressReporter,
+                    ),
+                )
+              }
 
-          await runReportedSqlImportPhase(
-            importProgressClient,
-            releaseId,
-            releaseCode,
-            'importDivisionSqlCurrent',
-            progressReporter =>
-              importSqlArtefactKeys(
-                bucket,
-                importTargets.current,
-                [manifest.currentKey],
-                importOptions,
-                progressReporter,
+              await runReportedSqlImportPhase(
+                importProgressClient,
+                releaseId,
+                releaseCode,
+                'importDivisionSqlCurrent',
+                progressReporter =>
+                  importSqlArtefactKeys(
+                    bucket,
+                    importTargets.current,
+                    [manifest.currentKey],
+                    importOptions,
+                    progressReporter,
+                  ),
+              )
+            },
+            () =>
+              runReportedSqlImportPhase(
+                importProgressClient,
+                releaseId,
+                releaseCode,
+                'importDivisionSqlStats',
+                progressReporter =>
+                  importSqlArtefactKeys(
+                    bucket,
+                    importTargets.meta,
+                    [manifest.metaKey],
+                    importOptions,
+                    progressReporter,
+                  ),
               ),
-          )
-        },
-        () =>
-          runReportedSqlImportPhase(
-            importProgressClient,
-            releaseId,
-            releaseCode,
-            'importDivisionSqlStats',
-            progressReporter =>
-              importSqlArtefactKeys(
-                bucket,
-                importTargets.meta,
-                [manifest.metaKey],
-                importOptions,
-                progressReporter,
-              ),
-          ),
-      ],
-      target.remote,
+          ],
+          target.remote,
+        ),
     )
 
     await harbourClient.stageCompleted(
@@ -738,17 +756,7 @@ export async function processLocalDivisionSqlUpload(
     )
     if (target.remote) {
       try {
-        shouldRefreshRemoteMetaCache = await replayDivisionSqlIntoRemoteCache(
-          target,
-          dbContext,
-          bucket,
-          importTargets,
-          manifest,
-          extraSourceSqlOperations,
-          extraHistorySqlOperations,
-          importOptions,
-          releaseCode,
-        )
+        shouldRefreshRemoteMetaCache = true
         if (
           (options.deferApiReleaseSet || options.deferSourcePublish) &&
           publishResult
@@ -810,6 +818,8 @@ export async function processLocalDivisionSqlUpload(
         postPublishCacheError = normaliseError(error)
       }
     }
+    if (target.remote && !postPublishCacheError && publishResult)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
   }
 
   if (postPublishCacheError) {

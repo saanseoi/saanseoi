@@ -88,6 +88,11 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Explicit premise consolidation can suppress a reviewed underspecified duplicate and
+backfill a corrected display name while preserving every raw assertion. Choi Ying Place
+uses one reviewed identity across its temporary publisher CSU change; this does not
+assign residential units to the shopping centre or authorise other same-point merges.
+
 Explicitly reviewed Housing Authority estate names can supply canonical display
 components while retaining ALS spellings in raw evidence. Choi Wan (I) Estate uses HA's
 Roman numeral without changing its source identity or conflating it with Choi Wan (2).
