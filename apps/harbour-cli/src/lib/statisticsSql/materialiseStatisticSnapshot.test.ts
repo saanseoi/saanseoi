@@ -28,11 +28,18 @@ test('assigns source delivery and canonical period snapshots to different shards
       'dataset', 'publisher', 'dataset-statistics', 'hk', 'static', 'yearly',
       'stats', 'official-statistics', 'dataset-hash', '${NOW}', '${NOW}'
     );
-    INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+    INSERT INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey,
       status, ingestedAt, createdAt, updatedAt
     ) VALUES (
-      'release', 'dataset', 'divisionStatistic', 'release-statistics-2026-q2',
+      'source-release', 'dataset', 'source-release-statistics-2026-q2', '2026-Q2',
+      '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
+    );
+    INSERT INTO releases (
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      'release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2026-q2',
       '2026-Q2', '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
     INSERT INTO dataShards (
@@ -118,11 +125,18 @@ test('rejects a reference period later than the source release cohort', async ()
       'dataset', 'publisher', 'dataset-statistics', 'hk', 'static', 'yearly',
       'stats', 'official-statistics', 'dataset-hash', '${NOW}', '${NOW}'
     );
-    INSERT INTO releases (
-      id, datasetId, resourceType, code, sourceVersion, cohortKey,
+    INSERT INTO sourceReleases (
+      id, datasetId, code, sourceVersion, cohortKey,
       status, ingestedAt, createdAt, updatedAt
     ) VALUES (
-      'release', 'dataset', 'divisionStatistic', 'release-statistics-2021',
+      'source-release', 'dataset', 'source-release-statistics-2021', '2021',
+      '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
+    );
+    INSERT INTO releases (
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      'release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2021',
       '2021', '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
   `)
