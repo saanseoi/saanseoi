@@ -44,6 +44,42 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
   }
   return {
     hasReceipt,
+    /** Positive receipts are scoped to this locked recovery invocation, never persisted as a cache. */
+    async confirmedReceipts(plan: SqlDeliveryPlan, batches: SqlDeliveryBatch[]) {
+      const confirmed = new Set<number>()
+      const groups = new Map<string, SqlDeliveryBatch[]>()
+      for (const batch of batches) {
+        const group = groups.get(batch.target.databaseId) ?? []
+        group.push(batch)
+        groups.set(batch.target.databaseId, group)
+      }
+      for (const [databaseId, group] of groups) {
+        const client = query(databaseId)
+        const table = await client.query(
+          `SELECT name FROM sqlite_master WHERE type = 'table' AND name = '${RECEIPT_TABLE}';`,
+        )
+        if (!table.length) continue
+        tables.add(databaseId)
+        // Only validated manifest indices and SHA-256 IDs are interpolated; no dynamic bindings.
+        // Bound the SQL text and response size even for very large plans.
+        for (let offset = 0; offset < group.length; offset += 99) {
+          const chunk = group.slice(offset, offset + 99)
+          const rows = await client.query(
+            `SELECT batchIndex,sha256 FROM ${RECEIPT_TABLE} WHERE planId = '${plan.id}' AND batchIndex IN (${chunk.map(batch => batch.index).join(',')});`,
+          )
+          for (const batch of chunk) {
+            if (
+              checkReceipt(
+                rows.filter(row => row.batchIndex === batch.index),
+                batch,
+              )
+            )
+              confirmed.add(batch.index)
+          }
+        }
+      }
+      return confirmed
+    },
     async deliver(
       plan: SqlDeliveryPlan,
       batch: SqlDeliveryBatch,

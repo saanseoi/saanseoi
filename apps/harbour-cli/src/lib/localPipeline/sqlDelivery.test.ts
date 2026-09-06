@@ -26,6 +26,55 @@ async function fixture(
   }
 }
 
+test('100 completed batches use three receipt reads for resume and local replay', () =>
+  fixture(async f => {
+    await prepareSqlDelivery(f.directory, f.context, async append => {
+      for (let i = 0; i < 100; i++)
+        await append(
+          { bindingName: 'DB_CURRENT', databaseId: 'db' },
+          new TextEncoder().encode('UPDATE counter SET n = n + 1;'),
+        )
+    })
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+    const ingestCount = f.events.filter(event => event === 'ingest').length
+    let reads = 0
+    const fetch: D1ImportFetch = async (input, init) => {
+      if (String(input).endsWith('/query')) reads++
+      return f.options.fetch(input, init)
+    }
+    await runSqlDelivery(f.directory, { ...f.options, fetch, mode: 'remote' })
+    expect(reads).toBe(3)
+    expect(f.events.filter(event => event === 'ingest')).toHaveLength(ingestCount)
+    reads = 0
+    await runSqlDelivery(f.directory, { ...f.options, fetch, mode: 'local' })
+    expect(reads).toBe(3)
+    expect(f.localValue()).toEqual({ n: 100 })
+  }))
+
+test('batched receipt checks reject mismatches and missing receipts before local writes', () =>
+  fixture(async f => {
+    await f.prepare()
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+    f.remote.exec(
+      "UPDATE harbourSqlDeliveryReceipts SET sha256='wrong' WHERE batchIndex=2",
+    )
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'local' }),
+    ).rejects.toThrow('receipt mismatch')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+    ).rejects.toThrow('receipt mismatch')
+    f.remote.exec('DELETE FROM harbourSqlDeliveryReceipts WHERE batchIndex=2')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'local' }),
+    ).rejects.toThrow('not confirmed')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+    ).rejects.toThrow('receipt disappeared')
+    expect(f.localValue()).toEqual({ n: 0 })
+    expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
+  }))
+
 test('bound preparation rejects invalid statement budgets before sealing', () =>
   fixture(async f => {
     await expect(
