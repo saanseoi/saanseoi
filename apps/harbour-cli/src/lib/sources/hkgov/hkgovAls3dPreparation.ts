@@ -4,6 +4,7 @@ import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
+import { applyAls3dCorrections } from './hkgovAls3dCorrections'
 import {
   als3dHash,
   assertAddress3dRowBudget,
@@ -111,10 +112,11 @@ export async function prepareAls3dCollections(options: {
         SOURCE_NAMESPACE,
         JSON.stringify([key, occurrence]),
       )
+      const { corrections } = applyAls3dCorrections(feature, options.sourceVersion)
       const source = {
         kind: 'source' as const,
         sourceRecordId,
-        versionHash: als3dHash(feature),
+        versionHash: als3dHash(corrections.length ? { feature, corrections } : feature),
         rawProperties: feature,
         sources: [
           {
@@ -123,6 +125,12 @@ export async function prepareAls3dCollections(options: {
             featureIndexOneBased,
             sourceVersion: options.sourceVersion,
           },
+          ...corrections.map(correction => ({
+            dataset: 'saanseoi-address3d-correction',
+            fixtureVersion: 1,
+            sourceFile: 'hkgov-dpo-address-3d-corrections.json',
+            ...correction,
+          })),
         ],
       }
       assertAddress3dRowBudget(source)
@@ -136,6 +144,8 @@ export async function prepareAls3dCollections(options: {
         )
       const parent = candidates[0]
       if (!parent) throw new Error('Missing ALS parent')
+      if (parent.curatedGranularity === 'section' && !ownership.has(parent.id))
+        throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
       const owner = ownership.get(parent.id)?.ownerId ?? parent.id
       const physicalKey = JSON.stringify([
         p.BuildingCsuInformation?.CsuId,
@@ -170,7 +180,7 @@ export async function prepareAls3dCollections(options: {
       const mapping = ownership.get(parent.id)
       const address2dId = mapping?.ownerId ?? parent.id
       const inventory = normaliseAls3dInventory(
-        feature,
+        applyAls3dCorrections(feature, options.sourceVersion).feature,
         mapping?.physicalBuildingId ?? parent.canonicalId,
       )
       const existing = ownerHashes.get(address2dId)

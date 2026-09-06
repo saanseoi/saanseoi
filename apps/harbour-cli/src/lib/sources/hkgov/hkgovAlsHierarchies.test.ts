@@ -131,6 +131,31 @@ test('identical designs retain distinct building inventories and unresolved High
   expect(new Set(unitIds).size).toBe(2)
 })
 
+test('reviewed unnamed Low Block uses its publisher identity and location without a duplicate section', () => {
+  const rows = premises()
+  const moon = rows[1]!
+  const low = {
+    ...moon,
+    id: 'publisher-low',
+    canonicalId: 'publisher-low',
+    hkgovCsuId: '3370111759T20150127',
+    enBuildingName: null,
+    zhHantBuildingName: null,
+    geometry: 'reviewed-low-point',
+  }
+  rows.push(low)
+  const ownership = applyAlsAddressHierarchies(rows, '2025-02-25.0')
+  expect(rows).toHaveLength(7)
+  expect(low.parentAddressId).toBe(moon.id)
+  expect(low.curatedGranularity).toBe('section')
+  expect(low.geometry).toBe('reviewed-low-point')
+  expect(low.enBuildingName).toBeNull()
+  expect(ownership.get(moon.id)?.unresolvedSectionIds).toContain(low.id)
+  expect(() => applyAlsAddressHierarchies(premises(), '2025-02-25.0')).toThrow(
+    'review required',
+  )
+})
+
 test('changed street components, repeated same-CSU assertions and out-of-bounds releases are not silently accepted', () => {
   const changed = premises()
   changed[0]!.enStreetNumberFrom = '324'
