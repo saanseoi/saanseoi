@@ -9,7 +9,7 @@ type ProgressState = {
   max: number | null
 }
 
-type LocalUploadProgressOptions = {
+type OperationProgressOptions = {
   ui?: {
     progress: typeof progress
     spinner: typeof spinner
@@ -21,16 +21,16 @@ type LocalUploadProgressOptions = {
   renderAnimated?: boolean
 }
 
-export class LocalUploadProgress {
+export class OperationProgress {
   private progressBar: ProgressRenderer | null = null
   private currentLabel: string | null = null
   private state: ProgressState | null = null
   private readonly compact: boolean
   private readonly renderAnimated: boolean
   private staticPhaseActive = false
-  private readonly ui: NonNullable<LocalUploadProgressOptions['ui']>
+  private readonly ui: NonNullable<OperationProgressOptions['ui']>
 
-  constructor(options: LocalUploadProgressOptions = {}) {
+  constructor(options: OperationProgressOptions = {}) {
     this.ui = options.ui ?? { progress, spinner, log }
     this.compact = options.compact ?? false
     this.renderAnimated = options.renderAnimated ?? canRenderAnimatedProgress()
@@ -273,7 +273,7 @@ function canRenderAnimatedProgress() {
 
 function createProgressRenderer(
   state: ProgressState,
-  ui: NonNullable<LocalUploadProgressOptions['ui']>,
+  ui: NonNullable<OperationProgressOptions['ui']>,
 ): ProgressRenderer {
   if (state.max === null) {
     return ui.spinner({ withGuide: true })

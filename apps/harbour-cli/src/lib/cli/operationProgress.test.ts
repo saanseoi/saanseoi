@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-describe('LocalUploadProgress', () => {
+describe('OperationProgress', () => {
   test('includes the underlying error in a failed phase label', async () => {
     const stoppedLabels: string[] = []
     const rendererKinds: string[] = []
@@ -40,8 +40,8 @@ describe('LocalUploadProgress', () => {
       },
     }
 
-    const { LocalUploadProgress } = await import('./localUploadProgress.ts')
-    const progress = new LocalUploadProgress({ renderAnimated: true, ui })
+    const { OperationProgress } = await import('./operationProgress.ts')
+    const progress = new OperationProgress({ renderAnimated: true, ui })
     progress.beginPhase('Calculate release statistics', {})
     progress.fail(new Error('database is locked'))
 
@@ -50,7 +50,7 @@ describe('LocalUploadProgress', () => {
     ])
     expect(rendererKinds).toEqual(['spinner'])
 
-    const staticProgress = new LocalUploadProgress({ renderAnimated: false, ui })
+    const staticProgress = new OperationProgress({ renderAnimated: false, ui })
     staticProgress.beginPhase('Normalise records', { max: null })
     staticProgress.update(1, {
       label: 'Normalise records (182,441)',
@@ -66,7 +66,7 @@ describe('LocalUploadProgress', () => {
     expect(staticProgress.hasActivePhase()).toBe(false)
 
     const compactLabelsStart = staticLabels.length
-    const compactProgress = new LocalUploadProgress({
+    const compactProgress = new OperationProgress({
       ui,
       compact: true,
       renderAnimated: false,

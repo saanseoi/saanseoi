@@ -20,7 +20,7 @@ import {
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
 import { executeSqlText } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'
 type BackfillRelease = {
@@ -68,7 +68,7 @@ export async function runGeometryStatsBackfillCommand(
   if (target.environment === 'production' && !dryRun && !args.options.yes) {
     throw new Error('Production geometry-stat backfill requires explicit `--yes`.')
   }
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
   progress.beginPhase('Prepare geometry statistics cache', { max: null })
 

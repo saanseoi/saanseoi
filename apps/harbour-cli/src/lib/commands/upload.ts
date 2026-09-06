@@ -79,7 +79,7 @@ import {
   formatCompletedPhaseLabel,
   formatDurationMs,
 } from '../localPipeline/progressFormatting.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   discardDerivedReleaseArtefacts,
   shouldCacheArtefacts,
@@ -306,7 +306,7 @@ ${mutedBar}  `)
       processingStrategy.mode === 'local-address-sql' ||
       processingStrategy.mode === 'local-division-geometry-sql'
     ) {
-      const prerequisiteProgress = new LocalUploadProgress()
+      const prerequisiteProgress = new OperationProgress()
 
       try {
         if (target.remote) {

@@ -111,7 +111,7 @@ import {
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   invalidateRemoteDbCache,
@@ -257,7 +257,7 @@ export async function processLocalDivisionSqlUpload(
     resolveTargetName(target),
     releaseCode,
   )
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const setupStepCount = 8
   const setupStartedAt = Date.now()
 
@@ -1058,7 +1058,7 @@ function normaliseError(error: unknown) {
 }
 
 function updateDbCacheProgress(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   event: LocalDbCacheProgressEvent,
 ) {
   if (event.target !== 'preview' && event.target !== 'production') {

@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path'
 
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 
-import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   formatBytes,
@@ -79,7 +79,7 @@ const PRE_IMPORT_PHASES = [
  * clamping, and failure behaviour for every API family.
  */
 export async function runLocalProgressPhase<T>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   phase: LocalProgressPhase,
   operation: (
     reportProgress: (current: number, subject?: string) => void,
@@ -136,7 +136,7 @@ export async function runLocalProgressPhase<T>(
 }
 
 export async function runLocalGenerationPhase<TMessage>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   harbourClient: HarbourClient,
   phase: LocalGenerationPhase<TMessage>,
   messages: TMessage[],
@@ -196,7 +196,7 @@ export async function runLocalGenerationPhase<TMessage>(
 }
 
 export async function runLocalStreamingPhase<TResult>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   harbourClient: HarbourClient,
   phase: LocalStreamingPhase,
   operation: (reportProgress: (current: number) => Promise<void>) => Promise<TResult>,
@@ -248,7 +248,7 @@ export async function runLocalStreamingPhase<TResult>(
 
 export function createLocalImportProgressClient(
   harbourClient: HarbourClient,
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   config: LocalImportProgressConfig,
 ): HarbourClient {
   const importProgressByPhase = new Map<string, number>()

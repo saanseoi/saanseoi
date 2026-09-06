@@ -64,7 +64,7 @@ import {
   formatDurationMs,
   formatRunningPhaseLabel,
 } from '../localPipeline/progressFormatting.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import {
   buildReleaseUploadDbCacheScopeKey,
@@ -163,7 +163,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const bucket = new LocalPipelineBucket(releaseRoot)
   await runPlandProgressPhase(progress, 'Prepare', 'workspace', () =>
     bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
@@ -1888,7 +1888,7 @@ async function importPlandSqlArtefacts(
   client: HarbourClient,
   releaseId: string,
   releaseCode: string,
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
 ) {
   const imports: Array<[string, SqlImportTargetContext, string]> = [
     ['importPlandSqlSource', targets.source, manifest.sourceKey],
@@ -1952,7 +1952,7 @@ async function importPlandSqlArtefacts(
 }
 
 async function runPlandProgressPhase<T>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   action: string,
   subject: string,
   operation: (reportProgress: (current: number) => void) => Promise<T>,

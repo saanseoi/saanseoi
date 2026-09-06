@@ -1,4 +1,5 @@
-import { confirm, isCancel, log, outro, select, spinner } from '@clack/prompts'
+import { OperationProgress } from '../cli/operationProgress.ts'
+import { confirm, isCancel, log, outro, select } from '@clack/prompts'
 import { stat, writeFile } from 'node:fs/promises'
 import { relative } from 'node:path'
 
@@ -1536,13 +1537,13 @@ async function askToUpload(path: string, target: UploadTarget) {
 }
 
 class UpdateRow {
-  private readonly progress = spinner({ withGuide: false })
+  private readonly progress = new OperationProgress({ compact: true })
   private active = false
 
   constructor(private readonly dataset: DatasetFixture) {}
 
   start(stage: string) {
-    this.progress.start(`${formatUpdateProgressLine(this.dataset, stage)} `)
+    this.progress.beginPhase(`${formatUpdateProgressLine(this.dataset, stage)} `, {})
     this.active = true
   }
 
@@ -1551,7 +1552,7 @@ class UpdateRow {
     if (this.active) {
       this.progress.message(message)
     } else {
-      this.progress.start(message)
+      this.progress.beginPhase(message, {})
       this.active = true
     }
   }
@@ -1561,8 +1562,9 @@ class UpdateRow {
   }
 
   downloading(update: DatasetUpdate, index: number, total: number) {
-    this.progress.start(
+    this.progress.beginPhase(
       `${formatDownloadProgressLine(this.dataset, index, total, update.version)} `,
+      {},
     )
     this.active = true
   }
@@ -1575,7 +1577,7 @@ class UpdateRow {
     elapsed: number,
     bytes: number,
   ) {
-    this.progress.stop(
+    this.progress.finish(
       formatDownloadCompleteLine(
         this.dataset,
         index,
@@ -1645,7 +1647,7 @@ class UpdateRow {
       if (status === 'error') {
         this.progress.error(message)
       } else {
-        this.progress.stop(message)
+        this.progress.finish(message)
       }
     } else if (status === 'error') {
       log.error(message, { spacing: 0, withGuide: false })
@@ -1653,8 +1655,8 @@ class UpdateRow {
       // A completed download stops the spinner before any remaining release
       // rows are rendered. Restart it so those rows retain the same Clack
       // status prefix and version-column alignment as the download row.
-      this.progress.start('')
-      this.progress.stop(message)
+      this.progress.beginPhase('', {})
+      this.progress.finish(message)
     }
     this.active = false
   }

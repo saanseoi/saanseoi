@@ -49,7 +49,7 @@ import { createLocalControlClient } from '../localPipeline/localControlClient.ts
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { runLocalProgressPhase } from '../localPipeline/orchestrator.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   resolveLandsdStreetDistricts,
   type LandsdStreetCanonicalDistrict,
@@ -170,7 +170,7 @@ export async function processLocalStreetSqlUpload(
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const bucket = new LocalPipelineBucket(releaseRoot)
   await runLocalProgressPhase(
     progress,
