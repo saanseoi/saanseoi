@@ -18,6 +18,14 @@ a building-number range never turns its individual numbers into units. See
 [granularity curation](../../families/addresses.md#granularity-curation) for guarded
 manual overrides and how changed evidence reopens review.
 
+## SQL delivery
+
+The local D1 mirror supplies the identity and version context for ALS SQL preparation.
+Source, history and current artefacts retain that resolved context for remote import and
+local replay. Each history/current stage builds only its target's SQL. Insert batching
+counts escaped UTF-8 bytes incrementally, including punctuation and statement
+terminators, and rejects an individual row that cannot fit within the statement limit.
+
 ## Component correction fixture
 
 [`hkgov-dpo-address-components.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-components.json)
@@ -59,6 +67,13 @@ build and a new snapshot generation; it does not rewrite prepared source files, 
 already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
+
+Reviewed duplicate address descriptions are stored in `hkgov-dpo-address-aliases.json`.
+Cheung Lai House's Block 6 duplicate is suppressed after the shared inventory passes
+validation, leaving the named building as its sole canonical owner. Both raw 3D
+assertions and the suppressed 2D source components remain traceable. Matching CSU alone
+never authorises suppression; the bilingual components must match after removal of the
+explicitly reviewed block alias, with equal coordinates.
 
 The historical review policy automatically accepts exact same-floor A/B/C-to-base unit
 mergers when both languages and unchanged premise components agree. Accepted events
