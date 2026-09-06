@@ -183,6 +183,42 @@ describe('supplementary Place Address policy', () => {
     expect(wrongNumber.tier).toBe('delayed')
     expect(wrongNumber.candidates[0]?.contradictions).toContain('number')
   })
+  test('weak premise candidates are delayed instead of becoming curation work', () => {
+    const citygateEstate: PlaceAddressDefinition = {
+      ...citygate,
+      buildingName: null,
+      estateName: 'Citygate',
+    }
+    const { analyse } = setup([citygateEstate])
+    const result = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
+
+    expect(result.tier).toBe('delayed')
+    expect(result.reason).toBe('below_automatic_threshold')
+    expect(result.candidates[0]).toMatchObject({
+      addressId: citygate.addressId,
+      breakdown: { estateName: 45, street: 30 },
+      score: 75,
+    })
+  })
+  test('one matching component suppresses same-kind contradictions', () => {
+    const alternateBuilding: PlaceAddressDefinition = {
+      ...citygate,
+      addressId: 'als-citygate-outlets',
+      buildingName: 'Citygate Outlets',
+      formattedAddress: 'Citygate Outlets, 20 Tat Tung Road',
+    }
+    const { analyse } = setup([citygate, alternateBuilding])
+    const result = analyse(
+      observation('Citygate Outlets, Citygate, Tat Tung Road'),
+      null,
+    )
+    const candidate = result.candidates.find(
+      item => item.addressId === alternateBuilding.addressId,
+    )
+
+    expect(candidate?.breakdown).toMatchObject({ buildingName: 55, street: 30 })
+    expect(candidate?.contradictions).not.toContain('buildingName')
+  })
   test('locality-shaped component matches do not turn street addresses into reviews', () => {
     const hongKong: PlaceAddressDefinition = {
       ...citygate,

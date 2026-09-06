@@ -147,14 +147,17 @@ deterministic replacement policy or an explicit curation decision.
    Citygate Outlets is the intended shape: it can be a supplementary building name with
    Citygate/20 Tat Tung Road as evidenced context, while retaining Overture rather than
    ALS provenance.
-3. **Review candidate.** A meaningful partial match in the review score band, a tie, or
-   contradictory components must stop for review; `--yes` may not choose an identity.
-   The review artefact must show the previous accepted link, when present, so a reviewer
-   can keep, retire, or replace it explicitly.
-4. **No usable match.** A result below the review band, including no candidate at all,
-   is recorded as delayed and ignored for current Address matching. Do not manufacture a
-   nearest Address or a generated entry. Retain the Place source value and release
-   action so a later matcher policy or address release can reconsider it.
+3. **Review candidate.** A candidate which independently clears the automatic score but
+   is tied, insufficiently separated, or carries contradictory component evidence must
+   stop for review; `--yes` may not choose an identity. Multiple source localisations
+   and identity drift also require review. The review artefact must show the previous
+   accepted link, when present, so a reviewer can keep, retire, or replace it
+   explicitly.
+4. **No usable match.** A result below the automatic threshold, including no candidate
+   at all, is recorded as delayed and ignored for current Address matching. Weak name
+   fragments and locality-shaped tokens are not actionable identity choices. Do not
+   manufacture a nearest Address or a generated entry. Retain the Place source value and
+   release action so a later matcher policy or address release can reconsider it.
 
 The thresholds, score weights, alias rules, candidate-distance margin, and replacement
 policy belong in the checked-in curation policy or its referenced policy version. They

@@ -28,7 +28,6 @@ import {
   hashText,
   renderPlanPdfToWebp,
 } from './landsdStreetIngestIo.ts'
-import { LANDSD_STREET_INITIAL_SOURCE_VERSION } from './landsdStreetIngestConfig.ts'
 import {
   buildStreetReleaseNotes,
   fixturePathFor,
@@ -188,6 +187,7 @@ export function buildBaselineRecords(
   rows: Array<{ englishName: string; chineseName: string; districtCode: string }>,
   noticeRecords: LandsdStreetRecord[],
   candidatesByRecordKey: ReadonlyMap<string, LandsdStreetBaselineCandidate>,
+  evidenceAssets: LandsdStreetAssetLink[] = [],
 ) {
   const records: LandsdStreetRecord[] = []
 
@@ -230,7 +230,7 @@ export function buildBaselineRecords(
       effectiveDate: null,
       parserDiagnostics: null,
       previousNoticeRefs: [],
-      evidenceAssets: [],
+      evidenceAssets: [...evidenceAssets],
       sourceKind: 'baseline',
       recordKey: baselineRecordKey(row),
       rawExtractedText: null,
@@ -360,6 +360,7 @@ export async function createPlanPreviews(input: {
 }
 
 export async function writeReleasePayloads(input: {
+  baselineSourceVersion?: string
   baselineRecords: LandsdStreetRecord[]
   noticeRecords: LandsdStreetRecord[]
   outputDir: string
@@ -378,10 +379,23 @@ export async function writeReleasePayloads(input: {
       records,
       sourceVersion: latestNoticeDate
         ? `${latestNoticeDate}.0`
-        : LANDSD_STREET_INITIAL_SOURCE_VERSION,
+        : requireBaselineSourceVersion(input),
       writeFixture: input.writeFixtures,
     }),
   ]
+}
+
+function requireBaselineSourceVersion(input: {
+  baselineRecords: LandsdStreetRecord[]
+  baselineSourceVersion?: string
+}) {
+  if (input.baselineSourceVersion) return input.baselineSourceVersion
+  if (input.baselineRecords.length === 0) {
+    throw new Error('A notice-free street release has no baseline source version.')
+  }
+  throw new Error(
+    'The LandsD gazetted-register release needs a publisher or acquisition date; a fictional historic anchor is not permitted.',
+  )
 }
 
 export async function createLandsdStreetReleasePayload(input: {
