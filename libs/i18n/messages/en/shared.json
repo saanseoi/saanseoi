@@ -2663,6 +2663,8 @@
   "openapi_addresses_search_response_description": "Search addresses using the declared matching mode.",
   "openapi_addresses_search_unavailable_description": "Address search is unavailable because its search index is not ready.",
   "openapi_addresses_search_query_description": "Address text or a building-number token to search for.",
+  "openapi_addresses_dataset_code_description": "Dataset contributing this address to the SaanSeoi collection.",
+  "openapi_addresses_dataset_filter_description": "Return only addresses from this dataset within the selected release set. Omit to include all curated address datasets.",
   "openapi_addresses_search_match_description": "Required matching mode. exact uses source-number aliases only; range also includes derived members; prefix and full-text search indexed text; component searches one named component.",
   "openapi_addresses_search_component_description": "Named address component searched when match is component.",
   "openapi_addresses_get_response_description": "Get an address.",
