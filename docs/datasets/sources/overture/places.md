@@ -43,7 +43,9 @@ number forms are understood. The publisher spelling remains unchanged.
 
 The parse result includes recognised canonical components, street evidence,
 building-number expression and members, residual 2D text, and a premise-candidate,
-street-only, or unrecognised disposition. Shop, unit, room, floor, stall, and similar
+street-only, or unrecognised disposition. Street-only evidence and a street with a
+contradictory number remain delayed; only a matching premise component can promote a
+partial match into identity review. Shop, unit, room, floor, stall, and similar
 address3d fragments are removed from the 2D candidate and retained as typed unit/floor
 expressions, references, and types for future address3d matching. They do not affect
 today's canonical relationship or create address3d records. A tied match remains
@@ -210,13 +212,14 @@ entries. Conflicting ALS derivations for a shared identity stop materialisation.
 Every analysis writes `overture-place-address-review.json` inside the target's
 `.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the
 selected ALS snapshot, parsed source evidence, candidates, scores, distances, previous
-link and disposition. Accepted entries are saved before a review stop. Correct the
-fixture and retry the same upload; `--yes` cannot bypass review. A decision records
-`placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`,
-`addressId` and a non-empty `reason`. `keep` retains the previous ID, `retire` selects
-no ID, and `replace` selects an official ID or a reproducible curated supplementary
-entry. Retire superseded entries with `retiredAtSourceRelease`; retain them for
-historical replay.
+link and disposition for review-required rows only. Accepted entries are saved only when
+the cohort has no unresolved review, so a review stop leaves the curation fixture
+unchanged. Correct the fixture and retry the same upload; `--yes` cannot bypass review.
+A decision records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`,
+`resolution`, `addressId` and a non-empty `reason`. `keep` retains the previous ID,
+`retire` selects no ID, and `replace` selects an official ID or a reproducible curated
+supplementary entry. Retire superseded entries with `retiredAtSourceRelease`; retain
+them for historical replay.
 
 Supplementary snapshots are complete, including when there are no accepted rows. Their
 assembly records retain a materialisation hash, curation hash and policy versions.
