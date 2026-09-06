@@ -61,8 +61,10 @@ Publisher address data is included in the source record. Public Places expose lo
 `freeformAddress` through PlaceI18n rather than an `addresses` field; the Overture
 source record exposes `address.freeform`, `address.locality`, `address.country`,
 `address.region`, and `address.postcode` as observational values. They must not be used
-as authoritative inputs for canonical address or division relationships. Places with
-`CN` or `MO` address country codes are excluded from the Hong Kong projection;
+as authoritative inputs for canonical address or division relationships. Street-only
+evidence, including a contradictory building number without matching premise evidence,
+remains unlinked and is delayed rather than entering identity review. Places with `CN`
+or `MO` address country codes are excluded from the Hong Kong projection;
 missing-country Places remain included. Both are recorded as review actions in the
 release audit. Ingestion stops with a warning when a Place has more than one publisher
 address, pending a reconsideration of the Place-to-address implementation.
