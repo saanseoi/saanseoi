@@ -92,6 +92,78 @@ export function sameLandsdStreetBaselineRegistry(
   return left !== null && JSON.stringify(left) === JSON.stringify(right)
 }
 
+export function validateLandsdStreetCurrentRelease(input: {
+  records: readonly LandsdStreetRecord[]
+  registry: LandsdStreetBaselineRegistry
+  sourceVersion: string
+}) {
+  if (input.sourceVersion !== input.registry.sourceVersion) {
+    throw new Error(
+      `Current LandsD street release ${input.sourceVersion} does not match baseline registry ${input.registry.sourceVersion}.`,
+    )
+  }
+  if (input.records.length === 0) {
+    throw new Error('The current LandsD street release contains no baseline names.')
+  }
+  const registryByRecordKey = new Map(
+    input.registry.records.map(record => [record.recordKey, record]),
+  )
+  const recordKeys = new Set<string>()
+  const streetIds = new Set<string>()
+  for (const record of input.records) {
+    if (
+      record.sourceKind !== 'baseline' ||
+      record.deferToNotices ||
+      record.application !== null ||
+      record.noticeType !== null ||
+      record.noticeRef !== null ||
+      record.gazetteDate !== null ||
+      record.effectiveDate !== null
+    ) {
+      throw new Error(
+        `Current LandsD release record ${record.recordKey} is not a baseline-only name.`,
+      )
+    }
+    const registered = registryByRecordKey.get(record.recordKey)
+    if (!record.streetId || registered?.streetId !== record.streetId) {
+      throw new Error(
+        `Current LandsD release record ${record.recordKey} has no matching registered canonical ID.`,
+      )
+    }
+    if (recordKeys.has(record.recordKey) || streetIds.has(record.streetId)) {
+      throw new Error(
+        `Current LandsD release repeats source record or canonical ID ${record.recordKey}.`,
+      )
+    }
+    recordKeys.add(record.recordKey)
+    streetIds.add(record.streetId)
+    if (
+      !record.i18n.some(item => item.locale === 'en' && item.name.trim()) ||
+      !record.i18n.some(item => item.locale === 'zh-Hant' && item.name.trim())
+    ) {
+      throw new Error(
+        `Current LandsD release record ${record.recordKey} needs both publisher names.`,
+      )
+    }
+    const baselineEvidence = record.evidenceAssets.filter(
+      asset => asset.role === 'sourcePdf',
+    )
+    if (
+      baselineEvidence.length !== 1 ||
+      baselineEvidence[0]?.contentHash !== input.registry.baselineSha256
+    ) {
+      throw new Error(
+        `Current LandsD release record ${record.recordKey} does not reference the registered baseline PDF.`,
+      )
+    }
+  }
+  if (recordKeys.size !== registryByRecordKey.size) {
+    throw new Error(
+      `Current LandsD release has ${recordKeys.size} names, but its baseline registry has ${registryByRecordKey.size}.`,
+    )
+  }
+}
+
 function validateLandsdStreetBaselineRegistry(
   value: unknown,
   path: string,

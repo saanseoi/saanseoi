@@ -32,6 +32,28 @@ const base = (overrides: Partial<LandsdStreetLifecycleInput> = {}) =>
     ...overrides,
   }) satisfies LandsdStreetLifecycleInput
 
+test('materialises the current baseline without inventing lifecycle events', () => {
+  const result = materialiseLandsdStreetLifecycle({
+    current: [],
+    events: [
+      base({
+        gazetteDate: null,
+        method: null,
+        noticeRef: null,
+        noticeType: null,
+        previousNoticeRefs: [],
+        recordKey: 'baseline-1',
+        sourceKind: 'baseline',
+        streetId: 'street-current',
+      } as Partial<LandsdStreetLifecycleInput>),
+    ],
+  })
+
+  expect(result.current).toHaveLength(1)
+  expect(result.current[0]?.id).toBe('street-current')
+  expect(result.changelog).toEqual([])
+})
+
 test('requires explicit application IDs and never resolves Previous G.N.', () => {
   expect(() =>
     materialiseLandsdStreetLifecycle({

@@ -25,6 +25,7 @@ function printUsage() {
   bun run dataops -- hkgov-hyd:street <source.zip> --target local|preview|production --dataset-code CODE --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-landsd:place-name <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-landsd:road-centreline <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
+  bun run dataops -- hkgov-landsd-streets:current --target local|preview|production [--staging-dir PATH]
   bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
@@ -164,6 +165,13 @@ async function main() {
         './commands/hkgovLandsdNative.ts'
       )
       await runHkgovLandsdRoadCentrelineIngestCommand(args, target, printUsage)
+      return
+    }
+    case 'hkgov-landsd-streets:current': {
+      const { runLandsdStreetCurrentCommand } = await import(
+        './commands/ingestLandsdStreets.ts'
+      )
+      await runLandsdStreetCurrentCommand(args, target, printUsage)
       return
     }
     case 'hkgov-landsd-streets:baseline':
