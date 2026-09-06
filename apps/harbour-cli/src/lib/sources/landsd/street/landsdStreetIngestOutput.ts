@@ -17,6 +17,7 @@ export function buildStreetReleaseNotes(
   const notices = records.filter(record => record.sourceKind !== 'baseline')
   const declarations = notices.filter(record => record.noticeType === 'declaration')
   const otherNotices = notices.filter(record => record.noticeType !== 'declaration')
+  const isCurrentBaseline = notices.length === 0
   const lines = [
     '---',
     `dataset: "${LANDSD_STREET_DATASET_CODE}"`,
@@ -30,8 +31,15 @@ export function buildStreetReleaseNotes(
     '',
     '# EN',
     '',
-    'Subsequent street-name declarations and related Government Notices processed from the LandsD bilingual source pages.',
-    'The current gazetted street-name register is retained in the release payload and is not enumerated as changelog entries.',
+    ...(isCurrentBaseline
+      ? [
+          'Initial SaanSeoi publication of the current Lands Department gazetted street-name register.',
+          'This release contains the English and Traditional Chinese publisher names as a present-state baseline. Historical Government Notices and e-Gazette artefacts are intentionally deferred to later revisions.',
+        ]
+      : [
+          'Subsequent street-name declarations and related Government Notices processed from the LandsD bilingual source pages.',
+          'The current gazetted street-name register is retained in the release payload and is not enumerated as changelog entries.',
+        ]),
     '',
   ]
   for (const record of declarations) {
@@ -78,11 +86,15 @@ export function buildStreetReleaseNotes(
   lines.push(
     '# ZH-HANT',
     '',
-    '本版本保留地政總署原始中英文通知、憲報圖則及受管資產連結。',
+    isCurrentBaseline
+      ? '山水 | SaanSeoi 首次發布地政總署現行刊憲街道名稱清單，保留發布者的英文及繁體中文名稱。歷史政府公告及電子憲報資料將於後續修訂加入。'
+      : '本版本保留地政總署原始中英文通知、憲報圖則及受管資產連結。',
     '',
     '# ZH-HANS',
     '',
-    '本版本保留地政总署原始中英文通知、宪报图则及受管资产链接。',
+    isCurrentBaseline
+      ? '山水 | SaanSeoi 首次发布地政总署现行刊宪街道名称清单，保留发布者的英文及繁体中文名称。历史政府公告及电子宪报资料将在后续修订加入。'
+      : '本版本保留地政总署原始中英文通知、宪报图则及受管资产链接。',
     '',
   )
   return `${lines.join('\n')}`

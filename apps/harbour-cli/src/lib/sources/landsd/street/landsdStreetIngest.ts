@@ -87,7 +87,7 @@ import {
  * also succeeded.
  */
 export async function ingestLandsdStreetSource(options: {
-  baselineSourceVersion?: string
+  baselineCohort?: { sha256: string; sourceVersion: string }
   curationPath?: string
   baselineCandidates?: readonly LandsdStreetBaselineCandidate[]
   egazetteArchiveDir?: string
@@ -744,8 +744,10 @@ export async function ingestLandsdStreetSource(options: {
 
   reportProgress({ message: 'Writing release payload and operator report' })
   const releases = await writeReleasePayloads({
-    baselineSourceVersion:
-      options.baselineSourceVersion ?? baselineAcquisitionVersion(baselineAsset?.link),
+    baselineSourceVersion: baselineSourceVersion(
+      baselineAsset?.link,
+      options.baselineCohort,
+    ),
     baselineRecords: baseline.records,
     noticeRecords: allNoticeRecords,
     outputDir,
@@ -772,8 +774,12 @@ export async function ingestLandsdStreetSource(options: {
   }
 }
 
-function baselineAcquisitionVersion(asset: LandsdStreetAssetLink | undefined) {
+function baselineSourceVersion(
+  asset: LandsdStreetAssetLink | undefined,
+  registered: { sha256: string; sourceVersion: string } | undefined,
+) {
   if (!asset) return undefined
+  if (registered?.sha256 === asset.contentHash) return registered.sourceVersion
   const date = asset.retrievedAt.match(/^(\d{4}-\d{2}-\d{2})T/)?.[1]
   if (!date) {
     throw new Error(

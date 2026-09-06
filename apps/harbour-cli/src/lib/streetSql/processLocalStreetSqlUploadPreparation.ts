@@ -109,15 +109,18 @@ async function normalisePreparedStreet(
     yearBuilt: null,
   }
   const sourceHash = await createHash({
+    application,
     districtCodes,
     i18n: i18n.map(stableI18n),
     deferToNotices,
+    gazetteDate,
     noticeRef,
     effectiveDate,
     parserDiagnostics,
     previousNoticeRefs,
     rawExtractedText,
     sourceKind,
+    noticeType,
     evidenceAssets: stableAssetLinks(evidenceAssets),
   })
   return {

@@ -129,7 +129,6 @@ export function materialiseLandsdStreetLifecycle(input: {
       }
       streets.set(next.id, next)
       changed.push(next)
-      changelog.push(changelogEntry(next, event, 'gazette'))
       if (previous) stats.changed += 1
       else stats.added += 1
       stats.versionsCreated += 1
