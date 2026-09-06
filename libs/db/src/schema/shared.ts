@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
+import { addressGranularities } from '../addressGranularity'
 
 export const streetEvidenceAssetRoles = [
   'gazettePlan',
@@ -375,6 +376,9 @@ export const canonicalStatsValueI18n = {
 export const canonicalAddress2d = {
   id: text('id').notNull(),
   parentAddressId: text('parentAddressId'),
+  granularity: text('granularity', { enum: addressGranularities })
+    .notNull()
+    .default('unknown'),
   streetId: text('streetId'),
   hamletId: text('hamletId'),
   microhoodId: text('microhoodId'),

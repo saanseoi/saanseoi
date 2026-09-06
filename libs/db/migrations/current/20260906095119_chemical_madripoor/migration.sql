@@ -1,0 +1,1 @@
+ALTER TABLE `address2d` ADD `granularity` text DEFAULT 'unknown' NOT NULL;

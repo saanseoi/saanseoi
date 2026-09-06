@@ -10,6 +10,7 @@ export type CurrentAddressVersionRow = Pick<
   AddressVersionRow,
   | 'id'
   | 'parentAddressId'
+  | 'granularity'
   | 'streetId'
   | 'hamletId'
   | 'microhoodId'
