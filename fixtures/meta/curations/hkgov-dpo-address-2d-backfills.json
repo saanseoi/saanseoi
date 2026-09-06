@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "backfills": [
+    {
+      "csu": "1521830205T20220125",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0"
+      ],
+      "evidenceSourceVersion": "2025-06-20.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.97254, 22.41093]
+        },
+        "properties": {
+          "Northing": 830194,
+          "Easting": 815229,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "1521830205T20220125"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "屯門區",
+                "ChiStreet": {
+                  "LocationName": "屯門",
+                  "StreetName": "欣寶路",
+                  "BuildingNoFrom": "10"
+                },
+                "ChiEstate": {
+                  "EstateName": "菁田邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "3",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "菁樂樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "3",
+                  "BlockDescriptorPrecedenceIndicator": "N"
+                },
+                "BuildingName": "CHING LOK HOUSE",
+                "EngEstate": {
+                  "EstateName": "CHING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "10",
+                  "StreetName": "YAN PO ROAD",
+                  "LocationName": "TUEN MUN"
+                },
+                "EngDistrict": "TUEN MUN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "1521830205T20220125"
+            }
+          }
+        }
+      },
+      "featureIndexOneBased": 9407,
+      "authority": "User decision, 2026-09-07: reconstruct named buildings from the first retained release, corroborated by HA 2022 intake.",
+      "intakeYear": 2022,
+      "intakeEvidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json"
+    },
+    {
+      "csu": "1526430253P20220125",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0"
+      ],
+      "evidenceSourceVersion": "2025-06-20.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.97289, 22.41145]
+        },
+        "properties": {
+          "Northing": 830252,
+          "Easting": 815265,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "1526430253P20220125"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "屯門區",
+                "ChiStreet": {
+                  "LocationName": "屯門",
+                  "StreetName": "欣寶路",
+                  "BuildingNoFrom": "10"
+                },
+                "ChiEstate": {
+                  "EstateName": "菁田邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "4",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "菁喜樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "4",
+                  "BlockDescriptorPrecedenceIndicator": "N"
+                },
+                "BuildingName": "CHING HAY HOUSE",
+                "EngEstate": {
+                  "EstateName": "CHING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "10",
+                  "StreetName": "YAN PO ROAD",
+                  "LocationName": "TUEN MUN"
+                },
+                "EngDistrict": "TUEN MUN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "1526430253P20220125"
+            }
+          }
+        }
+      },
+      "featureIndexOneBased": 9408,
+      "authority": "User decision, 2026-09-07: reconstruct named buildings from the first retained release, corroborated by HA 2022 intake.",
+      "intakeYear": 2022,
+      "intakeEvidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json"
+    },
+    {
+      "csu": "1515630347T20220125",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0"
+      ],
+      "evidenceSourceVersion": "2025-06-20.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.97183, 22.41221]
+        },
+        "properties": {
+          "Northing": 830336,
+          "Easting": 815156,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "1515630347T20220125"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "屯門區",
+                "ChiStreet": {
+                  "LocationName": "屯門",
+                  "StreetName": "欣寶路",
+                  "BuildingNoFrom": "10"
+                },
+                "ChiEstate": {
+                  "EstateName": "菁田邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "5",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "菁善樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "5",
+                  "BlockDescriptorPrecedenceIndicator": "N"
+                },
+                "BuildingName": "CHING SIN HOUSE",
+                "EngEstate": {
+                  "EstateName": "CHING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "10",
+                  "StreetName": "YAN PO ROAD",
+                  "LocationName": "TUEN MUN"
+                },
+                "EngDistrict": "TUEN MUN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "1515630347T20220125"
+            }
+          }
+        }
+      },
+      "featureIndexOneBased": 9409,
+      "authority": "User decision, 2026-09-07: reconstruct named buildings from the first retained release, corroborated by HA 2022 intake.",
+      "intakeYear": 2022,
+      "intakeEvidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json"
+    },
+    {
+      "csu": "1510230296T20220125",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0"
+      ],
+      "evidenceSourceVersion": "2025-06-20.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.97118, 22.41193]
+        },
+        "properties": {
+          "Northing": 830304,
+          "Easting": 815090,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "1510230296T20220125"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "屯門區",
+                "ChiStreet": {
+                  "LocationName": "屯門",
+                  "StreetName": "欣寶路",
+                  "BuildingNoFrom": "10"
+                },
+                "ChiEstate": {
+                  "EstateName": "菁田邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "1",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "菁信樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "1",
+                  "BlockDescriptorPrecedenceIndicator": "N"
+                },
+                "BuildingName": "CHING SHUN HOUSE",
+                "EngEstate": {
+                  "EstateName": "CHING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "10",
+                  "StreetName": "YAN PO ROAD",
+                  "LocationName": "TUEN MUN"
+                },
+                "EngDistrict": "TUEN MUN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "1510230296T20220125"
+            }
+          }
+        }
+      },
+      "featureIndexOneBased": 9410,
+      "authority": "User decision, 2026-09-07: reconstruct named buildings from the first retained release, corroborated by HA 2022 intake.",
+      "intakeYear": 2022,
+      "intakeEvidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json"
+    }
+  ]
+}
