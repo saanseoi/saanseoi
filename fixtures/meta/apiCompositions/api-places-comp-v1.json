@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3614366e2dfcd6f6defd4574e21182484441b8159911faecdbe44f1fffd18965",
+  "versionHash": "sha256:9b31198663e8617d78483658a7918c153b3bc89eeac1189d760a6d9b033c2bcd",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -56,6 +56,15 @@
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "place",
           "priority": 10
+        },
+        {
+          "resourceType": "address",
+          "variant": "overture-places",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "anchorResourceType": "place",
+          "priority": 15
         },
         {
           "resourceType": "division",
