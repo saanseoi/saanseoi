@@ -269,16 +269,21 @@ evidence; conflicts are omitted when absent. `multiple_close_matches` displays a
 “Several candidates have similar scores”.
 
 Selecting a candidate or **New Address** opens an English component menu for building,
-estate, block, phase, street, and building number start/end, followed by **Save** and
-**Back**. Saving unchanged candidate components links ALS. Editing them saves a
-supplementary address with the ALS derivation reference. New Address starts from parsed
-components with no ALS base or inherited divisions. The selected action supplies the
-reason automatically; no justification or extra confirmation is required.
+estate, block, phase, street, and building number start/end, followed by **Save**,
+**Save & Override Lat/Lng**, and **Back**. Saving unchanged candidate components links
+ALS. Editing them saves a supplementary address with the ALS derivation reference.
+**Save & Override Lat/Lng** is available only for an existing ALS candidate with
+geometry and copies that Address point onto the public Place and its H3 cells; the
+original publisher point remains in the source `overturePlaces` record. New Address
+starts from parsed components with no ALS base or inherited divisions. The selected
+action supplies the reason automatically; no justification or extra confirmation is
+required.
 
-The decision stores `address.values` and nullable `address.baseAddressId`. Chinese
-components preserve existing names where English is unchanged, carry edited numbers,
-translate controlled block/tower and phase expressions, and retain changed proper names
-as entered. Per-language `provenance` in the curation values records verified English
+The decision stores `address.values`, nullable `address.baseAddressId`, and, when
+selected, the finite `placeGeometryOverride` longitude/latitude pair. Chinese components
+preserve existing names where English is unchanged, carry edited numbers, translate
+controlled block/tower and phase expressions, and retain changed proper names as
+entered. Per-language `provenance` in the curation values records verified English
 fields and generated, unverified Chinese fields. Materialisation retains this metadata
 in each Address source record's `localisationProvenance`; Address localisation rows do
 not have a dedicated provenance column.

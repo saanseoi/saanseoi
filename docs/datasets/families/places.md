@@ -153,15 +153,18 @@ artefacts, provenance, materialisation order, and publication stops are specifie
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
 Interactive review opens candidates and **New Address** in the same English component
-editor, including building number start and end, with **Save** and **Back**. Unchanged
-candidates link ALS; edited candidates create a supplementary address with an ALS
-derivation reference. New addresses start from parsed components without inherited
-divisions. Chinese numbers and controlled expressions follow English edits; unchanged
-Chinese names are preserved and generated fields remain unverified in source provenance.
-Decisions use `link_existing`, `create_supplementary`, `keep_existing`, or
-`leave_unlinked` to distinguish the selected action and regenerate local entries. **Skip
-as Unresolved** defers review, while **Skip as Unlinked** remains effective until the
-source's 2D address changes.
+editor, including building number start and end, with **Save**, **Save & Override
+Lat/Lng**, and **Back**. The override is available only for an existing ALS candidate
+with geometry; it copies that Address point to the public Place and H3 cells while
+retaining the original publisher point in `overturePlaces`. Unchanged candidates link
+ALS; edited candidates create a supplementary address with an ALS derivation reference.
+New addresses start from parsed components without inherited divisions. Chinese numbers
+and controlled expressions follow English edits; unchanged Chinese names are preserved
+and generated fields remain unverified in source provenance. Decisions use
+`link_existing`, `create_supplementary`, `keep_existing`, or `leave_unlinked` to
+distinguish the selected action and regenerate local entries. **Skip as Unresolved**
+defers review, while **Skip as Unlinked** remains effective until the source's 2D
+address changes.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It owns both `place/default` and
