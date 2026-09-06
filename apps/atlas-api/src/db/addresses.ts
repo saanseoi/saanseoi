@@ -38,6 +38,7 @@ export type AddressRecord = {
     bbox: unknown
     identifiers: unknown
     sources: unknown
+    parentAddressId: string | null
     countryId: string | null
     areaId: string | null
     districtId: string | null
@@ -113,6 +114,7 @@ type AddressRow = {
   bbox: typeof address2d.$inferSelect.bbox
   identifiers: typeof address2d.$inferSelect.identifiers
   sources: typeof address2d.$inferSelect.sources
+  parentAddressId: string | null
   countryId: string | null
   areaId: string | null
   districtId: string | null
@@ -213,6 +215,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       bbox: row.bbox,
       identifiers: row.identifiers,
       sources: row.sources,
+      parentAddressId: row.parentAddressId,
       countryId: row.countryId,
       areaId: row.areaId,
       districtId: row.districtId,
@@ -259,6 +262,7 @@ export async function getAddressRecordCurrent(
       bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
+      parentAddressId: address2d.parentAddressId,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
@@ -294,6 +298,7 @@ export async function listAddressRecordsCurrent(
       bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
+      parentAddressId: address2d.parentAddressId,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
@@ -335,6 +340,7 @@ export async function listAddressRecordsCurrentByIds(
       bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
+      parentAddressId: address2d.parentAddressId,
       countryId: address2d.countryId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,

@@ -52,6 +52,7 @@ type AddressResourcePayload = {
   id: string
   attributes: {
     datasetCode: string
+    parentAddressId: string | null
     snapshotId?: string
     geometry?: JsonObject | null
     bbox?: BBox | null
@@ -358,6 +359,7 @@ function createAddressResource(args: {
   const { address } = args.record
   const attributes: AddressResourcePayload['attributes'] = {
     datasetCode: args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)!,
+    parentAddressId: address.parentAddressId,
   }
 
   if (args.routeState.profile !== 'compact') {
