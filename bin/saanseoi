@@ -46,8 +46,25 @@ if [[ "${SAANSEOI_LOG_ACTIVE:-}" != 1 ]]; then
   export SAANSEOI_LOG_PATH="$log_file"
   if [[ -t 1 || -t 0 ]]; then
     export CI=false
+    # Preserve terminal capabilities before tee turns stdout into a pipe.
+    export SAANSEOI_TERMINAL_INTERACTIVE=1
+    if [[ -t 0 ]]; then
+      exec {saanseoi_terminal_fd}<&0
+    else
+      exec {saanseoi_terminal_fd}>&1
+    fi
+    if read -r saanseoi_terminal_rows saanseoi_terminal_columns < <(
+      stty size 2>/dev/null <&"$saanseoi_terminal_fd"
+    ); then
+      export SAANSEOI_TERMINAL_COLUMNS="$saanseoi_terminal_columns"
+    fi
+    exec {saanseoi_terminal_fd}>&-
+    if [[ ! -v NO_COLOR && ! -v FORCE_COLOR ]]; then
+      export FORCE_COLOR=1
+    fi
   else
     export CI=true
+    unset SAANSEOI_TERMINAL_INTERACTIVE SAANSEOI_TERMINAL_COLUMNS
   fi
   exec > >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file"))
   exec 2> >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file") >&2)
