@@ -27,6 +27,7 @@ export async function replayGeometryIntoRemote(
   skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
   preparedSha256: string,
+  releaseCode: string,
 ) {
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
@@ -41,97 +42,162 @@ export async function replayGeometryIntoRemote(
     regionToken,
     plan.sourceVersion.slice(0, 4),
   )
-  const metaRows = readGeometryReplayMetadata(
-    context.state.dbCacheDir,
-    metaBindingName,
-    releaseId,
-    snapshotId,
-  )
-  const currentTable =
-    plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
-  const historyTable = currentTable
-  const sourceTable = resolveGeometrySourceTable(plan)
-  const currentRows = skipCanonicalMaterialisation
-    ? []
-    : readGeometryCacheRows(
-        context.state.dbCacheDir,
-        currentBindingName,
-        `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-      )
-  const historyRows = skipCanonicalMaterialisation
-    ? []
-    : readGeometryCacheRows(
-        context.state.dbCacheDir,
-        historyBindingName,
-        `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-      )
-  const changeRows = skipCanonicalMaterialisation
-    ? []
-    : readGeometryCacheRows(
-        context.state.dbCacheDir,
-        historyBindingName,
-        `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
-      )
-  const sourceRows = sourceTable
-    ? readGeometryCacheRows(
-        context.state.dbCacheDir,
-        sourceBindingName,
-        `SELECT * FROM "${sourceTable}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
-      )
-    : []
-  const options: SqlImportExecutionOptions = {
-    accountId: resolveGeometryCloudflareAccountId(target),
-    apiToken: process.env.CLOUDFLARE_D1_TOKEN?.trim(),
-    isLocal: false,
-  }
+  const generate = async () => {
+    const metaRows = readGeometryReplayMetadata(
+      context.state.dbCacheDir,
+      metaBindingName,
+      releaseId,
+      snapshotId,
+    )
+    const currentTable =
+      plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
+    const historyTable = currentTable
+    const sourceTable = resolveGeometrySourceTable(plan)
+    const currentRows = skipCanonicalMaterialisation
+      ? []
+      : iterateGeometryCacheRows(
+          context.state.dbCacheDir,
+          currentBindingName,
+          `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+        )
+    const historyRows = skipCanonicalMaterialisation
+      ? []
+      : iterateGeometryCacheRows(
+          context.state.dbCacheDir,
+          historyBindingName,
+          `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+        )
+    const changeRows = skipCanonicalMaterialisation
+      ? []
+      : iterateGeometryCacheRows(
+          context.state.dbCacheDir,
+          historyBindingName,
+          `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+        )
+    const sourceRows = sourceTable
+      ? iterateGeometryCacheRows(
+          context.state.dbCacheDir,
+          sourceBindingName,
+          `SELECT * FROM "${sourceTable}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
+        )
+      : []
+    const options: SqlImportExecutionOptions = {
+      accountId: resolveGeometryCloudflareAccountId(target),
+      apiToken: process.env.CLOUDFLARE_D1_TOKEN?.trim(),
+      isLocal: false,
+    }
 
-  const tableImports = [
-    {
-      bindingName: metaBindingName,
-      databaseId: context.state.bindings[metaBindingName]?.databaseId,
-      name: 'meta' as const,
-      sql: metaRows,
-    },
-    ...(!skipCanonicalMaterialisation
-      ? [
-          {
-            bindingName: currentBindingName,
-            databaseId: context.state.bindings[currentBindingName]?.databaseId,
-            name: 'current' as const,
-            sql: `${geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId)}\n${geometryBuildUpsertSql(currentTable, currentRows)}`,
-          },
-        ]
-      : []),
-    ...(!skipCanonicalMaterialisation
-      ? [
-          {
-            bindingName: historyBindingName,
-            databaseId: context.state.bindings[historyBindingName]?.databaseId,
-            name: 'history' as const,
-            sql: [
-              geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId),
-              geometrySqlLiteralDelete(
-                'snapshotVersionChanges',
-                'snapshotId',
-                snapshotId,
+    const tableImports = [
+      {
+        bindingName: metaBindingName,
+        databaseId: context.state.bindings[metaBindingName]?.databaseId,
+        name: 'meta' as const,
+        sql: [metaRows],
+      },
+      ...(!skipCanonicalMaterialisation
+        ? [
+            {
+              bindingName: currentBindingName,
+              databaseId: context.state.bindings[currentBindingName]?.databaseId,
+              name: 'current' as const,
+              sql: geometryReplayStatements(
+                currentTable,
+                currentRows,
+                geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId),
               ),
-              geometryBuildUpsertSql(historyTable, historyRows),
-              geometryBuildUpsertSql('snapshotVersionChanges', changeRows),
-            ]
-              .filter(Boolean)
-              .join('\n'),
-          },
-        ]
-      : []),
-    {
-      bindingName: sourceBindingName,
-      databaseId: context.state.bindings[sourceBindingName]?.databaseId,
-      name: 'source' as const,
-      sql: sourceTable
-        ? `${geometrySqlLiteralDelete(sourceTable, 'releaseId', releaseId)}\n${geometryBuildUpsertSql(sourceTable, sourceRows)}`
-        : '',
-    },
-  ]
+            },
+          ]
+        : []),
+      ...(!skipCanonicalMaterialisation
+        ? [
+            {
+              bindingName: historyBindingName,
+              databaseId: context.state.bindings[historyBindingName]?.databaseId,
+              name: 'history' as const,
+              sql: (function* () {
+                yield* geometryIterateClosureSql(
+                  historyTable,
+                  iterateGeometryCacheRows(
+                    context.state.dbCacheDir,
+                    historyBindingName,
+                    `SELECT "id", "versionHash", "isCurrent", "updatedAt" FROM "${historyTable}" WHERE "isCurrent" = 0 AND "id" IN (SELECT "recordId" FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)} AND "recordType" = ${geometrySqlLiteral(plan.type)})`,
+                  ),
+                  ['id', 'versionHash'],
+                )
+                yield geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId)
+                yield geometrySqlLiteralDelete(
+                  'snapshotVersionChanges',
+                  'snapshotId',
+                  snapshotId,
+                )
+                yield* geometryIterateUpsertSql(historyTable, historyRows)
+                yield* geometryIterateUpsertSql('snapshotVersionChanges', changeRows)
+              })(),
+            },
+          ]
+        : []),
+      {
+        bindingName: sourceBindingName,
+        databaseId: context.state.bindings[sourceBindingName]?.databaseId,
+        name: 'source' as const,
+        sql: (function* () {
+          if (sourceTable) {
+            yield* geometryIterateClosureSql(
+              sourceTable,
+              iterateGeometryCacheRows(
+                context.state.dbCacheDir,
+                sourceBindingName,
+                `SELECT "sourceRecordId", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(releaseCode)}`,
+              ),
+              ['sourceRecordId', 'versionHash'],
+            )
+            yield* geometryReplayStatements(
+              sourceTable,
+              sourceRows,
+              geometrySqlLiteralDelete(sourceTable, 'releaseId', releaseId),
+            )
+          }
+          if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
+            const table = 'hkgovCenstatdDivisionAreaDerivatives'
+            yield* geometryIterateClosureSql(
+              table,
+              iterateGeometryCacheRows(
+                context.state.dbCacheDir,
+                sourceBindingName,
+                `SELECT "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(releaseCode)}`,
+              ),
+              ['sourceRecordId', 'inputVersionHash', 'transform', 'versionHash'],
+            )
+            yield geometrySqlLiteralDelete(table, 'releaseId', releaseId)
+            yield* geometryIterateUpsertSql(
+              table,
+              iterateGeometryCacheRows(
+                context.state.dbCacheDir,
+                sourceBindingName,
+                `SELECT * FROM "${table}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
+              ),
+            )
+          }
+        })(),
+      },
+    ]
+
+    for (const tableImport of tableImports) {
+      await runProgressPhase(
+        describeRemoteGeometryImport(tableImport.name, plan, target),
+        async () => {
+          for (const sql of tableImport.sql) {
+            if (!sql.trim()) continue
+            await executeSqlText(
+              { databaseId: tableImport.databaseId ?? null, name: tableImport.name },
+              sql,
+              options,
+            )
+          }
+        },
+      )
+    }
+  }
 
   try {
     await deliverSqlPhase(
@@ -143,28 +209,14 @@ export async function replayGeometryIntoRemote(
         )
           .replace(/[^a-z0-9-]/gi, '-')
           .toLowerCase()}`,
-        inputs: { preparedSha256, snapshotId, sourceVersion: plan.sourceVersion },
+        inputs: {
+          preparedSha256,
+          snapshotId,
+          sourceVersion: plan.sourceVersion,
+          releaseCode,
+        },
       },
-      async () => {
-        // A OperationProgress instance owns one in-place terminal row. Keep
-        // remote table phases sequential so concurrent imports cannot leave
-        // several live renderers writing duplicate rows to stdout.
-        for (const tableImport of tableImports) {
-          if (!tableImport.sql.trim()) continue
-          await runProgressPhase(
-            describeRemoteGeometryImport(tableImport.name, plan, target),
-            () =>
-              executeSqlText(
-                {
-                  databaseId: tableImport.databaseId ?? null,
-                  name: tableImport.name,
-                },
-                tableImport.sql,
-                options,
-              ),
-          )
-        }
-      },
+      generate,
     )
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
@@ -222,11 +274,19 @@ function readGeometryReplayMetadata(
 }
 
 function readGeometryCacheRows(cacheDir: string, bindingName: string, query: string) {
+  return [...iterateGeometryCacheRows(cacheDir, bindingName, query)]
+}
+
+function* iterateGeometryCacheRows(
+  cacheDir: string,
+  bindingName: string,
+  query: string,
+) {
   const sqlite = new SQLiteDatabase(join(cacheDir, `${bindingName}.sqlite`), {
     readonly: true,
   })
   try {
-    return sqlite.query(query).all() as Array<Record<string, unknown>>
+    yield* sqlite.query(query).iterate() as IterableIterator<Record<string, unknown>>
   } finally {
     sqlite.close()
   }
@@ -236,48 +296,84 @@ export function geometryBuildUpsertSql(
   tableName: string,
   rows: Array<Record<string, unknown>>,
 ) {
-  if (rows.length === 0) return ''
-  const columns = Object.keys(rows[0] ?? {})
-  const quotedColumns = columns.map(column => `"${column}"`).join(', ')
-  const updates = columns.map(column => `"${column}" = excluded."${column}"`).join(', ')
-  const prefix = `INSERT INTO "${tableName}" (${quotedColumns}) VALUES `
-  const suffix = ` ON CONFLICT DO UPDATE SET ${updates};`
-  const statements: string[] = []
+  return [...geometryIterateUpsertSql(tableName, rows)].join('\n')
+}
+
+/** Small version-qualified updates: never replace historical geometry or newer versions. */
+export function* geometryIterateClosureSql(
+  tableName: string,
+  rows: Iterable<Record<string, unknown>>,
+  keys: string[],
+) {
+  for (const row of rows) {
+    if (row.isCurrent !== 0 || !keys.length || keys.some(key => row[key] == null))
+      throw new Error('Invalid closed geometry version.')
+    const updates = Object.keys(row).filter(column => !keys.includes(column))
+    const statement = `UPDATE "${tableName}" SET ${updates.map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`).join(', ')} WHERE ${keys.map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`).join(' AND ')};`
+    if (Buffer.byteLength(statement) > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES)
+      throw new Error('Geometry closure exceeds the SQL statement budget.')
+    yield statement
+  }
+}
+
+function* geometryReplayStatements(
+  tableName: string,
+  rows: Iterable<Record<string, unknown>>,
+  initial: string,
+) {
+  yield initial
+  yield* geometryIterateUpsertSql(tableName, rows)
+}
+
+export function* geometryIterateUpsertSql(
+  tableName: string,
+  rows: Iterable<Record<string, unknown>>,
+) {
+  let columns: string[] | undefined
+  let prefix = ''
+  let suffix = ''
+  let overheadBytes = 0
+  let valuesBytes = 0
   let values: string[] = []
 
   for (const row of rows) {
+    if (!columns) {
+      columns = Object.keys(row)
+      prefix = `INSERT INTO "${tableName}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES `
+      suffix = ` ON CONFLICT DO UPDATE SET ${columns.map(column => `"${column}" = excluded."${column}"`).join(', ')};`
+      overheadBytes = Buffer.byteLength(prefix) + Buffer.byteLength(suffix)
+    }
     const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`
-    const rowStatement = `${prefix}${value}${suffix}`
-    const rowStatementBytes = new TextEncoder().encode(rowStatement).byteLength
+    const valueBytes = Buffer.byteLength(value)
+    const rowStatementBytes = overheadBytes + valueBytes
 
     if (rowStatementBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
       if (values.length > 0) {
-        statements.push(`${prefix}${values.join(', ')}${suffix}`)
+        yield `${prefix}${values.join(', ')}${suffix}`
         values = []
+        valuesBytes = 0
       }
 
-      statements.push(
-        geometryBuildChunkedUpsertSql(tableName, columns, row, prefix, suffix),
-      )
+      yield geometryBuildChunkedUpsertSql(tableName, columns, row, prefix, suffix)
       continue
     }
 
-    const candidate = `${prefix}${[...values, value].join(', ')}${suffix}`
-    const candidateBytes = new TextEncoder().encode(candidate).byteLength
+    const candidateBytes =
+      overheadBytes + valuesBytes + (values.length ? 2 : 0) + valueBytes
 
     if (candidateBytes > MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES) {
-      statements.push(`${prefix}${values.join(', ')}${suffix}`)
+      yield `${prefix}${values.join(', ')}${suffix}`
       values = [value]
+      valuesBytes = valueBytes
     } else {
+      valuesBytes += (values.length ? 2 : 0) + valueBytes
       values.push(value)
     }
   }
 
   if (values.length > 0) {
-    statements.push(`${prefix}${values.join(', ')}${suffix}`)
+    yield `${prefix}${values.join(', ')}${suffix}`
   }
-
-  return statements.join('\n')
 }
 
 function geometryBuildChunkedUpsertSql(
