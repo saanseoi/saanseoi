@@ -11,8 +11,6 @@ import {
 import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
-  countAddressRecordsCurrent,
-  getAddressRecordCurrent,
   listAddressRecordsCurrent,
   listAddressRecordsCurrentByIds,
   searchAddressIdsCurrent,
@@ -21,6 +19,7 @@ import {
   type AddressLocaleValue,
   type AddressRecord,
 } from '../db/addresses'
+import { listReplayedAddressRecords } from '../db/addressesHistory'
 import { listDivisionRecordsCurrentByIds } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
 import {
@@ -238,6 +237,46 @@ type AddressSearchUnavailableResponse = {
   httpStatus: 503
   error: 'fts_not_ready'
   message: 'FTS index is not initialised. Rebuild addressesFts before using search.'
+}
+
+function addressMatchesFilters(record: AddressRecord, filters: AddressFilters) {
+  const { address } = record
+  return (
+    (!filters.country || address.countryId === filters.country) &&
+    (!filters.area || address.areaId === filters.area) &&
+    (!filters.district || address.districtId === filters.district)
+  )
+}
+
+async function loadSelectedAddressRecords(args: {
+  activeSnapshot: ActiveAddressSnapshot
+  currentDb: AppEnv['Variables']['currentDb']
+  filters: AddressFilters
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
+  localeSelection: RequestedApiLocaleSelection
+  metaDb: AppEnv['Variables']['metaDb']
+}) {
+  if (args.historyDbsByBinding) {
+    const records = await listReplayedAddressRecords({
+      divisionSnapshotId: args.activeSnapshot.divisionSnapshotId,
+      historyDbsByBinding: args.historyDbsByBinding,
+      localeSelection: args.localeSelection,
+      metaDb: args.metaDb,
+      snapshotIds: args.activeSnapshot.snapshotIds,
+    })
+    return records
+      .filter(record => addressMatchesFilters(record, args.filters))
+      .sort((left, right) => left.address.id.localeCompare(right.address.id))
+  }
+
+  return listAddressRecordsCurrent(args.currentDb, {
+    snapshotIds: args.activeSnapshot.snapshotIds,
+    countryId: args.filters.country,
+    areaId: args.filters.area,
+    districtId: args.filters.district,
+    limit: Number.MAX_SAFE_INTEGER,
+    localeSelection: args.localeSelection,
+  })
 }
 
 export type AddressSearchResult =
@@ -501,6 +540,7 @@ async function getActiveAddressSnapshot(
 
 export async function listAddresses(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedAddressVersion
@@ -538,26 +578,18 @@ export async function listAddresses(args: {
       ? { district: args.query['filter[district]'] }
       : {}),
   }
-  const lookup = {
-    snapshotIds: activeSnapshot.snapshotIds,
-    limit,
-    offset,
-    countryId: filters.country,
-    areaId: filters.area,
-    districtId: filters.district,
-    localeSelection: routeState.localeSelection,
-  }
-  const [records, total] = await runWithD1ReadRetry(() =>
-    Promise.all([
-      listAddressRecordsCurrent(args.currentDb, lookup),
-      countAddressRecordsCurrent(args.currentDb, {
-        snapshotIds: activeSnapshot.snapshotIds,
-        countryId: filters.country,
-        areaId: filters.area,
-        districtId: filters.district,
-      }),
-    ]),
+  const selectedRecords = await runWithD1ReadRetry(() =>
+    loadSelectedAddressRecords({
+      activeSnapshot,
+      currentDb: args.currentDb,
+      filters,
+      historyDbsByBinding: args.historyDbsByBinding,
+      localeSelection: routeState.localeSelection,
+      metaDb: args.metaDb,
+    }),
   )
+  const total = selectedRecords.length
+  const records = selectedRecords.slice(offset, offset + limit)
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
@@ -734,6 +766,7 @@ export async function searchAddresses(args: {
 
 export async function getAddressDetail(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedAddressVersion
@@ -758,13 +791,18 @@ export async function getAddressDetail(args: {
     if (accessAttribution) args.onResolved(accessAttribution)
   }
 
-  const record = await runWithD1ReadRetry(() =>
-    getAddressRecordCurrent(args.currentDb, {
-      snapshotIds: activeSnapshot.snapshotIds,
-      addressId: args.id,
-      localeSelection: routeState.localeSelection,
-    }),
-  )
+  const record = (
+    await runWithD1ReadRetry(() =>
+      loadSelectedAddressRecords({
+        activeSnapshot,
+        currentDb: args.currentDb,
+        filters: {},
+        historyDbsByBinding: args.historyDbsByBinding,
+        localeSelection: routeState.localeSelection,
+        metaDb: args.metaDb,
+      }),
+    )
+  ).find(candidate => candidate.address.id === args.id)
   if (!record) {
     return {
       status: 404,

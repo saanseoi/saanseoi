@@ -19,10 +19,12 @@ export type CurrentAddressVersionRow = Pick<
   | 'districtId'
   | 'areaId'
   | 'countryId'
+  | 'createdAt'
   | 'geometry'
   | 'identifiers'
   | 'bbox'
   | 'sources'
+  | 'updatedAt'
   | 'versionHash'
 >
 

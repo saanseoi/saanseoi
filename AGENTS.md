@@ -22,6 +22,11 @@ Repo-local operating notes for Codex and similar agents.
   - `libs/i18n`
   - `libs/config-typescript`
 
+## Project Conventions
+
+- Generally, source code files should aim be less than 1000 lines before they are
+  refactored
+
 ## Tooling Conventions
 
 - Package manager/runtime: `bun` (`packageManager: bun@1.4.2`)
