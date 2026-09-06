@@ -73,6 +73,15 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Lei Fook and Lei Moon Low Blocks are separately identified sections of their respective
+buildings. Their distinct publisher premise IDs must not be merged because one appears
+in the delivery where the other disappears.
+
+A reviewed source premise can represent a named section even when the publisher omits
+its building label. Preserve the source identity and point, record identification
+evidence, and avoid creating a duplicate derived section. Section identification alone
+does not establish membership of individual units in a combined building inventory.
+
 `attributes.granularity` describes address scope in every API profile, independently of
 validity, verification and Place category. It has no score or universal ordering.
 
