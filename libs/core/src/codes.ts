@@ -160,6 +160,16 @@ export function datasetVariantForSource(
     return options.datasetCode ?? 'default'
   }
 
+  // One Places publisher dataset contributes two resource outputs. Its Address
+  // capability must not satisfy dependencies on the canonical ALS member.
+  if (
+    resourceType === 'address' &&
+    source === 'overture' &&
+    options.datasetCode?.endsWith('-overture-place')
+  ) {
+    return 'overture-places'
+  }
+
   if (
     resourceType !== 'division' &&
     resourceType !== 'divisionArea' &&

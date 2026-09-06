@@ -2,9 +2,26 @@ import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 
 import { asNonEmptyString, asString, createHash } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
+import { correctHkgovAddressComponents } from './componentCorrections'
 
-export function normaliseAddressRowForPipeline(row: Record<string, unknown>) {
-  return normalisePreparedHkgovAddressRow(row)
+export function normaliseAddressRowForPipeline(
+  row: Record<string, unknown>,
+  sourceVersion: unknown = row.sourceVersion,
+) {
+  const corrected = correctHkgovAddressComponents(row, sourceVersion)
+  const normalised = normalisePreparedHkgovAddressRow(corrected.row)
+  if (corrected.applied.length) {
+    normalised.base.sources = {
+      ...(Array.isArray(normalised.base.sources)
+        ? { hkgovAls: normalised.base.sources }
+        : asRecord(normalised.base.sources)),
+      hkgovAlsComponentCorrections: {
+        fixtureVersion: 1,
+        corrections: corrected.applied,
+      },
+    }
+  }
+  return normalised
 }
 
 /**

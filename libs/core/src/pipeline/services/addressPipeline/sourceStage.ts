@@ -148,7 +148,7 @@ function getSourceAddress(row: NormalisedAddressRecord, locale: 'en' | 'zh-hant'
   const isZhHant = locale === 'zh-hant'
   return {
     formattedAddress: localised.formattedAddress,
-    buildingName: localised.buildingName,
+    buildingName: asString(row.raw[isZhHant ? 'zhHantBuildingName' : 'enBuildingName']),
     buildingNumberExpression: localised.buildingNumberExpression,
     buildingNumberFrom: localised.buildingNumberFrom,
     buildingNumberTo: localised.buildingNumberTo,
@@ -160,7 +160,7 @@ function getSourceAddress(row: NormalisedAddressRecord, locale: 'en' | 'zh-hant'
     phaseExpression: localised.phaseExpression,
     phaseName: localised.phaseName,
     phaseRef: localised.phaseRef,
-    estateName: localised.estateName,
+    estateName: asString(row.raw[isZhHant ? 'zhHantEstateName' : 'enEstateName']),
     streetName: localised.streetName,
     villageName: asString(row.raw[isZhHant ? 'zhHantVillageName' : 'enVillageName']),
     districtName: asString(row.raw[isZhHant ? 'zhHantDistrict' : 'enDistrict']),

@@ -5,6 +5,7 @@ import type {
   NormalisedAddressChunkArtefact,
   ResolvedAddressChunkArtefact,
 } from './types'
+import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import { buildSourceReleaseId } from '../../db/source'
 import { buildAddressBuildingNumberLookupRows } from './normalisation'
 
@@ -30,6 +31,10 @@ export type AddressSqlImportBuildOptions = {
   unchangedSourceRecordIds?: ReadonlySet<string>
   maxStatementBytes?: number
   runId?: string
+  /** Exact Division snapshot selected while resolving this address release. */
+  currentDivisionSnapshotId?: string
+  /** Address snapshot receiving the final Division alignment. */
+  currentSnapshotId?: string
 }
 
 type SqlInsertRow = Record<string, SqlValue>
@@ -502,6 +507,14 @@ export function buildAddressResolvedSqlImportFiles(
     buildSqlImportFile('current', `${runId}-current-${artefact.rowStart}.sql`, [
       ...currentStatements,
       buildAddressCurrentApplySql(runId),
+      ...(options.currentDivisionSnapshotId && options.currentSnapshotId
+        ? [
+            buildAlignAddressCurrentDivisionSnapshotSql(
+              options.currentSnapshotId,
+              options.currentDivisionSnapshotId,
+            ),
+          ]
+        : []),
       buildAddressResolvedStagingDropSql(),
     ]),
   ]
@@ -803,7 +816,7 @@ function buildSourceAddressJsonSql(locale: 'en' | 'zh-hant') {
 
   return `(SELECT json_object(
     'formattedAddress', i.formattedAddress,
-    'buildingName', i.buildingName,
+    'buildingName', ${jsonTextValue('r.rawProperties', isZhHant ? 'zhHantBuildingName' : 'enBuildingName')},
     'buildingNumberExpression', i.buildingNumberExpression,
     'buildingNumberFrom', i.buildingNumberFrom,
     'buildingNumberTo', i.buildingNumberTo,
@@ -819,7 +832,7 @@ function buildSourceAddressJsonSql(locale: 'en' | 'zh-hant') {
     'phaseExpression', i.phaseExpression,
     'phaseName', i.phaseName,
     'phaseRef', i.phaseRef,
-    'estateName', i.estateName,
+    'estateName', ${jsonTextValue('r.rawProperties', isZhHant ? 'zhHantEstateName' : 'enEstateName')},
     'streetName', i.streetName,
     'villageName', ${villageName},
     'districtName', ${districtName}
