@@ -57,3 +57,18 @@ Address3D matching are outside its scope.
 The fixture is bundled with ingestion code. Editing it requires an updated ingestion
 build and a new snapshot generation; it does not rewrite prepared source files, resume
 already-normalised chunks with new results, or mutate published releases.
+
+## Reviewed estate, building and section hierarchy
+
+[`hkgov-dpo-address-hierarchies.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
+records source-backed hierarchy observations separately from component corrections. A
+complex such as `MODEL HOUSING ESTATE / 模範邨` contains named buildings, while official
+street-number records can identify sections or entrances within a continuous building.
+The fixture records the finest level supported by ALS and does not infer missing
+numbers.
+
+For example, ALS identifies `MAN NING HSE / 民寧樓` as the `750-758 KING'S ROAD` range,
+whereas `MAN HONG HSE / 民康樓` has separate records for 762, 764, 766, 768, 770 and 774
+King's Road. The 3D entries contain floor and unit references only; they do not identify
+an entrance or street number. A repeated unit payload can therefore be shared across
+section records, but it must not be presented as section-specific unit attribution.
