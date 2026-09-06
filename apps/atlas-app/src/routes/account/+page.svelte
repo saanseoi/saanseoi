@@ -19,8 +19,8 @@ import {
 
 let { data } = $props()
 let accountPageData = $derived(data.accountPageData)
-let accounts = $state<typeof accountPageData.accounts>([])
-let passkeys = $state<typeof accountPageData.passkeys>([])
+let accounts = $derived(accountPageData.accounts)
+let passkeys = $derived(accountPageData.passkeys)
 let error = $state<string | null>(null)
 let unlinkingAccountId = $state<string | null>(null)
 let removingPasskeyId = $state<string | null>(null)
@@ -73,11 +73,6 @@ const openPasswordDialog = (mode: 'add' | 'change') => {
   passwordSuccess = false
   passwordDialogOpen = true
 }
-
-$effect(() => {
-  accounts = accountPageData.accounts
-  passkeys = accountPageData.passkeys
-})
 
 const link = async (provider: SocialProvider) => {
   if (linkingProvider) return
@@ -267,7 +262,7 @@ const providerDetails = (providerId: string) =>
                 >{m.account_change_password()}</Button
               >
             {/if}
-            {#if accounts.length + passkeys.length > 1}
+            {#if accounts.length > 1}
               <Button
                 onclick={() => unlink(account.id, account.providerId)}
                 disabled={unlinkingAccountId !== null}
@@ -438,7 +433,7 @@ const providerDetails = (providerId: string) =>
         {/if}
         <div class="mt-6 flex justify-end gap-3">
           <Button onclick={() => (passwordDialogOpen = false)} variant="secondary"
-            >{m.common_cancel()}</Button
+            >{passwordSuccess ? m.common_close() : m.common_cancel()}</Button
           ><Button
             disabled={passwordBusy || passwordSuccess}
             type="submit"
