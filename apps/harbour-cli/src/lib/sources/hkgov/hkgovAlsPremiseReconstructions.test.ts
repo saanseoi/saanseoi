@@ -3,13 +3,17 @@ import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address
 import { reconstructAlsPremises } from './hkgovAlsPremiseReconstructions'
 import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
 
-const d = fixture.reconstructions[0]!
+const d = fixture.reconstructions.find(
+  d => d.id === 'choi-yuen-food-court-corrected-location',
+)!
 const plaza: HkgovAlsSourceFeature = {
   sourceFile: 'original.geojson',
   featureIndexOneBased: 1,
   feature: {
     properties: {
-      Address: { PremisesAddress: { BuildingCsuInformation: { CsuId: d.plazaCsu } } },
+      Address: {
+        PremisesAddress: { BuildingCsuInformation: { CsuId: d.scopePremiseCsu } },
+      },
     },
   },
 }
@@ -72,4 +76,44 @@ test('rejects altered or missing original records and leaves evidence-era source
   expect(() => reconstructAlsPremises(features, release.version)).toThrow(
     'publisher source changed',
   )
+})
+
+test('restores the separate car park only in the seven reviewed omissions', () => {
+  const carPark = fixture.reconstructions.find(
+    d => d.id === 'chun-shek-car-park-publisher-omission',
+  )!
+  const anchor: HkgovAlsSourceFeature = {
+    sourceFile: 'original.geojson',
+    featureIndexOneBased: 1,
+    feature: {
+      properties: {
+        Address: {
+          PremisesAddress: {
+            BuildingCsuInformation: { CsuId: carPark.scopePremiseCsu },
+          },
+        },
+      },
+    },
+  }
+  expect(carPark.releases).toHaveLength(7)
+  for (const release of carPark.releases) {
+    const features = [anchor]
+    const result = reconstructAlsPremises(features, release.version)
+    expect(features).toHaveLength(2)
+    expect(features[0]).toBe(anchor)
+    expect(JSON.stringify(features[1]!.feature)).toBe(
+      JSON.stringify(carPark.evidence.feature),
+    )
+    expect((result.get(carPark.newCsu) as any).originalAssertions).toEqual([])
+    expect((result.get(carPark.newCsu) as any).evidence.sourceVersion).toBe(
+      '2026-02-04.0',
+    )
+    expect(() => reconstructAlsPremises(features, release.version)).toThrow(
+      'publisher source changed',
+    )
+  }
+  const features = [anchor]
+  reconstructAlsPremises(features, '2026-02-04.0')
+  expect(features).toHaveLength(1)
+  expect(reconstructAlsPremises([], '2026-04-03.0').size).toBe(0)
 })

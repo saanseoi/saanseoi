@@ -23,13 +23,17 @@ export function reconstructAlsPremises(
           (p?.EngPremisesAddress?.BuildingName || p?.ChiPremisesAddress?.BuildingName))
       )
     })
-    const plazas = features.filter(
+    const scopePremises = features.filter(
       s =>
         s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
-          ?.CsuId === d.plazaCsu,
+          ?.CsuId === d.scopePremiseCsu,
     )
-    if (!candidates.length && !plazas.length) continue
-    assert.equal(plazas.length, 1, `Reconstruction ${d.id}: missing or ambiguous plaza`)
+    if (!candidates.length && !scopePremises.length) continue
+    assert.equal(
+      scopePremises.length,
+      1,
+      `Reconstruction ${d.id}: missing or ambiguous scope premise`,
+    )
     assert.deepEqual(
       candidates.map(s => s.feature),
       release.expected,

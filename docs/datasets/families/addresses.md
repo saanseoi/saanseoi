@@ -92,6 +92,11 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+A user-confirmed erroneous removal can be restored as a dated premise reconstruction.
+Chun Shek Estate's car park retains its separate identity through seven source
+omissions, with the February 2026 evidence date explicit and no inferred residential
+coverage.
+
 Chuk Yuen (North) Estate retains HA's estate-specific parentheses in canonical naming;
 the original ALS spelling and identities remain source evidence.
 
