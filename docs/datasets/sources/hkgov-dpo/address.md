@@ -8,6 +8,16 @@ describes their canonical role.
 Canonical `parentAddressId` is initialised to null. ALS component names and number
 ranges alone do not establish a containing Address or justify creating missing numbers.
 
+The shared normalisation stage classifies `granularity` after guarded component
+corrections, for both SQL and Worker ingestion. The corrected Ngong Ping tourist-complex
+estate component yields `complex`. Supporting decisions and evidence are retained in the
+codebase component and granularity curation fixtures. Only the resulting granularity is
+materialised; classification does not alter publisher source records. Number-only
+addresses, conflicting locale components and ambiguous facility labels remain `unknown`;
+a building-number range never turns its individual numbers into units. See
+[granularity curation](../../families/addresses.md#granularity-curation) for guarded
+manual overrides and how changed evidence reopens review.
+
 ## Component correction fixture
 
 [`hkgov-dpo-address-components.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-components.json)
