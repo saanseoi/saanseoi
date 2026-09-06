@@ -1,0 +1,262 @@
+import { Database } from 'bun:sqlite'
+import { test, expect } from 'bun:test'
+import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { resolve } from 'node:path'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { currentSchema, historySchema } from '@repo/db'
+import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
+import {
+  loadMigrationSql,
+  seedFixtureCatalog,
+  insertFixtureRelease,
+} from '../../../../../libs/core/src/testing/metaFixtures'
+import {
+  ensureDraftSnapshotForRelease,
+  upsertSnapshotSource,
+} from '@repo/core/db/metaRegistry'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
+import policy from '../../../../../fixtures/meta/curations/overture-place-address.json'
+
+test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
+  const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
+  const meta = new Database(':memory:')
+  const current = new Database(':memory:')
+  const history = new Database(':memory:')
+  try {
+    for (const [db, profile] of [
+      [meta, 'meta'],
+      [current, 'current'],
+      [history, 'history'],
+    ] as const) {
+      db.exec(
+        loadMigrationSql(
+          resolve(import.meta.dir, '../../../../../libs/db/migrations'),
+          [profile],
+        ).replaceAll('--> statement-breakpoint', ''),
+      )
+    }
+    seedFixtureCatalog(meta)
+    const db = createLocalHarbourDb(meta)
+    meta.exec(`INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, versionHash)
+      SELECT 'overture-hk-place', publisherId, 'ds-hk-overture-place', 'hk', 'static', 'monthly', 'places', 'fixture'
+      FROM datasets WHERE id = 'overture-hk-division';
+      INSERT INTO datasetResourceTypes VALUES ('overture-hk-place', 'place');`)
+    insertFixtureRelease(meta, {
+      releaseId: 'place-release',
+      source: 'overture',
+      regionCode: 'hk',
+      rawObjectKey: 'places.parquet',
+      originalFileName: 'places.parquet',
+      ingestedAt: '2026-08-19T00:00:00Z',
+      type: 'place',
+      cohortKey: '2026-08',
+      sourceVersion: '2026-08-19.0',
+      status: 'processing',
+      createdAt: '2026-08-19T00:00:00Z',
+      updatedAt: '2026-08-19T00:00:00Z',
+    })
+    insertFixtureRelease(meta, {
+      releaseId: 'als-release',
+      source: 'hkgov-dpo',
+      regionCode: 'hk',
+      rawObjectKey: 'als.parquet',
+      originalFileName: 'als.parquet',
+      ingestedAt: '2026-08-19T00:00:00Z',
+      type: 'address',
+      cohortKey: '2026-08',
+      sourceVersion: '2026-08-01',
+      status: 'published',
+      createdAt: '2026-08-19T00:00:00Z',
+      updatedAt: '2026-08-19T00:00:00Z',
+    })
+    const official = await ensureDraftSnapshotForRelease(db, 'address', {
+      cohortKey: '2026-08',
+      datasetCode: 'ds-hk-hkgov-dpo-address',
+      datasetId: 'hkgov-dpo-hk-address',
+      regionCode: 'hk',
+      sourceReleaseId: 'als-release',
+    })
+    await upsertSnapshotSource(
+      db,
+      official.id,
+      'hkgov-dpo-hk-address',
+      'als-release',
+      'primary',
+    )
+    const placeSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
+      cohortKey: '2026-08',
+      datasetCode: 'ds-hk-overture-place',
+      datasetId: 'overture-hk-place',
+      regionCode: 'hk',
+      sourceReleaseId: 'place-release',
+    })
+    const currentDb = drizzle({ client: current, schema: currentSchema })
+    currentDb
+      .insert(currentSchema.divisions)
+      .values({ snapshotId: 'division', id: 'hk', type: 'country' })
+      .run()
+    currentDb
+      .insert(currentSchema.address2d)
+      .values({
+        snapshotId: official.id,
+        id: 'als-citygate',
+        divisionSnapshotId: 'division',
+        countryId: 'hk',
+      })
+      .run()
+    currentDb
+      .insert(currentSchema.address2dI18n)
+      .values({
+        snapshotId: official.id,
+        addressId: 'als-citygate',
+        locale: 'en',
+        formattedAddress: 'Citygate, 20 Tat Tung Road',
+        buildingName: 'Citygate',
+        streetName: 'Tat Tung Road',
+        buildingNumberExpression: '20',
+        buildingNumberFrom: '20',
+      })
+      .run()
+    const curationPath = resolve(root, 'curation.json')
+    await writeFile(curationPath, JSON.stringify(policy))
+    const target = (database: Database, name: 'current' | 'history' | 'meta') => ({
+      name,
+      databaseId: null,
+      binding: { prepare: (sql: string) => ({ run: async () => database.exec(sql) }) },
+    })
+    const place = normaliseOverturePlace(
+      {
+        id: 'citygate-place',
+        geometry: { type: 'Point', coordinates: [113.941, 22.29] },
+        addresses: [{ freeform: 'Citygate Outlets, Tat Tung Road', country: 'HK' }],
+      },
+      '2026-08-19.0',
+    )!
+    const input = {
+      curationPath,
+      context: {
+        currentDb,
+        historyTargets: [
+          {
+            db: drizzle({ client: history, schema: historySchema }),
+            bindingName: 'history',
+          },
+        ],
+      },
+      metaDb: db,
+      snapshots: {
+        snapshotId: placeSnapshot.id,
+        addressSnapshotId: official.id,
+        divisionSnapshotId: 'division',
+      },
+      places: [place],
+      historyRows: [],
+      releaseRoot: root,
+      releaseId: 'place-release',
+      datasetId: 'overture-hk-place',
+      plan: {
+        datasetCode: 'ds-hk-overture-place',
+        cohortKey: '2026-08',
+        regionCode: 'hk',
+        releaseCode: 'place-release',
+        rowCount: 1,
+        source: 'overture',
+        sourceVersion: '2026-08-19.0',
+        theme: 'places',
+        type: 'place',
+      },
+      targets: {
+        current: target(current, 'current'),
+        history: target(history, 'history'),
+        meta: target(meta, 'meta'),
+        historyByBinding: new Map([['history', target(history, 'history')]]),
+        environment: 'preview',
+      },
+      importOptions: { isLocal: true },
+      actions: [],
+    } as unknown as Parameters<typeof prepareSupplementaryAddresses>[0]
+    const failedImport = {
+      ...input,
+      targets: {
+        ...input.targets,
+        history: {
+          ...input.targets.history,
+          binding: {
+            prepare: () => ({
+              run: async () => {
+                throw new Error('simulated history import failure')
+              },
+            }),
+          },
+        },
+      },
+    } as unknown as typeof input
+    await expect(prepareSupplementaryAddresses(failedImport)).rejects.toThrow(
+      'simulated history import failure',
+    )
+    expect(
+      meta
+        .query(
+          "SELECT count(*) AS n FROM snapshots s JOIN snapshotLineages l ON l.id = s.snapshotLineageId WHERE l.variant = 'overture-places' AND s.status = 'published'",
+        )
+        .get(),
+    ).toEqual({ n: 0 })
+    const first = await prepareSupplementaryAddresses(input)
+    expect(
+      meta
+        .query('SELECT datasetId, sourceReleaseId FROM releases WHERE id = ?')
+        .get(first.releaseId),
+    ).toEqual({
+      datasetId: 'overture-hk-place',
+      sourceReleaseId: 'source-place-release',
+    })
+    expect(
+      meta
+        .query('SELECT count(*) AS n FROM sourceReleases WHERE datasetId = ?')
+        .get('overture-hk-place'),
+    ).toEqual({ n: 1 })
+    expect(
+      meta
+        .query('SELECT status FROM sourceReleases WHERE id = ?')
+        .get('source-place-release'),
+    ).toEqual({ status: 'processing' })
+    expect(first.addresses).toHaveLength(1)
+    expect(
+      current
+        .query('SELECT countryId FROM address2d WHERE snapshotId = ?')
+        .get(first.snapshotId),
+    ).toEqual({ countryId: 'hk' })
+    expect(
+      meta.query('SELECT status FROM snapshots WHERE id = ?').get(first.snapshotId),
+    ).toEqual({ status: 'published' })
+    expect(
+      history
+        .query('SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId = ?')
+        .get(first.snapshotId),
+    ).toEqual({ n: 2 })
+    expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
+    const retry = await prepareSupplementaryAddresses(input)
+    expect(retry.snapshotId).toBe(first.snapshotId)
+    expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
+    const changed = {
+      ...place,
+      raw: { ...place.raw, addresses: [{ freeform: 'Citygate Annex, Tat Tung Road' }] },
+    }
+    await expect(
+      prepareSupplementaryAddresses({ ...input, places: [changed] }),
+    ).rejects.toThrow('require explicit curation')
+    const review = JSON.parse(
+      await readFile(resolve(root, 'overture-place-address-review.json'), 'utf8'),
+    )
+    expect(review.reviewRequired).toBe(1)
+    expect(review.results[0].previous.addressId).toBe(first.addresses[0]!.current.id)
+    expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
+  } finally {
+    meta.close()
+    current.close()
+    history.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})

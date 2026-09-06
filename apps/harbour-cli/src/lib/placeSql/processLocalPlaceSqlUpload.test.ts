@@ -234,7 +234,8 @@ describe('Places SQL materialisation', () => {
       historyRows: [],
       places: [
         {
-          address2dId: null,
+          address2dId: 'supplementary-address',
+          addressSnapshotId: 'supplementary-snapshot',
           address3dId: null,
           divisionIds: [],
           sourcePayloadHash: 'source-hash',
@@ -303,6 +304,14 @@ describe('Places SQL materialisation', () => {
     expect(history.query('SELECT COUNT(*) AS count FROM places').get()).toEqual({
       count: 1,
     })
+    for (const db of [sqlite, history]) {
+      expect(
+        db.query('SELECT addressSnapshotId, address2dId FROM places').get(),
+      ).toEqual({
+        addressSnapshotId: 'supplementary-snapshot',
+        address2dId: 'supplementary-address',
+      })
+    }
     expect(
       history.query('SELECT COUNT(*) AS count FROM snapshotVersionChanges').get(),
     ).toEqual({ count: 2 })

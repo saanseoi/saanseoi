@@ -1,6 +1,7 @@
-import { mkdir } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
+import { mkdir, readFile, writeFile, rename, open, unlink } from 'node:fs/promises'
+import { createReadStream, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { createInterface } from 'node:readline'
 
 import {
   ensureDraftSnapshotForRelease,
@@ -8,10 +9,10 @@ import {
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolveShardForTypeRegionYear,
   recordSnapshotLookupDependency,
-  recordSnapshotAssemblyRun,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
   upsertSnapshotSource,
+  publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -39,16 +40,32 @@ import {
   extractPlaceAddressTexts,
   getPlaceAddressCountry,
   normaliseOverturePlace,
+  type PlaceLocalisationStatistics,
   type NormalisedPlace,
 } from '@repo/core/pipeline/services/place'
 import {
-  createPlaceAddressMatcher,
-  matchPlaceAddressTexts,
-} from './placeAddressMatcher.ts'
+  addressFingerprint,
+  createSupplementaryAddressAnalyser,
+  parseSupplementaryCuration,
+  type AddressResolution,
+} from './supplementaryPlaceAddress.ts'
+import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
+import {
+  buildSupplementaryAddressRows,
+  SUPPLEMENTARY_ADDRESS_VARIANT,
+} from './supplementaryPlaceAddressRows.ts'
 import { createHash } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addressPipeline/normalisation'
+import {
+  currentSchema,
+  historySchema,
+  metaSchema,
+  buildDeterministicUuidV5,
+} from '@repo/db'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq, ne, isNotNull, lte } from 'drizzle-orm'
 import { latLngToCell } from 'h3-js'
 
 import { createHarbourControlClient } from '../api/harbourControl.ts'
@@ -70,7 +87,7 @@ import {
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
 import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 
 type PlaceUploadPlan = {
   datasetCode: string
@@ -94,6 +111,7 @@ type UploadResult = {
 
 type EnrichedPlace = {
   place: NormalisedPlace
+  addressSnapshotId?: string | null
   address2dId: string | null
   address3dId: string | null
   divisionIds: string[]
@@ -101,7 +119,19 @@ type EnrichedPlace = {
   sourcePayloadHash: string
 }
 
-type PlaceHistoryRow = typeof historySchema.places.$inferSelect
+/** Only retain history fields needed for replay and address continuity. */
+type PlaceHistoryRow = Pick<
+  typeof historySchema.places.$inferSelect,
+  | 'id'
+  | 'address2dId'
+  | 'addressSnapshotId'
+  | 'addresses'
+  | 'createdAt'
+  | 'firstSeenMonth'
+  | 'lastSeenMonth'
+  | 'releaseId'
+  | 'versionHash'
+>
 
 type PlaceHistoryState = {
   bindingName: string
@@ -136,6 +166,29 @@ type PlaceSqlProgressEvent = {
   phase: 'generate' | 'import'
 }
 
+type StagedPlaces = {
+  actions: ReleaseProcessingAction[]
+  includedRows: number
+  path: string
+  processedRows: number
+}
+
+type StagedEnrichedPlaces = {
+  path: string
+  processedRows: number
+  stats: PlaceReleaseStatsAccumulator
+}
+
+type PlaceReleaseStatsAccumulator = {
+  addressLinkedRows: number
+  divisionLinkedRows: number
+  localeCounts: Map<string, number>
+  localisedPlaceCount: number
+  localisedRows: number
+  localisation: PlaceLocalisationStatistics
+  processedRows: number
+}
+
 const LOCAL_RELEASE_ROOT = resolve(
   import.meta.dir,
   '../../../../../.local/harbour-sql/releases',
@@ -145,6 +198,12 @@ const PLACE_ENRICHMENT_CONCURRENCY = 4
 const PLACE_SQL_BATCH_SIZE = 512
 const MAX_SQL_BYTES = 90_000
 const PLACE_H3_LEVELS = [5, 7, 9] as const
+const SUPPLEMENTARY_CURATION_PATH = resolve(
+  import.meta.dir,
+  '../../../../../fixtures/meta/curations/overture-place-address.json',
+)
+const NORMALISED_PLACES_FILE = 'normalised-places.jsonl'
+const ENRICHED_PLACES_FILE = 'enriched-places.jsonl'
 
 /**
  * Materialises an Overture Places release. The lifecycle is intentionally
@@ -172,7 +231,7 @@ export async function processLocalPlaceSqlUpload(
   await mkdir(releaseRoot, { recursive: true })
 
   const bucket = new LocalPipelineBucket(releaseRoot)
-  const progress = new LocalUploadProgress({ compact: true })
+  const progress = new OperationProgress({ compact: true })
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
@@ -256,47 +315,69 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
         ),
     )
-    const places = await runPlaceProgressPhase(
+    const stagedPlaces = await runPlaceProgressPhase(
       progress,
       'Read and normalise',
       'source Places',
       reportProgress =>
-        readPlaces(bucket, rawObjectKey, previewPlan.sourceVersion, current =>
-          reportProgress(current),
+        stagePlaces(
+          bucket,
+          rawObjectKey,
+          previewPlan.sourceVersion,
+          releaseRoot,
+          current => reportProgress(current),
         ),
       previewPlan.rowCount,
     )
-    assertPlaceAddressCardinality(places)
     await runPlaceProgressPhase(
       progress,
       'Review',
       'source Places',
-      () =>
-        replaceReleaseProcessingActions(metaDb, releaseId, [
-          ...buildPlaceCountryReviewProcessingActions(places),
-          ...buildPlaceLocaleConflictProcessingActions(places),
-        ]),
-      places.length,
-    )
-    const includedPlaces = places.filter(place => !isExcludedOverturePlace(place))
-    const enriched = await runPlaceProgressPhase(
-      progress,
-      'Match and enrich',
-      'Places',
-      reportProgress =>
-        enrichPlaces(
-          context.currentDb as unknown as HarbourReadableDb,
-          snapshots,
-          includedPlaces,
-          current => reportProgress(current),
-        ),
-      includedPlaces.length,
+      () => replaceReleaseProcessingActions(metaDb, releaseId, stagedPlaces.actions),
+      stagedPlaces.processedRows,
     )
     const historyRows = await runPlaceProgressPhase(
       progress,
       'Prepare',
       'Place history',
       () => loadCurrentPlaceHistory(context.historyTargets),
+    )
+    const targets = await placeTargets(
+      context,
+      metaDb,
+      target,
+      previewPlan.regionCode,
+      shardYear,
+    )
+    const supplementary = await prepareSupplementaryAddresses({
+      context,
+      metaDb,
+      snapshots,
+      places: readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
+      historyRows,
+      releaseRoot,
+      plan: previewPlan,
+      releaseId,
+      datasetId,
+      targets,
+      importOptions,
+      actions: stagedPlaces.actions,
+    })
+    const stagedEnrichedPlaces = await runPlaceProgressPhase(
+      progress,
+      'Match and enrich',
+      'Places',
+      reportProgress =>
+        stageEnrichedPlaces(
+          context.currentDb as unknown as HarbourReadableDb,
+          snapshots,
+          readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
+          readStagedJsonLines<AddressResolution>(supplementary.resolutionPath),
+          releaseRoot,
+          current => reportProgress(current),
+          supplementary,
+        ),
+      stagedPlaces.includedRows,
     )
     const sqlInput: BuildPlaceSqlInput = {
       activeHistoryBindingName: findTargetBindingName(
@@ -311,7 +392,7 @@ export async function processLocalPlaceSqlUpload(
       datasetId,
       message,
       snapshots,
-      places: enriched,
+      places: [],
       historyRows,
     }
     const sqlTimestamp = new Date().toISOString()
@@ -321,18 +402,23 @@ export async function processLocalPlaceSqlUpload(
       'Calculate',
       'release statistics',
       () =>
-        replaceDatasetStats(metaDb, releaseId, buildPlaceReleaseStatsRows(enriched)),
-      enriched.length,
+        replaceDatasetStats(
+          metaDb,
+          releaseId,
+          buildPlaceReleaseStatsRowsFromAccumulator(stagedEnrichedPlaces.stats),
+        ),
+      stagedEnrichedPlaces.processedRows,
     )
 
     await runPlaceProgressPhase(progress, 'Write', 'release metadata', () =>
-      upsertPlaceMetadata(metaDb, snapshots, datasetId, releaseId, previewPlan, target),
-    )
-    const targets = await runPlaceProgressPhase(
-      progress,
-      'Prepare',
-      'SQL targets',
-      () => placeTargets(context, metaDb, target, previewPlan.regionCode, shardYear),
+      upsertPlaceMetadata(
+        metaDb,
+        { ...snapshots, supplementaryAddressSnapshotId: supplementary.snapshotId },
+        datasetId,
+        releaseId,
+        previewPlan,
+        target,
+      ),
     )
     if (target.remote) {
       await runPlaceProgressPhase(progress, 'Import SQL', 'snapshot metadata', () =>
@@ -346,13 +432,20 @@ export async function processLocalPlaceSqlUpload(
       'Generate and import SQL',
       'Places',
       reportProgress =>
-        importPlaceSqlBatches(targets, sqlInput, sqlTimestamp, importOptions, event =>
-          reportProgress(
-            event.current,
-            event.detail ?? (event.phase === 'generate' ? 'generation' : 'import'),
-          ),
+        importPlaceSqlBatches(
+          targets,
+          sqlInput,
+          stagedEnrichedPlaces.path,
+          stagedEnrichedPlaces.processedRows,
+          sqlTimestamp,
+          importOptions,
+          event =>
+            reportProgress(
+              event.current,
+              event.detail ?? (event.phase === 'generate' ? 'generation' : 'import'),
+            ),
         ),
-      enriched.length,
+      stagedEnrichedPlaces.processedRows,
     )
     await runPlaceProgressPhase(progress, 'Rebuild', 'Places search index', () =>
       executeSqlText(
@@ -376,14 +469,13 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
           'extractPlaces',
           {
-            processedRows: enriched.length,
-            addressLinkedRows: enriched.filter(row => row.address2dId).length,
-            divisionLinkedRows: enriched.filter(row => row.divisionIds.length > 0)
-              .length,
+            processedRows: stagedEnrichedPlaces.processedRows,
+            addressLinkedRows: stagedEnrichedPlaces.stats.addressLinkedRows,
+            divisionLinkedRows: stagedEnrichedPlaces.stats.divisionLinkedRows,
           },
           releaseCode,
         ),
-      enriched.length,
+      stagedEnrichedPlaces.processedRows,
     )
     await runPlaceProgressPhase(
       progress,
@@ -394,14 +486,34 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
           'extractPlacesI18n',
           {
-            localisedRows: enriched.reduce(
-              (count, row) => count + row.place.i18n.length,
-              0,
-            ),
+            localisedRows: stagedEnrichedPlaces.stats.localisedRows,
           },
           releaseCode,
         ),
-      enriched.reduce((count, row) => count + row.place.i18n.length, 0),
+      stagedEnrichedPlaces.stats.localisedRows,
+    )
+    await runPlaceProgressPhase(progress, 'Publish', 'curated Address collection', () =>
+      processingClient.publishDataset(
+        supplementary.releaseId,
+        supplementary.releaseCode,
+        {
+          carriedSnapshots: [
+            {
+              resourceType: 'address',
+              snapshotId: snapshots.addressSnapshotId,
+              variant: 'default',
+            },
+            {
+              resourceType: 'division',
+              snapshotId: snapshots.divisionSnapshotId,
+              variant: 'overture',
+            },
+          ],
+          deferSourcePublish: true,
+          deferApiReleaseSet: options.deferApiReleaseSet,
+          skipSnapshotCleanup: true,
+        },
+      ),
     )
     publishResult = (await runPlaceProgressPhase(
       progress,
@@ -446,6 +558,8 @@ export async function processLocalPlaceSqlUpload(
                 await importPlaceSqlBatches(
                   targets,
                   sqlInput,
+                  stagedEnrichedPlaces.path,
+                  stagedEnrichedPlaces.processedRows,
                   sqlTimestamp,
                   cacheImportOptions,
                   event =>
@@ -454,7 +568,10 @@ export async function processLocalPlaceSqlUpload(
                       event.detail ?? `remote cache SQL ${event.phase}`,
                     ),
                 )
-                reportProgress(enriched.length, 'remote cache search index')
+                reportProgress(
+                  stagedEnrichedPlaces.processedRows,
+                  'remote cache search index',
+                )
                 await executeSqlText(
                   targets.current,
                   readFileSync(
@@ -468,7 +585,7 @@ export async function processLocalPlaceSqlUpload(
                 )
               },
             ),
-          enriched.length,
+          stagedEnrichedPlaces.processedRows,
         )
         shouldRefreshRemoteMetaCache = true
       } catch (error) {
@@ -503,12 +620,12 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
           'processDataset',
           {
-            processedRows: enriched.length,
+            processedRows: stagedEnrichedPlaces.processedRows,
             snapshotId: snapshots.snapshotId,
           },
           releaseCode,
         ),
-      enriched.length,
+      stagedEnrichedPlaces.processedRows,
     )
     progress.finish('Places processing complete')
   } catch (error) {
@@ -624,24 +741,44 @@ async function resolvePlaceSnapshots(
     sourceReleaseId: releaseId,
     variant: 'default',
   })
-  // The actual source release is supplied by the caller after registration.
-  // The placeholder is replaced by upsertPlaceMetadata; resolving the snapshot
-  // here keeps the data-building code independent of the registration layer.
-  const address =
-    (await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
-      metaDb,
-      'address',
-      plan.regionCode,
-      plan.cohortKey,
-      { variant: 'default' },
-    )) ??
-    (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
-      metaDb,
-      'address',
-      plan.regionCode,
-      plan.cohortKey,
-      { variant: 'default' },
-    ))
+  const previousRuns = await metaDb
+    .select()
+    .from(metaSchema.metaSnapshotAssemblyRuns)
+    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, place.id))
+    .all()
+  const recordedAddressId = previousRuns
+    .map(
+      run =>
+        (run.selectionSummaryJson as { addressSnapshotId?: string } | null)
+          ?.addressSnapshotId,
+    )
+    .find(Boolean)
+  const address = recordedAddressId
+    ? await metaDb
+        .select({ id: metaSchema.metaSnapshots.id })
+        .from(metaSchema.metaSnapshots)
+        .where(
+          and(
+            eq(metaSchema.metaSnapshots.id, recordedAddressId),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+          ),
+        )
+        .get()
+    : ((await resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey(
+        metaDb,
+        'address',
+        plan.regionCode,
+        plan.cohortKey,
+        { variant: 'default' },
+      )) ??
+      (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
+        metaDb,
+        'address',
+        plan.regionCode,
+        plan.cohortKey,
+        { variant: 'default' },
+      )))
   if (!address) throw new Error('Places require a published address snapshot.')
 
   const addressRow = await currentDb
@@ -695,6 +832,18 @@ async function resolvePlaceSnapshots(
       `Places require the published division snapshot ${addressRow.divisionSnapshotId} selected by address snapshot ${address.id}.`,
     )
   }
+  if (!recordedAddressId)
+    await recordPlaceAddressAssembly(metaDb, {
+      snapshotId: place.id,
+      resourceType: 'place',
+      anchorReleaseId: releaseId,
+      anchorCohortKey: plan.cohortKey,
+      selectionSummaryJson: {
+        addressSnapshotId: address.id,
+        divisionSnapshotId: division.id,
+        addressReviewRequired: null,
+      },
+    })
   return {
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,
@@ -702,53 +851,96 @@ async function resolvePlaceSnapshots(
   }
 }
 
-async function readPlaces(
+async function stagePlaces(
   bucket: LocalPipelineBucket,
   rawObjectKey: string,
   sourceVersion: string,
+  releaseRoot: string,
   onProgress?: (current: number) => void,
-) {
+): Promise<StagedPlaces> {
   const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
-  const places: NormalisedPlace[] = []
+  const path = resolve(releaseRoot, NORMALISED_PLACES_FILE)
+  const tempPath = `${path}.tmp`
+  const output = await open(tempPath, 'w')
+  const actions: ReleaseProcessingAction[] = []
+  let includedRows = 0
   let processedRows = 0
-  for await (const batch of readParquetObjectsInBatches(file, PLACE_BATCH_SIZE)) {
-    for (const row of batch) {
-      const place = normaliseOverturePlace(row, sourceVersion)
-      if (place) places.push(place)
-      processedRows += 1
+  try {
+    for await (const batch of readParquetObjectsInBatches(file, PLACE_BATCH_SIZE)) {
+      for (const row of batch) {
+        const place = normaliseOverturePlace(row, sourceVersion)
+        if (place) {
+          assertPlaceAddressCardinality([place])
+          actions.push(
+            ...buildPlaceCountryReviewProcessingActions([place]),
+            ...buildPlaceLocaleConflictProcessingActions([place]),
+          )
+          if (!isExcludedOverturePlace(place)) {
+            await output.write(`${JSON.stringify(place)}\n`)
+            includedRows += 1
+          }
+        }
+        processedRows += 1
+      }
+      onProgress?.(processedRows)
     }
-    onProgress?.(processedRows)
+  } finally {
+    await output.close()
   }
-  return places
+  await rename(tempPath, path)
+  return { actions, includedRows, path, processedRows }
 }
 
-async function enrichPlaces(
+async function* readStagedJsonBatches<T>(path: string, batchSize = PLACE_BATCH_SIZE) {
+  let batch: T[] = []
+  for await (const value of readStagedJsonLines<T>(path)) {
+    batch.push(value)
+    if (batch.length < batchSize) continue
+    yield batch
+    batch = []
+  }
+  if (batch.length) yield batch
+}
+
+async function* readStagedJsonLines<T>(path: string) {
+  const lines = createInterface({
+    crlfDelay: Infinity,
+    input: createReadStream(path, { encoding: 'utf8' }),
+  })
+  for await (const line of lines) {
+    if (line.trim()) yield JSON.parse(line) as T
+  }
+}
+
+async function stageEnrichedPlaces(
   currentDb: HarbourReadableDb,
   snapshots: { addressSnapshotId: string; divisionSnapshotId: string },
-  places: NormalisedPlace[],
+  places: AsyncIterable<NormalisedPlace>,
+  resolutions: AsyncIterable<AddressResolution>,
+  releaseRoot: string,
   onProgress?: (current: number) => void,
-) {
+  supplementary?: {
+    resolutionPath: string
+    snapshotId: string
+    addresses: Awaited<ReturnType<typeof buildSupplementaryAddressRows>>
+  },
+): Promise<StagedEnrichedPlaces> {
   const addresses = await currentDb
-    .select()
+    .select({
+      areaId: currentSchema.address2d.areaId,
+      countryId: currentSchema.address2d.countryId,
+      districtId: currentSchema.address2d.districtId,
+      hamletId: currentSchema.address2d.hamletId,
+      id: currentSchema.address2d.id,
+      macrohoodId: currentSchema.address2d.macrohoodId,
+      microhoodId: currentSchema.address2d.microhoodId,
+      neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+      snapshotId: currentSchema.address2d.snapshotId,
+      townId: currentSchema.address2d.townId,
+      villageId: currentSchema.address2d.villageId,
+    })
     .from(currentSchema.address2d)
     .where(eq(currentSchema.address2d.snapshotId, snapshots.addressSnapshotId))
-    .all()
-  const addressI18n = await currentDb
-    .select({
-      addressId: currentSchema.address2dI18n.addressId,
-      locale: currentSchema.address2dI18n.locale,
-      formattedAddress: currentSchema.address2dI18n.formattedAddress,
-      buildingName: currentSchema.address2dI18n.buildingName,
-      buildingNumberExpression: currentSchema.address2dI18n.buildingNumberExpression,
-      buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
-      buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
-      blockExpression: currentSchema.address2dI18n.blockExpression,
-      phaseExpression: currentSchema.address2dI18n.phaseExpression,
-      estateName: currentSchema.address2dI18n.estateName,
-      streetName: currentSchema.address2dI18n.streetName,
-    })
-    .from(currentSchema.address2dI18n)
-    .where(eq(currentSchema.address2dI18n.snapshotId, snapshots.addressSnapshotId))
     .all()
   const divisionIds = new Set(
     (
@@ -760,46 +952,763 @@ async function enrichPlaces(
     ).map(row => row.id),
   )
   const addressById = new Map(addresses.map(row => [row.id, row]))
-  const addressMatcher = createPlaceAddressMatcher(addressI18n)
+  if (!supplementary)
+    throw new Error('Places require supplementary address analysis before enrichment.')
+  const supplementaryById = new Map(
+    supplementary.addresses.map(row => [row.current.id, row.current]),
+  )
+  const path = resolve(releaseRoot, ENRICHED_PLACES_FILE)
+  const tempPath = `${path}.tmp`
+  const output = await open(tempPath, 'w')
+  const stats = createPlaceReleaseStatsAccumulator()
   let processedPlaces = 0
-  return mapWithConcurrency(places, PLACE_ENRICHMENT_CONCURRENCY, async place => {
-    const addressId = matchPlaceAddressTexts(
-      extractPlaceAddressTexts(place.raw.addresses),
-      addressMatcher,
-    )
-    const address = addressId ? addressById.get(addressId) : undefined
-    const referencedDivisionIds = address
-      ? [
-          address.countryId,
-          address.areaId,
-          address.districtId,
-          address.townId,
-          address.macrohoodId,
-          address.villageId,
-          address.neighbourhoodId,
-          address.hamletId,
-          address.microhoodId,
-        ].filter((id): id is string => typeof id === 'string' && divisionIds.has(id))
-      : []
-    const contentHash = await hashNormalisedPlace(place)
-    const result = {
-      place,
-      address2dId: addressId,
-      address3dId: null,
-      divisionIds: [...new Set(referencedDivisionIds)],
-      versionHash: await hashPlaceMaterialisation(place, {
-        addressSnapshotId: snapshots.addressSnapshotId,
-        divisionSnapshotId: snapshots.divisionSnapshotId,
-        addressId,
-        divisionIds: referencedDivisionIds,
-        contentHash,
-      }),
-      sourcePayloadHash: await createHash(place.raw),
+  try {
+    for await (const batch of groupAsyncIterable(
+      zipPlacesAndResolutions(places, resolutions),
+      PLACE_BATCH_SIZE,
+    )) {
+      const enriched = await mapWithConcurrency(
+        batch,
+        PLACE_ENRICHMENT_CONCURRENCY,
+        async ({ place, resolution }) => {
+          if (resolution.tier === 'review')
+            throw new Error(`Unresolved Place Address ${place.id}.`)
+          const addressId = resolution.addressId
+          const addressSnapshotId =
+            resolution.tier === 'supplementary'
+              ? supplementary.snapshotId
+              : snapshots.addressSnapshotId
+          const address = addressId
+            ? resolution.tier === 'supplementary'
+              ? supplementaryById.get(addressId)
+              : addressById.get(addressId)
+            : undefined
+          if (addressId && !address)
+            throw new Error(`Place Address ${addressId} did not materialise.`)
+          const referencedDivisionIds = address
+            ? [
+                address.countryId,
+                address.areaId,
+                address.districtId,
+                address.townId,
+                address.macrohoodId,
+                address.villageId,
+                address.neighbourhoodId,
+                address.hamletId,
+                address.microhoodId,
+              ].filter(
+                (id): id is string => typeof id === 'string' && divisionIds.has(id),
+              )
+            : []
+          const contentHash = await hashNormalisedPlace(place)
+          const result = {
+            place,
+            addressSnapshotId: addressId ? addressSnapshotId : null,
+            address2dId: addressId,
+            address3dId: null,
+            divisionIds: [...new Set(referencedDivisionIds)],
+            versionHash: await hashPlaceMaterialisation(place, {
+              addressSnapshotId,
+              divisionSnapshotId: snapshots.divisionSnapshotId,
+              addressId,
+              divisionIds: referencedDivisionIds,
+              contentHash,
+            }),
+            sourcePayloadHash: await createHash(place.raw),
+          }
+          return result
+        },
+      )
+      for (const place of enriched) {
+        await output.write(`${JSON.stringify(place)}\n`)
+        addPlaceReleaseStats(stats, place)
+      }
+      processedPlaces += enriched.length
+      onProgress?.(processedPlaces)
     }
-    processedPlaces += 1
-    onProgress?.(processedPlaces)
-    return result
+  } finally {
+    await output.close()
+  }
+  await rename(tempPath, path)
+  return { path, processedRows: processedPlaces, stats }
+}
+
+async function* groupAsyncIterable<T>(values: AsyncIterable<T>, batchSize: number) {
+  let batch: T[] = []
+  for await (const value of values) {
+    batch.push(value)
+    if (batch.length < batchSize) continue
+    yield batch
+    batch = []
+  }
+  if (batch.length) yield batch
+}
+
+async function* zipPlacesAndResolutions(
+  places: AsyncIterable<NormalisedPlace>,
+  resolutions: AsyncIterable<AddressResolution>,
+) {
+  const iterator = resolutions[Symbol.asyncIterator]()
+  for await (const place of places) {
+    const next = await iterator.next()
+    if (next.done) throw new Error(`Missing Place Address resolution for ${place.id}.`)
+    if (next.value.placeId !== place.id)
+      throw new Error(
+        `Place Address resolution order diverged at ${place.id}/${next.value.placeId}.`,
+      )
+    yield { place, resolution: next.value }
+  }
+  if (!(await iterator.next()).done)
+    throw new Error('Place Address resolution stream has extra rows.')
+}
+
+type PrepareSupplementaryAddressesInput = {
+  curationPath?: string
+  context: LocalAddressDbContext
+  metaDb: HarbourReadableDb & HarbourWritableDb
+  snapshots: {
+    snapshotId: string
+    addressSnapshotId: string
+    divisionSnapshotId: string
+  }
+  places: Iterable<NormalisedPlace> | AsyncIterable<NormalisedPlace>
+  historyRows: PlaceHistoryState[]
+  releaseRoot: string
+  plan: PlaceUploadPlan
+  releaseId: string
+  datasetId: string
+  targets: Awaited<ReturnType<typeof placeTargets>>
+  importOptions: SqlImportExecutionOptions
+  actions: ReleaseProcessingAction[]
+}
+
+export async function prepareSupplementaryAddresses(
+  input: PrepareSupplementaryAddressesInput,
+) {
+  await mkdir(LOCAL_RELEASE_ROOT, { recursive: true })
+  const lockPath = resolve(
+    input.curationPath ? input.releaseRoot : LOCAL_RELEASE_ROOT,
+    'overture-place-address.lock',
+  )
+  const lock = await open(lockPath, 'wx')
+  try {
+    await lock.writeFile(
+      JSON.stringify({ pid: process.pid, releaseId: input.releaseId }),
+    )
+    return await prepareSupplementaryAddressesLocked(input)
+  } finally {
+    await lock.close()
+    await unlink(lockPath)
+  }
+}
+
+async function prepareSupplementaryAddressesLocked(
+  input: PrepareSupplementaryAddressesInput,
+) {
+  const db = input.metaDb
+  const currentDb = input.context.currentDb as unknown as HarbourReadableDb
+  const curationPath = input.curationPath ?? SUPPLEMENTARY_CURATION_PATH
+  const fixtureText = await readFile(curationPath, 'utf8')
+  const fixture = parseSupplementaryCuration(JSON.parse(fixtureText))
+  const official = (await currentDb
+    .select({
+      areaId: currentSchema.address2d.areaId,
+      countryId: currentSchema.address2d.countryId,
+      districtId: currentSchema.address2d.districtId,
+      divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
+      geometry: currentSchema.address2d.geometry,
+      hamletId: currentSchema.address2d.hamletId,
+      id: currentSchema.address2d.id,
+      macrohoodId: currentSchema.address2d.macrohoodId,
+      microhoodId: currentSchema.address2d.microhoodId,
+      neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+      snapshotId: currentSchema.address2d.snapshotId,
+      townId: currentSchema.address2d.townId,
+      villageId: currentSchema.address2d.villageId,
+    })
+    .from(currentSchema.address2d)
+    .where(eq(currentSchema.address2d.snapshotId, input.snapshots.addressSnapshotId))
+    .all()) as unknown as Pick<
+    typeof currentSchema.address2d.$inferSelect,
+    | 'areaId'
+    | 'countryId'
+    | 'districtId'
+    | 'divisionSnapshotId'
+    | 'geometry'
+    | 'hamletId'
+    | 'id'
+    | 'macrohoodId'
+    | 'microhoodId'
+    | 'neighbourhoodId'
+    | 'snapshotId'
+    | 'townId'
+    | 'villageId'
+  >[]
+  const definitions = (await currentDb
+    .select({
+      addressId: currentSchema.address2dI18n.addressId,
+      blockExpression: currentSchema.address2dI18n.blockExpression,
+      buildingName: currentSchema.address2dI18n.buildingName,
+      buildingNumberExpression: currentSchema.address2dI18n.buildingNumberExpression,
+      buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
+      buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
+      estateName: currentSchema.address2dI18n.estateName,
+      formattedAddress: currentSchema.address2dI18n.formattedAddress,
+      locale: currentSchema.address2dI18n.locale,
+      phaseExpression: currentSchema.address2dI18n.phaseExpression,
+      streetName: currentSchema.address2dI18n.streetName,
+    })
+    .from(currentSchema.address2dI18n)
+    .where(
+      eq(currentSchema.address2dI18n.snapshotId, input.snapshots.addressSnapshotId),
+    )
+    .all()) as PlaceAddressDefinition[]
+  const geometry = new Map<string, { lng: number; lat: number }>()
+  for (const row of official) {
+    const value = parseWkbGeometry(row.geometry)
+    if (value?.type === 'Point' && value.coordinates?.length === 2) {
+      const [lng, lat] = value.coordinates
+      if (lng !== undefined && lat !== undefined) geometry.set(row.id, { lng, lat })
+    }
+  }
+  const officialById = new Map(official.map(row => [row.id, row]))
+  const analyse = createSupplementaryAddressAnalyser(
+    definitions,
+    new Set(officialById.keys()),
+    geometry,
+    fixture,
+  )
+  const previousById = new Map<string, PlaceHistoryRow>()
+  for (const target of input.context.historyTargets) {
+    const rows = (await (target.db as HarbourReadableDb)
+      .select({
+        address2dId: historySchema.places.address2dId,
+        addressSnapshotId: historySchema.places.addressSnapshotId,
+        addresses: historySchema.places.addresses,
+        createdAt: historySchema.places.createdAt,
+        id: historySchema.places.id,
+        lastSeenMonth: historySchema.places.lastSeenMonth,
+        releaseId: historySchema.places.releaseId,
+      })
+      .from(historySchema.places)
+      .where(
+        and(
+          isNotNull(historySchema.places.address2dId),
+          lte(historySchema.places.lastSeenMonth, input.plan.sourceVersion.slice(0, 7)),
+          ne(historySchema.places.releaseId, input.releaseId),
+        ),
+      )
+      .all()) as PlaceHistoryRow[]
+    for (const row of rows) {
+      const previous = previousById.get(row.id)
+      if (
+        !previous ||
+        `${row.lastSeenMonth}:${row.createdAt}` >
+          `${previous.lastSeenMonth}:${previous.createdAt}`
+      )
+        previousById.set(row.id, row)
+    }
+  }
+  const resolutionPath = resolve(input.releaseRoot, 'overture-place-address.jsonl')
+  const resolutionTempPath = `${resolutionPath}.tmp`
+  const resolutionOutput = await open(resolutionTempPath, 'w')
+  const supplementaryResolutions: AddressResolution[] = []
+  const resolutionCounts = new Map<AddressResolution['tier'], number>()
+  const resolutionReasons = new Map<AddressResolution['tier'], Set<string>>()
+  try {
+    for await (const place of input.places) {
+      const previous = previousById.get(place.id)
+      const resolution = analyse(
+        {
+          placeId: place.id,
+          sourceRelease: input.plan.sourceVersion,
+          texts: extractPlaceAddressTexts(place.raw.addresses),
+          lng: place.lng,
+          lat: place.lat,
+        },
+        previous?.address2dId
+          ? {
+              addressId: previous.address2dId,
+              addressSnapshotId: previous.addressSnapshotId,
+              fingerprint: addressFingerprint(
+                Array.isArray(previous.addresses)
+                  ? previous.addresses.filter(
+                      (value): value is string => typeof value === 'string',
+                    )
+                  : [],
+              ),
+            }
+          : null,
+      )
+      await resolutionOutput.write(`${JSON.stringify(resolution)}\n`)
+      resolutionCounts.set(
+        resolution.tier,
+        (resolutionCounts.get(resolution.tier) ?? 0) + 1,
+      )
+      const reasons = resolutionReasons.get(resolution.tier) ?? new Set<string>()
+      reasons.add(resolution.reason)
+      resolutionReasons.set(resolution.tier, reasons)
+      if (resolution.tier === 'supplementary') supplementaryResolutions.push(resolution)
+    }
+  } finally {
+    await resolutionOutput.close()
+  }
+  await rename(resolutionTempPath, resolutionPath)
+  const reviewCount = resolutionCounts.get('review') ?? 0
+  const actions: ReleaseProcessingAction[] = [
+    ...input.actions,
+    ...(['direct', 'supplementary', 'review', 'delayed'] as const).map(tier => ({
+      action: `overture_place_address_${tier}`,
+      mode: 'automatic' as const,
+      affectedRecordCount: resolutionCounts.get(tier) ?? 0,
+      summary: `Overture Place Address analysis: ${tier}.`,
+      evidence: {
+        policyVersion: fixture.activePolicy,
+        policy: fixture.policies[fixture.activePolicy],
+        reviewArtefact: 'overture-place-address-review.json',
+        reasons: [...(resolutionReasons.get(tier) ?? [])],
+      },
+    })),
+  ]
+  await replaceReleaseProcessingActions(db, input.releaseId, actions)
+  if (!input.importOptions.isLocal) {
+    const stored = await db
+      .select()
+      .from(metaSchema.releaseProcessingActions)
+      .where(eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId))
+      .all()
+    for (const sql of chunkStatements([
+      `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
+      ...stored.map(row => insertSql('releaseProcessingActions', row)),
+    ])) {
+      await executeSqlText(input.targets.meta, sql, input.importOptions)
+    }
+  }
+  // Always replace the release-owned review artefact, including on a successful retry.
+  const reviewPath = resolve(input.releaseRoot, 'overture-place-address-review.json')
+  await writeSupplementaryReviewArtefact({
+    addressSnapshotId: input.snapshots.addressSnapshotId,
+    authority: fixture.authority,
+    placeReleaseId: input.releaseId,
+    policies: fixture.policies,
+    resolutionPath,
+    reviewCount,
+    reviewPath,
+    sourceRelease: input.plan.sourceVersion,
   })
+  // Detect another ingester/reviewer changing the unversioned identity policy.
+  if ((await readFile(curationPath, 'utf8')) !== fixtureText)
+    throw new Error('Place Address curation changed during analysis; retry.')
+  const acceptedText = `${JSON.stringify(fixture, null, 2)}\n`
+  if (acceptedText !== fixtureText) {
+    await writeFile(`${curationPath}.tmp`, acceptedText, { flag: 'wx' })
+    await rename(`${curationPath}.tmp`, curationPath)
+  }
+  if (reviewCount)
+    throw new Error(
+      `${reviewCount} Place Address identities require explicit curation in ${curationPath}. Review ${reviewPath}; --yes cannot select identities.`,
+    )
+
+  const parentDataset = (await db
+    .select()
+    .from(metaSchema.metaDatasets)
+    .where(eq(metaSchema.metaDatasets.id, input.datasetId))
+    .get()) as typeof metaSchema.metaDatasets.$inferSelect | undefined
+  const parentRelease = (await db
+    .select()
+    .from(metaSchema.metaReleases)
+    .where(eq(metaSchema.metaReleases.id, input.releaseId))
+    .get()) as typeof metaSchema.metaReleases.$inferSelect | undefined
+  if (!parentDataset || !parentRelease)
+    throw new Error('Missing Place source registration.')
+  const datasetCode = parentDataset.code
+  const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
+  const datasetId = parentDataset.id
+  const releaseCode = `dr-${input.plan.regionCode}-overture-place-address-${input.plan.sourceVersion}`
+  const existingRelease = (await db
+    .select()
+    .from(metaSchema.metaReleases)
+    .where(eq(metaSchema.metaReleases.code, releaseCode))
+    .get()) as typeof metaSchema.metaReleases.$inferSelect | undefined
+  const releaseId =
+    existingRelease?.id ?? buildDeterministicUuidV5(namespace, releaseCode)
+  const sourceReleaseId = parentRelease.sourceReleaseId
+  if (!sourceReleaseId) throw new Error('Missing shared Overture source release.')
+  if (
+    existingRelease &&
+    (existingRelease.datasetId !== datasetId ||
+      existingRelease.sourceReleaseId !== sourceReleaseId)
+  )
+    throw new Error('Supplementary Address release has incompatible source provenance.')
+  const now = new Date().toISOString()
+  await db
+    .insert(metaSchema.metaDatasetResourceTypes)
+    .values({ datasetId, resourceType: 'address' })
+    .onConflictDoNothing()
+    .run()
+  const release = {
+    ...parentRelease,
+    id: releaseId,
+    datasetId,
+    sourceReleaseId,
+    code: releaseCode,
+    resourceType: 'address' as const,
+    status: 'processing' as const,
+    processingRules: {
+      policyVersion: fixture.activePolicy,
+      policy: fixture.policies[fixture.activePolicy],
+    },
+    createdAt: now,
+    updatedAt: now,
+  }
+  if (!existingRelease) {
+    await db.insert(metaSchema.metaReleases).values(release).run()
+  }
+  const snapshot = await ensureDraftSnapshotForRelease(db, 'address', {
+    cohortKey: input.plan.cohortKey,
+    datasetCode,
+    datasetId,
+    sourceReleaseId: releaseId,
+    regionCode: input.plan.regionCode,
+    variant: SUPPLEMENTARY_ADDRESS_VARIANT,
+  })
+  const addresses = await buildSupplementaryAddressRows({
+    resolutions: supplementaryResolutions,
+    officialAddresses: officialById,
+    snapshotId: snapshot.id,
+    divisionSnapshotId: input.snapshots.divisionSnapshotId,
+    sourceReleaseId: releaseId,
+    placeSourceReleaseId: input.releaseId,
+    sourceVersion: input.plan.sourceVersion,
+    datasetId,
+  })
+  const policies = Object.fromEntries(
+    [
+      ...new Set(
+        supplementaryResolutions.flatMap(row =>
+          row.entry ? [row.entry.policyVersion] : [],
+        ),
+      ),
+    ].map(version => [version, fixture.policies[version]]),
+  )
+  const materialisationHash = await createHash({
+    addresses,
+    policies,
+    placeReleaseId: input.releaseId,
+    addressSnapshotId: input.snapshots.addressSnapshotId,
+  })
+  if (snapshot.status === 'published') {
+    const runs = await db
+      .select()
+      .from(metaSchema.metaSnapshotAssemblyRuns)
+      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshot.id))
+      .all()
+    if (
+      !runs.some(
+        run =>
+          (run.selectionSummaryJson as { materialisationHash?: string } | null)
+            ?.materialisationHash === materialisationHash,
+      )
+    ) {
+      throw new Error(
+        'Published supplementary snapshot differs from curation; create a release revision.',
+      )
+    }
+    await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+  } else {
+    // Each supplementary snapshot is a complete map, including an empty accepted set.
+    // Replay must not inherit withdrawn addresses from a previous cohort.
+    await db
+      .update(metaSchema.metaSnapshots)
+      .set({ parentSnapshotId: null })
+      .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
+      .run()
+    await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary', {
+      anchorReleaseId: input.releaseId,
+      selectedByRule: 'overture-place-address-curation',
+      selectionMode: 'exact_ref',
+      sourceCohortKey: input.plan.cohortKey,
+    })
+    await recordSnapshotLookupDependency(db, {
+      snapshotId: snapshot.id,
+      anchorReleaseId: input.releaseId,
+      lookupSnapshotId: input.snapshots.addressSnapshotId,
+      selectedByRule: 'overture-place-address:selected-als',
+      selectionMode: 'address_snapshot_reference',
+    })
+    await recordPlaceAddressAssembly(db, {
+      snapshotId: snapshot.id,
+      resourceType: 'address',
+      anchorReleaseId: input.releaseId,
+      anchorCohortKey: input.plan.cohortKey,
+      selectionSummaryJson: {
+        materialisationHash,
+        policyVersion: fixture.activePolicy,
+        policies,
+        curationHash: await createHash(fixture),
+        addressSnapshotId: input.snapshots.addressSnapshotId,
+        reviewRequired: 0,
+        rowCount: addresses.length,
+      },
+    })
+    const environment = input.targets.environment
+    const currentShard = await resolveShardForTypeRegionYear(db, 'current', environment)
+    const historyShard = await resolveShardForTypeRegionYear(
+      db,
+      'history',
+      environment,
+      input.plan.regionCode,
+      input.plan.sourceVersion.slice(0, 4),
+    )
+    if (currentShard)
+      await upsertSnapshotShardAssignment(db, snapshot.id, currentShard.id)
+    if (historyShard) await upsertReleaseShardAssignment(db, releaseId, historyShard.id)
+    if (!input.importOptions.isLocal) {
+      await executeSqlText(
+        input.targets.meta,
+        [
+          insertSql('datasetResourceTypes', { datasetId, resourceType: 'address' }),
+          insertSql('releases', release),
+          await buildPlaceMetadataSql(db, snapshot.id, releaseId),
+        ].join('\n'),
+        input.importOptions,
+      )
+    }
+    const currentSql = [
+      `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(snapshot.id)};`,
+      `DELETE FROM address2dI18n WHERE snapshotId = ${lit(snapshot.id)};`,
+      `DELETE FROM address2d WHERE snapshotId = ${lit(snapshot.id)};`,
+    ]
+    for (const target of input.targets.historyByBinding.values()) {
+      await importSupplementarySql(
+        target,
+        "UPDATE address2d SET isCurrent = 0 WHERE id LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dI18n SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dBuildingNumberLookup SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1;",
+        input.importOptions,
+      )
+    }
+    const historySql: string[] = []
+    const changes: string[] = [
+      `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${lit(snapshot.id)};`,
+    ]
+    for (const row of addresses) {
+      const version = {
+        versionHash: row.versionHash,
+        snapshotId: snapshot.id,
+        sourceReleaseId: releaseId,
+        isCurrent: 1,
+        createdAt: now,
+        updatedAt: now,
+      }
+      currentSql.push(
+        insertSql('address2d', { ...row.current, createdAt: now, updatedAt: now }),
+      )
+      historySql.push(insertSql('address2d', { ...row.canonical, ...version }))
+      for (const lookup of buildAddressBuildingNumberLookupRows(row.i18n)) {
+        currentSql.push(
+          insertSql('address2dBuildingNumberLookup', {
+            ...lookup,
+            snapshotId: snapshot.id,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        )
+        historySql.push(
+          insertSql('address2dBuildingNumberLookup', { ...lookup, ...version }),
+        )
+      }
+      changes.push(
+        insertSql('snapshotVersionChanges', {
+          snapshotId: snapshot.id,
+          recordType: 'address2d',
+          recordId: row.current.id,
+          locale: '',
+          versionHash: row.versionHash,
+          operation: 'upsert',
+          sourceReleaseId: releaseId,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      )
+      for (const value of row.i18n) {
+        currentSql.push(
+          insertSql('address2dI18n', {
+            ...value,
+            snapshotId: snapshot.id,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        )
+        historySql.push(insertSql('address2dI18n', { ...value, ...version }))
+        changes.push(
+          insertSql('snapshotVersionChanges', {
+            snapshotId: snapshot.id,
+            recordType: 'address2dI18n',
+            recordId: row.current.id,
+            locale: value.locale,
+            versionHash: row.versionHash,
+            operation: 'upsert',
+            sourceReleaseId: releaseId,
+            createdAt: now,
+            updatedAt: now,
+          }),
+        )
+      }
+    }
+    for (const [target, statements] of [
+      [input.targets.current, currentSql],
+      [input.targets.history, [...historySql, ...changes]],
+    ] as const) {
+      for (const sql of chunkStatements(statements))
+        await importSupplementarySql(target, sql, input.importOptions)
+    }
+    await importSupplementarySql(
+      input.targets.current,
+      readFileSync(
+        resolve(
+          import.meta.dir,
+          '../../../../../libs/db/scripts/sql/rebuild-addresses-fts.sql',
+        ),
+        'utf8',
+      ),
+      input.importOptions,
+    )
+    await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+    // Publication follows successful imports. A retry of a published snapshot must reproduce its hash.
+    await publishSnapshot(db, snapshot.id)
+    await db
+      .update(metaSchema.metaReleases)
+      .set({ status: 'published', updatedAt: now })
+      .where(eq(metaSchema.metaReleases.id, releaseId))
+      .run()
+    // The shared source is finalised by Places publication after both outputs succeed.
+  }
+  if (!input.importOptions.isLocal) {
+    // Retry a metadata-publication failure after the data import without rewriting Address rows.
+    await executeSqlText(
+      input.targets.meta,
+      [
+        await buildPlaceMetadataSql(db, snapshot.id, releaseId),
+        `UPDATE releases SET status = 'published' WHERE id = ${lit(releaseId)};`,
+      ].join('\n'),
+      input.importOptions,
+    )
+  }
+  await recordSnapshotLookupDependency(db, {
+    snapshotId: input.snapshots.snapshotId,
+    anchorReleaseId: input.releaseId,
+    lookupSnapshotId: snapshot.id,
+    selectedByRule:
+      'api-composition:places/overture:place/default->address/overture-places',
+    selectionMode: 'exact_ref',
+  })
+  return {
+    resolutionPath,
+    releaseId,
+    releaseCode,
+    snapshotId: snapshot.id,
+    addresses,
+  }
+}
+
+async function writeSupplementaryReviewArtefact(input: {
+  addressSnapshotId: string
+  authority: string
+  placeReleaseId: string
+  policies: unknown
+  resolutionPath: string
+  reviewCount: number
+  reviewPath: string
+  sourceRelease: string
+}) {
+  const tempPath = `${input.reviewPath}.tmp`
+  const output = await open(tempPath, 'w')
+  try {
+    const header = JSON.stringify(
+      {
+        addressSnapshotId: input.addressSnapshotId,
+        authority: input.authority,
+        placeReleaseId: input.placeReleaseId,
+        policies: input.policies,
+        reviewRequired: input.reviewCount,
+        sourceRelease: input.sourceRelease,
+        version: 1,
+        results: null,
+      },
+      null,
+      2,
+    )
+    await output.write(
+      `${header.replace('\n  "results": null\n}', '\n  "results": [')}`,
+    )
+    let first = true
+    for await (const resolution of readStagedJsonLines<AddressResolution>(
+      input.resolutionPath,
+    )) {
+      await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
+      first = false
+    }
+    await output.write('\n  ]\n}\n')
+  } finally {
+    await output.close()
+  }
+  await rename(tempPath, input.reviewPath)
+}
+
+async function importSupplementarySql(
+  target: SqlImportTargetContext,
+  sql: string,
+  options: SqlImportExecutionOptions,
+) {
+  await executeSqlText(target, sql, options)
+  if (!options.isLocal) await executeSqlText(target, sql, { ...options, isLocal: true })
+}
+
+async function assertSupplementaryAddressRows(
+  db: HarbourReadableDb,
+  snapshotId: string,
+  expected: Awaited<ReturnType<typeof buildSupplementaryAddressRows>>,
+) {
+  const rows = await db
+    .select()
+    .from(currentSchema.address2d)
+    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+    .all()
+  const localisations = await db
+    .select()
+    .from(currentSchema.address2dI18n)
+    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .all()
+  if (
+    rows.length !== expected.length ||
+    localisations.length !== expected.reduce((count, row) => count + row.i18n.length, 0)
+  ) {
+    throw new Error(
+      'Supplementary snapshot is missing materialised Address rows or localisations.',
+    )
+  }
+  const byId = new Map(rows.map(row => [row.id, row]))
+  const byLocale = new Map(
+    localisations.map(row => [`${row.addressId}:${row.locale}`, row]),
+  )
+  for (const row of expected) {
+    for (const [actual, wanted] of [
+      [byId.get(row.current.id), row.current],
+      ...row.i18n.map(
+        value => [byLocale.get(`${value.addressId}:${value.locale}`), value] as const,
+      ),
+    ] as const) {
+      if (
+        !actual ||
+        (await createHash(
+          Object.fromEntries(Object.keys(wanted).map(key => [key, actual[key]])),
+        )) !== (await createHash(wanted))
+      ) {
+        throw new Error(
+          `Supplementary Address ${row.current.id} cannot be reproduced from its materialised row.`,
+        )
+      }
+    }
+  }
 }
 
 async function loadCurrentPlaceHistory(
@@ -809,7 +1718,17 @@ async function loadCurrentPlaceHistory(
     targets.map(async target => ({
       bindingName: target.bindingName,
       rows: (await (target.db as HarbourReadableDb)
-        .select()
+        .select({
+          address2dId: historySchema.places.address2dId,
+          addressSnapshotId: historySchema.places.addressSnapshotId,
+          addresses: historySchema.places.addresses,
+          createdAt: historySchema.places.createdAt,
+          firstSeenMonth: historySchema.places.firstSeenMonth,
+          id: historySchema.places.id,
+          lastSeenMonth: historySchema.places.lastSeenMonth,
+          releaseId: historySchema.places.releaseId,
+          versionHash: historySchema.places.versionHash,
+        })
         .from(historySchema.places)
         .where(eq(historySchema.places.isCurrent, true))
         .all()) as unknown as PlaceHistoryRow[],
@@ -908,7 +1827,9 @@ export async function buildPlaceSql(
         snapshotId: input.snapshots.snapshotId,
         id: place.id,
         releaseId: input.message.releaseId,
-        addressSnapshotId: row.address2dId ? input.snapshots.addressSnapshotId : null,
+        addressSnapshotId: row.address2dId
+          ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+          : null,
         address2dId: row.address2dId,
         address3dId: row.address3dId,
         lng: place.lng,
@@ -999,7 +1920,9 @@ export async function buildPlaceSql(
         insertSql('places', {
           id: place.id,
           releaseId: input.message.releaseId,
-          addressSnapshotId: row.address2dId ? input.snapshots.addressSnapshotId : null,
+          addressSnapshotId: row.address2dId
+            ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+            : null,
           address2dId: row.address2dId,
           address3dId: row.address3dId,
           lng: place.lng,
@@ -1125,6 +2048,7 @@ export async function buildPlaceSql(
 
 async function* buildPlaceSqlBatches(
   input: BuildPlaceSqlInput,
+  path: string,
   timestamp: string,
   onProgress?: (event: PlaceSqlProgressEvent) => void,
 ) {
@@ -1133,9 +2057,12 @@ async function* buildPlaceSqlBatches(
   )
   const seen = new Set<string>()
   let yielded = false
+  let processedRows = 0
 
-  for (let start = 0; start < input.places.length; start += PLACE_SQL_BATCH_SIZE) {
-    const places = input.places.slice(start, start + PLACE_SQL_BATCH_SIZE)
+  for await (const places of readStagedJsonBatches<EnrichedPlace>(
+    path,
+    PLACE_SQL_BATCH_SIZE,
+  )) {
     const historyRows: PlaceHistoryState[] = []
     for (const place of places) {
       const placeId = place.place.id
@@ -1150,11 +2077,12 @@ async function* buildPlaceSqlBatches(
         includeInitialStatements: !yielded,
         includeRemovedPlaces: false,
         onProgress: current =>
-          onProgress?.({ current: start + current, phase: 'generate' }),
+          onProgress?.({ current: processedRows + current, phase: 'generate' }),
         timestamp,
       },
     )
     yielded = true
+    processedRows += places.length
   }
 
   const removedHistoryRows = input.historyRows.filter(
@@ -1178,6 +2106,7 @@ async function upsertPlaceMetadata(
     addressSnapshotId: string
     divisionSnapshotId: string
     snapshotId: string
+    supplementaryAddressSnapshotId: string
   },
   datasetId: string,
   releaseId: string,
@@ -1197,7 +2126,7 @@ async function upsertPlaceMetadata(
       sourceCohortKey: plan.cohortKey,
     },
   )
-  await recordSnapshotAssemblyRun(metaDb, {
+  await recordPlaceAddressAssembly(metaDb, {
     snapshotId: snapshots.snapshotId,
     resourceType: 'place',
     anchorReleaseId: releaseId,
@@ -1207,6 +2136,8 @@ async function upsertPlaceMetadata(
       divisionSnapshotId: snapshots.divisionSnapshotId,
       sourceReleaseId: releaseId,
       sourceVersion: plan.sourceVersion,
+      supplementaryAddressSnapshotId: snapshots.supplementaryAddressSnapshotId,
+      addressReviewRequired: 0,
     },
   })
   await recordSnapshotLookupDependency(metaDb, {
@@ -1329,6 +2260,18 @@ async function buildPlaceMetadataSql(
     .limit(1)
     .get()
   if (!snapshot) throw new Error(`Place snapshot metadata not found: ${snapshotId}.`)
+  const assemblies = await db
+    .select({ assembly: metaSchema.metaSnapshotAssembly })
+    .from(metaSchema.metaSnapshotAssembly)
+    .innerJoin(
+      metaSchema.metaSnapshotAssemblyRuns,
+      eq(
+        metaSchema.metaSnapshotAssemblyRuns.snapshotAssemblyId,
+        metaSchema.metaSnapshotAssembly.id,
+      ),
+    )
+    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
+    .all()
   const [
     lineage,
     sources,
@@ -1373,6 +2316,9 @@ async function buildPlaceMetadataSql(
     insertSql('snapshots', snapshot),
     ...sources.map(row => insertSql('snapshotSources', row)),
     ...shardAssignments.map(row => insertSql('snapshotShardAssignments', row)),
+    ...assemblies.map(row =>
+      insertSql('snapshotAssembly', row.assembly as Record<string, unknown>),
+    ),
     ...assemblyRuns.map(row => insertSql('snapshotAssemblyRuns', row)),
     ...releaseAssignments.map(row => insertSql('releaseShardAssignments', row)),
     ...releaseStats.map(row => insertSql('stats', row)),
@@ -1382,6 +2328,101 @@ async function buildPlaceMetadataSql(
 export function buildPlaceReleaseStatsRows(
   places: EnrichedPlace[],
 ): ReleaseScopedStatsRow[] {
+  const accumulator = createPlaceReleaseStatsAccumulator()
+  for (const place of places) addPlaceReleaseStats(accumulator, place)
+  return buildPlaceReleaseStatsRowsFromAccumulator(accumulator)
+}
+
+function createPlaceReleaseStatsAccumulator(): PlaceReleaseStatsAccumulator {
+  return {
+    addressLinkedRows: 0,
+    divisionLinkedRows: 0,
+    localeCounts: new Map(),
+    localisedPlaceCount: 0,
+    localisedRows: 0,
+    localisation: {
+      bilingualReferenceNameCount: 0,
+      fields: new Map(),
+      referenceNameCount: 0,
+      totalPlaces: 0,
+    },
+    processedRows: 0,
+  }
+}
+
+function addPlaceReleaseStats(
+  accumulator: PlaceReleaseStatsAccumulator,
+  enriched: EnrichedPlace,
+) {
+  accumulator.processedRows += 1
+  if (enriched.address2dId || enriched.address3dId) accumulator.addressLinkedRows += 1
+  accumulator.divisionLinkedRows += enriched.divisionIds.length
+  if (enriched.place.i18n.length) accumulator.localisedPlaceCount += 1
+  accumulator.localisedRows += enriched.place.i18n.length
+  for (const localised of enriched.place.i18n) {
+    accumulator.localeCounts.set(
+      localised.locale,
+      (accumulator.localeCounts.get(localised.locale) ?? 0) + 1,
+    )
+  }
+  const single = buildPlaceLocalisationStatistics([enriched.place])
+  accumulator.localisation.referenceNameCount += single.referenceNameCount
+  accumulator.localisation.bilingualReferenceNameCount +=
+    single.bilingualReferenceNameCount
+  for (const [key, value] of single.fields) {
+    const existing = accumulator.localisation.fields.get(key)
+    if (existing) {
+      existing.valueCount += value.valueCount
+      existing.providedCount += value.providedCount
+      existing.inferredCount += value.inferredCount
+      existing.aiTranslatedCount += value.aiTranslatedCount
+      existing.humanTranslatedCount += value.humanTranslatedCount
+      existing.conflictCount += value.conflictCount
+      continue
+    }
+    accumulator.localisation.fields.set(key, {
+      ...value,
+      missingCount: 0,
+    })
+  }
+}
+
+function buildPlaceReleaseStatsRowsFromAccumulator(
+  accumulator: PlaceReleaseStatsAccumulator,
+): ReleaseScopedStatsRow[] {
+  const localisationStats: PlaceLocalisationStatistics = {
+    ...accumulator.localisation,
+    fields: new Map(
+      [...accumulator.localisation.fields].map(([key, value]) => [
+        key,
+        {
+          ...value,
+          missingCount: accumulator.processedRows - value.valueCount,
+        },
+      ]),
+    ),
+    totalPlaces: accumulator.processedRows,
+  }
+  return buildPlaceReleaseStatsRowsFromValues({
+    addressLinkedRows: accumulator.addressLinkedRows,
+    divisionLinkedRows: accumulator.divisionLinkedRows,
+    localeCounts: accumulator.localeCounts,
+    localisedPlaceCount: accumulator.localisedPlaceCount,
+    localisedRows: accumulator.localisedRows,
+    localisationStats,
+    processedRows: accumulator.processedRows,
+  })
+}
+
+function buildPlaceReleaseStatsRowsFromValues(input: {
+  addressLinkedRows: number
+  divisionLinkedRows: number
+  localeCounts: Map<string, number>
+  localisedPlaceCount: number
+  localisedRows: number
+  localisationStats: PlaceLocalisationStatistics
+  processedRows: number
+}): ReleaseScopedStatsRow[] {
   const timestamp = new Date().toISOString()
   const row = (
     dimension: string,
@@ -1401,36 +2442,17 @@ export function buildPlaceReleaseStatsRows(
     value,
   })
 
-  const localeCounts = new Map<string, number>()
-  for (const place of places) {
-    for (const localised of place.place.i18n) {
-      localeCounts.set(localised.locale, (localeCounts.get(localised.locale) ?? 0) + 1)
-    }
-  }
-  const localisationStats = buildPlaceLocalisationStatistics(
-    places.map(({ place }) => place),
-  )
-  const localisedPlaceCount = places.filter(place => place.place.i18n.length > 0).length
   const statsRows: ReleaseScopedStatsRow[] = [
-    row('records', places.length),
-    row('localised_records', localisedPlaceCount),
-    row(
-      'localised_rows',
-      places.reduce((count, place) => count + place.place.i18n.length, 0),
-    ),
-    row(
-      'address_links',
-      places.filter(place => place.address2dId || place.address3dId).length,
-    ),
-    row(
-      'division_links',
-      places.reduce((count, place) => count + place.divisionIds.length, 0),
-    ),
-    ...[...localeCounts.entries()].map(([locale, count]) =>
+    row('records', input.processedRows),
+    row('localised_records', input.localisedPlaceCount),
+    row('localised_rows', input.localisedRows),
+    row('address_links', input.addressLinkedRows),
+    row('division_links', input.divisionLinkedRows),
+    ...[...input.localeCounts.entries()].map(([locale, count]) =>
       row('localised_records', count, 'locale', locale),
     ),
   ]
-  for (const [fieldLocale, stats] of localisationStats.fields) {
+  for (const [fieldLocale, stats] of input.localisationStats.fields) {
     const [field, locale] = fieldLocale.split('\u0000')
     const grouping = { groupBy: 'field_locale', groupValue: `${field}:${locale}` }
     statsRows.push(
@@ -1442,35 +2464,35 @@ export function buildPlaceReleaseStatsRows(
       ),
       row(
         'localisation_coverage',
-        percentage(stats.valueCount, places.length),
+        percentage(stats.valueCount, input.processedRows),
         grouping.groupBy,
         grouping.groupValue,
         'percentage',
       ),
       row(
         'localisation_provided_coverage',
-        percentage(stats.providedCount, places.length),
+        percentage(stats.providedCount, input.processedRows),
         grouping.groupBy,
         grouping.groupValue,
         'percentage',
       ),
       row(
         'localisation_inferred_coverage',
-        percentage(stats.inferredCount, places.length),
+        percentage(stats.inferredCount, input.processedRows),
         grouping.groupBy,
         grouping.groupValue,
         'percentage',
       ),
       row(
         'localisation_ai_translated_coverage',
-        percentage(stats.aiTranslatedCount, places.length),
+        percentage(stats.aiTranslatedCount, input.processedRows),
         grouping.groupBy,
         grouping.groupValue,
         'percentage',
       ),
       row(
         'localisation_human_translated_coverage',
-        percentage(stats.humanTranslatedCount, places.length),
+        percentage(stats.humanTranslatedCount, input.processedRows),
         grouping.groupBy,
         grouping.groupValue,
         'percentage',
@@ -1491,21 +2513,24 @@ export function buildPlaceReleaseStatsRows(
   }
   const referenceGrouping = { groupBy: 'field', groupValue: 'referenceName' }
   statsRows.push(
-    row('reference_name_count', localisationStats.referenceNameCount),
+    row('reference_name_count', input.localisationStats.referenceNameCount),
     row(
       'reference_name_coverage',
-      percentage(localisationStats.referenceNameCount, places.length),
+      percentage(input.localisationStats.referenceNameCount, input.processedRows),
       referenceGrouping.groupBy,
       referenceGrouping.groupValue,
       'percentage',
     ),
     row(
       'bilingual_reference_name_count',
-      localisationStats.bilingualReferenceNameCount,
+      input.localisationStats.bilingualReferenceNameCount,
     ),
     row(
       'bilingual_reference_name_coverage',
-      percentage(localisationStats.bilingualReferenceNameCount, places.length),
+      percentage(
+        input.localisationStats.bilingualReferenceNameCount,
+        input.processedRows,
+      ),
       referenceGrouping.groupBy,
       referenceGrouping.groupValue,
       'percentage',
@@ -1551,16 +2576,15 @@ async function importSqlChunks(
 async function importPlaceSqlBatches(
   targets: Awaited<ReturnType<typeof placeTargets>>,
   input: BuildPlaceSqlInput,
+  path: string,
+  totalRows: number,
   timestamp: string,
   options: SqlImportExecutionOptions,
   onProgress?: (event: PlaceSqlProgressEvent) => void,
 ) {
   let completedBatches = 0
-  for await (const sql of buildPlaceSqlBatches(input, timestamp, onProgress)) {
-    const batchEnd = Math.min(
-      input.places.length,
-      (completedBatches + 1) * PLACE_SQL_BATCH_SIZE,
-    )
+  for await (const sql of buildPlaceSqlBatches(input, path, timestamp, onProgress)) {
+    const batchEnd = Math.min(totalRows, (completedBatches + 1) * PLACE_SQL_BATCH_SIZE)
     await importSqlChunks(targets, sql, options, (completed, total) =>
       onProgress?.({
         current: batchEnd,
@@ -1570,14 +2594,14 @@ async function importPlaceSqlBatches(
     )
     completedBatches += 1
     onProgress?.({
-      current: Math.min(input.places.length, completedBatches * PLACE_SQL_BATCH_SIZE),
+      current: Math.min(totalRows, completedBatches * PLACE_SQL_BATCH_SIZE),
       phase: 'import',
     })
   }
 }
 
 async function runPlaceProgressPhase<T>(
-  progress: LocalUploadProgress,
+  progress: OperationProgress,
   action: string,
   subject: string,
   operation: (
@@ -1601,7 +2625,7 @@ function normaliseError(error: unknown) {
   return error instanceof Error ? error : new Error(String(error))
 }
 
-function* chunkStatements(statements: string[]) {
+function* chunkStatements(statements: readonly string[]) {
   let current = ''
   for (const statement of statements) {
     const candidate = current + statement
@@ -1646,7 +2670,7 @@ function countStatementChunks(statements: string[]) {
 
 function insertSql(table: string, values: Record<string, unknown>) {
   const entries = Object.entries(values).filter(([, value]) => value !== undefined)
-  return `INSERT OR REPLACE INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES (${entries.map(([, value]) => sqlValue(value)).join(', ')});`
+  return `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES (${entries.map(([, value]) => sqlValue(value)).join(', ')}) ON CONFLICT DO UPDATE SET ${entries.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')};`
 }
 
 function sqlValue(value: unknown) {
