@@ -697,12 +697,12 @@ async function buildCurrentSnapshotInitSqlFile(
 INSERT INTO address2d (
   snapshotId, id, geometry, bbox, divisionSnapshotId, countryId, areaId,
   districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, createdAt, updatedAt
+  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
   ${snapshotId}, id, geometry, bbox, divisionSnapshotId, countryId, areaId,
   districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, ${clonedAt}, ${clonedAt}
+  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, ${clonedAt}, ${clonedAt}
 FROM address2d
 WHERE snapshotId = ${previousSnapshotId}
 ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),

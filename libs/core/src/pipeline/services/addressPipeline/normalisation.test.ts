@@ -18,6 +18,7 @@ const buildBase = (sources: unknown) =>
     geometry: null,
     hamletId: null,
     id: 'address-1',
+    parentAddressId: null,
     identifiers: null,
     macrohoodId: null,
     microhoodId: null,
@@ -27,6 +28,15 @@ const buildBase = (sources: unknown) =>
     townId: null,
     villageId: null,
   }) as Parameters<typeof buildAddressBaseHashInput>[0]
+
+test('versions explicit parent changes independently of localisation', async () => {
+  const base = buildBase(null)
+  expect(await createHash(buildAddressBaseHashInput(base))).not.toBe(
+    await createHash(
+      buildAddressBaseHashInput({ ...base, parentAddressId: 'complex-1' }),
+    ),
+  )
+})
 
 test('excludes release-specific source provenance from the address content hash', async () => {
   const firstRelease = buildAddressBaseHashInput(

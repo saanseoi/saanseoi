@@ -38,6 +38,8 @@ test('corrects bilingual Address2D components without changing identity, street 
   const result = normaliseAddressRowForPipeline(source)
   expect(result.canonicalId).toBe(source.canonicalId)
   expect(result.sourceId).toBe(source.id)
+  expect(result.base.granularity).toBe('complex')
+  expect(result.base).not.toHaveProperty('granularityProvenance')
   expect(result.base.geometry).toEqual(JSON.parse(source.geometry))
   for (const locale of ['en', 'zh-hant']) {
     expect(result.i18n.find(row => row.locale === locale)).toMatchObject({

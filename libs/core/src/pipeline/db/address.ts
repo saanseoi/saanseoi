@@ -36,10 +36,10 @@ import {
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 import { buildAddressBuildingNumberLookupRows } from '../services/addressPipeline/normalisation'
 
-const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
+const CURRENT_ADDRESS2D_COLUMN_COUNT = 22
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 21
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 23
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
 const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = 11
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
@@ -105,6 +105,8 @@ type AddressHashInput = Omit<
 
 type CurrentAddressVersionLookupRow = Pick<
   CurrentAddressVersionRow,
+  | 'parentAddressId'
+  | 'granularity'
   | 'areaId'
   | 'bbox'
   | 'countryId'
@@ -180,6 +182,8 @@ WHERE snapshotId = ${sqlLiteral(snapshotId)};`.trim()
 function selectCurrentAddressVersionFields() {
   return {
     id: historySchema.address2d.id,
+    parentAddressId: historySchema.address2d.parentAddressId,
+    granularity: historySchema.address2d.granularity,
     streetId: historySchema.address2d.streetId,
     hamletId: historySchema.address2d.hamletId,
     microhoodId: historySchema.address2d.microhoodId,
@@ -854,6 +858,8 @@ export async function cloneAddressCurrentSnapshot(
             countryId: currentSchema.address2d.countryId,
             identifiers: currentSchema.address2d.identifiers,
             sources: currentSchema.address2d.sources,
+            parentAddressId: currentSchema.address2d.parentAddressId,
+            granularity: currentSchema.address2d.granularity,
             geometry: currentSchema.address2d.geometry,
             bbox: currentSchema.address2d.bbox,
             createdAt: sql<string>`${clonedAt}`,
@@ -1396,6 +1402,8 @@ export async function upsertAddressCurrentStates(
             identifiers: excluded('identifiers'),
             bbox: excluded('bbox'),
             sources: excluded('sources'),
+            parentAddressId: excluded('parentAddressId'),
+            granularity: excluded('granularity'),
             updatedAt: excluded('updatedAt'),
           },
         })
@@ -1644,6 +1652,8 @@ export async function insertAddressVersionRows(
             bbox: row.bbox,
             identifiers: row.identifiers,
             sources: row.sources,
+            parentAddressId: row.parentAddressId,
+            granularity: row.granularity,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           })),
