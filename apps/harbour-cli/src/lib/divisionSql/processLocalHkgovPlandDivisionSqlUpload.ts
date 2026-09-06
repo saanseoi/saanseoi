@@ -5,10 +5,8 @@ import {
   completeSqlDeliveryRelease,
   assertSqlDeliveryPlanningAllowed,
 } from '../localPipeline/sqlDeliveryPending.ts'
-import {
-  refreshRemoteMetaCache,
-  resolveRemoteCacheDir,
-} from '../dbCache/localDbCache.ts'
+import { refreshRemoteMetaCache } from '../dbCache/localDbCache.ts'
+import { resolveRemoteCacheDir } from '../dbCache/localDbCacheTargets.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -58,7 +56,6 @@ import {
 } from './processLocalHkgovPlandDivisionSqlUploadConfig.ts'
 import {
   importPlandSqlArtefacts,
-  replayPlandSqlIntoSharedCache,
   resolvePlandImportOptions,
   resolvePlandImportTargets,
   runPlandProgressPhase,

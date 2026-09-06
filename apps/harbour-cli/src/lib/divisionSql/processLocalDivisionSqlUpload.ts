@@ -61,7 +61,6 @@ import {
   buildSourceOwnerKey,
   normaliseError,
   refreshRemoteMetaCacheAfterReplay,
-  replayDivisionSqlIntoRemoteCache,
   requireString,
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,

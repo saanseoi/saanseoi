@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
-  replayRemoteCacheWithRetry,
   type resolveLocalAddressDbContext,
   resolveShardBindingName,
 } from '../dbCache/localDbCache.ts'
@@ -29,7 +28,6 @@ export async function replayGeometryIntoRemote(
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
   preparedSha256: string,
 ) {
-  const targetName = target.environment === 'production' ? 'production' : 'preview'
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
   const regionToken = plan.regionCode.toUpperCase()
