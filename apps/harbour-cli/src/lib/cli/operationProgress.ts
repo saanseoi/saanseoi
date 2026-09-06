@@ -207,6 +207,11 @@ export class OperationProgress {
   }
 
   /** Finish a compact pipeline and commit its one final status line. */
+  writeResult(message: string) {
+    this.ui.log.success(message, { spacing: 0, withGuide: true })
+  }
+
+  /** Finish a compact pipeline and commit its one final status line. */
   finish(message?: string) {
     if (!this.compact) {
       this.complete(message)

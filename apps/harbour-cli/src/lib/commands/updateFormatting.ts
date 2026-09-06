@@ -11,12 +11,6 @@ export const UPDATE_LINE_WIDTH = 120
 
 const CLACK_STATUS_PREFIX_WIDTH = 3
 
-const PUBLISHER_COLUMN_WIDTH = 10
-
-const RESOURCE_TYPE_COLUMN_WIDTH = 16
-
-const VERSION_COLUMN_WIDTH = 'vXXXX-XX-XX.XX'.length
-
 const ANSI_SGR = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
 
 function updateLineWidth() {
@@ -25,7 +19,7 @@ function updateLineWidth() {
 
   // Clack adds its own three-column status prefix (for example, `◇  `).
   // Keep the message itself within the remaining terminal width.
-  return Math.min(UPDATE_LINE_WIDTH, columns - CLACK_STATUS_PREFIX_WIDTH)
+  return Math.min(160, columns - CLACK_STATUS_PREFIX_WIDTH)
 }
 
 export function formatPublishedSourceRelease(release: PublishedSourceRelease) {
@@ -150,7 +144,10 @@ export function formatCheckLine(
 
 /** A skip is one physical terminal line, including its reason. */
 export function formatSkippedDatasetLine(dataset: DatasetFixture, reason: string) {
-  return formatUpdateGridRow(dataset, `SKIPPED: ${reason}`)
+  return formatUpdateGridRow(
+    dataset,
+    `SKIPPED: ${reason === 'target release report unavailable' ? 'report unavailable' : reason}`,
+  )
 }
 
 function gridCell(value: string, width: number) {
@@ -170,7 +167,7 @@ export function formatUpdateGridRow(
   const publisherWidth = 9
   const resourceWidth = 16
   const statusWidth = 30
-  const versionsWidth = 27
+  const versionsWidth = 29
   const datasetWidth = Math.max(
     8,
     width - publisherWidth - resourceWidth - statusWidth - versionsWidth - 8,
@@ -182,7 +179,13 @@ export function formatUpdateGridRow(
       : '—'
   return [
     colorize(gridCell(parts.publisher, publisherWidth), 36),
-    colorize(gridCell(parts.type, resourceWidth), 35),
+    colorize(
+      gridCell(
+        parts.type.replace('Statistic + DivisionArea', 'Stat + DivArea'),
+        resourceWidth,
+      ),
+      35,
+    ),
     colorize(gridCell(parts.subtype || '—', datasetWidth), 33),
     gridCell(status, statusWidth),
     gridCell(versions, versionsWidth),
@@ -192,7 +195,8 @@ export function formatUpdateGridRow(
 }
 
 export function formatUpdateProgressLine(dataset: DatasetFixture, stage: string) {
-  return formatUpdateGridRow(dataset, stage)
+  const row = formatUpdateGridRow(dataset, '')
+  return `${row.slice(0, row.lastIndexOf('—')).trimEnd()}  ${stage}`
 }
 
 export function formatIngestProgressLine(
@@ -318,99 +322,10 @@ export function formatUpdateLine(
   version?: string,
   targetVersion?: string | null,
   status?: string,
-  width = UPDATE_LINE_WIDTH,
-  showEmptyVersionPlaceholder = true,
+  _width = UPDATE_LINE_WIDTH,
+  _showEmptyVersionPlaceholder = true,
 ) {
   return formatUpdateGridRow(dataset, status ?? '', version, targetVersion)
-}
-
-function formatUpdateLineWithLabel(
-  label: string,
-  version?: string,
-  targetVersion?: string | null,
-  status?: string,
-  width = UPDATE_LINE_WIDTH,
-  showEmptyVersionPlaceholder = true,
-) {
-  const showStatus =
-    Boolean(status) &&
-    (status === 'MISSING' ||
-      !releasesDiffer(version, targetVersion) ||
-      (status === 'no updates' && !version))
-  const statusText = showStatus
-    ? status === 'ERROR'
-      ? colorize((status as string).padStart(VERSION_COLUMN_WIDTH), 31)
-      : (status as string).padStart(VERSION_COLUMN_WIDTH)
-    : ''
-  const versionText = formatVersionColumns(
-    version,
-    targetVersion,
-    showEmptyVersionPlaceholder,
-  )
-  const separatorWidth = showStatus ? 2 : 0
-  const padding = Math.max(
-    2,
-    width -
-      visibleWidth(label) -
-      visibleWidth(statusText) -
-      separatorWidth -
-      visibleWidth(versionText),
-  )
-  return `${label}${' '.repeat(padding)}${statusText}${
-    showStatus ? '  ' : ''
-  }${versionText}`
-}
-
-function formatDatasetCheckLabel(dataset: DatasetFixture, compact = false) {
-  const parts = datasetLabelParts(dataset)
-  const publisher = compact
-    ? parts.publisher
-    : parts.publisher.padEnd(PUBLISHER_COLUMN_WIDTH)
-  const type = compact ? parts.type : parts.type.padEnd(RESOURCE_TYPE_COLUMN_WIDTH)
-  return `${colorize(publisher, 36)} ${dim('∷')} ${colorize(type, 35)}${
-    parts.subtype ? ` ${dim('∷')} ${colorize(parts.subtype, 33)}` : ''
-  }`
-}
-
-function formatVersionColumns(
-  version?: string,
-  targetVersion?: string | null,
-  showEmptyPlaceholder = true,
-) {
-  if (!version && !targetVersion) {
-    return showEmptyPlaceholder
-      ? dim('—'.padStart(VERSION_COLUMN_WIDTH))
-      : ' '.repeat(VERSION_COLUMN_WIDTH)
-  }
-
-  const theirs = version ? `v${ownVersion(version)}` : '—'
-  const ours = targetVersion ? `v${ownVersion(targetVersion)}` : '—'
-  if (!releasesDiffer(version, targetVersion)) {
-    return targetVersion
-      ? colorize(ours.padStart(VERSION_COLUMN_WIDTH), 32)
-      : dim(ours.padStart(VERSION_COLUMN_WIDTH))
-  }
-  const separator = version && targetVersion ? '←' : ''
-
-  return `${
-    version
-      ? colorize(theirs.padStart(VERSION_COLUMN_WIDTH), 32)
-      : dim(theirs.padStart(VERSION_COLUMN_WIDTH))
-  } ${dim(separator)} ${
-    targetVersion
-      ? colorize(ours.padStart(VERSION_COLUMN_WIDTH), 31)
-      : dim(ours.padStart(VERSION_COLUMN_WIDTH))
-  }`
-}
-
-function formatCompactVersionColumns(version?: string, targetVersion?: string | null) {
-  const theirs = version ? `v${ownVersion(version)}` : '—'
-  const ours = targetVersion ? `v${ownVersion(targetVersion)}` : '—'
-  if (!releasesDiffer(version, targetVersion)) return colorize(theirs, 32)
-
-  return `${version ? colorize(theirs, 32) : dim(theirs)} ${dim('←')} ${
-    targetVersion ? colorize(ours, 31) : dim(ours)
-  }`
 }
 
 function releasesDiffer(version?: string, targetVersion?: string | null) {
@@ -426,10 +341,6 @@ function ownVersion(value: string) {
 function comparableVersion(value: string) {
   const compact = compactVersion(value)
   return /^\d{4}$/.test(compact) ? `${compact}.0` : compact
-}
-
-function visibleWidth(value: string) {
-  return value.replace(ANSI_SGR, '').length
 }
 
 function datasetLabelParts(dataset: DatasetFixture) {
