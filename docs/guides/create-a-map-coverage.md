@@ -11,6 +11,13 @@ The Address API's `saanseoi` domain and `filter[dataset]` select the curated add
 collection independently of the Places endpoint. The tutorial's Places queries and
 free-form address display require no selector changes.
 
+Extended address displays can use optional Place collection/unit references and
+localised `accessHint`. The reference instructions require the recorded address snapshot
+and distinguish unresolved ancestor coverage from verified section membership. The basic
+point-map queries, pagination and token requirements are unchanged; the guide does not
+fetch building unit inventories for ordinary marker rendering. Copy review is still
+needed.
+
 | Objective          | Setup path                                                                                  | Render                                                                  | Basemap                                | Style                                     | Data                                                  | Copy review |
 | ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | ----------- |
 | Local              | OS-specific Bun install and the existing local Vite commands                                | MapLibre, Mapbox and Leaflet starter snippets                           | Direct `pk.` key and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
