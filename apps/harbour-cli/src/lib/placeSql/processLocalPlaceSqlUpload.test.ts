@@ -329,6 +329,20 @@ describe('Places SQL materialisation', () => {
     expect(
       history.query('SELECT COUNT(*) AS count FROM snapshotVersionChanges').get(),
     ).toEqual({ count: 2 })
+    const placeVersionHash = history
+      .query("SELECT versionHash FROM places WHERE id = 'place-1'")
+      .get() as { versionHash: string }
+    const i18nVersionHash = history
+      .query("SELECT versionHash FROM placesI18n WHERE placeId = 'place-1'")
+      .get() as { versionHash: string }
+    expect(
+      history
+        .query(
+          "SELECT versionHash FROM snapshotVersionChanges WHERE recordType = 'placeI18n'",
+        )
+        .get(),
+    ).toEqual(i18nVersionHash)
+    expect(i18nVersionHash.versionHash).not.toBe(placeVersionHash.versionHash)
     expect(
       sqlite.query('SELECT freeformAddress, provenance FROM placesI18n').get(),
     ).toEqual({
