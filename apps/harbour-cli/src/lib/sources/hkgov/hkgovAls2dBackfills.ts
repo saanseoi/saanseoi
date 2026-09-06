@@ -25,7 +25,16 @@ export function buildAls2dBackfillFeatures(
         `ALS 2D backfill ${b.csu}: named source already present`,
       )
       return {
-        feature: structuredClone(b.feature),
+        feature: {
+          ...structuredClone(b.feature),
+          geometry: {
+            ...b.feature.geometry,
+            coordinates: [
+              b.feature.geometry.coordinates[0]!,
+              b.feature.geometry.coordinates[1]!,
+            ] as [number, number],
+          },
+        },
         sourceFile,
         featureIndexOneBased: index + 1,
       }

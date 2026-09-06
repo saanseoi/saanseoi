@@ -154,6 +154,22 @@ test('writes large bound collections, replays idempotently and journals removed 
       new Date().toISOString(),
     )
     await expect(execute('current', other.currentStatements)).rejects.toThrow('UNIQUE')
+    databases.current.exec("DELETE FROM address2d WHERE id='building'")
+    let writes = 0
+    await expect(
+      importAddress3dCollections({
+        ...args,
+        execute: async (target, statements) => {
+          if (statements.some(statement => !statement.sql.startsWith('SELECT ')))
+            writes++
+          return execute(target, statements)
+        },
+      }),
+    ).rejects.toThrow('owner building')
+    expect(writes).toBe(0)
+    expect(
+      databases.current.query('SELECT count(*) AS n FROM address3d').get(),
+    ).toEqual({ n: 1 })
     await writeFile(path, `${JSON.stringify(records[0])}\n`)
     await expect(validateAddress3dPreparation(path, '2026-08-19.0')).rejects.toThrow(
       'Incomplete',

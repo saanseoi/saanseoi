@@ -9,6 +9,7 @@ import {
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import type { PreparedAls3dRecord } from '../sources/hkgov/hkgovAls3dPreparation'
 import { als3dHash, assertAddress3dRowBudget } from '../sources/hkgov/hkgovAls3d'
+import { validateAddress3dOwners } from './address3dOwners'
 
 type Statement = { sql: string; params: unknown[] }
 type Target = 'current' | 'history' | 'source'
@@ -312,6 +313,11 @@ export async function importAddress3dCollections(args: {
   if (validated.digest !== args.expectedDigest)
     throw new Error('Address3D preparation changed after validation')
   const now = args.timestamp ?? new Date().toISOString()
+  await validateAddress3dOwners(
+    args.snapshotId,
+    ownerReferences(args.path),
+    args.execute,
+  )
   // The snapshot is still draft; retries replace its complete collection set.
   await args.execute('current', [
     {
@@ -338,28 +344,6 @@ export async function importAddress3dCollections(args: {
         ),
       ])
     } else if (record.kind === 'collection') {
-      const parents = await args.execute('current', [
-        {
-          sql: 'SELECT id,parentAddressId FROM address2d WHERE snapshotId = ? AND id = ?',
-          params: [args.snapshotId, record.address2dId],
-        },
-      ])
-      if (parents.length !== 1)
-        throw new Error(
-          `Address3D owner ${record.address2dId} is absent from the selected snapshot`,
-        )
-      for (const childId of record.unresolvedSectionIds) {
-        const children = await args.execute('current', [
-          {
-            sql: 'SELECT id FROM address2d WHERE snapshotId = ? AND id = ? AND parentAddressId = ?',
-            params: [args.snapshotId, childId, record.address2dId],
-          },
-        ])
-        if (children.length !== 1)
-          throw new Error(
-            `Address3D section ${childId} has no reviewed parent relationship`,
-          )
-      }
       const { currentStatements, historyStatements } = collectionStatements(
         record,
         args.snapshotId,
@@ -385,4 +369,14 @@ export async function importAddress3dCollections(args: {
     ])
   }
   return validated
+}
+
+async function* ownerReferences(path: string) {
+  for await (const record of records(path)) {
+    if (record.kind === 'collection')
+      yield {
+        address2dId: record.address2dId,
+        unresolvedSectionIds: record.unresolvedSectionIds,
+      }
+  }
 }
