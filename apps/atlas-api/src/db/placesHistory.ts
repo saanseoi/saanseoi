@@ -6,6 +6,7 @@ import {
   groupResolvedVersionsByShard,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
 
 import { listReplayedAddressRecords } from './addressesHistory'
 import type { AddressRecord } from './addresses'
@@ -83,15 +84,18 @@ async function loadPlaceRows(versions: Iterable<PlaceVersionRef>) {
     const expected = new Set(
       shardVersions.map(version => `${version.recordId}\u0000${version.versionHash}`),
     )
-    const found = (await first.shard.db
-      .select()
-      .from(historySchema.places)
-      .where(
-        inArray(historySchema.places.versionHash, [
-          ...new Set(shardVersions.map(version => version.versionHash)),
-        ]),
+    const hashes = [...new Set(shardVersions.map(version => version.versionHash))]
+    const found = (
+      await Promise.all(
+        chunkArray(hashes, getMaxItemsPerInClause()).map(versionHashes =>
+          first.shard.db
+            .select()
+            .from(historySchema.places)
+            .where(inArray(historySchema.places.versionHash, versionHashes))
+            .all(),
+        ),
       )
-      .all()) as HistoryPlace[]
+    ).flat() as HistoryPlace[]
     for (const row of found) {
       if (expected.has(`${row.id}\u0000${row.versionHash}`)) rows.push(row)
     }
@@ -112,15 +116,18 @@ async function loadPlaceI18nRows(versions: Iterable<PlaceVersionRef>) {
           `${version.recordId}\u0000${version.locale}\u0000${version.versionHash}`,
       ),
     )
-    const found = (await first.shard.db
-      .select()
-      .from(historySchema.placesI18n)
-      .where(
-        inArray(historySchema.placesI18n.versionHash, [
-          ...new Set(shardVersions.map(version => version.versionHash)),
-        ]),
+    const hashes = [...new Set(shardVersions.map(version => version.versionHash))]
+    const found = (
+      await Promise.all(
+        chunkArray(hashes, getMaxItemsPerInClause()).map(versionHashes =>
+          first.shard.db
+            .select()
+            .from(historySchema.placesI18n)
+            .where(inArray(historySchema.placesI18n.versionHash, versionHashes))
+            .all(),
+        ),
       )
-      .all()) as HistoryPlaceI18n[]
+    ).flat() as HistoryPlaceI18n[]
     for (const row of found) {
       if (expected.has(`${row.placeId}\u0000${row.locale}\u0000${row.versionHash}`)) {
         rows.push(row)

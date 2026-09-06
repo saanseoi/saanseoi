@@ -223,6 +223,49 @@ test('replays Place text and Address-derived divisions from the selected snapsho
         ],
       )
     }
+    for (let index = 0; index < 100; index += 1) {
+      const id = `place-extra-${index}`
+      const versionHash = `${id}-v1`
+      run(
+        history,
+        `INSERT INTO places (
+          id, releaseId, lng, lat, firstSeenMonth, lastSeenMonth, versionHash,
+          sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          'release-old',
+          114.1,
+          22.3,
+          '2025-09',
+          '2025-09',
+          versionHash,
+          'release-old',
+          'place-snapshot-old',
+          1,
+          TIMESTAMP,
+          TIMESTAMP,
+        ],
+      )
+      run(
+        history,
+        `INSERT INTO snapshotVersionChanges (
+          snapshotId, recordType, recordId, locale, versionHash, operation,
+          sourceReleaseId, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          'place-snapshot-old',
+          'place',
+          id,
+          '',
+          versionHash,
+          'upsert',
+          'release-old',
+          TIMESTAMP,
+          TIMESTAMP,
+        ],
+      )
+    }
 
     const records = await listReplayedPlaceRecords({
       divisionSnapshotId: 'division-snapshot-old',
@@ -234,8 +277,8 @@ test('replays Place text and Address-derived divisions from the selected snapsho
       snapshotId: 'place-snapshot-old',
     })
 
-    expect(records).toHaveLength(1)
-    expect(records[0]).toMatchObject({
+    expect(records).toHaveLength(101)
+    expect(records.find(record => record.place.id === 'place-1')).toMatchObject({
       place: {
         id: 'place-1',
         snapshotId: 'place-snapshot-old',
