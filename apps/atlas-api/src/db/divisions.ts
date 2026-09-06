@@ -251,10 +251,14 @@ function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
   return and(
     eq(divisionsI18n.snapshotId, divisions.snapshotId),
     eq(divisionsI18n.divisionId, divisions.id),
-    localeSelection.mode === 'requested' && localeSelection.locales.length > 0
+    divisionI18nLocaleUsesBoundValue(localeSelection)
       ? sql`${divisionsI18n.locale} in (select value from json_each(${JSON.stringify(localeSelection.locales)}))`
       : undefined,
   )
+}
+
+function divisionI18nLocaleUsesBoundValue(localeSelection: DivisionLocaleSelection) {
+  return localeSelection.mode === 'requested' && localeSelection.locales.length > 0
 }
 
 function buildDivisionI18nJsonSelection(localeSelection: DivisionLocaleSelection) {
@@ -504,7 +508,7 @@ function buildDivisionConditions(
   >,
 ) {
   return [
-    inArray(divisions.snapshotId, lookup.snapshotIds ?? [lookup.snapshotId]),
+    sql`${divisions.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds ?? [lookup.snapshotId])}))`,
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.type ? eq(divisions.type, lookup.type) : undefined,
     lookup.parentId
@@ -603,9 +607,11 @@ export async function listDivisionRecordsCurrentByIds(
   }
 
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
-  // D1 permits at most 100 bound variables. Reserve one for every selected
-  // division snapshot as well as the requested canonical IDs.
-  const chunks = chunkD1Values(lookup.divisionIds, lookup.snapshotIds?.length ?? 1)
+  // D1 permits at most 100 bound variables. Reserve one for the snapshot JSON
+  // array and one for a requested locale JSON array when it is present.
+  const reservedVariables =
+    1 + (divisionI18nLocaleUsesBoundValue(lookup.localeSelection) ? 1 : 0)
+  const chunks = chunkD1Values(lookup.divisionIds, reservedVariables)
   const rows = (
     await Promise.all(
       chunks.map(divisionIds =>
