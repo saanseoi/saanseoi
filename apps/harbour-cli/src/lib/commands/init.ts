@@ -40,6 +40,11 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:divisions': {
+    script: 'scripts/init/divisions.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:divisions:hkgov-pland-new-town': {
     script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
     supportsContinue: true,
