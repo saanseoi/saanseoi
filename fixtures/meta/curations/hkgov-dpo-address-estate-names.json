@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "choi-wan-one-ha-estate-name",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceEnName": "CHOI WAN (1) ESTATE",
+      "sourceZhName": "彩雲(一)邨",
+      "preferredEnName": "Choi Wan (I) Estate",
+      "preferredZhName": "彩雲一邨",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/12.json",
+      "authority": "User decision, 2026-09-07: We should retain the HA naming.",
+      "decision": "Use the exact Housing Authority estate names in canonical components and display addresses. Preserve ALS names, identity keys and raw components as source evidence. This is an estate-specific name decision, not a general Roman numeral conversion or a merge with Choi Wan (2) Estate."
+    }
+  ]
+}
