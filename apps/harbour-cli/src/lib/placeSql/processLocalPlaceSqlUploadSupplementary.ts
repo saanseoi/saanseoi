@@ -416,29 +416,6 @@ async function prepareSupplementaryAddressesLocked(
     })),
   ]
   await replaceReleaseProcessingActions(db, input.releaseId, actions)
-  if (!input.importOptions.isLocal) {
-    const stored = await db
-      .select()
-      .from(metaSchema.releaseProcessingActions)
-      .where(eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId))
-      .all()
-    await deliverSqlPhase(
-      {
-        context: input.context,
-        releaseId: input.releaseId,
-        phase: 'places-address-actions',
-        inputs: { plan: input.plan, snapshots: input.snapshots },
-      },
-      async () => {
-        for (const sql of chunkStatements([
-          `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
-          ...stored.map(row => insertSql('releaseProcessingActions', row)),
-        ])) {
-          await executeSqlText(input.targets.meta, sql, input.importOptions)
-        }
-      },
-    )
-  }
   // Always replace the release-owned review artefact, including on a successful retry.
   input.onStage?.('write Address review artefact')
   const reviewPath = resolve(input.releaseRoot, 'overture-place-address-review.json')
@@ -474,6 +451,31 @@ async function prepareSupplementaryAddressesLocked(
     ...entryLedger,
     entries: fixture.entries,
   })
+
+  // Only approved decisions may be frozen. A review stop must not seal stale actions.
+  if (!input.importOptions.isLocal) {
+    await deliverSqlPhase(
+      {
+        context: input.context,
+        releaseId: input.releaseId,
+        phase: 'places-address-actions',
+        inputs: { plan: input.plan, snapshots: input.snapshots, actions },
+      },
+      async () => {
+        const stored = await db
+          .select()
+          .from(metaSchema.releaseProcessingActions)
+          .where(eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId))
+          .all()
+        for (const sql of chunkStatements([
+          `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
+          ...stored.map(row => insertSql('releaseProcessingActions', row)),
+        ])) {
+          await executeSqlText(input.targets.meta, sql, input.importOptions)
+        }
+      },
+    )
+  }
 
   input.onStage?.('materialise supplementary Addresses')
   const parentDataset = (await db
