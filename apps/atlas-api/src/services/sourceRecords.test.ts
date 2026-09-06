@@ -195,7 +195,9 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[2]).toMatch(/^[0-9a-f]{32}$/)
+            expect(values[2]).toMatch(
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+            )
             expect(values[3]).toBe(2)
             return {
               all: async () => ({
@@ -251,7 +253,9 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[2]).toMatch(/^[0-9a-f]{32}$/)
+            expect(values[2]).toMatch(
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+            )
             return {
               all: async () => ({
                 results: query.includes('sourceRecordId >= ?')
