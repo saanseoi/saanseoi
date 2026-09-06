@@ -9,7 +9,7 @@ import {
   type GeoJsonPosition,
 } from '@repo/core/pipeline/geojson'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
+import { readNativeFileGeodatabaseArchive } from '../fileGeodatabaseNative.ts'
 
 export const LANDSD_ROAD_CENTRELINE_DATASET_CODE = 'ds-hk-hkgov-landsd-road-centreline'
 export const LANDSD_ROAD_CENTRELINE_LAYER = 'GEO_STREET_CENTRELINE'
@@ -101,7 +101,7 @@ export type NativeRoadCentrelineArchive = {
 export async function readLandsdRoadCentrelineArchive(
   archiveBytes: Uint8Array,
 ): Promise<NativeRoadCentrelineArchive> {
-  const layers = await readFileGeodatabaseArchive(archiveBytes)
+  const layers = readNativeFileGeodatabaseArchive(archiveBytes)
   const candidates = Object.entries(layers).filter(([, value]) =>
     isFeatureCollection(value),
   )
@@ -113,6 +113,8 @@ export async function readLandsdRoadCentrelineArchive(
     throw new Error('Road Centreline archive must contain exactly one feature layer.')
   }
   const [layerName, collection] = candidate
+  if (!isFeatureCollection(collection))
+    throw new Error('Invalid Road Centreline layer.')
   if (layerName !== 'GEO_STREET_CENTRELINE' && layerName !== 'RoadCentreLine') {
     throw new Error(`Unexpected Road Centreline feature layer ${layerName}.`)
   }

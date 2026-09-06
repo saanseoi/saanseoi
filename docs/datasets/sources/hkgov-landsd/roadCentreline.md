@@ -27,6 +27,10 @@ must be represented in the versioned curation fixture before canonical publicati
 FileGDB text attributes are decoded as UTF-8 at the archive boundary, including the
 retained native properties. Invalid UTF-8 stops intake.
 
+The archive reader disables the FileGDB convenience projection. Source coordinates
+remain in HK80; matching projects them to WGS84 exactly once. District intersection
+reuses parsed polygons and skips disjoint bounding boxes.
+
 Every matching run writes `.cache/road-centreline-review/{archive-sha256}.json`,
 including dry runs. The report records archive provenance and the selected street and
 district-area snapshot IDs. It groups unresolved segments by issue kind, bilingual name,
