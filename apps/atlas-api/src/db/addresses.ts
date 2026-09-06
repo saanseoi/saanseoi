@@ -1,5 +1,5 @@
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
-import { addressBlockTypes, and, asc, eq, inArray, ne, sql } from '@repo/db'
+import { addressBlockTypes, and, asc, eq, ne, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { Address3dCoverage } from '@repo/db/address3d'
 import type { RequestedApiLocaleSelection } from '@repo/core'
@@ -138,7 +138,7 @@ function buildAddressI18nCondition(localeSelection: RequestedApiLocaleSelection)
     eq(address2dI18n.snapshotId, address2d.snapshotId),
     eq(address2dI18n.addressId, address2d.id),
     localeSelection.mode === 'requested' && localeSelection.locales.length > 0
-      ? inArray(address2dI18n.locale, localeSelection.locales)
+      ? sql`${address2dI18n.locale} in (select value from json_each(${JSON.stringify(localeSelection.locales)}))`
       : undefined,
   )
 }
