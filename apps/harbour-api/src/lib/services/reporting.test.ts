@@ -709,7 +709,8 @@ function seedHistoryRows(
       ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3d (
-      id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
+      id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, units, unitCount,
+      contentHash, unresolvedSectionIds, sources, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
@@ -717,6 +718,10 @@ function seedHistoryRows(
       '${snapshotId}',
       1,
       '${addressId}',
+      '[{"id":"unit-1","unitRef":"A","unitType":"F","floorRef":"1","floorType":"F","unitPortion":null}]',
+      1,
+      'address-3d-content-hash-1',
+      '[]',
       null,
       '2026-06-24T12:00:00.000Z',
       '2026-06-24T12:00:00.000Z'
@@ -724,8 +729,7 @@ function seedHistoryRows(
 
     INSERT INTO address3dI18n (
       address3dId, versionHash, sourceReleaseId, snapshotId, isCurrent, locale,
-      formattedAddressPart, accessHint, unitPortion, unitExpression, unitRef, unitType,
-      floorExpression, floorRef, floorType, createdAt, updatedAt
+      units, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
@@ -733,15 +737,7 @@ function seedHistoryRows(
       '${snapshotId}',
       1,
       'en',
-      'Flat A',
-      null,
-      null,
-      null,
-      'A',
-      null,
-      null,
-      null,
-      null,
+      '{"unit-1":{"unitExpression":"Flat A","floorExpression":"1/F"}}',
       '2026-06-24T12:00:00.000Z',
       '2026-06-24T12:00:00.000Z'
     );
