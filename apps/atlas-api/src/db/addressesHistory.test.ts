@@ -41,10 +41,10 @@ test('replays the selected address snapshot from its assigned history shard', as
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, countryId, geometry, bbox, identifiers, sources, versionHash,
+        id, parentAddressId, countryId, geometry, bbox, identifiers, sources, versionHash,
         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
       ) VALUES (
-        'historic-address', 'hk', '{"type":"Point","coordinates":[114.1,22.3]}',
+        'historic-address', 'historic-complex', 'hk', '{"type":"Point","coordinates":[114.1,22.3]}',
         '[114.1,22.3,114.1,22.3]', '{"source":"historic"}',
         '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1',
         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'
@@ -84,6 +84,7 @@ test('replays the selected address snapshot from its assigned history shard', as
         address: expect.objectContaining({
           divisionSnapshotId: 'division-snapshot-2025',
           id: 'historic-address',
+          parentAddressId: 'historic-complex',
           snapshotId: 'address-snapshot-2025',
         }),
         i18n: {

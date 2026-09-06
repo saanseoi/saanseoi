@@ -89,6 +89,7 @@ export async function listReplayedAddressRecords(args: {
         bbox: version.base.bbox,
         identifiers: version.base.identifiers,
         sources: version.base.sources,
+        parentAddressId: version.base.parentAddressId,
         countryId: version.base.countryId,
         areaId: version.base.areaId,
         districtId: version.base.districtId,

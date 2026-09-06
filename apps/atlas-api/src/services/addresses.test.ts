@@ -151,7 +151,13 @@ test('publishes and serves a curated Address union with dataset filtering, globa
       const snapshotId = snapshots.get(member) ?? 'unselected-snapshot'
       currentDb
         .insert(currentSchema.address2d)
-        .values({ id, snapshotId, divisionSnapshotId, countryId })
+        .values({
+          id,
+          snapshotId,
+          divisionSnapshotId,
+          countryId,
+          parentAddressId: id === 'b' ? 'a' : null,
+        })
         .run()
       for (const locale of ['en', 'zh-hant', 'zh-hans']) {
         currentDb
@@ -201,6 +207,8 @@ test('publishes and serves a curated Address union with dataset filtering, globa
     expect(all.body.meta.domain).toBe('saanseoi')
     expect(all.body.meta.page?.total).toBe(4)
     expect(all.body.data[1]?.attributes.datasetCode).toBe('ds-hk-overture-place')
+    expect(all.body.data[0]?.attributes.parentAddressId).toBeNull()
+    expect(all.body.data[1]?.attributes.parentAddressId).toBe('a')
     const page = await listAddresses({
       ...args,
       query: { 'page[limit]': 2, 'page[offset]': 1 },

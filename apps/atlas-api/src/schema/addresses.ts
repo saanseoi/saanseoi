@@ -195,6 +195,9 @@ const AddressI18nSchema = z
 
 const AddressAttributesSchema = z
   .object({
+    parentAddressId: IdSchema.nullable().openapi({
+      description: openApiText('openapi_addresses_parent_address_id_description'),
+    }),
     datasetCode: z.string().openapi({
       description: openApiText('openapi_addresses_dataset_code_description'),
       examples: ['ds-hk-hkgov-dpo-address', 'ds-hk-overture-place'],
