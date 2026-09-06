@@ -16,6 +16,7 @@ const ANALYTICS_ENGINE_SQL_URL = (accountId: string) =>
 const ROLLUP_DELAY_MS = 2 * 60_000
 const ROLLUP_OVERLAP_MS = 20 * 60_000
 const QUERY_ROW_LIMIT = 10_000
+const SNAPSHOT_ROW_LIMIT = 50_000
 const quoteDataset = (dataset: string) => `"${dataset}"`
 
 type AnalyticsUsageRow = UsageMinute
@@ -36,6 +37,8 @@ export type ApiKeyUsageRollupBindings = {
 /**
  * Replays settled usage with a 20-minute overlap. A persisted checkpoint recovers
  * missed runs in bounded windows; each snapshot and its totals commit atomically.
+ * Each invocation advances at most 20 minutes. The first checkpoint covers only
+ * the current overlap; older history and dataset changes require reconciliation.
  */
 export const rollUpApiKeyUsage = async (
   env: ApiKeyUsageRollupBindings,
@@ -65,6 +68,7 @@ export const rollUpApiKeyUsage = async (
       ),
     ),
   )
+  assertSnapshotSize(rows.reduce((count, datasetRows) => count + datasetRows.length, 0))
   const minuteUsage = mergeUsageRows(rows.flat())
   const applied = await runWithTransientD1WriteRetry(() =>
     commitUsageWindow({
@@ -133,10 +137,18 @@ const queryUsage = async (
     )
   }
   if (payload.data.length > QUERY_ROW_LIMIT) {
-    throw new RollupJobError(
-      'analytics_engine_query',
-      'Usage replay exceeded the bounded query size; the checkpoint has not advanced.',
-    )
+    const middle = startOfMinute((start + end) / 2)
+    if (middle <= start) {
+      throw new RollupJobError(
+        'analytics_engine_query',
+        'Usage replay exceeded the bounded query size for one minute; the checkpoint has not advanced.',
+      )
+    }
+    // Subdivide by time so groups cannot shift between pages while usage settles.
+    const before = await queryUsage(env, dataset, start, middle)
+    const after = await queryUsage(env, dataset, middle, end)
+    assertSnapshotSize(before.length + after.length)
+    return [...before, ...after]
   }
   const seen = new Set<string>()
   return payload.data.map(value => {
@@ -156,6 +168,15 @@ const queryUsage = async (
     seen.add(key)
     return row
   })
+}
+
+function assertSnapshotSize(count: number) {
+  if (count > SNAPSHOT_ROW_LIMIT) {
+    throw new RollupJobError(
+      'analytics_engine_query',
+      'Usage replay exceeded the bounded snapshot size; the checkpoint has not advanced.',
+    )
+  }
 }
 
 const parseUsageRow = (value: unknown): AnalyticsUsageRow | null => {

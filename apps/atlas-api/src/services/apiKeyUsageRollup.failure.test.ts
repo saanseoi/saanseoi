@@ -1,6 +1,7 @@
 import { afterEach, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
+import { URL as NodeURL } from 'node:url'
 import { rollUpApiKeyUsage } from './apiKeyUsageRollup'
 
 const originalFetch = globalThis.fetch
@@ -23,7 +24,7 @@ function fixture() {
   `)
   sqlite.exec(
     readFileSync(
-      new URL(
+      new NodeURL(
         '../../../../libs/db/migrations/meta/20260906175725_wooden_celestials/migration.sql',
         import.meta.url,
       ),
@@ -243,9 +244,9 @@ test('transient batch failures replay once without duplicate usage', async () =>
   mockUsage([row])
   const batch = env.DB_META.batch.bind(env.DB_META)
   let calls = 0
-  env.DB_META.batch = async statements => {
+  env.DB_META.batch = async <T>(statements: D1PreparedStatement[]) => {
     if (calls++ === 0) throw new Error('SQLITE_BUSY: database is locked')
-    return batch(statements)
+    return batch<T>(statements)
   }
   await rollUpApiKeyUsage(env, scheduledTime)
   expect(calls).toBe(2)
@@ -259,8 +260,8 @@ test('a lost batch acknowledgement cannot reapply or undo a committed snapshot',
   mockUsage([row])
   const batch = env.DB_META.batch.bind(env.DB_META)
   let calls = 0
-  env.DB_META.batch = async statements => {
-    const results = await batch(statements)
+  env.DB_META.batch = async <T>(statements: D1PreparedStatement[]) => {
+    const results = await batch<T>(statements)
     if (calls++ === 0) throw new Error('D1_ERROR: internal error')
     return results
   }
@@ -320,4 +321,88 @@ test('dataset reordering is harmless but dataset replacement requires reconcilia
   expect(
     sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 6 })
+})
+
+test('oversized snapshots fail without advancing the checkpoint or changing totals', async () => {
+  const { sqlite, env } = fixture()
+  mockUsage([row])
+  await rollUpApiKeyUsage(env, scheduledTime)
+  const checkpoint = sqlite.query('SELECT * FROM api_key_usage_rollup').get()
+  globalThis.fetch = Object.assign(
+    async () => Response.json({ data: Array.from({ length: 10_001 }, () => row) }),
+    { preconnect: originalFetch.preconnect },
+  )
+  await expect(rollUpApiKeyUsage(env, scheduledTime)).rejects.toThrow(
+    'bounded query size',
+  )
+  expect(sqlite.query('SELECT * FROM api_key_usage_rollup').get()).toEqual(checkpoint)
+  expect(
+    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+  ).toEqual({ request_count: 3 })
+})
+
+test('large queries subdivide into disjoint time ranges before an atomic commit', async () => {
+  const { sqlite, env } = fixture()
+  let calls = 0
+  const later = { ...row, requestCount: 7, windowStartedAt: '2026-09-07T12:20:00Z' }
+  const intervals: Array<[number, number]> = []
+  globalThis.fetch = Object.assign(
+    async (_input: unknown, init?: RequestInit) => {
+      const query = String(init?.body)
+      const [start, end] = [...query.matchAll(/toDateTime\('([^']+)'\)/g)].map(match =>
+        Date.parse(`${match[1]}Z`),
+      )
+      if (start === undefined || end === undefined)
+        throw new Error('Expected bounded usage query')
+      intervals.push([start, end])
+      return Response.json({
+        data:
+          calls++ === 0
+            ? Array.from({ length: 10_001 }, () => row)
+            : [row, later].filter(
+                entry =>
+                  Date.parse(entry.windowStartedAt) >= start &&
+                  Date.parse(entry.windowStartedAt) < end,
+              ),
+      })
+    },
+    { preconnect: originalFetch.preconnect },
+  )
+  await rollUpApiKeyUsage(env, scheduledTime)
+  expect(calls).toBe(3)
+  expect(intervals[1]?.[0]).toBe(intervals[0]?.[0])
+  expect(intervals[1]?.[1]).toBe(intervals[2]?.[0])
+  expect(intervals[2]?.[1]).toBe(intervals[0]?.[1])
+  expect(
+    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+  ).toEqual({ request_count: 10 })
+})
+
+test('invalid counts, timestamps, and duplicate groups cannot partially replace a snapshot', async () => {
+  const { sqlite, env } = fixture()
+  mockUsage([row])
+  await rollUpApiKeyUsage(env, scheduledTime)
+  for (const invalid of [
+    { ...row, requestCount: true },
+    { ...row, requestCount: '' },
+    { ...row, requestCount: -1 },
+    { ...row, requestCount: 0.5 },
+    { ...row, requestCount: Number.MAX_SAFE_INTEGER + 1 },
+    { ...row, windowStartedAt: null },
+    { ...row, windowStartedAt: '2026-09-07T12:23:00Z' },
+    row,
+  ]) {
+    globalThis.fetch = Object.assign(
+      async () => Response.json({ data: [row, invalid] }),
+      { preconnect: originalFetch.preconnect },
+    )
+    await expect(rollUpApiKeyUsage(env, scheduledTime)).rejects.toThrow(
+      'Invalid or duplicate usage row',
+    )
+    expect(
+      sqlite
+        .query("SELECT request_count FROM api_key_usage WHERE window = 'day'")
+        .get(),
+    ).toEqual({ request_count: 3 })
+  }
 })
