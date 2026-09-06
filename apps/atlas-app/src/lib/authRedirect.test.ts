@@ -26,6 +26,17 @@ describe('getAuthRedirectPath', () => {
     }
   })
 
+  test('does not return to authentication or token endpoints after signing in', () => {
+    for (const path of [
+      '/sign-in',
+      '/sign-up?continue=/account',
+      '/password/reset?token=secret',
+      '/api/auth/sign-out',
+    ]) {
+      expect(getAuthRedirectPath(path, currentUrl)).toBe('/api-keys')
+    }
+  })
+
   test('uses the requested fallback for missing or malformed destinations', () => {
     expect(getAuthRedirectPath(null, currentUrl, '/')).toBe('/')
     expect(getAuthRedirectPath('http://[', currentUrl, '/')).toBe('/')

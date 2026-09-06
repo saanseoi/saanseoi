@@ -8,7 +8,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
-import { getAuthRedirectPath, getSignUpHref } from '#lib/authRedirect.js'
+import { getAuthRedirectPath, getSignInHref, getSignUpHref } from '#lib/authRedirect.js'
 import { page } from '$app/state'
 
 let { data } = $props()
@@ -20,6 +20,13 @@ let pendingProvider = $state<SocialProvider | null>(null)
 let passkeyPending = $state(false)
 let showEmailForm = $state(false)
 const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
+const callbackError = $derived(
+  page.url.searchParams.has('error')
+    ? page.url.searchParams.has('verification')
+      ? m.auth_verification_error()
+      : m.auth_sign_in_error()
+    : null,
+)
 
 const signIn = async () => {
   if (busy) return
@@ -29,9 +36,13 @@ const signIn = async () => {
     const result = await authClient.signIn.email({
       email,
       password,
-      callbackURL: next,
+      callbackURL: `${getSignInHref(next)}&verification=1`,
     })
-    if (result.error) error = result.error.message ?? m.auth_sign_in_error()
+    if (result.error)
+      error =
+        result.error.code === 'EMAIL_NOT_VERIFIED'
+          ? m.auth_verify_email_message()
+          : (result.error.message ?? m.auth_sign_in_error())
     else window.location.assign(next)
   } catch {
     error = m.auth_sign_in_error()
@@ -155,19 +166,21 @@ const passkeySignIn = async () => {
       >
       <a
         class="block w-fit font-body text-body-sm text-secondary hover:underline"
-        href="/password/forgot"
+        href={`/password/forgot?next=${encodeURIComponent(next)}`}
         >{m.auth_forgot_password()}</a
       >
-      {#if error}
-        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
+      {#if error || callbackError}
+        <p class="font-body text-body-sm text-destructive" role="alert">
+          {error ?? callbackError}
+        </p>
       {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_signing_in() : m.auth_sign_in_title()}</Button
       >
     </form>
-  {:else if error}
+  {:else if error || callbackError}
     <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
-      {error}
+      {error ?? callbackError}
     </p>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">

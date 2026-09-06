@@ -34,7 +34,7 @@ const signUp = async () => {
       name,
       email,
       password,
-      callbackURL: callbackUrl,
+      callbackURL: `${getSignInHref(callbackUrl)}&verification=1`,
     })
     if (result.error) error = result.error.message ?? m.auth_sign_up_error()
     else message = m.auth_verify_email_message()

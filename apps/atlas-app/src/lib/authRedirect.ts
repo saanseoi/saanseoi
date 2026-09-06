@@ -11,6 +11,12 @@ export function getAuthRedirectPath(
   try {
     const target = new URL(candidate, currentUrl.origin)
     if (target.origin !== currentUrl.origin) return fallback
+    if (
+      /^\/(?:sign-in|sign-up|password(?:\/.*)?|api\/auth(?:\/.*)?)\/?$/.test(
+        target.pathname,
+      )
+    )
+      return fallback
 
     return `${target.pathname}${target.search}${target.hash}`
   } catch {

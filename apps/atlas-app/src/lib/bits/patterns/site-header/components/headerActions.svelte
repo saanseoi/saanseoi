@@ -33,10 +33,21 @@ const initials = $derived(
     .toUpperCase() ?? '',
 )
 
+let signOutError = $state<string | null>(null)
+let signingOut = $state(false)
 const handleSignOut = async () => {
-  const { error } = await authClient.signOut()
-  if (error) return
-  window.location.assign('/')
+  if (signingOut) return
+  signingOut = true
+  signOutError = null
+  try {
+    const result = await authClient.signOut()
+    if (result.error) signOutError = result.error.message ?? m.auth_sign_out_error()
+    else window.location.assign('/')
+  } catch {
+    signOutError = m.auth_sign_out_error()
+  } finally {
+    signingOut = false
+  }
 }
 </script>
 
@@ -85,11 +96,17 @@ const handleSignOut = async () => {
               <div class="my-1 border-t border-border-card"></div>
               <button
                 class="flex w-full items-center gap-2 px-3 py-2 font-body text-sm text-foreground outline-none hover:bg-surface-container-low focus:bg-surface-container-low"
+                disabled={signingOut}
                 onclick={handleSignOut}
                 type="button"
               >
                 <Icon icon="proicons:sign-out" class="size-4" />Sign out
               </button>
+              {#if signOutError}
+                <p role="alert" class="px-3 py-2 text-sm text-destructive">
+                  {signOutError}
+                </p>
+              {/if}
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
