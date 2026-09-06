@@ -129,6 +129,15 @@ deterministic replacement policy or an explicit curation decision.
 
 ### Four matching tiers
 
+Interactive terminal uploads open a Clack review for unresolved Place Address
+identities. Each item shows source evidence, its previous link, candidate scores and
+conflicts. Inspect a candidate to see labelled, colour-coded components: cyan building,
+magenta estate, yellow block/phase, green number and blue street. Confirm an ALS
+selection or explicitly leave the Place unlinked and supply a reason. Skip retains an
+unresolved item; save and exit preserves every confirmed decision. Continue
+initialisation to apply saved decisions. Non-interactive runs retain the review-file
+stop; `--yes` never chooses an identity.
+
 Free-text component recognition excludes bare numeric or single-letter references and
 country-only labels (`HONG KONG`, `HK`, `香港`). These values remain in canonical source
 records but cannot supply premise evidence or contradictions. Qualified names such as
@@ -226,6 +235,15 @@ entry's `values` contains the public 2D localisations. Its identity key includes
 normalised 2D values and excludes Place IDs, source release, unit and floor fragments.
 Places with the same identity share the `opa-` Address ID and retain separate generated
 entries. Conflicting ALS derivations for a shared identity stop materialisation.
+
+In interactive review, select an ALS candidate and choose **Edit address components** to
+edit building, estate, block, phase, street, and building number start/end. Confirm the
+formatted address before saving. The selected action supplies the decision reason
+automatically; review does not ask for written justification. The decision stores
+`address.values` and `address.baseAddressId`; these regenerate a curated supplementary
+identity without modifying the ALS source record. Editing one language stores only that
+reviewed localisation, so other language values are not silently copied with stale
+numbers.
 
 Every analysis writes `overture-place-address-review.json` inside the target's
 `.local/harbour-sql/releases/{target}/{releaseCode}/` directory. It includes the

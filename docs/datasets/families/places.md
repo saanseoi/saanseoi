@@ -128,19 +128,25 @@ Bare numeric or single-letter components and country-only labels cannot supply f
 premise evidence; their canonical source values are retained.
 
 A parsed premise candidate which has no ALS match is not promoted into the official ALS
-source. The Overture Places supplementary Address source retains its Overture Place,
-source-release, selected candidate evidence, and confidence provenance. Policies,
-reviewed aliases, and human identity decisions are version controlled; deterministic
-accepted entries are regenerated into a target-specific `.local` ledger. Weak partial
-matches remain for later processing rather than becoming identity-curation work. A
-partial canonical name is premise evidence only when the same candidate also matches the
-canonical street, unless an explicit reviewed alias applies. Only a candidate which
-independently clears the automatic threshold can require review for contradictory or
-insufficiently separated evidence. Review artefacts retain one source parse plus compact
-candidate score evidence instead of repeating the parse for every candidate. The
-required matcher tiers, curation artefacts, provenance, materialisation order, and
-publication stops are specified in the
+source. Interactive Place Address curation uses a Clack step-through review with
+labelled, colour-coded components and immediately saved, reasoned decisions. Skipped
+items remain unresolved; continuing initialisation applies saved decisions. The Overture
+Places supplementary Address source retains its Overture Place, source-release, selected
+candidate evidence, and confidence provenance. Policies, reviewed aliases, and human
+identity decisions are version controlled; deterministic accepted entries are
+regenerated into a target-specific `.local` ledger. Weak partial matches remain for
+later processing rather than becoming identity-curation work. A partial canonical name
+is premise evidence only when the same candidate also matches the canonical street,
+unless an explicit reviewed alias applies. Only a candidate which independently clears
+the automatic threshold can require review for contradictory or insufficiently separated
+evidence. Review artefacts retain one source parse plus compact candidate score evidence
+instead of repeating the parse for every candidate. The required matcher tiers, curation
+artefacts, provenance, materialisation order, and publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
+
+Interactive review can edit an ALS candidate into a supplementary address, including
+building number start and end. Edited values and their ALS derivation reference are
+saved in the version-controlled decision and regenerate the local entry.
 
 To remove the bounded Overture Places initialisation from a target, use the
 family-specific reset command. It owns both `place/default` and
