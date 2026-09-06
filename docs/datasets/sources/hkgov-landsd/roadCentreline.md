@@ -47,6 +47,11 @@ reviewers can search canonical names or IDs, link a whole group, retain it as
 source-only evidence, skip it for investigation, or exit. Suggestions never establish
 identity. The review command saves decisions without importing or publishing a release.
 
+Groups and candidates appear strongest evidence first: matcher candidates, exact name
+evidence, shared English words and district agreement contribute to ranking. Groups with
+equal top scores prefer a clearer lead over the second candidate. These scores order
+review work; they are not calibrated match probabilities.
+
 Each choice is saved atomically under
 `fixtures/meta/curations/road-centreline/{archive-sha256}.json`. Decisions are bound to
 the archive, source version, canonical snapshot IDs and complete review-group evidence.

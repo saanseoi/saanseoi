@@ -10,6 +10,11 @@ Address 2D SQL and grouped Address3D bound batches use sealed
 [delivery plans and receipts](../sql-delivery.md), with independent remote delivery and
 local replay checkpoints. Recovery uses the original payloads and prepared timestamps.
 
+Address3D owner and unresolved-section validation streams bounded lookups against the
+selected Address2D snapshot before any Address3D writes. Each query reserves one bound
+parameter for the snapshot and checks up to 99 references. Every owner must exist once;
+each section must retain exactly one match to its reviewed parent.
+
 The default Address API domain is `saanseoi`, SaanSeoi's curated Hong Kong address
 collection. It requires the authoritative ALS `address/default` member and includes the
 accepted Overture Places `address/overture-places` member when available. Supplementary
@@ -87,6 +92,13 @@ A reviewed missing inventory can be backfilled without changing the dated Addres
 Ching Sum House's June 2025 correction restores 949 units from matching bracketing
 inventories, retaining explicit cross-release provenance and unchanged publisher files.
 This approval is specific to the reviewed omission, not a general backfill policy.
+
+Ching Tin Estate also has explicit approval to reconstruct four missing named buildings
+and 4,234 units from the first retained release, 25 July 2024. Housing Authority intake
+evidence dates these buildings to 2022. The reconstructed addresses participate in
+normal identity and division resolution, with June 2025 Address2D evidence and August
+2025 inventory evidence labelled separately. Unnamed publisher premises sharing a CSU
+remain distinct; they are not silently renamed or assigned the reconstructed inventory.
 
 Cheung Wah Estate retains ten named buildings and 5,120 units, suppressing their ten
 reviewed block-number duplicates while preserving source evidence. A block-number alias
