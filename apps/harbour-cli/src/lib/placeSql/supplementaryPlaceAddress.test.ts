@@ -183,6 +183,39 @@ describe('supplementary Place Address policy', () => {
     expect(wrongNumber.tier).toBe('delayed')
     expect(wrongNumber.candidates[0]?.contradictions).toContain('number')
   })
+  test('locality-shaped component matches do not turn street addresses into reviews', () => {
+    const hongKong: PlaceAddressDefinition = {
+      ...citygate,
+      addressId: 'als-hong-kong',
+      buildingName: 'Hong Kong',
+      buildingNumberExpression: null,
+      buildingNumberFrom: null,
+      formattedAddress: 'Hong Kong',
+      streetName: null,
+    }
+    const chiMaHang: PlaceAddressDefinition = {
+      ...citygate,
+      addressId: 'als-chi-ma-hang-39',
+      buildingName: null,
+      buildingNumberExpression: '39',
+      buildingNumberFrom: '39',
+      formattedAddress: '39 Chi Ma Hang Road',
+      streetName: 'Chi Ma Hang Road',
+    }
+    const { analyse } = setup([hongKong, chiMaHang])
+
+    const result = analyse(
+      observation('39 Chi Ma Hang Road, Cheung Chau, Hong Kong'),
+      null,
+    )
+    expect(result.tier).toBe('delayed')
+    expect(result.reason).toBe('no_useful_partial_match')
+    expect(
+      result.candidates.find(candidate => candidate.addressId === hongKong.addressId),
+    ).toMatchObject({
+      breakdown: { buildingName: 55 },
+    })
+  })
   test('compacts non-review resolutions but retains review evidence', () => {
     const { analyse } = setup([citygate, { ...citygate, addressId: 'other' }])
     const delayed = analyse(observation('Tat Tung Road'), null)

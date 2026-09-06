@@ -130,9 +130,10 @@ source-release, selected candidate evidence, and confidence provenance. Policies
 reviewed aliases, and human identity decisions are version controlled; deterministic
 accepted entries are regenerated into a target-specific `.local` ledger. Weaker partial
 matches stop in the address identity-drift review workflow, while candidates without
-meaningful premise evidence remain for later processing. The required matcher tiers,
-curation artefacts, provenance, materialisation order, and publication stops are
-specified in the
+meaningful premise evidence remain for later processing. A partial canonical name is
+premise evidence only when the same candidate also matches the canonical street, unless
+an explicit reviewed alias applies. The required matcher tiers, curation artefacts,
+provenance, materialisation order, and publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
 To remove the bounded Overture Places initialisation from a target, use the
