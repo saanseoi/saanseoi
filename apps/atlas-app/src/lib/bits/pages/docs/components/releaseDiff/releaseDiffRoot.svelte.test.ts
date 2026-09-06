@@ -1,4 +1,5 @@
 import { expect, test, vi } from 'vitest'
+import { page } from 'vitest/browser'
 import { render } from 'vitest-browser-svelte'
 
 import { getReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
@@ -15,6 +16,7 @@ const labels = { added: 'Added', removed: 'Removed', empty: 'No changes' }
 const markdown = getReleaseNotesPresentation('', 'en')
 
 test('labels populated panes on small screens as well as in the legend', async () => {
+  await page.viewport(390, 844)
   const screen = await render(ReleaseDiffRoot, {
     changes: [{ addedMarkdown: 'Added text', removedMarkdown: 'Removed text' }],
     labels,

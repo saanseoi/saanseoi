@@ -89,8 +89,10 @@ export default defineConfig({
         extends: './vite.config.ts',
         test: {
           name: 'client',
+          setupFiles: ['./browser.setup.ts'],
           browser: {
             enabled: true,
+            viewport: { width: 1280, height: 900 },
             provider: playwright(),
             instances: [{ browser: 'chromium', headless: true }],
           },

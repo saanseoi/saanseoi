@@ -6,6 +6,9 @@ import GuideLlmPromptCard from './guideLlmPromptCard.svelte'
 test('takes hidden references out of the prompt card layout', async () => {
   const screen = await render(GuideLlmPromptCard, {
     prompt: 'Add the basemap.',
+    previewImageSrc:
+      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+    previewAlt: 'Basemap preview',
     references: [
       {
         code: Array.from(
