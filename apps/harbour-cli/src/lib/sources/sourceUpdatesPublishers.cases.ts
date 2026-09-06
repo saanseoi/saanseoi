@@ -266,7 +266,7 @@ test('does not replay notices before the target release when the local cursor is
     expect(updates).toEqual([
       expect.objectContaining({
         status: 'new',
-        version: '2026-07-03.0',
+        version: '2026-07-26.0',
       }),
     ])
   } finally {

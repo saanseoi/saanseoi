@@ -6,6 +6,7 @@ source: "hkgov-landsd"
 sourceVersion: "2026-07-26.0"
 type: "street"
 cohortKey: "2026-07-26.0"
+releaseNotesUrl: "https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html"
 ---
 
 # EN

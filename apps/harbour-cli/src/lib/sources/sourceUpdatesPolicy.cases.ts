@@ -653,7 +653,7 @@ test('records the two LandsD street series separately', async () => {
       newReleases: { frequency: 'weekly', trigger: 'periodic' },
       revisions: { trigger: 'never' },
     },
-    revisionScope: 'none',
+    revisionScope: 'latest',
     schedule: 'irregular',
     series: 'rolling',
   })
