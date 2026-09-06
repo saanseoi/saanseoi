@@ -36,8 +36,10 @@ export const publicApiKeyDigest = async (key: string) => {
 export const publicKeyLeaseStorageKey = (keyDigest: string) =>
   `public-key-lease:${keyDigest}`
 
-export const isCurrentPublicKeyLease = (lease: PublicKeyLease, now = Date.now()) =>
-  isPublicKeyLease(lease) && lease.nextCheckAt > now
+export const isCurrentPublicKeyLease = (
+  lease: unknown,
+  now = Date.now(),
+): lease is PublicKeyLease => isPublicKeyLease(lease) && lease.nextCheckAt > now
 
 export const isPublicKeyLease = (value: unknown): value is PublicKeyLease => {
   if (typeof value !== 'object' || value === null) return false
