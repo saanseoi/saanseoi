@@ -357,6 +357,11 @@ export const sortOperations = (first: { path: string }, second: { path: string }
   return first.path.localeCompare(second.path)
 }
 
+// Forward aliases before middleware so each request is authorised and metered once.
+app.all('/v0/*', c => forwardMajorVersionAlias(c, '/v0'))
+app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
+app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
+
 app.use('*', poweredBy())
 for (const path of apiRoutePaths) {
   app.use(path, prettyJSON())
@@ -379,6 +384,12 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
+for (const path of apiRoutePaths) {
+  app.use(path, async (c, next) => {
+    await next()
+    if (!isPublicMetadataPath(c.req.path)) c.header('cache-control', 'no-store')
+  })
+}
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -559,6 +570,15 @@ for (const path of apiRoutePaths) {
         403,
       )
     }
+    if (lease.status === 'exhausted') {
+      return c.json(
+        {
+          error: 'quota_exceeded',
+          message: 'The public API key quota has been exceeded.',
+        },
+        429,
+      )
+    }
     const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: lease.keyId })
     if (!rateLimit.success) {
       return c.json(
@@ -603,7 +623,14 @@ function isSaanSeoiSiteOrigin(origin: string | undefined) {
   if (!origin) return false
   try {
     const url = new URL(origin)
-    return url.protocol === 'https:' && url.hostname === 'saanseoi.hk' && !url.port
+    return (
+      url.origin === 'https://saanseoi.hk' &&
+      !url.username &&
+      !url.password &&
+      url.pathname === '/' &&
+      !url.search &&
+      !url.hash
+    )
   } catch {
     return false
   }
@@ -849,10 +876,6 @@ function forwardMajorVersionAlias(c: Context<AppEnv>, majorPath: string) {
     return app.fetch(request, c.env)
   }
 }
-
-app.all('/v0/*', c => forwardMajorVersionAlias(c, '/v0'))
-app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
-app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
 
 app.get('/llms.txt', async c => {
   const document = getOpenApiDocument(c.env.ATLAS_BASE_URL)

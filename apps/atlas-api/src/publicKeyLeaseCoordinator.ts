@@ -1,4 +1,5 @@
 import {
+  isCurrentPublicKeyLease,
   publicApiKeyDigest,
   publicApiKeyPattern,
   publicKeyLeaseStorageKey,
@@ -60,12 +61,12 @@ export class PublicKeyLeaseCoordinator {
     const storageKey = publicKeyLeaseStorageKey(digest)
     const now = Date.now()
     const inMemory = this.#leases.get(digest)
-    if (inMemory && inMemory.nextCheckAt > now) return inMemory
+    if (isCurrentPublicKeyLease(inMemory, now)) return inMemory
     const cached = await this.env.PUBLIC_KEY_LEASES.get<PublicKeyLease>(
       storageKey,
       'json',
     )
-    if (cached && cached.nextCheckAt > now) {
+    if (isCurrentPublicKeyLease(cached, now)) {
       this.#leases.set(digest, cached)
       return cached
     }

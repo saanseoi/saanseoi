@@ -1,4 +1,5 @@
 import { afterEach, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import { rollUpApiKeyUsage } from './apiKeyUsageRollup'
 
@@ -6,6 +7,57 @@ const originalFetch = globalThis.fetch
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+})
+
+test('overlapping rollups finalise both sides of UTC day and month boundaries', async () => {
+  const sqlite = new Database(':memory:')
+  sqlite.exec(`
+    CREATE TABLE api_key (id TEXT PRIMARY KEY);
+    CREATE TABLE api_key_usage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
+      PRIMARY KEY (api_key_id, window, window_started_at));
+    INSERT INTO api_key VALUES ('key-123');
+  `)
+  const rows = [
+    { apiKeyId: 'key-123', requestCount: 7, windowStartedAt: '2026-08-31T23:59:00Z' },
+    { apiKeyId: 'key-123', requestCount: 3, windowStartedAt: '2026-09-01T00:01:00Z' },
+  ]
+  globalThis.fetch = Object.assign(
+    async () => Response.json({ success: true, data: rows }),
+    { preconnect: originalFetch.preconnect },
+  )
+  const db = {
+    prepare: (query: string) => ({
+      bind: (...values: Array<string | number>) => ({
+        run: () => sqlite.query(query).run(...values),
+      }),
+    }),
+    batch: async (statements: Array<{ run: () => unknown }>) =>
+      statements.map(statement => statement.run()),
+  } as unknown as D1Database
+  try {
+    const env = {
+      ANALYTICS_ENGINE_ACCOUNT_ID: 'local',
+      ANALYTICS_ENGINE_READ_TOKEN: 'fixture',
+      DB_META: db,
+      USAGE_ROLLUP_DATASETS: 'api-usage',
+    }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await rollUpApiKeyUsage(env, Date.parse('2026-09-01T00:05:00Z'))
+      const totals = sqlite
+        .query(
+          "SELECT window, window_started_at AS startedAt, request_count AS count FROM api_key_usage WHERE window != 'minute' ORDER BY window, window_started_at",
+        )
+        .all()
+      expect(totals).toEqual([
+        { window: 'day', startedAt: Date.parse('2026-08-31T00:00:00Z'), count: 7 },
+        { window: 'day', startedAt: Date.parse('2026-09-01T00:00:00Z'), count: 3 },
+        { window: 'month', startedAt: Date.parse('2026-08-01T00:00:00Z'), count: 7 },
+        { window: 'month', startedAt: Date.parse('2026-09-01T00:00:00Z'), count: 3 },
+      ])
+    }
+  } finally {
+    sqlite.close()
+  }
 })
 
 test('combines dataset totals and refreshes derived D1 windows', async () => {

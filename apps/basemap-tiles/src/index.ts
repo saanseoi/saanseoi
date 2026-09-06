@@ -125,6 +125,9 @@ export default {
       )
     }
     if (access && !access.unmetered) {
+      if (access.lease.status === 'exhausted') {
+        return accessResponse('Public API key quota exceeded.', 429, allowedOrigin)
+      }
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
         return accessResponse('Tile rate limit exceeded.', 429, allowedOrigin)
