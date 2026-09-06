@@ -3,13 +3,18 @@ import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import { asNonEmptyString, asString, createHash } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
 import { correctHkgovAddressComponents } from './componentCorrections'
+import { establishAddressGranularity } from './granularity'
 
 export function normaliseAddressRowForPipeline(
   row: Record<string, unknown>,
   sourceVersion: unknown = row.sourceVersion,
 ) {
   const corrected = correctHkgovAddressComponents(row, sourceVersion)
-  const normalised = normalisePreparedHkgovAddressRow(corrected.row)
+  const normalised = normalisePreparedHkgovAddressRow(
+    corrected.row,
+    sourceVersion,
+    corrected.applied,
+  )
   if (corrected.applied.length) {
     normalised.base.sources = {
       ...(Array.isArray(normalised.base.sources)
@@ -121,7 +126,11 @@ export function dedupeAddressI18nRows<T extends { addressId: string; locale: str
   ]
 }
 
-function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
+function normalisePreparedHkgovAddressRow(
+  row: Record<string, unknown>,
+  sourceVersion: unknown,
+  componentCorrections: Array<{ id: string; revision: number }>,
+) {
   const sourceId = requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
   const canonicalId = requireText(
     row.canonicalId ?? row.id,
@@ -204,6 +213,13 @@ function normalisePreparedHkgovAddressRow(row: Record<string, unknown>) {
       streetName: otStreet,
     }),
     base: {
+      parentAddressId: null,
+      granularity: establishAddressGranularity({
+        addressId: canonicalId,
+        values: i18n,
+        sourceVersion: typeof sourceVersion === 'string' ? sourceVersion : undefined,
+        componentCorrections,
+      }).granularity,
       divisionSnapshotId: requireText(
         row.divisionSnapshotId,
         'Prepared HKGov ALS row is missing `divisionSnapshotId`.',
@@ -238,6 +254,8 @@ export function buildAddressBaseHashInput(
 ) {
   return {
     id: base.id,
+    parentAddressId: base.parentAddressId,
+    granularity: base.granularity,
     streetId: base.streetId,
     hamletId: base.hamletId,
     microhoodId: base.microhoodId,

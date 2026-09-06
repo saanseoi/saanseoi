@@ -52,6 +52,8 @@ const RESOLVED_BUILDING_LOOKUPS_TABLE = 'zzAddressImportResolvedBuildingNumberLo
 const ADDRESS_ALIAS_ID_NAMESPACE = 'dd44d1a8-4b17-58a1-b1db-8dc8a40f180a'
 
 const NORMALIZED_ROW_COLUMNS = [
+  'granularity',
+  'parentAddressId',
   'runId',
   'rowNumber',
   'source',
@@ -100,6 +102,8 @@ const NORMALIZED_I18N_COLUMNS = [
 ] as const
 
 const RESOLVED_ROW_COLUMNS = [
+  'granularity',
+  'parentAddressId',
   'runId',
   'rowNumber',
   'sourceRecordId',
@@ -233,6 +237,8 @@ export function buildAddressSourceSqlImportFiles(
         bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
+        parentAddressId: row.base.parentAddressId,
+        granularity: row.base.granularity,
         rawProperties: jsonText(row.raw),
       })),
       options.maxStatementBytes,
@@ -373,6 +379,8 @@ export function buildAddressResolvedSqlImportFiles(
         bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
+        parentAddressId: row.base.parentAddressId,
+        granularity: row.base.granularity,
         createdAt: row.base.createdAt,
         updatedAt: row.base.updatedAt,
       })),
@@ -449,6 +457,8 @@ export function buildAddressResolvedSqlImportFiles(
         bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
+        parentAddressId: row.base.parentAddressId,
+        granularity: row.base.granularity,
         createdAt: row.base.createdAt,
         updatedAt: row.base.updatedAt,
       })),
@@ -583,6 +593,8 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   bbox TEXT,
   identifiers TEXT,
   sources TEXT,
+  parentAddressId TEXT,
+  granularity TEXT NOT NULL,
   rawProperties TEXT,
   PRIMARY KEY (runId, sourceRecordId)
 );
@@ -648,6 +660,8 @@ CREATE TABLE IF NOT EXISTS zzAddressImportResolvedRows (
   bbox TEXT,
   identifiers TEXT,
   sources TEXT,
+  parentAddressId TEXT,
+  granularity TEXT NOT NULL,
   createdAt TEXT NOT NULL,
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId)
@@ -895,13 +909,13 @@ WHERE address2dBuildingNumberLookup.isCurrent = 1
 INSERT INTO address2d (
   id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId,
-  districtId, areaId, countryId, geometry, bbox, identifiers, sources, createdAt, updatedAt
+  districtId, areaId, countryId, geometry, bbox, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
   r.addressId, r.versionHash, ${releaseId}, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.areaId, r.countryId,
-  r.geometry, r.bbox, r.identifiers, r.sources, r.createdAt, r.updatedAt
+  r.geometry, r.bbox, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
 FROM zzAddressImportResolvedRows r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -1022,13 +1036,13 @@ function buildAddressCurrentApplySql(runId: string) {
 INSERT INTO address2d (
   snapshotId, id, geometry, bbox, divisionSnapshotId, countryId, areaId,
   districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, createdAt, updatedAt
+  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
   r.snapshotId, r.addressId, r.geometry, r.bbox, r.divisionSnapshotId, r.countryId,
   r.areaId, r.districtId, r.townId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
-  r.sources, r.createdAt, r.updatedAt
+  r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
 FROM zzAddressImportResolvedRows r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -1049,6 +1063,8 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   identifiers = excluded.identifiers,
   bbox = excluded.bbox,
   sources = excluded.sources,
+  parentAddressId = excluded.parentAddressId,
+  granularity = excluded.granularity,
   updatedAt = excluded.updatedAt;
 DELETE FROM address2dI18n
 WHERE EXISTS (
