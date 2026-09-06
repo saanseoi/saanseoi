@@ -3,6 +3,7 @@ import type {
   SnapshotMetadataDelta,
 } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
 import {
   and,
   eq,
@@ -38,17 +39,23 @@ export async function resolvePublishedSnapshotMetadataDeltas(
 ): Promise<SnapshotMetadataDelta[]> {
   if (snapshotIds.length === 0) return []
 
-  const snapshots = await db
-    .select({
-      id: metaSnapshots.id,
-      publishedAt: metaSnapshots.publishedAt,
-      status: metaSnapshots.status,
-      validFrom: metaSnapshots.validFrom,
-      validTo: metaSnapshots.validTo,
-    })
-    .from(metaSnapshots)
-    .where(inArray(metaSnapshots.id, snapshotIds))
-    .all()
+  const snapshots = (
+    await Promise.all(
+      chunkArray(snapshotIds, getMaxItemsPerInClause()).map(ids =>
+        db
+          .select({
+            id: metaSnapshots.id,
+            publishedAt: metaSnapshots.publishedAt,
+            status: metaSnapshots.status,
+            validFrom: metaSnapshots.validFrom,
+            validTo: metaSnapshots.validTo,
+          })
+          .from(metaSnapshots)
+          .where(inArray(metaSnapshots.id, ids))
+          .all(),
+      ),
+    )
+  ).flat()
 
   if (snapshots.length !== snapshotIds.length) {
     throw new ControlRequestError('Published snapshot metadata is incomplete.')
