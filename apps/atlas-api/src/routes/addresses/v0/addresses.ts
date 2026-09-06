@@ -140,6 +140,7 @@ export const addressRoutes = [
         const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
         const result = await listAddresses({
           currentDb: c.var.currentDb,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
@@ -183,6 +184,7 @@ export const addressRoutes = [
         const { id } = c.req.valid('param')
         const result = await getAddressDetail({
           currentDb: c.var.currentDb,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: sanitiseResponseUrl(c.req.url).toString(),
           requestedVersionPath: routeVariant.requestedVersionPath,
