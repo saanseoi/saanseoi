@@ -7,17 +7,20 @@ Related docs:
 
 - [Address resource type](../../resourceType/address.md)
 - [Resource type common processing](../../resourceType/common.md)
+- [Reviewed Address2D component corrections](../../sources/hkgov-dpo/address.md)
 
 ## Dataset role
 
 - Dataset metadata uses `publisherCode: hkgov-dpo` and `code: ds-hk-hkgov-dpo-address`.
-- ALS is the sole source for Hong Kong address records. Address IDs are derived from
-  stable ALS premise identities because GERS does not issue address identifiers.
+- ALS supplies the authoritative Hong Kong address records. ALS Address IDs are derived
+  from stable premise identities because GERS does not issue address identifiers.
+  Accepted Overture Places supplementary records retain their own identities and
+  provenance.
 - Each ALS release uses its own source version as its address/API cohort. The selected
   Overture division snapshot is recorded and reported as an out-of-cohort processing
   dependency. The addresses composition, rather than the ALS source dataset, declares
   that lookup requirement and its selection rule.
-- The addresses API has one composition domain, `official`; its release codes therefore
+- The addresses API has one composition domain, `saanseoi`; its release codes therefore
   do not include a domain suffix.
 - The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
   `als_addresses_3d_*` file.
@@ -41,6 +44,12 @@ When an addresses update is selected, the updater reads the composition dependen
 graph, adds the required Overture division provider when necessary, and processes it
 first. The address snapshot then records the exact division source release selected for
 canonicalisation as a lookup input.
+
+Current-address materialisation carries that resolved Division snapshot ID through the
+clone and delta-apply stages, then performs a final whole-snapshot alignment. It must
+not independently select a newer published Division snapshot while applying an ALS
+release: doing so would leave one address snapshot with mixed Division references and
+make it unsafe for Places to use.
 
 ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
 release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further
