@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "corrections": [
+    {
+      "id": "ngong-ping-theme-village-estate",
+      "revision": 1,
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": null,
+      "source": {
+        "geoAddresses": ["0804613094T20060724", "0795713146T20060614"],
+        "hkgovCsuId": "0810113017T20060614"
+      },
+      "expected": {
+        "enBuildingName": "NGONG PING THEME VILLAGE",
+        "zhHantBuildingName": "昂平市集",
+        "enEstateName": null,
+        "zhHantEstateName": null,
+        "enVillageName": null,
+        "zhHantVillageName": null,
+        "enStreetName": "NGONG PING ROAD",
+        "zhHantStreetName": "昂平路",
+        "enStreetNumberFrom": "111",
+        "zhHantStreetNumberFrom": "111",
+        "enStreetNumberTo": null,
+        "zhHantStreetNumberTo": null
+      },
+      "overrides": {
+        "enBuildingName": null,
+        "zhHantBuildingName": null,
+        "enEstateName": "NGONG PING THEME VILLAGE",
+        "zhHantEstateName": "昂平市集"
+      },
+      "excludedNames": ["NGONG PING TSUEN", "昂坪村"],
+      "evidence": [
+        "Eleven retained Islands district deliveries from 20250903-1043 through 20260819-1047 retain CsuId 0810113017T20060614 and the expected bilingual components. GeoAddress is 0804613094T20060724 through 20260422-1040 and 0795713146T20060614 from 20260425-1038. The complex is at 111 Ngong Ping Road, with no estate or village component.",
+        "User-reviewed map distinguishes tourist-complex Shops 3 and 8 from ALS Ngong Ping Tsuen premises 3 and 8. The village numbering and identity must remain separate."
+      ],
+      "reason": "Classify the tourist complex as an estate in the derived Address2D components. Retain ALS spelling, street number 111, source identity and geometry. This correction creates no shop identities or matching aliases."
+    }
+  ]
+}
