@@ -1,4 +1,10 @@
-import { Compression, EtagMismatch, PMTiles, ResolvedValueCache } from 'pmtiles'
+import {
+  Compression,
+  EtagMismatch,
+  PMTiles,
+  ResolvedValueCache,
+  type Cache,
+} from 'pmtiles'
 import type { RangeResponse, Source } from 'pmtiles'
 import { KeyNotFoundError } from './errors'
 
@@ -60,6 +66,7 @@ export const openPmtiles = (
   env: BucketEnv,
   archiveKey: string,
   archiveVersion?: string,
+  cache: Cache = pmtilesCache,
 ): PMTiles =>
   new PMTiles(
     new R2Source(
@@ -67,6 +74,6 @@ export const openPmtiles = (
       archiveKey,
       archiveVersion ? `${archiveKey}:${archiveVersion}` : archiveKey,
     ),
-    pmtilesCache,
+    cache,
     nativeDecompress,
   )
