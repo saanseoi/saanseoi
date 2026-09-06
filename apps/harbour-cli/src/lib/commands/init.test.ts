@@ -29,6 +29,11 @@ describe('initialisation commands', () => {
       supportsContinue: false,
       supportsTarget: false,
     })
+    expect(resolveInitialisationCommand('init:divisions')).toEqual({
+      script: 'scripts/init/divisions.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
     expect(resolveInitialisationCommand('init:divisions:geographic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
@@ -78,7 +83,12 @@ describe('initialisation commands', () => {
   })
 
   test('stops umbrella initialisation at the first failed dependency', () => {
-    for (const script of ['all.fish', 'local.fish', 'production.fish']) {
+    for (const script of [
+      'all.fish',
+      'local.fish',
+      'production.fish',
+      'divisions.fish',
+    ]) {
       const source = readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8')
 
       expect(source).toContain('init_run_step ./bin/saanseoi $command')

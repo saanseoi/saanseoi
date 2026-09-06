@@ -10,6 +10,7 @@ export function printUsage() {
   saanseoi init [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:local [--cacheArtefacts]
   saanseoi init:production [--cacheArtefacts]
+  saanseoi init:divisions [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:divisions:geographic [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:stats:official [--target local|preview|production] [--continue] [--cacheArtefacts]
   saanseoi init:divisions:hkgov-pland-pu [--target local|preview|production] [--continue] [--cacheArtefacts]
