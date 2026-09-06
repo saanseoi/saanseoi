@@ -84,6 +84,11 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+The reviewed Chun Shek car-park omission uses the premise-reconstruction fixture to
+restore its February 2026 assertion in all seven retained releases from April onward.
+Actual evidence dates and source absence remain explicit. The car park retains its
+identity and stays distinct from the shopping centre, with no inferred unit inventory.
+
 Chuk Yuen North Estate's reviewed preferred name is `Chuk Yuen (North) Estate` /
 `竹園北邨`, following HA's estate-specific parentheses. The estate-name fixture
 preserves ALS spellings and identity while updating canonical components and display

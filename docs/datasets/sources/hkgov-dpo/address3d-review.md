@@ -150,6 +150,22 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
+Chun Yeung Shopping Centre's April 2026 change retains publisher history: both 20 Kwei
+Tei Street and 28 Wong Chuk Yeung Street are retained before the change, but only the
+Kwei Tei Street address remains afterwards. The shared CSU does not justify erasing the
+distinct earlier supplied addresses. No backfill is applied, and the removal is not
+interpreted as closure of the centre. Residential inventories are unchanged.
+
+Chun Shek Estate Multi-storey Car Park / 秦石邨多層停車場, CSU `3725526030T20050430`, is
+restored in the seven retained releases from April 2026 onward. The user confirmed it
+still exists. The premise-reconstruction fixture retains the February 2026 feature, its
+actual source date and the expected later absence. One normalised car-park identity
+spans all thirty releases; it remains separate from Chun Shek Shopping Centre and
+receives no residential inventory. The shopping-centre CSU is only a scope check, not a
+parent or consolidation target. `bun scripts/verify-chun-shek-car-park.ts` verifies
+source preservation, identity and all seven restored omissions across the thirty-release
+history.
+
 Chuk Yuen North Estate uses HA's preferred `Chuk Yuen (North) Estate` / `竹園北邨` name
 under `hkgov-dpo-address-estate-names.json`. All eight building names are corroborated
 and their 6,736-unit inventories are unchanged across thirty releases. Only canonical
