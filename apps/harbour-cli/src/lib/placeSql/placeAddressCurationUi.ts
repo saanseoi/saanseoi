@@ -227,6 +227,10 @@ export async function showCandidatesOnMap(
   }>,
   geometry: Map<string, { lng: number; lat: number }>,
 ) {
+  if (row.lng === undefined || row.lat === undefined) {
+    note('This review record has no place coordinates.', 'Map unavailable')
+    return
+  }
   const markers = candidates.flatMap(({ candidate, definition }) => {
     const point = geometry.get(candidate.addressId)
     return point
@@ -241,12 +245,14 @@ export async function showCandidatesOnMap(
   })
   const title = escapeHtml(row.sourceTexts.join(' / '))
   const html = `<!doctype html><meta charset="utf-8"><title>Address candidates</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>html,body,#map{height:100%;margin:0} .legend{background:white;padding:8px}</style><div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.7.0/dist/maplibre-gl.css"><style>html,body,#map{height:100%;margin:0}</style><div id="map"></div>
+<script src="https://unpkg.com/maplibre-gl@6.7.0/dist/maplibre-gl.js"></script><script>
 const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
-const map=L.map('map').setView([source[1],source[0]],16); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
-L.circleMarker([source[1],source[0]],{radius:10,color:'#2563eb',fillColor:'#2563eb',fillOpacity:.95}).addTo(map).bindPopup('<b>Place source</b><br>${title}').openPopup();
-const points=[[source[1],source[0]]]; candidates.forEach(c=>{const saturation=Math.max(20,Math.min(100,c.score));const colour='hsl(12 '+saturation+'% 48%)';L.circleMarker([c.lat,c.lng],{radius:8,color,fillColor:colour,fillOpacity:.8}).addTo(map).bindPopup('<b>Score '+c.score+'</b><br>'+${JSON.stringify('')}+c.label);points.push([c.lat,c.lng]);}); if(points.length>1) map.fitBounds(points,{padding:[30,30]});
+const map=new maplibregl.Map({container:'map',style:'https://tiles.hype.hk/basemap/hongkong-latest.json',center:source,zoom:16}); map.addControl(new maplibregl.NavigationControl());
+map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',score:c.score,label:c.label}}))];
+map.addSource('address-review',{type:'geojson',data:{type:'FeatureCollection',features}}); map.addLayer({id:'candidates',type:'circle',source:'address-review',filter:['==',['get','kind'],'candidate'],paint:{'circle-radius':8,'circle-color':['interpolate',['linear'],['get','score'],0,'hsl(12 20% 48%)',100,'hsl(12 100% 48%)'],'circle-stroke-color':'#fff','circle-stroke-width':2}}); map.addLayer({id:'place-source',type:'circle',source:'address-review',filter:['==',['get','kind'],'source'],paint:{'circle-radius':10,'circle-color':'#2563eb','circle-stroke-color':'#fff','circle-stroke-width':3}});
+map.on('click',['candidates','place-source'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(e.features[0].properties.kind==='source'?'<b>Place source</b><br>'+e.features[0].properties.label:'<b>Score '+e.features[0].properties.score+'</b><br>'+e.features[0].properties.label).addTo(map));
+const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidates) bounds.extend([c.lng,c.lat]); if(candidates.length) map.fitBounds(bounds,{padding:60,maxZoom:17});});
 </script>`
   const path = join(tmpdir(), `saanseoi-address-candidates-${crypto.randomUUID()}.html`)
   await Bun.write(path, html)

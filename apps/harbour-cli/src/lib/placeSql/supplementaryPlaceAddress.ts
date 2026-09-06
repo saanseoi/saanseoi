@@ -105,8 +105,8 @@ export type AddressResolution = {
   placeId: string
   sourceTexts: string[]
   fingerprint: string
-  lng: number
-  lat: number
+  lng?: number
+  lat?: number
   tier: 'direct' | 'supplementary' | 'review' | 'delayed'
   addressId: string | null
   entry?: SupplementaryEntry
