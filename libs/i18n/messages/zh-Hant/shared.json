@@ -2666,6 +2666,8 @@
   "openapi_addresses_search_response_description": "使用已宣告的比對模式搜尋地址。",
   "openapi_addresses_search_unavailable_description": "地址搜尋索引尚未準備好，因此服務暫不可用。",
   "openapi_addresses_search_query_description": "要搜尋的地址文字或門牌號碼標記。",
+  "openapi_addresses_dataset_code_description": "向 SaanSeoi 地址集合提供此地址的資料集。",
+  "openapi_addresses_dataset_filter_description": "只傳回所選發布集中由此資料集提供的地址。省略此參數則包含所有經整理的地址資料集。",
   "openapi_addresses_search_match_description": "必填的比對模式。exact 只使用來源號碼別名；range 亦包括推導出的成員；prefix 和 full-text 搜尋已建立索引的文字；component 搜尋一個指定元件。",
   "openapi_addresses_search_component_description": "當 match 為 component 時要搜尋的指定地址元件。",
   "openapi_addresses_get_response_description": "取得地址。",
