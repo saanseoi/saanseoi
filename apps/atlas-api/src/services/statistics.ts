@@ -20,7 +20,6 @@ import {
   listStatisticRecords,
   type StatisticFilters,
   type StatisticFieldDefinition,
-  type StatisticMeasureDefinition,
   type StatisticRecord,
 } from '../db/statistics'
 import {
