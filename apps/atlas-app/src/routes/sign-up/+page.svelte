@@ -55,6 +55,7 @@ const socialSignUp = async (provider: SocialProvider) => {
     const result = await authClient.signIn.social({
       provider,
       callbackURL: callbackUrl,
+      errorCallbackURL: getSignInHref(callbackUrl),
     })
     if (!result.error) return
     error = result.error.message ?? m.auth_sign_up_error()

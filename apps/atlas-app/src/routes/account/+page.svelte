@@ -1,5 +1,6 @@
 <script lang="ts">
 import { refreshAll } from '$app/navigation'
+import { page } from '$app/state'
 import { Button } from '#lib/bits/primitives/button/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
@@ -22,6 +23,9 @@ let accountPageData = $derived(data.accountPageData)
 let accounts = $derived(accountPageData.accounts)
 let passkeys = $derived(accountPageData.passkeys)
 let error = $state<string | null>(null)
+const callbackError = $derived(
+  page.url.searchParams.has('error') ? m.auth_sign_in_error() : null,
+)
 let unlinkingAccountId = $state<string | null>(null)
 let removingPasskeyId = $state<string | null>(null)
 let addingPasskey = $state(false)
@@ -80,7 +84,11 @@ const link = async (provider: SocialProvider) => {
   linkingProvider = provider
   try {
     if (!(await checkSession())) return
-    const result = await authClient.linkSocial({ provider, callbackURL: '/account' })
+    const result = await authClient.linkSocial({
+      provider,
+      callbackURL: '/account',
+      errorCallbackURL: '/account',
+    })
     if (!result.error) return
     error = result.error.message ?? m.auth_sign_in_error()
   } catch {
@@ -231,8 +239,10 @@ const providerDetails = (providerId: string) =>
     <p class="mt-3 font-body text-body-md leading-7 text-foreground-alt">
       {m.account_methods_description()}
     </p>
-    {#if error}
-      <p role="alert" class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+    {#if error || callbackError}
+      <p role="alert" class="mt-4 font-body text-body-sm text-destructive">
+        {error ?? callbackError}
+      </p>
     {/if}
     <div
       class="mt-6 divide-y divide-border-card border border-border-card bg-background-alt"
