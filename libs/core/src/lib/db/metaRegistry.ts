@@ -21,6 +21,7 @@ import {
 import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
 import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
+import { chunkArray } from '../../pipeline/utils'
 import {
   buildDatasetCode,
   datasetVariantForSource,
@@ -4797,27 +4798,34 @@ export async function publishReleaseArtefacts(
   const primarySnapshotLineageVersions = primarySnapshot
     ? await resolveSnapshotLineageVersions(db, primarySnapshot.id)
     : await resolveSnapshotLineageVersions(db, snapshot.id)
-  const sourceSchemaRows = await db
-    .select({
-      datasetCode: metaDatasets.code,
-      source: metaPublishers.code,
-      sourceSchemaVersion: metaReleases.sourceSchemaVersion,
-      sourceVersion: metaReleases.sourceVersion,
-    })
-    .from(metaSnapshotSources)
-    .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
-    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
-    .where(
-      and(
-        inArray(metaSnapshotSources.snapshotId, releaseSetSnapshotIds),
-        // Lookup dependencies identify the source used to resolve a snapshot,
-        // rather than an API release-set input. Their schema must not override
-        // the primary source selected for the same dataset in this release set.
-        ne(metaSnapshotSources.role, 'lookup'),
-      ),
-    )
-    .all()
+  const sourceSchemaRows = await queryInBatches(
+    releaseSetSnapshotIds,
+    async ids =>
+      await db
+        .select({
+          datasetCode: metaDatasets.code,
+          source: metaPublishers.code,
+          sourceSchemaVersion: metaReleases.sourceSchemaVersion,
+          sourceVersion: metaReleases.sourceVersion,
+        })
+        .from(metaSnapshotSources)
+        .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
+        .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+        .innerJoin(
+          metaReleases,
+          eq(metaSnapshotSources.sourceReleaseId, metaReleases.id),
+        )
+        .where(
+          and(
+            inArray(metaSnapshotSources.snapshotId, ids),
+            // Lookup dependencies identify the source used to resolve a snapshot,
+            // rather than an API release-set input. Their schema must not override
+            // the primary source selected for the same dataset in this release set.
+            ne(metaSnapshotSources.role, 'lookup'),
+          ),
+        )
+        .all(),
+  )
   const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
   const sourceReleaseSnapshotIds = [
     ...new Set(
@@ -4896,14 +4904,18 @@ export async function publishReleaseArtefacts(
             resolvedApiFieldFixture.fields.map(field => field.sourceDatasetCode),
           ),
         ]
-        const sourceDatasets = await db
-          .select({
-            code: metaDatasets.code,
-            id: metaDatasets.id,
-          })
-          .from(metaDatasets)
-          .where(inArray(metaDatasets.code, sourceDatasetCodes))
-          .all()
+        const sourceDatasets = await queryInBatches(
+          sourceDatasetCodes,
+          async ids =>
+            await db
+              .select({
+                code: metaDatasets.code,
+                id: metaDatasets.id,
+              })
+              .from(metaDatasets)
+              .where(inArray(metaDatasets.code, ids))
+              .all(),
+        )
         const sourceDatasetIdsByCode = new Map(
           sourceDatasets.map(dataset => [dataset.code, dataset.id]),
         )
@@ -4954,7 +4966,10 @@ export async function publishReleaseArtefacts(
     : []
 
   await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
-    const statements: WriteStatement[] = [
+    const statements: WriteStatement[] = chunkArray(
+      sourceReleaseSnapshotIds,
+      D1_IN_ARRAY_BATCH_SIZE,
+    ).map(ids =>
       tx
         .update(metaSnapshots)
         .set({
@@ -4964,8 +4979,8 @@ export async function publishReleaseArtefacts(
           validTo: null,
           updatedAt: publishedAt,
         })
-        .where(inArray(metaSnapshots.id, sourceReleaseSnapshotIds)),
-    ]
+        .where(inArray(metaSnapshots.id, ids)),
+    )
 
     statements.push(
       tx
