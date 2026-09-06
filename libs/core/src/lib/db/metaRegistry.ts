@@ -1219,33 +1219,35 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
         .where(inArray(metaPublisherI18n.publisherId, ids))
         .all(),
     ),
-    db
-      .select({
-        id: metaSourceReleases.id,
-        datasetId: metaSourceReleases.datasetId,
-        datasetCode: metaDatasets.code,
-        code: metaSourceReleases.code,
-        sourceVersion: metaSourceReleases.sourceVersion,
-        cohortKey: metaSourceReleases.cohortKey,
-        status: metaSourceReleases.status,
-        license: {
-          code: metaLicenses.code,
-        },
-      })
-      .from(metaSourceReleases)
-      .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
-      .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
-      .where(
-        and(
-          inArray(metaSourceReleases.datasetId, sourceIds),
-          eq(metaSourceReleases.status, 'published'),
-        ),
-      )
-      .orderBy(
-        desc(metaSourceReleases.publicationDate),
-        desc(metaSourceReleases.createdAt),
-      )
-      .all(),
+    queryInBatches(sourceIds, ids =>
+      db
+        .select({
+          id: metaSourceReleases.id,
+          datasetId: metaSourceReleases.datasetId,
+          datasetCode: metaDatasets.code,
+          code: metaSourceReleases.code,
+          sourceVersion: metaSourceReleases.sourceVersion,
+          cohortKey: metaSourceReleases.cohortKey,
+          status: metaSourceReleases.status,
+          license: {
+            code: metaLicenses.code,
+          },
+        })
+        .from(metaSourceReleases)
+        .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
+        .leftJoin(metaLicenses, eq(metaDatasets.licenseId, metaLicenses.id))
+        .where(
+          and(
+            inArray(metaSourceReleases.datasetId, ids),
+            eq(metaSourceReleases.status, 'published'),
+          ),
+        )
+        .orderBy(
+          desc(metaSourceReleases.publicationDate),
+          desc(metaSourceReleases.createdAt),
+        )
+        .all(),
+    ),
   ])
 
   const latestVersions = sourceVersions.filter(
