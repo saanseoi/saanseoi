@@ -42,7 +42,9 @@ export async function writeAddressSourceChunkStage(
     )
   }
 
-  const uniqueRows = dedupeNormalisedAddressRows(artefact.rows)
+  const uniqueRows = dedupeNormalisedAddressRows(artefact.rows).filter(
+    row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json',
+  )
   const sourceRecordIds = uniqueRows.map(row => row.sourceId)
   const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
     sourceDb,

@@ -86,7 +86,9 @@ export async function writeAddressSourceSqlChunkStage(
     bucket,
     pipelineMessage.artefactKey,
   )
-  const sourceRows = dedupeNormalisedAddressRows(artefact.rows)
+  const sourceRows = dedupeNormalisedAddressRows(artefact.rows).filter(
+    row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json',
+  )
   const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
     sourceDb,
     sourceRows.map(row => row.sourceId),

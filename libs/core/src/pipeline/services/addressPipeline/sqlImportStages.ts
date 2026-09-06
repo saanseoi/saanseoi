@@ -46,11 +46,14 @@ type LocalD1ExecBinding = {
   exec?(sql: string): Promise<unknown>
   batch?(statements: LocalD1PreparedStatement[]): Promise<unknown>
   prepare?(sql: string): {
+    bind?(...params: unknown[]): LocalD1PreparedStatement
     run(): Promise<unknown>
   }
 }
 
 type LocalD1PreparedStatement = {
+  bind?(...params: unknown[]): LocalD1PreparedStatement
+  all?(): Promise<{ results: Record<string, unknown>[] }>
   run(): Promise<unknown>
 }
 
@@ -68,6 +71,8 @@ export type AddressSqlImportStageOptions = {
   pollIntervalMs?: number
   remoteImportBatchBytes?: number
   sourceBinding?: LocalD1ExecBinding
+  /** Completes bound collection writes before any release publication. */
+  beforePublish?: () => Promise<void>
 }
 
 export type AddressSqlImportRetryEvent = WriteRetryEvent & {
@@ -151,6 +156,11 @@ export async function processAddressSqlImportOrCleanupStage(
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ): Promise<DatasetProcessingMessage | null> {
+  if (message.source === 'hkgov-dpo') {
+    throw new Error(
+      'ALS grouped Address3D requires the Harbour CLI bound collection import; queued SQL stages cannot publish this source',
+    )
+  }
   await harbourClient.stageRunning(
     message.releaseId ?? message.datasetId,
     'processDataset',
@@ -411,6 +421,7 @@ export async function importAddressSqlArtefactsAndPublish(
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
     cleanupSqlStaging(metaDb, message, options),
   )
+  await options.beforePublish?.()
   return publishImportedAddressSqlRelease(harbourClient, message, publishOptions)
 }
 
@@ -848,7 +859,7 @@ async function publishImportedAddressSqlRelease(
   return publishResult
 }
 
-async function resolveImportTarget(
+export async function resolveImportTarget(
   metaDb: MetaDatabase,
   message: DatasetProcessingMessage,
   target: AddressSqlImportTarget,

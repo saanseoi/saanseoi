@@ -192,9 +192,11 @@ export function buildAddressSourceSqlImportFiles(
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
-  const sourceRows = options.changedSourceRecordIds
-    ? artefact.rows.filter(row => options.changedSourceRecordIds?.has(row.sourceId))
-    : artefact.rows
+  const sourceRows = (
+    options.changedSourceRecordIds
+      ? artefact.rows.filter(row => options.changedSourceRecordIds?.has(row.sourceId))
+      : artefact.rows
+  ).filter(row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json')
   const statements = [
     buildAddressNormalisedStagingSchemaSql(),
     `DELETE FROM ${NORMALIZED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,

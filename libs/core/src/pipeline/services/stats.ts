@@ -46,6 +46,7 @@ export type AddressApiReleaseSetStatsInput = {
   address2dI18nCount: number
   address3dCount: number
   address3dI18nCount: number
+  address3dUnitCount?: number
   areaLinkedCount?: number
   byDistrict?: Map<string, number> | Record<string, number>
   componentCounts?: Record<string, number>
@@ -708,6 +709,18 @@ export function buildAddressApiReleaseSetStatsRows(
         groupValue: 'address3dI18n',
       },
     ),
+    ...(input.address3dUnitCount == null
+      ? []
+      : [
+          buildApiReleaseSetStatsRow(
+            'units',
+            'count',
+            'count',
+            input.address3dUnitCount,
+            createdAt,
+            { groupBy: 'table', groupValue: 'address3d' },
+          ),
+        ]),
     buildApiReleaseSetStatsRow(
       'missing_street_count',
       'quality',
