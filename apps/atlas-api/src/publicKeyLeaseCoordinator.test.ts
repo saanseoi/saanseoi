@@ -10,11 +10,11 @@ const publicKey = `pk.${'a'.repeat(43)}`
 test('revocation is honoured at the lease deadline with a real local key record', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`
-    CREATE TABLE api_key (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER);
+    CREATE TABLE api_key (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER, requests_per_day INTEGER, requests_per_month INTEGER);
     CREATE TABLE api_key_origin_policy (api_key_id TEXT, hostname TEXT, action TEXT);
   `)
   sqlite
-    .query('INSERT INTO api_key VALUES (?, ?, NULL, NULL)')
+    .query('INSERT INTO api_key (id, key_digest) VALUES (?, ?)')
     .run('key-123', await publicApiKeyDigest(publicKey))
   let cached: unknown = null
   const now = Date.now
