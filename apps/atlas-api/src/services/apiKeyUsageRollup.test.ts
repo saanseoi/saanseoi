@@ -15,6 +15,7 @@ test('overlapping rollups finalise both sides of UTC day and month boundaries', 
     CREATE TABLE api_key (id TEXT PRIMARY KEY);
     CREATE TABLE api_key_usage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
       PRIMARY KEY (api_key_id, window, window_started_at));
+    CREATE TABLE api_key_usage_rollup (id TEXT PRIMARY KEY, datasets TEXT NOT NULL, revision TEXT NOT NULL, completed_through INTEGER NOT NULL);
     INSERT INTO api_key VALUES ('key-123');
   `)
   const rows = [
@@ -27,12 +28,13 @@ test('overlapping rollups finalise both sides of UTC day and month boundaries', 
   )
   const db = {
     prepare: (query: string) => ({
+      first: async () => sqlite.query(query).get(),
       bind: (...values: Array<string | number>) => ({
-        run: () => sqlite.query(query).run(...values),
+        run: () => ({ meta: { changes: sqlite.query(query).run(...values).changes } }),
       }),
     }),
     batch: async (statements: Array<{ run: () => unknown }>) =>
-      statements.map(statement => statement.run()),
+      sqlite.transaction(() => statements.map(statement => statement.run()))(),
   } as unknown as D1Database
   try {
     const env = {
@@ -74,13 +76,14 @@ test('combines dataset totals and refreshes derived D1 windows', async () => {
   const db = {
     prepare(query: string) {
       return {
+        first: async () => null,
         bind(...values: unknown[]) {
           statements.push({ query, values })
           return this
         },
       }
     },
-    batch: async () => [],
+    batch: async () => [{ meta: { changes: 1 } }],
   } as unknown as D1Database
 
   const result = await rollUpApiKeyUsage(
@@ -114,14 +117,19 @@ test('combines dataset totals and refreshes derived D1 windows', async () => {
       expect.stringContaining('FROM "tile-usage"'),
     ]),
   )
-  expect(statements).toHaveLength(3)
-  expect(statements[0]?.values).toEqual([
-    Date.parse('2026-08-13T12:20:00Z'),
-    5,
-    'key-123',
+  const minuteWrite = statements.find(statement =>
+    statement.query.includes('json_each'),
+  )
+  expect(JSON.parse(String(minuteWrite?.values[0]))).toEqual([
+    {
+      windowStartedAt: Date.parse('2026-08-13T12:20:00Z'),
+      requestCount: 5,
+      apiKeyId: 'key-123',
+    },
   ])
-  expect(statements.slice(1).map(statement => statement.values[0])).toEqual([
-    'day',
-    'month',
-  ])
+  expect(
+    statements
+      .filter(statement => statement.query.includes('SUM(minute.request_count)'))
+      .map(statement => statement.values[0]),
+  ).toEqual(['day', 'month'])
 })

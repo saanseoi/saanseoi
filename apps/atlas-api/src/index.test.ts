@@ -57,6 +57,8 @@ function createMockDb(options: MockDbOptions = {}) {
               return { count: 0 } as T
             }
 
+            if (query.includes('FROM api_key_usage_rollup')) return null as T
+
             if (query.includes('FROM api_key')) {
               if (options.apiKey === null) return null as T
 
@@ -407,8 +409,12 @@ describe('atlas-api', () => {
         { days: 2, rows: 0 },
       ])
       expect(queries).toHaveLength(2)
-      expect(queries[0]).toContain('SUM(_sample_interval * double1)')
-      expect(queries[1]).toContain("index1 = 'api.access'")
+      expect(queries).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('SUM(_sample_interval * double1)'),
+          expect.stringContaining("index1 = 'api.access'"),
+        ]),
+      )
     } finally {
       globalThis.fetch = originalFetch
     }
