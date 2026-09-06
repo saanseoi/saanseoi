@@ -87,6 +87,11 @@ import {
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
 import { replayGeometryIntoRemote } from './processLocalDivisionGeometrySqlUploadReplay.ts'
+import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import {
+  completeSqlDeliveryRelease,
+  readPendingSqlDelivery,
+} from '../localPipeline/sqlDeliveryPending.ts'
 
 /**
  * Imports Overture division area/boundary parquet into the source, history and
@@ -158,6 +163,7 @@ export async function processLocalDivisionGeometrySqlUpload(
             : 'divisionGeometry',
         includePreviousShardYears: true,
         refreshRemoteTables: false,
+        resumeSqlDeliveryReleaseId: releaseId,
       },
     )
   } catch (error) {
@@ -696,6 +702,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         reusesExistingGeometrySnapshot,
         (subject, operation) =>
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
+        await deliveryFileSha256(preparedUpload.filePath),
       )
     }
     if (options.deferPublish) {
@@ -760,16 +767,19 @@ export async function processLocalDivisionGeometrySqlUpload(
         }
       } catch (error) {
         const reason = error instanceof Error ? error.message : String(error)
-        await invalidateRemoteDbCache(
-          target.environment === 'production' ? 'production' : 'preview',
-          dbContext.state.dbCacheDir,
-          reason,
-        )
+        if (!(await readPendingSqlDelivery(dbContext.state.dbCacheDir)))
+          await invalidateRemoteDbCache(
+            target.environment === 'production' ? 'production' : 'preview',
+            dbContext.state.dbCacheDir,
+            reason,
+          )
         throw new Error(
           `Remote publish succeeded, but refreshing the local meta cache failed. ${reason}`,
         )
       }
     }
+    if (target.remote)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
     return {
       snapshotId: snapshot.id,
       importedRows: normalised.length,

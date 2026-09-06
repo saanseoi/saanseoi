@@ -1,4 +1,14 @@
 import { eq } from 'drizzle-orm'
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import {
+  completeSqlDeliveryRelease,
+  assertSqlDeliveryPlanningAllowed,
+} from '../localPipeline/sqlDeliveryPending.ts'
+import {
+  refreshRemoteMetaCache,
+  resolveRemoteCacheDir,
+} from '../dbCache/localDbCache.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -95,6 +105,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     : undefined
 
   if (remoteCacheScopeKey) {
+    await assertSqlDeliveryPlanningAllowed(
+      resolveRemoteCacheDir(
+        target.environment === 'production' ? 'production' : 'preview',
+      ),
+      releaseId,
+    )
     await runPlandProgressPhase(progress, 'Reset', 'release cache', () =>
       resetRemoteReleaseUploadCacheScope(
         target,
@@ -506,16 +522,47 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     const importOptions = resolvePlandImportOptions(target, context)
     const importTargets = resolvePlandImportTargets(context, previewPlan.sourceVersion)
 
-    await importPlandSqlArtefacts(
-      bucket,
-      sqlManifest,
-      importTargets,
-      importOptions,
-      client,
-      releaseId,
-      releaseCode,
-      progress,
-    )
+    const deliveryContext = target.remote
+      ? await resolveLocalAddressDbContext(
+          target,
+          previewPlan.regionCode,
+          previewPlan.sourceVersion,
+          {
+            cacheTableProfile: 'planningDivisionGeometry',
+            includePreviousShardYears: true,
+            requireExistingRemoteCache: true,
+            resumeSqlDeliveryReleaseId: releaseId,
+          },
+        )
+      : context
+    try {
+      await deliverSqlPhase(
+        {
+          context: deliveryContext,
+          releaseId,
+          phase: 'planning-division-data',
+          inputs: {
+            preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+            snapshotId: snapshot.id,
+          },
+          onProgress: (completed, total) =>
+            progress.message(`Planning division SQL: ${completed}/${total} batches`),
+        },
+        () =>
+          importPlandSqlArtefacts(
+            bucket,
+            sqlManifest,
+            importTargets,
+            importOptions,
+            client,
+            releaseId,
+            releaseCode,
+            progress,
+          ),
+      )
+    } finally {
+      if (deliveryContext !== context) deliveryContext.cleanup()
+    }
     const publishResult = await runPlandProgressPhase(
       progress,
       'Publish',
@@ -529,20 +576,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
 
     if (target.remote) {
       await runPlandProgressPhase(progress, 'Refresh', 'shared database cache', () =>
-        replayPlandSqlIntoSharedCache(
-          target,
-          bucket,
-          sqlManifest,
-          previewPlan,
-          importOptions,
-          {
-            datasetCode,
-            rawObjectKey,
-            releaseCode,
-            releaseId,
-          },
+        refreshRemoteMetaCache(
+          target.environment === 'production' ? 'production' : 'preview',
+          deliveryContext.state.dbCacheDir,
         ),
       )
+      await completeSqlDeliveryRelease(deliveryContext.state.dbCacheDir, releaseId)
     }
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {
