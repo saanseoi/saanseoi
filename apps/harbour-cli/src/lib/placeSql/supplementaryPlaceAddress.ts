@@ -629,13 +629,13 @@ export function createSupplementaryAddressAnalyser(
 }
 
 function hasPremiseIdentityEvidence(candidate: Candidate) {
-  return [
-    'buildingName',
-    'estateName',
-    'blockExpression',
-    'phaseExpression',
-    'alias',
-  ].some(key => candidate.breakdown[key])
+  if (candidate.breakdown.alias) return true
+  return (
+    Boolean(candidate.breakdown.street) &&
+    ['buildingName', 'estateName', 'blockExpression', 'phaseExpression'].some(
+      key => candidate.breakdown[key],
+    )
+  )
 }
 
 function candidateEvidence(candidate: Candidate): CandidateEvidence {

@@ -136,15 +136,17 @@ deterministic replacement policy or an explicit curation decision.
 2. **Automatic supplementary candidate.** Only inspect this tier when tier 1 cannot
    select an ALS Address. Score partial evidence against selected ALS candidates: exact
    canonical components, recognised street and number, reviewed aliases, and optional
-   Place-to-candidate geometry distance. No individual component combination is a hard
-   precondition: an exact building name and exact street may score high enough without a
-   building number when the ALS row represents a building range or its shops. Geometry
-   may disambiguate named candidates; it must never create a candidate from a bare
-   number or be the only positive evidence. If one candidate clears the configured
-   deterministic automatic threshold and separation from the next candidate, append an
-   accepted generated entry. Citygate Outlets is the intended shape: it can be a
-   supplementary building name with Citygate/20 Tat Tung Road as evidenced context,
-   while retaining Overture rather than ALS provenance.
+   Place-to-candidate geometry distance. Except for an explicit reviewed alias, a named
+   premise component and canonical street must support the same candidate. An exact
+   building name and exact street may score high enough without a building number when
+   the ALS row represents a building range or its shops. A locality-shaped component
+   match attached to another street is not premise evidence. Geometry may disambiguate
+   named candidates; it must never create a candidate from a bare number or be the only
+   positive evidence. If one candidate clears the configured deterministic automatic
+   threshold and separation from the next candidate, append an accepted generated entry.
+   Citygate Outlets is the intended shape: it can be a supplementary building name with
+   Citygate/20 Tat Tung Road as evidenced context, while retaining Overture rather than
+   ALS provenance.
 3. **Review candidate.** A meaningful partial match in the review score band, a tie, or
    contradictory components must stop for review; `--yes` may not choose an identity.
    The review artefact must show the previous accepted link, when present, so a reviewer
