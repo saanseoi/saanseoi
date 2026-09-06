@@ -101,3 +101,22 @@ A live comparison requires a disposable D1 database and matched input/schema for
 run. Measure total wall time alongside generation, upload, polling, receipt checks and
 local replay; verify resulting rows before comparing results. Do not use a shared
 preview release or production database as a benchmark target.
+
+## Isolated live benchmark
+
+`bun run scripts/benchmark-sql-delivery-remote.ts --run` runs matched synthetic SQL and
+bound workloads against the dedicated `ss-sql-bench-20260907` database. The script pins
+its database ID and verifies the remote name before writing; it cannot select an
+application binding. It requires `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_D1_TOKEN`.
+
+Each sample uses a fresh table and scratch mirror. Two repetitions reverse the order of
+small and combined batches. The report separates preparation, remote delivery,
+receipt-only resume and local replay wall time, and counts API calls. It verifies every
+remote/local row and checks that completed-plan recovery performs no remote writes. Both
+variants use the receipt-aware engine; this comparison isolates batching rather than
+comparing complete ingestion pipelines.
+
+Reports and plans remain under `.cache/sql-delivery-benchmarks/remote-*/`. The database
+and synthetic tables remain for inspection; this script neither deletes the database nor
+updates application configuration. Do not automatically rerun a failed sample: inspect
+its retained plan and remote receipts first.

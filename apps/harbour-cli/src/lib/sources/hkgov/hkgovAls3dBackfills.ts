@@ -11,19 +11,37 @@ export async function* readAls3dWithBackfills(
   rows: PreparedHkgovAlsRow[],
 ) {
   const backfills = fixture.backfills.filter(b => b.sourceVersions.includes(version))
-  const seen = new Set<string>()
+  const seen = new Map<string, Als3dFeature[]>()
   for await (const record of readAls3dFeatures(file)) {
     const csu =
       record.feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId
-    if (csu) seen.add(csu)
+    if (csu) seen.set(csu, [...(seen.get(csu) ?? []), record.feature])
     yield { ...record, backfill: undefined }
   }
   for (const backfill of backfills) {
     assert(
-      !seen.has(backfill.csu),
+      !seen.has(backfill.csu) ||
+        ('allowReviewedEmptyPremise' in backfill &&
+          backfill.allowReviewedEmptyPremise &&
+          seen.get(backfill.csu)!.every(feature => {
+            const p = feature.properties.Address.PremisesAddress
+            return (
+              !p.EngPremisesAddress?.BuildingName &&
+              !p.ChiPremisesAddress?.BuildingName &&
+              !p.EngPremisesAddress?.Eng3dAddress?.length &&
+              !p.ChiPremisesAddress?.Chi3dAddress?.length &&
+              p.EngPremisesAddress?.EngEstate?.EstateName === backfill.estate &&
+              p.ChiPremisesAddress?.ChiEstate?.EstateName === '菁田邨'
+            )
+          })),
       `Backfill ${backfill.id}: source is no longer absent`,
     )
-    const parents = rows.filter(row => row.hkgovCsuId === backfill.csu)
+    const parents = rows.filter(
+      row =>
+        row.hkgovCsuId === backfill.csu &&
+        (JSON.parse(row.engPremisesAddressJson ?? '{}').BuildingName ||
+          JSON.parse(row.chiPremisesAddressJson ?? '{}').BuildingName),
+    )
     assert.equal(
       parents.length,
       1,
