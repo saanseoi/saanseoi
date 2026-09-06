@@ -88,6 +88,10 @@ as a verified entrance or partition of the parent's units.
 
 ## Granularity
 
+Explicitly reviewed Housing Authority estate names can supply canonical display
+components while retaining ALS spellings in raw evidence. Choi Wan (I) Estate uses HA's
+Roman numeral without changing its source identity or conflating it with Choi Wan (2).
+
 A reviewed missing inventory can be backfilled without changing the dated Address2D.
 Ching Sum House's June 2025 correction restores 949 units from matching bracketing
 inventories, retaining explicit cross-release provenance and unchanged publisher files.

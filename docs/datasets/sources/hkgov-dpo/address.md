@@ -79,6 +79,13 @@ already-normalised chunks with new results, or mutate published releases.
 
 ## Reviewed estate, building and section hierarchy
 
+Reviewed Housing Authority estate names are stored in
+`hkgov-dpo-address-estate-names.json`. Choi Wan uses the preferred `Choi Wan (I) Estate`
+/ `彩雲一邨` names in canonical components and display addresses, preserving ALS `(1)` /
+`(一)` spellings in raw evidence. Naming preferences do not change identity keys or unit
+ownership. Numeral style follows the particular HA name rather than a universal Roman
+numeral rule.
+
 Explicit whole-inventory omissions use `hkgov-dpo-address-3d-backfills.json`. Ching Sum
 House's June 2025 gap receives 949 units corroborated by identical May and August
 inventories. The June bilingual parent must match the evidence premise, and the source
