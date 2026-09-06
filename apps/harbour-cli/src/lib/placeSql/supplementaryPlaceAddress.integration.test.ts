@@ -120,6 +120,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       })
       .run()
     const curationPath = resolve(root, 'curation.json')
+    const entryLedgerPath = resolve(root, 'entries.json')
     await writeFile(curationPath, JSON.stringify(policy))
     const target = (database: Database, name: 'current' | 'history' | 'meta') => ({
       name,
@@ -136,6 +137,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     )!
     const input = {
       curationPath,
+      entryLedgerPath,
       context: {
         currentDb,
         historyTargets: [
@@ -178,7 +180,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       actions: [],
     } as unknown as Parameters<typeof prepareSupplementaryAddresses>[0]
     await writeFile(
-      resolve(root, 'overture-place-address.lock'),
+      resolve(root, 'entries.json.lock'),
       JSON.stringify({ pid: process.pid + 1_000_000, releaseId: 'interrupted-run' }),
     )
     const failedImport = {
@@ -254,6 +256,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       raw: { ...place.raw, id: 'citygate-place-2' },
     }
     const curationBeforeReview = await readFile(curationPath, 'utf8')
+    const entriesBeforeReview = await readFile(entryLedgerPath, 'utf8')
     await expect(
       prepareSupplementaryAddresses({
         ...input,
@@ -261,6 +264,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       }),
     ).rejects.toThrow('require explicit curation')
     expect(await readFile(curationPath, 'utf8')).toBe(curationBeforeReview)
+    expect(await readFile(entryLedgerPath, 'utf8')).toBe(entriesBeforeReview)
     const review = JSON.parse(
       await readFile(resolve(root, 'overture-place-address-review.json'), 'utf8'),
     )

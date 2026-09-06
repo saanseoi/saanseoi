@@ -4,6 +4,7 @@ import {
   addressFingerprint,
   compactAddressResolution,
   createSupplementaryAddressAnalyser,
+  emptySupplementaryEntryLedger,
   parseSupplementaryCuration,
   supplementaryIdentity,
   type SupplementaryEntry,
@@ -39,7 +40,10 @@ const observation = (
   lat: 22.29,
 })
 function setup(definitions = [citygate]) {
-  const fixture = parseSupplementaryCuration(structuredClone(policyFixture))
+  const fixture = parseSupplementaryCuration(
+    structuredClone(policyFixture),
+    emptySupplementaryEntryLedger(),
+  )
   const ids = new Set(definitions.map(row => row.addressId))
   const geometry = new Map<string, { lng: number; lat: number }>()
   return {
@@ -86,7 +90,12 @@ describe('supplementary Place Address policy', () => {
       buildingNumberExpression: null,
     })
     expect(result.entry?.baseAddressId).toBe('als-citygate')
-    expect(parseSupplementaryCuration(fixture).entries).toHaveLength(1)
+    expect(
+      parseSupplementaryCuration(policyFixture, {
+        ...emptySupplementaryEntryLedger(),
+        entries: fixture.entries,
+      }).entries,
+    ).toHaveLength(1)
   })
 
   test('keeps only the premise-side building text', () => {
@@ -258,7 +267,12 @@ describe('supplementary Place Address policy', () => {
     const { fixture, analyse } = setup()
     analyse(observation('Citygate Outlets, Tat Tung Road'), null)
     fixture.entries[0]!.addressId = 'arbitrary'
-    expect(() => parseSupplementaryCuration(fixture)).toThrow('identity mismatch')
+    expect(() =>
+      parseSupplementaryCuration(policyFixture, {
+        ...emptySupplementaryEntryLedger(),
+        entries: fixture.entries,
+      }),
+    ).toThrow('identity mismatch')
     const invalid = structuredClone(policyFixture)
     invalid.policies['supplementary-v1'].automaticThreshold = -1
     expect(() => parseSupplementaryCuration(invalid)).toThrow('policy')
@@ -331,7 +345,10 @@ describe('supplementary Place Address policy', () => {
       [],
       new Set(),
       new Map(),
-      parseSupplementaryCuration(fixture),
+      parseSupplementaryCuration(policyFixture, {
+        ...emptySupplementaryEntryLedger(),
+        entries: fixture.entries,
+      }),
     )
     const rows = await buildSupplementaryAddressRows({
       resolutions: [analyse(observation('Remote Pavilion', 'remote'), null)],

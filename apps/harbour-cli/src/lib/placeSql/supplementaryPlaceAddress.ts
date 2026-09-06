@@ -181,14 +181,11 @@ export function parseSupplementaryCuration(
   const policy = value as Omit<SupplementaryCuration, 'entries'> & {
     entries?: unknown
   }
+  if ('entries' in policy)
+    throw new Error('Overture Place Address policy must not contain generated entries.')
   const fixture = {
     ...policy,
-    entries:
-      policy.entries === undefined
-        ? entryLedger.entries
-        : Array.isArray(policy.entries)
-          ? policy.entries
-          : null,
+    entries: entryLedger.entries,
   } as SupplementaryCuration
   if (
     fixture?.authority !== 'overture-place-address' ||
