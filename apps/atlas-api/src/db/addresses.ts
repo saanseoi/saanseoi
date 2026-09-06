@@ -32,6 +32,7 @@ export type AddressLocaleValue = {
 export type AddressRecord = {
   address: {
     snapshotId: string
+    divisionSnapshotId: string | null
     id: string
     geometry: unknown
     bbox: unknown
@@ -53,13 +54,13 @@ export type AddressRecord = {
 }
 
 type AddressLookup = {
-  snapshotId: string
+  snapshotIds: string[]
   addressId: string
   localeSelection: RequestedApiLocaleSelection
 }
 
 type AddressListLookup = {
-  snapshotId: string
+  snapshotIds: string[]
   limit?: number
   offset?: number
   countryId?: string
@@ -87,7 +88,7 @@ const ADDRESS_FTS_ALIAS_GROUPS = [
   ['apt', 'apts', 'apartment', 'apartments'],
 ] as const
 
-const ADDRESS_FTS_TOKEN_ALIASES = new Map(
+const ADDRESS_FTS_TOKEN_ALIASES = new Map<string, readonly string[]>(
   ADDRESS_FTS_ALIAS_GROUPS.flatMap(group =>
     group.map(token => [token, group] as const),
   ),
@@ -95,7 +96,7 @@ const ADDRESS_FTS_TOKEN_ALIASES = new Map(
 
 type AddressSearchLookup = Pick<
   AddressListLookup,
-  'snapshotId' | 'countryId' | 'areaId' | 'districtId'
+  'snapshotIds' | 'countryId' | 'areaId' | 'districtId'
 > & {
   component?: AddressSearchComponent
   limit: number
@@ -106,6 +107,7 @@ type AddressSearchLookup = Pick<
 
 type AddressRow = {
   snapshotId: string
+  divisionSnapshotId: string | null
   id: string
   geometry: typeof address2d.$inferSelect.geometry
   bbox: typeof address2d.$inferSelect.bbox
@@ -205,6 +207,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
   return {
     address: {
       snapshotId: row.snapshotId,
+      divisionSnapshotId: row.divisionSnapshotId,
       id: row.id,
       geometry: row.geometry,
       bbox: row.bbox,
@@ -227,10 +230,15 @@ function mapAddressRow(row: AddressRow): AddressRecord {
 }
 
 function buildAddressConditions(
-  lookup: Pick<AddressListLookup, 'snapshotId' | 'countryId' | 'areaId' | 'districtId'>,
+  lookup: Pick<
+    AddressListLookup,
+    'snapshotIds' | 'countryId' | 'areaId' | 'districtId'
+  >,
 ) {
   return [
-    eq(address2d.snapshotId, lookup.snapshotId),
+    // One bound JSON array preserves global SQL pagination without an unbounded
+    // IN parameter list. An empty selection deliberately matches no rows.
+    sql`${address2d.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)}))`,
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
     lookup.areaId ? eq(address2d.areaId, lookup.areaId) : undefined,
     lookup.districtId ? eq(address2d.districtId, lookup.districtId) : undefined,
@@ -245,6 +253,7 @@ export async function getAddressRecordCurrent(
   const row = await db
     .select({
       snapshotId: address2d.snapshotId,
+      divisionSnapshotId: address2d.divisionSnapshotId,
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -264,12 +273,7 @@ export async function getAddressRecordCurrent(
       i18n,
     })
     .from(address2d)
-    .where(
-      and(
-        eq(address2d.snapshotId, lookup.snapshotId),
-        eq(address2d.id, lookup.addressId),
-      ),
-    )
+    .where(and(...buildAddressConditions(lookup), eq(address2d.id, lookup.addressId)))
     .limit(1)
     .get()
 
@@ -284,6 +288,7 @@ export async function listAddressRecordsCurrent(
   const rows = await db
     .select({
       snapshotId: address2d.snapshotId,
+      divisionSnapshotId: address2d.divisionSnapshotId,
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -312,8 +317,7 @@ export async function listAddressRecordsCurrent(
   return rows.map(row => mapAddressRow(row as AddressRow))
 }
 
-/** Search pagination is capped at 50 IDs, keeping this fixed-size hydration query
- * below D1's 100-variable limit (one snapshot ID plus at most 50 address IDs).
+/** JSON membership keeps hydration bounded independently of the number of IDs.
  */
 export async function listAddressRecordsCurrentByIds(
   db: CurrentDatabase,
@@ -325,6 +329,7 @@ export async function listAddressRecordsCurrentByIds(
   const rows = await db
     .select({
       snapshotId: address2d.snapshotId,
+      divisionSnapshotId: address2d.divisionSnapshotId,
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -345,7 +350,10 @@ export async function listAddressRecordsCurrentByIds(
     })
     .from(address2d)
     .where(
-      and(...buildAddressConditions(lookup), inArray(address2d.id, lookup.addressIds)),
+      and(
+        ...buildAddressConditions(lookup),
+        sql`${address2d.id} in (select value from json_each(${JSON.stringify(lookup.addressIds)}))`,
+      ),
     )
     .all()
 
@@ -362,12 +370,12 @@ export async function searchAddressIdsCurrent(
   db: CurrentDatabase,
   lookup: AddressSearchLookup,
 ): Promise<{ addressIds: string[]; total: number }> {
+  if (lookup.snapshotIds.length === 0) return { addressIds: [], total: 0 }
   if (lookup.mode === 'exact' || lookup.mode === 'range') {
     const buildingNumber = normaliseAddressSearchNumber(lookup.query)
     if (!buildingNumber) return { addressIds: [], total: 0 }
 
     const conditions = and(
-      eq(address2dBuildingNumberLookup.snapshotId, lookup.snapshotId),
       eq(address2dBuildingNumberLookup.buildingNumber, buildingNumber),
       lookup.mode === 'exact'
         ? ne(address2dBuildingNumberLookup.evidence, 'derived_member')
@@ -376,7 +384,7 @@ export async function searchAddressIdsCurrent(
     )
     const [rows, countRow] = await Promise.all([
       db
-        .select({ addressId: address2dBuildingNumberLookup.addressId })
+        .selectDistinct({ addressId: address2dBuildingNumberLookup.addressId })
         .from(address2dBuildingNumberLookup)
         .innerJoin(
           address2d,
@@ -415,13 +423,12 @@ export async function searchAddressIdsCurrent(
   if (!ftsQuery) return { addressIds: [], total: 0 }
   try {
     const conditions = and(
-      eq(addressesFts.snapshotId, lookup.snapshotId),
       addressesFtsMatch(ftsQuery),
       ...buildAddressConditions(lookup),
     )
     const [rows, countRow] = await Promise.all([
       db
-        .select({ addressId: addressesFts.addressId })
+        .selectDistinct({ addressId: addressesFts.addressId })
         .from(addressesFts)
         .innerJoin(
           address2d,
@@ -431,7 +438,9 @@ export async function searchAddressIdsCurrent(
           ),
         )
         .where(conditions)
-        .limit((lookup.limit + lookup.offset) * 2)
+        .orderBy(asc(addressesFts.addressId))
+        .limit(lookup.limit)
+        .offset(lookup.offset)
         .all(),
       db
         .select({ count: sql<number>`count(distinct ${addressesFts.addressId})` })
@@ -447,10 +456,7 @@ export async function searchAddressIdsCurrent(
         .get(),
     ])
     return {
-      addressIds: [...new Set(rows.map(row => row.addressId))].slice(
-        lookup.offset,
-        lookup.offset + lookup.limit,
-      ),
+      addressIds: rows.map(row => row.addressId),
       total: Number(countRow?.count ?? 0),
     }
   } catch (error) {

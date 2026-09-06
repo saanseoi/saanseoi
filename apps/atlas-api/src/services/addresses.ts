@@ -4,7 +4,10 @@ import {
   type ApiProfileName,
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
-import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
+import {
+  listSnapshotSourceReleases,
+  resolveApiReleaseSetSnapshotsForRequest,
+} from '@repo/core/db/metaRegistry'
 import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
@@ -49,6 +52,7 @@ type AddressResourcePayload = {
   type: 'addresses'
   id: string
   attributes: {
+    datasetCode: string
     snapshotId?: string
     geometry?: JsonObject | null
     bbox?: BBox | null
@@ -83,6 +87,7 @@ type AddressRouteState = {
 }
 
 type AddressFilters = {
+  dataset?: string
   country?: string
   area?: string
   district?: string
@@ -136,14 +141,26 @@ async function loadIncludedAddressHierarchy(args: {
 }) {
   if (args.include !== 'hierarchy') return []
 
-  const divisionIds = [
-    ...new Set(args.records.flatMap(record => addressHierarchyIds(record.address))),
-  ]
-  const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
-    snapshotId: args.snapshotId,
-    divisionIds,
-    localeSelection: args.routeState.localeSelection,
-  })
+  const idsBySnapshot = new Map<string, Set<string>>()
+  for (const record of args.records) {
+    const snapshotId = record.address.divisionSnapshotId ?? args.snapshotId
+    const ids = idsBySnapshot.get(snapshotId) ?? new Set<string>()
+    for (const id of addressHierarchyIds(record.address)) ids.add(id)
+    idsBySnapshot.set(snapshotId, ids)
+  }
+  const recordsById = new Map<
+    string,
+    Awaited<ReturnType<typeof listDivisionRecordsCurrentByIds>>[number]
+  >()
+  for (const [snapshotId, divisionIds] of idsBySnapshot) {
+    const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
+      snapshotId,
+      divisionIds: [...divisionIds],
+      localeSelection: args.routeState.localeSelection,
+    })
+    for (const record of records) recordsById.set(record.division.id, record)
+  }
+  const records = [...recordsById.values()]
   return records.map(record =>
     createIncludedDivisionResource({
       baseUrl: args.baseUrl,
@@ -156,7 +173,8 @@ async function loadIncludedAddressHierarchy(args: {
 }
 
 type ActiveAddressSnapshot = {
-  snapshotId: string
+  snapshotIds: string[]
+  datasetBySnapshot: Map<string, string>
   divisionSnapshotId: string
   apiReleaseSet: string
   apiCatalogRevision: string
@@ -179,6 +197,7 @@ export type AddressListQuery = {
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[country]'?: string
+  'filter[dataset]'?: string
   'filter[area]'?: string
   'filter[district]'?: string
   include?: 'hierarchy'
@@ -195,6 +214,7 @@ export type AddressDetailQuery = Omit<
   | 'page[limit]'
   | 'page[offset]'
   | 'filter[country]'
+  | 'filter[dataset]'
   | 'filter[area]'
   | 'filter[district]'
 >
@@ -294,9 +314,12 @@ function createAddressResource(args: {
   baseUrl: string
   routeState: AddressRouteState
   record: AddressRecord
+  activeSnapshot: ActiveAddressSnapshot
 }): AddressResourcePayload {
   const { address } = args.record
-  const attributes: AddressResourcePayload['attributes'] = {}
+  const attributes: AddressResourcePayload['attributes'] = {
+    datasetCode: args.activeSnapshot.datasetBySnapshot.get(address.snapshotId)!,
+  }
 
   if (args.routeState.profile !== 'compact') {
     attributes.createdAt = address.createdAt
@@ -410,14 +433,19 @@ async function getActiveAddressSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
   selectors: Pick<
     AddressListQuery,
-    'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+    | 'catalogRevision'
+    | 'cohort'
+    | 'effectiveAt'
+    | 'knownAt'
+    | 'releaseSet'
+    | 'filter[dataset]'
   >,
 ): Promise<ActiveAddressSnapshot | null> {
   const selection = await runWithD1ReadRetry(() =>
     resolveApiReleaseSetSnapshotsForRequest(metaDb as never, 'address', {
       catalogRevision: selectors.catalogRevision,
       cohortKey: selectors.cohort,
-      domainCode: 'official',
+      domainCode: 'saanseoi',
       effectiveAt: selectors.effectiveAt,
       knownAt: selectors.knownAt,
       regionCode: 'hk',
@@ -436,8 +464,30 @@ async function getActiveAddressSnapshot(
   )
   if (!primarySnapshot || !divisionSnapshot) return null
 
+  const addressSnapshotIds = [
+    ...new Set(
+      selection.snapshots
+        .filter(snapshot => snapshot.snapshotResourceType === 'address')
+        .map(snapshot => snapshot.snapshotId),
+    ),
+  ]
+  const sources = await runWithD1ReadRetry(() =>
+    listSnapshotSourceReleases(metaDb as never, addressSnapshotIds),
+  )
+  const datasetBySnapshot = new Map<string, string>()
+  for (const source of sources) {
+    const dataset = datasetBySnapshot.get(source.snapshotId)
+    if (dataset && dataset !== source.datasetCode) return null
+    datasetBySnapshot.set(source.snapshotId, source.datasetCode)
+  }
+  if (addressSnapshotIds.some(id => !datasetBySnapshot.has(id))) return null
+  const dataset = selectors['filter[dataset]']
+
   return {
-    snapshotId: primarySnapshot.snapshotId,
+    snapshotIds: dataset
+      ? addressSnapshotIds.filter(id => datasetBySnapshot.get(id) === dataset)
+      : addressSnapshotIds,
+    datasetBySnapshot,
     divisionSnapshotId: divisionSnapshot.snapshotId,
     apiReleaseSet: selection.releaseSet.code,
     apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
@@ -477,6 +527,9 @@ export async function listAddresses(args: {
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
   const filters = {
+    ...(args.query['filter[dataset]']
+      ? { dataset: args.query['filter[dataset]'] }
+      : {}),
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
@@ -486,7 +539,7 @@ export async function listAddresses(args: {
       : {}),
   }
   const lookup = {
-    snapshotId: activeSnapshot.snapshotId,
+    snapshotIds: activeSnapshot.snapshotIds,
     limit,
     offset,
     countryId: filters.country,
@@ -498,7 +551,7 @@ export async function listAddresses(args: {
     Promise.all([
       listAddressRecordsCurrent(args.currentDb, lookup),
       countAddressRecordsCurrent(args.currentDb, {
-        snapshotId: activeSnapshot.snapshotId,
+        snapshotIds: activeSnapshot.snapshotIds,
         countryId: filters.country,
         areaId: filters.area,
         districtId: filters.district,
@@ -520,7 +573,12 @@ export async function listAddresses(args: {
   const body = buildJsonApiListDocument({
     url,
     data: records.map(record =>
-      createAddressResource({ baseUrl: url.origin, routeState, record }),
+      createAddressResource({
+        baseUrl: url.origin,
+        routeState,
+        record,
+        activeSnapshot,
+      }),
     ),
     limit,
     offset,
@@ -572,6 +630,9 @@ export async function searchAddresses(args: {
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
   const filters = {
+    ...(args.query['filter[dataset]']
+      ? { dataset: args.query['filter[dataset]'] }
+      : {}),
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
@@ -585,7 +646,7 @@ export async function searchAddresses(args: {
   try {
     search = await runWithD1ReadRetry(() =>
       searchAddressIdsCurrent(args.currentDb, {
-        snapshotId: activeSnapshot.snapshotId,
+        snapshotIds: activeSnapshot.snapshotIds,
         countryId: filters.country,
         areaId: filters.area,
         districtId: filters.district,
@@ -616,7 +677,7 @@ export async function searchAddresses(args: {
 
   const records = await runWithD1ReadRetry(() =>
     listAddressRecordsCurrentByIds(args.currentDb, {
-      snapshotId: activeSnapshot.snapshotId,
+      snapshotIds: activeSnapshot.snapshotIds,
       addressIds: search.addressIds,
       countryId: filters.country,
       areaId: filters.area,
@@ -638,7 +699,12 @@ export async function searchAddresses(args: {
   const body = buildJsonApiListDocument({
     url,
     data: records.map(record =>
-      createAddressResource({ baseUrl: url.origin, routeState, record }),
+      createAddressResource({
+        baseUrl: url.origin,
+        routeState,
+        record,
+        activeSnapshot,
+      }),
     ),
     limit,
     offset,
@@ -694,7 +760,7 @@ export async function getAddressDetail(args: {
 
   const record = await runWithD1ReadRetry(() =>
     getAddressRecordCurrent(args.currentDb, {
-      snapshotId: activeSnapshot.snapshotId,
+      snapshotIds: activeSnapshot.snapshotIds,
       addressId: args.id,
       localeSelection: routeState.localeSelection,
     }),
@@ -723,7 +789,12 @@ export async function getAddressDetail(args: {
   )
   const body = buildJsonApiDetailDocument({
     url,
-    data: createAddressResource({ baseUrl: url.origin, routeState, record }),
+    data: createAddressResource({
+      baseUrl: url.origin,
+      routeState,
+      record,
+      activeSnapshot,
+    }),
     meta: buildMetadata({ routeState, activeSnapshot }),
     included: included.length > 0 ? included : undefined,
     permalink: buildAddressPermalink({ url, routeState, activeSnapshot }),

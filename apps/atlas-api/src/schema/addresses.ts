@@ -195,6 +195,10 @@ const AddressI18nSchema = z
 
 const AddressAttributesSchema = z
   .object({
+    datasetCode: z.string().openapi({
+      description: openApiText('openapi_addresses_dataset_code_description'),
+      examples: ['ds-hk-hkgov-dpo-address', 'ds-hk-overture-place'],
+    }),
     snapshotId: z
       .string()
       .optional()
@@ -295,6 +299,7 @@ const AddressDocumentMetaSchema = z
     locales: RequestedLocalesMetadataSchema,
     filters: z
       .object({
+        dataset: z.string().optional(),
         country: z.string().optional(),
         area: z.string().optional(),
         district: z.string().optional(),
@@ -339,7 +344,7 @@ const RequestedLocalesQuerySchema = z
 const AddressSelectionQuerySchema = z.object({
   catalogRevision: z.string().min(1).optional(),
   cohort: z.string().min(1).optional(),
-  domain: z.literal('official').optional(),
+  domain: z.literal('saanseoi').optional(),
   effectiveAt: z.iso.datetime().optional(),
   knownAt: z.iso.datetime().optional(),
   releaseSet: z.string().min(1).optional(),
@@ -348,6 +353,14 @@ const AddressSelectionQuerySchema = z.object({
 })
 
 export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
+  'filter[dataset]': z
+    .string()
+    .min(1)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_addresses_dataset_filter_description'),
+      examples: ['ds-hk-hkgov-dpo-address', 'ds-hk-overture-place'],
+    }),
   'page[limit]': z.coerce.number().int().min(1).max(1000).optional(),
   'page[offset]': z.coerce.number().int().min(0).optional(),
   'filter[country]': IdSchema.optional(),
@@ -361,6 +374,7 @@ export const AddressDetailQuerySchema = AddressSelectionQuerySchema.extend({
 }).openapi('AddressDetailQuery')
 
 export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({
+  'filter[dataset]': AddressesListQuerySchema.shape['filter[dataset]'],
   q: z
     .string()
     .min(1)
