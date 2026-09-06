@@ -64,10 +64,20 @@ export async function runSqlDelivery(
         }
         const remote = createSqlDeliveryRemote(options)
         const localFiles = await resolveDeliveryMirrorFiles(plan)
+        const confirmed = await remote.confirmedReceipts(
+          plan,
+          options.mode === 'local'
+            ? plan.batches
+            : plan.batches.filter(
+                batch =>
+                  progress.remote[batch.index]?.status !== undefined &&
+                  progress.remote[batch.index]?.status !== 'pending',
+              ),
+        )
         if (options.mode === 'local') {
           // Complete remote delivery is a prerequisite; local-only recovery never writes remotely.
           for (const batch of plan.batches) {
-            if (!(await remote.hasReceipt(plan, batch)))
+            if (!confirmed.has(batch.index))
               throw new Error(
                 `Remote batch ${batch.index} is not confirmed; local replay cannot advance.`,
               )
@@ -93,7 +103,10 @@ export async function runSqlDelivery(
             }
             progress.remote[batch.index] = state
             await save()
-            await remote.deliver(plan, batch, bytes, state, save)
+            if (confirmed.has(batch.index)) {
+              state.status = 'complete'
+              await save()
+            } else await remote.deliver(plan, batch, bytes, state, save)
           } else {
             const path = localFiles?.[batch.target.bindingName]
             if (!path)
