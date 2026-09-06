@@ -103,6 +103,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       .values({
         snapshotId: official.id,
         id: 'als-citygate',
+        geometry: Buffer.from('01010000004e621058397c5c400ad7a3703d4a3640', 'hex'),
         divisionSnapshotId: 'division',
         countryId: 'hk',
       })

@@ -1,5 +1,7 @@
-import { confirm, isCancel, note, select } from '@clack/prompts'
+import { isCancel, note, select } from '@clack/prompts'
 import { open, readFile, rename, unlink } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import type {
   StagedAddressResolution,
@@ -7,9 +9,16 @@ import type {
 } from './supplementaryPlaceAddress.ts'
 import {
   parseSupplementaryCuration,
+  parsedAddressFingerprint,
   supplementaryIdentity,
 } from './supplementaryPlaceAddress.ts'
-import { editPlaceAddress } from './placeAddressEditor.ts'
+import {
+  addressEditorFields,
+  editPlaceAddress,
+  localiseEditedAddress,
+  parsedAddressSeed,
+  safeAddressText,
+} from './placeAddressEditor.ts'
 
 const components = [
   ['buildingName', 'Building', 36],
@@ -37,9 +46,16 @@ export function formatPlaceAddressComponents(
     .join(' | ')
 }
 
+export function deferChineseAddressReview(
+  row: Pick<StagedAddressResolution, 'sourceTexts'>,
+) {
+  return row.sourceTexts.some(value => /\p{Script=Han}/u.test(value))
+}
+
 export async function reviewPlaceAddressCurations(input: {
   rows: AsyncIterable<StagedAddressResolution>
   definitions: PlaceAddressDefinition[]
+  geometry: Map<string, { lng: number; lat: number }>
   curationPath: string
   sourceRelease: string
   total: number
@@ -50,6 +66,7 @@ export async function reviewPlaceAddressCurations(input: {
   const lockPath = `${input.curationPath}.review.lock`
   const lock = await open(lockPath, 'wx')
   let saved = 0
+  let deferred = 0
   try {
     let original = await readFile(input.curationPath, 'utf8')
     const policy = JSON.parse(original)
@@ -58,6 +75,12 @@ export async function reviewPlaceAddressCurations(input: {
     for await (const row of input.rows) {
       if (row.tier !== 'review') continue
       index++
+      // Keep the complete evidence unresolved, including mixed-language addresses.
+      // Skipping the UI must not create a retirement or an identity decision.
+      if (deferChineseAddressReview(row)) {
+        deferred++
+        continue
+      }
       if (
         policy.decisions.some(
           (decision: SupplementaryDecision) =>
@@ -67,119 +90,84 @@ export async function reviewPlaceAddressCurations(input: {
         )
       )
         continue
-      const safe = (value: string) =>
-        // biome-ignore lint/suspicious/noControlCharactersInRegex: strip terminal controls from source data
-        value.replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
       note(
-        [
-          `Place: ${safe(row.placeId)}`,
-          ...row.sourceTexts.map(value => `Source: ${safe(value)}`),
-          `Reason: ${safe(row.reason)}`,
-          `Previous: ${safe(row.previous?.addressId ?? 'none')}`,
-          ...row.parsed.map(parsed =>
-            formatPlaceAddressComponents({
-              ...Object.fromEntries(
-                parsed.recognised2dComponents.map(component => [
-                  component.kind,
-                  component.name,
-                ]),
-              ),
-              streetName: parsed.street?.name,
-              buildingNumberExpression: parsed.buildingNumberExpression,
-            }),
-          ),
-        ].join('\n'),
-        `Place Address review ${index}/${input.total}`,
+        formatReviewNote(row),
+        `Place Address :: ${safeAddressText(row.placeId)} (${index}/${input.total})`,
       )
-      const candidates = row.candidates.filter(candidate =>
-        byId.has(candidate.addressId),
-      )
+      const candidates = row.candidates.flatMap(candidate => {
+        if (
+          candidate.score < 50 &&
+          candidate.distanceMetres !== null &&
+          candidate.distanceMetres > 500
+        )
+          return []
+        const definition = byId
+          .get(candidate.addressId)
+          ?.find(value => value.locale === 'en')
+        return definition ? [{ candidate, definition }] : []
+      })
       let decision: SupplementaryDecision | undefined
       while (!decision) {
         const choice = await select({
-          message: 'Inspect an ALS candidate or choose an action',
+          message: 'Choose an address or action',
           options: [
-            { value: 'exit', label: 'Save and exit review' },
-            { value: 'skip', label: 'Skip — keep unresolved' },
-            { value: 'retire', label: 'Leave unlinked — record explicit retirement' },
-            ...candidates.map(candidate => ({
+            ...candidates.map(({ candidate, definition }) => ({
               value: `id:${candidate.addressId}`,
-              label: safe(
-                byId.get(candidate.addressId)?.[0]?.formattedAddress ??
-                  candidate.addressId,
-              ),
-              hint: `score ${candidate.score}; ${candidate.distanceMetres === null ? 'distance unknown' : `${Math.round(candidate.distanceMetres)} m`}; conflicts: ${candidate.contradictions.join(', ') || 'none'}`,
+              label: formatAddressCandidate(definition, candidate),
             })),
+            { value: 'map', label: 'Show on Map' },
+            { value: 'new', label: 'New Address' },
+            { value: 'skip', label: 'Skip as Unresolved' },
+            { value: 'leave_unlinked', label: 'Skip as Unlinked' },
+            { value: 'exit', label: 'Save & Exit' },
           ],
         })
         if (isCancel(choice) || choice === 'exit') return saved
+        if (choice === 'map') {
+          await showCandidatesOnMap(row, candidates, input.geometry)
+          continue
+        }
         if (choice === 'skip') break
         const addressId = choice.startsWith('id:') ? choice.slice(3) : null
-        if (addressId)
-          note(
-            (byId.get(addressId) ?? [])
-              .map(value => `${value.locale}\n${formatPlaceAddressComponents(value)}`)
-              .join('\n\n'),
-            `ALS ${addressId}`,
-          )
         let edited: SupplementaryDecision['address']
-        if (addressId) {
-          const action = await select({
-            message: 'Use this address or edit a supplementary address?',
-            options: [
-              { value: 'use', label: 'Use the ALS address as recorded' },
-              {
-                value: 'edit',
-                label: 'Edit address components, including building number range',
-              },
-              { value: 'back', label: 'Back to candidates' },
-            ],
-          })
-          if (isCancel(action)) return saved
-          if (action === 'back') continue
-          if (action === 'edit') {
-            const definitions = byId.get(addressId) ?? []
-            const locale =
-              definitions.length === 1
-                ? definitions[0]?.locale
-                : await select({
-                    message: 'Address language to edit',
-                    options: definitions.map(value => ({
-                      value: value.locale,
-                      label: value.locale,
-                    })),
-                  })
-            if (isCancel(locale)) return saved
-            const seed = definitions.find(value => value.locale === locale)
-            if (!seed) continue
-            const value = await editPlaceAddress(seed)
-            if (!value) continue
-            edited = { baseAddressId: addressId, values: [value] }
-            note(
-              `${safe(value.formattedAddress)}\n${formatPlaceAddressComponents(value)}`,
-              'Edited supplementary address',
+        if (choice !== 'leave_unlinked') {
+          const definitions = addressId ? (byId.get(addressId) ?? []) : []
+          const seed =
+            definitions.find(value => value.locale === 'en') ??
+            parsedAddressSeed(
+              row.parsed.find(value => value.street?.locale === 'en') ?? row.parsed[0],
             )
+          const value = await editPlaceAddress(seed)
+          if (!value) continue
+          if (
+            !addressId ||
+            addressEditorFields.some(([key]) => value[key] !== seed[key])
+          ) {
+            edited = {
+              baseAddressId: addressId,
+              values: localiseEditedAddress(
+                value,
+                seed,
+                definitions.find(value => value.locale === 'zh-hant'),
+              ),
+            }
           }
         }
-        const accepted = await confirm({
-          message: edited
-            ? 'Save this edited supplementary address? The ALS source record is preserved.'
-            : addressId
-              ? 'Record this ALS identity for this Place?'
-              : 'Record that this Place should have no Address link?',
-          initialValue: false,
-        })
-        if (isCancel(accepted)) return saved
-        if (!accepted) continue
         decision = {
           placeId: row.placeId,
           fingerprint: row.fingerprint,
+          address2dFingerprint: parsedAddressFingerprint(row.parsed),
           sourceRelease: input.sourceRelease,
           previousAddressId: row.previous?.addressId ?? null,
-          resolution: addressId ? 'replace' : 'retire',
+          resolution:
+            choice === 'leave_unlinked'
+              ? 'leave_unlinked'
+              : edited
+                ? 'create_supplementary'
+                : 'link_existing',
           addressId,
           reason: edited
-            ? 'Edited supplementary address in interactive review.'
+            ? 'Saved supplementary address in interactive review.'
             : addressId
               ? 'Selected ALS identity in interactive review.'
               : 'Left unlinked in interactive review.',
@@ -213,5 +201,137 @@ export async function reviewPlaceAddressCurations(input: {
   } finally {
     await lock.close()
     await unlink(lockPath)
+    if (deferred)
+      note(
+        `${deferred} Chinese or mixed-language source addresses deferred. They remain unresolved in the review file.`,
+        'Deferred address review',
+      )
   }
+}
+
+function escapeHtml(value: string) {
+  return value.replace(
+    /[&<>"']/g,
+    character =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        character
+      ] ?? character,
+  )
+}
+
+export async function showCandidatesOnMap(
+  row: Pick<StagedAddressResolution, 'placeId' | 'sourceTexts' | 'lng' | 'lat'>,
+  candidates: Array<{
+    candidate: StagedAddressResolution['candidates'][number]
+    definition: PlaceAddressDefinition
+  }>,
+  geometry: Map<string, { lng: number; lat: number }>,
+) {
+  const markers = candidates.flatMap(({ candidate, definition }) => {
+    const point = geometry.get(candidate.addressId)
+    return point
+      ? [
+          {
+            ...point,
+            score: candidate.score,
+            label: definition.formattedAddress ?? candidate.addressId,
+          },
+        ]
+      : []
+  })
+  const title = escapeHtml(row.sourceTexts.join(' / '))
+  const html = `<!doctype html><meta charset="utf-8"><title>Address candidates</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>html,body,#map{height:100%;margin:0} .legend{background:white;padding:8px}</style><div id="map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
+const map=L.map('map').setView([source[1],source[0]],16); L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+L.circleMarker([source[1],source[0]],{radius:10,color:'#2563eb',fillColor:'#2563eb',fillOpacity:.95}).addTo(map).bindPopup('<b>Place source</b><br>${title}').openPopup();
+const points=[[source[1],source[0]]]; candidates.forEach(c=>{const saturation=Math.max(20,Math.min(100,c.score));const colour='hsl(12 '+saturation+'% 48%)';L.circleMarker([c.lat,c.lng],{radius:8,color,fillColor:colour,fillOpacity:.8}).addTo(map).bindPopup('<b>Score '+c.score+'</b><br>'+${JSON.stringify('')}+c.label);points.push([c.lat,c.lng]);}); if(points.length>1) map.fitBounds(points,{padding:[30,30]});
+</script>`
+  const path = join(tmpdir(), `saanseoi-address-candidates-${crypto.randomUUID()}.html`)
+  await Bun.write(path, html)
+  const command =
+    process.platform === 'darwin'
+      ? 'open'
+      : process.platform === 'win32'
+        ? 'start'
+        : 'xdg-open'
+  Bun.spawn([command, path], { stdout: 'ignore', stderr: 'ignore' })
+  note(`Opened candidate map: ${path}`, 'Show on Map')
+}
+
+const reasonLabels: Record<string, string> = {
+  unlinked_address_changed: 'Previously unlinked source address has changed',
+  multiple_close_matches: 'Several candidates have similar scores',
+  contradictory_components: 'Address components disagree',
+  identity_drift: 'Previously linked address has changed',
+  ambiguous_exact_addresses: 'Multiple exact matches',
+  multiple_address_localisations: 'Source language variants need review',
+  decision_previous_link_mismatch:
+    'Previously linked address differs from the saved decision',
+  decision_base_not_available: 'The selected ALS address is unavailable',
+  keep_decision_changes_identity: 'The saved decision changes the previous identity',
+  decision_target_not_reproducible: 'The saved address cannot be reproduced',
+  shared_address_base_drift: 'Shared supplementary address has a different ALS base',
+}
+
+export function formatReviewNote(
+  row: StagedAddressResolution,
+  colour = Boolean(process.stdin.isTTY && !process.env.NO_COLOR),
+) {
+  return [
+    ...row.sourceTexts.map(value => `Source : ${safeAddressText(value)}`),
+    `Parsed: ${reasonLabels[row.reason] ?? safeAddressText(row.reason.replaceAll('_', ' '))}`,
+    ...row.parsed.flatMap(parsed => [
+      ...[...parsed.address3dParts]
+        .sort((a, b) => Number(a.kind === 'floor') - Number(b.kind === 'floor'))
+        .map(part =>
+          part.kind === 'unit'
+            ? `- Unit : ${safeAddressText(part.unitExpression)}`
+            : `- Floor : ${safeAddressText(part.floorExpression)}`,
+        ),
+      ...addressEditorFields.flatMap(([key, label]) => {
+        const value = parsedAddressSeed(parsed)[key]
+        if (!value) return []
+        const componentKey =
+          key === 'buildingNumberFrom' || key === 'buildingNumberTo'
+            ? 'buildingNumberExpression'
+            : key
+        const code = components.find(([field]) => field === componentKey)?.[2]
+        const content = safeAddressText(value)
+        return [
+          `- ${label} : ${colour && code ? `\u001b[${code}m${content}\u001b[0m` : content}`,
+        ]
+      }),
+      ...(parsed.unclassified2dText
+        ? [`- Unclassified : ${safeAddressText(parsed.unclassified2dText)}`]
+        : []),
+    ]),
+    ...(row.previous ? [`Previous : ${safeAddressText(row.previous.addressId)}`] : []),
+  ].join('\n')
+}
+
+export function formatAddressCandidate(
+  value: PlaceAddressDefinition,
+  candidate: StagedAddressResolution['candidates'][number],
+  colour = Boolean(process.stdin.isTTY && !process.env.NO_COLOR),
+) {
+  const formatted = safeAddressText(value.formattedAddress ?? '')
+  // Match longest components first, preserving the exact ALS formatting and divisions.
+  const pieces = components
+    .flatMap(([key, , code]) => {
+      const text = value[key]
+      return text ? [{ text: safeAddressText(text), code }] : []
+    })
+    .sort((a, b) => b.text.length - a.text.length)
+  let label = ''
+  for (let offset = 0; offset < formatted.length; ) {
+    const part = pieces.find(piece => formatted.startsWith(piece.text, offset))
+    if (part) {
+      label += colour ? `\u001b[${part.code}m${part.text}\u001b[0m` : part.text
+      offset += part.text.length
+    } else label += formatted[offset++]
+  }
+  const detail = `(${candidate.score} @ ${candidate.distanceMetres === null ? '?' : `${Math.round(candidate.distanceMetres)} m`}${candidate.contradictions.length ? ` !${candidate.contradictions.map(safeAddressText).join(', ')}` : ''})`
+  return `${label} ${colour ? `\u001b[2m${detail}\u001b[0m` : detail}`
 }

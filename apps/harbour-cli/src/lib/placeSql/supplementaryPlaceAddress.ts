@@ -29,6 +29,11 @@ export type SupplementaryPolicy = {
 }
 export type SupplementaryValues = Omit<PlaceAddressDefinition, 'addressId'> & {
   formattedAddress: string
+  provenance?: {
+    isHumanVerified: string[]
+    isMachineTranslated: string[]
+    isLocaleInferred: boolean
+  }
 }
 export type SupplementaryEntry = {
   placeId: string
@@ -50,10 +55,15 @@ export type SupplementaryDecision = {
   fingerprint: string
   sourceRelease: string
   previousAddressId: string | null
-  resolution: 'keep' | 'retire' | 'replace'
+  resolution:
+    | 'keep_existing'
+    | 'leave_unlinked'
+    | 'link_existing'
+    | 'create_supplementary'
   addressId: string | null
   reason: string
-  address?: { baseAddressId: string; values: SupplementaryValues[] }
+  address?: { baseAddressId: string | null; values: SupplementaryValues[] }
+  address2dFingerprint?: string
 }
 export type SupplementaryCuration = {
   authority: 'overture-place-address'
@@ -95,6 +105,8 @@ export type AddressResolution = {
   placeId: string
   sourceTexts: string[]
   fingerprint: string
+  lng: number
+  lat: number
   tier: 'direct' | 'supplementary' | 'review' | 'delayed'
   addressId: string | null
   entry?: SupplementaryEntry
@@ -127,6 +139,10 @@ export function addressFingerprint(texts: string[]) {
   return digest([...new Set(texts.map(normaliseAddressText))].sort())
 }
 
+export function parsedAddressFingerprint(parsed: ParsedPlaceAddress[]) {
+  return digest([...new Set(parsed.map(value => value.normalisedAddress2dText))].sort())
+}
+
 function digest(value: unknown) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex')
 }
@@ -150,7 +166,7 @@ export function supplementaryIdentity(values: SupplementaryValues[]) {
           'buildingNumberTo',
         ].map(key => {
           const text = value[key as keyof SupplementaryValues]
-          return text ? normaliseAddressText(text) : null
+          return typeof text === 'string' ? normaliseAddressText(text) : null
         }),
       }))
       .sort((a, b) => a.locale.localeCompare(b.locale)),
@@ -293,20 +309,30 @@ export function parseSupplementaryCuration(
       !decision.fingerprint ||
       !decision.sourceRelease ||
       !decision.reason?.trim() ||
-      !['keep', 'retire', 'replace'].includes(decision.resolution) ||
+      ![
+        'keep_existing',
+        'leave_unlinked',
+        'link_existing',
+        'create_supplementary',
+      ].includes(decision.resolution) ||
       decisions.has(key) ||
-      (decision.resolution === 'retire'
+      (decision.resolution === 'leave_unlinked'
         ? decision.addressId !== null
         : !decision.addressId)
     ) {
       throw new Error('Invalid or duplicate supplementary identity decision.')
     }
     decisions.add(key)
+    if ((decision.resolution === 'create_supplementary') !== Boolean(decision.address))
+      throw new Error(
+        'Only create_supplementary decisions must contain address values.',
+      )
     if (decision.address) {
       const { baseAddressId, values } = decision.address
       if (
-        decision.resolution !== 'replace' ||
-        !baseAddressId ||
+        decision.resolution !== 'create_supplementary' ||
+        (baseAddressId !== null &&
+          (typeof baseAddressId !== 'string' || !baseAddressId)) ||
         !Array.isArray(values) ||
         values.length === 0 ||
         values.some(
@@ -375,6 +401,8 @@ export function createSupplementaryAddressAnalyser(
       placeId: observation.placeId,
       sourceTexts: observation.texts,
       fingerprint,
+      lng: observation.lng,
+      lat: observation.lat,
       tier,
       addressId,
       reason,
@@ -410,10 +438,13 @@ export function createSupplementaryAddressAnalyser(
       ) {
         return result('review', null, 'decision_previous_link_mismatch')
       }
-      if (decision.resolution === 'retire')
+      if (decision.resolution === 'leave_unlinked')
         return result('delayed', null, 'explicit_retirement')
       if (decision.address) {
-        if (!officialIds.has(decision.address.baseAddressId))
+        if (
+          decision.address.baseAddressId &&
+          !officialIds.has(decision.address.baseAddressId)
+        )
           return result('review', null, 'decision_base_not_available')
         const accepted: SupplementaryEntry = {
           placeId: observation.placeId,
@@ -445,28 +476,46 @@ export function createSupplementaryAddressAnalyser(
         )
       }
       if (
-        decision.resolution === 'keep' &&
+        decision.resolution === 'keep_existing' &&
         decision.addressId !== decision.previousAddressId
       ) {
         return result('review', null, 'keep_decision_changes_identity')
       }
       if (decision.addressId && officialIds.has(decision.addressId))
         return result('direct', decision.addressId, 'explicit_decision')
-      if (entry?.addressId === decision.addressId && reproducible(entry)) {
+      if (
+        decision.resolution === 'keep_existing' &&
+        entry?.addressId === decision.addressId &&
+        reproducible(entry)
+      ) {
         return result('supplementary', entry.addressId, 'explicit_decision', [], entry)
       }
       return result('review', null, 'decision_target_not_reproducible')
     }
+    const latestDecision = fixture.decisions
+      .filter(
+        item =>
+          item.placeId === observation.placeId &&
+          item.sourceRelease <= observation.sourceRelease,
+      )
+      .sort((a, b) => b.sourceRelease.localeCompare(a.sourceRelease))[0]
+    const retiredAddressChanged =
+      latestDecision?.resolution === 'leave_unlinked' &&
+      latestDecision.fingerprint !== fingerprint &&
+      latestDecision.address2dFingerprint !== parsedAddressFingerprint(parsed)
     const lastDecision = fixture.decisions
       .filter(
         item =>
           item.placeId === observation.placeId &&
-          item.fingerprint === fingerprint &&
+          (item.fingerprint === fingerprint ||
+            (item.resolution === 'leave_unlinked' &&
+              item.address2dFingerprint === parsedAddressFingerprint(parsed))) &&
           item.sourceRelease <= observation.sourceRelease,
       )
       .sort((a, b) => b.sourceRelease.localeCompare(a.sourceRelease))[0]
     if (
-      lastDecision?.resolution === 'retire' &&
+      lastDecision?.resolution === 'leave_unlinked' &&
+      latestDecision === lastDecision &&
       (!entry || entry.firstAcceptedSourceRelease <= lastDecision.sourceRelease)
     ) {
       return result('delayed', null, 'explicit_retirement')
@@ -518,9 +567,12 @@ export function createSupplementaryAddressAnalyser(
         )
         for (const [kind, components] of componentsByKind) {
           const canonical = definition[kind]
-          if (!canonical) continue
+          if (!canonical) {
+            if (kind !== 'estateName') contradictions.push(kind)
+            continue
+          }
           if (
-            components.some(
+            components.every(
               component => normaliseAddressText(canonical) === component.normalisedName,
             )
           )
@@ -588,6 +640,8 @@ export function createSupplementaryAddressAnalyser(
     candidates.sort(
       (a, b) => b.score - a.score || a.addressId.localeCompare(b.addressId),
     )
+    if (retiredAddressChanged)
+      return result('review', null, 'unlinked_address_changed', candidates)
     if (entry || previous) return result('review', null, 'identity_drift', candidates)
     const exactIds = new Set(
       parsed.flatMap(item => [
@@ -596,6 +650,20 @@ export function createSupplementaryAddressAnalyser(
     )
     const premiseCandidates = candidates.filter(hasPremiseIdentityEvidence)
     const best = premiseCandidates[0]
+    // Evaluate separation before excluding conflicting or distant rivals.
+    const automaticRejection = (candidate: Candidate) => {
+      if (candidate.contradictions.length) return 'contradictory_components'
+      if (
+        candidate.distanceMetres === null ||
+        !Number.isFinite(candidate.distanceMetres) ||
+        candidate.distanceMetres > Math.min(50, policy.distanceMetres)
+      )
+        return 'outside_proximity_allowance'
+      const rival = candidates.find(other => other.addressId !== candidate.addressId)
+      if (rival && candidate.score - rival.score < Math.max(20, policy.separation))
+        return 'multiple_close_matches'
+      return null
+    }
     if (exactIds.size > 1)
       return result(
         'review',
@@ -608,7 +676,12 @@ export function createSupplementaryAddressAnalyser(
       !candidates.some(candidate => candidate.contradictions.length)
     ) {
       const exactId = [...exactIds][0]
-      return result('direct', exactId ?? null, 'exact_formatted_address', candidates)
+      const exact = candidates.find(candidate => candidate.addressId === exactId)
+      if (exact) {
+        const rejection = automaticRejection(exact)
+        if (rejection) return result('review', null, rejection, candidates)
+        return result('direct', exact.addressId, 'exact_formatted_address', candidates)
+      }
     }
     // Residual premise text is never silently discarded to make an ALS link.
     const canonical = candidates.filter(
@@ -620,13 +693,16 @@ export function createSupplementaryAddressAnalyser(
           key => candidate.breakdown[key],
         ),
     )
-    if (canonical.length === 1 && canonical[0])
+    if (canonical.length === 1 && canonical[0]) {
+      const rejection = automaticRejection(canonical[0])
+      if (rejection) return result('review', null, rejection, candidates)
       return result(
         'direct',
         canonical[0].addressId,
         'canonical_components',
         candidates,
       )
+    }
     if (!best || best.score < policy.reviewThreshold)
       return result('delayed', null, 'no_useful_partial_match', candidates)
     // A weak partial match is evidence for a future matcher, not enough evidence
@@ -635,6 +711,8 @@ export function createSupplementaryAddressAnalyser(
     // of contradictory evidence or insufficient separation.
     if (best.score < policy.automaticThreshold)
       return result('delayed', null, 'below_automatic_threshold', candidates)
+    const rejection = automaticRejection(best)
+    if (rejection) return result('review', null, rejection, candidates)
     if (
       best.contradictions.length ||
       (premiseCandidates[1] &&
@@ -643,7 +721,9 @@ export function createSupplementaryAddressAnalyser(
       return result(
         'review',
         null,
-        best.contradictions.length ? 'contradictory_components' : 'score_or_separation',
+        best.contradictions.length
+          ? 'contradictory_components'
+          : 'multiple_close_matches',
         premiseCandidates,
       )
     }

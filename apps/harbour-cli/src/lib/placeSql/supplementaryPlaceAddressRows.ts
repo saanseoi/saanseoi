@@ -1,4 +1,5 @@
 import { createHash } from '@repo/core/pipeline/utils'
+import { establishAddressGranularity } from '@repo/core/pipeline/services/addressPipeline/granularity'
 import type { currentSchema } from '@repo/db'
 import type {
   StagedAddressResolution,
@@ -99,6 +100,11 @@ export async function buildSupplementaryAddressRows(input: {
         acceptanceMode: accepted.acceptanceMode,
       },
       policyVersion: accepted.policyVersion,
+      localisationProvenance: Object.fromEntries(
+        accepted.values
+          .filter(value => value.provenance)
+          .map(value => [value.locale, value.provenance]),
+      ),
       score: accepted.score,
       evidence:
         accepted.evidence.find(
@@ -115,6 +121,12 @@ export async function buildSupplementaryAddressRows(input: {
     }))
     const canonical = {
       id,
+      parentAddressId: null,
+      ...establishAddressGranularity({
+        addressId: id,
+        values: entry.values,
+        sourceVersion: input.sourceVersion,
+      }),
       ...divisions,
       streetId: null,
       geometry: null,
@@ -132,7 +144,10 @@ export async function buildSupplementaryAddressRows(input: {
         divisionSnapshotId: base?.divisionSnapshotId ?? input.divisionSnapshotId,
         streetSnapshotId: null,
       },
-      i18n: entry.values.map(value => ({ ...value, addressId: id })),
+      i18n: entry.values.map(({ provenance: _provenance, ...value }) => ({
+        ...value,
+        addressId: id,
+      })),
     })
   }
   return rows

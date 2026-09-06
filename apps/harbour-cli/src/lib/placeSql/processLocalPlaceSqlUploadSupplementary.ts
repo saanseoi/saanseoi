@@ -438,6 +438,7 @@ async function prepareSupplementaryAddressesLocked(
     const saved = await reviewPlaceAddressCurations({
       rows: readStagedJsonLines<StagedAddressResolution>(resolutionPath),
       definitions,
+      geometry,
       curationPath,
       sourceRelease: input.plan.sourceVersion,
       total: reviewCount,
