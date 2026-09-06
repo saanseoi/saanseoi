@@ -46,6 +46,11 @@ export const getAllowedOrigin = (
   config: OriginAccessConfig,
 ): string => {
   if (!requestOrigin) return ''
+  const externalOrigins = new Set([...normalizeCsv(config.EXTERNAL_ORIGINS)])
+  // Standalone local HTML documents use the browser's opaque `null` origin.
+  // Expose it only when the deployment has deliberately opted into all
+  // external origins; hostname-restricted public keys remain checked separately.
+  if (requestOrigin === 'null') return externalOrigins.has('*') ? 'null' : ''
 
   let parsedOrigin: URL
   try {
@@ -57,8 +62,7 @@ export const getAllowedOrigin = (
   const origin = parsedOrigin.origin
   if (isFirstPartyOrigin(parsedOrigin, config)) return origin
 
-  const exactOrigins = new Set([...normalizeCsv(config.EXTERNAL_ORIGINS)])
-  if (exactOrigins.has('*') || exactOrigins.has(origin)) return origin
+  if (externalOrigins.has('*') || externalOrigins.has(origin)) return origin
   return ''
 }
 
