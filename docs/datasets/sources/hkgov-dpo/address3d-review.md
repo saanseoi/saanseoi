@@ -150,6 +150,28 @@ records. Existing published snapshots are not rewritten.
 
 ## Reviewed historical changes
 
+Choi Fook Estate's July 2026 unnamed premise change retains publisher history. CSU
+`4037020934T20090625` is replaced by `4046820907T20090625`; both carry zero units. The
+replacement's point coincides with Choi Foon House, but its supplied components name
+only the estate and street. The reviewed decision does not merge it into the house,
+assign it residential units or backfill either record. All five building inventories
+remain unchanged. The history-decision fixture guards the exact event fingerprint.
+
+Ching Lok / 菁樂樓 (819 units), Ching Hay / 菁喜樓 (1,279), Ching Sin / 菁善樓 (1,279)
+and Ching Shun / 菁信樓 (857) have user approval to backfill from the first retained
+release, `2024-07-25.0`. The
+[Housing Authority intake record](https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json)
+lists 2022, corroborated by the user's evidence. No exact delivery day is inferred and
+no pre-baseline snapshots are fabricated. The Address2D fixture retains June 2025 source
+features; the inventory fixture retains August 2025 features. Their actual evidence
+dates remain explicit in reconstructed records. Sixteen releases receive four named
+parents, seventeen receive 4,234 units, and the estate totals five buildings and 5,183
+units throughout retained history when combined with the Ching Sum decision below.
+Unnamed same-CSU records remain distinct. `bun scripts/verify-ching-tin-address3d.ts`
+checks every affected release and the August evidence, source preservation, normalised
+identity continuity and collection ownership. Rejection guards are covered by
+`hkgovAlsBackfills.test.ts`. Other estates and published snapshots are unaffected.
+
 Ching Sum House / 菁心樓, Ching Tin Estate, retains its June 2025 Address2D and receives
 a reviewed 949-unit backfill for `2025-06-20.0` only. The May and August bilingual
 inventories have identical publisher inventory hashes; the June delivery has no 3D
@@ -158,9 +180,8 @@ explicit approval and the complete August evidence feature. Preparation labels t
 evidence with its actual August source version and separate backfill provenance, not as
 a June source assertion. Missing or changed bilingual parents, an unexpectedly present
 source CSU, or altered evidence fail validation.
-`bun scripts/verify-ching-sum-address3d.ts` checks the three actual deliveries, prepared
-ownership, provenance and rejection guards. This does not authorise backfilling other
-buildings or rewriting published snapshots.
+`bun scripts/verify-ching-sum-address3d.ts` runs the estate-wide verification above.
+This does not authorise backfilling other buildings or rewriting published snapshots.
 
 Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories
 and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The

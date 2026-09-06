@@ -20,6 +20,12 @@ manual overrides and how changed evidence reopens review.
 
 ## SQL delivery
 
+Grouped Address3D ingestion validates all owners and unresolved sections against the
+selected 2D snapshot before clearing or writing collections. Lookups stream in groups of
+at most 99 references, reserving the remaining D1 parameter for the snapshot. Missing
+owners and sections without exactly one reviewed parent match block ingestion; batching
+does not infer or change parent relationships.
+
 ALS retains separate sealed delivery plans for Address 2D SQL and grouped Address3D
 bound batches. Source checksums bind these plans to their preparation; local replay uses
 the exact remote payloads and timestamps. Database receipts allow recovery after a lost
@@ -78,6 +84,15 @@ House's June 2025 gap receives 949 units corroborated by identical May and Augus
 inventories. The June bilingual parent must match the evidence premise, and the source
 CSU must be absent from that 3D delivery. Cross-release evidence retains its actual date
 and separate curation provenance; raw deliveries remain unchanged.
+
+For Ching Lok, Ching Hay, Ching Sin and Ching Shun Houses, the paired
+`hkgov-dpo-address-2d-backfills.json` fixture reconstructs named Address2D records
+across the sixteen retained releases before June 2025. The inventory fixture supplies
+their 4,234 units across seventeen releases before August 2025. Both start at 25 July
+2024, after the Housing Authority's corroborated 2022 intake year. Reconstruction enters
+the ordinary identity and division pipeline; later publisher assertions retain the same
+normalised identities. Existing unnamed same-CSU premises remain separate source
+records.
 
 Reviewed duplicate address descriptions are stored in `hkgov-dpo-address-aliases.json`.
 The ten reviewed Cheung Wah Estate block-number duplicates are suppressed across the 30

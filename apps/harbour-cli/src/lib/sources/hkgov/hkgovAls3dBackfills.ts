@@ -12,13 +12,20 @@ export async function* readAls3dWithBackfills(
 ) {
   const backfills = fixture.backfills.filter(b => b.sourceVersions.includes(version))
   const seen = new Map<string, Als3dFeature[]>()
+  const estates = new Set(rows.map(row => row.enEstateName))
   for await (const record of readAls3dFeatures(file)) {
     const csu =
       record.feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId
     if (csu) seen.set(csu, [...(seen.get(csu) ?? []), record.feature])
+    estates.add(
+      record.feature.properties.Address.PremisesAddress.EngPremisesAddress?.EngEstate
+        ?.EstateName ?? null,
+    )
     yield { ...record, backfill: undefined }
   }
   for (const backfill of backfills) {
+    // District/estate-scoped preparations do not reconstruct unrelated estates.
+    if (!estates.has(backfill.estate)) continue
     assert(
       !seen.has(backfill.csu) ||
         ('allowReviewedEmptyPremise' in backfill &&
