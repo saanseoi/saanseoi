@@ -29,7 +29,7 @@ test('restores key creation instructions after resetting a confirmed key', async
   await expect
     .element(screen.getByRole('button', { name: 'Reset' }))
     .not.toBeInTheDocument()
-  await screen.getByRole('button', { name: 'API key ready' }).click()
+  await screen.getByRole('button', { name: /^API key ready\b/ }).click()
 
   await expect
     .element(screen.getByText(/We assume your API key is stored as/))
@@ -65,7 +65,7 @@ test('asks the user to confirm their existing key is in .env', async () => {
     .element(screen.getByRole('heading', { name: 'Add your API key to the project' }))
     .toBeVisible()
   await expect
-    .element(screen.getByRole('button', { name: 'API key ready' }))
+    .element(screen.getByRole('button', { name: /^API key ready\b/ }))
     .not.toBeInTheDocument()
   await expect
     .element(screen.getByRole('button', { name: 'I have added my API key to .env' }))
@@ -93,7 +93,7 @@ test('automatically confirms an LLM-created key', async () => {
   await screen.getByRole('button', { name: 'Create Key' }).click()
 
   await expect
-    .element(screen.getByRole('button', { name: 'API key ready' }))
+    .element(screen.getByRole('button', { name: /^API key ready\b/ }))
     .toBeVisible()
   expect(confirmed).toBe(true)
   expect(ready).toBe(true)
@@ -141,6 +141,7 @@ test('uses PowerShell to inspect the project folder on Windows', async () => {
 
   await screen.getByRole('button', { name: 'Use Existing' }).click()
 
-  await expect.element(screen.getByText('PS> Get-ChildItem -Force')).toBeVisible()
-  await expect.element(screen.getByText('-a---                .env')).toBeVisible()
+  const output = screen.getByText(/^PS> Get-ChildItem -Force/)
+  await expect.element(output).toBeVisible()
+  expect(output.element().textContent).toMatch(/-a---\s+\.env/)
 })

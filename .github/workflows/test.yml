@@ -83,6 +83,16 @@ jobs:
         run: bun run test
         working-directory: ${{ matrix.app.path }}
 
+      - name: 'INSTALL :: Chromium for component tests'
+        if: matrix.app.path == 'apps/atlas-app'
+        run: bunx playwright install --with-deps chromium
+        working-directory: ${{ matrix.app.path }}
+
+      - name: 'TEST :: Run browser component tests'
+        if: matrix.app.path == 'apps/atlas-app'
+        run: bun run test:browser
+        working-directory: ${{ matrix.app.path }}
+
       # These two files each initialise SQLite fixture databases. Keep only
       # them serial while the other Harbour API test files run normally.
       - name: 'TEST :: Run Harbour API tests serially'
