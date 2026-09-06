@@ -56,6 +56,62 @@ function setup(definitions = [citygate]) {
 }
 
 describe('supplementary Place Address policy', () => {
+  test('rebuilds an edited number range from a checked-in decision and replays it', () => {
+    const source = observation('Citygate, 20 Tat Tung Road')
+    const { addressId: _id, ...seed } = citygate
+    const values = [
+      {
+        ...seed,
+        buildingNumberFrom: '20',
+        buildingNumberTo: '24',
+        buildingNumberExpression: '20–24',
+        formattedAddress: 'Citygate, 20–24 Tat Tung Road',
+      },
+    ]
+    const policy = {
+      ...structuredClone(policyFixture),
+      decisions: [
+        {
+          placeId: source.placeId,
+          fingerprint: addressFingerprint(source.texts),
+          sourceRelease: source.sourceRelease,
+          previousAddressId: null,
+          resolution: 'replace',
+          addressId: supplementaryIdentity(values).addressId,
+          reason: 'Reviewed building range',
+          address: { baseAddressId: citygate.addressId, values },
+        },
+      ],
+    }
+    const fixture = parseSupplementaryCuration(policy, emptySupplementaryEntryLedger())
+    const analyse = createSupplementaryAddressAnalyser(
+      [citygate],
+      new Set([citygate.addressId]),
+      new Map(),
+      fixture,
+    )
+    const first = analyse(source, null)
+    expect(first.tier).toBe('supplementary')
+    expect(first.entry?.values[0]?.buildingNumberTo).toBe('24')
+    expect(first.entry?.acceptanceMode).toBe('curated')
+    expect(analyse(source, null).addressId).toBe(first.addressId)
+    expect(fixture.entries).toHaveLength(1)
+    const rebuilt = parseSupplementaryCuration(policy, emptySupplementaryEntryLedger())
+    expect(
+      createSupplementaryAddressAnalyser(
+        [citygate],
+        new Set([citygate.addressId]),
+        new Map(),
+        rebuilt,
+      )(source, null).addressId,
+    ).toBe(first.addressId)
+    expect(() =>
+      parseSupplementaryCuration({
+        ...policy,
+        decisions: [{ ...policy.decisions[0], addressId: 'tampered' }],
+      }),
+    ).toThrow('Invalid edited')
+  })
   test('keeps generated entries out of the version-controlled policy', () => {
     expect(() => parseSupplementaryCuration({ ...policyFixture, entries: [] })).toThrow(
       'must not contain generated entries',

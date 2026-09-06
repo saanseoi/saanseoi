@@ -8,6 +8,7 @@ import {
   unlink,
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
+import { reviewPlaceAddressCurations } from './placeAddressCurationUi.ts'
 import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
@@ -433,10 +434,18 @@ async function prepareSupplementaryAddressesLocked(
     throw new Error('Place Address curation changed during analysis; retry.')
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
-  if (reviewCount)
+  if (reviewCount) {
+    const saved = await reviewPlaceAddressCurations({
+      rows: readStagedJsonLines<StagedAddressResolution>(resolutionPath),
+      definitions,
+      curationPath,
+      sourceRelease: input.plan.sourceVersion,
+      total: reviewCount,
+    })
     throw new Error(
-      `${reviewCount} Place Address identities require explicit curation in ${curationPath}. Review ${reviewPath}; --yes cannot select identities.`,
+      `${reviewCount} Place Address identities require explicit curation; ${saved} decisions saved. Continue the initialisation to apply saved decisions. Review ${reviewPath}; --yes cannot select identities.`,
     )
+  }
   await writeSupplementaryEntryLedger(entryLedgerPath, {
     ...entryLedger,
     entries: fixture.entries,
