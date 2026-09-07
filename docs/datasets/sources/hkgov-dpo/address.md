@@ -170,12 +170,12 @@ estate, bilingual blank-premise structure, route, point and named owner are all 
 the full publisher assertion is retained in owner provenance. The HA Low Block remains a
 derived section, and the later distinct Lei Fook Low Block source premise is unaffected.
 
-`hkgov-dpo-address-coordinate-backfills.json` applies the April 2026 current point for
-each of thirteen reviewed Cheung Hong Estate houses, six reviewed Ap Lei Chau Estate
-houses and six reviewed Butterfly Estate houses to their July 2024–February 2026 derived
-Address2D records. Each rule is bounded by release, CSU, estate, English building name
-and the exact earlier point. The replaced publisher point is retained in the row's
-curation provenance; no later record or unreviewed premise is altered.
+`hkgov-dpo-address-coordinate-backfills.json` applies a current point to its preceding
+continuous publisher-coordinate epoch only when the audited event is named,
+coordinate-only and every shift is strictly below 50 metres. Each generated rule is
+bounded by release, CSU, estate, English building name and the exact earlier point. The
+replaced publisher point is retained in the row's curation provenance; no later record
+or unreviewed premise is altered.
 
 Cheung Hong Commercial Centre No. 2 uses a bounded named-premise retention: preserve the
 named premise, suppress the reviewed unnamed cross-reference only while both source
