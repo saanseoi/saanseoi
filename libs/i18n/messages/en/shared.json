@@ -456,6 +456,7 @@
   "publishers_resource_place": "place",
   "publishers_resource_street": "street",
   "publishers_cadence_as_needed": "as needed",
+  "publishers_cadence_census": "census",
   "publishers_cadence_five_yearly": "every five years",
   "publishers_cadence_half_yearly": "twice yearly",
   "publishers_cadence_monthly": "monthly",
