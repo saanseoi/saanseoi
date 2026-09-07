@@ -45,6 +45,7 @@ DROP TABLE IF EXISTS `publishedDataJournal`;
 DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `divisionCodes`;
 DROP TABLE IF EXISTS `divisionIdentifierBridges`;
+DROP TABLE IF EXISTS `identifierBridges`;
 DROP TABLE IF EXISTS `api_key_usage`;
 DROP TABLE IF EXISTS `api_key_usage_rollup`;
 DROP TABLE IF EXISTS `accessAnalyticsRollups`;

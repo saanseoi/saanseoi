@@ -83,6 +83,8 @@ DROP TABLE IF EXISTS `licenses`;
 DROP TABLE IF EXISTS `publisherI18n`;
 DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `divisionIdentifierBridges`;
+DROP TABLE IF EXISTS `identifierBridges`;
+DROP TABLE IF EXISTS `divisionCodes`;
 DROP TABLE IF EXISTS `divisionStatistics`;
 DROP TABLE IF EXISTS `statsRecords`;
 DROP TABLE IF EXISTS `statsObservationDimensions`;
