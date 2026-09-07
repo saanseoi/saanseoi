@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8f968e24b3eefa948481265e7634467949761d916337fc221ce76ec80233f1ee",
+  "versionHash": "sha256:de4caf0f8e1f5f101ece8b83e05b7eb996b6a12b0e7770779407c3bc119cec39",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
@@ -49,6 +49,22 @@
   "releases": [
     {
       "sourceVersion": "2022"
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2022",
+      "outputVariant": "hkgov-had:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "category": "boundaries",
