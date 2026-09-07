@@ -2,7 +2,80 @@ import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
 import { readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
 import { publisherInventoryHash } from './hkgovAls3dCorrections'
+import {
+  curationProvenance,
+  resolveHkgovAlsCurationVerification,
+  type HkgovAlsCurationApplication,
+} from './hkgovAlsCurationLifecycle'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+
+type InventoryTemplate = {
+  floors: { from: number; to: number }
+  units: { from: number; to: number }
+}
+
+type Backfill = (typeof fixture.backfills)[number] & {
+  application?: HkgovAlsCurationApplication
+  inventoryTemplate?: InventoryTemplate
+}
+
+function backfillsForVersion(version: string) {
+  return (fixture.backfills as Backfill[]).flatMap(decision => {
+    const verification = resolveHkgovAlsCurationVerification(
+      version,
+      decision.sourceVersions,
+      decision.application,
+    )
+    return verification
+      ? [
+          {
+            ...decision,
+            curation: curationProvenance({
+              application: decision.application,
+              id: decision.id,
+              sourceVersion: version,
+              verification,
+            }),
+          },
+        ]
+      : []
+  })
+}
+
+function materialiseBackfillFeature(backfill: Backfill): Als3dFeature {
+  const feature = structuredClone(backfill.feature) as Als3dFeature
+  const template = backfill.inventoryTemplate
+  if (!template) return feature
+  const units = Array.from(
+    {
+      length:
+        (template.floors.to - template.floors.from + 1) *
+        (template.units.to - template.units.from + 1),
+    },
+    (_, index) => {
+      const floor =
+        template.floors.from +
+        Math.floor(index / (template.units.to - template.units.from + 1))
+      const unit = String(
+        floor * 100 +
+          template.units.from +
+          (index % (template.units.to - template.units.from + 1)),
+      )
+      return { floor, unit }
+    },
+  )
+  const premises = feature.properties.Address.PremisesAddress
+  assert(premises.EngPremisesAddress && premises.ChiPremisesAddress)
+  premises.EngPremisesAddress.Eng3dAddress = units.map(({ floor, unit }) => ({
+    EngUnit: { UnitDescriptor: 'FLAT', UnitNo: unit },
+    EngFloor: { FloorNum: floor, FloorDescription: `${floor}/F` },
+  }))
+  premises.ChiPremisesAddress.Chi3dAddress = units.map(({ floor, unit }) => ({
+    ChiFloor: { FloorNum: floor, FloorDescription: `${floor}樓` },
+    ChiUnit: { UnitNo: unit, UnitDescriptor: '室' },
+  }))
+  return feature
+}
 
 /** A dated source assertion used by explicit curation, never a fabricated current assertion. */
 export async function* readAls3dWithBackfills(
@@ -10,7 +83,7 @@ export async function* readAls3dWithBackfills(
   version: string,
   rows: PreparedHkgovAlsRow[],
 ) {
-  const backfills = fixture.backfills.filter(b => b.sourceVersions.includes(version))
+  const backfills = backfillsForVersion(version)
   const seen = new Map<string, Als3dFeature[]>()
   const estates = new Set(rows.map(row => row.enEstateName))
   for await (const record of readAls3dFeatures(file)) {
@@ -55,7 +128,7 @@ export async function* readAls3dWithBackfills(
       `Backfill ${backfill.id}: ambiguous or missing parent`,
     )
     const parent = parents[0]!
-    const feature = structuredClone(backfill.feature) as Als3dFeature
+    const feature = materialiseBackfillFeature(backfill)
     const p = feature.properties.Address.PremisesAddress
     const en = { ...p.EngPremisesAddress },
       zh = { ...p.ChiPremisesAddress }

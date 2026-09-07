@@ -8,6 +8,7 @@ import {
   labelAls2dBackfillRows,
 } from './hkgovAls2dBackfills'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
+import { publisherInventoryHash } from './hkgovAls3dCorrections'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 
@@ -120,6 +121,79 @@ test('guards full inventory backfills against changed, missing and ambiguous par
     await expect(collect(changed)).rejects.toThrow()
     await write(fixture.backfills[0]!.feature)
     await expect(collect()).rejects.toThrow('no longer absent')
+  } finally {
+    await rm(path, { recursive: true, force: true })
+  }
+})
+
+test('forward-fills Ching Ho House until revoked and records verification status', async () => {
+  const path = await mkdtemp(join(tmpdir(), 'als-forwardfill-test-'))
+  const file = join(path, 'input.geojson')
+  const twoD = buildAls2dBackfillFeatures([], '2026-08-19.0')
+  const chingHo = twoD.find(
+    source =>
+      source.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+        ?.CsuId === '2911623349T20240814',
+  )
+  expect(chingHo).toBeDefined()
+  const rows = [normalise(chingHo!.feature, chingHo!.sourceFile, '2026-08-19.0')]
+  labelAls2dBackfillRows(rows)
+  expect(JSON.parse(rows[0]!.sources).hkgovAlsAddressBackfill.curation).toEqual(
+    expect.objectContaining({ verificationStatus: 'verified' }),
+  )
+  const unrelated = {
+    geometry: { type: 'Point', coordinates: [114, 22] },
+    properties: {
+      Address: {
+        PremisesAddress: {
+          EngPremisesAddress: { EngEstate: { EstateName: 'OTHER ESTATE' } },
+        },
+      },
+    },
+  }
+  const collect = async (version: string) => {
+    await writeFile(
+      file,
+      JSON.stringify({ type: 'FeatureCollection', features: [unrelated] }, null, 2),
+    )
+    const records = []
+    for await (const record of readAls3dWithBackfills(file, version, rows))
+      records.push(record)
+    return records
+  }
+  try {
+    const verified = await collect('2026-08-19.0')
+    const generated = verified.find(
+      record =>
+        record.feature.properties.Address.PremisesAddress.BuildingCsuInformation
+          ?.CsuId === '2911623349T20240814',
+    )
+    expect(generated).toBeDefined()
+    expect(generated!.backfill).toEqual(
+      expect.objectContaining({
+        curation: expect.objectContaining({ verificationStatus: 'verified' }),
+      }),
+    )
+    expect(publisherInventoryHash(generated!.feature)).toBe(
+      '8de70677bc80db262828aefa010725389899f90daa5a0c5ef6da1d324b3bc506',
+    )
+    expect(
+      generated!.feature.properties.Address.PremisesAddress.EngPremisesAddress
+        ?.Eng3dAddress,
+    ).toHaveLength(851)
+
+    const unverified = await collect('2026-09-01.0')
+    expect(
+      unverified.find(
+        record =>
+          record.feature.properties.Address.PremisesAddress.BuildingCsuInformation
+            ?.CsuId === '2911623349T20240814',
+      )!.backfill,
+    ).toEqual(
+      expect.objectContaining({
+        curation: expect.objectContaining({ verificationStatus: 'unverified' }),
+      }),
+    )
   } finally {
     await rm(path, { recursive: true, force: true })
   }

@@ -324,6 +324,66 @@
       "authority": "User decision, 2026-09-07: reconstruct named buildings from the first retained release, corroborated by HA 2022 intake.",
       "intakeYear": 2022,
       "intakeEvidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/4.json"
+    },
+    {
+      "id": "cheung-ching-ching-ho-house-until-revoked",
+      "estate": "CHEUNG CHING ESTATE",
+      "csu": "2911623349T20240814",
+      "sourceVersions": [],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2025-08-28.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "evidenceSourceVersion": "2025-08-28.0",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "featureIndexOneBased": 536,
+      "authority": "User decision, 2026-09-07: forward-fill Ching Ho House because it still exists, until revoked.",
+      "decision": "Restore the verified named Ching Ho House premise from the September 2025 omission onward. Retain the removed ALS assertions as provenance; apply to later releases until explicitly revoked, marking releases after the last verified source version as unverified.",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.10748, 22.34918]
+        },
+        "properties": {
+          "Northing": 823343,
+          "Easting": 829120,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "2911623349T20240814"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "StreetName": "涌美路",
+                  "BuildingNoFrom": "1"
+                },
+                "ChiEstate": {
+                  "EstateName": "長青邨"
+                },
+                "BuildingName": "青荷樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "CHING HO HOUSE",
+                "EngEstate": {
+                  "EstateName": "CHEUNG CHING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "1",
+                  "StreetName": "CHUNG MEI ROAD"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2911623349T20240814"
+            }
+          }
+        }
+      }
     }
   ]
 }
