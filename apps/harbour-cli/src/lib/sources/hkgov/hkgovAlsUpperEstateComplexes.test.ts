@@ -68,7 +68,9 @@ test('upper estate addresses persist across all releases without consuming house
             features.find(
               f =>
                 f.properties?.Address?.PremisesAddress?.EngPremisesAddress
-                  ?.BuildingName,
+                  ?.BuildingName &&
+                f.properties?.Address?.PremisesAddress?.EngPremisesAddress?.EngEstate
+                  ?.EstateName === rule.estate,
             ),
           ),
           '2030-01-01.0',

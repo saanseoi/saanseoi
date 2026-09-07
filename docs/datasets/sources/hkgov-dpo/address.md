@@ -21,7 +21,10 @@ ALS preflight includes both passes of 3D preparation for each release: source-pa
 ownership resolution followed by corrected bilingual inventory validation. Shared-owner
 ambiguity, conflicting inventories and row-size violations stop preflight before
 ingestion. `writeOutput: false` suppresses artefact writes, while retaining 3D
-validation and its parent block enrichment and duplicate suppression.
+validation and its parent block enrichment and duplicate suppression. Block-free
+enrichment candidates must have no bilingual source block objects. Descriptor-only
+blocks such as `CARPARK BLK` / `停車場` retain their publisher components and use their
+existing 2D parent without numbered-block enrichment.
 
 `--skip-curation-checks` accepts pending correction verification and identity drift
 checks during ingestion, including with `--yes`, without running the upfront all-release

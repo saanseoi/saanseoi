@@ -126,6 +126,34 @@
         "zhHantBuildingName": "俊宏軒第十一座"
       },
       "aliasCsu": "1818836583P20120105"
+    },
+    {
+      "id": "sai-wan-estate-east-terrace-shared-building",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "SAI WAN ESTATE",
+      "zhEstate": "西環邨",
+      "sharedBuilding": true,
+      "owner": {
+        "csu": "3104715804T20050430",
+        "enBuildingName": "EAST TERRACE",
+        "zhHantBuildingName": "東苑臺"
+      },
+      "aliasCsu": "3104715804T20050430",
+      "ownerStreet": {
+        "en": {
+          "StreetName": "CADOGAN STREET",
+          "BuildingNoFrom": "52",
+          "BuildingNoTo": "60"
+        },
+        "zh": {
+          "StreetName": "加多近街",
+          "BuildingNoFrom": "52",
+          "BuildingNoTo": "60"
+        }
+      },
+      "evidence": "The named 52–60 Cadogan Street assertion and the streetless assertion share CSU 3104715804T20050430, point [114.12621, 22.28124] before 3 April 2026 and [114.12621, 22.2811] thereafter, bilingual EAST TERRACE / 東苑臺 names, and the same 3D inventory in every retained release. The streetless assertion is an equivalent source assertion of the same building, not a second building or section.",
+      "authority": "User decision, 2026-09-08: retain the 52–60 Cadogan Street assertion as the canonical Address2D owner and coalesce the equivalent streetless assertion while retaining its raw source provenance."
     }
   ]
 }

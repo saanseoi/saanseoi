@@ -95,7 +95,7 @@ export async function prepareAls3dCollections(options: {
     const zh = JSON.parse(row.chiPremisesAddressJson)
     const key = parentKey(row.hkgovCsuId, en, zh)
     byKey.set(key, [...(byKey.get(key) ?? []), row])
-    if (!row.enBlockNumber && !row.zhHantBlockNumber) {
+    if (!en.EngBlock && !zh.ChiBlock && !row.enBlockNumber && !row.zhHantBlockNumber) {
       const blocklessKey = hkgovAls3dBlocklessParentKey(row.hkgovCsuId, en, zh)
       blocklessParentsByKey.set(blocklessKey, [
         ...(blocklessParentsByKey.get(blocklessKey) ?? []),

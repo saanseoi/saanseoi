@@ -105,6 +105,36 @@ test('skip mode retains a block-free parent despite mismatched 3D block referenc
   }
 })
 
+test('descriptor-only 2D blocks retain their source components without enrichment', async () => {
+  const { dir, rows } = await delivery(false)
+  try {
+    const file = join(dir, 'als_addresses_3d_test.geojson')
+    const input = JSON.parse(await readFile(file, 'utf8'))
+    const premises = input.features[0].properties.Address.PremisesAddress
+    premises.EngPremisesAddress.EngBlock = { BlockDescriptor: 'CARPARK BLK' }
+    premises.ChiPremisesAddress.ChiBlock = { BlockDescriptor: '停車場' }
+    const row = rows[0]!
+    row.engPremisesAddressJson = JSON.stringify(premises.EngPremisesAddress)
+    row.chiPremisesAddressJson = JSON.stringify(premises.ChiPremisesAddress)
+    await writeFile(file, JSON.stringify(input, null, 2))
+    const originalRows = structuredClone(rows)
+    for (const writeOutput of [false, true]) {
+      expect(
+        await prepareAls3dCollections({
+          sourceDir: dir,
+          sourceVersion: '2020-01-01.0',
+          outputFile: join(dir, 'output.parquet'),
+          rows,
+          writeOutput,
+        }),
+      ).toEqual({ collectionCount: 1, unitCount: 1, sourceCount: 1 })
+      expect(rows).toEqual(originalRows)
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('output-free 3D preparation validates inventories without creating a sidecar', async () => {
   const { dir, rows } = await delivery(false)
   try {
