@@ -23,6 +23,16 @@ import { openApiText } from '../../../lib/openapi-i18n'
 
 const SOURCE_FAMILIES = [
   {
+    family: 'places',
+    label: 'Place',
+    sourceReleasesDescription: openApiText(
+      'openapi_place_source_releases_list_description',
+    ),
+    sourceReleaseUnavailableDescription: openApiText(
+      'openapi_place_source_release_unavailable_description',
+    ),
+  },
+  {
     family: 'addresses',
     label: 'Address',
     sourceReleasesDescription: openApiText(

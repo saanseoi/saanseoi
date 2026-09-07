@@ -1,4 +1,6 @@
 {
+  "openapi_place_source_releases_list_description": "List source releases contributing to a Places API release.",
+  "openapi_place_source_release_unavailable_description": "Source release is unavailable for Place source-record access.",
   "openapi_region_filter_description": "Region filter: hk (Hong Kong, default), mo (Macao), or gba (Greater Bay Area, currently using Hong Kong data). Macao has no published data.",
   "openapi_empty_region_collection_description": "No data is published for the selected region. Publication metadata is omitted.",
   "nav_data": "Data",

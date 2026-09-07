@@ -599,7 +599,7 @@ for (const path of apiRoutePaths) {
   })
 }
 
-for (const family of ['addresses', 'divisions', 'stats'] as const) {
+for (const family of ['addresses', 'divisions', 'places', 'stats'] as const) {
   for (const version of ['v0', 'v0.1'] as const) {
     app.use(`/${family}/${version}/sources`, (c, next) =>
       streamSourceRecordsMiddleware(family, c, next),

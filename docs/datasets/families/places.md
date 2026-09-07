@@ -1,5 +1,14 @@
 # Places dataset family
 
+The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
+optional `releaseSet`, `snapshot`, `cohort` and `dataset` selectors. Read retained
+Overture records at `/places/v0.1/sources?sourceRelease=<source-release-code>`. JSON
+responses contain `records`, an exact source-release `pin` and `nextCursor`; pass that
+cursor with the same source release to continue. `sample=random` selects a sample,
+`include=geometry` exposes source geometry, and `format=ndjson&download=1` streams a
+download. Both endpoints also support the `/places/v0` alias and the shared public API
+authentication and region contract.
+
 Place and supplementary Address snapshots retain source-selection recipes and run
 evidence under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Planning
