@@ -15,6 +15,7 @@ import {
 } from './hkgovAlsPremiseReconstructions'
 import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
 import { retainNamedPremises } from './hkgovAlsNamedPremiseRetentions'
+import { suppressAlsUnnamedPremises } from './hkgovAlsUnnamedPremiseSuppressions'
 import {
   buildAls2dBackfillFeatures,
   labelAls2dBackfillRows,
@@ -224,6 +225,7 @@ export async function prepareHkgovAlsAddressParquet(
   restoreAlsEstateComponents(rows, options.sourceVersion)
   restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
+  suppressAlsUnnamedPremises(rows, options.sourceVersion)
   backfillAlsCoordinates(rows, options.sourceVersion)
   if (options.writeOutput !== false)
     parquetWriteFile({

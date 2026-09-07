@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
+import { suppressAlsUnnamedPremises } from './hkgovAlsUnnamedPremiseSuppressions'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import { normaliseAls3dInventory } from './hkgovAls3d'
 import { resolveAddress3dCoverage } from '@repo/db/address3d'
@@ -131,7 +132,7 @@ test('identical designs retain distinct building inventories and unresolved High
   expect(new Set(unitIds).size).toBe(2)
 })
 
-test('reviewed unnamed Low Block uses its publisher identity and location without a duplicate section', () => {
+test('unnamed Lei Moon duplicate is not reused as a Low Block section', () => {
   const rows = premises()
   const moon = rows[1]!
   const low = {
@@ -141,19 +142,29 @@ test('reviewed unnamed Low Block uses its publisher identity and location withou
     hkgovCsuId: '3370111759T20150127',
     enBuildingName: null,
     zhHantBuildingName: null,
-    geometry: 'reviewed-low-point',
+    geometry: JSON.stringify({
+      type: 'Point',
+      coordinates: [114.15197, 22.24457],
+    }),
   }
   rows.push(low)
   const ownership = applyAlsAddressHierarchies(rows, '2025-02-25.0')
-  expect(rows).toHaveLength(7)
-  expect(low.parentAddressId).toBe(moon.id)
-  expect(low.curatedGranularity).toBe('section')
-  expect(low.geometry).toBe('reviewed-low-point')
+  expect(rows).toHaveLength(8)
+  expect(low.parentAddressId).not.toBe(moon.id)
+  expect(low.curatedGranularity).toBeUndefined()
   expect(low.enBuildingName).toBeNull()
-  expect(ownership.get(moon.id)?.unresolvedSectionIds).toContain(low.id)
-  expect(() => applyAlsAddressHierarchies(premises(), '2025-02-25.0')).toThrow(
-    'review required',
+  const derivedLow = rows.find(
+    row => row.hkgovCsuId === null && row.enBuildingName === 'LEI MOON HSE LOW BLK',
   )
+  expect(derivedLow?.parentAddressId).toBe(moon.id)
+  expect(ownership.get(moon.id)?.unresolvedSectionIds).toContain(derivedLow?.id)
+  expect(ownership.get(moon.id)?.unresolvedSectionIds).not.toContain(low.id)
+  expect(suppressAlsUnnamedPremises(rows, '2025-02-25.0')).toEqual({ suppressed: 1 })
+  expect(rows).toHaveLength(7)
+  expect(JSON.parse(moon.sources).hkgovAlsUnnamedPremiseSuppression).toMatchObject({
+    decision: expect.stringContaining('not expose it as a Low Block'),
+  })
+  expect(applyAlsAddressHierarchies(premises(), '2025-02-25.0').size).toBe(2)
 })
 
 test('changed street components, repeated same-CSU assertions and out-of-bounds releases are not silently accepted', () => {

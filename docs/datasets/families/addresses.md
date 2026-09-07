@@ -165,6 +165,11 @@ derived Address2D snapshots. Cheung Hong Estate's thirteen April 2026 points are
 by release, CSU, estate, building and prior geometry; the historical publisher point is
 retained as provenance rather than overwritten in the source record.
 
+A reviewed unnamed premise can be suppressed when its complete components identify a
+duplicate of a named owner. Lei Moon House's temporary zero-unit record is retained in
+owner provenance, while the Housing Authority Low Block remains a derived section; this
+does not suppress distinct later section records merely because they share an estate.
+
 Reviewed block components can identify a building without a separate building-name
 field. Easeful Court's two towers retain those publisher components; the guarded review
 mapping does not create names, merge identities or alter historical inventories.
