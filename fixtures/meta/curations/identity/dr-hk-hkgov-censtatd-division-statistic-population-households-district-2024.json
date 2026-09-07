@@ -1,0 +1,103 @@
+{
+  "versionHash": "sha256:abba8ed57704462bbe4d5f759d9752adedf874d502b44e1f4e41a6905cce6137",
+  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "resourceType": "division",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
+  "cohortKey": "2024",
+  "domain": "administrative",
+  "authority": "hkgov-censtatd",
+  "mappingMethod": "published-district-class-reviewed-against-dc-ghs",
+  "reviewStatus": "reviewed",
+  "mappings": [
+    {
+      "externalId": "A",
+      "externalCode": "11",
+      "canonicalId": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d"
+    },
+    {
+      "externalId": "B",
+      "externalCode": "12",
+      "canonicalId": "a3f5d985-9d91-4629-a530-f66420a0be01"
+    },
+    {
+      "externalId": "C",
+      "externalCode": "13",
+      "canonicalId": "01b58985-268d-4b8a-8e09-64604668b13e"
+    },
+    {
+      "externalId": "D",
+      "externalCode": "14",
+      "canonicalId": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a"
+    },
+    {
+      "externalId": "E",
+      "externalCode": "27",
+      "canonicalId": "c8ca7da1-2688-402a-8eb9-199b69b5691c"
+    },
+    {
+      "externalId": "F",
+      "externalCode": "23",
+      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5"
+    },
+    {
+      "externalId": "G",
+      "externalCode": "24",
+      "canonicalId": "94d17307-4085-457b-93a1-1f2f31f1b6c0"
+    },
+    {
+      "externalId": "H",
+      "externalCode": "25",
+      "canonicalId": "8cb650f2-5721-4c32-bb57-330ecc13987d"
+    },
+    {
+      "externalId": "J",
+      "externalCode": "26",
+      "canonicalId": "cf79b69e-8575-4e9b-b15a-a4a8901e685b"
+    },
+    {
+      "externalId": "K",
+      "externalCode": "32",
+      "canonicalId": "bfb5966d-812d-4eee-9303-b6abf899b81e"
+    },
+    {
+      "externalId": "L",
+      "externalCode": "33",
+      "canonicalId": "a55585af-2cb4-41a5-93a9-2e22568c9839"
+    },
+    {
+      "externalId": "M",
+      "externalCode": "34",
+      "canonicalId": "d70db334-3685-4475-a252-23bdd13650e8"
+    },
+    {
+      "externalId": "N",
+      "externalCode": "35",
+      "canonicalId": "e0c8872f-c29e-4ea3-8efd-88afccef2b08"
+    },
+    {
+      "externalId": "P",
+      "externalCode": "36",
+      "canonicalId": "f20e26ca-8ab6-422d-bf31-d4648b931b8c"
+    },
+    {
+      "externalId": "Q",
+      "externalCode": "38",
+      "canonicalId": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2"
+    },
+    {
+      "externalId": "R",
+      "externalCode": "37",
+      "canonicalId": "e70ad27b-857b-45f9-b94f-2168550591da"
+    },
+    {
+      "externalId": "S",
+      "externalCode": "31",
+      "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb"
+    },
+    {
+      "externalId": "T",
+      "externalCode": "39",
+      "canonicalId": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31"
+    }
+  ]
+}
