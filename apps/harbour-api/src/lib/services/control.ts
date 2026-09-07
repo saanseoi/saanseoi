@@ -487,8 +487,7 @@ export async function handlePublishDataset(
           .limit(1)
           .get()
         if (
-          !snapshot ||
-          snapshot.status !== 'published' ||
+          snapshot?.status !== 'published' ||
           snapshot.resourceType !== carriedSnapshot.resourceType
         ) {
           throw new ControlRequestError(

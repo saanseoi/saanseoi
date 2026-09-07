@@ -1,10 +1,8 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import {
-  normaliseDivisionAreaGeometryRow,
-  normaliseDivisionBoundaryGeometryRow,
-} from '@repo/core/pipeline/services/divisionGeometry'
+import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { currentSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
@@ -113,7 +111,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
                 `Cannot derive Overture ${area.code} geometry: expected one English district named ${name}, found ${ids.length}.`,
               )
             }
-            return ids[0]!
+            return requireDefined(ids[0])
           })
     return [
       {
@@ -173,68 +171,6 @@ export function buildSyntheticOvertureHongKongAreaRows(
   })
 }
 
-async function buildSyntheticOvertureHongKongBoundaryRows(
-  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  metaDb: HarbourReadableDb,
-  plan: GeometryUploadPlan,
-  areas: readonly SyntheticOvertureHongKongArea[],
-) {
-  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-    metaDb,
-    'divisionArea',
-    plan.regionCode,
-    plan.cohortKey,
-    { variant: 'overture' },
-  )
-  if (!snapshot) {
-    throw new Error(
-      `Cannot synthesise Overture boundaries: no published Overture divisionArea snapshot exists for ${plan.cohortKey}.`,
-    )
-  }
-  const rows = await currentDb
-    .select({
-      divisionId: currentSchema.divisionAreas.divisionId,
-      geometry: currentSchema.divisionAreas.geometry,
-    })
-    .from(currentSchema.divisionAreas)
-    .where(eq(currentSchema.divisionAreas.snapshotId, snapshot.id))
-    .all()
-  const geometryByDivisionId = new Map(rows.map(row => [row.divisionId, row.geometry]))
-  return areas.map(area => {
-    const areaGeometry = geometryByDivisionId.get(area.divisionId)
-    if (!isGeoJsonPolygon(areaGeometry)) {
-      throw new Error(
-        `Cannot synthesise ${area.code} boundary: its synthetic divisionArea is absent.`,
-      )
-    }
-    const boundary = geoJsonBoundary(areaGeometry)
-    const normalisedBoundary = normaliseDivisionBoundaryGeometryRow(
-      {
-        class: 'land',
-        division_ids: [area.divisionId, 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'],
-        geometry: boundary,
-        id: `SAANSEOI:OVERTURE:HK:AREA:${area.code}:boundary`,
-        is_land: true,
-        is_territorial: false,
-        perspectives: null,
-        sources: [
-          {
-            dataset: 'SaanSeoi corrective processing',
-            property: 'synthetic:boundary-from-unioned-overture-district-areas',
-            record_id: `overture:hk:area:${area.code}`,
-          },
-        ],
-      },
-      'overture',
-      { variant: 'overture' },
-    )
-    if (!normalisedBoundary) {
-      throw new Error(`Failed to normalise synthetic ${area.code} boundary.`)
-    }
-    return normalisedBoundary
-  })
-}
-
 function syntheticOvertureHongKongAreaSourceRow(
   area: SyntheticOvertureHongKongArea,
   geometry: GeoJsonGeometry,
@@ -275,18 +211,6 @@ function unionHongKongAreaGeometries(geometries: readonly GeoJsonGeometry[]) {
     throw new Error('Synthetic Overture Hong Kong area union is not polygonal.')
   }
   return geometry
-}
-
-function geoJsonBoundary(geometry: GeoJsonGeometry) {
-  const reader = new GeoJSONReader(new GeometryFactory())
-  const writer = new GeoJSONWriter()
-  const boundary = writer.write(
-    reader.read(JSON.stringify(geometry)).getBoundary(),
-  ) as GeoJsonGeometry
-  if (boundary.type !== 'LineString' && boundary.type !== 'MultiLineString') {
-    throw new Error('Synthetic Overture Hong Kong area boundary is not linear.')
-  }
-  return boundary
 }
 
 function unionBalanced(geometries: Geometry[]) {

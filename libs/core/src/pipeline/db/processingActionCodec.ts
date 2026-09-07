@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import { createHash, sortJsonValue } from '../utils'
 
 export const AUDIT_MAX_DECISIONS = 256
@@ -72,7 +73,7 @@ function encode(actions: AuditRecord[]) {
     version: 1,
     summaries,
     records: actions.map(action => [
-      indices.get(action.summary)!,
+      requireDefined(indices.get(action.summary)),
       action.affectedRecordCount,
       action.evidence,
     ]),
@@ -123,7 +124,7 @@ export async function encodeAuditGroup(
         parts === 1
           ? bytes
           : bytes.slice(part * FRAGMENT_BYTES, (part + 1) * FRAGMENT_BYTES)
-      const compressed = parts === 1 ? payload! : await gzip(raw)
+      const compressed = parts === 1 ? requireDefined(payload) : await gzip(raw)
       if (compressed.length > AUDIT_MAX_BLOB_BYTES)
         throw new Error('Audit fragment exceeds BLOB limit.')
       chunks.push({

@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import {
   buildDeterministicUuidV5,
   computeVersionHash,
@@ -145,7 +146,9 @@ export async function recordEffectiveSnapshotAssembly(
         role: input.role,
         isRequired: true,
         selectorType:
-          input.rules.length === 1 ? input.rules[0]!.selectionMode : 'multiple',
+          input.rules.length === 1
+            ? requireDefined(input.rules[0]).selectionMode
+            : 'multiple',
         anchorDatasetId: null,
         maxLagDays: null,
         priority: 0,

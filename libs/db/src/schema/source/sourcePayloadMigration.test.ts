@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../../core/src/requireDefined'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
@@ -17,7 +18,9 @@ test('source payload migration preserves every retained value and version row', 
   )
   const tables = [
     ...new Set(
-      [...migration.matchAll(/ALTER TABLE `([^`]+)`/g)].map(match => match[1]!),
+      [...migration.matchAll(/ALTER TABLE `([^`]+)`/g)].map(match =>
+        requireDefined(match[1]),
+      ),
     ),
   ]
   const before = new Map<string, Record<string, unknown>[]>()
@@ -55,8 +58,12 @@ test('source payload migration preserves every retained value and version row', 
     expect(after).toHaveLength(2)
     for (const [index, row] of after.entries()) {
       for (const [key, value] of Object.entries(row))
-        expect(value).toEqual(before.get(table)![index]![key])
-      expect(row.rawProperties).toBe(before.get(table)![index]!.rawProperties)
+        expect(value).toEqual(
+          requireDefined(requireDefined(before.get(table))[index])[key],
+        )
+      expect(row.rawProperties).toBe(
+        requireDefined(requireDefined(before.get(table))[index]).rawProperties,
+      )
     }
   }
   expect(tables.length).toBeGreaterThan(10)

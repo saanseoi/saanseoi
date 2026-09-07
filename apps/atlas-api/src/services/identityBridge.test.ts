@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { createLocalHarbourDb } from '../../../../libs/core/src/testing/localDb'
@@ -62,7 +63,10 @@ test('pagination deduplicates tuples while retaining ambiguous identifiers', () 
   }))
   const first = identityBridgePage(rows, query)
   expect(first.data.map(row => row.canonicalId)).toEqual(['a'])
-  const second = identityBridgePage(rows, { ...query, cursor: first.nextCursor! })
+  const second = identityBridgePage(rows, {
+    ...query,
+    cursor: requireDefined(first.nextCursor),
+  })
   expect(second.data.map(row => row.canonicalId)).toEqual(['b'])
   expect(second.nextCursor).toBeNull()
   expect(identityBridgePage(rows, { ...query, identifier: 'missing' }).data).toEqual([])

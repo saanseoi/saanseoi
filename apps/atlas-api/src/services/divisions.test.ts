@@ -44,29 +44,6 @@ const resolvedReleaseSet = {
   ],
 }
 
-const hierarchyWithNames = [
-  {
-    division_id: 'division-country-cn',
-    subtype: 'country',
-    name: '中国',
-  },
-  {
-    division_id: 'division-hk-sar',
-    subtype: 'dependency',
-    name: 'Hong Kong SAR',
-  },
-  {
-    division_id: 'division-east',
-    subtype: 'region',
-    name: '東區 Eastern District',
-  },
-  {
-    division_id: 'division-a-kung-ngam',
-    subtype: 'locality',
-    name: '阿公岩 A Kung Ngam',
-  },
-]
-
 const normalisedHierarchy = [
   {
     division_id: 'division-hk-sar',
@@ -666,11 +643,5 @@ describe('division services', () => {
       'division-hk-sar',
       'division-east',
     ])
-    const hongKongSar = result.body.included?.find(
-      resource => resource.type === 'divisions' && resource.id === 'division-hk-sar',
-    ) as typeof result.body.data | undefined
-    const easternDistrict = result.body.included?.find(
-      resource => resource.type === 'divisions' && resource.id === 'division-east',
-    ) as typeof result.body.data | undefined
   })
 })

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import {
   applyRoadReview,
@@ -26,7 +27,7 @@ const issue = {
   candidates: [],
   kind: 'unmatched' as const,
 }
-const group = groupRoadCentrelineIssues([issue], streets)[0]!
+const group = requireDefined(groupRoadCentrelineIssues([issue], streets)[0])
 const review = (decision: RoadReview['decisions'][string]): RoadReview => ({
   schemaVersion: 1,
   context: {
@@ -89,8 +90,11 @@ describe('Road segment review', () => {
   })
   test('publisher text cannot insert terminal control sequences', () => {
     expect(
-      formatRoadEvidence({ ...streets[0]!, englishName: '\u001b[2Jbad\nname' }),
+      formatRoadEvidence({
+        ...requireDefined(streets[0]),
+        englishName: '\u001b[2Jbad\nname',
+      }),
     ).not.toContain('\u001b[2J')
-    expect(formatRoadEvidence(streets[0]!)).toContain('第一街')
+    expect(formatRoadEvidence(requireDefined(streets[0]))).toContain('第一街')
   })
 })

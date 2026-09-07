@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { inArray, historySchema } from '@repo/db'
 import {
   resolveApiReleaseSetSnapshotsForRequest,
@@ -96,7 +97,7 @@ export function extractAreaIdentityMappings(
   if (regional)
     rows.push({
       namespace: 'hkgovCenstatd.code',
-      identifier: regional[1]!,
+      identifier: requireDefined(regional[1]),
       canonicalId: divisionId,
     })
   return rows
@@ -121,8 +122,8 @@ export function identityBridgePage(
     .filter(key => !query.cursor || key > query.cursor)
   const page = keys.slice(0, query.limit)
   return {
-    data: page.map(key => unique.get(key)!),
-    nextCursor: keys.length > query.limit ? page.at(-1)! : null,
+    data: page.map(key => requireDefined(unique.get(key))),
+    nextCursor: keys.length > query.limit ? requireDefined(page.at(-1)) : null,
   }
 }
 
@@ -215,8 +216,8 @@ export async function listIdentityBridge(
           batch.map(row => JSON.stringify([row.recordId, row.versionHash])),
         )
         const rows = await runWithD1ReadRetry(async () =>
-          batch[0]!.shard.db
-            .select({
+          requireDefined(batch[0])
+            .shard.db.select({
               id: table.id,
               versionHash: table.versionHash,
               identifiers: table.identifiers,

@@ -17,37 +17,6 @@ let { children, class: className = '' }: Props = $props()
 
 <style>
 :global {
-  .landing-pipeline:not(.landing-pipeline-active) .pipeline-traveller,
-  .landing-pipeline:not(.landing-pipeline-active) .pipeline-number::before,
-  .landing-pipeline:not(.landing-pipeline-active) .artefact,
-  .landing-pipeline:not(.landing-pipeline-active) .pipeline-arrow {
-    animation-play-state: paused;
-  }
-
-  .landing-pipeline .landing-section-header,
-  .landing-pipeline .pipeline-stage {
-    transition:
-      opacity 480ms ease,
-      translate 560ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-
-  .landing-pipeline:not(.landing-pipeline-revealed) .landing-section-header,
-  .landing-pipeline:not(.landing-pipeline-revealed) .pipeline-stage {
-    opacity: 0;
-    translate: 0 1rem;
-  }
-
-  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(1) {
-    transition-delay: 80ms;
-  }
-
-  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(3) {
-    transition-delay: 160ms;
-  }
-
-  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(5) {
-    transition-delay: 240ms;
-  }
   .landing-pipeline {
     overflow: clip;
     scroll-margin-top: var(--landing-header-height, 4.5rem);
@@ -117,6 +86,10 @@ let { children, class: className = '' }: Props = $props()
     pointer-events: none;
   }
 
+  .pipeline-arc marker path {
+    fill: currentColor;
+  }
+
   .pipeline-arc path {
     fill: none;
     stroke-width: 1.4;
@@ -124,10 +97,6 @@ let { children, class: className = '' }: Props = $props()
     stroke-linejoin: round;
     opacity: 0.52;
     marker-end: url("#pipeline-arc-arrow");
-  }
-
-  .pipeline-arc marker path {
-    fill: currentColor;
   }
 
   .pipeline-traveller {
@@ -371,6 +340,37 @@ let { children, class: className = '' }: Props = $props()
   }
 
   /* Light mode uses clear, colour-coded stages; dark mode keeps its original treatment. */
+  .landing-pipeline:not(.landing-pipeline-active) .pipeline-traveller,
+  .landing-pipeline:not(.landing-pipeline-active) .pipeline-number::before,
+  .landing-pipeline:not(.landing-pipeline-active) .artefact,
+  .landing-pipeline:not(.landing-pipeline-active) .pipeline-arrow {
+    animation-play-state: paused;
+  }
+
+  .landing-pipeline .landing-section-header,
+  .landing-pipeline .pipeline-stage {
+    transition:
+      opacity 480ms ease,
+      translate 560ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .landing-pipeline:not(.landing-pipeline-revealed) .landing-section-header,
+  .landing-pipeline:not(.landing-pipeline-revealed) .pipeline-stage {
+    opacity: 0;
+    translate: 0 1rem;
+  }
+
+  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(1) {
+    transition-delay: 80ms;
+  }
+
+  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(3) {
+    transition-delay: 160ms;
+  }
+
+  .landing-pipeline.landing-pipeline-revealed .pipeline-stage:nth-child(5) {
+    transition-delay: 240ms;
+  }
   :global(html:not(.dark)) .landing-pipeline {
     background: #f8f5ec;
   }
@@ -633,6 +633,13 @@ let { children, class: className = '' }: Props = $props()
       font-size: max(4.2rem, min(3.5vw, 6.222222vh));
     }
 
+    .pipeline-stage h2 + p {
+      max-width: max(20rem, min(16.666667vw, 29.62963vh));
+      margin-top: max(0.5rem, min(0.416667vw, 0.740741vh));
+      font-size: max(1rem, min(0.833333vw, 1.481481vh));
+      line-height: max(1.5rem, min(1.25vw, 2.222222vh));
+    }
+
     .landing-section-header p {
       margin-top: max(1rem, min(0.833333vw, 1.481481vh));
       font-size: max(1.14rem, min(0.95vw, 1.688889vh));
@@ -704,13 +711,6 @@ let { children, class: className = '' }: Props = $props()
     .pipeline-stage h2 {
       margin-top: max(0.25rem, min(0.208333vw, 0.37037vh));
       font-size: max(1.5rem, min(1.25vw, 2.222222vh));
-    }
-
-    .pipeline-stage h2 + p {
-      max-width: max(20rem, min(16.666667vw, 29.62963vh));
-      margin-top: max(0.5rem, min(0.416667vw, 0.740741vh));
-      font-size: max(1rem, min(0.833333vw, 1.481481vh));
-      line-height: max(1.5rem, min(1.25vw, 2.222222vh));
     }
 
     .pipeline-artefacts {
