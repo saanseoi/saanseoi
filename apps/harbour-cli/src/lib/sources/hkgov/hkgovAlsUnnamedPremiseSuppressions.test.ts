@@ -62,3 +62,37 @@ test('does not suppress outside its dates and fails closed when the source point
     'source point changed',
   )
 })
+
+test('can suppress an exact blank-name duplicate that shares the named owner CSU', () => {
+  const fuTung = fixture.suppressions.find(
+    suppression => suppression.id === 'fu-tung-market-unnamed-duplicate',
+  )
+  if (!fuTung) throw new Error('Missing Fu Tung suppression fixture')
+  const market = {
+    ...structuredClone(owner),
+    hkgovCsuId: fuTung.owner.csu,
+    enEstateName: fuTung.estate,
+    zhHantEstateName: fuTung.zhHantEstateName,
+    enBuildingName: fuTung.owner.enBuildingName,
+    zhHantBuildingName: fuTung.owner.zhHantBuildingName,
+  }
+  const unnamed = {
+    ...structuredClone(duplicate),
+    hkgovCsuId: fuTung.duplicate.csu,
+    enEstateName: fuTung.estate,
+    zhHantEstateName: fuTung.zhHantEstateName,
+    enStreetNumberFrom: fuTung.duplicate.streetNumber,
+    zhHantStreetNumberFrom: fuTung.duplicate.streetNumber,
+    enStreetName: fuTung.duplicate.enStreetNames[0],
+    zhHantStreetName: fuTung.duplicate.zhHantStreetNames[0],
+    geometry: JSON.stringify({
+      type: 'Point',
+      coordinates: fuTung.duplicate.coordinates[0],
+    }),
+  }
+
+  const rows = [market, unnamed] as PreparedHkgovAlsRow[]
+  expect(suppressAlsUnnamedPremises(rows, '2024-12-12.0')).toEqual({ suppressed: 1 })
+  expect(rows).toHaveLength(1)
+  expect(rows[0]?.enBuildingName).toBe('FU TUNG MARKET')
+})

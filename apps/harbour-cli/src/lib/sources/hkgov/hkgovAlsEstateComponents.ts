@@ -80,5 +80,81 @@ export function restoreAlsEstateComponents(
       })
     }
   }
+
+  for (const d of fixture.streetRestorations ?? []) {
+    const application = (d.application ??
+      fixture.application) as HkgovAlsCurationApplication
+    const verification = resolveHkgovAlsCurationVerification(
+      version,
+      d.versions,
+      application,
+    )
+    if (!verification) continue
+    for (const row of rows) {
+      if (row.hkgovCsuId !== d.csu) continue
+      const en = JSON.parse(row.engPremisesAddressJson ?? '{}')
+      const zh = JSON.parse(row.chiPremisesAddressJson ?? '{}')
+      if (en.BuildingName !== d.enBuilding || zh.BuildingName !== d.zhBuilding) continue
+
+      const sourceStreetMatches =
+        en.EngStreet?.StreetName === d.enStreet.StreetName &&
+        en.EngStreet?.BuildingNoFrom === d.enStreet.BuildingNoFrom &&
+        en.EngStreet?.BuildingNoTo === d.enStreet.BuildingNoTo &&
+        zh.ChiStreet?.StreetName === d.zhStreet.StreetName &&
+        zh.ChiStreet?.BuildingNoFrom === d.zhStreet.BuildingNoFrom &&
+        zh.ChiStreet?.BuildingNoTo === d.zhStreet.BuildingNoTo
+      if (sourceStreetMatches) continue
+
+      assert(
+        !en.EngStreet?.StreetName &&
+          !en.EngStreet?.BuildingNoFrom &&
+          !en.EngStreet?.BuildingNoTo &&
+          !zh.ChiStreet?.StreetName &&
+          !zh.ChiStreet?.BuildingNoFrom &&
+          !zh.ChiStreet?.BuildingNoTo,
+        'Reviewed street component omission changed; review required',
+      )
+      assert.equal(row.enStreetName, null)
+      assert.equal(row.enStreetNumberFrom, null)
+      assert.equal(row.enStreetNumberTo, null)
+      assert.equal(row.zhHantStreetName, null)
+      assert.equal(row.zhHantStreetNumberFrom, null)
+      assert.equal(row.zhHantStreetNumberTo, null)
+
+      row.enStreetName = d.enStreet.StreetName
+      row.enStreetNumberFrom = d.enStreet.BuildingNoFrom
+      row.enStreetNumberTo = d.enStreet.BuildingNoTo
+      row.zhHantStreetName = d.zhStreet.StreetName
+      row.zhHantStreetNumberFrom = d.zhStreet.BuildingNoFrom
+      row.zhHantStreetNumberTo = d.zhStreet.BuildingNoTo
+      row.enFormattedAddress = formatEnPremisesAddress({
+        ...en,
+        EngStreet: d.enStreet,
+      })
+      row.zhHantFormattedAddress = formatZhPremisesAddress({
+        ...zh,
+        ChiStreet: d.zhStreet,
+      })
+      row.sources = JSON.stringify({
+        ...JSON.parse(row.sources),
+        hkgovAlsStreetComponentRestoration: {
+          ...d,
+          curation: curationProvenance({
+            application,
+            id: d.id,
+            sourceVersion: version,
+            verification,
+          }),
+          originalStreet: { en: null, 'zh-hant': null },
+        },
+      })
+      restored++
+      applications.push({
+        fixture: 'hkgov-dpo-address-estate-components.json',
+        id: d.id,
+        verification,
+      })
+    }
+  }
   return { applications, restored }
 }
