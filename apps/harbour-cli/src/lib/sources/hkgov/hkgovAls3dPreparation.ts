@@ -4,7 +4,11 @@ import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
-import { resolveAlsAddressAliases, suppressAlsAddressAliases } from './hkgovAlsAliases'
+import {
+  enrichAls3dParentBlock,
+  hkgovAls3dBlocklessParentKey,
+  suppressAls3dParentBlockDuplicate,
+} from './hkgovAls3dBlockEnrichment'
 import { applyAls3dCorrections } from './hkgovAls3dCorrections'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import {
@@ -71,26 +75,22 @@ export async function prepareAls3dCollections(options: {
   if (input.length !== 1)
     throw new Error(`Expected one ALS 3D delivery, found ${input.length}`)
   const ownership = applyAlsAddressHierarchies(options.rows, options.sourceVersion)
-  const aliases = resolveAlsAddressAliases(options.rows, options.sourceVersion)
-  for (const [duplicateId, { owner }] of aliases) {
-    ownership.set(
-      duplicateId,
-      ownership.get(owner.id) ?? {
-        ownerId: owner.id,
-        physicalBuildingId: owner.canonicalId,
-        unresolvedSectionIds: [],
-      },
-    )
-  }
   const byKey = new Map<string, PreparedHkgovAlsRow[]>()
+  const blocklessParentsByKey = new Map<string, PreparedHkgovAlsRow[]>()
+  const suppressed2dIds = new Set<string>()
   for (const row of options.rows) {
     if (!row.engPremisesAddressJson || !row.chiPremisesAddressJson) continue
-    const key = parentKey(
-      row.hkgovCsuId,
-      JSON.parse(row.engPremisesAddressJson),
-      JSON.parse(row.chiPremisesAddressJson),
-    )
+    const en = JSON.parse(row.engPremisesAddressJson)
+    const zh = JSON.parse(row.chiPremisesAddressJson)
+    const key = parentKey(row.hkgovCsuId, en, zh)
     byKey.set(key, [...(byKey.get(key) ?? []), row])
+    if (!row.enBlockNumber && !row.zhHantBlockNumber) {
+      const blocklessKey = hkgovAls3dBlocklessParentKey(row.hkgovCsuId, en, zh)
+      blocklessParentsByKey.set(blocklessKey, [
+        ...(blocklessParentsByKey.get(blocklessKey) ?? []),
+        row,
+      ])
+    }
   }
   const writer = createWriteStream(`${options.outputFile}.address3d.jsonl`)
   // Observe errors even when the stream has not reached its high-water mark.
@@ -168,7 +168,46 @@ export async function prepareAls3dCollections(options: {
       await write(source)
       sourceCount++
       if (!(en.Eng3dAddress?.length || zh.Chi3dAddress?.length)) continue
-      const candidates = byKey.get(key) ?? []
+      let candidates = byKey.get(key) ?? []
+      const blocklessKey = hkgovAls3dBlocklessParentKey(
+        p.BuildingCsuInformation?.CsuId,
+        en,
+        zh,
+      )
+      const structuralCandidates = blocklessParentsByKey.get(blocklessKey) ?? []
+      const hasBlockComponents = Boolean(en.EngBlock || zh.ChiBlock)
+      if (hasBlockComponents && structuralCandidates.length > 1) {
+        throw new Error(
+          `ALS 3D parent block enrichment requires review: ${en.EngEstate?.EstateName} / ${en.BuildingName}, feature ${featureIndexOneBased}: ${structuralCandidates.length} block-free candidates`,
+        )
+      }
+      const structuralOwner = structuralCandidates[0]
+      if (hasBlockComponents && structuralOwner) {
+        enrichAls3dParentBlock({
+          en,
+          hkgovCsuId: p.BuildingCsuInformation?.CsuId ?? null,
+          owner: structuralOwner,
+          sourceFeatureIndexOneBased: featureIndexOneBased,
+          sourceFile: basename(file),
+          sourceVersion: options.sourceVersion,
+          zh,
+        })
+        const duplicates = candidates.filter(
+          candidate => candidate.id !== structuralOwner.id,
+        )
+        if (duplicates.length > 1) {
+          throw new Error(
+            `ALS 3D parent block enrichment requires review: ${en.EngEstate?.EstateName} / ${en.BuildingName}, feature ${featureIndexOneBased}: ${duplicates.length} block-labelled candidates`,
+          )
+        }
+        const duplicate = duplicates[0]
+        if (duplicate) {
+          suppressAls3dParentBlockDuplicate(structuralOwner, duplicate)
+          suppressed2dIds.add(duplicate.id)
+        }
+        candidates = [structuralOwner]
+        byKey.set(key, candidates)
+      }
       if (candidates.length !== 1)
         throw new Error(
           `ALS 3D parent review required: ${en.EngEstate?.EstateName} / ${en.BuildingName}, feature ${featureIndexOneBased}: ${candidates.length} candidates`,
@@ -246,7 +285,13 @@ export async function prepareAls3dCollections(options: {
     })
     writer.end()
     await once(writer, 'finish')
-    suppressAlsAddressAliases(options.rows, aliases)
+    if (suppressed2dIds.size) {
+      options.rows.splice(
+        0,
+        options.rows.length,
+        ...options.rows.filter(row => !suppressed2dIds.has(row.id)),
+      )
+    }
   } finally {
     writer.destroy()
   }

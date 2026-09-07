@@ -219,6 +219,34 @@ export function buildHkgovAlsProcessingActions(input: {
   }
 
   for (const row of input.resolvedRows) {
+    const enrichment = row.als3dParentBlockEnrichment
+    if (!enrichment) continue
+    actions.push({
+      action: 'als_3d_parent_block_enriched',
+      affectedRecordCount: 1,
+      evidence: {
+        block: {
+          en: enrichment.enBlock,
+          zhHant: enrichment.zhHantBlock,
+        },
+        canonicalRecord: summariseHkgovAlsProcessingRow(row),
+        hkgovCsuId: enrichment.hkgovCsuId,
+        suppressed2dSourceIds: enrichment.suppressed2dSources.map(
+          source => source.addressId,
+        ),
+        source: {
+          featureIndexOneBased: enrichment.sourceFeatureIndexOneBased,
+          file: enrichment.sourceFile,
+          sourceVersion: enrichment.sourceVersion,
+        },
+      },
+      mode: 'automatic' as const,
+      summary:
+        'Enriched an exact bilingual ALS 2D parent with its verified ALS 3D block components.',
+    })
+  }
+
+  for (const row of input.resolvedRows) {
     const buildingName = row.enBuildingNameRomanNumeralNormalisation
     if (!buildingName) continue
     actions.push({

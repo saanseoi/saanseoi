@@ -122,21 +122,23 @@ The estate remains pending for its other baseline premises and chronological cha
 other April 2026 component changes. Both unnamed Low Block premises are identified;
 their source appearance and disappearance remain recorded in the publisher timeline.
 
-## Cheung Wah Estate: reviewed block-number components
+## Block components from exact 3D parents
 
-The ten canonical HA house names retain their verified bilingual block components across
-the 30 retained releases: for example, Cheung Yue House / 祥裕樓 carries Block 2 /
-2座 and Cheung Lai House / 祥禮樓 carries Block 6 / 6座. The
-[`hkgov-dpo-address-aliases.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-aliases.json)
-fixture consolidates a paired block-labelled publisher assertion into its named house,
-or backfills the component when the only historic assertion is unnumbered. Each house
-remains one Address2D and its sole inventory owner; raw source assertions remain
-traceable. A block component is neither a building section nor a second public address.
+A canonical named Address2D receives verified bilingual block components when one
+block-free ALS 2D parent exactly matches one ALS 3D parent by CSU, estate, building,
+street and number components in both languages. The 3D parent must supply the matching
+`BLK n` and `n座` pair. The address remains one Address2D and its sole inventory owner;
+the exact 3D feature is retained in provenance and the release audit. Missing, ambiguous
+or non-standard components require review rather than creating another public address.
 
-The user-approved mapping also covers Cheung Fung (Block 2, 404 units), Cheung Wo (Block
-1, 404), Cheung Tak (Block 4, 792), Cheung Chi (Block 5, 816), Cheung King (Block 3,
-384), Cheung Lok (Block 1, 374), Cheung Shun (Block 3, 420) and Cheung Chung (Block 7,
-592). All ten houses retain distinct ownership of 5,120 units.
+The rule covers the stable public-housing cohort in Cheung Wah, Fu Shin, Lai On, Long
+Ping and Tsui Lam Estates. Cheung Yue House / 祥裕樓 carries Block 2 / 2座 and Cheung
+Lai House / 祥禮樓 carries Block 6 / 6座.
+
+Cheung Wah's other enriched parents are Cheung Fung (Block 2, 404 units), Cheung Wo
+(Block 1, 404), Cheung Tak (Block 4, 792), Cheung Chi (Block 5, 816), Cheung King (Block
+3, 384), Cheung Lok (Block 1, 374), Cheung Shun (Block 3, 420) and Cheung Chung (Block
+7, 592). All ten houses retain distinct ownership of 5,120 units.
 
 `bun scripts/verify-cheung-lai-address3d.ts cheung-wah` checks all thirty release guards
 and earliest/latest combined preparation, including distinct owners and preserved source
