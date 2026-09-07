@@ -166,6 +166,13 @@ Chinese name is backfilled. Original components and discarded assertions are pre
 as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
 does not generalise shared points or CSU values into permission to merge.
 
+`hkgov-dpo-address-school-reconciliations.json` keeps the exact 3 Tsing Luk Street Ho
+Chak Wan Primary School assertions as one school throughout retained history. The
+estate-only CSU is retained as raw estate-membership provenance while the bilingual
+school label is backfilled onto the stable owner; the missing named assertion is not
+treated as a closure. The separate Liu To Road premise is outside this exact-match
+decision.
+
 `--skip-curation-checks` applies reviewed Address3D suppressions when their evidence
 guards match. An unresolved guard mismatch does not fail preparation or apply the
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
@@ -241,6 +248,12 @@ releases; Tin Wan is backfilled and retained until revoked. Deterministic SaanSe
 `ss-UUID` identifiers do not claim publisher GeoAddress or CSU values: those fields
 remain null, and exact publisher assertions remain provenance. House inventories are not
 assigned to these estate identities.
+
+`hkgov-dpo-address-complex-promotions.json` promotes only the blockless Pik Lam House
+assertion to the Tsui Lam Estate complex at 11 Tsui Lam Road. Its latest reviewed point,
+`[114.24977, 22.32093]`, is backfilled from the earliest retained release. Block 1 stays
+as the independent numbered building assertion, with its source components and point
+unchanged.
 
 Tsz Fai House's exact `418A/B/C` to `418` merger is dated 13 August 2025. Flat `419`
 starts on that same date as a new flat and is not backfilled into earlier releases.

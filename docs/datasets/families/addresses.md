@@ -365,6 +365,13 @@ retaining exact source assertions as provenance. Tsz Fai House's `418` merger an
 flat `419` begin on 13 August 2025, without historical backfill of `419`. Sun Yee House
 uses its reviewed earlier point throughout retained history.
 
+The same guarded estate-level promotion applies to Tsui Lam's blockless Pik Lam House
+assertion: it is a complex at 11 Tsui Lam Road using the latest reviewed point across
+retained history. Pik Lam Block 1 remains a separate building assertion. Exact Ho Chak
+Wan Primary School assertions at 3 Tsing Luk Street are instead reconciled as one
+bilingual school identity; the estate-only source assertion remains provenance and is
+not interpreted as a closure.
+
 Reviewed estate corrections preserve address granularity and building ownership. Long
 Shin's `11–12 Yau Shin Street` address belongs to the estate, while each named house
 retains its specific street number and inventory; Shin Leung's missing 313-flat

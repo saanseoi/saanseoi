@@ -433,17 +433,20 @@ prepared Parquet; its report is
 `.local/hkgov-dpo/model-address3d-verification/result.json`. No section partition is
 inferred from numbering, shared coordinates or repeated arrays.
 
-## Blocking ownership decision: Sai Wan East Terrace
+## Reviewed ownership decision: Sai Wan East Terrace
 
 Two source occurrences share CSU `3104715804T20050430`, coordinates
 `[114.12621, 22.2811]`, and the same 186-unit inventory. One identifies 52–60 Cadogan
 Street; the other has no street components. Their 2D identities are respectively
 `ss-bd8219aa-8921-5ad0-8ef1-2d3aab46787e` and `ss-dba30b2f-2ed7-5666-b194-69ba4d21dc9f`.
 
-Preparation stops instead of assigning one physical inventory to two owners. Review
-whether these are equivalent assertions of one building and select its canonical owner;
-do not turn the blank-address record into an invented section. A full latest release
-import is not verified complete while this gate remains.
+The 52–60 Cadogan Street assertion is the canonical Address2D owner. The streetless
+record is an equivalent source assertion of the same building, not a second building or
+an invented section. `hkgov-dpo-address-aliased-premise-coalescences.json` coalesces the
+2D alias after 3D preparation, routes both 3D source occurrences to the owner’s single
+collection, and retains the suppressed raw assertion in provenance. The decision is
+guarded across all 30 retained releases; the source point changes to
+`[114.12621, 22.2811]` from 3 April 2026.
 
 Empty inventories are different: 34 latest features have empty paired arrays, including
 unnamed Mei Tung occurrences and Wo Tin's inventory. Retain them as source evidence, but

@@ -99,7 +99,9 @@ export function normaliseError(error: unknown) {
 }
 
 export function shouldIncludePreviousShardYears(cohortKey: string) {
-  return /^\d{4}-01(?:-\d{2})?/.test(cohortKey)
+  // Snapshot ancestry can cross a shard-year boundary for any cohort, not
+  // only the first cohort published in January.
+  return /^\d{4}-\d{2}(?:-\d{2})?/.test(cohortKey)
 }
 
 export function buildHistoricalAddressMatchKeyLookup(
