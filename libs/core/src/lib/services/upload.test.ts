@@ -220,8 +220,7 @@ function seedCenstatdDensityDataset(db: Database) {
       0
     );
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-      ('hkgov-censtatd-hk-density', 'divisionStatistic');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionStatistic') WHERE id = 'hkgov-censtatd-hk-density' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionStatistic');
   `)
 }
 
@@ -284,8 +283,7 @@ function seedPlaceDataset(db: Database) {
       'static', 'monthly', 'places', 'https://docs.overturemaps.org/',
       'vh-dataset-overture-hk-place-v1', 0, 0
     );
-    INSERT INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES ('overture-hk-place', 'place');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');
   `)
 }
 

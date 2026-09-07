@@ -897,14 +897,12 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt
     WHERE datasets.versionHash <> excluded.versionHash;
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-      ('overture-hk-division', 'division'),
-      ('overture-hk-divisionArea', 'divisionArea'),
-      ('overture-hk-divisionBoundary', 'divisionBoundary'),
-      ('hkgov-had-hk-district', 'divisionArea'),
-      ('hkgov-landsd-hk-division', 'division'),
-      ('hkgov-dpo-hk-address', 'address')
-    ON CONFLICT(datasetId, resourceType) DO NOTHING;
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'overture-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'overture-hk-divisionArea' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionBoundary') WHERE id = 'overture-hk-divisionBoundary' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionBoundary');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-had-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'hkgov-landsd-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'hkgov-dpo-hk-address' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
 
     INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
