@@ -63,5 +63,5 @@ export function resolveIdentityCuration(
       `Incomplete or duplicate identity curation for ${authority}/${domain}/${cohortKey}.`,
     )
   }
-  return rows
+  return rows.map(row => ({ ...row, externalCode: row.externalCode ?? null }))
 }

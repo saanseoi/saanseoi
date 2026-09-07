@@ -169,8 +169,12 @@ export async function buildPlandMetaSql(
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)};`,
-    ...buildInsertStatements('stats', statsColumns, stats),
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)} AND type != 'processing';`,
+    ...buildInsertStatements(
+      'stats',
+      statsColumns,
+      stats.filter(row => row.type !== 'processing'),
+    ),
   ])
 }
 import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'

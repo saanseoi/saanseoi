@@ -1,6 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
-  and,
   eq,
   metaReleaseShardAssignments,
   metaSnapshotLineages,
@@ -8,8 +7,6 @@ import {
   metaSnapshotShardAssignments,
   metaSnapshotSources,
   metaSnapshots,
-  releaseProcessingActions,
-  stats,
 } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 import type {
@@ -148,14 +145,7 @@ export async function buildDivisionMetaSqlFile(
     )
   }
 
-  const [auditSql, processingStatsRows] = await Promise.all([
-    readAuditReplaySql(metaDb, releaseId),
-    metaDb
-      .select()
-      .from(stats)
-      .where(and(eq(stats.releaseId, releaseId), eq(stats.type, 'processing')))
-      .all(),
-  ])
+  const auditSql = await readAuditReplaySql(metaDb, releaseId)
 
   const rows: Record<string, SqlValue>[] = []
 
@@ -179,22 +169,6 @@ export async function buildDivisionMetaSqlFile(
     }
 
     await reportProgress(Math.min(index + batch.length, state.statsRows.length))
-  }
-
-  for (const row of processingStatsRows) {
-    rows.push({
-      id: row.id,
-      type: row.type,
-      releaseId: row.releaseId,
-      dimension: row.dimension,
-      metric: row.metric,
-      metricUnit: row.metricUnit,
-      value: row.value,
-      groupBy: row.groupBy ?? null,
-      groupValue: row.groupValue ?? null,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-    })
   }
 
   const statements = [
@@ -334,7 +308,7 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)};`,
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND type != 'processing';`,
     ...buildInsertStatements(
       'stats',
       [
@@ -350,7 +324,7 @@ ON CONFLICT(id) DO UPDATE SET
         'createdAt',
         'updatedAt',
       ],
-      rows,
+      rows.filter(row => row.type !== 'processing'),
       {
         verb: 'INSERT INTO',
       },

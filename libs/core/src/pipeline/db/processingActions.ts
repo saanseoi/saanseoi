@@ -133,7 +133,20 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
         .all()) as ReleaseStatsRow[],
     }
   }
-  if (!previous.length && !actions.length) return { actions: [], chunks: [], stats: [] }
+  if (!previous.length && !actions.length) {
+    const statistic = await metaDb
+      .select({ id: metaSchema.stats.id })
+      .from(metaSchema.stats)
+      .where(
+        and(
+          eq(metaSchema.stats.releaseId, releaseId),
+          eq(metaSchema.stats.type, 'processing'),
+        ),
+      )
+      .limit(1)
+      .get()
+    if (!statistic) return { actions: [], chunks: [], stats: [] }
+  }
   const timestamp = toIsoTimestamp()
   const groups = new Map<string, ReleaseProcessingAction[]>()
   for (const action of normalised) {
@@ -223,7 +236,21 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     ...statsStatements,
   ])
   // Only collect generations observed before this write, never another writer's staging.
-  const oldChunks = await readReleaseAuditChunks(metaDb, previous)
+  const oldChunks: Array<{ id: string }> = []
+  for (const parent of previous) {
+    oldChunks.push(
+      ...(await metaDb
+        .select({ id: metaSchema.releaseProcessingActionChunks.id })
+        .from(metaSchema.releaseProcessingActionChunks)
+        .where(
+          and(
+            eq(metaSchema.releaseProcessingActionChunks.actionId, parent.id),
+            eq(metaSchema.releaseProcessingActionChunks.generation, parent.generation),
+          ),
+        )
+        .all()),
+    )
+  }
   for (const batch of chunkArray(oldChunks, 90)) {
     await metaDb
       .delete(metaSchema.releaseProcessingActionChunks)

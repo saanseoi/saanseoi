@@ -1,4 +1,9 @@
 import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+import {
+  groupAuditSqlStatements,
+  AUDIT_COMMIT_START,
+  AUDIT_COMMIT_END,
+} from '@repo/core/pipeline/db/processingActionSqlGroups'
 import { withSqlDeliveryCapture } from './sqlDeliveryCapture.ts'
 
 /** Coalesce generated SQL in order, splitting large artefacts only between statements. */
@@ -59,8 +64,13 @@ export async function captureSqlDeliveryBatches(
             )
           )
             throw new Error('Cannot split a SQL delivery transaction across payloads.')
-          for (const statement of statements)
-            await append(destination, new TextEncoder().encode(statement))
+          for (const group of groupAuditSqlStatements(statements, 1)) {
+            const sql =
+              group.length > 1
+                ? [AUDIT_COMMIT_START, ...group, AUDIT_COMMIT_END].join('\n')
+                : group[0]!
+            await append(destination, new TextEncoder().encode(sql))
+          }
         })
         return pending
       },

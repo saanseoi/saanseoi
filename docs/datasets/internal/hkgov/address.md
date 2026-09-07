@@ -129,9 +129,10 @@ variants are printed separately from exact feature duplicates.
 
 At upload, each automatic consolidation and each reviewed identity-drift decision is
 stored against the release in the meta database. The `stats` table records aggregate
-counts under the `processing` metric; `releaseProcessingActions` stores one compact JSON
-evidence object per affected group or record, including the selected canonical ALS
-record and ignored source variants where applicable. Inspect both through:
+counts under the `processing` metric; `releaseProcessingActions` stores action/mode
+summaries, while `releaseProcessingActionChunks` retains compressed JSON evidence per
+affected group or record, including the selected canonical ALS record and ignored source
+variants where applicable. Reports decode the complete evidence. Inspect both through:
 
 ```bash
 saanseoi reports:stats --source hkgov-dpo --type address

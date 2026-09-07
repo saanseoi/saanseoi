@@ -1,5 +1,10 @@
 # Statistics dataset family
 
+Processing audits retain action/mode summaries and compressed evidence chunks in D1.
+Statistics metadata replay stages bounded BLOB statements before the audit summaries and
+processing metrics. Reports retain access to every decision through the
+[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+
 Local source and canonical SQL use native receipt-backed delivery plans. Interrupted
 payload replay resumes from retained SQL without repeating committed writes; local
 metadata preparation remains part of the owning workflow. See

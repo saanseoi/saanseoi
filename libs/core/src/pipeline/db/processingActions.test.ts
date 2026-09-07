@@ -61,6 +61,49 @@ function createProcessingActionsDb() {
 }
 
 describe('replaceReleaseProcessingActions', () => {
+  test('publication winning the staging race prevents the audit switch', async () => {
+    const { sqlite, db } = createProcessingActionsDb()
+    sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")
+    const original = [
+      {
+        action: 'review',
+        mode: 'manual' as const,
+        summary: 'Original',
+        affectedRecordCount: 1,
+        evidence: {},
+      },
+    ]
+    await replaceReleaseProcessingActions(db, 'release-1', original)
+    const before = await readReleaseAuditDecisions(db, ['release-1'])
+    let published = false
+    const racing = new Proxy(db, {
+      get(target, key, receiver) {
+        if (key === 'batch')
+          return async (
+            statements: Array<{ run(): unknown; toSQL(): { params: unknown[] } }>,
+          ) => {
+            expect(
+              statements.every(statement => statement.toSQL().params.length <= 100),
+            ).toBe(true)
+            sqlite.transaction(() => {
+              for (const statement of statements) statement.run()
+            })()
+            if (!published) {
+              published = true
+              sqlite.exec("UPDATE releases SET status='published'")
+            }
+          }
+        return Reflect.get(target, key, receiver)
+      },
+    })
+    await expect(
+      replaceReleaseProcessingActions(racing, 'release-1', [
+        { ...original[0]!, summary: 'New' },
+      ]),
+    ).rejects.toThrow()
+    expect(await readReleaseAuditDecisions(db, ['release-1'])).toEqual(before)
+  })
+
   test('compacts decisions, retains page boundaries and skips identical writes', async () => {
     const { sqlite, db } = createProcessingActionsDb()
     sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")

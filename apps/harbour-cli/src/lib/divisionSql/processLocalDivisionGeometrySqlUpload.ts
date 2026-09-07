@@ -343,7 +343,9 @@ export async function processLocalDivisionGeometrySqlUpload(
               'administrative',
             ).flatMap(row => [
               [row.externalId, row.canonicalId] as const,
-              [row.externalCode, row.canonicalId] as const,
+              ...(row.externalCode
+                ? [[row.externalCode, row.canonicalId] as const]
+                : []),
             ]),
           )
         : null

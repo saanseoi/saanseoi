@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Processing audits store action/mode summaries and compressed evidence chunks in D1.
+Canonical, Planning Department and geometry metadata replay retain both, including BLOB
+payloads. Audit reports expose the individual decisions through the
+[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+
 Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
 Metadata registry synchronisation assigns each code to its canonical Division and
 removes superseded codes for that same domain and canonical ID. Division processing

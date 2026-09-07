@@ -20,6 +20,7 @@ type OriginalDecision = ReleaseProcessingAction & {
 export async function migrateProcessingActionStorage(
   sqlite: Database,
   migrationSql: string,
+  migrationName?: string,
 ) {
   const columns = sqlite
     .query('PRAGMA table_info(releaseProcessingActions)')
@@ -97,6 +98,16 @@ export async function migrateProcessingActionStorage(
       db.insert(metaSchema.releaseProcessingActions).values(summary).run()
     for (const chunk of chunks)
       db.insert(metaSchema.releaseProcessingActionChunks).values(chunk).run()
+    if (
+      migrationName &&
+      sqlite
+        .query(
+          "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'd1_migrations'",
+        )
+        .get()
+    ) {
+      sqlite.query('INSERT INTO d1_migrations(name) VALUES (?)').run(migrationName)
+    }
   })()
   return {
     decisions: original.length,

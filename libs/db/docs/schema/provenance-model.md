@@ -12,13 +12,37 @@ SaanSeoi tracks provenance at two levels.
 
 ## Release Processing Actions
 
-Table: `releaseProcessingActions`
+Tables: `releaseProcessingActions`, `releaseProcessingActionChunks`
 
 This release-scoped audit trail records automatic normalisations and human-reviewed
-decisions made while ingesting a dataset. Each row has a stable action code, an
-`automatic` or `manual` mode, affected-record count, summary, and compact JSON evidence
-that identifies the canonical record and relevant source variants. Aggregate counts are
-also written to `stats` with `type` and `metric` set to `processing`.
+decisions made while ingesting a dataset. Each summary row represents one release,
+action code and `automatic` or `manual` mode, with a content generation, decision count
+and affected-record count. Evidence identifies the canonical record and relevant source
+variants in versioned, gzip-compressed JSON chunks. Summary strings are dictionary
+encoded; release metadata is inherited from the summary. Aggregate counts are also
+written to `stats` with `type` and `metric` set to `processing`.
+
+Chunks stop at 256 decisions, 256 KiB decoded bytes or 32 KiB compressed bytes.
+Oversized individual decisions use ordered fragments. Checksums cover decoded bytes;
+missing fragments or corruption fail the read instead of returning partial evidence. The
+`(actionId, generation, firstOrdinal, part)` index supports bounded audit pages. Full
+exports iterate pages; evidence is decoded in the application rather than searched with
+SQL JSON predicates. Publication checks use summary counts.
+
+The generated schema migration requires an empty action table. For a populated database,
+prepare a converted **offline copy** before restoring through the database snapshot
+workflow:
+
+```fish
+bun scripts/prepare-processing-action-migration.ts /path/to/offline-meta.sqlite /path/to/new-meta.sqlite
+```
+
+The command leaves the input file intact, applies the generated migration and compressed
+records together in a transaction on the copy, and preserves original decision IDs,
+timestamps, evidence, release status and statistics. It records the migration in an
+existing `d1_migrations` ledger. Do not apply the schema-only migration directly to a
+populated action table. Review the converted snapshot and its migration manifest before
+restoring it; the command performs no deployment or live database mutation.
 
 ## Snapshot-Level Provenance
 

@@ -1,4 +1,8 @@
 import { describe, expect, test } from 'bun:test'
+import {
+  encodeAuditGroup,
+  type AuditSummary,
+} from '@repo/core/pipeline/db/processingActionCodec'
 
 import {
   buildReleaseProcessingActionsMetaSqlBatches,
@@ -95,22 +99,29 @@ describe('release statistics metadata replay', () => {
     ).rejects.toThrow('D1 import failed')
   })
 
-  test('replaces audit actions and only their processing stats', () => {
+  test('replaces audit actions and only their processing stats', async () => {
+    const action: AuditSummary = {
+      action: 'map_censtatd_district_code_to_canonical_division',
+      affectedRecordCount: 18,
+      createdAt: '2026-08-18T00:00:00.000Z',
+      generation: 'generation-1',
+      decisionCount: 1,
+      id: 'audit-1',
+      mode: 'automatic',
+      releaseId,
+      updatedAt: '2026-08-18T00:00:00.000Z',
+    }
     const sql = buildReleaseProcessingActionsMetaSqlBatches(releaseId, {
-      actions: [
+      actions: [action],
+      chunks: await encodeAuditGroup(action, [
         {
-          action: 'map_censtatd_district_code_to_canonical_division',
+          action: action.action,
+          mode: action.mode,
+          summary: 'Mapped C&SD districts.',
+          evidence: { cohortKey: '2021' },
           affectedRecordCount: 18,
-          createdAt: '2026-08-18T00:00:00.000Z',
-          generation: 'generation-1',
-          decisionCount: 1,
-          id: 'audit-1',
-          mode: 'automatic',
-          releaseId,
-          updatedAt: '2026-08-18T00:00:00.000Z',
         },
-      ],
-      chunks: [],
+      ]),
       stats: [
         {
           ...stats[0],

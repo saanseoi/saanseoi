@@ -380,7 +380,6 @@ async function buildAddressMetaSqlFile(
   const releaseId = message.releaseId ?? message.datasetId
   const {
     metaReleaseShardAssignments,
-    releaseProcessingActions,
     metaSnapshotAssemblyRuns,
     metaSnapshots,
     metaSnapshotSources,
@@ -570,7 +569,7 @@ async function buildAddressMetaSqlFile(
         'createdAt',
         'updatedAt',
       ],
-      releaseStatsRows,
+      releaseStatsRows.filter(row => row.type !== 'processing'),
       `ON CONFLICT(id) DO UPDATE SET
   type = excluded.type,
   releaseId = excluded.releaseId,

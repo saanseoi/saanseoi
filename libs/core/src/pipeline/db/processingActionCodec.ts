@@ -85,7 +85,10 @@ function encode(actions: AuditRecord[]) {
 
 export function normaliseAuditActions(actions: ReleaseProcessingAction[]) {
   return actions.map(action => {
-    if (!Number.isFinite(action.affectedRecordCount))
+    if (
+      !Number.isFinite(action.affectedRecordCount) ||
+      !Number.isSafeInteger(Math.floor(action.affectedRecordCount))
+    )
       throw new Error('Invalid audit affected-record count.')
     return {
       ...action,
