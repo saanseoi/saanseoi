@@ -143,6 +143,15 @@ export function resolveCacheTablesForBinding(
       ]
     }
 
+    if (cacheTableProfile === 'address') {
+      return [
+        'address2d',
+        'address2dI18n',
+        'address2dBuildingNumberLookup',
+        'snapshotVersionChanges',
+      ]
+    }
+
     if (
       cacheTableProfile === 'divisionGeometry' ||
       cacheTableProfile === 'planningDivisionGeometry'
