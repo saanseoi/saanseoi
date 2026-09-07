@@ -95,3 +95,23 @@ test('output-free 3D preparation rejects competing owners of a shared building',
     await rm(dir, { recursive: true, force: true })
   }
 })
+
+test('skipping curation checks retains separate shared-building owners in review and output', async () => {
+  const { dir, rows } = await delivery(true)
+  try {
+    const options = {
+      sourceDir: dir,
+      sourceVersion: '2020-01-01.0',
+      outputFile: join(dir, 'output.parquet'),
+      rows,
+      skipCurationChecks: true,
+    }
+    const review = await prepareAls3dCollections({ ...options, writeOutput: false })
+    expect(review).toEqual({ collectionCount: 2, unitCount: 2, sourceCount: 2 })
+    expect(await readdir(dir)).toEqual(['als_addresses_3d_test.geojson'])
+    expect(await prepareAls3dCollections(options)).toEqual(review)
+    expect(rows.map(row => row.id)).toEqual(['parent-0', 'parent-1'])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})

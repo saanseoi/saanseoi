@@ -1,6 +1,7 @@
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { linkAlsStructuredBlocks } from './hkgovAlsStructuredBlocks'
 
 const NAMESPACE = 'b2da2675-daca-5920-a99e-c4d562a4c950'
 type HierarchyRow = PreparedHkgovAlsRow & {
@@ -201,6 +202,7 @@ export function applyAlsAddressHierarchies(
       }
     }
   }
+  linkAlsStructuredBlocks(rows)
   return ownership
 }
 

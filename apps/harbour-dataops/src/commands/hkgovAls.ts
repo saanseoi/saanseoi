@@ -501,6 +501,7 @@ async function prepareHkgovAlsRelease(args: {
       sourceVersion: args.sourceVersion,
       postProcessPremiseStructure: args.postProcessPremiseStructure,
       writeOutput: args.writeOutput,
+      skipCurationChecks: args.args.options['skip-curation-checks'] === true,
     })
   } finally {
     await dbContext?.cleanup()

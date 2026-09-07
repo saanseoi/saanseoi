@@ -47,3 +47,44 @@ test('bounds the decision and rejects contradictory Chinese names', () => {
   applyAlsEstateNames([other], '2025-01-23.0')
   expect(other.enEstateName).toBe('CHOI WAN (1) ESTATE')
 })
+
+test('retains Roman I for Hing Wah with estate-specific authority and raw provenance', () => {
+  const r = row()
+  r.enEstateName = 'HING WAH (I) ESTATE'
+  r.zhHantEstateName = '興華(一)邨'
+  r.enFormattedAddress = 'CHEUK WAH HSE, HING WAH (I) ESTATE, 11 WAN TSUI ROAD'
+  r.zhHantFormattedAddress = '環翠道11號興華(一)邨卓華樓'
+  r.engPremisesAddressJson = JSON.stringify({
+    EngEstate: { EstateName: r.enEstateName },
+  })
+  r.chiPremisesAddressJson = JSON.stringify({
+    ChiEstate: { EstateName: r.zhHantEstateName },
+  })
+  const original = { ...r }
+  applyAlsEstateNames([r], '2026-08-19.0')
+  expect(r.enEstateName).toBe('Hing Wah (I) Estate')
+  expect(r.zhHantEstateName).toBe('興華一邨')
+  expect(r.enFormattedAddress).toContain('Hing Wah (I) Estate')
+  expect(r.zhHantFormattedAddress).toContain('興華一邨')
+  expect(r.engPremisesAddressJson).toBe(original.engPremisesAddressJson)
+  expect(r.chiPremisesAddressJson).toBe(original.chiPremisesAddressJson)
+  expect(r.identityKey).toBe(original.identityKey)
+  expect(r.canonicalId).toBe(original.canonicalId)
+  expect(r.id).toBe(original.id)
+  const sources = JSON.parse(r.sources)
+  expect(sources.hkgovAls).toEqual(JSON.parse(original.sources).hkgovAls)
+  expect(sources.hkgovHaEstateName.evidenceUrl).toEndWith('/PRH/15.json')
+  expect(sources.hkgovHaEstateName.decision).toContain('Hing Wah (1) Estate')
+  const sibling = {
+    ...original,
+    engPremisesAddressJson: JSON.stringify({
+      EngEstate: { EstateName: 'HING WAH (II) ESTATE' },
+    }),
+  }
+  const siblingBefore = JSON.stringify(sibling)
+  applyAlsEstateNames([sibling], '2026-08-19.0')
+  expect(JSON.stringify(sibling)).toBe(siblingBefore)
+  const future = { ...original }
+  applyAlsEstateNames([future], '2026-08-20.0')
+  expect(future).toEqual(original)
+})
