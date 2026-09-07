@@ -22,7 +22,7 @@
     "bun-types": "^1.4.2",
     "typescript": "^6.0.3",
     "vitest": "^5.0.0",
-    "wrangler": "^4.129.0"
+    "wrangler": "^4.129.1"
   },
   "dependencies": {
     "@repo/core": "workspace:*",
