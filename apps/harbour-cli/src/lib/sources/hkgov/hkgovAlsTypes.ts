@@ -232,6 +232,13 @@ export type PreparedHkgovAlsRow = {
 }
 
 export type PreparedHkgovAlsResult = {
+  curationApplications: Array<{
+    fixture:
+      | 'hkgov-dpo-address-estate-component-gaps.json'
+      | 'hkgov-dpo-address-estate-components.json'
+    id: string
+    verification: 'unverified' | 'verified'
+  }>
   deduplicatedFeatureCount: number
   driftCandidates: HkgovAlsIdentityDriftCandidate[]
   featureCount: number
