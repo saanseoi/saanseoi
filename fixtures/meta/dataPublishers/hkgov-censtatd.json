@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dbf8d7ceed391eb116b78738c8b00dc63fb8d20b05909358eec282816258c290",
+  "versionHash": "sha256:e62fa7dbd965c3de35c67df330dc51cfa7362e1ecd6d903f9dfb4edf1b8fc985",
   "code": "hkgov-censtatd",
   "parentCode": "hkgov",
   "url": "https://www.censtatd.gov.hk/",
@@ -14,11 +14,13 @@
     {
       "locale": "zh-hant",
       "name": "政府統計處",
+      "nameShort": "統計處",
       "description": "政府統計處提供香港官方統計及人口普查數據。"
     },
     {
       "locale": "zh-hans",
       "name": "政府统计处",
+      "nameShort": "统计处",
       "description": "政府统计处提供香港官方统计及人口普查数据。"
     }
   ]

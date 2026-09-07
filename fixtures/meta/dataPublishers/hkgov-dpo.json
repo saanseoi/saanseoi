@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:222b223f9aa80ab188b5e6dd31e1cf912cd0e8a602936c3be0930472f36c19b2",
+  "versionHash": "sha256:fa0f386c0dd0cb36ad4efdc91fa338ad56d17d99a90771cbe772f1544558a455",
   "code": "hkgov-dpo",
   "parentCode": "hkgov",
   "url": "https://www.digitalpolicy.gov.hk",
@@ -8,16 +8,19 @@
     {
       "locale": "en",
       "name": "Digital Policy Office",
+      "nameShort": "DPO",
       "description": "Policy bureau responsible for digital policy and government digital services."
     },
     {
       "locale": "zh-hant",
       "name": "數字政策辦公室",
+      "nameShort": "數字辦",
       "description": "負責數字政策及政府數字服務的政策部門。"
     },
     {
       "locale": "zh-hans",
       "name": "数字政策办公室",
+      "nameShort": "数字办",
       "description": "负责数字政策及政府数字服务的政策部门。"
     }
   ]
