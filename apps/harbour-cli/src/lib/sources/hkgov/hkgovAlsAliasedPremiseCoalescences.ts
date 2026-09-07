@@ -22,6 +22,7 @@ export function coalesceAlsAliasedPremises(
     const aliases = rows.filter(row => row.hkgovCsuId === decision.aliasCsu)
     if (owners.length === 0 && aliases.length === 0) continue
     if ('sharedBuilding' in decision) {
+      const ownerStreet = requireDefined(decision.ownerStreet)
       try {
         assert.equal(
           owners.length,
@@ -33,9 +34,7 @@ export function coalesceAlsAliasedPremises(
           2,
           `ALS alias ${decision.id}: paired assertions changed`,
         )
-        const owner = owners.find(
-          row => row.enStreetName === decision.ownerStreet.en.StreetName,
-        )
+        const owner = owners.find(row => row.enStreetName === ownerStreet.en.StreetName)
         const alias = owners.find(row => row.enStreetName === null)
         if (!owner || !alias)
           throw new Error(`ALS alias ${decision.id}: paired assertions are missing`)
@@ -47,8 +46,8 @@ export function coalesceAlsAliasedPremises(
         assert.equal(ownerZh?.BuildingName, decision.owner.zhHantBuildingName)
         assert.equal(aliasEn?.BuildingName, decision.owner.enBuildingName)
         assert.equal(aliasZh?.BuildingName, decision.owner.zhHantBuildingName)
-        assert.deepEqual(ownerEn?.EngStreet, decision.ownerStreet.en)
-        assert.deepEqual(ownerZh?.ChiStreet, decision.ownerStreet.zh)
+        assert.deepEqual(ownerEn?.EngStreet, ownerStreet.en)
+        assert.deepEqual(ownerZh?.ChiStreet, ownerStreet.zh)
         assert.equal(aliasEn?.EngStreet ?? null, null)
         assert.equal(aliasZh?.ChiStreet ?? null, null)
         assert.equal(owner.enEstateName, decision.estate)
@@ -65,7 +64,7 @@ export function coalesceAlsAliasedPremises(
         continue
       }
       const owner = requireDefined(
-        owners.find(row => row.enStreetName === decision.ownerStreet.en.StreetName),
+        owners.find(row => row.enStreetName === ownerStreet.en.StreetName),
       )
       const alias = requireDefined(owners.find(row => row.enStreetName === null))
       const aliasEn = JSON.parse(alias.engPremisesAddressJson ?? 'null')
