@@ -186,6 +186,12 @@ guards match. An unresolved guard mismatch does not fail preparation or apply th
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
 emit collections referencing removed address owners.
 
+Skipped 3D section-ownership, ambiguous block-parent and shared-building-owner checks
+emit single-line `ALS_MANUAL_REVIEW` JSON records to the ingestion log. Each carries the
+source version, file, feature index, CSU, names and candidate address IDs. These remain
+unresolved; parent-link integrity failures still stop the affected preparation rather
+than fabricating an owner.
+
 Tsz Lok Phase 3 unnamed CSU `3864823026T20050430` is suppressed from 3D collections for
 its reviewed July 2024–January 2025 assertions using a complete feature hash. Its 633
 bilingual floor/flat expressions are already represented in named building records. Raw

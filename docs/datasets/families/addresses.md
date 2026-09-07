@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+Non-blocking ALS 3D preparation emits `ALS_MANUAL_REVIEW` JSON log lines for unreviewed
+section inventories, ambiguous block parents and shared-building owner conflicts. These
+preserve source locations and candidate address IDs without approving an identity or
+implying that the issue list is complete.
+
 Tsz Lok Phase 3's redundant unnamed 633-expression inventory is suppressed from 3D
 collections with exact source guards. Raw provenance and every named building inventory
 remain intact; repeated floor/flat labels do not imply shared flats.

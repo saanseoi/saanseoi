@@ -17,6 +17,7 @@ import { als3dSuppression } from './hkgovAls3dSuppressions'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import { assertStreetEstateAliasInventoryEmpty } from './hkgovAlsStreetEstateComplexes'
 import { assertAlsCommercialInventoryAbsent } from './hkgovAlsCommercialRetentions'
+import { reportAlsReviewIssue, type AlsReviewIssue } from './hkgovAlsReviewIssue'
 import {
   als3dHash,
   assertAddress3dRowBudget,
@@ -148,6 +149,20 @@ export async function prepareAls3dCollections(options: {
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
       const zh = p.ChiPremisesAddress ?? {}
+      const reportReview = (
+        code: AlsReviewIssue['code'],
+        candidateAddressIds: string[],
+      ) =>
+        reportAlsReviewIssue({
+          sourceVersion: options.sourceVersion,
+          sourceFile: basename(file),
+          featureIndexOneBased,
+          code,
+          estate: en.EngEstate?.EstateName ?? null,
+          building: en.BuildingName ?? null,
+          csu: p.BuildingCsuInformation?.CsuId ?? null,
+          candidateAddressIds,
+        })
       const csuCorrection = resolveAlsCsuCorrection(feature, options.sourceVersion)
       const rawKey = parentKey(p.BuildingCsuInformation?.CsuId, en, zh)
       const key = parentKey(csuCorrection.csu, en, zh)
@@ -239,6 +254,15 @@ export async function prepareAls3dCollections(options: {
       if (
         hasBlockComponents &&
         structuralCandidates.length > 1 &&
+        options.skipCurationChecks
+      )
+        reportReview(
+          'ambiguous-block-parent',
+          structuralCandidates.map(row => row.id),
+        )
+      if (
+        hasBlockComponents &&
+        structuralCandidates.length > 1 &&
         !options.skipCurationChecks
       ) {
         throw new Error(
@@ -291,6 +315,12 @@ export async function prepareAls3dCollections(options: {
       if (
         parent.curatedGranularity === 'section' &&
         !ownership.has(parent.id) &&
+        options.skipCurationChecks
+      )
+        reportReview('unreviewed-section-inventory', [parent.id])
+      if (
+        parent.curatedGranularity === 'section' &&
+        !ownership.has(parent.id) &&
         !options.skipCurationChecks
       )
         throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
@@ -305,6 +335,8 @@ export async function prepareAls3dCollections(options: {
         en.EngBlock?.BlockNo,
       ])
       const priorOwner = physicalOwners.get(physicalKey)
+      if (priorOwner && priorOwner !== owner && options.skipCurationChecks)
+        reportReview('shared-building-owners', [priorOwner, owner])
       if (priorOwner && priorOwner !== owner && !options.skipCurationChecks)
         throw new Error(
           `ALS 3D shared building requires curation: ${en.EngEstate?.EstateName} / ${en.BuildingName}`,
