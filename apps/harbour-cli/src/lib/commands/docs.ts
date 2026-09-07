@@ -249,7 +249,7 @@ async function runApiReleaseSetDocsPublishCommand(
     ].join('\n'),
     'DOCS PUBLISH',
   )
-  outro(dryRun ? 'API docs publish dry run complete' : 'API docs published')
+  outro(dryRun ? 'API docs publish dry run complete' : 'API docs published ✓')
 }
 
 async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
@@ -408,7 +408,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
     ].join('\n'),
     'DOCS PUBLISH',
   )
-  outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published')
+  outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published ✓')
 }
 
 async function resolveSelectedValue(input: {

@@ -1,10 +1,16 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { styleText } from 'node:util'
 
 import { note, outro } from '@clack/prompts'
+import { formatField, formatMutedValue } from '../cli/display.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
+import {
+  finishInitialisationGuide,
+  initialisationIndent,
+} from '../cli/initialisationIndent.ts'
 import type { ParsedArgs } from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
@@ -187,12 +193,13 @@ export async function runInitialisationCommand(
         : 'local'
   note(
     [
-      `command: ${args.command}`,
-      `target: ${targetLabel}`,
-      `artefact cache: ${cacheArtefacts ? 'retain' : 'discard after upload'}`,
+      formatField('command', args.command ?? 'init'),
+      formatField('target', targetLabel),
+      formatField('artefact cache', cacheArtefacts ? 'retain' : 'discard after upload'),
     ].join('\n'),
     'INITIALISATION',
   )
+  process.stdout.write('\n')
 
   let summaryDirectory: string | undefined
   let summaryPath = process.env.SAANSEOI_INIT_SUMMARY_PATH
@@ -214,6 +221,17 @@ export async function runInitialisationCommand(
       ...process.env,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
       SAANSEOI_INIT_COMMAND: args.command ?? '',
+      SAANSEOI_INIT_GUIDES: [
+        process.env.SAANSEOI_INIT_GUIDES,
+        String(
+          initialisationIndent(
+            args.command ?? undefined,
+            process.env.SAANSEOI_INIT_GUIDES,
+          ),
+        ),
+      ]
+        .filter(value => value !== undefined && value !== '')
+        .join(','),
       SAANSEOI_INIT_SUMMARY_PATH: summaryPath,
     },
     stdin: 'inherit',
@@ -257,7 +275,10 @@ export async function runInitialisationCommand(
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
   }
 
-  outro(`${args.command} initialisation complete @ ${targetLabel}`)
+  outro(
+    `${args.command} ${styleText('blue', 'initialisation complete')} ${formatMutedValue(`@ ${targetLabel}`)}`,
+  )
+  finishInitialisationGuide()
 }
 
 async function readInitialisationSummaryEvents(path: string) {

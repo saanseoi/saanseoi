@@ -70,7 +70,7 @@ export async function runBootstrapStatsReleaseSetsCommand(
     ].join('\n'),
     'STATISTICS RELEASE-SET BOOTSTRAP',
   )
-  outro('Statistics release-set bootstrap complete')
+  outro('Statistics release-set bootstrap complete ✓')
 }
 
 function optionRegionCode(
