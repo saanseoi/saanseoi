@@ -307,6 +307,12 @@ Address2D releases, with exact CSU, estate, building and earlier-point guards. T
 3D delivery remains historical evidence; each derived Address2D row records both the
 publisher and replacement geometries in curation provenance.
 
+The April 2026 Ap Lei Chau Estate coordinate event similarly backfills the six named Lei
+Chak, Lei Fook, Lei Moon, Lei Ning, Lei Tim and Lei Yee house points across the same 23
+earlier releases. The unnamed Lei Moon source record is separately suppressed as a
+duplicate; its coordinate change does not authorise it as a Low Block or coordinate
+backfill target.
+
 Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
 `2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
 units). The user confirmed that Tower 1 is the larger building. The mapping is stored in
