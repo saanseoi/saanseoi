@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Tung Tau (II) Estate multi-storey car park persists as a separate address until revoked.
+Oi Hei House retains its CSU while its latest reviewed GeoAddress and point are
+backfilled throughout retained history, preserving publisher evidence.
+
 Tung Tau (II) Estate Refuse Collection Point is retained at 183 Tung Tau Tsuen Road
 throughout retained releases until revoked. Its facility label does not promote it to
 estate granularity, and publisher assertions remain provenance.

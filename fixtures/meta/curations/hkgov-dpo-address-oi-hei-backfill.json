@@ -1,0 +1,1179 @@
+{
+  "version": 1,
+  "csu": "1545427760T20050430",
+  "geoAddress": "1542227735T20110329",
+  "coordinates": [113.97444, 22.38873],
+  "assertions": [
+    {
+      "version": "2024-07-25.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-07-31.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-08-21.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-08-25.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-08-28.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-09-01.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-09-02.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-09-03.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-10-18.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-11-13.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2024-12-12.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-01-23.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-02-25.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-03-21.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-04-26.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-05-22.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-06-20.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-08-13.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-08-28.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-09-03.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-11-04.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2025-12-16.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2026-02-04.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.9746, 22.38896]
+      }
+    },
+    {
+      "version": "2026-04-03.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97475, 22.38895]
+      }
+    },
+    {
+      "version": "2026-04-22.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1545427760T20050430"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97475, 22.38895]
+      }
+    },
+    {
+      "version": "2026-04-25.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1542227735T20110329"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97444, 22.38873]
+      }
+    },
+    {
+      "version": "2026-07-08.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1542227735T20110329"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97444, 22.38873]
+      }
+    },
+    {
+      "version": "2026-07-10.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1542227735T20110329"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97444, 22.38873]
+      }
+    },
+    {
+      "version": "2026-07-22.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1542227735T20110329"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97444, 22.38873]
+      }
+    },
+    {
+      "version": "2026-08-19.0",
+      "premises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1545427760T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "友愛路",
+            "BuildingNoFrom": "15"
+          },
+          "ChiEstate": {
+            "EstateName": "友愛邨"
+          },
+          "BuildingName": "愛曦樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "OI HEI HSE",
+          "EngEstate": {
+            "EstateName": "YAU OI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "15",
+            "StreetName": "YAU OI ROAD",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1542227735T20110329"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [113.97444, 22.38873]
+      }
+    }
+  ],
+  "authority": "User decision: backfill latest Oi Hei GeoAddress and coordinates throughout retained releases; keep CSU unchanged and preserve raw source provenance."
+}

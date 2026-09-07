@@ -9,7 +9,9 @@ test('Tung Tau refuse point is retained across reviewed releases and until revok
   )!
   expect(rule).toBeDefined()
   for (const version of [...rule.sourceVersions, '2030-01-01.0']) {
-    const evidence = rule.evidence2d.filter(e => e.sourceVersions.includes(version))
+    const evidence = fixture.retentions
+      .filter(r => r.estate === rule.estate)
+      .flatMap(r => r.evidence2d.filter(e => e.sourceVersions.includes(version)))
     const marker = structuredClone(rule.evidence2d[0]!.feature)
     marker.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId = 'unrelated'
     marker.properties.Address.PremisesAddress.EngPremisesAddress.BuildingName =
@@ -18,14 +20,27 @@ test('Tung Tau refuse point is retained across reviewed releases and until revok
       feature => ({ feature, sourceFile: 'test', featureIndexOneBased: 1 }),
     ) as unknown as HkgovAlsSourceFeature[]
     const provenance = retainAlsHouses(source, version)
-    expect(source).toHaveLength(2)
-    const retained = source[1]!.feature.properties!.Address!.PremisesAddress!
+    expect(source).toHaveLength(3)
+    const retained = source.find(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === rule.csus[0],
+    )!.feature.properties!.Address!.PremisesAddress!
     expect(retained.EngPremisesAddress?.BuildingName).toBe(
       'TUNG TAU (II) ESTATE REFUSE COLLECTION POINT',
     )
     expect(retained.ChiPremisesAddress?.BuildingName).toBe('東頭（二）邨垃圾站')
     expect(retained.EngPremisesAddress?.EngStreet?.BuildingNoFrom).toBe('183')
     expect(provenance.has(rule.csus[0]!)).toBe(true)
+    const car = source.find(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === '3790621798T20050430',
+    )!
+    expect(
+      car.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
+        ?.BuildingName,
+    ).toBe('TUNG TAU (II) ESTATE MULTI-STOREY CAR PARK')
   }
   const changed = structuredClone(rule.evidence2d[0]!.feature)
   changed.geometry.coordinates = [114, 22]

@@ -186,6 +186,15 @@ guards match. An unresolved guard mismatch does not fail preparation or apply th
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
 emit collections referencing removed address owners.
 
+Tung Tau (II) Estate multi-storey car park CSU `3790621798T20050430` persists at 183
+Tung Tau Tsuen Road until revoked under the address-only retention rules. Complete
+source assertions guard the restoration after its publisher disappearance.
+
+`hkgov-dpo-address-oi-hei-backfill.json` guards all 30 retained Oi Hei House 2D
+assertions. GeoAddress `1542227735T20110329` and coordinates `[113.97444, 22.38873]` are
+backfilled without changing CSU `1545427760T20050430` or its inventory. Raw bilingual
+premises, GeoAddress and geometry remain provenance.
+
 The house-retention fixture also retains refuse collection point CSU
 `3796421950T20050430` at 183 Tung Tau Tsuen Road until revoked, including releases after
 its June 2025 source disappearance. Exact 2D assertion hashes guard the retained
