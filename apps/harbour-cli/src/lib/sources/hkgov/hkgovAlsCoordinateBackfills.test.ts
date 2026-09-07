@@ -16,6 +16,27 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) =>
     sources: '{}',
   }) as PreparedHkgovAlsRow
 
+test('skip mode omits missing, ambiguous and changed coordinate targets without mutations', () => {
+  const version = '2026-02-04.0'
+  const decision = fixture.backfills.find(
+    d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
+  )!
+  const changed = rowFor(decision)
+  changed.geometry = JSON.stringify({ type: 'Point', coordinates: [0, 0] })
+  for (const rows of [[], [rowFor(decision), rowFor(decision)], [changed]]) {
+    const original = structuredClone(rows)
+    expect(backfillAlsCoordinates(rows, version, true)).toEqual({ backfilled: 0 })
+    expect(rows).toEqual(original)
+    expect(() => backfillAlsCoordinates(rows, version)).toThrow()
+  }
+  const rows = fixture.backfills
+    .filter(d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version)
+    .map(rowFor)
+  expect(backfillAlsCoordinates(rows, version, true)).toEqual({
+    backfilled: rows.length,
+  })
+})
+
 test('backfills only reviewed historic points and retains provenance', () => {
   const sourceVersion = '2026-02-04.0'
   const decisions = fixture.backfills.filter(

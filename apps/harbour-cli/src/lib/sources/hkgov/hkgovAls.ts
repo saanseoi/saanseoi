@@ -239,7 +239,7 @@ export async function prepareHkgovAlsAddressParquet(
   const estateGaps = restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
-  backfillAlsCoordinates(rows, options.sourceVersion)
+  backfillAlsCoordinates(rows, options.sourceVersion, options.skipCurationChecks)
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,

@@ -1,3 +1,4 @@
+import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
 import {
   buildHkgovAlsPremiseIdentity,
   buildHkgovAlsProvisionalId,
@@ -143,7 +144,8 @@ export function normaliseHkgovAlsFeature(
     en.EngBlock?.BlockDescriptorPrecedenceIndicator,
   )
   const geoAddress = asOptionalString(premises.GeoAddress)
-  const csuId = asOptionalString(premises.BuildingCsuInformation?.CsuId)
+  const csuCorrection = resolveAlsCsuCorrection(feature, sourceVersion)
+  const csuId = csuCorrection.csu
   const identityBuildingId = csuId ?? geoAddress
   if (!identityBuildingId) {
     throw new Error(`ALS feature in ${sourceFile} is missing GeoAddress and CsuId.`)
@@ -245,9 +247,12 @@ export function normaliseHkgovAlsFeature(
   const provisionalId = buildHkgovAlsProvisionalId(premiseIdentity.identityKey)
   const sources =
     stringifyJson({
+      ...(csuCorrection.decision
+        ? { hkgovAlsCsuCorrection: csuCorrection.decision }
+        : {}),
       hkgovAls: {
         geoAddress,
-        hkgovCsuId: csuId,
+        hkgovCsuId: asOptionalString(premises.BuildingCsuInformation?.CsuId),
         cohortKey,
         sourceFile,
         premiseNormalisation: {

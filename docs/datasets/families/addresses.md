@@ -25,7 +25,8 @@ are omitted in this mode; inventories use exact parents or unique block-free mat
 retaining publisher 2D components. Section inventories may retain their existing parent
 without reviewed ownership. Alias curations whose source guards no longer match are
 omitted in skip mode; both publisher records retain their identities, geometry and
-source assertions.
+source assertions. Coordinate backfills with missing, ambiguous or changed source
+targets are omitted in skip mode, leaving publisher geometry unchanged.
 
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain

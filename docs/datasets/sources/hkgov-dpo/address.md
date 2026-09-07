@@ -26,7 +26,8 @@ duplicate suppression, retaining publisher 2D components and separate assertions
 uses exact parents or unique block-free matches and accepts section inventories without
 a reviewed ownership mapping. Alias coalescences apply only when their source guards
 match. In skip mode, a guard mismatch omits that coalescence and retains both publisher
-records unchanged.
+records unchanged. Coordinate backfills whose source targets are missing, ambiguous or
+changed are omitted in skip mode; matching backfills still apply with their provenance.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
