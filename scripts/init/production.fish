@@ -10,18 +10,15 @@ init_clear_clean_run_manifests production
 # retained from the database that was just erased.
 init_run_step ./bin/saanseoi cache:seed-reset --target production
 
-set -l cache_artefact_args
-if test "$saanseoi_init_cache_artefacts" -eq 1
-    set cache_artefact_args --cacheArtefacts
+set -l cache_artefact_opt_out_args
+if test "$saanseoi_init_cache_artefacts" -ne 1
+    set cache_artefact_opt_out_args --no-cache-artefacts
 end
 
 for command in \
-    init:divisions:geographic \
-    init:divisions:hkgov-pland-pu \
-    init:divisions:hkgov-pland-new-town \
-    init:divisions:hkgov-landsd \
-    init:addresses:official \
-    init:places:overture \
-    init:stats:official
-    init_run_step ./bin/saanseoi $command --target production $cache_artefact_args
+    init:divisions \
+    init:addresses \
+    init:places \
+    init:stats
+    init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
 end
