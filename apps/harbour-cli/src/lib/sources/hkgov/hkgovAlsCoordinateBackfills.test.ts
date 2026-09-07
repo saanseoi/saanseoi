@@ -17,7 +17,7 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) =>
 
 test('backfills only reviewed historic points and retains provenance', () => {
   const rows = fixture.backfills.map(rowFor)
-  expect(backfillAlsCoordinates(rows, '2026-02-04.0')).toEqual({ backfilled: 19 })
+  expect(backfillAlsCoordinates(rows, '2026-02-04.0')).toEqual({ backfilled: 25 })
   for (const [index, decision] of fixture.backfills.entries()) {
     const row = rows[index]
     if (!row?.geometry) throw new Error('Missing coordinate-backfill test row')
@@ -47,45 +47,49 @@ test('does not apply outside the approved history or after source geometry chang
   )
 })
 
-test('Ap Lei Chau backfill guards match the reviewed April 2026 source event', async () => {
+test('reviewed coordinate backfill guards match their April 2026 source events', async () => {
   const audit = await Bun.file(
     'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
   ).json()
-  const estate = audit.estates.find(
-    (entry: { name: string }) => entry.name === 'AP LEI CHAU ESTATE',
-  )
-  const event = estate?.timeline.find(
-    (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
-  )
-  const changes = new Map(
-    event.changed
-      .filter((change: { before: { building: string } }) => change.before.building)
-      .map(
-        (change: {
-          before: {
-            building: string
-            csu: string
-            assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-          }
-          after: {
-            assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-          }
-        }) => [
-          JSON.stringify([change.before.csu, change.before.building]),
-          {
-            previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
-            current: change.after.assertions[0]?.occurrences[0]?.coordinates,
-          },
-        ],
-      ),
-  )
-  const decisions = fixture.backfills.filter(
-    decision => decision.estate === 'AP LEI CHAU ESTATE',
-  )
-  expect(decisions).toHaveLength(6)
-  for (const decision of decisions) {
-    const change = changes.get(JSON.stringify([decision.csu, decision.enBuildingName]))
-    expect(change?.previous).toEqual(decision.previousCoordinates)
-    expect(change?.current).toEqual(decision.currentCoordinates)
+  for (const estateName of ['AP LEI CHAU ESTATE', 'BUTTERFLY ESTATE']) {
+    const estate = audit.estates.find(
+      (entry: { name: string }) => entry.name === estateName,
+    )
+    const event = estate?.timeline.find(
+      (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
+    )
+    const changes = new Map(
+      event.changed
+        .filter((change: { before: { building: string } }) => change.before.building)
+        .map(
+          (change: {
+            before: {
+              building: string
+              csu: string
+              assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+            }
+            after: {
+              assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+            }
+          }) => [
+            JSON.stringify([change.before.csu, change.before.building]),
+            {
+              previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
+              current: change.after.assertions[0]?.occurrences[0]?.coordinates,
+            },
+          ],
+        ),
+    )
+    const decisions = fixture.backfills.filter(
+      decision => decision.estate === estateName,
+    )
+    expect(decisions).toHaveLength(6)
+    for (const decision of decisions) {
+      const change = changes.get(
+        JSON.stringify([decision.csu, decision.enBuildingName]),
+      )
+      expect(change?.previous).toEqual(decision.previousCoordinates)
+      expect(change?.current).toEqual(decision.currentCoordinates)
+    }
   }
 })

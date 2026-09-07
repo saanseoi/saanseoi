@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '../../../types'
+import { readSnapshotAssemblySql } from '../../db/snapshotAssembly'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
   eq,
@@ -432,6 +433,10 @@ async function buildAddressMetaSqlFile(
     )
   }
 
+  const assemblySql = await readSnapshotAssemblySql(
+    metaDb as unknown as HarbourReadableDb,
+    snapshotIdValue,
+  )
   const snapshotAssemblyRunRows = await metaDb
     .select({
       id: metaSnapshotAssemblyRuns.id,
@@ -519,6 +524,7 @@ async function buildAddressMetaSqlFile(
   sourceCohortKey = excluded.sourceCohortKey,
   createdAt = excluded.createdAt`,
     ),
+    ...assemblySql,
     buildInsertStatement(
       'snapshotAssemblyRuns',
       [

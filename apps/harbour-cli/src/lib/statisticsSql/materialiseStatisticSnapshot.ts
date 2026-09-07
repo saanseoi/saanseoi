@@ -1,5 +1,6 @@
 import {
   ensureDraftSnapshotForRelease,
+  recordSnapshotAssemblyRun,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
@@ -80,6 +81,13 @@ export async function materialiseStatisticSnapshots(args: {
         sourceCohortKey: referencePeriod.code,
       },
     )
+
+    await recordSnapshotAssemblyRun(args.metaDb, {
+      snapshotId: snapshot.id,
+      resourceType: 'divisionStatistic',
+      anchorReleaseId: dataset.releaseId,
+      anchorCohortKey: referencePeriod.code,
+    })
 
     const historyShard = await resolveShardForTypeRegionYear(
       args.metaDb,

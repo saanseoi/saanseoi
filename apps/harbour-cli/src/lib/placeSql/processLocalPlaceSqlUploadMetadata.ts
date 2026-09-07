@@ -9,6 +9,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { UploadTarget } from '../cli/options.ts'
 import { resolvePipelineEnvironment } from '../cli/options.ts'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
+import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { metaSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -176,18 +177,7 @@ export async function buildPlaceMetadataSql(
     .limit(1)
     .get()
   if (!snapshot) throw new Error(`Place snapshot metadata not found: ${snapshotId}.`)
-  const assemblies = await db
-    .select({ assembly: metaSchema.metaSnapshotAssembly })
-    .from(metaSchema.metaSnapshotAssembly)
-    .innerJoin(
-      metaSchema.metaSnapshotAssemblyRuns,
-      eq(
-        metaSchema.metaSnapshotAssemblyRuns.snapshotAssemblyId,
-        metaSchema.metaSnapshotAssembly.id,
-      ),
-    )
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
-    .all()
+  const assemblySql = await readSnapshotAssemblySql(db, snapshotId)
   const [
     lineage,
     sources,
@@ -232,9 +222,7 @@ export async function buildPlaceMetadataSql(
     insertSql('snapshots', snapshot),
     ...sources.map(row => insertSql('snapshotSources', row)),
     ...shardAssignments.map(row => insertSql('snapshotShardAssignments', row)),
-    ...assemblies.map(row =>
-      insertSql('snapshotAssembly', row.assembly as Record<string, unknown>),
-    ),
+    ...assemblySql,
     ...assemblyRuns.map(row => insertSql('snapshotAssemblyRuns', row)),
     ...releaseAssignments.map(row => insertSql('releaseShardAssignments', row)),
     ...releaseStats.map(row => insertSql('stats', row)),
