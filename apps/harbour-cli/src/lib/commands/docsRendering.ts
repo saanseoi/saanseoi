@@ -10,6 +10,7 @@ import {
 } from './docsResources.ts'
 import { API_RELEASE_SET_NOTES_DIRECTORY } from './docsConfig.ts'
 import { escapeMarkdownTableCell } from './docsMeasures.ts'
+import { expandTimeTravelSections } from './docsTimeTravel.ts'
 
 export function parseMarkdownFixture(content: string) {
   if (!content.startsWith('---\n')) {
@@ -58,7 +59,7 @@ export async function renderMarkdownFixtureBody(
       ...frontmatterOverride,
     }
 
-    const markdown = fixture.body.replace(
+    const markdown = expandTimeTravelSections(fixture.body, frontmatter).replace(
       /\{\{\s*([a-z][A-Za-z0-9_-]*(?::[A-Za-z-]+)?)\s*\}\}/g,
       (tag, key: string) => resolveMarkdownTemplateValue(tag, key, frontmatter),
     )

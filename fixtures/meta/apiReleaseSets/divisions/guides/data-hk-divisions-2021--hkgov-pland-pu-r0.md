@@ -7,6 +7,9 @@ apiReleaseSet: "data-hk-divisions-2021--hkgov-pland-pu"
 regionCode: "hk"
 cohortKey: "2021"
 domainCode: "hkgov-pland-pu"
+timeTravelEffectiveAt: "2025-10-01T00:00:00.000Z"
+timeTravelKnownAt: "2026-08-24T04:00:46.011Z"
+timeTravelCatalogRevision: "catalog-hk-divisions-v0.1-2026-08-24.11"
 ---
 
 # EN
@@ -136,44 +139,7 @@ Follow <black>links.next</black>, <black>links.prev</black>, and
 
 ## Time travel
 
-Time travel lets you reproduce an earlier analysis, explain a past response, or separate
-a later backfill from what the catalogue knew when a decision was made.
-
-Use <black>effectiveAt</black> to select the release effective at an instant:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 effectiveAt=2025-10-01T00:00:00.000Z
-```
-
-Use <black>knownAt</black> to resolve the newest catalogue checkpoint known at an
-instant, which excludes later backfills:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 knownAt=2026-08-24T04:00:46.011Z
-```
-
-Use <black>catalogRevision</black> to pin one immutable published checkpoint. Combine it
-with <black>releaseSet</black> when replaying a recorded result:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 catalogRevision=catalog-hk-divisions-v0.1-2026-08-24.11&
-                 releaseSet={{ apiReleaseSet }}
-```
-
-When selectors overlap, <black>catalogRevision</black> takes precedence over
-<black>knownAt</black>, and <black>releaseSet</black> takes precedence over
-<black>cohort</black> and <black>effectiveAt</black>.
-
-Every successful response also provides <black>links.permalink</black>: a permanent link
-to the resources you loaded. It contains the resolved
-[release set](saanseoi:en:definition/release-set/v1) and
-[catalogue revision](saanseoi:en:definition/catalogue-revision/v1) selectors, so save it
-to replay that exact result later.
+{{timeTravelSection:en}}
 
 ## Switching domains
 
