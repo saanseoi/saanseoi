@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+A fresh `saanseoi init:addresses` run automatically replaces the official-address
+manifest after verifying that the address database is empty. Existing address state
+still requires continuation or an explicit reset; its recovery manifest is preserved.
+
 Reviewed named/block-only ALS aliases validate the owner's bilingual source building
 names and the alias's bilingual structured block references separately. Shared estate,
 street and point guards apply to both records, and suppressed assertions remain in

@@ -5,17 +5,37 @@ test('all directly invoked commands start at zero and actual children add four s
   expect(initialisationIndent('init')).toBe(0)
   expect(initialisationIndent('init:local')).toBe(0)
   expect(initialisationIndent('init:production')).toBe(0)
-  for (const family of ['addresses', 'divisions', 'places', 'stats', 'streets']) {
+  for (const [family, source] of [
+    ['addresses', 'saanseoi'],
+    ['divisions', 'geographic'],
+    ['places', 'overture'],
+    ['stats', 'government'],
+    ['streets', 'saanseoi'],
+  ]) {
     expect(initialisationIndent(`init:${family}`)).toBe(0)
-    expect(initialisationIndent(`init:${family}:source`)).toBe(0)
+    expect(initialisationIndent(`init:${family}:${source}`)).toBe(0)
     expect(initialisationIndent(`init:${family}`, '0')).toBe(4)
-    expect(initialisationIndent(`init:${family}:source`, '0')).toBe(4)
-    expect(initialisationIndent(`init:${family}:source`, '0,4')).toBe(8)
+    expect(initialisationIndent(`init:${family}:${source}`, '0')).toBe(4)
+    expect(initialisationIndent(`init:${family}:${source}`, '0,4')).toBe(8)
   }
   expect(initialisationIndent('upload')).toBe(0)
   expect(initialisationIndent('upload', '0')).toBe(0)
   expect(initialisationIndent('upload', '0,4')).toBe(4)
   expect(initialisationIndent('docs:publish', '0,4,8')).toBe(8)
+})
+
+test('lifecycle helpers stay on their owning initialiser guide', () => {
+  for (const command of [
+    'init:addresses:saanseoi:begin',
+    'init:addresses:saanseoi:complete',
+    'init:places:overture:begin',
+    'init:places:overture:complete',
+    'init:places:overture:fail',
+  ]) {
+    expect(initialisationIndent(command, '0')).toBe(0)
+    expect(initialisationIndent(command, '0,4')).toBe(4)
+    expect(initialisationIndent(command, '0,4,8')).toBe(8)
+  }
 })
 
 test('indents multiline output across writes and preserves blank lines', () => {

@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+Fresh official-address initialisation replaces a stale target manifest only after the
+clean address baseline checks pass and new before-images are captured. `--continue`
+reuses a running manifest. Failed baseline checks preserve the manifest and its reset
+ownership information.
+
 ALS preflight includes both passes of 3D preparation for each release: source-parent
 ownership resolution followed by corrected bilingual inventory validation. Shared-owner
 ambiguity, conflicting inventories and row-size violations stop preflight before

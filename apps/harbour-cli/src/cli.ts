@@ -50,7 +50,10 @@ import {
 import { parseArgs, resolveUploadTarget } from './lib/cli/options.ts'
 import { printUsage } from './lib/cli/usage.ts'
 import { installInterruptHandler } from './lib/cli/interrupt.ts'
-import { installInitialisationIndent } from './lib/cli/initialisationIndent.ts'
+import {
+  finishInitialisationGuide,
+  installInitialisationIndent,
+} from './lib/cli/initialisationIndent.ts'
 
 async function main() {
   const args = parseArgs(process.argv)
@@ -249,5 +252,6 @@ main()
       }).catch(() => undefined)
     }
     cancel(message)
+    finishInitialisationGuide()
     process.exit(1)
   })
