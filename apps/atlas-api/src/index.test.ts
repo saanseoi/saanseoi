@@ -2182,7 +2182,7 @@ describe('atlas-api', () => {
     expect(places.paths['/places/v0.1/by-cell/{h3Level}/{h3Cell}']).toBeDefined()
     expect(places.paths['/places/v0.1/search']).toBeDefined()
     expect(places.paths['/divisions/v0.1']).toBeUndefined()
-    expect(places.tags?.map(tag => tag.name)).toEqual(['Places'])
+    expect(places.tags?.map(tag => tag.name)).toEqual(['Places', 'Sources'])
     expect(places.components?.schemas).toHaveProperty('Place')
     expect(places.components?.schemas).toHaveProperty('PlacesListResponse')
     expect(places.components?.schemas).toHaveProperty('PlaceCollectionResource')
@@ -2702,6 +2702,27 @@ describe('atlas-api', () => {
 
     expect(res.status).toBe(422)
     expect(await res.json()).toMatchObject({ error: 'validation_error' })
+  })
+
+  test('Places exposes source discovery and validates JSON and NDJSON on both versions', async () => {
+    const { env } = createEnv()
+    const response = await app.fetch(
+      new Request('http://localhost/openapi/places/v0.1'),
+      env,
+    )
+    const document = (await response.json()) as { paths: Record<string, unknown> }
+    expect(document.paths['/places/v0.1/source-releases']).toBeDefined()
+    expect(document.paths['/places/v0.1/sources']).toBeDefined()
+    for (const version of ['v0', 'v0.1']) {
+      for (const format of ['json', 'ndjson']) {
+        const res = await app.fetch(
+          apiRequest(`http://localhost/places/${version}/sources?format=${format}`),
+          env,
+        )
+        expect(res.status).toBe(422)
+        expect(await res.json()).toMatchObject({ error: 'validation_error' })
+      }
+    }
   })
 
   test('GET /divisions/v0.1/sources validates NDJSON requests before streaming', async () => {

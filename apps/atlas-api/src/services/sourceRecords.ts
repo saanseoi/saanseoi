@@ -9,7 +9,7 @@ const DEFAULT_PAGE_LIMIT = 100
 const MAX_PAGE_LIMIT = 500
 const DOWNLOAD_PAGE_LIMIT = 500
 
-export type SourceFamily = 'addresses' | 'divisions' | 'stats'
+export type SourceFamily = 'addresses' | 'divisions' | 'places' | 'stats'
 
 type SourceRecordCatalogueEntry = {
   geometryColumn?: 'sourceGeometry'
@@ -138,6 +138,14 @@ const EMPTY_SOURCE_RECORD_CATALOGUE = {} as const satisfies Record<
   SourceRecordCatalogueEntry
 >
 
+const PLACE_SOURCE_RECORD_CATALOGUE = {
+  'ds-hk-overture-place': {
+    geometryProperty: 'geometry',
+    randomSampleStrategy: 'uuid-pivot',
+    tableName: 'overturePlaces',
+  },
+} as const satisfies Record<string, SourceRecordCatalogueEntry>
+
 function sourceCatalogueFor(
   family: SourceFamily,
 ): Record<string, SourceRecordCatalogueEntry> {
@@ -146,6 +154,8 @@ function sourceCatalogueFor(
       return EMPTY_SOURCE_RECORD_CATALOGUE
     case 'divisions':
       return DIVISION_SOURCE_RECORD_CATALOGUE
+    case 'places':
+      return PLACE_SOURCE_RECORD_CATALOGUE
     case 'stats':
       return EMPTY_SOURCE_RECORD_CATALOGUE
   }

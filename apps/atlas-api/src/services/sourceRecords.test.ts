@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import {
   listSourceRecords,
@@ -85,51 +86,157 @@ function metaDatabase(input?: {
 const sourceReleaseCode = 'dr-hk-overture-division-2026-07-22.0'
 
 describe('source records', () => {
-  test('discovers current and archived API release sets as published history', async () => {
-    const queries: string[] = []
-    const metaDb = {
-      $client: {
-        prepare(query: string) {
-          queries.push(query)
-          return {
-            bind() {
-              return {
-                first: async () => ({ id: 'release-set-1' }),
-                all: async () => ({
-                  results: [
-                    {
-                      apiReleaseSetCode: 'data-hk-divisions-2026-07-22.0-r0',
-                      datasetCode: 'ds-hk-overture-division',
-                      hasSourceShard: 1,
-                      resourceType: 'division',
-                      role: 'primary',
-                      snapshotCode: 'snapshot-1',
-                      sourceReleaseCode,
-                      sourceVariant: 'overture',
-                    },
-                  ],
-                }),
-              }
-            },
-          }
-        },
+  test('reads and streams exact Places source versions with pagination and geometry', async () => {
+    const sqlite = new Database(':memory:')
+    sqlite.exec(`CREATE TABLE overturePlaces (
+      sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      validFromRelease TEXT, validToRelease TEXT
+    )`)
+    const geometry = { type: 'Point', coordinates: [114.1, 22.3] }
+    for (const [id, hash, from, to, name] of [
+      ['place-a', 'old', '2026-06-17.0', '2026-07-22.0', 'Old name'],
+      ['place-a', 'current', '2026-07-22.0', null, 'Publisher name'],
+      ['place-b', 'current', '2026-07-22.0', null, 'Second place'],
+      ['place-c', 'future', '2026-08-19.0', null, 'Future place'],
+    ]) {
+      sqlite
+        .query('INSERT INTO overturePlaces VALUES (?, ?, ?, ?, ?)')
+        .run(
+          id!,
+          hash!,
+          JSON.stringify({ id, names: { primary: name }, geometry }),
+          from!,
+          to ?? null,
+        )
+    }
+    const sourceDb = {
+      prepare(query: string) {
+        return {
+          bind(...values: Array<string | number>) {
+            return {
+              all: async () => ({
+                results: sqlite.query(query).all(...values),
+                success: true,
+              }),
+            }
+          },
+        }
       },
     } as never
-
-    const result = await listSourceReleases({
-      family: 'divisions',
-      metaDb,
-    })
-
-    expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
-    expect(queries[1]).toContain("releases.status IN ('published', 'superseded')")
-    expect(queries[1]).toContain('releases.revokedAt IS NULL')
-    expect(queries[1]).toContain("sourceReleases.status IN ('published', 'superseded')")
-    expect(queries[1]).toContain('sourceReleases.revokedAt IS NULL')
-    expect(queries.join('\n')).not.toContain("apiReleaseSets.status = 'published'")
-    expect(result).toHaveLength(1)
-    expect(result[0]?.recordsAvailable).toBe(true)
+    const args = {
+      env: { DB_SOURCE_HK_2026: sourceDb } as never,
+      family: 'places' as const,
+      includeGeometry: true,
+      metaDb: metaDatabase({
+        datasetCode: 'ds-hk-overture-place',
+        resourceType: 'place',
+        sourceReleaseCode: 'dr-hk-overture-place-2026-07-22.0',
+      }),
+      sourceReleaseCode: 'dr-hk-overture-place-2026-07-22.0',
+    }
+    try {
+      const first = await listSourceRecords({ ...args, limit: 1 })
+      expect(first?.pin.datasetCode).toBe('ds-hk-overture-place')
+      expect(first?.records[0]).toMatchObject({
+        sourceRecordId: 'place-a',
+        resourceType: 'place',
+        geometry,
+        rawProperties: { names: { primary: 'Publisher name' } },
+      })
+      expect(first?.nextCursor).toBeString()
+      const second = await listSourceRecords({
+        ...args,
+        cursor: first!.nextCursor!,
+        limit: 1,
+      })
+      expect(second?.records.map(row => row.sourceRecordId)).toEqual(['place-b'])
+      expect(second?.nextCursor).toBeNull()
+      const stream = await streamSourceRecordsNdjson(args)
+      const records = (await new Response(stream).text())
+        .trim()
+        .split('\n')
+        .map(line => JSON.parse(line))
+      expect(records).toEqual([...first!.records, ...second!.records])
+      const sample = await listSourceRecords({ ...args, sample: 'random', limit: 2 })
+      expect(sample?.records).toHaveLength(2)
+      expect(sample?.nextCursor).toBeNull()
+      const withoutGeometry = await listSourceRecords({
+        ...args,
+        includeGeometry: false,
+      })
+      expect(withoutGeometry?.records[0]).not.toHaveProperty('geometry')
+      expect(withoutGeometry?.records[0]?.rawProperties?.geometry).toEqual(geometry)
+      expect(await listSourceRecords({ ...args, family: 'divisions' })).toBeNull()
+      expect(
+        await listSourceRecords({
+          ...args,
+          metaDb: metaDatabase({
+            published: false,
+            sourceReleaseCode: args.sourceReleaseCode,
+          }),
+        }),
+      ).toBeNull()
+    } finally {
+      sqlite.close()
+    }
   })
+
+  test.each(['divisions', 'places'] as const)(
+    'discovers %s current and archived API release sets as published history',
+    async family => {
+      const resourceType = family === 'places' ? 'place' : 'division'
+      const datasetCode = `ds-hk-overture-${resourceType}`
+      const sourceReleaseCode = `dr-hk-overture-${resourceType}-2026-07-22.0`
+      const queries: string[] = []
+      const metaDb = {
+        $client: {
+          prepare(query: string) {
+            queries.push(query)
+            return {
+              bind() {
+                return {
+                  first: async () => ({ id: 'release-set-1' }),
+                  all: async () => ({
+                    results: [
+                      {
+                        apiReleaseSetCode: `data-hk-${family}-2026-07-22.0-r0`,
+                        datasetCode,
+                        hasSourceShard: 1,
+                        resourceType,
+                        role: 'primary',
+                        snapshotCode: 'snapshot-1',
+                        sourceReleaseCode,
+                        sourceVariant: 'overture',
+                      },
+                    ],
+                  }),
+                }
+              },
+            }
+          },
+        },
+      } as never
+
+      const result = await listSourceReleases({
+        family,
+        metaDb,
+      })
+
+      expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
+      expect(queries[1]).toContain("releases.status IN ('published', 'superseded')")
+      expect(queries[1]).toContain('releases.revokedAt IS NULL')
+      expect(queries[1]).toContain(
+        "sourceReleases.status IN ('published', 'superseded')",
+      )
+      expect(queries[1]).toContain('sourceReleases.revokedAt IS NULL')
+      expect(queries.join('\n')).not.toContain("apiReleaseSets.status = 'published'")
+      expect(result).toHaveLength(1)
+      expect(result[0]?.recordsAvailable).toBe(true)
+      expect(result[0]?.recordsHref).toBe(
+        `/${family}/v0/sources?sourceRelease=${sourceReleaseCode}`,
+      )
+    },
+  )
 
   test('does not expose a stored source release before publication', async () => {
     const result = await listSourceRecords({

@@ -1,4 +1,6 @@
 {
+  "openapi_place_source_releases_list_description": "列出構成地點 API 發布版本的來源發布版本。",
+  "openapi_place_source_release_unavailable_description": "此來源發布版本無法用於存取地點來源記錄。",
   "openapi_region_filter_description": "區域篩選：hk（香港，預設）、mo（澳門）或 gba（大灣區，目前使用香港資料）。澳門尚未有已發佈資料。",
   "openapi_empty_region_collection_description": "所選區域尚未有已發佈資料，因此不包含發佈中繼資料。",
   "nav_data": "資料",
