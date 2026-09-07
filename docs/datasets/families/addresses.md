@@ -85,6 +85,13 @@ Explicitly reviewed stale reversions may likewise use guarded removals and addit
 Heng Tsui retains its initial split inventory, then the merged unit from 31 July 2024,
 correcting only three later reversions. This is not a general reverse-split policy.
 
+An explicitly approved forward-fill can restore a building that remains extant after a
+later source omission. Ching Ho House carries its named Address2D premise and
+hash-guarded 851-unit inventory from the September 2025 omission until revoked.
+Provenance records the evidence source, target release and whether each active
+application was verified; later unreviewed releases are never presented as silently
+verified publisher data.
+
 CSU identifies a publisher premise in conjunction with its supplied components; it is
 not a universal address deduplication key. Separate buildings retain separate unit IDs
 even when their floor/unit designs are identical. Reviewed High and Low Blocks can be

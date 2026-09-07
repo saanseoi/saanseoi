@@ -136,6 +136,13 @@ inventories. The June bilingual parent must match the evidence premise, and the 
 CSU must be absent from that 3D delivery. Cross-release evidence retains its actual date
 and separate curation provenance; raw deliveries remain unchanged.
 
+Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
+omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23
+template is guarded by the exact August 2025 bilingual inventory hash. The paired 2D and
+3D curations apply until revoked: releases through 19 August 2026 are verified; later
+releases retain an explicit unverified status until reviewed. The removed ALS assertions
+and evidence source remain provenance rather than being overwritten.
+
 For Ching Lok, Ching Hay, Ching Sin and Ching Shun Houses, the paired
 `hkgov-dpo-address-2d-backfills.json` fixture reconstructs named Address2D records
 across the sixteen retained releases before June 2025. The inventory fixture supplies

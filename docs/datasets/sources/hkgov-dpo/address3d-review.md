@@ -320,9 +320,12 @@ records accepted publisher chronology separately from inventory corrections. Reb
 the ledger verifies each event fingerprint before marking that event reviewed; other
 events in the estate remain pending.
 
-Ching Ho House (Cheung Ching Estate) receives no backfill. Retain the November 2024
-first 2D appearance and January 2025 first 851-unit inventory. Its reported 2024
-completion supports the user's decision; no exact completion month is asserted.
+Ching Ho House (Cheung Ching Estate) retains its November 2024 first 2D appearance and
+January 2025 first 851-unit inventory without pre-construction backfill. Its later
+September 2025 omission is forward-filled with the verified named premise and 851-unit
+inventory until revoked. The August 2025 bilingual inventory hash guards the compact
+4/F–40/F, 01–23 template; source releases through 19 August 2026 are verified and later
+releases are explicitly unverified pending review. Raw ALS removals remain provenance.
 
 Hang Chi House (Cheung Hang Estate) merges 1/F units 121A, 121B and 121C into 121 in the
 January 2025 delivery, reducing 718 units to 716. Preserve the three predecessor units

@@ -284,6 +284,24 @@
       ]
     },
     {
+      "id": "cheung-ching-ching-ho-until-revoked-forward-fill",
+      "estate": "CHEUNG CHING ESTATE",
+      "release": "20250903-1043-ALS-GeoJSON",
+      "expectedFingerprint": "2a4c2de1889ff4e4cb003a43527d1d867eb40f212607d430669192eb3c716ee7",
+      "csu": "2911623349T20240814",
+      "action": "reviewed_until_revoked_forward_fill",
+      "fixtures": [
+        "hkgov-dpo-address-2d-backfills.json",
+        "hkgov-dpo-address-3d-backfills.json"
+      ],
+      "decision": "Forward-fill the verified Ching Ho House premise and its 851-unit inventory from the September 2025 omission onward, until revoked. Preserve the original ALS omission and the August 2025 source evidence in provenance. Releases after the last verified source version remain explicitly marked unverified rather than silently accepted.",
+      "authority": "User decision, 2026-09-07: forward-fill that building; it still exists, until revoked.",
+      "evidence": [
+        "The exact bilingual named premise and its 851-unit inventory occur unchanged from January through August 2025 before both disappear from the September 2025 delivery.",
+        "The recorded 2024 completion establishes that the January 2025 inventory is not an anachronistic pre-construction backfill; the forward-fill begins only after the later removal."
+      ]
+    },
+    {
       "id": "cheung-hang-hang-chi-121-merger",
       "estate": "CHEUNG HANG ESTATE",
       "release": "20250123-1031-ALS-GeoJSON",
