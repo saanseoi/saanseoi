@@ -221,6 +221,7 @@ export async function prepareHkgovAlsAddressParquet(
       rows,
       aliasOwnerIds,
       writeOutput: options.writeOutput,
+      skipCurationChecks: options.skipCurationChecks,
     })
     assertUniquePreparedRowIds(rows)
   }

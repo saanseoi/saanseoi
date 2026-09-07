@@ -17,7 +17,9 @@ to address ingestion; direct `hkgov-dpo:ingest` also accepts it. Corrections ret
 their existing verification provenance. Unresolved identity changes use generated IDs
 for the run, without writing human-reviewed decisions or verification dates to fixtures.
 This mode supports pre-curation reference and testing imports; source validation and
-database integrity checks still apply.
+database integrity checks still apply. The shared-building ownership curation check is
+skipped: each resolved owner keeps its own inventory and source occurrences. Ambiguous
+parent matches and conflicting inventories for the same owner still stop preparation.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the

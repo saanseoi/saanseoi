@@ -25,6 +25,7 @@ export type PrepareHkgovAlsOptions = {
   sourceVersion: string
   postProcessPremiseStructure?: boolean
   writeOutput?: boolean
+  skipCurationChecks?: boolean
 }
 
 export type DivisionLookupMaps = {

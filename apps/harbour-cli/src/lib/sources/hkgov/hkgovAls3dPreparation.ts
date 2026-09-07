@@ -70,6 +70,7 @@ export async function prepareAls3dCollections(options: {
   rows: PreparedHkgovAlsRow[]
   aliasOwnerIds?: ReadonlyMap<string, string>
   writeOutput?: boolean
+  skipCurationChecks?: boolean
 }) {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
@@ -233,7 +234,7 @@ export async function prepareAls3dCollections(options: {
         en.EngBlock?.BlockNo,
       ])
       const priorOwner = physicalOwners.get(physicalKey)
-      if (priorOwner && priorOwner !== owner)
+      if (priorOwner && priorOwner !== owner && !options.skipCurationChecks)
         throw new Error(
           `ALS 3D shared building requires curation: ${en.EngEstate?.EstateName} / ${en.BuildingName}`,
         )
