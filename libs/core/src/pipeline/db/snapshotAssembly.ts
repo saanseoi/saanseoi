@@ -200,6 +200,7 @@ export async function readSnapshotAssemblySql(
     .from(metaSnapshotAssemblyRuns)
     .where(eq(metaSnapshotAssemblyRuns.snapshotId, snapshotId))
     .all()
+  if (!runs.length) throw new Error(`Snapshot assembly run is missing: ${snapshotId}.`)
   const statements: string[] = []
   for (const id of new Set(runs.map(run => String(run.snapshotAssemblyId)))) {
     const assembly = await db

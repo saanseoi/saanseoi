@@ -2,8 +2,7 @@ import { eq, metaSchema } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import { recordEffectiveSnapshotAssembly } from '../db/snapshotAssembly'
 
-/** A scoped assembly records both analysis and finalisation without changing the
- * default Address-family assembly selected by other ingesters. */
+/** Analysis and finalisation share the snapshot's effective assembly run. */
 export async function recordPlaceAddressAssembly(
   db: HarbourReadableDb & HarbourWritableDb,
   input: {
