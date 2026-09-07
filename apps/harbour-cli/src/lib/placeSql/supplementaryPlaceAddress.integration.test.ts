@@ -49,7 +49,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     meta.exec(`INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, versionHash)
       SELECT 'overture-hk-place', publisherId, 'ds-hk-overture-place', 'hk', 'static', 'monthly', 'places', 'fixture'
       FROM datasets WHERE id = 'overture-hk-division';
-      INSERT INTO datasetResourceTypes VALUES ('overture-hk-place', 'place');`)
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');`)
     insertFixtureRelease(meta, {
       releaseId,
       source: 'overture',
@@ -265,6 +265,10 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     const retry = await prepareSupplementaryAddresses(input)
     expect(retry.snapshotId).toBe(first.snapshotId)
+    const dataset = meta
+      .query("SELECT resourceTypes FROM datasets WHERE id = 'overture-hk-place'")
+      .get() as { resourceTypes: string }
+    expect(JSON.parse(dataset.resourceTypes)).toEqual(['place', 'address'])
     expect((await readdir(root)).filter(name => name.endsWith('.tmp'))).toEqual([])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
     const changed = {

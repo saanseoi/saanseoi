@@ -52,7 +52,7 @@ import {
   metaSchema,
   buildDeterministicUuidV5,
 } from '@repo/db'
-import { and, eq, ne, isNotNull, lte } from 'drizzle-orm'
+import { and, eq, ne, isNotNull, lte, sql } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
   executeSqlText,
@@ -512,9 +512,16 @@ async function prepareSupplementaryAddressesLocked(
     throw new Error('Supplementary Address release has incompatible source provenance.')
   const now = new Date().toISOString()
   await db
-    .insert(metaSchema.metaDatasetResourceTypes)
-    .values({ datasetId, resourceType: 'address' })
-    .onConflictDoNothing()
+    .update(metaSchema.metaDatasets)
+    .set({
+      resourceTypes: sql`json_insert(${metaSchema.metaDatasets.resourceTypes}, '$[#]', 'address')`,
+    })
+    .where(
+      and(
+        eq(metaSchema.metaDatasets.id, datasetId),
+        sql`NOT EXISTS (SELECT 1 FROM json_each(${metaSchema.metaDatasets.resourceTypes}) WHERE value = 'address')`,
+      ),
+    )
     .run()
   const release = {
     ...parentRelease,
@@ -652,7 +659,7 @@ async function prepareSupplementaryAddressesLocked(
           await executeSqlText(
             input.targets.meta,
             [
-              insertSql('datasetResourceTypes', { datasetId, resourceType: 'address' }),
+              `UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = ${lit(datasetId)} AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');`,
               insertSql('releases', release),
               await buildPlaceMetadataSql(db, snapshot.id, releaseId),
             ].join('\n'),
