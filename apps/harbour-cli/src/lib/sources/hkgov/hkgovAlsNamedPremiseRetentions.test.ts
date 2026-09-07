@@ -64,6 +64,10 @@ test('keeps the reviewed named premise and preserves the duplicate as provenance
   expect(retainNamedPremises(rows, '2025-04-26.0').suppressed).toBe(1)
   expect(rows).toEqual([owner])
   expect(owner.id).not.toBe('source-named')
+  expect(owner.id).toMatch(/^ss-[0-9a-f-]{36}$/)
+  expect(owner.canonicalId).toBe(owner.id)
+  expect(owner.identityBuildingId).toBe(owner.id)
+  expect(owner.identityAlias).toBe('source-named')
   const provenance = JSON.parse(owner.sources).hkgovAlsNamedPremiseRetention
   expect(provenance.suppressedAddress.addressId).toBe('source-duplicate')
   expect(provenance.suppressedAddress.engPremisesAddress.EngBlock.BlockDescriptor).toBe(

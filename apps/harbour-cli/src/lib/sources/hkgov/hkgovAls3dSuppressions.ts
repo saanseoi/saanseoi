@@ -6,9 +6,10 @@ import { assertApprovedEmptyInventory } from './hkgovAlsApprovedEstateBatch'
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
-  if (skip) return undefined
-  assertKoYeeEmptyInventory(feature, version)
-  assertApprovedEmptyInventory(feature, version)
+  if (!skip) {
+    assertKoYeeEmptyInventory(feature, version)
+    assertApprovedEmptyInventory(feature, version)
+  }
   const p = feature.properties.Address.PremisesAddress
   const en = p.EngPremisesAddress ?? {}
   const zh = p.ChiPremisesAddress ?? {}
@@ -19,6 +20,15 @@ export function als3dSuppression(feature: Als3dFeature, version: string, skip = 
       p.BuildingCsuInformation?.CsuId === rule.csu,
   )
   if (!rule) return undefined
+  const suppression = {
+    dataset: 'saanseoi-address3d-suppression',
+    sourceFile: 'hkgov-dpo-address-3d-suppressions.json',
+    fixtureVersion: fixture.version,
+    ...rule,
+    sourceVersion: version,
+  }
+  // Skipping evidence checks must not reinstate an inventory whose owner is removed.
+  if (skip) return suppression
   const message = `ALS 3D suppression ${rule.id}: source evidence changed`
   assert.equal(en.BuildingName ?? null, null, message)
   assert.equal(zh.BuildingName ?? null, null, message)
@@ -55,11 +65,5 @@ export function als3dSuppression(feature: Als3dFeature, version: string, skip = 
     rule.inventoryHash,
     message,
   )
-  return {
-    dataset: 'saanseoi-address3d-suppression',
-    sourceFile: 'hkgov-dpo-address-3d-suppressions.json',
-    fixtureVersion: fixture.version,
-    ...rule,
-    sourceVersion: version,
-  }
+  return suppression
 }

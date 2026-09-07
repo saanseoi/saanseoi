@@ -67,10 +67,10 @@ export function applyLongShinHierarchy(rows: PreparedHkgovAlsRow[], version: str
     return owner
   })
   const template = owners[0]!
-  const id = buildDeterministicUuidV5(
+  const id = `ss-${buildDeterministicUuidV5(
     'b2da2675-daca-5920-a99e-c4d562a4c950',
     'long-shin-estate',
-  )
+  )}`
   const complex: PreparedHkgovAlsRow = {
     ...template,
     id,

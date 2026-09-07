@@ -156,6 +156,8 @@ test('identical designs retain distinct building inventories and unresolved High
     for (const id of owner.unresolvedSectionIds) {
       const section = rows.find(row => row.id === id)!
       expect(section.curatedGranularity).toBe('section')
+      expect(section.id).toMatch(/^ss-[0-9a-f-]{36}$/)
+      expect(section.canonicalId).toBe(section.id)
       expect(section.hkgovCsuId).toBeNull()
       expect(section.engPremisesAddressJson).toBeNull()
       expect(

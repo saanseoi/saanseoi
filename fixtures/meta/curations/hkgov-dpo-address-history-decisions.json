@@ -39,6 +39,33 @@
   ],
   "decisions": [
     {
+      "id": "pak-tin-catholic-primary-school-closure-20250225",
+      "estate": "PAK TIN ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "372d8fe437a447dbd6dcb39679c72b847fb1dfb48812a4f3e1b949a5a11c7100",
+      "action": "reviewed_dated_closure",
+      "decision": "Accept the Catholic Primary School removal from this delivery as a genuine closure. Preserve earlier source history; do not forward-fill or merge it into another school.",
+      "authority": "User decision, 2026-09-08: both Pak Tin premises are legitimately closed."
+    },
+    {
+      "id": "pak-tin-commercial-centre-closure-20250426",
+      "estate": "PAK TIN ESTATE",
+      "release": "20250426-1053-ALS-GeoJSON",
+      "expectedFingerprint": "82e2c6d098468d283de761562ed2a99ededf80b1790f4561b121147000660faf",
+      "action": "reviewed_dated_closure",
+      "decision": "Accept the Commercial Centre removal from this delivery as a genuine closure. Preserve earlier source history and the separate Shopping Centre at 1–3 Wai Chi Lane; do not forward-fill the closed centre.",
+      "authority": "User decision, 2026-09-08: both Pak Tin premises are legitimately closed."
+    },
+    {
+      "id": "sam-shing-lau-ng-ying-school-closure-20241018",
+      "estate": "SAM SHING ESTATE",
+      "release": "20241018-1048-ALS-GeoJSON",
+      "expectedFingerprint": "f4551cadab0fa98d033c6f3d6f8af2ba6534d5c58d37076f9cc7afdf818b45cf",
+      "action": "reviewed_dated_closure",
+      "decision": "Accept the Salvation Army Sam Shing Chuen Lau Ng Ying School removal from this delivery as a genuine closure. Preserve earlier source history; do not reconstruct the closed school.",
+      "authority": "User decision, 2026-09-08: genuinely closed down and can be removed from the data."
+    },
+    {
       "id": "lower-ngau-tau-kok-estate-approved-20250225",
       "estate": "LOWER NGAU TAU KOK ESTATE",
       "release": "20250225-1050-ALS-GeoJSON",
