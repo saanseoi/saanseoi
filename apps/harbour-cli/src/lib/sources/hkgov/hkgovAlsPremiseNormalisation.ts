@@ -226,7 +226,7 @@ export function normaliseHkgovAlsPremiseStructure(input: {
     'i',
   ).exec(buildingName)
   const house = clean(estatePrefix?.groups?.house ?? null)
-  if (house && /\\b(?:HOUSE|HSE)$/i.test(house)) {
+  if (house && /\b(?:HOUSE|HSE)$/i.test(house)) {
     return {
       blockDescriptor,
       blockNumber,
