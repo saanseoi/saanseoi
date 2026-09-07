@@ -102,3 +102,59 @@ test('reviewed coordinate backfill guards match their April 2026 source events',
     }
   }
 })
+
+test('automatic coordinate backfills retain exact named source-event guards', async () => {
+  const audit = await Bun.file(
+    'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
+  ).json()
+  const automatic = fixture.backfills.filter(
+    decision => decision.automaticPolicy === 'coordinate-only-named-under-50m-backfill',
+  )
+  expect(automatic.length).toBeGreaterThan(1_000)
+  for (const decision of automatic) {
+    const release = `${decision.evidenceSourceVersion.replaceAll('-', '').slice(0, 8)}-`
+    const estate = audit.estates.find(
+      (entry: { name: string }) => entry.name === decision.estate,
+    )
+    const event = estate?.timeline.find((entry: { release: string }) =>
+      entry.release.startsWith(release),
+    )
+    const change = event?.changed.find(
+      (entry: {
+        before: {
+          csu: string
+          building: string
+          assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+        }
+        after: {
+          assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+        }
+      }) =>
+        entry.before.csu === decision.csu &&
+        entry.before.building === decision.enBuildingName,
+    )
+    expect(change?.before.assertions[0]?.occurrences[0]?.coordinates).toEqual(
+      decision.previousCoordinates,
+    )
+    expect(change?.after.assertions[0]?.occurrences[0]?.coordinates).toEqual(
+      decision.currentCoordinates,
+    )
+  }
+})
+
+test('coordinate backfill ranges never overlap for the same source premise', () => {
+  const byPremise = Map.groupBy(
+    fixture.backfills,
+    decision => `${decision.estate}/${decision.csu}/${decision.enBuildingName}`,
+  )
+  for (const decisions of byPremise.values()) {
+    for (const [index, decision] of decisions.entries()) {
+      for (const other of decisions.slice(index + 1)) {
+        expect(
+          decision.sourceVersionFrom > other.sourceVersionTo ||
+            other.sourceVersionFrom > decision.sourceVersionTo,
+        ).toBe(true)
+      }
+    }
+  }
+})
