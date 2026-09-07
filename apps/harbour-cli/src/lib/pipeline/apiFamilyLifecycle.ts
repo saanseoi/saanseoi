@@ -45,13 +45,13 @@ export const apiFamilyLifecycles: readonly ApiFamilyLifecycle[] = [
     family: 'stats',
     theme: 'stats',
     cacheProfile: 'statistics',
-    resetDomains: ['official'],
+    resetDomains: ['government'],
   },
   {
     family: 'streets',
     theme: 'streets',
     cacheProfile: 'street',
-    resetDomains: ['official'],
+    resetDomains: ['saanseoi'],
   },
 ]
 

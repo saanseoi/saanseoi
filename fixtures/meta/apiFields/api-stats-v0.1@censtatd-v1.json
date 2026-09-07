@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:25a6bc8065bc821c8dbc7c71eda9985a61a17961da93c9265c7048c3107db854",
+  "versionHash": "sha256:9e10698b4a7662e410e12748720ec08e346abc276fb0e84382f1cdac7cc2c515",
   "apiVersion": "api-stats-v0.1",
-  "domainCode": "official",
+  "domainCode": "government",
   "schemaVersion": "sv-statistics-v1",
   "rulesetVersion": "rs-division-statistic-merge-v1",
   "lineageAnchors": [

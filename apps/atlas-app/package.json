@@ -23,8 +23,8 @@
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {
-    "@better-auth/core": "1.7.2",
-    "@better-auth/passkey": "1.7.2",
+    "@better-auth/core": "1.7.3",
+    "@better-auth/passkey": "1.7.3",
     "@humanspeak/svelte-markdown": "^1.9.0",
     "@iconify-svelte/emojione-monotone": "1.0.3",
     "@iconify-svelte/hugeicons": "1.0.19",
@@ -40,7 +40,7 @@
     "@repo/i18n": "workspace:*",
     "@scalar/api-reference": "^1.67.0",
     "@turf/turf": "^7.4.0",
-    "better-auth": "1.7.2",
+    "better-auth": "1.7.3",
     "bits-ui": "^2.19.0",
     "diff": "^9.0.0",
     "geos-wasm": "3.1.1",

@@ -67,7 +67,7 @@ function registryMeta(
     catalogPublishedAt: activeSnapshot.catalogPublishedAt,
     apiReleaseSets: activeSnapshot.apiReleaseSets,
     cohorts: activeSnapshot.cohorts,
-    domain: 'official' as const,
+    domain: 'government' as const,
     profile: routeState.profile,
     locales: resolveApiMetaLocales(routeState.localeSelection),
     schemaVersions: activeSnapshot.schemaVersions,
@@ -88,7 +88,7 @@ function registryPermalink(args: {
   )
   permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
   permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
-  permalink.searchParams.set('domain', 'official')
+  permalink.searchParams.set('domain', 'government')
   permalink.searchParams.set('profile', args.routeState.profile)
   permalink.searchParams.set(
     'locales',
@@ -190,7 +190,7 @@ async function loadStatisticsRegistry(args: {
       {
         catalogRevision: args.query.catalogRevision,
         cohortKey: args.query.cohort,
-        domainCode: 'official',
+        domainCode: 'government',
         effectiveAt: args.query.effectiveAt,
         knownAt: args.query.knownAt,
         regionCode: 'hk',
@@ -218,7 +218,7 @@ async function loadStatisticsRegistry(args: {
     cohorts: [
       ...new Set(selection.releaseSets.map(releaseSet => releaseSet.cohortKey)),
     ],
-    domainCode: 'official',
+    domainCode: 'government',
     rulesetVersions: [
       ...new Set(selection.releaseSets.map(releaseSet => releaseSet.rulesetVersion)),
     ],
