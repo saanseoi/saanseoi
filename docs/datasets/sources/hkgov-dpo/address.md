@@ -165,6 +165,12 @@ both adjacent source releases. The generated fixture and verification retain the
 target and bracketing versions. This restores derived fields rather than raw publisher
 JSON, and never generalises from a CSU alone.
 
+Estate-component restorations may also be active until revoked. Their application starts
+after the fixture's reviewed source version and only when the complete bilingual source
+target still matches. A later application is recorded as unverified in release
+provenance until the ALS preflight explicitly verifies it; the same review can retain it
+provisionally or revoke it. Historical bounded repairs remain bounded.
+
 The unnamed zero-unit CSU `3370111759T20150127` is suppressed only across its reviewed
 February 2025–July 2026 appearances as a duplicate of the named Lei Moon House. Its
 estate, bilingual blank-premise structure, route, point and named owner are all guarded;

@@ -38,3 +38,25 @@ test('bounds exact releases and CSU; contradictory source fields fail closed', (
   r.hkgovCsuId = '3385421875T20050430'
   expect(restoreAlsEstateComponents([r], '2026-04-03.0').restored).toBe(0)
 })
+
+test('forward-applies an active estate correction with unverified provenance', () => {
+  const r = row()
+  const result = restoreAlsEstateComponents([r], '2026-09-01.0')
+  expect(result).toEqual({
+    applications: [
+      {
+        fixture: 'hkgov-dpo-address-estate-components.json',
+        id: 'fortune-estate-carpark-estate-gap',
+        verification: 'unverified',
+      },
+    ],
+    restored: 1,
+  })
+  expect(JSON.parse(r.sources).hkgovAlsEstateComponentRestoration.curation).toEqual(
+    expect.objectContaining({
+      lastVerifiedSourceVersion: '2026-08-19.0',
+      targetSourceVersion: '2026-09-01.0',
+      verificationStatus: 'unverified',
+    }),
+  )
+})

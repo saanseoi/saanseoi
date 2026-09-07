@@ -1,3 +1,6 @@
+import estateComponentGaps from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
+import estateComponents from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-components.json'
+
 export type HkgovAlsCurationApplication = {
   lastVerifiedSourceVersion: string
   mode: 'until-revoked'
@@ -73,5 +76,3 @@ export function curationProvenance(input: {
     verificationStatus: input.verification,
   }
 }
-import estateComponentGaps from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
-import estateComponents from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-components.json'
