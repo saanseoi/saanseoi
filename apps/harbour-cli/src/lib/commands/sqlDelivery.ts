@@ -1,6 +1,10 @@
 import { join, resolve } from 'node:path'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
-import { resolveD1Targets } from '../dbCache/localDbCacheTargets.ts'
+import {
+  resolveD1Targets,
+  mapLocalTargetPaths,
+} from '../dbCache/localDbCacheTargets.ts'
+import { runNativeSqlDelivery } from '../localPipeline/nativeSqlDelivery.ts'
 import { refreshRemoteMetaCache } from '../dbCache/localDbCacheReplay.ts'
 import { readDeliveryPlan, runSqlDelivery } from '../localPipeline/sqlDelivery.ts'
 import {
@@ -23,19 +27,23 @@ export async function runSqlDeliveryCommand(
   const mode = args.options.mode ?? 'both'
   if (
     typeof path !== 'string' ||
-    !target.remote ||
+    (!target.remote && mode === 'remote') ||
     !['both', 'remote', 'local'].includes(String(mode)) ||
     args.positionals.length ||
     Object.keys(args.options).some(key => !['plan', 'target', 'mode'].includes(key))
   ) {
     throw new Error(
-      'Use sql:status|sql:resume --plan PATH --target preview|production [--mode remote|local|both].',
+      'Use sql:status|sql:resume --plan PATH --target local|preview|production [--mode remote|local|both]. Native local plans cannot use remote mode.',
     )
   }
   const directory = resolve(invocationCwd, path)
   const plan = await readDeliveryPlan(directory)
   if (!plan) throw new Error('No sealed SQL delivery plan exists at that path.')
-  const environment = target.environment === 'production' ? 'production' : 'preview'
+  const environment = !target.remote
+    ? 'local'
+    : target.environment === 'production'
+      ? 'production'
+      : 'preview'
   if (plan.context.environment !== environment)
     throw new Error('SQL delivery environment does not match --target.')
   if (args.command === 'sql:status') {
@@ -45,6 +53,18 @@ export async function runSqlDeliveryCommand(
         null,
         2,
       ),
+    )
+    return
+  }
+  if (environment === 'local') {
+    const result = await runNativeSqlDelivery(directory, {
+      files: mapLocalTargetPaths(await resolveD1Targets('local')),
+      onProgress: (completed, total) =>
+        console.log(`local: ${completed}/${total} confirmed SQL batches`),
+    })
+    console.log(JSON.stringify(result))
+    console.log(
+      'Native local SQL recovered. Resume the owning release workflow to finish publication and release its database ownership.',
     )
     return
   }

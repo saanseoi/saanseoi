@@ -29,9 +29,17 @@ import {
   writeJson,
 } from './tilesStorage.ts'
 import { buildTileset, prepareRegionInputs } from './tilesBuild.ts'
+import {
+  applyTilesCatalogueIntent,
+  completeTilesCatalogueIntent,
+  readTilesCatalogueIntent,
+  sameTilesVersion,
+  writeTilesCatalogueIntent,
+} from './tilesCatalogueRecovery.ts'
 import { prepareImportedRegionClip } from './tilesSources.ts'
 import { buildRegionalCoastline } from './tilesGeometry.ts'
 import { capture, commandSucceeds, run } from './tilesExecution.ts'
+import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
 
 export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () => void) {
   const input = resolveTilesInput(args, printUsage, 'refresh')
@@ -67,6 +75,13 @@ export async function runTilesCommand(
     historicalBorderSource?: string
   },
 ) {
+  if (input.dryRun) return runTilesCommandLocked(input)
+  return withDeliveryLock(resolve(OUTPUT_ROOT, 'publication-lock'), () =>
+    runTilesCommandLocked(input),
+  )
+}
+
+async function runTilesCommandLocked(input: Parameters<typeof runTilesCommand>[0]) {
   const shouldPromoteLatest =
     input.operation === 'refresh' ||
     (input.operation === 'rebuild' && input.promoteLatest)
@@ -101,6 +116,17 @@ export async function runTilesCommand(
     version => version.version === input.version,
   )
   if (existing && !input.force) {
+    const intentPath = catalogueIntentPath(input.region, input.version)
+    const intent = await readTilesCatalogueIntent(intentPath)
+    if (
+      intent &&
+      intent.region.code === input.region.code &&
+      sameTilesVersion(intent.entry, existing)
+    ) {
+      await finishTilesCatalogue(intentPath)
+      outro(`Completed ${input.region.name}-${input.version} catalogue publication`)
+      return
+    }
     throw new Error(
       `An immutable ${input.region.code} tileset already exists for ${input.version}.`,
     )
@@ -225,38 +251,21 @@ export async function runTilesCommand(
   regionVersions.updatedAt = createdAt
   const regionVersionsPath = resolve(OUTPUT_ROOT, input.region.code, 'versions.json')
   await writeJson(regionVersionsPath, regionVersions)
+  const intentPath = catalogueIntentPath(input.region, input.version)
+  const beforeCatalogue = await readVersionsIndex()
+  await writeTilesCatalogueIntent(intentPath, {
+    region: input.region,
+    entry,
+    promoteLatest: Boolean(shouldPromoteLatest),
+    previousLatest: beforeCatalogue.regions[input.region.code]?.latest ?? null,
+  })
   await putObject(
     objectKey(input.region.code, 'versions.json'),
     regionVersionsPath,
     'application/json',
   )
 
-  const regionsIndex = await readRegionsIndex()
-  regionsIndex.updatedAt = createdAt
-  regionsIndex.regions = mergeRegion(regionsIndex.regions, input.region)
-  const regionsPath = resolve(OUTPUT_ROOT, 'regions.json')
-  await writeJson(regionsPath, regionsIndex)
-
-  const versionsIndex = await readVersionsIndex()
-  versionsIndex.updatedAt = createdAt
-  const previousRegionIndex = versionsIndex.regions[input.region.code]
-  versionsIndex.regions[input.region.code] = {
-    name: input.region.name,
-    versionsKey: objectKey(input.region.code, 'versions.json'),
-    ...(shouldPromoteLatest
-      ? {
-          latest: regionVersions.versions.find(
-            version => version.version === input.version,
-          ),
-        }
-      : previousRegionIndex?.latest
-        ? { latest: previousRegionIndex.latest }
-        : {}),
-  }
-  const versionsPath = resolve(OUTPUT_ROOT, 'versions.json')
-  await writeJson(versionsPath, versionsIndex)
-  await putObject(`${PREFIX}/versions.json`, versionsPath, 'application/json')
-  await putObject(`${PREFIX}/regions.json`, regionsPath, 'application/json')
+  await finishTilesCatalogue(intentPath)
 
   outro(
     input.operation === 'refresh'
@@ -265,6 +274,42 @@ export async function runTilesCommand(
         ? `Rebuilt ${input.region.name}-${input.version}`
         : `Imported ${input.region.name}-${input.version}`,
   )
+}
+
+function catalogueIntentPath(region: Region, version: string) {
+  return resolve(
+    OUTPUT_ROOT,
+    region.code,
+    `${region.name}-${version}.catalogue-pending.json`,
+  )
+}
+
+async function finishTilesCatalogue(intentPath: string) {
+  await completeTilesCatalogueIntent(intentPath, async intent => {
+    const regional = await readRegionVersions(intent.region)
+    if (
+      !sameTilesVersion(
+        regional.versions.find(entry => entry.version === intent.entry.version),
+        intent.entry,
+      )
+    )
+      throw new Error('Basemap regional release changed; refusing catalogue replay.')
+    const versionsIndex = applyTilesCatalogueIntent(
+      await readVersionsIndex(),
+      intent,
+      objectKey(intent.region.code, 'versions.json'),
+    )
+    const regionsIndex = await readRegionsIndex()
+    regionsIndex.updatedAt = new Date().toISOString()
+    regionsIndex.regions = mergeRegion(regionsIndex.regions, intent.region)
+    const regionsPath = resolve(OUTPUT_ROOT, 'regions.json')
+    await writeJson(regionsPath, regionsIndex)
+
+    const versionsPath = resolve(OUTPUT_ROOT, 'versions.json')
+    await writeJson(versionsPath, versionsIndex)
+    await putObject(`${PREFIX}/versions.json`, versionsPath, 'application/json')
+    await putObject(`${PREFIX}/regions.json`, regionsPath, 'application/json')
+  })
 }
 
 async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
@@ -289,7 +334,8 @@ async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
     const versions = await readRegionVersions(region)
     if (
       versions.versions.some(version => version.version === input.version) &&
-      !input.force
+      !input.force &&
+      !(await readTilesCatalogueIntent(catalogueIntentPath(region, input.version)))
     ) {
       note(
         `${region.name}-${input.version} is already published; reusing the existing release.`,

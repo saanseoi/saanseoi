@@ -1,5 +1,9 @@
 import { rename, open } from 'node:fs/promises'
-import { matchPlaceAddress3d } from './placeAddress3d'
+import { reuseStagedPlaces } from './stagedPlaceCache.ts'
+import { reuseEnrichedPlaces } from './enrichedPlaceCache.ts'
+import { deliveryFileSha256, sha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import type { PlaceAddress3dReadObserver } from './placeAddress3d.ts'
+import { createPlaceAddress3dMatcher } from './placeAddress3d'
 import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -244,7 +248,17 @@ export async function stagePlaces(
   sourceVersion: string,
   releaseRoot: string,
   onProgress?: (current: number) => void,
+  sourceSha256?: string,
 ): Promise<StagedPlaces> {
+  if (sourceSha256)
+    return reuseStagedPlaces({
+      path: resolve(releaseRoot, NORMALISED_PLACES_FILE),
+      sourceSha256,
+      sourceVersion,
+      rawObjectKey,
+      generate: () =>
+        stagePlaces(bucket, rawObjectKey, sourceVersion, releaseRoot, onProgress),
+    })
   const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
   const path = resolve(releaseRoot, NORMALISED_PLACES_FILE)
   const tempPath = `${path}.tmp`
@@ -263,7 +277,7 @@ export async function stagePlaces(
             ...buildPlaceLocaleConflictProcessingActions([place]),
           )
           if (!isExcludedOverturePlace(place)) {
-            await output.write(`${JSON.stringify(place)}\n`)
+            await output.writeFile(`${JSON.stringify(place)}\n`)
             includedRows += 1
           }
         }
@@ -271,6 +285,7 @@ export async function stagePlaces(
       }
       onProgress?.(processedRows)
     }
+    await output.sync()
   } finally {
     await output.close()
   }
@@ -314,6 +329,7 @@ export async function stageEnrichedPlaces(
     snapshotId: string
     addresses: Awaited<ReturnType<typeof buildSupplementaryAddressRows>>
   },
+  sourcePath?: string,
 ): Promise<StagedEnrichedPlaces> {
   const addresses = await currentDb
     .select({
@@ -349,99 +365,126 @@ export async function stageEnrichedPlaces(
     supplementary.addresses.map(row => [row.current.id, row.current]),
   )
   const path = resolve(releaseRoot, ENRICHED_PLACES_FILE)
-  const tempPath = `${path}.tmp`
-  const output = await open(tempPath, 'w')
-  const stats = createPlaceReleaseStatsAccumulator()
-  let processedPlaces = 0
-  try {
-    for await (const batch of groupAsyncIterable(
-      zipPlacesAndResolutions(places, resolutions),
-      PLACE_BATCH_SIZE,
-    )) {
-      const enriched = await mapWithConcurrency(
-        batch,
-        PLACE_ENRICHMENT_CONCURRENCY,
-        async ({ place, resolution }) => {
-          if (resolution.tier === 'review')
-            throw new Error(`Unresolved Place Address ${place.id}.`)
-          const addressId = resolution.addressId
-          const addressSnapshotId =
-            resolution.tier === 'supplementary'
-              ? supplementary.snapshotId
-              : snapshots.addressSnapshotId
-          const address = addressId
-            ? resolution.tier === 'supplementary'
-              ? supplementaryById.get(addressId)
-              : addressById.get(addressId)
-            : undefined
-          if (addressId && !address)
-            throw new Error(`Place Address ${addressId} did not materialise.`)
-          const effectiveLng = resolution.lng ?? place.lng
-          const effectiveLat = resolution.lat ?? place.lat
-          const geometryOverridden =
-            effectiveLng !== place.lng || effectiveLat !== place.lat
-          const referencedDivisionIds = address
-            ? [
-                address.countryId,
-                address.areaId,
-                address.districtId,
-                address.townId,
-                address.macrohoodId,
-                address.villageId,
-                address.neighbourhoodId,
-                address.hamletId,
-                address.microhoodId,
-              ].filter(
-                (id): id is string => typeof id === 'string' && divisionIds.has(id),
-              )
-            : []
-          const unitReference =
-            address && resolution.tier !== 'supplementary'
-              ? await matchPlaceAddress3d(
-                  currentDb,
-                  addressSnapshotId,
-                  address,
-                  place.addresses ?? [],
+  const generate = async (
+    observe?: PlaceAddress3dReadObserver,
+    validateBeforeCommit?: () => Promise<void>,
+  ) => {
+    const tempPath = `${path}.tmp`
+    const output = await open(tempPath, 'w')
+    const stats = createPlaceReleaseStatsAccumulator()
+    const matchAddress3d = createPlaceAddress3dMatcher(currentDb, observe)
+    let processedPlaces = 0
+    try {
+      for await (const batch of groupAsyncIterable(
+        zipPlacesAndResolutions(places, resolutions),
+        PLACE_BATCH_SIZE,
+      )) {
+        const enriched = await mapWithConcurrency(
+          batch,
+          PLACE_ENRICHMENT_CONCURRENCY,
+          async ({ place, resolution }) => {
+            if (resolution.tier === 'review')
+              throw new Error(`Unresolved Place Address ${place.id}.`)
+            const addressId = resolution.addressId
+            const addressSnapshotId =
+              resolution.tier === 'supplementary'
+                ? supplementary.snapshotId
+                : snapshots.addressSnapshotId
+            const address = addressId
+              ? resolution.tier === 'supplementary'
+                ? supplementaryById.get(addressId)
+                : addressById.get(addressId)
+              : undefined
+            if (addressId && !address)
+              throw new Error(`Place Address ${addressId} did not materialise.`)
+            const effectiveLng = resolution.lng ?? place.lng
+            const effectiveLat = resolution.lat ?? place.lat
+            const geometryOverridden =
+              effectiveLng !== place.lng || effectiveLat !== place.lat
+            const referencedDivisionIds = address
+              ? [
+                  address.countryId,
+                  address.areaId,
+                  address.districtId,
+                  address.townId,
+                  address.macrohoodId,
+                  address.villageId,
+                  address.neighbourhoodId,
+                  address.hamletId,
+                  address.microhoodId,
+                ].filter(
+                  (id): id is string => typeof id === 'string' && divisionIds.has(id),
                 )
-              : null
-          const contentHash = await hashNormalisedPlace(place)
-          const materialisationContentHash = geometryOverridden
-            ? await createHash({ contentHash, effectiveLng, effectiveLat })
-            : contentHash
-          const result = {
-            place,
-            ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
-            addressSnapshotId: addressId ? addressSnapshotId : null,
-            address2dId: addressId,
-            address3dId: unitReference?.address3dId ?? null,
-            address3dUnitId: unitReference?.address3dUnitId ?? null,
-            address3dMembership: unitReference?.address3dMembership ?? null,
-            divisionIds: [...new Set(referencedDivisionIds)],
-            versionHash: await hashPlaceMaterialisation(place, {
-              addressSnapshotId,
-              divisionSnapshotId: snapshots.divisionSnapshotId,
-              addressId,
-              divisionIds: referencedDivisionIds,
-              contentHash: materialisationContentHash,
-              ...unitReference,
-            }),
-            sourcePayloadHash: await createHash(place.raw),
-          }
-          return result
-        },
-      )
-      for (const place of enriched) {
-        await output.write(`${JSON.stringify(place)}\n`)
-        addPlaceReleaseStats(stats, place)
+              : []
+            const unitReference =
+              address && resolution.tier !== 'supplementary'
+                ? await matchAddress3d(
+                    addressSnapshotId,
+                    address,
+                    place.addresses ?? [],
+                  )
+                : null
+            const contentHash = await hashNormalisedPlace(place)
+            const materialisationContentHash = geometryOverridden
+              ? await createHash({ contentHash, effectiveLng, effectiveLat })
+              : contentHash
+            const result = {
+              place,
+              ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
+              addressSnapshotId: addressId ? addressSnapshotId : null,
+              address2dId: addressId,
+              address3dId: unitReference?.address3dId ?? null,
+              address3dUnitId: unitReference?.address3dUnitId ?? null,
+              address3dMembership: unitReference?.address3dMembership ?? null,
+              divisionIds: [...new Set(referencedDivisionIds)],
+              versionHash: await hashPlaceMaterialisation(place, {
+                addressSnapshotId,
+                divisionSnapshotId: snapshots.divisionSnapshotId,
+                addressId,
+                divisionIds: referencedDivisionIds,
+                contentHash: materialisationContentHash,
+                ...unitReference,
+              }),
+              sourcePayloadHash: await createHash(place.raw),
+            }
+            return result
+          },
+        )
+        for (const place of enriched) {
+          await output.writeFile(`${JSON.stringify(place)}\n`)
+          addPlaceReleaseStats(stats, place)
+        }
+        processedPlaces += enriched.length
+        onProgress?.(processedPlaces)
       }
-      processedPlaces += enriched.length
-      onProgress?.(processedPlaces)
+      await validateBeforeCommit?.()
+      await output.sync()
+    } finally {
+      await output.close()
     }
-  } finally {
-    await output.close()
+    await rename(tempPath, path)
+    return { path, processedRows: processedPlaces, stats }
   }
-  await rename(tempPath, path)
-  return { path, processedRows: processedPlaces, stats }
+  if (!sourcePath) return generate()
+  return reuseEnrichedPlaces({
+    path,
+    db: currentDb,
+    identity: sha256(
+      JSON.stringify({
+        contract: 'places-enrichment-v1',
+        places: await deliveryFileSha256(sourcePath),
+        resolutions: await deliveryFileSha256(supplementary.resolutionPath),
+        snapshots,
+        addresses: addresses.sort((a, b) => a.id.localeCompare(b.id)),
+        divisions: [...divisionIds].sort(),
+        supplementary: {
+          snapshotId: supplementary.snapshotId,
+          addresses: supplementary.addresses,
+        },
+      }),
+    ),
+    generate,
+  })
 }
 
 async function* groupAsyncIterable<T>(values: AsyncIterable<T>, batchSize: number) {
@@ -460,15 +503,20 @@ async function* zipPlacesAndResolutions(
   resolutions: AsyncIterable<StagedAddressResolution>,
 ) {
   const iterator = resolutions[Symbol.asyncIterator]()
-  for await (const place of places) {
-    const next = await iterator.next()
-    if (next.done) throw new Error(`Missing Place Address resolution for ${place.id}.`)
-    if (next.value.placeId !== place.id)
-      throw new Error(
-        `Place Address resolution order diverged at ${place.id}/${next.value.placeId}.`,
-      )
-    yield { place, resolution: next.value }
+  try {
+    for await (const place of places) {
+      const next = await iterator.next()
+      if (next.done)
+        throw new Error(`Missing Place Address resolution for ${place.id}.`)
+      if (next.value.placeId !== place.id)
+        throw new Error(
+          `Place Address resolution order diverged at ${place.id}/${next.value.placeId}.`,
+        )
+      yield { place, resolution: next.value }
+    }
+    if (!(await iterator.next()).done)
+      throw new Error('Place Address resolution stream has extra rows.')
+  } finally {
+    await iterator.return?.()
   }
-  if (!(await iterator.next()).done)
-    throw new Error('Place Address resolution stream has extra rows.')
 }

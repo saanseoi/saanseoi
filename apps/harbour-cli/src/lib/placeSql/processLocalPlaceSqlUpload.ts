@@ -92,6 +92,7 @@ export async function processLocalPlaceSqlUpload(
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
+  let completed = false
   let postPublishCacheError: Error | null = null
   let publishResult: PublishDatasetResult | void | null = null
 
@@ -179,13 +180,14 @@ export async function processLocalPlaceSqlUpload(
       progress,
       'Read and normalise',
       'source Places',
-      reportProgress =>
+      async reportProgress =>
         stagePlaces(
           bucket,
           rawObjectKey,
           previewPlan.sourceVersion,
           releaseRoot,
           current => reportProgress(current),
+          await deliveryFileSha256(preparedUpload.filePath),
         ),
       previewPlan.rowCount,
     )
@@ -245,6 +247,7 @@ export async function processLocalPlaceSqlUpload(
           releaseRoot,
           current => reportProgress(current),
           supplementary,
+          stagedPlaces.path,
         ),
       stagedPlaces.includedRows,
     )
@@ -265,21 +268,19 @@ export async function processLocalPlaceSqlUpload(
       historyRows,
     }
     const sqlTimestamp = new Date().toISOString()
-    const sqlDelivery = target.remote
-      ? {
-          timings: { mirrorPreparationMs },
-          directory: resolve(releaseRoot, 'sql-delivery-places'),
-          context,
-          releaseId,
-          inputs: {
-            message,
-            snapshots,
-            enrichedSha256: await deliveryFileSha256(stagedEnrichedPlaces.path),
-          },
-          accountId: importOptions.accountId,
-          apiToken: importOptions.apiToken,
-        }
-      : undefined
+    const sqlDelivery = {
+      timings: { mirrorPreparationMs },
+      directory: resolve(releaseRoot, 'sql-delivery-places'),
+      context,
+      releaseId,
+      inputs: {
+        message,
+        snapshots,
+        enrichedSha256: await deliveryFileSha256(stagedEnrichedPlaces.path),
+      },
+      accountId: importOptions.accountId,
+      apiToken: importOptions.apiToken,
+    }
 
     await runPlaceProgressPhase(
       progress,
@@ -347,6 +348,7 @@ export async function processLocalPlaceSqlUpload(
           context,
           releaseId,
           phase: 'places-search',
+          nativeLocal: true,
           inputs: sqlDelivery?.inputs ?? {},
           mode,
         },
@@ -525,6 +527,7 @@ export async function processLocalPlaceSqlUpload(
       stagedEnrichedPlaces.processedRows,
     )
     progress.finish('Places processing complete')
+    completed = true
   } catch (error) {
     progress.fail(error)
     await client
@@ -538,6 +541,8 @@ export async function processLocalPlaceSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
+    if (!target.remote && completed && dbContext)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
     dbContext?.cleanup()
     if (shouldRefreshRemoteMetaCache && target.remote && dbContext) {
       try {

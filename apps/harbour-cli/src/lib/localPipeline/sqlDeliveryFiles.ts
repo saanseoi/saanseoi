@@ -92,7 +92,10 @@ export async function readDeliveryPlan(
     throw error
   }
   const plan = JSON.parse(text) as SqlDeliveryPlan
-  if (plan.version !== 1 || plan.id !== planId(plan.context, plan.batches)) {
+  if (
+    plan.version !== 1 ||
+    plan.id !== planId(plan.context, plan.batches, plan.outputs)
+  ) {
     throw new Error('SQL delivery manifest is invalid or has been modified.')
   }
   for (const [index, batch] of plan.batches.entries()) {
@@ -114,8 +117,9 @@ export async function readDeliveryPlan(
 function planId(
   context: SqlDeliveryPlan['context'],
   batches: SqlDeliveryPlan['batches'],
+  outputs?: SqlDeliveryPlan['outputs'],
 ) {
-  return sha256(JSON.stringify({ context, batches }))
+  return sha256(JSON.stringify({ context, batches, outputs }))
 }
 
 /** Seal every batch before any remote write. Existing plans are never regenerated. */
@@ -128,7 +132,7 @@ export async function prepareSqlDelivery(
       sql: Uint8Array,
       kind?: 'sql' | 'bound',
     ) => Promise<void>,
-  ) => Promise<void>,
+  ) => Promise<void | Record<string, unknown>>,
   timings: { mirrorPreparationMs?: number; sqlGenerationMs?: number } = {},
 ) {
   return withDeliveryLock(directory, async () => {
@@ -145,8 +149,9 @@ export async function prepareSqlDelivery(
     // Generators may run independent database branches concurrently. Serialise file publication.
     let pending = Promise.resolve()
     let closed = false
+    let outputs: void | Record<string, unknown>
     try {
-      await generate((target, sql, kind = 'sql') => {
+      outputs = await generate((target, sql, kind = 'sql') => {
         if (closed) throw new Error('SQL delivery preparation has already stopped.')
         pending = pending.then(async () => {
           if (kind === 'bound') readBoundDeliveryStatements(sql)
@@ -170,9 +175,10 @@ export async function prepareSqlDelivery(
     }
     const plan: SqlDeliveryPlan = {
       version: 1,
-      id: planId(context, batches),
+      id: planId(context, batches, outputs || undefined),
       context,
       batches,
+      ...(outputs ? { outputs } : {}),
       preparedAt: new Date().toISOString(),
       generationMs: (timings.sqlGenerationMs ?? 0) + Date.now() - startedAt,
       mirrorPreparationMs: timings.mirrorPreparationMs ?? 0,

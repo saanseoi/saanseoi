@@ -1,5 +1,8 @@
 import { rm } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { join, resolve } from 'node:path'
+import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
+import { invalidateSqlDeliveryReleases } from '../localPipeline/sqlDeliveryGeneration.ts'
 
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { invalidateRemoteDbCache } from '../dbCache/localDbCache.ts'
@@ -39,13 +42,38 @@ export function validateResetArguments(
 export async function executeResetSqlArtefacts(options: {
   artefacts: readonly ResetSqlArtefact[]
   cacheReleaseCodes: readonly string[]
+  cacheReleaseIds: readonly string[]
   cacheRoot: string
   context: LocalAddressDbContext
   extraCachePaths?: readonly string[]
   keepCache: boolean
   target: UploadTarget
   remoteCacheErrorMessage: string
+  validateUnderLock?: () => Promise<void>
+  beforeSql?: () => Promise<void>
+  afterSql?: () => Promise<void>
 }) {
+  return withDeliveryLock(
+    join(options.context.state.dbCacheDir, 'sql-delivery-lock'),
+    async () => {
+      // Context acquisition and user confirmation can precede this by minutes.
+      // Recheck ownership under the writer lock immediately before destructive SQL.
+      await assertSqlDeliveryPlanningAllowed(options.context.state.dbCacheDir)
+      await options.validateUnderLock?.()
+      await invalidateSqlDeliveryReleases(
+        options.context.state.dbCacheDir,
+        options.cacheReleaseIds,
+      )
+      await options.beforeSql?.()
+      await executeResetSqlArtefactsLocked(options)
+      await options.afterSql?.()
+    },
+  )
+}
+
+async function executeResetSqlArtefactsLocked(
+  options: Parameters<typeof executeResetSqlArtefacts>[0],
+) {
   const importOptions = {
     accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
     apiToken: process.env.CLOUDFLARE_D1_TOKEN,
@@ -82,6 +110,18 @@ export async function executeResetSqlArtefacts(options: {
   }
 
   if (options.keepCache) return
+
+  for (const releaseId of options.cacheReleaseIds) {
+    await rm(
+      resolve(
+        import.meta.dir,
+        '../../../../../.local/harbour-sql/deliveries',
+        options.target.remote ? options.target.environment : 'local',
+        `release-${encodeURIComponent(releaseId)}`,
+      ),
+      { force: true, recursive: true },
+    )
+  }
 
   for (const path of options.extraCachePaths ?? []) {
     await rm(path, { force: true, recursive: true })

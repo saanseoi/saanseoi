@@ -19,6 +19,8 @@ type LocalD1PreparedStatement = {
 }
 
 type LocalD1ExecBinding = {
+  bindingName?: string
+  executeSqlBatch?(sql: string): Promise<void>
   batch?(statements: LocalD1PreparedStatement[]): Promise<unknown>
   prepare?(sql: string): LocalD1PreparedStatement
 }
@@ -257,6 +259,16 @@ async function execSqlWithBoundD1(
 
   const sql = new TextDecoder().decode(sqlBytes)
   const statements = splitSqlStatements(sql)
+
+  if (target.binding.executeSqlBatch) {
+    const execute = target.binding.executeSqlBatch.bind(target.binding)
+    await runWithWriteRetry(() => execute(sql), {
+      maxRetries: options.localWriteMaxRetries,
+      onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+      retryDelayMs: options.retryDelayMs,
+    })
+    return statements.length
+  }
 
   if (target.binding.batch) {
     for (

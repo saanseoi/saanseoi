@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
 import {
   completeSqlDeliveryRelease,
@@ -126,6 +126,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         cacheTableProfile,
         includePreviousShardYears: true,
         remoteCacheScopeKey,
+        resumeSqlDeliveryReleaseId: releaseId,
       },
     ),
   )
@@ -224,301 +225,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         return { dataset, snapshot }
       },
     )
-    const records = await runPlandProgressPhase(
-      progress,
-      'Normalise',
-      `${previewPlan.rowCount.toLocaleString('en-US')} planning divisions`,
-      async () =>
-        readPreparedDivisions(
-          bucket,
-          rawObjectKey,
-          releaseCode,
-          !target.remote,
-          previewPlan.source === 'hkgov-pland-new-town'
-            ? await loadPlandNewTownDivisionCodes(metaDb)
-            : new Map(),
-        ),
-    )
-    validatePreparedDivisions(records, previewPlan.rowCount)
-    const now = toIsoTimestamp()
-    const nativeSourceTable =
-      previewPlan.source === 'hkgov-pland-new-town'
-        ? sourceSchema.sourceHkgovPlandNewTowns
-        : sourceSchema.sourceHkgovPlandPlanningCells
-    const {
-      changedHistoryIds,
-      changedNativeIds,
-      currentHistoryRows,
-      missingHistoryIds,
-      missingNativeIds,
-      nativeRecords,
-    } = await runPlandProgressPhase(
-      progress,
-      'Compare',
-      'Planning divisions',
-      async () => {
-        const currentNativeRows = await context.sourceDb
-          .select({
-            sourceRecordId: nativeSourceTable.sourceRecordId,
-            versionHash: nativeSourceTable.versionHash,
-          })
-          .from(nativeSourceTable)
-          .where(eq(nativeSourceTable.isCurrent, true))
-          .all()
-        const currentHistoryRows = await listCurrentHistoryRows(
-          context.historyDb as unknown as HarbourReadableDb,
-          previewPlan.source,
-        )
-        const historyHashById = new Map(
-          currentHistoryRows.map(row => [row.id, row.versionHash]),
-        )
-        const nativeSourceHashById = new Map(
-          currentNativeRows.map(row => [row.sourceRecordId, row.versionHash]),
-        )
-        const ids = new Set(records.map(record => record.base.id))
-        const changedHistoryIds = records
-          .filter(record => historyHashById.get(record.base.id) !== record.versionHash)
-          .map(record => record.base.id)
-        const missingHistoryIds = currentHistoryRows
-          .map(row => row.id)
-          .filter(id => !ids.has(id))
-        const nativeRecords =
-          previewPlan.source === 'hkgov-pland-new-town'
-            ? records.flatMap(record => (record.newTown ? [record.newTown] : []))
-            : records.flatMap(record => record.cells)
-        const nativeHashes = await Promise.all(
-          nativeRecords.map(
-            async record => [record.sourceRecordId, await createHash(record)] as const,
-          ),
-        )
-        const nativeHashById = new Map(nativeHashes)
-        const incomingNativeIds = new Set(nativeHashById.keys())
-        const changedNativeIds = nativeRecords
-          .filter(
-            record =>
-              nativeSourceHashById.get(record.sourceRecordId) !==
-              nativeHashById.get(record.sourceRecordId),
-          )
-          .map(record => record.sourceRecordId)
-        const missingNativeIds = currentNativeRows
-          .map(row => row.sourceRecordId)
-          .filter(id => !incomingNativeIds.has(id))
-
-        return {
-          changedHistoryIds,
-          changedNativeIds,
-          currentHistoryRows,
-          missingHistoryIds,
-          missingNativeIds,
-          nativeRecords,
-        }
-      },
-    )
-
-    await runPlandProgressPhase(
-      progress,
-      'Retire',
-      'superseded Planning records',
-      async () => {
-        await closeHistoryRows(
-          context.historyDb as unknown as HarbourWritableDb,
-          [...changedHistoryIds, ...missingHistoryIds],
-          snapshot.id,
-          previewPlan.cohortKey,
-          now,
-        )
-        await closeNativeSourceRows(
-          context.sourceDb as unknown as HarbourWritableDb,
-          nativeSourceTable,
-          [...changedNativeIds, ...missingNativeIds],
-          releaseCode,
-          now,
-        )
-      },
-    )
-    const compressedGeometryByDivisionId = await runPlandProgressPhase(
-      progress,
-      'Materialise',
-      'Planning division geometry',
-      async reportProgress => compressPlanningDivisionGeometry(records, reportProgress),
-      { totalUnits: records.length },
-    )
-    await runPlandProgressPhase(
-      progress,
-      'Materialise',
-      'current Planning divisions',
-      reportProgress =>
-        replaceCurrentSnapshot(
-          context.currentDb as unknown as HarbourWritableDb,
-          snapshot.id,
-          records,
-          compressedGeometryByDivisionId,
-          currentHistoryRows.map(row => row.id),
-          now,
-          reportProgress,
-        ),
-      { totalUnits: records.length },
-    )
-    const currentI18nRowCount = records.reduce(
-      (count, record) => count + record.i18n.length,
-      0,
-    )
-    await runPlandProgressPhase(
-      progress,
-      'Materialise',
-      'Planning division names',
-      reportProgress =>
-        replaceCurrentI18n(
-          context.currentDb as unknown as HarbourWritableDb,
-          snapshot.id,
-          records,
-          currentHistoryRows.map(row => row.id),
-          now,
-          reportProgress,
-        ),
-      { totalUnits: currentI18nRowCount },
-    )
-    const changedHistoryRecords = records.filter(record =>
-      changedHistoryIds.includes(record.base.id),
-    )
-    await runPlandProgressPhase(
-      progress,
-      'Record',
-      'Planning division history',
-      async reportProgress => {
-        await insertHistoryRows(
-          context.historyDb as unknown as HarbourWritableDb,
-          snapshot.id,
-          releaseId,
-          previewPlan.cohortKey,
-          changedHistoryRecords,
-          compressedGeometryByDivisionId,
-          now,
-          reportProgress,
-        )
-        await insertHistoryI18nRows(
-          context.historyDb as unknown as HarbourWritableDb,
-          snapshot.id,
-          releaseId,
-          previewPlan.cohortKey,
-          changedHistoryRecords,
-          now,
-          reportProgress,
-        )
-      },
-      {
-        totalUnits:
-          changedHistoryRecords.length +
-          changedHistoryRecords.reduce(
-            (count, record) => count + record.i18n.length,
-            0,
-          ),
-      },
-    )
-    const changedNativeRecords = nativeRecords.filter(record =>
-      changedNativeIds.includes(record.sourceRecordId),
-    )
-    await runPlandProgressPhase(
-      progress,
-      'Store',
-      'Planning source records',
-      reportProgress =>
-        insertSourceRows(
-          context.sourceDb as unknown as HarbourWritableDb,
-          releaseId,
-          releaseCode,
-          changedNativeRecords,
-          previewPlan.source,
-          now,
-          reportProgress,
-        ),
-      { totalUnits: changedNativeRecords.length },
-    )
-    await runPlandProgressPhase(
-      progress,
-      'Update',
-      'Planning release metadata',
-      async () => {
-        const repairedGeometryRecords = records.filter(wasPlanningGeometryRepaired)
-        await replaceReleaseProcessingActions(
-          metaDb,
-          releaseId,
-          repairedGeometryRecords.length > 0
-            ? [
-                {
-                  action: 'planning_geometry_self_intersection_repaired',
-                  affectedRecordCount: repairedGeometryRecords.length,
-                  evidence: repairedGeometryRecords.map(record => ({
-                    canonicalDivision: {
-                      id: record.base.id,
-                      identifiers: record.base.identifiers,
-                      level: record.base.level,
-                    },
-                    sourceEvidence:
-                      record.cells.length > 0
-                        ? record.cells.map(cell => ({
-                            rawProperties: cell.rawProperties,
-                            sourceRecordId: cell.sourceRecordId,
-                          }))
-                        : record.newTown
-                          ? {
-                              rawProperties: record.newTown.rawProperties,
-                              sourceRecordId: record.newTown.sourceRecordId,
-                            }
-                          : null,
-                  })),
-                  mode: 'automatic',
-                  summary:
-                    'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
-                },
-              ]
-            : [],
-        )
-        await replaceDatasetStats(metaDb, releaseId, [
-          statRow('records', 'count', records.length, 'canonical_divisions'),
-          statRow('source_features', 'count', nativeRecords.length, 'planning_cells'),
-          statRow(
-            'source_quality',
-            'repaired',
-            records.filter(wasPlanningGeometryRepaired).length,
-            'ring_self_intersection',
-          ),
-        ])
-      },
-    )
-    await runPlandProgressPhase(progress, 'Complete', 'Planning processing', () =>
-      client.stageCompleted(
-        releaseId,
-        'processDataset',
-        {
-          resourceType: 'division',
-          sourceRows: previewPlan.rowCount,
-          importedRows: records.length,
-          changedRows: changedHistoryIds.length,
-          deletedRows: missingHistoryIds.length,
-        },
-        releaseCode,
-      ),
-    )
-    const sqlManifest = await runPlandProgressPhase(
-      progress,
-      'Write',
-      'SQL import artefacts',
-      () =>
-        writePlandSqlArtefacts(bucket, context, previewPlan, {
-          changedHistoryIds,
-          changedNativeIds,
-          missingHistoryIds,
-          missingNativeIds,
-          releaseId,
-          releaseCode,
-          records,
-          snapshotId: snapshot.id,
-        }),
-    )
-    const importOptions = resolvePlandImportOptions(target, context)
-    const importTargets = resolvePlandImportTargets(context, previewPlan.sourceVersion)
-
     const deliveryContext = target.remote
       ? await resolveLocalAddressDbContext(
           target,
@@ -532,8 +238,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           },
         )
       : context
+    let completionCounts: PlandDeliveryCounts
     try {
-      await deliverSqlPhase(
+      completionCounts = await deliverPlandWorkflow(
         {
           context: deliveryContext,
           releaseId,
@@ -545,21 +252,336 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           onProgress: (completed, total) =>
             progress.message(`Planning division SQL: ${completed}/${total} batches`),
         },
-        () =>
-          importPlandSqlArtefacts(
+        context,
+        async context => {
+          const metaDb = context.metaDb as unknown as HarbourReadableDb &
+            HarbourWritableDb
+          const records = await runPlandProgressPhase(
+            progress,
+            'Normalise',
+            `${previewPlan.rowCount.toLocaleString('en-US')} planning divisions`,
+            async () =>
+              readPreparedDivisions(
+                bucket,
+                rawObjectKey,
+                releaseCode,
+                !target.remote,
+                previewPlan.source === 'hkgov-pland-new-town'
+                  ? await loadPlandNewTownDivisionCodes(metaDb)
+                  : new Map(),
+              ),
+          )
+          validatePreparedDivisions(records, previewPlan.rowCount)
+          const now = toIsoTimestamp()
+          const nativeSourceTable =
+            previewPlan.source === 'hkgov-pland-new-town'
+              ? sourceSchema.sourceHkgovPlandNewTowns
+              : sourceSchema.sourceHkgovPlandPlanningCells
+          const {
+            changedHistoryIds,
+            changedNativeIds,
+            currentHistoryRows,
+            missingHistoryIds,
+            missingNativeIds,
+            nativeRecords,
+          } = await runPlandProgressPhase(
+            progress,
+            'Compare',
+            'Planning divisions',
+            async () => {
+              const currentNativeRows = await context.sourceDb
+                .select({
+                  sourceRecordId: nativeSourceTable.sourceRecordId,
+                  versionHash: nativeSourceTable.versionHash,
+                })
+                .from(nativeSourceTable)
+                .where(eq(nativeSourceTable.isCurrent, true))
+                .all()
+              const currentHistoryRows = await listCurrentHistoryRows(
+                context.historyDb as unknown as HarbourReadableDb,
+                previewPlan.source,
+              )
+              const historyHashById = new Map(
+                currentHistoryRows.map(row => [row.id, row.versionHash]),
+              )
+              const nativeSourceHashById = new Map(
+                currentNativeRows.map(row => [row.sourceRecordId, row.versionHash]),
+              )
+              const ids = new Set(records.map(record => record.base.id))
+              const changedHistoryIds = records
+                .filter(
+                  record => historyHashById.get(record.base.id) !== record.versionHash,
+                )
+                .map(record => record.base.id)
+              const missingHistoryIds = currentHistoryRows
+                .map(row => row.id)
+                .filter(id => !ids.has(id))
+              const nativeRecords =
+                previewPlan.source === 'hkgov-pland-new-town'
+                  ? records.flatMap(record => (record.newTown ? [record.newTown] : []))
+                  : records.flatMap(record => record.cells)
+              const nativeHashes = await Promise.all(
+                nativeRecords.map(
+                  async record =>
+                    [record.sourceRecordId, await createHash(record)] as const,
+                ),
+              )
+              const nativeHashById = new Map(nativeHashes)
+              const incomingNativeIds = new Set(nativeHashById.keys())
+              const changedNativeIds = nativeRecords
+                .filter(
+                  record =>
+                    nativeSourceHashById.get(record.sourceRecordId) !==
+                    nativeHashById.get(record.sourceRecordId),
+                )
+                .map(record => record.sourceRecordId)
+              const missingNativeIds = currentNativeRows
+                .map(row => row.sourceRecordId)
+                .filter(id => !incomingNativeIds.has(id))
+
+              return {
+                changedHistoryIds,
+                changedNativeIds,
+                currentHistoryRows,
+                missingHistoryIds,
+                missingNativeIds,
+                nativeRecords,
+              }
+            },
+          )
+
+          await runPlandProgressPhase(
+            progress,
+            'Retire',
+            'superseded Planning records',
+            async () => {
+              await closeHistoryRows(
+                context.historyDb as unknown as HarbourWritableDb,
+                [...changedHistoryIds, ...missingHistoryIds],
+                snapshot.id,
+                previewPlan.cohortKey,
+                now,
+              )
+              await closeNativeSourceRows(
+                context.sourceDb as unknown as HarbourWritableDb,
+                nativeSourceTable,
+                [...changedNativeIds, ...missingNativeIds],
+                releaseCode,
+                now,
+              )
+            },
+          )
+          const compressedGeometryByDivisionId = await runPlandProgressPhase(
+            progress,
+            'Materialise',
+            'Planning division geometry',
+            async reportProgress =>
+              compressPlanningDivisionGeometry(records, reportProgress),
+            { totalUnits: records.length },
+          )
+          await runPlandProgressPhase(
+            progress,
+            'Materialise',
+            'current Planning divisions',
+            reportProgress =>
+              replaceCurrentSnapshot(
+                context.currentDb as unknown as HarbourWritableDb,
+                snapshot.id,
+                records,
+                compressedGeometryByDivisionId,
+                currentHistoryRows.map(row => row.id),
+                now,
+                reportProgress,
+              ),
+            { totalUnits: records.length },
+          )
+          const currentI18nRowCount = records.reduce(
+            (count, record) => count + record.i18n.length,
+            0,
+          )
+          await runPlandProgressPhase(
+            progress,
+            'Materialise',
+            'Planning division names',
+            reportProgress =>
+              replaceCurrentI18n(
+                context.currentDb as unknown as HarbourWritableDb,
+                snapshot.id,
+                records,
+                currentHistoryRows.map(row => row.id),
+                now,
+                reportProgress,
+              ),
+            { totalUnits: currentI18nRowCount },
+          )
+          const changedHistoryRecords = records.filter(record =>
+            changedHistoryIds.includes(record.base.id),
+          )
+          await runPlandProgressPhase(
+            progress,
+            'Record',
+            'Planning division history',
+            async reportProgress => {
+              await insertHistoryRows(
+                context.historyDb as unknown as HarbourWritableDb,
+                snapshot.id,
+                releaseId,
+                previewPlan.cohortKey,
+                changedHistoryRecords,
+                compressedGeometryByDivisionId,
+                now,
+                reportProgress,
+              )
+              await insertHistoryI18nRows(
+                context.historyDb as unknown as HarbourWritableDb,
+                snapshot.id,
+                releaseId,
+                previewPlan.cohortKey,
+                changedHistoryRecords,
+                now,
+                reportProgress,
+              )
+            },
+            {
+              totalUnits:
+                changedHistoryRecords.length +
+                changedHistoryRecords.reduce(
+                  (count, record) => count + record.i18n.length,
+                  0,
+                ),
+            },
+          )
+          const changedNativeRecords = nativeRecords.filter(record =>
+            changedNativeIds.includes(record.sourceRecordId),
+          )
+          await runPlandProgressPhase(
+            progress,
+            'Store',
+            'Planning source records',
+            reportProgress =>
+              insertSourceRows(
+                context.sourceDb as unknown as HarbourWritableDb,
+                releaseId,
+                releaseCode,
+                changedNativeRecords,
+                previewPlan.source,
+                now,
+                reportProgress,
+              ),
+            { totalUnits: changedNativeRecords.length },
+          )
+          await runPlandProgressPhase(
+            progress,
+            'Update',
+            'Planning release metadata',
+            async () => {
+              const repairedGeometryRecords = records.filter(
+                wasPlanningGeometryRepaired,
+              )
+              await replaceReleaseProcessingActions(
+                metaDb,
+                releaseId,
+                repairedGeometryRecords.length > 0
+                  ? [
+                      {
+                        action: 'planning_geometry_self_intersection_repaired',
+                        affectedRecordCount: repairedGeometryRecords.length,
+                        evidence: repairedGeometryRecords.map(record => ({
+                          canonicalDivision: {
+                            id: record.base.id,
+                            identifiers: record.base.identifiers,
+                            level: record.base.level,
+                          },
+                          sourceEvidence:
+                            record.cells.length > 0
+                              ? record.cells.map(cell => ({
+                                  rawProperties: cell.rawProperties,
+                                  sourceRecordId: cell.sourceRecordId,
+                                }))
+                              : record.newTown
+                                ? {
+                                    rawProperties: record.newTown.rawProperties,
+                                    sourceRecordId: record.newTown.sourceRecordId,
+                                  }
+                                : null,
+                        })),
+                        mode: 'automatic',
+                        summary:
+                          'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
+                      },
+                    ]
+                  : [],
+              )
+              await replaceDatasetStats(metaDb, releaseId, [
+                statRow('records', 'count', records.length, 'canonical_divisions'),
+                statRow(
+                  'source_features',
+                  'count',
+                  nativeRecords.length,
+                  'planning_cells',
+                ),
+                statRow(
+                  'source_quality',
+                  'repaired',
+                  records.filter(wasPlanningGeometryRepaired).length,
+                  'ring_self_intersection',
+                ),
+              ])
+            },
+          )
+          const counts = {
+            importedRows: records.length,
+            changedRows: changedHistoryIds.length,
+            deletedRows: missingHistoryIds.length,
+          }
+          if (!target.remote) return counts
+          const prepareSqlManifest = () =>
+            runPlandProgressPhase(progress, 'Write', 'SQL import artefacts', () =>
+              writePlandSqlArtefacts(bucket, context, previewPlan, {
+                changedHistoryIds,
+                changedNativeIds,
+                missingHistoryIds,
+                missingNativeIds,
+                releaseId,
+                releaseCode,
+                records,
+                snapshotId: snapshot.id,
+              }),
+            )
+          const importOptions = resolvePlandImportOptions(target, context)
+          const importTargets = resolvePlandImportTargets(
+            context,
+            previewPlan.sourceVersion,
+          )
+
+          await importPlandSqlArtefacts(
             bucket,
-            sqlManifest,
+            await prepareSqlManifest(),
             importTargets,
             importOptions,
             client,
             releaseId,
             releaseCode,
             progress,
-          ),
+          )
+          return counts
+        },
       )
     } finally {
       if (deliveryContext !== context) deliveryContext.cleanup()
     }
+    await runPlandProgressPhase(progress, 'Complete', 'Planning processing', () =>
+      client.stageCompleted(
+        releaseId,
+        'processDataset',
+        {
+          resourceType: 'division',
+          sourceRows: previewPlan.rowCount,
+          ...completionCounts,
+        },
+        releaseCode,
+      ),
+    )
     const publishResult = await runPlandProgressPhase(
       progress,
       'Publish',
@@ -578,9 +600,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           deliveryContext.state.dbCacheDir,
         ),
       )
-      await completeSqlDeliveryRelease(deliveryContext.state.dbCacheDir, releaseId)
     }
-    return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
+    await completeSqlDeliveryRelease(deliveryContext.state.dbCacheDir, releaseId)
+    return {
+      importedRows: completionCounts.importedRows,
+      publishResult,
+      snapshotId: snapshot.id,
+    }
   } catch (error) {
     progress.fail()
     if (!published) {

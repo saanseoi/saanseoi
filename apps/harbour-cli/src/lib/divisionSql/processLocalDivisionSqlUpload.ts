@@ -6,6 +6,7 @@ import {
 import { resolve } from 'node:path'
 import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
+import { readDivisionDeliveryOutputs } from './divisionDeliveryOutputs.ts'
 import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -278,6 +279,7 @@ export async function processLocalDivisionSqlUpload(
   let shouldRefreshRemoteMetaCache = false
   let postPublishCacheError: Error | null = null
   let publishResult: Awaited<ReturnType<HarbourClient['publishDataset']>> | null = null
+  let published = false
 
   await writeLocalPipelineState(releaseRoot, {
     divisionBatchSize: DIVISION_BATCH_SIZE,
@@ -331,293 +333,314 @@ export async function processLocalDivisionSqlUpload(
         label: formatLocalSetupProgressLabel('current state', 8, setupStepCount),
       })
     }
-    const currentRows = versionInsertContext.parentSnapshotId
-      ? await getDivisionVersionMapForSnapshot(
-          dbContext.currentDb as never,
-          versionInsertContext.parentSnapshotId,
-          {
-            buildDivisionBaseHashInput,
-            normaliseDivisionI18nSnapshotRow,
-          },
-          dbContext.historyTargets.map(target =>
-            buildHistoryOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
-          ),
-        )
-      : new Map<string, DivisionVersionSnapshot>()
-    if (versionInsertContext.parentSnapshotId && currentRows.size === 0) {
-      throw new Error(
-        `Parent division snapshot ${versionInsertContext.parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
-      )
-    }
-    const currentSourceRows =
-      previewPlan.source === 'overture'
-        ? await getMergedCurrentSourceOvertureDivisionMap(
-            dbContext.sourceTargets.map((target, index) => ({
-              db: target.db as never,
-              key: buildSourceOwnerKey(
-                previewPlan.regionCode,
-                shardYear,
-                target.bindingName,
-              ),
-              sortOrder: index,
-            })),
-          )
-        : new Map()
-    await assertDivisionCurrentSnapshotComplete(
-      dbContext.currentDb,
-      currentRows,
-      versionInsertContext.parentSnapshotId,
-    )
-    if (!target.remote) {
-      progress.complete(
-        appendPhaseDetails(
-          formatCompletedPhaseLabel(
-            colorTeal('Prepare'),
-            colorRed('local'),
-            setupStepCount,
-          ),
-          [formatDurationMs(Date.now() - setupStartedAt)],
-        ),
-      )
-    }
-
-    const divisionState = await runLocalStreamingPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Normalise'),
-          colorTeal('records'),
-          previewPlan.rowCount,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Normalise'),
-          colorTeal('records'),
-          0,
-          previewPlan.rowCount,
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Normalise'),
-            colorTeal('records'),
-            current,
-            previewPlan.rowCount,
-          )
-        },
-        phase: 'normaliseDivisionSql',
-        releaseCode,
-        releaseId,
-        totalUnits: previewPlan.rowCount,
-      },
-      async reportProgress =>
-        buildDivisionSqlState(
-          bucket,
-          initialMessage,
-          dbContext.metaDb,
-          currentRows,
-          currentSourceRows,
-          versionInsertContext.snapshotId,
-          !target.remote,
-          async current => {
-            await reportProgress(current)
-            await harbourClient.stageRunning(
-              releaseId,
-              'extractDivisions',
-              {
-                processedRows: current,
-              },
-              releaseCode,
-            )
-          },
-        ),
-    )
-    await harbourClient.stageCompleted(
-      releaseId,
-      'normaliseDivisionSql',
-      {
-        localisedRows: divisionState.localisedRows,
-        processedRows: divisionState.processedRows,
-      },
-      releaseCode,
-    )
-
-    const sourceFile = await runLocalStreamingPhase(
-      progress,
-      harbourClient,
-      buildStreamingPhase(
-        releaseId,
-        releaseCode,
-        'generateDivisionSqlSource',
-        previewPlan.rowCount,
-        colorRed('source'),
-      ),
-      reportProgress =>
-        buildDivisionSourceSqlFile(initialMessage, divisionState, reportProgress),
-    )
-    await harbourClient.stageCompleted(
-      releaseId,
-      'generateDivisionSqlSource',
-      {
-        processedRows: divisionState.processedRows,
-      },
-      releaseCode,
-    )
-
-    const historyFile = await runLocalStreamingPhase(
-      progress,
-      harbourClient,
-      buildStreamingPhase(
-        releaseId,
-        releaseCode,
-        'generateDivisionSqlHistory',
-        previewPlan.rowCount,
-        colorRed('history'),
-      ),
-      reportProgress =>
-        buildDivisionHistorySqlFile(initialMessage, divisionState, reportProgress),
-    )
-    await harbourClient.stageCompleted(
-      releaseId,
-      'generateDivisionSqlHistory',
-      {
-        processedRows: divisionState.processedRows,
-      },
-      releaseCode,
-    )
-
-    const currentInitFile = await buildDivisionCurrentInitSqlFile(
-      versionInsertContext.parentSnapshotId,
-      divisionState.snapshotId,
-      initialMessage.processingRunStartedAt ?? processingRunStartedAt,
-    )
-    const currentFile = await runLocalStreamingPhase(
-      progress,
-      harbourClient,
-      buildStreamingPhase(
-        releaseId,
-        releaseCode,
-        'generateDivisionSqlCurrent',
-        previewPlan.rowCount,
-        colorRed('current'),
-      ),
-      reportProgress =>
-        buildDivisionCurrentSqlFile(initialMessage, divisionState, reportProgress),
-    )
-    await harbourClient.stageCompleted(
-      releaseId,
-      'generateDivisionSqlCurrent',
-      {
-        processedRows: divisionState.processedRows,
-      },
-      releaseCode,
-    )
-
-    await replaceReleaseProcessingActions(
-      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      releaseId,
-      divisionState.processingActions,
-    )
-
-    const metaFile = await runLocalStreamingPhase(
-      progress,
-      harbourClient,
-      {
-        completionLabel: formatCompletedPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('stats'),
-          divisionState.statsRows.length,
-        ),
-        label: formatRunningPhaseLabel(
-          colorTeal('Generate SQL'),
-          colorRed('stats'),
-          0,
-          Math.max(divisionState.statsRows.length, 1),
-        ),
-        labelForProgress(current: number) {
-          return formatRunningPhaseLabel(
-            colorTeal('Generate SQL'),
-            colorRed('stats'),
-            current,
-            Math.max(divisionState.statsRows.length, 1),
-          )
-        },
-        phase: 'generateDivisionSqlStats',
-        releaseCode,
-        releaseId,
-        totalUnits: Math.max(divisionState.statsRows.length, 1),
-      },
-      reportProgress =>
-        buildDivisionMetaSqlFile(
-          dbContext.metaDb,
-          initialMessage,
-          divisionState,
-          reportProgress,
-        ),
-    )
-    await harbourClient.stageCompleted(
-      releaseId,
-      'generateDivisionSqlStats',
-      {
-        processedRows: divisionState.statsRows.length,
-        statsRows: divisionState.statsRows.length,
-      },
-      releaseCode,
-    )
-
-    const manifest = await writeDivisionSqlArtefacts(bucket, initialMessage, {
-      current: currentFile,
-      currentInit: currentInitFile,
-      history: historyFile,
-      meta: metaFile,
-      source: sourceFile,
-    })
-
-    await writeLocalPipelineState(releaseRoot, {
-      artefacts: manifest,
-      divisionBatchSize: DIVISION_BATCH_SIZE,
-      preparedAt: processingRunStartedAt,
-      rawObjectKey,
-      releaseCode,
-      releaseId,
-      shardYear,
-      snapshotId: divisionState.snapshotId,
-      sqlStatementByteTarget: SQL_STATEMENT_BYTE_TARGET,
-      target: resolvedTargetName,
-      workingDbCacheDir: dbContext.state.dbCacheDir,
-    })
-
-    const extraSourceSqlOperations = buildExtraSourceSqlOperations(
-      initialMessage,
-      divisionState,
-      importTargets,
-    )
-    const extraHistorySqlOperations = buildExtraHistorySqlOperations(
-      divisionState,
-      importTargets,
-    )
-    const importProgressClient = createLocalImportProgressClient(
-      harbourClient,
-      progress,
-      buildDivisionImportProgressConfig(
-        manifest,
-        extraSourceSqlOperations.length + extraHistorySqlOperations.length,
-      ),
-    )
-
-    await deliverSqlPhase(
+    let sqlArtefactCount = 0
+    let completionCounts: Record<string, number> = {}
+    let importProgressClient: HarbourClient = harbourClient
+    const deliveryOutputs = await deliverSqlPhase(
       {
         context: dbContext,
         releaseId,
         phase: 'division-data',
+        nativeLocal: true,
         inputs: {
           preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
-          snapshotId: divisionState.snapshotId,
+          snapshotId: versionInsertContext.snapshotId,
         },
+        captureOutputs: () => ({ sqlArtefactCount, ...completionCounts }),
+        validateOutputs: readDivisionDeliveryOutputs,
         onProgress: (completed, total) =>
           progress.message(`Division SQL delivery: ${completed}/${total} batches`),
       },
-      () =>
-        runDivisionSqlImportOperations(
+      async () => {
+        const currentRows = versionInsertContext.parentSnapshotId
+          ? await getDivisionVersionMapForSnapshot(
+              dbContext.currentDb as never,
+              versionInsertContext.parentSnapshotId,
+              {
+                buildDivisionBaseHashInput,
+                normaliseDivisionI18nSnapshotRow,
+              },
+              dbContext.historyTargets.map(target =>
+                buildHistoryOwnerKey(
+                  previewPlan.regionCode,
+                  shardYear,
+                  target.bindingName,
+                ),
+              ),
+            )
+          : new Map<string, DivisionVersionSnapshot>()
+        if (versionInsertContext.parentSnapshotId && currentRows.size === 0) {
+          throw new Error(
+            `Parent division snapshot ${versionInsertContext.parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
+          )
+        }
+        const currentSourceRows =
+          previewPlan.source === 'overture'
+            ? await getMergedCurrentSourceOvertureDivisionMap(
+                dbContext.sourceTargets.map((target, index) => ({
+                  db: target.db as never,
+                  key: buildSourceOwnerKey(
+                    previewPlan.regionCode,
+                    shardYear,
+                    target.bindingName,
+                  ),
+                  sortOrder: index,
+                })),
+              )
+            : new Map()
+        await assertDivisionCurrentSnapshotComplete(
+          dbContext.currentDb,
+          currentRows,
+          versionInsertContext.parentSnapshotId,
+        )
+        if (!target.remote) {
+          progress.complete(
+            appendPhaseDetails(
+              formatCompletedPhaseLabel(
+                colorTeal('Prepare'),
+                colorRed('local'),
+                setupStepCount,
+              ),
+              [formatDurationMs(Date.now() - setupStartedAt)],
+            ),
+          )
+        }
+
+        const divisionState = await runLocalStreamingPhase(
+          progress,
+          harbourClient,
+          {
+            completionLabel: formatCompletedPhaseLabel(
+              colorTeal('Normalise'),
+              colorTeal('records'),
+              previewPlan.rowCount,
+            ),
+            label: formatRunningPhaseLabel(
+              colorTeal('Normalise'),
+              colorTeal('records'),
+              0,
+              previewPlan.rowCount,
+            ),
+            labelForProgress(current: number) {
+              return formatRunningPhaseLabel(
+                colorTeal('Normalise'),
+                colorTeal('records'),
+                current,
+                previewPlan.rowCount,
+              )
+            },
+            phase: 'normaliseDivisionSql',
+            releaseCode,
+            releaseId,
+            totalUnits: previewPlan.rowCount,
+          },
+          async reportProgress =>
+            buildDivisionSqlState(
+              bucket,
+              initialMessage,
+              dbContext.metaDb,
+              currentRows,
+              currentSourceRows,
+              versionInsertContext.snapshotId,
+              !target.remote,
+              async current => {
+                await reportProgress(current)
+                await harbourClient.stageRunning(
+                  releaseId,
+                  'extractDivisions',
+                  {
+                    processedRows: current,
+                  },
+                  releaseCode,
+                )
+              },
+            ),
+        )
+        await harbourClient.stageCompleted(
+          releaseId,
+          'normaliseDivisionSql',
+          {
+            localisedRows: divisionState.localisedRows,
+            processedRows: divisionState.processedRows,
+          },
+          releaseCode,
+        )
+
+        completionCounts = {
+          deletedRows: divisionState.deletedRows,
+          insertedVersions: divisionState.insertedVersions,
+          processedRows: divisionState.processedRows,
+          unchangedRows: divisionState.unchangedRows,
+          localisedRows: divisionState.localisedRows,
+        }
+        const sourceFile = await runLocalStreamingPhase(
+          progress,
+          harbourClient,
+          buildStreamingPhase(
+            releaseId,
+            releaseCode,
+            'generateDivisionSqlSource',
+            previewPlan.rowCount,
+            colorRed('source'),
+          ),
+          reportProgress =>
+            buildDivisionSourceSqlFile(initialMessage, divisionState, reportProgress),
+        )
+        await harbourClient.stageCompleted(
+          releaseId,
+          'generateDivisionSqlSource',
+          {
+            processedRows: divisionState.processedRows,
+          },
+          releaseCode,
+        )
+
+        const historyFile = await runLocalStreamingPhase(
+          progress,
+          harbourClient,
+          buildStreamingPhase(
+            releaseId,
+            releaseCode,
+            'generateDivisionSqlHistory',
+            previewPlan.rowCount,
+            colorRed('history'),
+          ),
+          reportProgress =>
+            buildDivisionHistorySqlFile(initialMessage, divisionState, reportProgress),
+        )
+        await harbourClient.stageCompleted(
+          releaseId,
+          'generateDivisionSqlHistory',
+          {
+            processedRows: divisionState.processedRows,
+          },
+          releaseCode,
+        )
+
+        const currentInitFile = await buildDivisionCurrentInitSqlFile(
+          versionInsertContext.parentSnapshotId,
+          divisionState.snapshotId,
+          initialMessage.processingRunStartedAt ?? processingRunStartedAt,
+        )
+        const currentFile = await runLocalStreamingPhase(
+          progress,
+          harbourClient,
+          buildStreamingPhase(
+            releaseId,
+            releaseCode,
+            'generateDivisionSqlCurrent',
+            previewPlan.rowCount,
+            colorRed('current'),
+          ),
+          reportProgress =>
+            buildDivisionCurrentSqlFile(initialMessage, divisionState, reportProgress),
+        )
+        await harbourClient.stageCompleted(
+          releaseId,
+          'generateDivisionSqlCurrent',
+          {
+            processedRows: divisionState.processedRows,
+          },
+          releaseCode,
+        )
+
+        await replaceReleaseProcessingActions(
+          dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+          releaseId,
+          divisionState.processingActions,
+        )
+
+        const metaFile = await runLocalStreamingPhase(
+          progress,
+          harbourClient,
+          {
+            completionLabel: formatCompletedPhaseLabel(
+              colorTeal('Generate SQL'),
+              colorRed('stats'),
+              divisionState.statsRows.length,
+            ),
+            label: formatRunningPhaseLabel(
+              colorTeal('Generate SQL'),
+              colorRed('stats'),
+              0,
+              Math.max(divisionState.statsRows.length, 1),
+            ),
+            labelForProgress(current: number) {
+              return formatRunningPhaseLabel(
+                colorTeal('Generate SQL'),
+                colorRed('stats'),
+                current,
+                Math.max(divisionState.statsRows.length, 1),
+              )
+            },
+            phase: 'generateDivisionSqlStats',
+            releaseCode,
+            releaseId,
+            totalUnits: Math.max(divisionState.statsRows.length, 1),
+          },
+          reportProgress =>
+            buildDivisionMetaSqlFile(
+              dbContext.metaDb,
+              initialMessage,
+              divisionState,
+              reportProgress,
+            ),
+        )
+        await harbourClient.stageCompleted(
+          releaseId,
+          'generateDivisionSqlStats',
+          {
+            processedRows: divisionState.statsRows.length,
+            statsRows: divisionState.statsRows.length,
+          },
+          releaseCode,
+        )
+
+        const manifest = await writeDivisionSqlArtefacts(bucket, initialMessage, {
+          current: currentFile,
+          currentInit: currentInitFile,
+          history: historyFile,
+          meta: metaFile,
+          source: sourceFile,
+        })
+
+        await writeLocalPipelineState(releaseRoot, {
+          artefacts: manifest,
+          divisionBatchSize: DIVISION_BATCH_SIZE,
+          preparedAt: processingRunStartedAt,
+          rawObjectKey,
+          releaseCode,
+          releaseId,
+          shardYear,
+          snapshotId: divisionState.snapshotId,
+          sqlStatementByteTarget: SQL_STATEMENT_BYTE_TARGET,
+          target: resolvedTargetName,
+          workingDbCacheDir: dbContext.state.dbCacheDir,
+        })
+
+        const extraSourceSqlOperations = buildExtraSourceSqlOperations(
+          initialMessage,
+          divisionState,
+          importTargets,
+        )
+        const extraHistorySqlOperations = buildExtraHistorySqlOperations(
+          divisionState,
+          importTargets,
+        )
+        importProgressClient = createLocalImportProgressClient(
+          harbourClient,
+          progress,
+          buildDivisionImportProgressConfig(
+            manifest,
+            extraSourceSqlOperations.length + extraHistorySqlOperations.length,
+          ),
+        )
+
+        sqlArtefactCount =
+          countDivisionImportFiles(manifest) +
+          extraSourceSqlOperations.length +
+          extraHistorySqlOperations.length
+        return runDivisionSqlImportOperations(
           [
             async () => {
               await runReportedSqlImportPhase(
@@ -709,17 +732,21 @@ export async function processLocalDivisionSqlUpload(
               ),
           ],
           target.remote,
-        ),
+        )
+      },
     )
+
+    const retained = readDivisionDeliveryOutputs(deliveryOutputs)
+    sqlArtefactCount = retained.sqlArtefactCount
 
     await harbourClient.stageCompleted(
       releaseId,
       'extractDivisions',
       {
-        deletedRows: divisionState.deletedRows,
-        insertedVersions: divisionState.insertedVersions,
-        processedRows: divisionState.processedRows,
-        unchangedRows: divisionState.unchangedRows,
+        deletedRows: retained.deletedRows,
+        insertedVersions: retained.insertedVersions,
+        processedRows: retained.processedRows,
+        unchangedRows: retained.unchangedRows,
       },
       releaseCode,
     )
@@ -727,7 +754,7 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
       'extractDivisionsI18n',
       {
-        localisedRows: divisionState.localisedRows,
+        localisedRows: retained.localisedRows,
       },
       releaseCode,
     )
@@ -747,6 +774,7 @@ export async function processLocalDivisionSqlUpload(
             skipSnapshotCleanup: options.skipSnapshotCleanup,
           },
         )
+        published = true
 
         return {
           stepCount: 1,
@@ -788,10 +816,7 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
       'processDataset',
       {
-        sqlArtefactCount:
-          countDivisionImportFiles(manifest) +
-          extraSourceSqlOperations.length +
-          extraHistorySqlOperations.length,
+        sqlArtefactCount,
       },
       releaseCode,
     )
@@ -817,7 +842,7 @@ export async function processLocalDivisionSqlUpload(
         postPublishCacheError = normaliseError(error)
       }
     }
-    if (target.remote && !postPublishCacheError && publishResult)
+    if (!postPublishCacheError && published)
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
   }
 

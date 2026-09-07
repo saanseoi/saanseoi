@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
 import { and, not } from 'drizzle-orm'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import {
   currentSchema,
   eq,
@@ -239,36 +240,44 @@ export async function runResetOfficialAddressesCommand(
         throw new Error('Official address reset cancelled.')
     }
     if (dryRun) return
-    // Remove the object while its release association still proves ownership.
-    const existingAssetRows = await context.metaDb
-      .select({ id: metaSchema.metaAssets.id })
-      .from(metaSchema.metaAssets)
-      .where(
-        inArray(
-          metaSchema.metaAssets.id,
-          owned.assetIds.map(asset => asset.id),
-        ),
-      )
-      .all()
-    const existingAssetIds = new Set(existingAssetRows.map(asset => asset.id))
-    for (const asset of owned.assetIds) {
-      if (existingAssetIds.has(asset.id)) {
-        await deleteManagedSourceAsset(target, asset)
-      }
-    }
     const artefacts = buildResetSql(context, manifest)
+    const resetManifest = manifest
     await executeResetSqlArtefacts({
       artefacts,
       cacheReleaseCodes: owned.releaseCodes,
+      cacheReleaseIds: owned.releaseIds,
       cacheRoot: RELEASE_ARTEFACT_ROOT,
       context,
       extraCachePaths: [PREPARED_ROOT],
       keepCache,
       remoteCacheErrorMessage: 'Official address reset cache replay failed',
       target,
+      validateUnderLock: () =>
+        assertResetStillSafe(context, resetManifest, { discardChangedDocs }),
+      beforeSql: async () => {
+        // Remove objects while their release associations still prove ownership.
+        const existingAssetIds = new Set<string>()
+        for (const ids of chunkArray(
+          owned.assetIds.map(asset => asset.id),
+          getMaxItemsPerInClause(),
+        )) {
+          const rows = await context.metaDb
+            .select({ id: metaSchema.metaAssets.id })
+            .from(metaSchema.metaAssets)
+            .where(inArray(metaSchema.metaAssets.id, ids))
+            .all()
+          for (const row of rows) existingAssetIds.add(row.id)
+        }
+        for (const asset of owned.assetIds) {
+          if (existingAssetIds.has(asset.id))
+            await deleteManagedSourceAsset(target, asset)
+        }
+      },
+      afterSql: async () => {
+        await restoreBeforeImage(HISTORY_FILE, resetManifest.identityFiles.history)
+        await rm(path, { force: true })
+      },
     })
-    await restoreBeforeImage(HISTORY_FILE, manifest.identityFiles.history)
-    await rm(path, { force: true })
     outro('Official address initialisation reset complete')
   } finally {
     context.cleanup()

@@ -47,6 +47,8 @@ import {
 import { retryRemoteCacheExport } from './localDbCacheReplay.ts'
 import { exportRemoteDatabase, importDatabaseDumpsToSqlite } from './localDbCacheIo.ts'
 import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
+import { executeNativeSqlStatements } from '../localPipeline/nativeSqlStatements.ts'
 
 export async function resolveLocalAddressDbContext(
   target: UploadTarget,
@@ -152,6 +154,11 @@ export async function resolveLocalAddressDbContext(
       ? dirname(requirePath(dbPaths.DB_META, 'DB_META'))
       : resolveRemoteCacheDir(targetName, options.remoteCacheScopeKey)
   const metaPath = requirePath(dbPaths.DB_META, 'DB_META')
+  if (targetName === 'local')
+    await assertSqlDeliveryPlanningAllowed(
+      dbCacheDir,
+      options.resumeSqlDeliveryReleaseId,
+    )
   const currentPath = requirePath(dbPaths.DB_CURRENT, 'DB_CURRENT')
   const historyPath = requirePath(dbPaths[historyBindingName], historyBindingName)
   const sourcePath = requirePath(dbPaths[sourceBindingName], sourceBindingName)
@@ -225,17 +232,18 @@ export async function resolveLocalAddressDbContext(
       current.sqlite.close()
       meta.sqlite.close()
     },
-    currentBinding: createLocalExecBinding(current.sqlite),
+    currentBinding: createLocalExecBinding(current.sqlite, 'DB_CURRENT'),
     currentDb: current.db,
-    historyBinding: createLocalExecBinding(history.sqlite),
+    historyBinding: createLocalExecBinding(history.sqlite, historyBindingName),
     historyDb: history.db,
     historyTargets,
-    metaBinding: createLocalExecBinding(meta.sqlite),
+    metaBinding: createLocalExecBinding(meta.sqlite, 'DB_META'),
     metaDb: meta.db,
-    sourceBinding: createLocalExecBinding(source.sqlite),
+    sourceBinding: createLocalExecBinding(source.sqlite, sourceBindingName),
     sourceDb: source.db,
     sourceTargets,
     state: {
+      files: dbPaths,
       bindings: Object.fromEntries(
         requiredTargetRecords.map(targetRecord => [
           targetRecord.bindingName,
@@ -444,30 +452,42 @@ export async function withLocalMetaDb<T>(
   }
 }
 
-export function createLocalExecBinding(sqlite: SQLiteDatabase): LocalD1ExecBinding {
+export function createLocalExecBinding(
+  sqlite: SQLiteDatabase,
+  bindingName?: string,
+): LocalD1ExecBinding {
+  const prepare = (
+    sql: string,
+    params: import('bun:sqlite').SQLQueryBindings[] = [],
+  ): ReturnType<LocalD1ExecBinding['prepare']> => ({
+    sql,
+    params,
+    bind(...values) {
+      return prepare(sql, values as import('bun:sqlite').SQLQueryBindings[])
+    },
+    async run() {
+      return sqlite.query(sql).run(...params)
+    },
+    async all() {
+      return { results: sqlite.query(sql).all(...params) as Record<string, unknown>[] }
+    },
+  })
   return {
+    bindingName,
+    async executeSqlBatch(sql) {
+      sqlite.transaction(() => executeNativeSqlStatements(sqlite, sql)).immediate()
+    },
     async batch(statements) {
-      sqlite.exec('BEGIN')
-
-      try {
-        for (const statement of statements) {
-          sqlite.exec(statement.sql)
-        }
-
-        sqlite.exec('COMMIT')
-      } catch (error) {
-        sqlite.exec('ROLLBACK')
-        throw error
-      }
+      return sqlite
+        .transaction(() =>
+          statements.map(statement => ({
+            success: true,
+            results: sqlite.query(statement.sql).all(...(statement.params ?? [])),
+          })),
+        )
+        .immediate()
     },
-    prepare(sql: string) {
-      return {
-        async run() {
-          sqlite.exec(sql)
-        },
-        sql,
-      }
-    },
+    prepare,
   }
 }
 

@@ -1,4 +1,5 @@
 import type { UploadTarget } from '../cli/options.ts'
+import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
 import {
   prepareReleaseSqlDelivery,
   executeReleaseSqlDelivery,
@@ -80,6 +81,22 @@ export async function importPlaceSqlBatches(
   },
 ) {
   if (delivery) {
+    if (delivery.context.state.target === 'local') {
+      await deliverSqlPhase(
+        { ...delivery, phase: 'places-data', nativeLocal: true },
+        () =>
+          importPlaceSqlBatches(
+            targets,
+            input,
+            path,
+            totalRows,
+            timestamp,
+            options,
+            onProgress,
+          ),
+      )
+      return
+    }
     if (!options.isLocal) {
       await prepareReleaseSqlDelivery({
         ...delivery,

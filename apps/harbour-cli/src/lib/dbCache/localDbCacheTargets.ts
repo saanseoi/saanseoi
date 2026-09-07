@@ -282,7 +282,7 @@ async function buildShardTargets<TSchema extends Record<string, unknown>, TDb>(
           )) as OpenSqliteDb<TDb>)
 
     targets.push({
-      binding: createLocalExecBinding(openDb.sqlite),
+      binding: createLocalExecBinding(openDb.sqlite, targetRecord.bindingName),
       bindingName: targetRecord.bindingName,
       databaseId: targetRecord.databaseId,
       databaseName: targetRecord.databaseName,

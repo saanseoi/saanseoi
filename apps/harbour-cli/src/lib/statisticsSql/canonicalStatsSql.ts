@@ -129,22 +129,25 @@ export function buildCanonicalStatsSqlBatches(input: {
 export async function replayCanonicalStatsSqlBatches(
   target: UploadTarget,
   context: Pick<LocalAddressDbContext, 'currentBinding' | 'historyTargets' | 'state'>,
-  batches: CanonicalStatsSqlBatches,
+  input:
+    | CanonicalStatsSqlBatches
+    | (() => CanonicalStatsSqlBatches | Promise<CanonicalStatsSqlBatches>),
   options: {
     delivery?: SqlDeliveryPhase
     importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
     onProgress?: (event: CanonicalStatsSqlReplayProgress) => Promise<void> | void
   } = {},
 ) {
-  if (target.remote && options.delivery) {
+  if (options.delivery) {
     await deliverSqlPhase(options.delivery, () =>
-      replayCanonicalStatsSqlBatches(target, context, batches, {
+      replayCanonicalStatsSqlBatches(target, context, input, {
         ...options,
         delivery: undefined,
       }),
     )
     return
   }
+  const batches = typeof input === 'function' ? await input() : input
   const remoteReplay = target.remote
     ? resolveRemoteReplay(target, context, batches, options)
     : null

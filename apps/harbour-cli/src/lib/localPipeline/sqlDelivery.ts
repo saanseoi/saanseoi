@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Database } from 'bun:sqlite'
+import { executeNativeSqlStatements } from './nativeSqlStatements.ts'
 import {
   readDeliveryPlan,
   readDeliveryProgress,
@@ -9,6 +10,7 @@ import {
   writeDeliveryFile,
 } from './sqlDeliveryFiles.ts'
 import { registerPendingSqlDelivery } from './sqlDeliveryPending.ts'
+import { assertSqlDeliveryGeneration } from './sqlDeliveryGeneration.ts'
 import {
   createSqlDeliveryRemote,
   type SqlDeliveryRemoteOptions,
@@ -36,9 +38,16 @@ export async function runSqlDelivery(
   return withDeliveryLock(directory, async () => {
     const plan = await readDeliveryPlan(directory)
     if (!plan) throw new Error('No sealed SQL delivery plan exists.')
+    if (plan.context.environment === 'local')
+      throw new Error('Native local plans require the local SQL delivery executor.')
     return withDeliveryLock(
       join(plan.context.cacheDir, 'sql-delivery-lock'),
       async () => {
+        await assertSqlDeliveryGeneration(
+          plan.context.cacheDir,
+          plan.context.releaseId,
+          plan.context.inputs.resetGeneration,
+        )
         for (const batch of plan.batches) {
           if (options.targets[batch.target.bindingName] !== batch.target.databaseId)
             throw new Error(
@@ -125,7 +134,8 @@ export async function runSqlDelivery(
                   throw new Error(
                     `Local receipt disappeared for batch ${batch.index}; the mirror must be reconciled.`,
                   )
-                if (batch.kind === 'sql') db.exec(new TextDecoder().decode(bytes))
+                if (batch.kind === 'sql')
+                  executeNativeSqlStatements(db, new TextDecoder().decode(bytes))
                 else {
                   const statements = JSON.parse(
                     new TextDecoder().decode(bytes),

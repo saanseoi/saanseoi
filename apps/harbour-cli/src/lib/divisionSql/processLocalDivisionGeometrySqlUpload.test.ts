@@ -1,5 +1,33 @@
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { geometryIterateUpsertSql } from './processLocalDivisionGeometrySqlUploadReplay.ts'
+
+test('geometry SQL consumes a bounded row window and closes its input on early stop', () => {
+  let reads = 0
+  let closed = false
+  function* rows() {
+    try {
+      for (let index = 0; index < 10_000; index++) {
+        reads++
+        yield {
+          snapshotId: 'snapshot',
+          id: `row-${index}`,
+          geometry: '中'.repeat(10_000),
+        }
+      }
+    } finally {
+      closed = true
+    }
+  }
+  const statements = geometryIterateUpsertSql('divisionAreas', rows())
+  expect(reads).toBe(0)
+  const first = statements.next()
+  expect(first.done).toBe(false)
+  expect(Buffer.byteLength(first.value ?? '')).toBeLessThanOrEqual(96 * 1024)
+  expect(reads).toBeLessThanOrEqual(4)
+  statements.return()
+  expect(closed).toBe(true)
+})
 
 import {
   asOptionalInteger,

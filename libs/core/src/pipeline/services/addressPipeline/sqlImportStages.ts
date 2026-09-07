@@ -43,6 +43,8 @@ type SqlStageHarbourClient = {
 }
 
 type LocalD1ExecBinding = {
+  bindingName?: string
+  executeSqlBatch?(sql: string): Promise<void>
   exec?(sql: string): Promise<unknown>
   batch?(statements: LocalD1PreparedStatement[]): Promise<unknown>
   prepare?(sql: string): {
@@ -923,6 +925,10 @@ async function execSqlWithBoundD1(
   sqlBytes: Uint8Array,
   options: AddressSqlImportStageOptions,
 ) {
+  if (options.captureSql) {
+    await options.captureSql(target, sqlBytes)
+    return 0
+  }
   if (!target.binding?.prepare) {
     throw new Error(`Missing D1 prepare binding for ${target.name} SQL execution.`)
   }
@@ -931,6 +937,15 @@ async function execSqlWithBoundD1(
   await ensureLegacyNormalisedRowsSchema(target, sql, options)
 
   const statements = splitSqlStatements(sql)
+
+  if (target.binding.executeSqlBatch) {
+    const execute = target.binding.executeSqlBatch.bind(target.binding)
+    await runWithWriteRetry(() => execute(sql), {
+      maxRetries: options.localWriteMaxRetries,
+      onRetry: event => options.onRetry?.({ ...event, target: target.name }),
+    })
+    return statements.length
+  }
 
   if (target.binding.batch) {
     for (

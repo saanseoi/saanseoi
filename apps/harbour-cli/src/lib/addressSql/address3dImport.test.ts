@@ -6,6 +6,11 @@ import { join } from 'node:path'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { als3dHash } from '../sources/hkgov/hkgovAls3d'
+import { createLocalExecBinding } from '../dbCache/localDbCache.ts'
+import {
+  prepareNativeSqlDelivery,
+  runNativeSqlDelivery,
+} from '../localPipeline/nativeSqlDelivery.ts'
 import type { PreparedAls3dRecord } from '../sources/hkgov/hkgovAls3dPreparation'
 import {
   collectionStatements,
@@ -29,9 +34,9 @@ test('writes large bound collections, replays idempotently and journals removed 
   const directory = await mkdtemp(join(tmpdir(), 'address3d-import-test-'))
   const path = join(directory, 'prepared.jsonl')
   const databases = {
-    current: new Database(':memory:'),
-    history: new Database(':memory:'),
-    source: new Database(':memory:'),
+    current: new Database(join(directory, 'current.sqlite')),
+    history: new Database(join(directory, 'history.sqlite')),
+    source: new Database(join(directory, 'source.sqlite')),
   }
   try {
     createTable(databases.current, currentSchema.address3d)
@@ -106,13 +111,13 @@ test('writes large bound collections, replays idempotently and journals removed 
             Buffer.byteLength(statement.sql) < 100_000,
         ),
       ).toBe(true)
-      return databases[target].transaction(() =>
-        statements.flatMap(statement =>
-          databases[target]
-            .query(statement.sql)
-            .all(...(statement.params as Array<string | number | null>)),
+      const binding = createLocalExecBinding(databases[target])
+      const results = (await binding.batch(
+        statements.map(statement =>
+          binding.prepare(statement.sql).bind(...statement.params),
         ),
-      )() as Record<string, unknown>[]
+      )) as Array<{ results: Record<string, unknown>[] }>
+      return results.flatMap(result => result.results)
     }
     const args = {
       path,
@@ -126,7 +131,49 @@ test('writes large bound collections, replays idempotently and journals removed 
       ],
       execute,
     }
-    await importAddress3dCollections(args)
+    const files = Object.fromEntries(
+      Object.keys(databases).map(name => [name, join(directory, `${name}.sqlite`)]),
+    )
+    const planDirectory = join(directory, 'delivery')
+    let generated = 0
+    const prepare = () =>
+      prepareNativeSqlDelivery({
+        directory: planDirectory,
+        ownershipDirectory: directory,
+        files,
+        releaseId: 'release',
+        phase: 'address3d-data',
+        inputs: { digest: validation.digest },
+        generate: async append => {
+          generated++
+          await importAddress3dCollections({
+            ...args,
+            execute: async (target, statements) => {
+              if (statements.every(statement => /^\s*SELECT\b/i.test(statement.sql)))
+                return execute(target, statements)
+              await append(
+                { bindingName: target, databaseId: target },
+                new TextEncoder().encode(JSON.stringify(statements)),
+                'bound',
+              )
+              return []
+            },
+          })
+        },
+      })
+    await prepare()
+    await expect(
+      runNativeSqlDelivery(planDirectory, {
+        files,
+        onProgress: n => {
+          if (n === 2) throw new Error('interrupted collection delivery')
+        },
+      }),
+    ).rejects.toThrow('interrupted')
+    await prepare()
+    expect(generated).toBe(1)
+    await runNativeSqlDelivery(planDirectory, { files })
+    await runNativeSqlDelivery(planDirectory, { files })
     await importAddress3dCollections(args)
     expect(
       databases.current.query('SELECT count(*) AS n FROM address3d').get(),
