@@ -53,7 +53,13 @@ test('includes the Places full-text index in the current cache profile', () => {
   expect(historyTables).not.toContain('placesCells')
 })
 
-test('uses the narrow Division profile for a remote mirror', () => {
+test('omits the rebuilt Address full-text index from the mirror profile', () => {
+  const tables = resolveCacheTablesForBinding('DB_CURRENT', 'address')
+  expect(tables).not.toContain('addressesFts')
+  expect(tables).toContain('address2dBuildingNumberLookup')
+})
+
+test('uses the bounded family profiles for remote mirrors', () => {
   const targets = [
     'DB_META',
     'DB_CURRENT',
@@ -72,6 +78,10 @@ test('uses the narrow Division profile for a remote mirror', () => {
 
   expect(countRemoteCacheWorkUnits(targets)).toBe(127)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(37)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(122)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(49)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(47)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(47)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {
