@@ -301,22 +301,15 @@ are unchanged. Verification covers 60 building records across 30 releases, inclu
 backfills. The dated 3D locality event is accepted; the ledger is not an exhaustive 2D
 component audit, and later supplied block numbers are not backfilled by this decision.
 
-The April 2026 Cheung Hong Estate coordinate event is reviewed separately. The thirteen
-current ALS points are backfilled only over the 23 retained July 2024–February 2026
-Address2D releases, with exact CSU, estate, building and earlier-point guards. The raw
-3D delivery remains historical evidence; each derived Address2D row records both the
-publisher and replacement geometries in curation provenance.
-
-The April 2026 Ap Lei Chau Estate coordinate event similarly backfills the six named Lei
-Chak, Lei Fook, Lei Moon, Lei Ning, Lei Tim and Lei Yee house points across the same 23
-earlier releases. The unnamed Lei Moon source record is separately suppressed as a
-duplicate; its coordinate change does not authorise it as a Low Block or coordinate
-backfill target.
-
-Butterfly Estate's six April 2026 coordinate changes are also backfilled across the 23
-earlier releases. Tip Chui, Tip Ling, Tip Mo, Tip Sum, Tip Yee and Tip Ying Houses
-retain their exact replaced publisher point as provenance; no inventory or component
-change is inferred from the reviewed point update.
+The automatic coordinate-backfill policy reviews coordinate-only events only where every
+changed assertion is a single named occurrence and every geodesic shift is strictly
+below 50 metres. It backfills the current point over the immediately preceding
+continuous publisher-coordinate epoch, with exact release, CSU, estate, building and
+earlier-point guards. A later source move therefore never applies to an earlier
+coordinate epoch for the same CSU. The raw 3D delivery remains historical evidence;
+every derived Address2D row records both publisher and replacement geometries in
+curation provenance. This does not authorise anonymous records, Low Blocks or any
+premise merger.
 
 Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
 `2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
