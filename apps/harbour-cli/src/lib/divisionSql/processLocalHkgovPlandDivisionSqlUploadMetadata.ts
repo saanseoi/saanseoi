@@ -19,7 +19,7 @@ export async function buildPlandMetaSql(
     assemblyRuns,
     releaseAssignments,
     snapshotAssignments,
-    actions,
+    auditSql,
     stats,
   ] = await Promise.all([
     context.metaDb
@@ -47,11 +47,7 @@ export async function buildPlandMetaSql(
       .from(metaSchema.metaSnapshotShardAssignments)
       .where(eq(metaSchema.metaSnapshotShardAssignments.snapshotId, state.snapshotId))
       .all(),
-    context.metaDb
-      .select()
-      .from(metaSchema.releaseProcessingActions)
-      .where(eq(metaSchema.releaseProcessingActions.releaseId, state.releaseId))
-      .all(),
+    readAuditReplaySql(context.metaDb, state.releaseId),
     context.metaDb
       .select()
       .from(metaSchema.stats)
@@ -128,17 +124,6 @@ export async function buildPlandMetaSql(
     'createdAt',
     'updatedAt',
   ]
-  const actionColumns = [
-    'id',
-    'releaseId',
-    'action',
-    'mode',
-    'summary',
-    'affectedRecordCount',
-    'evidence',
-    'createdAt',
-    'updatedAt',
-  ]
   const statsColumns = [
     'id',
     'type',
@@ -183,9 +168,9 @@ export async function buildPlandMetaSql(
         suffix: 'ON CONFLICT(snapshotId, dataShardId) DO NOTHING',
       },
     ),
-    `DELETE FROM releaseProcessingActions WHERE releaseId = ${sqlLiteral(state.releaseId)};`,
-    ...buildInsertStatements('releaseProcessingActions', actionColumns, actions),
+    ...auditSql,
     `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)};`,
     ...buildInsertStatements('stats', statsColumns, stats),
   ])
 }
+import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'

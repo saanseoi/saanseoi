@@ -102,14 +102,15 @@ describe('release statistics metadata replay', () => {
           action: 'map_censtatd_district_code_to_canonical_division',
           affectedRecordCount: 18,
           createdAt: '2026-08-18T00:00:00.000Z',
-          evidence: { cohortKey: '2021' },
+          generation: 'generation-1',
+          decisionCount: 1,
           id: 'audit-1',
           mode: 'automatic',
           releaseId,
-          summary: 'Mapped C&SD districts.',
           updatedAt: '2026-08-18T00:00:00.000Z',
         },
       ],
+      chunks: [],
       stats: [
         {
           ...stats[0],

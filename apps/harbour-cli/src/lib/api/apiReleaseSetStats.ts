@@ -657,19 +657,11 @@ async function buildPlaceStatsRows(
 }
 
 async function readPlaceLocaleConflicts(metaDb: HarbourReadableDb, releaseId: string) {
-  const rows = await metaDb
-    .select({ evidence: metaSchema.releaseProcessingActions.evidence })
-    .from(metaSchema.releaseProcessingActions)
-    .where(
-      and(
-        eq(metaSchema.releaseProcessingActions.releaseId, releaseId),
-        eq(
-          metaSchema.releaseProcessingActions.action,
-          'overture_place_locale_conflict',
-        ),
-      ),
-    )
-    .all()
+  const rows = await readReleaseAuditDecisions(
+    metaDb,
+    [releaseId],
+    'overture_place_locale_conflict',
+  )
   const conflictsByPlace = new Map<string, PlaceLocaleConflict[]>()
   for (const row of rows) {
     const evidence = row.evidence
@@ -996,3 +988,4 @@ function sqlLiteral(value: boolean | number | string | null | undefined) {
 
   return `'${value.replaceAll("'", "''")}'`
 }
+import { readReleaseAuditDecisions } from '@repo/core/pipeline/db/processingActionStorage'

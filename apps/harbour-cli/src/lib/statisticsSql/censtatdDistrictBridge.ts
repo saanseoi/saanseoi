@@ -1,10 +1,8 @@
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   createHkgovCenstatdDistrictResolution,
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
-import { metaSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
+import { resolveIdentityCuration } from '../identityCurations'
 
 type DistrictBridgeCohortKey = '2016' | '2021'
 
@@ -64,41 +62,14 @@ export function resolveCenstatdNewTownBridgeCohort(
 
 /** Resolves a complete reviewed C&SD district bridge through canonical HAD IDs. */
 export async function resolveHkgovCenstatdDistrictBridge(
-  metaDb: HarbourReadableDb,
   cohortKey: DistrictBridgeCohortKey,
 ): Promise<ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>> {
-  const [censtatdRows, hadRows] = await Promise.all([
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, cohortKey),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-    metaDb
-      .select({
-        canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-        externalCode: metaSchema.metaIdentifierBridges.externalCode,
-      })
-      .from(metaSchema.metaIdentifierBridges)
-      .where(
-        and(
-          eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-had'),
-          eq(metaSchema.metaIdentifierBridges.cohortKey, '2022'),
-          eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-          eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-        ),
-      )
-      .all(),
-  ])
+  const censtatdRows = resolveIdentityCuration(
+    'hkgov-censtatd',
+    cohortKey,
+    'administrative',
+  )
+  const hadRows = resolveIdentityCuration('hkgov-had', '2022', 'administrative')
 
   return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
 }
@@ -109,24 +80,9 @@ export async function resolveHkgovCenstatdDistrictBridge(
  * statistics upload.
  */
 export async function resolveHkgovCenstatdNewTownBridge(
-  metaDb: HarbourReadableDb,
   cohortKey: NewTownBridgeCohortKey,
 ): Promise<ReadonlyMap<string, ResolvedHkgovCenstatdNewTown>> {
-  const rows = await metaDb
-    .select({
-      canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-      externalId: metaSchema.metaIdentifierBridges.externalId,
-    })
-    .from(metaSchema.metaIdentifierBridges)
-    .where(
-      and(
-        eq(metaSchema.metaIdentifierBridges.authority, 'hkgov-censtatd'),
-        eq(metaSchema.metaIdentifierBridges.cohortKey, cohortKey),
-        eq(metaSchema.metaIdentifierBridges.domain, 'new-town'),
-        eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-      ),
-    )
-    .all()
+  const rows = resolveIdentityCuration('hkgov-censtatd', cohortKey, 'new-town')
 
   return createHkgovCenstatdNewTownResolution(rows as IdentifierBridgeRow[], cohortKey)
 }

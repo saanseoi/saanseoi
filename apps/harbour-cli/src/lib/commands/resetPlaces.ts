@@ -828,6 +828,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM publishedDataJournal WHERE releaseId IN (${releaseIds}) OR relatedReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM stats WHERE releaseId IN (${releaseIds}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseProcessingActions WHERE releaseId IN (${releaseIds});`,
+    `DELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${releaseIds});`,
     `DELETE FROM ingestRuns WHERE releaseId IN (${releaseIds});`,
     `DELETE FROM releaseShardAssignments WHERE releaseId IN (${releaseIds});`,
     `DELETE FROM snapshotAssemblyRuns WHERE snapshotId IN (${snapshots});`,

@@ -718,7 +718,7 @@ function buildResetSql(
         `UPDATE releases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {

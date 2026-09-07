@@ -9,6 +9,7 @@ import { eq } from 'drizzle-orm'
 import type { ReleaseStatsRow } from '@repo/db/metaSchema'
 import { metaSchema } from '@repo/db'
 import type { MaterialisedReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import { buildAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import type { UploadTarget } from '../cli/options.ts'
@@ -133,34 +134,7 @@ export function buildReleaseProcessingActionsMetaSqlBatches(
   releaseId: string,
   materialised: MaterialisedReleaseProcessingActions,
 ) {
-  const statements = [
-    `DELETE FROM "releaseProcessingActions" WHERE "releaseId" = ${sqlValue(releaseId)};`,
-    `DELETE FROM "stats" WHERE "releaseId" = ${sqlValue(releaseId)} AND "type" = 'processing';`,
-    ...[...materialised.actions]
-      .sort((left, right) => left.id.localeCompare(right.id))
-      .map(
-        action =>
-          'INSERT INTO "releaseProcessingActions" ("id", "releaseId", "action", "mode", "summary", "affectedRecordCount", "evidence", "createdAt", "updatedAt") VALUES (' +
-          [
-            action.id,
-            action.releaseId,
-            action.action,
-            action.mode,
-            action.summary,
-            action.affectedRecordCount,
-            JSON.stringify(action.evidence),
-            action.createdAt,
-            action.updatedAt,
-          ]
-            .map(sqlValue)
-            .join(', ') +
-          ');',
-      ),
-    ...[...materialised.stats]
-      .sort((left, right) => left.id.localeCompare(right.id))
-      .map(insertStatsRow),
-  ]
-  return chunkSql(statements)
+  return buildAuditReplaySql(releaseId, materialised)
 }
 
 export async function replayReleaseProcessingActionsMetaToRemote(

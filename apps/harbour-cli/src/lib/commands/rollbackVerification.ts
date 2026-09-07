@@ -183,6 +183,7 @@ async function countMetaRollbackRows(
     statsRows,
     ingestRunRows,
     processingActionRows,
+    processingChunkRows,
     shardAssignmentRows,
     assemblyRunRows,
     snapshotSourceRows,
@@ -224,6 +225,16 @@ async function countMetaRollbackRows(
           db,
           metaSchema.releaseProcessingActions,
           eq(metaSchema.releaseProcessingActions.releaseId, input.release.releaseId),
+        )
+      : Promise.resolve(0),
+    input.operation === 'purge'
+      ? countRows(
+          db,
+          metaSchema.releaseProcessingActionChunks,
+          eq(
+            metaSchema.releaseProcessingActionChunks.releaseId,
+            input.release.releaseId,
+          ),
         )
       : Promise.resolve(0),
     countRows(
@@ -279,6 +290,7 @@ async function countMetaRollbackRows(
     statsRows +
     ingestRunRows +
     processingActionRows +
+    processingChunkRows +
     shardAssignmentRows +
     assemblyRunRows +
     snapshotSourceRows +
@@ -406,6 +418,7 @@ export async function verifyPurgeResult(
     snapshotSourceRows,
     ingestRunRows,
     processingActionRows,
+    processingChunkRows,
   ] = await Promise.all([
     countRows(
       dbContext.metaDb,
@@ -455,6 +468,11 @@ export async function verifyPurgeResult(
       metaSchema.releaseProcessingActions,
       eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId),
     ),
+    countRows(
+      dbContext.metaDb,
+      metaSchema.releaseProcessingActionChunks,
+      eq(metaSchema.releaseProcessingActionChunks.releaseId, input.releaseId),
+    ),
   ])
   const remainingRows =
     releaseRows +
@@ -468,7 +486,8 @@ export async function verifyPurgeResult(
     provenanceRows +
     snapshotSourceRows +
     ingestRunRows +
-    processingActionRows
+    processingActionRows +
+    processingChunkRows
 
   if (remainingRows > 0) {
     throw new Error(

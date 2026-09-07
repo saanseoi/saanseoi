@@ -463,15 +463,7 @@ async function prepareSupplementaryAddressesLocked(
         inputs: { plan: input.plan, snapshots: input.snapshots, actions },
       },
       async () => {
-        const stored = await db
-          .select()
-          .from(metaSchema.releaseProcessingActions)
-          .where(eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId))
-          .all()
-        for (const sql of chunkStatements([
-          `DELETE FROM releaseProcessingActions WHERE releaseId = ${lit(input.releaseId)};`,
-          ...stored.map(row => insertSql('releaseProcessingActions', row)),
-        ])) {
+        for (const sql of await readAuditReplaySql(db, input.releaseId)) {
           await executeSqlText(input.targets.meta, sql, input.importOptions)
         }
       },
@@ -931,3 +923,4 @@ async function assertSupplementaryAddressRows(
   }
 }
 import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'
