@@ -68,6 +68,7 @@ export async function prepareAls3dCollections(options: {
   sourceVersion: string
   outputFile: string
   rows: PreparedHkgovAlsRow[]
+  aliasOwnerIds?: ReadonlyMap<string, string>
 }) {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
@@ -216,7 +217,10 @@ export async function prepareAls3dCollections(options: {
       if (!parent) throw new Error('Missing ALS parent')
       if (parent.curatedGranularity === 'section' && !ownership.has(parent.id))
         throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
-      const owner = ownership.get(parent.id)?.ownerId ?? parent.id
+      const owner =
+        options.aliasOwnerIds?.get(parent.id) ??
+        ownership.get(parent.id)?.ownerId ??
+        parent.id
       const physicalKey = JSON.stringify([
         p.BuildingCsuInformation?.CsuId,
         en.EngEstate?.EstateName,
@@ -252,10 +256,13 @@ export async function prepareAls3dCollections(options: {
       const parent = byKey.get(key)?.[0]
       if (!parent) throw new Error('Parent disappeared between ALS passes')
       const mapping = ownership.get(parent.id)
-      const address2dId = mapping?.ownerId ?? parent.id
+      const address2dId =
+        options.aliasOwnerIds?.get(parent.id) ?? mapping?.ownerId ?? parent.id
       const inventory = normaliseAls3dInventory(
         applyAls3dCorrections(feature, options.sourceVersion).feature,
-        mapping?.physicalBuildingId ?? parent.canonicalId,
+        options.aliasOwnerIds?.get(parent.id) ??
+          mapping?.physicalBuildingId ??
+          parent.canonicalId,
       )
       const existing = ownerHashes.get(address2dId)
       if (existing && existing !== inventory.contentHash)

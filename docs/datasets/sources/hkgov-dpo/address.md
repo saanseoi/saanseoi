@@ -1,5 +1,13 @@
 # HKGov DPO ALS addresses
 
+`--skip-curation-checks` accepts pending correction verification and identity drift
+checks during ingestion, including with `--yes`. Grouped initialisers broadcast the flag
+to address ingestion; direct `hkgov-dpo:ingest` also accepts it. Corrections retain
+their existing verification provenance. Unresolved identity changes use generated IDs
+for the run, without writing human-reviewed decisions or verification dates to fixtures.
+This mode supports pre-curation reference and testing imports; source validation and
+database integrity checks still apply.
+
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).

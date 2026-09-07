@@ -1,5 +1,11 @@
 # Addresses dataset family
 
+For reference and testing imports, `saanseoi init --skip-curation-checks` and
+`saanseoi init:addresses --skip-curation-checks` propagate acceptance of pending address
+curation checks to ALS ingestion. Existing corrections retain unverified provenance
+where applicable; unresolved identity changes receive generated IDs. Automatic
+acceptance does not write reviewed decisions to curation fixtures.
+
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain
 required, and replaced geometry is retained in curation provenance.
