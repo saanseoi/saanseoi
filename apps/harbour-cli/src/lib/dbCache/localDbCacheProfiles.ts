@@ -50,6 +50,7 @@ export function resolveCacheTablesForBinding(
         'streetsAddress',
         'address2d',
         'address2dI18n',
+        'address2dBuildingNumberLookup',
         'address3d',
         'address3dI18n',
         'places',
@@ -139,6 +140,7 @@ export function resolveCacheTablesForBinding(
         'placesI18n',
         'address2d',
         'address2dI18n',
+        'address2dBuildingNumberLookup',
         'snapshotVersionChanges',
       ]
     }
