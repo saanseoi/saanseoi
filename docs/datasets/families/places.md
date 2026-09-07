@@ -5,6 +5,13 @@ identity, provenance and release history. Normalised coordinates, names, taxonom
 contact details and addresses belong to canonical history/current tables; source tables
 do not duplicate those fields.
 
+SQL uploads compare incoming publisher hashes with current source assertions in the
+prepared local mirrors. New and changed assertions carry full payloads; unchanged
+assertions carry compact, bounded ID updates that advance release membership while
+preserving their original validity and creation dates. Source finalisation closes
+assertions absent from the incoming release after all chunks have been applied.
+Canonical current snapshots are materialised independently of this source optimisation.
+
 The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
 optional `releaseSet`, `snapshot`, `cohort` and `dataset` selectors. Read retained
 Overture records at `/places/v0.1/sources?sourceRelease=<source-release-code>`. JSON

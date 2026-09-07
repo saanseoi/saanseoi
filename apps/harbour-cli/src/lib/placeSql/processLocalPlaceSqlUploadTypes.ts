@@ -61,6 +61,8 @@ export type PlaceHistoryState = {
 }
 
 export type BuildPlaceSqlInput = {
+  /** Current publisher hashes from the prepared source mirrors, indexed by ID. */
+  sourceRows?: ReadonlyMap<string, { bindingName: string; versionHash: string }>
   activeHistoryBindingName: string
   activeSourceBindingName: string
   sourceBindingNames: string[]
@@ -76,6 +78,8 @@ export type BuildPlaceSqlInput = {
 }
 
 export type BuildPlaceSqlOptions = {
+  /** Complete membership when finalising a streamed release. */
+  seenSourceRecordIds?: ReadonlySet<string>
   includeInitialStatements?: boolean
   includeRemovedPlaces?: boolean
   onProgress?: (current: number) => void

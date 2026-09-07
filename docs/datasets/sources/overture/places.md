@@ -5,6 +5,15 @@ source identity, provenance and version/release tracking. Names, coordinates,
 categories, brand, contacts and addresses are projected only into canonical
 history/current tables.
 
+Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
+prepared source shard. Unchanged records already in the active shard update release
+membership through bounded ID batches without resending `rawProperties`. New, changed,
+returning and shard-rollover records send full payloads to the active shard so each
+release remains readable from its assigned source shard; changed assertions are closed
+in their original shard. After all input chunks, finalisation closes current assertions
+not marked with the incoming release ID, including source-only removals and empty
+releases. The generated SQL is retained for identical remote delivery and local replay.
+
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their
 recipe and input rows under the

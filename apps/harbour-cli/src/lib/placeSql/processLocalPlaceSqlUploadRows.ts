@@ -1,6 +1,6 @@
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
-import { historySchema } from '@repo/db'
+import { historySchema, sourceSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import { latLngToCell } from 'h3-js'
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -18,6 +18,39 @@ import {
   PLACE_SQL_BATCH_SIZE,
 } from './processLocalPlaceSqlUploadConfig.ts'
 import { readStagedJsonBatches } from './processLocalPlaceSqlUploadPreparation.ts'
+
+export async function loadCurrentPlaceSources(
+  targets: LocalAddressDbContext['sourceTargets'],
+): Promise<NonNullable<BuildPlaceSqlInput['sourceRows']>> {
+  const table = sourceSchema.sourceOverturePlaces
+  const groups = await Promise.all(
+    targets.map(async target => ({
+      bindingName: target.bindingName,
+      rows: await (target.db as HarbourReadableDb)
+        .select({
+          sourceRecordId: table.sourceRecordId,
+          versionHash: table.versionHash,
+        })
+        .from(table)
+        .where(eq(table.isCurrent, true))
+        .all(),
+    })),
+  )
+  const sources = new Map<string, { bindingName: string; versionHash: string }>()
+  for (const group of groups)
+    for (const row of group.rows) {
+      if (sources.has(row.sourceRecordId)) {
+        throw new Error(
+          `Multiple current Places source assertions for ${row.sourceRecordId}.`,
+        )
+      }
+      sources.set(row.sourceRecordId, {
+        bindingName: group.bindingName,
+        versionHash: row.versionHash,
+      })
+    }
+  return sources
+}
 
 export async function loadCurrentPlaceHistory(
   targets: LocalAddressDbContext['historyTargets'],
@@ -82,13 +115,7 @@ export async function buildPlaceSql(
     return created
   }
 
-  if (includeInitialStatements) {
-    for (const bindingName of input.sourceBindingNames) {
-      sourceStatements(bindingName).push(
-        `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1;`,
-      )
-    }
-  }
+  const unchangedByBinding = new Map<string, string[]>()
 
   let processedPlaceRows = 0
   for (const row of input.places) {
@@ -100,21 +127,37 @@ export async function buildPlaceSql(
       typeof previous?.row.firstSeenMonth === 'string'
         ? previous.row.firstSeenMonth
         : place.firstSeenMonth
-    sourceStatements(input.activeSourceBindingName).push(
-      insertSql('overturePlaces', {
-        sourceRecordId: place.id,
-        sources: place.sources,
-        rawProperties: place.raw,
-        version: numberOrNull(place.raw.version),
-        versionHash: row.sourcePayloadHash,
-        releaseId: input.message.releaseId,
-        validFromRelease: input.message.sourceVersion,
-        validToRelease: null,
-        isCurrent: 1,
-        createdAt: now,
-        updatedAt: now,
-      }),
-    )
+    const source = input.sourceRows?.get(place.id)
+    // Each release's source API reads its assigned shard, so a year rollover
+    // must materialise the payload in the new shard even when its hash matches.
+    if (
+      source?.bindingName === input.activeSourceBindingName &&
+      source.versionHash === row.sourcePayloadHash
+    ) {
+      const ids = unchangedByBinding.get(source.bindingName) ?? []
+      ids.push(place.id)
+      unchangedByBinding.set(source.bindingName, ids)
+    } else {
+      if (source)
+        sourceStatements(source.bindingName).push(
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(place.id)} AND isCurrent = 1 AND versionHash <> ${lit(row.sourcePayloadHash)};`,
+        )
+      sourceStatements(input.activeSourceBindingName).push(
+        insertSql('overturePlaces', {
+          sourceRecordId: place.id,
+          sources: place.sources,
+          rawProperties: place.raw,
+          version: numberOrNull(place.raw.version),
+          versionHash: row.sourcePayloadHash,
+          releaseId: input.message.releaseId,
+          validFromRelease: input.message.sourceVersion,
+          validToRelease: null,
+          isCurrent: 1,
+          createdAt: now,
+          updatedAt: now,
+        }),
+      )
+    }
     currentSql.push(
       insertSql('places', {
         snapshotId: input.snapshots.snapshotId,
@@ -342,6 +385,44 @@ export async function buildPlaceSql(
     }
   }
 
+  // Compact, bounded ID batches avoid resending publisher JSON for unchanged rows.
+  for (const [bindingName, ids] of unchangedByBinding) {
+    for (let offset = 0; offset < ids.length; offset += 100) {
+      sourceStatements(bindingName).push(
+        `UPDATE overturePlaces SET releaseId = ${lit(input.message.releaseId ?? input.datasetId)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND sourceRecordId IN (${ids
+          .slice(offset, offset + 100)
+          .map(lit)
+          .join(',')});`,
+      )
+    }
+  }
+  if (includeRemovedPlaces) {
+    // Also close omissions on a rebuild of the same release, where releaseId
+    // alone cannot distinguish retained rows from removed rows.
+    const seenSourceIds =
+      options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
+    const removedByBinding = new Map<string, string[]>()
+    for (const [id, source] of input.sourceRows ?? []) {
+      if (seenSourceIds.has(id)) continue
+      const ids = removedByBinding.get(source.bindingName) ?? []
+      ids.push(id)
+      removedByBinding.set(source.bindingName, ids)
+    }
+    for (const [bindingName, ids] of removedByBinding) {
+      for (let offset = 0; offset < ids.length; offset += 100)
+        sourceStatements(bindingName).push(
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND sourceRecordId IN (${ids
+            .slice(offset, offset + 100)
+            .map(lit)
+            .join(',')});`,
+        )
+    }
+    for (const bindingName of input.sourceBindingNames)
+      sourceStatements(bindingName).push(
+        `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND (releaseId IS NULL OR releaseId <> ${lit(input.message.releaseId ?? input.datasetId)});`,
+      )
+  }
+
   return {
     currentSql,
     historySqlByBinding,
@@ -392,14 +473,13 @@ export async function* buildPlaceSqlBatches(
   const removedHistoryRows = input.historyRows.filter(
     state => !seen.has(String(state.row.id)),
   )
-  if (!yielded || removedHistoryRows.length > 0) {
-    yield await buildPlaceSql(
-      { ...input, historyRows: removedHistoryRows, places: [] },
-      {
-        includeInitialStatements: !yielded,
-        includeRemovedPlaces: true,
-        timestamp,
-      },
-    )
-  }
+  yield await buildPlaceSql(
+    { ...input, historyRows: removedHistoryRows, places: [] },
+    {
+      includeInitialStatements: !yielded,
+      includeRemovedPlaces: true,
+      seenSourceRecordIds: seen,
+      timestamp,
+    },
+  )
 }
