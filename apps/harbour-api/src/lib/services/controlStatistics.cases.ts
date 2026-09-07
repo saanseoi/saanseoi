@@ -43,8 +43,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       'hk', 'static', 'yearly', 'stats', 'official-statistics',
       'vh-dataset-censtatd-population', 1761264000000, 1761264000000
     );
-    INSERT INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES ('dataset-censtatd-density', 'divisionStatistic');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionStatistic') WHERE id = 'dataset-censtatd-density' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionStatistic');
     INSERT INTO apiVersions (
       id, code, familyType, version, status, publishedAt,
       versionHash, createdAt, updatedAt
@@ -193,8 +192,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'hk', 'static', 'five-yearly', 'stats', 'official-statistics',
         'vh-dataset-${index}', 1761264000000, 1761264000000
       );
-      INSERT INTO datasetResourceTypes (datasetId, resourceType)
-      VALUES ('${datasetId}', 'divisionStatistic');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionStatistic') WHERE id = '${datasetId}' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionStatistic');
       INSERT INTO apiCompositionMembers (
         apiCompositionId, domainCode, resourceType, variant, role, isRequired,
         cohortMatchingMode, priority

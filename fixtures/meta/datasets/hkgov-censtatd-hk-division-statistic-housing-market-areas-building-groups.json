@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:d010f4325c848f052c9baa65b08ee43bd1cdaac1ae11c8323c2efcfee004b725",
+  "versionHash": "sha256:ef8bb32cac36feb5dd83b1a863c2a12ffd3d6bff0ccdcbffa4ca3c52e60ba8d0",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "five-yearly",
+  "releaseFrequency": "census",
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-hma",
   "areaCompanionByReferencePeriod": {
