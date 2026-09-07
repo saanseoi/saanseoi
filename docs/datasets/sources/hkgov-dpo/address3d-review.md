@@ -411,6 +411,16 @@ create no residential collection and do not treat empty arrays as duplicate flat
 
 ## Manual-review shortlist
 
+Hoi Tat Estate retains Hoi Wah House and its 780-unit inventory across the omission
+beginning in April 2025 until the explicit curation is revoked. Hoi Shing House's three
+April 2026 omissions are backfilled with its 1,040-unit inventory at the current point.
+Its earlier retained points are corrected to that same reviewed location. Publisher
+features, geometry and inventory assertions remain provenance.
+
+Hoi Ying Estate's Ying Fai House has a guarded flat 108 on 1/F backfill across the
+eleven retained releases from July to December 2024. The corrected collection contains
+560 units; the original 559-unit bilingual inventories remain source evidence.
+
 Current profile/estate naming or building coverage needs review for Ap Lei Chau, Choi
 Wan (1), Chuk Yuen North, Hing Wah (I), Hing Wah (II), Hoi Tat, Lower Wong Tai Sin (I),
 Lower Wong Tai Sin (II), On Yam, Po Tat, Queens Hill, Sau Mau Ping, Shek Kip Mei Phase

@@ -99,6 +99,36 @@
       "decision": "Backfill 8/F flats 817 and 819 into every earlier retained Wing Ka House inventory. The July 2026 publisher repair adds only these two bilingual units, with no component, coordinate or removal change; preserve the raw 507-unit source assertions in provenance.",
       "authority": "User decision, 2026-09-07: this is bad upstream data that they fixed, so backfill it.",
       "evidence": "The July 2026 bilingual inventory adds only flats 817 and 819 on 8/F, raising 507 units to 509. All later retained releases preserve the 509-unit inventory."
+    },
+    {
+      "id": "hoi-ying-ying-fai-house-missing-first-floor-unit",
+      "revision": 1,
+      "estate": "HOI YING ESTATE",
+      "csu": "3329521060T20171025",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0"
+      ],
+      "expectedEnBuildingName": "YING FAI HOUSE",
+      "expectedZhBuildingName": "盈輝樓",
+      "expectedInventoryHash": "5e10ce2a37cf82d7698986a302f0559d58d0ce6d6b2cb88e8904dd1296600464",
+      "correctedInventoryHash": "c55816f24d48941fe70578e13d79e0f44190f225c3983323a266aeaf9805b90e",
+      "expectedUnitCount": 559,
+      "removals": [],
+      "additions": [{ "floor": 1, "unit": "108" }],
+      "evidenceSourceRelease": "20250123-1031-ALS-GeoJSON",
+      "decision": "Backfill 1/F flat 108 into every earlier retained Ying Fai House inventory, starting on 25 July 2024. Preserve the raw 559-unit source assertions in provenance.",
+      "authority": "User decision, 2026-09-07: Hoi Ying Estate / 海盈邨 > yep -- backfill till the start.",
+      "evidence": "January 2025 adds only flat 108 on 1/F in both languages, raising 559 units to 560. All subsequent retained releases preserve the identical bilingual 560-unit inventory."
     }
   ]
 }

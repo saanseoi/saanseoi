@@ -22,7 +22,8 @@ buildings may retain separate owners and inventories in this mode without a revi
 ownership merge. Block enrichment and duplicate suppression are omitted in this mode;
 inventories use exact parents or unique block-free matches, retaining publisher 2D
 components. Section inventories may retain their existing parent without reviewed
-ownership.
+ownership. Alias curations whose source guards no longer match are omitted in skip mode;
+both publisher records retain their identities, geometry and source assertions.
 
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain
@@ -289,6 +290,12 @@ transient review details (method, policy version, fingerprint, rule, evidence an
 reason) for a reviewer; these are not included in database rows, canonical hashes or API
 responses. Changes to review notes alone do not create Address versions. Unknown records
 can be ingested; no unit, room, parent or missing address is fabricated.
+
+Reviewed ALS omissions retain their original assertions alongside reconstructed output.
+Hoi Tat's Hoi Wah House remains available with 780 units until its retention is revoked;
+Hoi Shing House uses the reviewed current coordinates across its historical omissions.
+Hoi Ying's Ying Fai House includes flat 108 on 1/F from the earliest retained release,
+with the publisher's original inventory preserved.
 
 ## Granularity curation
 

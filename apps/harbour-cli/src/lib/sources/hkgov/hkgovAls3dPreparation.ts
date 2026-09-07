@@ -10,6 +10,7 @@ import {
   suppressAls3dParentBlockDuplicate,
 } from './hkgovAls3dBlockEnrichment'
 import { applyAls3dCorrections } from './hkgovAls3dCorrections'
+import { als3dSuppression } from './hkgovAls3dSuppressions'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import {
   als3dHash,
@@ -136,18 +137,26 @@ export async function prepareAls3dCollections(options: {
         JSON.stringify(backfill ? [key, occurrence, backfill.id] : [key, occurrence]),
       )
       const { corrections } = applyAls3dCorrections(feature, options.sourceVersion)
+      const suppression = als3dSuppression(
+        feature,
+        options.sourceVersion,
+        options.skipCurationChecks,
+      )
       const source = {
         kind: 'source' as const,
         sourceRecordId,
         versionHash: als3dHash(
-          backfill
-            ? { feature, backfill }
-            : corrections.length
-              ? { feature, corrections }
-              : feature,
+          suppression
+            ? { feature, suppression }
+            : backfill
+              ? { feature, backfill }
+              : corrections.length
+                ? { feature, corrections }
+                : feature,
         ),
         rawProperties: feature,
         sources: [
+          ...(suppression ? [suppression] : []),
           {
             dataset: 'hkgov-dpo-als-3d',
             sourceFile: basename(file),
@@ -174,6 +183,7 @@ export async function prepareAls3dCollections(options: {
       assertAddress3dRowBudget(source)
       await write(source)
       sourceCount++
+      if (suppression) continue
       if (!(en.Eng3dAddress?.length || zh.Chi3dAddress?.length)) continue
       let candidates = byKey.get(key) ?? []
       const blocklessKey = hkgovAls3dBlocklessParentKey(
@@ -264,6 +274,8 @@ export async function prepareAls3dCollections(options: {
       options.sourceVersion,
       options.rows,
     )) {
+      if (als3dSuppression(feature, options.sourceVersion, options.skipCurationChecks))
+        continue
       const p = feature.properties.Address.PremisesAddress
       if (
         !(
