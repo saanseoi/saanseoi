@@ -844,6 +844,27 @@ function fixtureEnv() {
 }
 
 describe('Statistics API responses through the Worker route', () => {
+  test('HK is the default and GBA selects the same Statistics publication', async () => {
+    const fixture = fixtureEnv()
+    try {
+      for (const path of ['/stats/v0.1', '/stats/v0.1/registry/fields']) {
+        const records = []
+        for (const region of ['', 'hk', 'gba']) {
+          const response = await app.fetch(
+            new Request(`http://localhost${path}${region ? `?region=${region}` : ''}`),
+            fixture.env,
+          )
+          expect(response.status).toBe(200)
+          records.push(((await response.json()) as { data: unknown }).data)
+        }
+        expect(records[1]).toEqual(records[0])
+        expect(records[2]).toEqual(records[0])
+      }
+    } finally {
+      fixture.close()
+    }
+  })
+
   test('list, filters, profiles, detail, and product version', async () => {
     const fixture = fixtureEnv()
     try {

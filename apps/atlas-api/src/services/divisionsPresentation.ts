@@ -1,3 +1,4 @@
+import type { ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
   parseRequestedApiLocales,
@@ -238,6 +239,7 @@ export type ActiveDivisionSnapshot = {
 }
 
 export type DivisionListQuery = {
+  region?: ApiRegion
   catalogRevision?: string
   cohort?: string
   domain?: string
@@ -256,6 +258,7 @@ export type DivisionListQuery = {
 }
 
 export type DivisionDetailQuery = {
+  region?: ApiRegion
   catalogRevision?: string
   cohort?: string
   domain?: string

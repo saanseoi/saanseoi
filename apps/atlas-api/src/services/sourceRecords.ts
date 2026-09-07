@@ -1,3 +1,4 @@
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
 
 import { runWithD1ReadRetry } from '../lib/d1'
@@ -223,6 +224,7 @@ function decodeCursor(value: string | undefined): Cursor | null {
 async function resolveSourceRelease(
   metaDb: AppEnv['Variables']['metaDb'],
   sourceReleaseCode: string,
+  region?: ApiRegion,
 ): Promise<SourceReleaseWithShard | null> {
   const result = await runWithD1ReadRetry(() =>
     metaDb.$client
@@ -247,7 +249,7 @@ async function resolveSourceRelease(
           ON releaseShardAssignments.releaseId = releases.id
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
-        WHERE releases.code = ?
+        WHERE releases.code = ? AND datasets.regionCode = ?
           AND releases.status IN ('published', 'superseded')
           AND releases.revokedAt IS NULL
           AND sourceReleases.status IN ('published', 'superseded')
@@ -256,7 +258,7 @@ async function resolveSourceRelease(
           AND dataShards.status = 'active'
           `,
       )
-      .bind(sourceReleaseCode)
+      .bind(sourceReleaseCode, resolveDataRegion(region))
       .all<SourceReleaseWithShard>(),
   )
 
@@ -430,10 +432,15 @@ function toSourceRecord(
 async function resolveRecordsRequest(args: {
   env: AppBindings
   family: SourceFamily
+  region?: ApiRegion
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
 }) {
-  const release = await resolveSourceRelease(args.metaDb, args.sourceReleaseCode)
+  const release = await resolveSourceRelease(
+    args.metaDb,
+    args.sourceReleaseCode,
+    args.region,
+  )
   if (!release) return null
 
   const entry = sourceCatalogueFor(args.family)[release.datasetCode]
@@ -447,6 +454,7 @@ export async function listSourceRecords(args: {
   cursor?: string
   env: AppBindings
   family: SourceFamily
+  region?: ApiRegion
   includeGeometry: boolean
   limit?: number
   metaDb: AppEnv['Variables']['metaDb']
@@ -513,6 +521,7 @@ export async function streamSourceRecordsNdjson(args: {
   cursor?: string
   env: AppBindings
   family: SourceFamily
+  region?: ApiRegion
   includeGeometry: boolean
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
@@ -608,6 +617,7 @@ export class SourceRecordRequestError extends Error {
 export async function listSourceReleases(args: {
   datasetCode?: string
   family: SourceFamily
+  region?: ApiRegion
   metaDb: AppEnv['Variables']['metaDb']
   selector?:
     | { kind: 'cohort'; value: string }
@@ -627,7 +637,7 @@ export async function listSourceReleases(args: {
       datasetCode: row.datasetCode,
       recordsAvailable,
       recordsHref: recordsAvailable
-        ? `/${args.family}/v0/sources?sourceRelease=${encodeURIComponent(row.sourceReleaseCode)}`
+        ? `/${args.family}/v0/sources?sourceRelease=${encodeURIComponent(row.sourceReleaseCode)}${args.region ? `&region=${args.region}` : ''}`
         : null,
       resourceType: row.resourceType,
       role: row.role,
@@ -649,6 +659,7 @@ async function listReleaseSetSourceReleases(
   args: {
     datasetCode?: string
     family: SourceFamily
+    region?: ApiRegion
     metaDb: AppEnv['Variables']['metaDb']
   },
   selector:
@@ -668,14 +679,18 @@ async function listReleaseSetSourceReleases(
         `SELECT apiReleaseSets.id
          FROM apiReleaseSets
          INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
-         WHERE apiVersions.familyType = ?
+         WHERE apiVersions.familyType = ? AND apiReleaseSets.regionCode = ?
            AND apiReleaseSets.status <> 'draft'
            ${selectionCondition}
          ORDER BY coalesce(apiReleaseSets.publishedAt, apiReleaseSets.createdAt) DESC,
            apiReleaseSets.id DESC
          LIMIT 1`,
       )
-      .bind(args.family, ...(selector ? [selector.value] : []))
+      .bind(
+        args.family,
+        resolveDataRegion(args.region),
+        ...(selector ? [selector.value] : []),
+      )
       .first<{ id: string }>(),
   )
   if (!selectionResult) return []
@@ -683,6 +698,7 @@ async function listReleaseSetSourceReleases(
   return querySourceReleaseDiscoveryRows(args.metaDb, {
     apiReleaseSetId: selectionResult.id,
     datasetCode: args.datasetCode,
+    region: args.region,
   })
 }
 
@@ -690,12 +706,14 @@ async function listSnapshotSourceReleases(
   args: {
     datasetCode?: string
     family: SourceFamily
+    region?: ApiRegion
     metaDb: AppEnv['Variables']['metaDb']
   },
   snapshotCode: string,
 ) {
   return querySourceReleaseDiscoveryRows(args.metaDb, {
     datasetCode: args.datasetCode,
+    region: args.region,
     family: args.family,
     snapshotCode,
   })
@@ -703,9 +721,10 @@ async function listSnapshotSourceReleases(
 
 async function querySourceReleaseDiscoveryRows(
   metaDb: AppEnv['Variables']['metaDb'],
-  selector:
+  selector: (
     | { apiReleaseSetId: string; datasetCode?: string }
-    | { datasetCode?: string; family: SourceFamily; snapshotCode: string },
+    | { datasetCode?: string; family: SourceFamily; snapshotCode: string }
+  ) & { region?: ApiRegion },
 ) {
   const byReleaseSet = 'apiReleaseSetId' in selector
   const sourceCondition = byReleaseSet
@@ -713,15 +732,10 @@ async function querySourceReleaseDiscoveryRows(
     : "apiVersions.familyType = ? AND snapshots.code = ? AND apiReleaseSets.status <> 'draft'"
   const datasetCondition = selector.datasetCode ? 'AND datasets.code = ?' : ''
   const values = byReleaseSet
-    ? [
-        selector.apiReleaseSetId,
-        ...(selector.datasetCode ? [selector.datasetCode] : []),
-      ]
-    : [
-        selector.family,
-        selector.snapshotCode,
-        ...(selector.datasetCode ? [selector.datasetCode] : []),
-      ]
+    ? [selector.apiReleaseSetId]
+    : [selector.family, selector.snapshotCode]
+  values.push(resolveDataRegion(selector.region))
+  if (selector.datasetCode) values.push(selector.datasetCode)
   const result = await runWithD1ReadRetry(() =>
     metaDb.$client
       .prepare(
@@ -753,6 +767,7 @@ async function querySourceReleaseDiscoveryRows(
           ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId
         WHERE ${sourceCondition}
+        AND datasets.regionCode = ?
         AND releases.status IN ('published', 'superseded')
         AND releases.revokedAt IS NULL
         AND sourceReleases.status IN ('published', 'superseded')

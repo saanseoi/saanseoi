@@ -1,3 +1,9 @@
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
+import { RegionFilterSchema } from '../../../schema/region'
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 
 import {
@@ -21,6 +27,7 @@ import { openApiText } from '../../../lib/openapi-i18n'
 
 const RegistryQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z
       .string()
       .min(1)
@@ -357,6 +364,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -372,6 +381,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -387,6 +398,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -403,6 +416,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body as never, 200)
@@ -419,6 +434,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -434,6 +451,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -450,6 +469,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body as never, 200)
@@ -467,6 +488,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body as never, 200)
@@ -483,6 +506,8 @@ export const statisticRegistryRoutes = [
           query: c.req.valid('query'),
           requestUrl: c.req.url,
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },

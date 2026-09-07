@@ -211,6 +211,12 @@ test('publishes and serves a curated Address union with dataset filtering, globa
     expect(all.status).toBe(200)
     if (all.status !== 200) throw new Error(JSON.stringify(all.body))
     expect(all.body.data.map(row => row.id)).toEqual(['a', 'b', 'c', 'd'])
+    for (const region of ['hk', 'gba'] as const) {
+      const regional = await listAddresses({ ...args, query: { region } })
+      expect(regional.status).toBe(200)
+      if (regional.status === 200) expect(regional.body.data).toEqual(all.body.data)
+    }
+    expect((await listAddresses({ ...args, query: { region: 'mo' } })).status).toBe(503)
     expect(all.body.meta.domain).toBe('saanseoi')
     expect(all.body.meta.page?.total).toBe(4)
     expect(all.body.data[1]?.attributes.datasetCode).toBe('ds-hk-overture-place')

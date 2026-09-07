@@ -1,3 +1,4 @@
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -58,8 +59,9 @@ export async function getHongKongStreetDetail(input: {
   id: string
   metaDb: MetaDatabase
   requestUrl: string
+  region?: ApiRegion
 }) {
-  const snapshot = await getPublishedStreetSnapshot(input.metaDb)
+  const snapshot = await getPublishedStreetSnapshot(input.metaDb, input.region)
   if (!snapshot) return snapshotNotReady()
   const street = await getStreetCurrentById(input.currentDb, {
     id: input.id,
@@ -81,8 +83,9 @@ export async function listHongKongStreetVersions(input: {
   id: string
   metaDb: MetaDatabase
   requestUrl: string
+  region?: ApiRegion
 }) {
-  const snapshot = await getPublishedStreetSnapshot(input.metaDb)
+  const snapshot = await getPublishedStreetSnapshot(input.metaDb, input.region)
   if (!snapshot) return snapshotNotReady()
   const versions = await getStreetHistory(
     input.historyDbsByBinding,
@@ -125,8 +128,9 @@ export async function getHongKongStreetVersion(input: {
   metaDb: MetaDatabase
   requestUrl: string
   version: number
+  region?: ApiRegion
 }) {
-  const snapshot = await getPublishedStreetSnapshot(input.metaDb)
+  const snapshot = await getPublishedStreetSnapshot(input.metaDb, input.region)
   if (!snapshot) return snapshotNotReady()
   const versions = await getStreetHistory(
     input.historyDbsByBinding,
@@ -155,8 +159,9 @@ export async function replayHongKongStreetChangelog(input: {
   historyDbsByBinding: Record<string, HistoryDatabase>
   metaDb: MetaDatabase
   requestUrl: string
+  region?: ApiRegion
 }) {
-  const snapshot = await getPublishedStreetSnapshot(input.metaDb)
+  const snapshot = await getPublishedStreetSnapshot(input.metaDb, input.region)
   if (!snapshot) return snapshotNotReady()
   const refs = await loadSnapshotStreetVersionRefs(
     input.historyDbsByBinding,
@@ -197,7 +202,7 @@ export async function replayHongKongStreetChangelog(input: {
   }
 }
 
-async function getPublishedStreetSnapshot(metaDb: MetaDatabase) {
+async function getPublishedStreetSnapshot(metaDb: MetaDatabase, region?: ApiRegion) {
   return metaDb
     .select({ id: metaSnapshots.id })
     .from(metaSnapshots)
@@ -210,7 +215,7 @@ async function getPublishedStreetSnapshot(metaDb: MetaDatabase) {
       and(
         eq(metaSnapshots.resourceType, 'street'),
         eq(metaSnapshots.status, 'published'),
-        eq(metaDatasets.regionCode, 'hk'),
+        eq(metaDatasets.regionCode, resolveDataRegion(region)),
         eq(metaSnapshotSources.role, 'primary'),
       ),
     )

@@ -1,3 +1,4 @@
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
   parseRequestedApiLocales,
@@ -49,6 +50,7 @@ export type ResolvedStatisticApiVersion = 'api-stats-v0.1'
 export type StatisticProfile = ApiProfileName
 
 export type StatisticListQuery = {
+  region?: ApiRegion
   catalogRevision?: string
   cohort?: string
   domain?: 'government'
@@ -68,6 +70,7 @@ export type StatisticListQuery = {
 
 export type StatisticDetailQuery = Pick<
   StatisticListQuery,
+  | 'region'
   | 'catalogRevision'
   | 'cohort'
   | 'domain'
@@ -81,6 +84,7 @@ export type StatisticDetailQuery = Pick<
 
 export type StatisticGeographiesQuery = Pick<
   StatisticListQuery,
+  | 'region'
   | 'catalogRevision'
   | 'cohort'
   | 'domain'
@@ -142,6 +146,7 @@ export type StatisticRouteState = {
 }
 
 export type ActiveStatisticSnapshot = {
+  region?: ApiRegion
   datasetCodes: string[]
   snapshotIds: string[]
   sourceReleaseIds: string[]
@@ -397,6 +402,7 @@ export async function getActiveStatisticSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
   selectors: Pick<
     StatisticListQuery,
+    | 'region'
     | 'catalogRevision'
     | 'cohort'
     | 'effectiveAt'
@@ -419,7 +425,7 @@ export async function getActiveStatisticSnapshot(
         domainCode: 'government',
         effectiveAt: selectors.effectiveAt,
         knownAt: selectors.knownAt,
-        regionCode: 'hk',
+        regionCode: resolveDataRegion(selectors.region),
         releaseSet: selectors.releaseSet,
       },
     ),
@@ -433,6 +439,7 @@ export async function getActiveStatisticSnapshot(
     dependencies.listSnapshotSourceReleases(metaDb as never, snapshotIds),
   )
   return {
+    region: resolveDataRegion(selectors.region),
     datasetCodes: [...new Set(sources.map(source => source.datasetCode))],
     snapshotIds,
     sourceReleaseIds: [...new Set(sources.map(source => source.sourceReleaseId))],
@@ -451,12 +458,13 @@ export async function resolveRelatedDivisionSelection(
   domainCode: string,
   knownAt: string,
   dependencies: StatisticServiceDependencies,
+  region?: ApiRegion,
 ): Promise<RelatedDivisionSelection | null> {
   const selection = await runWithD1ReadRetry(() =>
     dependencies.resolveApiReleaseSetSnapshotsForRequest(metaDb as never, 'division', {
       domainCode,
       knownAt,
-      regionCode: 'hk',
+      regionCode: resolveDataRegion(region),
     }),
   )
   if (!selection) return null
@@ -502,6 +510,7 @@ async function loadIncludedResources(args: {
       domain,
       args.activeSnapshot.catalogPublishedAt,
       args.dependencies,
+      args.activeSnapshot.region,
     )
     if (selection) selections.set(domain, selection)
   }
@@ -554,7 +563,7 @@ async function loadIncludedResources(args: {
         args.dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey(
           args.metaDb as never,
           'divisionArea',
-          'hk',
+          resolveDataRegion(args.activeSnapshot.region),
           companion.cohortKey,
           { variant },
         ),

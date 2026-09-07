@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 import { addressBlockTypes, addressGranularities } from '@repo/db'
@@ -395,6 +396,7 @@ const RequestedLocalesQuerySchema = z
   .openapi({ examples: ['en,zh-hant', '*', 'null'] })
 
 const AddressSelectionQuerySchema = z.object({
+  region: RegionFilterSchema,
   catalogRevision: z.string().min(1).optional(),
   cohort: z.string().min(1).optional(),
   domain: z.literal('saanseoi').optional(),

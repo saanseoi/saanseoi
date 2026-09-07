@@ -1,4 +1,6 @@
 {
+  "openapi_region_filter_description": "区域筛选：hk（香港，默认）、mo（澳门）或 gba（大湾区，目前使用香港数据）。澳门尚无已发布数据。",
+  "openapi_empty_region_collection_description": "所选区域尚无已发布数据，因此不包含发布元数据。",
   "nav_data": "数据",
   "nav_docs": "文档",
   "nav_sources": "地址",
