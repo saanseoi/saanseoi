@@ -200,6 +200,12 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'api-composition-stats-v1', 'government', 'divisionStatistic', '${datasetCode}',
         'primary', 0, 'exact_ref', ${index}
       );
+      INSERT INTO sourceReleases
+        (id, datasetId, code, sourceVersion, cohortKey, status)
+      VALUES (
+        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2026-Q2', '2026-Q2',
+        'processing'
+      );
       INSERT INTO releases (
         id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
@@ -208,12 +214,6 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         '2026-Q2', '2026-Q2', 'hk/test/2026-Q2/${index}.parquet', '${index}.parquet',
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
-      );
-      INSERT INTO sourceReleases
-        (id, datasetId, code, sourceVersion, cohortKey, status)
-      VALUES (
-        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2026-Q2', '2026-Q2',
-        'processing'
       );
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {

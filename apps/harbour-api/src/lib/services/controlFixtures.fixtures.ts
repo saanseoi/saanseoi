@@ -151,6 +151,22 @@ export function seedCompleteDivisionSourceSignature(
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district-annual' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-permanent-living-quarters' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 
+    INSERT OR IGNORE INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    VALUES
+      (
+        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        'hkgov-censtatd-hk-permanent-living-quarters',
+        'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
+        '2023-H2', '2023-H2', 'published'
+      ),
+      (
+        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
+        'hkgov-censtatd-hk-district-annual',
+        'sr-hkgov-censtatd-division-area-district-annual-2024',
+        '2024', '2024', 'published'
+      );
+
     INSERT OR IGNORE INTO releases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
       cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
@@ -176,22 +192,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
-
-    INSERT OR IGNORE INTO sourceReleases
-      (id, datasetId, code, sourceVersion, cohortKey, status)
-    VALUES
-      (
-        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-        'hkgov-censtatd-hk-permanent-living-quarters',
-        'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
-        '2023-H2', '2023-H2', 'published'
-      ),
-      (
-        'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
-        'hkgov-censtatd-hk-district-annual',
-        'sr-hkgov-censtatd-division-area-district-annual-2024',
-        '2024', '2024', 'published'
-      );
 
     INSERT OR IGNORE INTO snapshotSources (
       snapshotId, datasetId, sourceReleaseId, role

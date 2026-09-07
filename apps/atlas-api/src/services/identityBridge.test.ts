@@ -68,6 +68,66 @@ test('pagination deduplicates tuples while retaining ambiguous identifiers', () 
   expect(identityBridgePage(rows, { ...query, identifier: 'missing' }).data).toEqual([])
 })
 
+test('maps Greater Bay Area requests to Hong Kong and returns no Macao mappings', async () => {
+  const sqlite = new Database(':memory:')
+  const db = createLocalHarbourDb(sqlite)
+  const regions: string[] = []
+  const dependencies = {
+    resolveApiReleaseSetSnapshotsForRequest: async (
+      _db: unknown,
+      _resourceType: unknown,
+      selectors: { regionCode: string },
+    ) => {
+      regions.push(selectors.regionCode)
+      return {
+        releaseSet: {
+          code: 'release-old',
+          apiCatalogRevision: 'catalogue',
+          domainCode: 'planning',
+        },
+        snapshots: [],
+      } as never
+    },
+    resolveSnapshotReplayPlan: async () => [] as never,
+    resolveSnapshotVersionState: async () => new Map() as never,
+  }
+
+  try {
+    expect(
+      await listIdentityBridge(
+        {
+          metaDb: db as never,
+          historyDbsByBinding: {} as never,
+          query: { ...query, region: 'gba' },
+        },
+        dependencies,
+      ),
+    ).toBeNull()
+    expect(
+      await listIdentityBridge(
+        {
+          metaDb: db as never,
+          historyDbsByBinding: {} as never,
+          query: { ...query, region: 'mo' },
+        },
+        dependencies,
+      ),
+    ).toEqual({
+      data: [],
+      nextCursor: null,
+      meta: {
+        releaseSet: 'release-old',
+        catalogRevision: 'catalogue',
+        resourceType: 'division',
+        domain: 'planning',
+      },
+    })
+    expect(regions).toEqual(['hk', 'hk'])
+  } finally {
+    sqlite.close()
+  }
+})
+
 test('lookup reads the selected immutable version, not a later version or a deleted record', async () => {
   const sqlite = new Database(':memory:')
   try {
