@@ -11,6 +11,24 @@ import {
   formatHkgovAlsReviewCommand,
 } from './sourceUpdates.ts'
 
+test('passes requested C&SD geography materialisation to the native intake', () => {
+  expect(
+    buildHkgovCenstatdStatisticsArchiveIngestCommand({
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      deferStatsReleaseSet: true,
+      includeGeography: true,
+      inputFile: '/tmp/hma-source.zip',
+      releaseNotesUrl: 'https://publisher.example/hma',
+      sourceArchiveKey: 'by-source/hk/hkgov-csdi/hma-source.zip',
+      sourceArchiveSha256: 'a'.repeat(64),
+      sourceVersion: '2021',
+      target: { environment: 'dev', remote: false },
+      yes: true,
+    }),
+  ).toEqual(expect.arrayContaining(['--include-geography']))
+})
+
 test('hands the exact mirrored LandsD archives to their native importers', () => {
   const common = {
     inputFile: '/tmp/landsd-source.zip',

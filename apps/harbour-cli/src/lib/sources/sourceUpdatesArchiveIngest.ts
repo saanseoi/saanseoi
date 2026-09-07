@@ -85,7 +85,6 @@ export async function runCsdiArchiveIngestPlaceholder(
         sourceVersion: release.sourceVersion,
         target,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
-        includeGeography: options.includeGeography,
         yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },

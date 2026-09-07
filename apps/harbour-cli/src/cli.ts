@@ -190,6 +190,7 @@ async function main() {
     case 'init:divisions:hkgov-pland-pu':
     case 'init:divisions:hkgov-landsd':
     case 'init:divisions:geographic':
+    case 'init:divisions:hkgov-censtatd-hma':
     case 'init:places:overture':
     case 'init:streets:saanseoi':
       await runInitialisationCommand(args, printUsage)

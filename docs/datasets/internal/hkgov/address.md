@@ -330,14 +330,14 @@ possible historic candidates does not automatically link records.
 
 The local database must first contain a published Hong Kong division snapshot in its
 current tables. This is a division dependency, not an Overture-address dependency. After
-the normal local reset, use the current published `2025-12-17.0` division cohort.
+the normal local reset, use the current published `2026-08-19.0` division cohort.
 
 Prepare one release (no database mutation):
 
 ```bash
 bun run dataops -- hkgov-dpo:prepare \
   data/hkgov/dpo/ALS/20260710-1054-ALS-GeoJSON \
-  --target local --cohort-key 2025-12-17.0 \
+  --target local --cohort-key 2026-08-19.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
   --identity-decisions fixtures/meta/curations/hkgov-dpo-address.json \
   --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.0.json
@@ -347,7 +347,7 @@ Ingest all ALS release directories in chronological order into local D1:
 
 ```bash
 bun run dataops -- hkgov-dpo:backfill-local \
-  data/hkgov/dpo/ALS --target local --cohort-key 2025-12-17.0
+  data/hkgov/dpo/ALS --target local --cohort-key 2026-08-19.0
 ```
 
 For this command, `--cohort-key` establishes the default start year (January 2025 here);
