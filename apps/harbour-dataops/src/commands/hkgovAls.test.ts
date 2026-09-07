@@ -12,7 +12,48 @@ import {
   resolveAlsReleaseVersions,
   selectAlsDivisionCohort,
   shouldIncludeSupersededAlsSourceVersions,
+  reviewHkgovAlsCurationApplications,
+  promptForDriftDecisions,
 } from './hkgovAls.ts'
+
+describe('skip curation checks', () => {
+  test('accepts unverified corrections even in non-interactive mode', async () => {
+    const applications: Parameters<typeof reviewHkgovAlsCurationApplications>[0] = [
+      {
+        fixture: 'hkgov-dpo-address-estate-components.json',
+        ids: ['test'],
+        sourceVersion: '2026-08-01.0',
+      },
+    ]
+    await expect(
+      reviewHkgovAlsCurationApplications(applications, true),
+    ).rejects.toThrow('last verification')
+    await reviewHkgovAlsCurationApplications(applications, true, true)
+  })
+
+  test('accepts drift with new IDs without persisting reviewed decisions', async () => {
+    const candidates = [
+      { current: { identityKey: 'current' }, previous: { identityKey: 'previous' } },
+    ] as Parameters<typeof promptForDriftDecisions>[1]
+    let persisted = false
+    const result = await promptForDriftDecisions(
+      { authority: 'hkgov-dpo', decisions: [], version: 1 },
+      candidates,
+      async () => {
+        persisted = true
+      },
+      true,
+    )
+    expect(result.decisions).toEqual([
+      {
+        currentIdentityKey: 'current',
+        previousIdentityKey: 'previous',
+        resolution: 'new-id',
+      },
+    ])
+    expect(persisted).toBe(false)
+  })
+})
 
 describe('formatAlsDivisionQualitySummary', () => {
   test('prints only unmatched or ambiguous divisions for each issue', () => {
