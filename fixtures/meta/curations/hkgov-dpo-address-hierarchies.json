@@ -30,7 +30,11 @@
             "zhHantStreetNumberTo": null
           },
           "derivedSections": [
-            { "id": "ap-lei-chau-estate-lei-fook-house-high", "enName": "LEI FOOK HSE HIGH BLK", "zhHantName": "利福樓高座" },
+            {
+              "id": "ap-lei-chau-estate-lei-fook-house-high",
+              "enName": "LEI FOOK HSE HIGH BLK",
+              "zhHantName": "利福樓高座"
+            },
             {
               "id": "ap-lei-chau-estate-lei-fook-house-low",
               "enName": "LEI FOOK HSE LOW BLK",
@@ -61,7 +65,11 @@
             "zhHantStreetNumberTo": null
           },
           "derivedSections": [
-            { "id": "ap-lei-chau-estate-lei-moon-house-high", "enName": "LEI MOON HSE HIGH BLK", "zhHantName": "利滿樓高座" },
+            {
+              "id": "ap-lei-chau-estate-lei-moon-house-high",
+              "enName": "LEI MOON HSE HIGH BLK",
+              "zhHantName": "利滿樓高座"
+            },
             {
               "id": "ap-lei-chau-estate-lei-moon-house-low",
               "enName": "LEI MOON HSE LOW BLK",
@@ -81,8 +89,8 @@
     },
     {
       "id": "model-housing-estate-kings-road",
-      "revision": 1,
-      "sourceVersionFrom": "2026-08-19.0",
+      "revision": 2,
+      "sourceVersionFrom": "2024-07-25.0",
       "sourceVersionTo": "2026-08-19.0",
       "complex": {
         "enName": "MODEL HOUSING ESTATE",
@@ -104,7 +112,23 @@
             "enStreetNumberTo": "748"
           },
           "threeDMapping": "building_range",
-          "evidence": "ALS supplies one 3D unit collection for the 740-748 source range."
+          "evidence": "ALS supplies one 3D unit collection for the 740-748 source range.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN CHEUNG HSE",
+              "zhHantBuildingName": "民祥樓",
+              "enBlockNumber": "E",
+              "enStreetNumberFrom": "740",
+              "enStreetNumberTo": "748"
+            },
+            {
+              "enBuildingName": "MAN CHEUNG HSE (BLK E)",
+              "zhHantBuildingName": "民祥樓(E座)",
+              "enBlockNumber": "E",
+              "enStreetNumberFrom": "740",
+              "enStreetNumberTo": "748"
+            }
+          ]
         },
         {
           "id": "model-housing-estate-man-ning-house",
@@ -119,7 +143,23 @@
             "enStreetNumberTo": "758"
           },
           "threeDMapping": "building_range",
-          "evidence": "ALS supplies one 50-unit 3D collection for the 750-758 source range. The unit records contain floor and unit references but no street-number or entrance field, so unit attribution within the range is unavailable."
+          "evidence": "ALS supplies one 50-unit 3D collection for the 750-758 source range. The unit records contain floor and unit references but no street-number or entrance field, so unit attribution within the range is unavailable.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN NING HSE",
+              "zhHantBuildingName": "民寧樓",
+              "enBlockNumber": "D",
+              "enStreetNumberFrom": "750",
+              "enStreetNumberTo": "758"
+            },
+            {
+              "enBuildingName": "MAN NING HSE (BLK D)",
+              "zhHantBuildingName": "民寧樓(D座)",
+              "enBlockNumber": "D",
+              "enStreetNumberFrom": "750",
+              "enStreetNumberTo": "758"
+            }
+          ]
         },
         {
           "id": "model-housing-estate-man-hong-house",
@@ -162,10 +202,20 @@
             "from": "762",
             "to": "774"
           },
-          "excludedSectionNumbers": [
-            "772"
-          ],
-          "evidence": "ALS supplies the same 422-unit English and Traditional Chinese arrays, coordinates and CSU for each listed section. There is no 772 Address2D record in this delivery and no unit-level entrance or street-number field. The six section records must remain distinct; their shared 3D payload must not be interpreted as section-specific unit attribution."
+          "excludedSectionNumbers": ["772"],
+          "evidence": "ALS supplies the same 422-unit English and Traditional Chinese arrays, coordinates and CSU for each listed section. There is no 772 Address2D record in this delivery and no unit-level entrance or street-number field. The six section records must remain distinct; their shared 3D payload must not be interpreted as section-specific unit attribution.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN HONG HSE",
+              "zhHantBuildingName": "民康樓",
+              "enBlockNumber": "C1&C2"
+            },
+            {
+              "enBuildingName": "MAN HONG HSE (BLKS C1 & C2)",
+              "zhHantBuildingName": "民康樓(C1及C2座)",
+              "enBlockNumber": "C1&C2"
+            }
+          ]
         },
         {
           "id": "model-housing-estate-man-king-house",
@@ -196,7 +246,19 @@
             "from": "776",
             "to": "782"
           },
-          "evidence": "ALS supplies one repeated 3D unit payload for the three source Address2D sections."
+          "evidence": "ALS supplies one repeated 3D unit payload for the three source Address2D sections.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN KING HSE",
+              "zhHantBuildingName": "民景樓",
+              "enBlockNumber": "B"
+            },
+            {
+              "enBuildingName": "MAN KING HSE (BLK B)",
+              "zhHantBuildingName": "民景樓(B座)",
+              "enBlockNumber": "B"
+            }
+          ]
         },
         {
           "id": "model-housing-estate-man-shun-house",
@@ -211,7 +273,23 @@
             "enStreetNumberTo": null
           },
           "threeDMapping": "building_section",
-          "evidence": "ALS supplies one 3D unit collection for the 786 source Address2D section."
+          "evidence": "ALS supplies one 3D unit collection for the 786 source Address2D section.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN SHUN HSE",
+              "zhHantBuildingName": "民順樓",
+              "enBlockNumber": "A",
+              "enStreetNumberFrom": "786",
+              "enStreetNumberTo": null
+            },
+            {
+              "enBuildingName": "MAN SHUN HSE (BLK A)",
+              "zhHantBuildingName": "民順樓(A座)",
+              "enBlockNumber": "A",
+              "enStreetNumberFrom": "786",
+              "enStreetNumberTo": null
+            }
+          ]
         },
         {
           "id": "model-housing-estate-man-lok-house",
@@ -226,7 +304,23 @@
             "enStreetNumberTo": "802C"
           },
           "threeDMapping": "building_range",
-          "evidence": "ALS supplies one 80-unit 3D unit collection for the 796-802C source range."
+          "evidence": "ALS supplies one 80-unit 3D unit collection for the 796-802C source range.",
+          "expectedVariants": [
+            {
+              "enBuildingName": "MAN LOK HSE",
+              "zhHantBuildingName": "民樂樓",
+              "enBlockNumber": "F",
+              "enStreetNumberFrom": "796",
+              "enStreetNumberTo": "802C"
+            },
+            {
+              "enBuildingName": "MAN LOK HSE (BLK F)",
+              "zhHantBuildingName": "民樂樓(F座)",
+              "enBlockNumber": "F",
+              "enStreetNumberFrom": "796",
+              "enStreetNumberTo": "802C"
+            }
+          ]
         }
       ],
       "evidence": [
@@ -10263,7 +10357,7 @@
         {
           "id": "ma-hang-estate-koon-ma-hse-3935709089t20050430",
           "source": {
-            "hkgovCsuId": "3935709089T20050430"
+            "hkgovCsuId": "3934509146T20050430"
           },
           "expected": {
             "enBuildingName": "KOON MA HSE",

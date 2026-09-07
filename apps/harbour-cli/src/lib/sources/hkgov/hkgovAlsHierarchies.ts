@@ -2,6 +2,8 @@ import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { linkAlsStructuredBlocks } from './hkgovAlsStructuredBlocks'
+import { applyLongShinHierarchy } from './hkgovAlsLongShin'
+import { applyKoYeeEstateOwnership } from './hkgovAlsReviewedEstateOwnership'
 
 const NAMESPACE = 'b2da2675-daca-5920-a99e-c4d562a4c950'
 type HierarchyRow = PreparedHkgovAlsRow & {
@@ -15,10 +17,9 @@ export function applyAlsAddressHierarchies(
   rows: HierarchyRow[],
   sourceVersion: string,
 ) {
-  const ownership = new Map<
-    string,
-    { ownerId: string; physicalBuildingId: string; unresolvedSectionIds: string[] }
-  >()
+  const ownership = applyLongShinHierarchy(rows, sourceVersion)
+  for (const [id, owner] of applyKoYeeEstateOwnership(rows, sourceVersion))
+    ownership.set(id, owner)
   const sourceByCsu = new Map<string, HierarchyRow[]>()
   const estateNames = new Set(rows.map(row => row.enEstateName))
   for (const row of rows) {
@@ -26,6 +27,8 @@ export function applyAlsAddressHierarchies(
       sourceByCsu.set(row.hkgovCsuId, [...(sourceByCsu.get(row.hkgovCsuId) ?? []), row])
   }
   for (const relationship of fixture.relationships) {
+    if (relationship.id === 'long-shin-estate' || relationship.id === 'ko-yee-estate')
+      continue
     if (
       sourceVersion < relationship.sourceVersionFrom ||
       sourceVersion > relationship.sourceVersionTo
@@ -33,15 +36,33 @@ export function applyAlsAddressHierarchies(
       continue
     if (!estateNames.has(relationship.complex.enName)) continue
     const matches = relationship.buildings.map(building => {
+      const variants =
+        'expectedVariants' in building ? building.expectedVariants : [building.expected]
       const candidates = (sourceByCsu.get(building.source.hkgovCsuId) ?? []).filter(
         row =>
           row.enEstateName === relationship.complex.enName &&
-          row.enBuildingName === building.expected.enBuildingName &&
-          row.zhHantBuildingName === building.expected.zhHantBuildingName,
+          variants.some(
+            expected =>
+              row.enBuildingName === expected.enBuildingName &&
+              row.zhHantBuildingName === expected.zhHantBuildingName,
+          ),
       )
       if (!candidates.length)
         throw new Error(`ALS hierarchy ${building.id}: source premise is missing`)
       for (const row of candidates) {
+        if ('expectedVariants' in building) {
+          if (
+            !variants.some(expected =>
+              Object.entries(expected).every(
+                ([key, value]) => row[key as keyof PreparedHkgovAlsRow] === value,
+              ),
+            )
+          )
+            throw new Error(
+              `ALS hierarchy ${building.id}: source variant changed; review required`,
+            )
+          continue
+        }
         for (const [key, expected] of Object.entries(building.expected)) {
           if (row[key as keyof PreparedHkgovAlsRow] !== expected)
             throw new Error(

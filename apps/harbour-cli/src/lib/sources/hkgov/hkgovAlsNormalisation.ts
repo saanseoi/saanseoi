@@ -1,4 +1,5 @@
 import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
+import { resolveLinTsui } from './hkgovAlsLinTsui'
 import {
   buildHkgovAlsPremiseIdentity,
   buildHkgovAlsProvisionalId,
@@ -63,6 +64,10 @@ export function normaliseHkgovAlsFeature(
   numericPhaseFamilies: ReadonlyMap<string, string>,
 ): PreparedHkgovAlsRow {
   const properties = feature.properties ?? {}
+  const linTsui = resolveLinTsui(feature, sourceVersion)
+  const effectiveGeometry = linTsui?.named
+    ? { type: 'Point', coordinates: linTsui.coordinates }
+    : feature.geometry
   const premises = properties.Address?.PremisesAddress ?? {}
   const rawZh = premises.ChiPremisesAddress ?? {}
   const rawEn = premises.EngPremisesAddress ?? {}
@@ -191,8 +196,8 @@ export function normaliseHkgovAlsFeature(
   const areaId = areaMatch.id
   const districtId = districtMatch.id
   const coordinates =
-    feature.geometry?.type === 'Point' && Array.isArray(feature.geometry.coordinates)
-      ? feature.geometry.coordinates
+    effectiveGeometry?.type === 'Point' && Array.isArray(effectiveGeometry.coordinates)
+      ? effectiveGeometry.coordinates
       : null
   const routeKind =
     enStreet.StreetName || zhStreet.StreetName
@@ -247,6 +252,7 @@ export function normaliseHkgovAlsFeature(
   const provisionalId = buildHkgovAlsProvisionalId(premiseIdentity.identityKey)
   const sources =
     stringifyJson({
+      ...(linTsui ? { hkgovAlsLinTsui: { ...linTsui, rawFeature: feature } } : {}),
       ...(csuCorrection.decision
         ? { hkgovAlsCsuCorrection: csuCorrection.decision }
         : {}),
@@ -276,7 +282,7 @@ export function normaliseHkgovAlsFeature(
     sourceVersion,
     sourceFile,
     sourceFeatureIndexOneBased,
-    geometry: stringifyJson(feature.geometry ?? null),
+    geometry: stringifyJson(effectiveGeometry ?? null),
     identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
     sources,
     divisionSnapshotId: divisionMaps.snapshotId,

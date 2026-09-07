@@ -2,6 +2,2559 @@
   "version": 1,
   "backfills": [
     {
+      "id": "long-shin-shin-leung-april-omission",
+      "estate": "LONG SHIN ESTATE",
+      "csu": "2272633682T20151209",
+      "sourceVersions": ["2026-04-03.0", "2026-04-22.0", "2026-04-25.0"],
+      "evidenceSourceVersion": "2026-08-19.0",
+      "sourceFile": "als_addresses_3d_(public_rental_housing).geojson",
+      "featureIndexOneBased": 1564,
+      "expectedInventoryHash": "dd7c8306d9d183e383cec71780d1ede48979d212fae75be10672118a0df529b9",
+      "expectedUnitCount": 313,
+      "allowReviewedEmptyPremise": false,
+      "authority": "User decision, 2026-09-07: restore Shin Leung inventory; retain estate street range at estate granularity.",
+      "decision": "Restore only the three April publisher inventory omissions at the current named building point; retain raw source evidence.",
+      "feature": {
+        "type": "Feature",
+        "geometry": { "type": "Point", "coordinates": [114.04532, 22.4425] },
+        "properties": {
+          "Northing": 833682,
+          "Easting": 822726,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": { "CsuId": "2272633682T20151209" },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "元朗區",
+                "ChiStreet": { "StreetName": "友善街", "BuildingNoFrom": "11" },
+                "ChiEstate": { "EstateName": "朗善邨" },
+                "BuildingName": "善良樓",
+                "Chi3dAddress": [
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "101", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "102", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "103", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "104", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "105", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "106", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "107", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "108", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "109", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "110", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "111", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "112", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "113", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "114", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "115", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "116", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "117", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "118", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "119", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "120", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "121", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 1, "FloorDescription": "1樓" },
+                    "ChiUnit": { "UnitNo": "122", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "201", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "202", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "203", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "204", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "205", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "206", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "207", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "208", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "209", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "210", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "211", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "212", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "213", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "214", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "215", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "216", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "217", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "218", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "219", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "220", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "221", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 2, "FloorDescription": "2樓" },
+                    "ChiUnit": { "UnitNo": "222", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "301", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "302", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "303", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "304", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "305", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "306", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "307", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "308", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "309", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "310", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "311", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "312", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "313", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "314", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "315", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "316", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "317", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "318", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "319", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "320", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "321", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 3, "FloorDescription": "3樓" },
+                    "ChiUnit": { "UnitNo": "322", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "401", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "402", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "403", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "404", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "405", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "406", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "407", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "408", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "409", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "410", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "411", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "412", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "413", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "414", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "415", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "416", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "417", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "418", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "419", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "420", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "421", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 4, "FloorDescription": "4樓" },
+                    "ChiUnit": { "UnitNo": "422", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "501", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "502", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "503", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "504", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "505", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "506", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "507", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "508", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "509", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "510", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "511", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "512", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "513", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "514", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "515", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "516", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "517", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "518", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "519", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "520", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "521", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 5, "FloorDescription": "5樓" },
+                    "ChiUnit": { "UnitNo": "522", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "601", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "602", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "603", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "604", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "605", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "606", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "607", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "608", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "609", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "610", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "611", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "612", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "613", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "614", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "615", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "616", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "617", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "618", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "619", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "620", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "621", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 6, "FloorDescription": "6樓" },
+                    "ChiUnit": { "UnitNo": "622", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "701", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "702", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "703", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "704", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "705", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "706", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "707", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "708", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "709", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "710", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "711", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "712", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "713", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "714", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "715", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "716", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "717", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "718", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "719", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "720", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "721", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 7, "FloorDescription": "7樓" },
+                    "ChiUnit": { "UnitNo": "722", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "801", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "802", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "803", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "804", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "805", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "806", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "807", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "808", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "809", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "810", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "811", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "812", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "813", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "814", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "815", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "816", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "817", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "818", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "819", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "820", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "821", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 8, "FloorDescription": "8樓" },
+                    "ChiUnit": { "UnitNo": "822", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "901", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "902", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "903", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "904", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "905", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "906", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "907", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "908", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "909", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "910", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "911", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "912", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "913", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "914", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "915", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "916", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "917", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "918", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "919", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "920", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "921", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 9, "FloorDescription": "9樓" },
+                    "ChiUnit": { "UnitNo": "922", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1001", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1002", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1003", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1004", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1005", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1006", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1007", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1008", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1009", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1010", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1011", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1012", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1013", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1014", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1015", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1016", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1017", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1018", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1019", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 10, "FloorDescription": "10樓" },
+                    "ChiUnit": { "UnitNo": "1020", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1101", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1102", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1103", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1104", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1105", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1106", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1107", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1108", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1109", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1110", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1111", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1112", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1113", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1114", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1115", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1116", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1117", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1118", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 11, "FloorDescription": "11樓" },
+                    "ChiUnit": { "UnitNo": "1119", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1201", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1202", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1203", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1204", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1205", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1206", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1207", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1208", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1209", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1210", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1211", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1212", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1213", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1214", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1215", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1216", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1217", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1218", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 12, "FloorDescription": "12樓" },
+                    "ChiUnit": { "UnitNo": "1219", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1301", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1302", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1303", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1304", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1305", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1306", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1307", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1308", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1309", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1310", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1311", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1312", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1313", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1314", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1315", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1316", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1317", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1318", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 13, "FloorDescription": "13樓" },
+                    "ChiUnit": { "UnitNo": "1319", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1401", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1402", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1403", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1404", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1405", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1406", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1407", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1408", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1409", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1410", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1411", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1412", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1413", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1414", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1415", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1416", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1417", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1418", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 14, "FloorDescription": "14樓" },
+                    "ChiUnit": { "UnitNo": "1419", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1501", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1502", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1503", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1504", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1505", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1506", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1507", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1508", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1509", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1510", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1511", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1512", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1513", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1514", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1515", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1516", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1517", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1518", "UnitDescriptor": "室" }
+                  },
+                  {
+                    "ChiFloor": { "FloorNum": 15, "FloorDescription": "15樓" },
+                    "ChiUnit": { "UnitNo": "1519", "UnitDescriptor": "室" }
+                  }
+                ]
+              },
+              "EngPremisesAddress": {
+                "Eng3dAddress": [
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "101" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "102" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "103" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "104" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "105" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "106" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "107" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "108" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "109" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "110" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "111" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "112" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "113" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "114" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "115" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "116" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "117" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "118" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "119" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "120" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "121" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "122" },
+                    "EngFloor": { "FloorNum": 1, "FloorDescription": "1/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "201" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "202" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "203" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "204" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "205" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "206" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "207" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "208" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "209" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "210" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "211" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "212" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "213" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "214" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "215" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "216" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "217" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "218" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "219" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "220" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "221" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "222" },
+                    "EngFloor": { "FloorNum": 2, "FloorDescription": "2/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "301" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "302" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "303" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "304" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "305" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "306" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "307" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "308" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "309" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "310" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "311" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "312" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "313" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "314" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "315" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "316" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "317" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "318" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "319" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "320" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "321" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "322" },
+                    "EngFloor": { "FloorNum": 3, "FloorDescription": "3/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "401" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "402" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "403" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "404" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "405" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "406" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "407" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "408" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "409" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "410" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "411" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "412" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "413" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "414" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "415" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "416" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "417" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "418" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "419" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "420" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "421" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "422" },
+                    "EngFloor": { "FloorNum": 4, "FloorDescription": "4/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "501" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "502" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "503" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "504" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "505" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "506" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "507" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "508" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "509" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "510" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "511" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "512" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "513" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "514" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "515" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "516" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "517" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "518" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "519" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "520" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "521" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "522" },
+                    "EngFloor": { "FloorNum": 5, "FloorDescription": "5/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "601" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "602" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "603" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "604" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "605" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "606" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "607" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "608" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "609" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "610" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "611" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "612" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "613" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "614" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "615" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "616" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "617" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "618" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "619" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "620" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "621" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "622" },
+                    "EngFloor": { "FloorNum": 6, "FloorDescription": "6/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "701" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "702" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "703" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "704" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "705" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "706" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "707" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "708" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "709" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "710" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "711" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "712" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "713" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "714" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "715" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "716" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "717" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "718" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "719" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "720" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "721" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "722" },
+                    "EngFloor": { "FloorNum": 7, "FloorDescription": "7/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "801" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "802" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "803" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "804" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "805" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "806" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "807" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "808" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "809" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "810" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "811" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "812" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "813" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "814" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "815" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "816" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "817" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "818" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "819" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "820" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "821" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "822" },
+                    "EngFloor": { "FloorNum": 8, "FloorDescription": "8/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "901" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "902" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "903" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "904" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "905" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "906" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "907" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "908" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "909" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "910" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "911" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "912" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "913" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "914" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "915" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "916" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "917" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "918" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "919" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "920" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "921" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "922" },
+                    "EngFloor": { "FloorNum": 9, "FloorDescription": "9/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1001" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1002" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1003" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1004" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1005" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1006" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1007" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1008" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1009" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1010" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1011" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1012" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1013" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1014" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1015" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1016" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1017" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1018" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1019" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1020" },
+                    "EngFloor": { "FloorNum": 10, "FloorDescription": "10/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1101" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1102" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1103" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1104" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1105" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1106" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1107" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1108" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1109" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1110" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1111" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1112" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1113" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1114" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1115" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1116" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1117" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1118" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1119" },
+                    "EngFloor": { "FloorNum": 11, "FloorDescription": "11/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1201" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1202" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1203" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1204" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1205" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1206" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1207" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1208" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1209" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1210" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1211" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1212" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1213" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1214" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1215" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1216" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1217" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1218" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1219" },
+                    "EngFloor": { "FloorNum": 12, "FloorDescription": "12/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1301" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1302" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1303" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1304" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1305" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1306" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1307" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1308" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1309" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1310" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1311" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1312" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1313" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1314" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1315" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1316" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1317" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1318" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1319" },
+                    "EngFloor": { "FloorNum": 13, "FloorDescription": "13/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1401" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1402" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1403" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1404" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1405" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1406" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1407" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1408" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1409" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1410" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1411" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1412" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1413" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1414" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1415" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1416" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1417" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1418" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1419" },
+                    "EngFloor": { "FloorNum": 14, "FloorDescription": "14/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1501" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1502" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1503" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1504" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1505" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1506" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1507" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1508" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1509" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1510" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1511" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1512" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1513" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1514" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1515" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1516" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1517" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1518" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  },
+                  {
+                    "EngUnit": { "UnitDescriptor": "FLAT", "UnitNo": "1519" },
+                    "EngFloor": { "FloorNum": 15, "FloorDescription": "15/F" }
+                  }
+                ],
+                "BuildingName": "SHIN LEUNG HOUSE",
+                "EngEstate": { "EstateName": "LONG SHIN ESTATE" },
+                "EngStreet": {
+                  "BuildingNoFrom": "11",
+                  "StreetName": "YAU SHIN STREET"
+                },
+                "EngDistrict": "YUEN LONG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2272633682T20151209"
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "hoi-tat-hoi-wah-house-until-revoked",
       "estate": "HOI TAT ESTATE",
       "csu": "3351321157T20180122",
@@ -38,10 +2591,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            114.15014,
-            22.32971
-          ]
+          "coordinates": [114.15014, 22.32971]
         },
         "properties": {
           "Northing": 821186,
@@ -98,11 +2648,7 @@
       "id": "hoi-tat-hoi-shing-house-publisher-omission",
       "estate": "HOI TAT ESTATE",
       "csu": "3365021124T20180122",
-      "sourceVersions": [
-        "2026-04-03.0",
-        "2026-04-22.0",
-        "2026-04-25.0"
-      ],
+      "sourceVersions": ["2026-04-03.0", "2026-04-22.0", "2026-04-25.0"],
       "evidenceSourceVersion": "2026-08-19.0",
       "sourceFile": "als_addresses_3d_(public_rental_housing).geojson",
       "featureIndexOneBased": 960,
@@ -112,10 +2658,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            114.15146,
-            22.32915
-          ]
+          "coordinates": [114.15146, 22.32915]
         },
         "properties": {
           "Northing": 821124,
@@ -205,10 +2748,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            113.97118,
-            22.41193
-          ]
+          "coordinates": [113.97118, 22.41193]
         },
         "properties": {
           "Northing": 830304,
@@ -17440,10 +19980,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            113.97183,
-            22.41221
-          ]
+          "coordinates": [113.97183, 22.41221]
         },
         "properties": {
           "Northing": 830336,
@@ -43115,10 +45652,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            113.97289,
-            22.41145
-          ]
+          "coordinates": [113.97289, 22.41145]
         },
         "properties": {
           "Northing": 830252,
@@ -68790,10 +71324,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            113.97254,
-            22.41093
-          ]
+          "coordinates": [113.97254, 22.41093]
         },
         "properties": {
           "Northing": 830194,
@@ -85232,9 +87763,7 @@
       "id": "ching-tin-ching-sum-june-2025",
       "estate": "CHING TIN ESTATE",
       "csu": "1514730241T20220127",
-      "sourceVersions": [
-        "2025-06-20.0"
-      ],
+      "sourceVersions": ["2025-06-20.0"],
       "evidenceSourceVersion": "2025-08-13.0",
       "corroboratingSourceVersion": "2025-05-22.0",
       "featureIndexOneBased": 1359,
@@ -85246,10 +87775,7 @@
         "type": "Feature",
         "geometry": {
           "type": "Point",
-          "coordinates": [
-            113.97173,
-            22.41142
-          ]
+          "coordinates": [113.97173, 22.41142]
         },
         "properties": {
           "Northing": 830248,

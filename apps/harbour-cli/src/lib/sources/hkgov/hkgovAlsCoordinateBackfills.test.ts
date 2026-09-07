@@ -66,7 +66,7 @@ test('does not apply outside the approved history or after source geometry chang
   const firstRow = rows[0]
   if (!first || !firstRow?.geometry)
     throw new Error('Missing coordinate-backfill fixture')
-  expect(backfillAlsCoordinates(rows, '2030-01-01.0')).toEqual({ backfilled: 0 })
+  expect(backfillAlsCoordinates(rows, '2020-01-01.0')).toEqual({ backfilled: 0 })
   expect(JSON.parse(firstRow.geometry).coordinates).toEqual(first.previousCoordinates)
   const guarded = fixture.backfills.find(
     decision =>

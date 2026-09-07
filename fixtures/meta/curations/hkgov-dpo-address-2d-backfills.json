@@ -2,6 +2,94 @@
   "version": 1,
   "backfills": [
     {
+      "id": "lower-ngau-tau-kok-kwai-hin-until-revoked",
+      "estate": "LOWER NGAU TAU KOK ESTATE",
+      "csu": "4026420303T20120921",
+      "sourceVersions": [
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2025-01-23.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "evidenceSourceVersion": "2025-01-23.0",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "featureIndexOneBased": 3189,
+      "authority": "User decision, 2026-09-07: forward-fill Kwai Hin House until revoked.",
+      "decision": "Retain the named 2D building and its original point; no unit inventory is inferred from another house.",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.21565, 22.32173]
+        },
+        "properties": {
+          "Northing": 820303,
+          "Easting": 840263,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "4026420303T20120921"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "牛頭角道",
+                  "BuildingNoFrom": "120"
+                },
+                "ChiEstate": {
+                  "EstateName": "牛頭角下邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "3",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "貴顯樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "3",
+                  "BlockDescriptorPrecedenceIndicator": "3"
+                },
+                "BuildingName": "KWAI HIN HOUSE",
+                "EngEstate": {
+                  "EstateName": "LOWER NGAU TAU KOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "120",
+                  "StreetName": "NGAU TAU KOK RD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4026420303T20120921"
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "hoi-tat-hoi-wah-house-until-revoked",
       "estate": "HOI TAT ESTATE",
       "csu": "3351321157T20180122",

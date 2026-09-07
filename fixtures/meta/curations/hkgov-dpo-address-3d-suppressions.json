@@ -15,7 +15,7 @@
         { "en": "DYER AVENUE", "zh": "戴亞街", "number": "9" }
       ],
       "coordinates": [[114.18909, 22.30801], [114.18903, 22.30795]],
-      "reason": "Reviewed suppression of the unnamed inventory: unit arrays match Hung Yiu House but the source point and GeoAddress match Hung Yat House. Preserve raw assertions without assigning a building owner."
+      "reason": "The unnamed address CSU belongs to Hung Yat House, but its 780-unit arrays incorrectly match Hung Yiu House. Retain only Hung Yat's named 456-unit collection. Phase 2 uses 28 Tai Wan Road, not 9 Dyer Avenue. Preserve the rejected raw inventory without assigning its units to Hung Yat."
     }
   ]
 }

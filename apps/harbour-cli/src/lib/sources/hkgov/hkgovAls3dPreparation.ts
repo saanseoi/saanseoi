@@ -82,7 +82,11 @@ export async function prepareAls3dCollections(options: {
   const ownership = applyAlsAddressHierarchies(options.rows, options.sourceVersion)
   const byKey = new Map<string, PreparedHkgovAlsRow[]>()
   const blocklessParentsByKey = new Map<string, PreparedHkgovAlsRow[]>()
-  const suppressed2dIds = new Set<string>()
+  const suppressed2dIds = new Set<string>(
+    options.rows
+      .filter(row => row.hierarchyCuration === 'long-shin-range-alias')
+      .map(row => row.id),
+  )
   for (const row of options.rows) {
     if (!row.engPremisesAddressJson || !row.chiPremisesAddressJson) continue
     const en = JSON.parse(row.engPremisesAddressJson)
