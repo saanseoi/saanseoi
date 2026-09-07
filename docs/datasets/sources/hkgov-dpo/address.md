@@ -155,6 +155,12 @@ both adjacent source releases. The generated fixture and verification retain the
 target and bracketing versions. This restores derived fields rather than raw publisher
 JSON, and never generalises from a CSU alone.
 
+The unnamed zero-unit CSU `3370111759T20150127` is suppressed only across its reviewed
+February 2025–July 2026 appearances as a duplicate of the named Lei Moon House. Its
+estate, bilingual blank-premise structure, route, point and named owner are all guarded;
+the full publisher assertion is retained in owner provenance. The HA Low Block remains a
+derived section, and the later distinct Lei Fook Low Block source premise is unaffected.
+
 `hkgov-dpo-address-coordinate-backfills.json` applies the April 2026 current point for
 each of thirteen reviewed Cheung Hong Estate houses to their July 2024–February 2026
 derived Address2D records. Each rule is bounded by release, CSU, estate, English

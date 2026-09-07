@@ -12,6 +12,10 @@ Local Place and supplementary Address SQL use native delivery plans. The supplem
 materialisation is verified after receipt-backed replay, and search is rebuilt after the
 local Place data is reconciled. Review decisions are not skipped by SQL recovery.
 
+The dataset stores its supported outputs in the `datasets.resourceTypes` JSON array.
+Supplementary Address registration atomically appends `address` only when absent,
+preserving the other declared outputs during local processing and metadata delivery.
+
 Source staging retains normalised JSONL and country/locale review actions together with
 source-file, source-version and processing-contract identities. The output is flushed
 before its checksummed manifest is committed. Retries verify the staged file and reuse

@@ -74,20 +74,20 @@ earlier snapshot exists. The selected snapshot IDs are recorded as lookup proven
 are used by both publication and replay.
 
 The supplementary member uses `exact_ref` and is produced within Places ingestion. The
-Overture Places dataset declares both resource types and retains one publisher source
-release for the Place and Address resource releases. Address output includes its number
-lookup and full-text index. Once the data imports succeed, ingestion publishes an
-Address release set in the `saanseoi` domain with the selected ALS and supplementary
-snapshots; the shared source release is finalised only after both outputs succeed. The
-Address list and search endpoints expose `filter[dataset]` while preserving the combined
-default. Address analysis and curation finish before supplementary Address rows, then
-Place rows, are materialised. Canonical ALS matches create no supplementary rows.
-Accepted partial matches retain Overture provenance and may derive division IDs from a
-recorded ALS base; curated rows without a base have no division IDs. Shared normalised
-2D identities share an Address ID across Places. Unit and floor observations remain
-source evidence. Review-required candidates stop ingestion before Place writes,
-including with `--yes`. Unmatched Places remain available through H3 cells and search.
-See the
+Overture Places dataset declares `place` and `address` in its `datasets.resourceTypes`
+JSON array and retains one publisher source release for the Place and Address resource
+releases. Address output includes its number lookup and full-text index. Once the data
+imports succeed, ingestion publishes an Address release set in the `saanseoi` domain
+with the selected ALS and supplementary snapshots; the shared source release is
+finalised only after both outputs succeed. The Address list and search endpoints expose
+`filter[dataset]` while preserving the combined default. Address analysis and curation
+finish before supplementary Address rows, then Place rows, are materialised. Canonical
+ALS matches create no supplementary rows. Accepted partial matches retain Overture
+provenance and may derive division IDs from a recorded ALS base; curated rows without a
+base have no division IDs. Shared normalised 2D identities share an Address ID across
+Places. Unit and floor observations remain source evidence. Review-required candidates
+stop ingestion before Place writes, including with `--yes`. Unmatched Places remain
+available through H3 cells and search. See the
 [source policy](../sources/overture/places.md#matching-policy-and-review-operation) for
 thresholds, identity decisions and retry behaviour.
 

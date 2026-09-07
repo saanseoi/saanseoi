@@ -133,6 +133,10 @@ name fixture.
 
 ## New Town boundaries
 
+Curated New Town Division codes use `SCREAMING_SNAKE_CASE`, such as `TSEUNG_KWAN_O` and
+`TSUEN_WAN_KWAI_CHUNG_AREA`. These public codes are assigned through the metadata
+registry independently of the source name identifiers and canonical UUIDs.
+
 New Towns are a separate Planning Department planning-domain resource and provider
 variant, not geographic/Overture divisions. They use source profile authority
 `hkgov-pland-new-town`, while retaining the Planning Department as publisher. Their
