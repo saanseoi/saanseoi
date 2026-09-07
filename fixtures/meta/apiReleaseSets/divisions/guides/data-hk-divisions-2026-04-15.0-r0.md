@@ -234,9 +234,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 如要查看此版本背後的原始 Overture 物件，請使用
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，並提供必要的
-`sourceRelease` 查詢參數。回應會在 `rawProperties` 下返回獲保留的物件。canonical
-`attributes.hierarchy` 是標準化的關係；原始 Overture hierarchy 可在來源記錄回應的
-`rawProperties.hierarchies` 中取得。
+`sourceRelease` 查詢參數。回應會在 `rawProperties` 下返回獲保留的物件。
 
 ## 要求資料
 
@@ -426,9 +424,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 如要查看此版本背后的原始 Overture 对象，请使用
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，并提供必要的
-`sourceRelease` 查询参数。响应会在 `rawProperties` 下返回保留的对象。canonical
-`attributes.hierarchy` 是标准化的关系；原始 Overture hierarchy 可在源记录响应的
-`rawProperties.hierarchies` 中取得。
+`sourceRelease` 查询参数。响应会在 `rawProperties` 下返回保留的对象。
 
 ## 请求数据
 

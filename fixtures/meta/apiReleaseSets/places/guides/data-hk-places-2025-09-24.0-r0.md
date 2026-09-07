@@ -277,6 +277,52 @@ source URL 及任何不確定之處。請勿從 SaanSeoi 的 canonical response 
 Collection 回應會在 <black>meta.apiReleaseSet</black> 及
 <black>meta.apiCatalogRevision</black> 記錄已解析的發布。
 
+## 以文字及地圖網格搜尋地點
+
+這些端點使用目前 active Place snapshot，不接受 collection 的
+<black>releaseSet</black>、<black>profile</black>、<black>include</black>
+或時間旅行 selector（<black>effectiveAt</black>、<black>knownAt</black> 及
+<black>catalogRevision</black>）；如需可重現的發布檢視，請使用 collection。
+
+**取得一個目前 Place**
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/{id}?
+                 locale=zh-hant
+```
+
+回應包括 <black>place</black>、<black>i18n</black> 陣列和 <black>divisions</black>
+陣列； <black>locale</black> 會篩選後兩者。
+
+**取得 H3 cell 中的 Place**
+
+Place 以 [H3 resolution](https://h3geo.org/docs/core-library/restable/)
+<black>5</black>、<black>7</black> 和 <black>9</black>
+建立索引。將地圖選擇轉為 H3 後，要求其中一個 cell：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/by-cell/9/{h3Cell}?
+                 limit=50
+```
+
+精簡的 <black>places</black> 陣列包含 ID、release ID、類別、taxonomy、營運狀態、Point
+geometry 和匹配 cell。預設 limit 是 50，最多 100。H3
+membership 來自 geometry，無需地址或 Division link。
+
+**搜尋目前 Place**
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=coffee&
+                 locale=en&
+                 limit=25
+```
+
+搜尋會索引本地化名稱和品牌、taxonomy、地址、Division 和街道文字。每個
+<black>results</black> 項目有 Place ID、release ID、匹配 locale、名稱和品牌文字。以
+<black>placeId</black>
+呼叫目前 Place 端點取得完整記錄。查詢最多 200 個字元，結果 limit 最多 100。
+
 ## 設定回應形狀
 
 {{responseProfilesSection:zh-Hant}}
@@ -289,8 +335,10 @@ Collection 回應會在 <black>meta.apiReleaseSet</black> 及
 
 {{localeSelectionSection:zh-Hant}}
 
-名稱和品牌是本地化值。不要假定未驗證的中文名稱是粵語音譯；如有需要，請檢查 full
-profile 的 <black>i18n.{locale}.provenance</black>。
+名稱及品牌名稱是本地化值。上游資料未必總能為名稱指定正確的 locale，因此如有需要，您仍須核實這些值。亦不要假定未驗證的中文名稱是粵語音譯；如需區分，請檢查 full
+profile 中的
+<black>i18n.{locale}.provenance</black>。最後，名稱覆蓋並不完整，您可能需要在
+<black>en</black> 及 <black>zh-hant</black> 之間取首個非空值，以確保取得名稱。
 
 ## 篩選及分頁
 
@@ -332,49 +380,6 @@ relationship 為空，請勿由 geometry 推斷。
 ## 時間旅行
 
 {{timeTravelSection:zh-Hant}}
-
-## 目前 Place、地圖 cell 及文字搜尋端點
-
-下列端點查詢目前 active Place
-snapshot，不接受 collection 的 release、profile、include 或時間旅行 selector；如需可重現的發布檢視，請使用 collection。
-
-**取得一個目前 Place**
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/{id}?
-                 locale=zh-hant
-```
-
-回應包括 <black>place</black>、<black>i18n</black> 陣列和 <black>divisions</black>
-陣列； <black>locale</black> 會篩選後兩者。
-
-**取得 H3 cell 中的 Place**
-
-Place 以 H3 resolution <black>5</black>、<black>7</black> 和 <black>9</black>
-建立索引。將地圖選擇轉為 H3 後，要求其中一個 cell：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/by-cell/9/{h3Cell}?
-                 limit=50
-```
-
-精簡的 <black>places</black> 陣列包含 ID、release ID、類別、taxonomy、營運狀態、Point
-geometry 和匹配 cell。預設 limit 是 50，最多 100。H3
-membership 來自 geometry，無需地址或 Division link。
-
-**搜尋目前 Place**
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/search?
-                 q=coffee&
-                 locale=en&
-                 limit=25
-```
-
-搜尋會索引本地化名稱和品牌、taxonomy、地址、Division 和街道文字。每個
-<black>results</black> 項目有 Place ID、release ID、匹配 locale、名稱和品牌文字。以
-<black>placeId</black>
-呼叫目前 Place 端點取得完整記錄。查詢最多 200 個字元，結果 limit 最多 100。
 
 ## 溯源
 
@@ -460,6 +465,50 @@ source URL 及任何不确定之处。请勿从 SaanSeoi 的 canonical response 
 Collection 响应会在 <black>meta.apiReleaseSet</black> 及
 <black>meta.apiCatalogRevision</black> 记录已解析的发布。
 
+## 以文本及地图网格搜索地点
+
+以下端点查询当前 active Place
+snapshot，不接受 collection 的 release、profile、include 或时间旅行 selector；如需可重现的发布视图，请使用 collection。
+
+**获取一个当前 Place**
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/{id}?
+                 locale=zh-hant
+```
+
+响应包括 <black>place</black>、<black>i18n</black> 数组和 <black>divisions</black>
+数组； <black>locale</black> 会筛选后两者。
+
+**获取 H3 cell 中的 Place**
+
+Place 以 [H3 resolution](https://h3geo.org/docs/core-library/restable/)
+<black>5</black>、<black>7</black> 和 <black>9</black>
+建立索引。将地图选择转为 H3 后，请求其中一个 cell：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/by-cell/9/{h3Cell}?
+                 limit=50
+```
+
+精简的 <black>places</black> 数组包含 ID、release ID、类别、taxonomy、营业状态、Point
+geometry 和匹配 cell。默认 limit 是 50，最多 100。H3
+membership 来自 geometry，无需地址或 Division link。
+
+**搜索当前 Place**
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=coffee&
+                 locale=en&
+                 limit=25
+```
+
+搜索会索引本地化名称和品牌、taxonomy、地址、Division 和街道文本。每个
+<black>results</black> 项目有 Place ID、release ID、匹配 locale、名称和品牌文本。以
+<black>placeId</black>
+调用当前 Place 端点取得完整记录。查询最多 200 个字符，结果 limit 最多 100。
+
 ## 设置响应形状
 
 {{responseProfilesSection:zh-Hans}}
@@ -472,8 +521,10 @@ Collection 响应会在 <black>meta.apiReleaseSet</black> 及
 
 {{localeSelectionSection:zh-Hans}}
 
-名称和品牌是本地化值。不要假定未验证的中文名称是粤语音译；如有需要，请检查 full
-profile 的 <black>i18n.{locale}.provenance</black>。
+名称及品牌名称是本地化值。上游数据未必总能为名称指定正确的 locale，因此如有需要，您仍须核实这些值。也不要假定未验证的中文名称是粤语音译；如需区分，请检查 full
+profile 中的
+<black>i18n.{locale}.provenance</black>。最后，名称覆盖并不完整，您可能需要在
+<black>en</black> 及 <black>zh-hant</black> 之间取首个非空值，以确保获取名称。
 
 ## 筛选及分页
 
@@ -515,49 +566,6 @@ relationship 为空，请勿由 geometry 推断。
 ## 时间旅行
 
 {{timeTravelSection:zh-Hans}}
-
-## 当前 Place、地图 cell 及文本搜索端点
-
-以下端点查询当前 active Place
-snapshot，不接受 collection 的 release、profile、include 或时间旅行 selector；如需可重现的发布视图，请使用 collection。
-
-**获取一个当前 Place**
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/{id}?
-                 locale=zh-hant
-```
-
-响应包括 <black>place</black>、<black>i18n</black> 数组和 <black>divisions</black>
-数组； <black>locale</black> 会筛选后两者。
-
-**获取 H3 cell 中的 Place**
-
-Place 以 H3 resolution <black>5</black>、<black>7</black> 和 <black>9</black>
-建立索引。将地图选择转为 H3 后，请求其中一个 cell：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/by-cell/9/{h3Cell}?
-                 limit=50
-```
-
-精简的 <black>places</black> 数组包含 ID、release ID、类别、taxonomy、营业状态、Point
-geometry 和匹配 cell。默认 limit 是 50，最多 100。H3
-membership 来自 geometry，无需地址或 Division link。
-
-**搜索当前 Place**
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}/search?
-                 q=coffee&
-                 locale=en&
-                 limit=25
-```
-
-搜索会索引本地化名称和品牌、taxonomy、地址、Division 和街道文本。每个
-<black>results</black> 项目有 Place ID、release ID、匹配 locale、名称和品牌文本。以
-<black>placeId</black>
-调用当前 Place 端点取得完整记录。查询最多 200 个字符，结果 limit 最多 100。
 
 ## 溯源
 
