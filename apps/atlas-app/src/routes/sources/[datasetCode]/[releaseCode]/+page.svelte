@@ -41,6 +41,7 @@ import {
 import { getDistrictCoverageMapData } from '#lib/registry/district.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
+import SourceReleaseLoadError from './sourceReleaseLoadError.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
 import {
@@ -529,19 +530,11 @@ $effect(() => {
           linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
         />
       {:else if releaseQueryError}
-        <section
-          class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
-          role="alert"
-        >
-          <p>{m.source_release_load_error()}</p>
-          <button
-            class="mt-3 font-semibold underline underline-offset-4"
-            onclick={() => void refreshRelease()}
-            type="button"
-          >
-            {m.source_retry()}
-          </button>
-        </section>
+        <SourceReleaseLoadError
+          message={m.source_release_load_error()}
+          onRetry={refreshRelease}
+          retryLabel={m.source_retry()}
+        />
       {:else}
         <div
           class="h-full min-h-0"
@@ -632,19 +625,11 @@ $effect(() => {
       {/if}
     </ReleaseNav.Root>
   {:else if releaseQueryError}
-    <section
-      class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
-      role="alert"
-    >
-      <p>{m.source_release_load_error()}</p>
-      <button
-        class="mt-3 font-semibold underline underline-offset-4"
-        onclick={() => void refreshRelease()}
-        type="button"
-      >
-        {m.source_retry()}
-      </button>
-    </section>
+    <SourceReleaseLoadError
+      message={m.source_release_load_error()}
+      onRetry={refreshRelease}
+      retryLabel={m.source_retry()}
+    />
   {:else}
     <SourceReleasePageSkeleton />
   {/if}

@@ -1,6 +1,9 @@
 <script lang="ts">
 import {
+  resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  type SourceRecordSchema,
+  type SourceRecordSchemaField,
   type ResourceType,
 } from '@repo/core/sourceRecordSchemas'
 import { page } from '$app/state'
@@ -36,22 +39,75 @@ let sourceSchema = $derived(
   }),
 )
 
-function sourceFieldSchema(type: string): OpenApiSchema {
+function sourceFieldSchema(
+  sourceSchema: SourceRecordSchema,
+  field: SourceRecordSchemaField,
+): OpenApiSchema {
+  const definition = resolveOvertureSourceRecordFieldDefinition(sourceSchema, field)
+  const type = field.type
+  const sourceTypeDescription = m.source_record_schema_field_type({ type })
+
   switch (type) {
     case 'utf8':
-      return { type: 'string' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        type: 'string',
+      }
     case 'int_32':
-      return { format: 'int32', type: 'integer' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        format: 'int32',
+        type: 'integer',
+      }
     case 'double':
-      return { format: 'double', type: 'number' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        format: 'double',
+        type: 'number',
+      }
     case 'boolean':
-      return { type: 'boolean' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        type: 'boolean',
+      }
     case 'list':
-      return { items: { type: 'object' }, type: 'array' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        items: definition?.items ?? { type: 'object' },
+        type: 'array',
+      }
     case 'map':
-      return { additionalProperties: true, type: 'object' }
+      return {
+        ...definition,
+        additionalProperties: definition?.additionalProperties ?? true,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        type: 'object',
+      }
     default:
-      return { type: 'object' }
+      return {
+        ...definition,
+        description: [definition?.description, sourceTypeDescription]
+          .filter(Boolean)
+          .join(' '),
+        type: definition?.type ?? 'object',
+      }
   }
 }
 
@@ -64,8 +120,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
       sourceSchema.fields.map(field => [
         field.name,
         {
-          ...sourceFieldSchema(field.type),
-          description: m.source_record_schema_field_type({ type: field.type }),
+          ...sourceFieldSchema(sourceSchema, field),
           nullable: field.nullable,
         },
       ]),

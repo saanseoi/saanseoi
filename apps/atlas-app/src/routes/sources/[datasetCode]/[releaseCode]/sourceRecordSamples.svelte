@@ -102,7 +102,9 @@ async function loadMore() {
   try {
     const selected: AddressSample[] = []
     for (let attempt = 0; attempt < 4 && selected.length < count; attempt += 1) {
-      const candidates = await getRandomRecords(candidatesPerRequest)
+      const candidates = await getRandomRecords(
+        Math.min(candidatesPerRequest, count - selected.length),
+      )
       selected.push(
         ...getUniqueAddressSamples(candidates, [...samples, ...selected]).slice(
           0,
@@ -149,6 +151,10 @@ $effect(() => {
   {#if unavailable}
     <p class="font-body text-body-md text-foreground-alt">
       {m.source_record_samples_unavailable()}
+    </p>
+  {:else if loading}
+    <p class="font-body text-body-md text-foreground-alt" role="status">
+      {m.source_record_samples_loading()}
     </p>
   {:else if samples.length > 1}
     <div class="space-y-3">

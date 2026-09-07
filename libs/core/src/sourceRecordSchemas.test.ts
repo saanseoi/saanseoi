@@ -1,6 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-import { resolveSourceRecordSchema } from './sourceRecordSchemas'
+import {
+  resolveOvertureSourceRecordFieldDefinition,
+  resolveSourceRecordSchema,
+} from './sourceRecordSchemas'
 
 describe('source record schemas', () => {
   test('resolves the initial Overture Places payload fields', () => {
@@ -76,6 +79,45 @@ describe('source record schemas', () => {
       name: 'admin_level',
       nullable: true,
       type: 'int_32',
+    })
+  })
+
+  test('resolves every published Overture division resource', () => {
+    for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
+      const schema = resolveSourceRecordSchema({
+        resourceType,
+        source: 'overture',
+        sourceVersion: '2026-08-19.0',
+      })
+
+      expect(schema).not.toBeNull()
+      expect(schema?.fields.find(field => field.name === 'admin_level')).toEqual({
+        name: 'admin_level',
+        nullable: true,
+        type: 'int_32',
+      })
+    }
+  })
+
+  test('provides the publisher’s nested definitions for raw source fields', () => {
+    const schema = resolveSourceRecordSchema({
+      resourceType: 'place',
+      source: 'overture',
+      sourceVersion: '2026-08-19.0',
+    })
+    const taxonomy = schema?.fields.find(field => field.name === 'taxonomy')
+    const definition =
+      schema && taxonomy
+        ? resolveOvertureSourceRecordFieldDefinition(schema, taxonomy)
+        : null
+
+    expect(definition).toMatchObject({
+      properties: {
+        hierarchy: { items: { pattern: '^[a-z0-9]+(_[a-z0-9]+)*$', type: 'string' } },
+        primary: { type: 'string' },
+      },
+      required: ['primary', 'hierarchy'],
+      type: 'object',
     })
   })
 
