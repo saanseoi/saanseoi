@@ -548,18 +548,19 @@ export async function processDivisionDataset(
           }),
         )
       }
+      const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalised.base),
-        i18n: canonicalI18n,
+        i18n: storedCanonicalI18n,
       })
 
       processedRows += 1
-      localisedRows += canonicalI18n.length
+      localisedRows += storedCanonicalI18n.length
       seenIds.add(normalised.base.id)
       updateLocaleStatsAccumulator(
         statsAccumulator,
-        canonicalI18n.map(row => ({
+        storedCanonicalI18n.map(row => ({
           hasAltName: Boolean(row.nameAlts),
           hasName: Boolean(row.name),
           isLocaleInferred: row.isLocaleInferred,
@@ -574,7 +575,7 @@ export async function processDivisionDataset(
         churnHash,
         geometry: normalised.base.geometry,
         id: normalised.base.id,
-        localisedRows: canonicalI18n,
+        localisedRows: storedCanonicalI18n,
         parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchy),
         type: normalised.base.type,
         versionHash,
@@ -622,7 +623,7 @@ export async function processDivisionDataset(
         !baseChanged && currentChanged
           ? await createHash({
               baseVersionHash: versionHash,
-              i18n: canonicalI18n.map(row => ({
+              i18n: storedCanonicalI18n.map(row => ({
                 isLocaleInferred: row.isLocaleInferred,
                 locale: row.locale,
                 name: row.name ?? null,
@@ -640,7 +641,7 @@ export async function processDivisionDataset(
         currentExists: Boolean(current),
         event: 'rowSeen',
         historyCurrentLocaleCount: current?.localisedRows.length ?? 0,
-        localeCount: canonicalI18n.length,
+        localeCount: storedCanonicalI18n.length,
         phase: 'processDivisionDataset',
         sourceChanged,
         sourceCurrentExists: currentSourceRows?.has(normalised.base.id) ?? null,
@@ -658,7 +659,7 @@ export async function processDivisionDataset(
 
       currentDivisionI18nRowIds.add(normalised.base.id)
       currentDivisionI18nRows.push(
-        ...canonicalI18n.map(row => ({
+        ...storedCanonicalI18n.map(row => ({
           ...row,
           createdAt: currentDivisionI18nNow,
           updatedAt: currentDivisionI18nNow,
@@ -672,7 +673,7 @@ export async function processDivisionDataset(
           versionHash,
         })
         changedDivisionI18nVersionRows.push(
-          ...canonicalI18n.map(row => ({
+          ...storedCanonicalI18n.map(row => ({
             divisionId: row.divisionId,
             isLocaleInferred: row.isLocaleInferred,
             locale: row.locale,
@@ -696,7 +697,7 @@ export async function processDivisionDataset(
         versionHash,
       })
       changedDivisionI18nVersionRows.push(
-        ...canonicalI18n.map(row => ({
+        ...storedCanonicalI18n.map(row => ({
           divisionId: row.divisionId,
           isLocaleInferred: row.isLocaleInferred,
           locale: row.locale,
@@ -1481,6 +1482,15 @@ export function normaliseDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
     nameProvenance:
       row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided'),
   } satisfies DivisionI18nPayload
+}
+
+/**
+ * Canonical records use an explicit provenance value. This keeps new rows equal
+ * to their persisted predecessors when an upstream-provided name has no
+ * provenance field of its own.
+ */
+export function normaliseDivisionI18nForStorage(rows: DivisionI18nPayload[]) {
+  return rows.map(normaliseDivisionI18nSnapshotRow)
 }
 
 export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
