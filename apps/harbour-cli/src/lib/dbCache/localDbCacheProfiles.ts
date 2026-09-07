@@ -71,7 +71,6 @@ export function resolveCacheTablesForBinding(
         'address2dBuildingNumberLookup',
         'address3d',
         'address3dI18n',
-        'addressesFts',
       ]
     }
 
