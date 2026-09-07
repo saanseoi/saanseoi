@@ -480,7 +480,7 @@ async function findSnapshotRows(
         ? historySchema.divisionAreas
         : historySchema.divisionBoundaries
   for (const target of targets) {
-    const rows = await (target.db as any)
+    const rows = await (target.db as HarbourReadableDb)
       .select()
       .from(table)
       .where(eq(table.snapshotId, snapshotId))

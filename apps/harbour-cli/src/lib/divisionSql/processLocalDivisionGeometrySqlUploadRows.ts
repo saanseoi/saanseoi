@@ -11,6 +11,7 @@ import {
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { and, eq, sql } from 'drizzle-orm'
+import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type {
   GeometryUploadPlan,
@@ -535,22 +536,28 @@ function chunkRows<T>(rows: T[], size = 32) {
 }
 
 async function closeChangedRows(
-  db: any,
-  table: any,
-  idColumn: any,
+  db: unknown,
+  table: AnySQLiteTable & {
+    isCurrent: AnySQLiteColumn
+    versionHash: AnySQLiteColumn
+  },
+  idColumn: AnySQLiteColumn<{ data: string }>,
   currentHashes: Map<string, string>,
   values: Record<string, unknown>,
 ) {
-  const existing = await db
+  const typedDb = db as unknown as HarbourReadableDb & HarbourWritableDb
+  const existing = await typedDb
     .select({ id: idColumn, versionHash: table.versionHash })
     .from(table)
     .where(eq(table.isCurrent, true))
     .all()
-  const closedRows = []
+  const closedRows: Array<{ id: string; versionHash: string }> = []
   for (const row of existing) {
-    if (currentHashes.get(row.id) === row.versionHash) continue
-    await db.update(table).set(values).where(eq(idColumn, row.id)).run()
-    closedRows.push(row)
+    const id = requireString(row.id, 'current row id')
+    const versionHash = requireString(row.versionHash, 'current row versionHash')
+    if (currentHashes.get(id) === versionHash) continue
+    await typedDb.update(table).set(values).where(eq(idColumn, id)).run()
+    closedRows.push({ id, versionHash })
   }
   return closedRows
 }

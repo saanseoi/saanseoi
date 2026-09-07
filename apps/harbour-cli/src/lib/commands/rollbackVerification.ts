@@ -307,10 +307,11 @@ async function countRows(
   table: unknown,
   where: unknown,
 ) {
-  const row = (await (db as any)
+  const typedDb = db as unknown as HarbourReadableDb
+  const row = (await typedDb
     .select({ count: sql<number>`count(*)` })
-    .from(table as any)
-    .where(where as any)
+    .from(table)
+    .where(where)
     .get()) as { count: number | bigint | string } | undefined
 
   return Number(row?.count ?? 0)

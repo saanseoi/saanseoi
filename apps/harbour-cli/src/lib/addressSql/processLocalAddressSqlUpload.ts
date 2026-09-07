@@ -5,7 +5,6 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
 import {
   getReplayedAddressVersionMap,
-  hasCurrentAddressVersions,
   prepareAddressVersionInsertContext,
 } from '@repo/core/pipeline/db/address'
 import {
@@ -514,12 +513,7 @@ export async function processLocalAddressSqlUpload(
           byMatchKey: buildHistoricalAddressMatchKeyLookup(historicalParentVersions),
           snapshotId: versionInsertContext.parentSnapshotId as string,
         }
-      : (await hasCurrentAddressVersions(dbContext.historyDb as never))
-        ? await loadAddressCurrentLookupCache(
-            resolvedTargetName,
-            previewPlan.regionCode,
-          )
-        : null
+      : await loadAddressCurrentLookupCache(resolvedTargetName, previewPlan.regionCode)
     const finalMessageWithMeta = retainedDelivery
       ? (retainedDelivery.context.inputs.message as AddressPipelineMessage)
       : await (async () => {
