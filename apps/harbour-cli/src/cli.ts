@@ -134,12 +134,12 @@ async function main() {
     case 'reset:places:overture':
       await runResetOverturePlacesCommand(args, target, { printUsage })
       return
-    case 'init:addresses:official:begin':
+    case 'init:addresses:saanseoi:begin':
       await beginOfficialAddressInitialisation(target, {
         continue: args.options.continue === true,
       })
       return
-    case 'init:addresses:official:complete':
+    case 'init:addresses:saanseoi:complete':
       await completeOfficialAddressInitialisation(target)
       return
     case 'init:places:overture:begin':
@@ -180,18 +180,18 @@ async function main() {
         validateGeometry,
       })
       return
-    case 'init:addresses:official':
+    case 'init:addresses:saanseoi':
     case 'init':
     case 'init:local':
     case 'init:production':
-    case 'init:stats:official':
+    case 'init:stats:government':
     case 'init:divisions':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':
     case 'init:divisions:hkgov-landsd':
     case 'init:divisions:geographic':
     case 'init:places:overture':
-    case 'init:streets:hkgov-landsd':
+    case 'init:streets:saanseoi':
       await runInitialisationCommand(args, printUsage)
       return
     case 'tiles:refresh':

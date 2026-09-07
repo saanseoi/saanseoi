@@ -218,7 +218,7 @@ export type DatasetUpdate = {
     target: import('../cli/options.ts').UploadTarget,
     prepared: PreparedSourceArchive,
     skipConfirm: boolean,
-    options: { deferStatsReleaseSet: boolean },
+    options: { deferStatsReleaseSet: boolean; includeGeography: boolean },
   ) => Promise<'ingested' | 'not-implemented'>
   /** Assigns a non-CSDI package to one of the updater's three report phases. */
   phase?: DatasetUpdatePhase

@@ -103,8 +103,8 @@ bun run db:reset:local
 ./bin/saanseoi init:divisions:hkgov-pland-pu
 ./bin/saanseoi init:divisions:hkgov-pland-new-town
 ./bin/saanseoi init:divisions:hkgov-landsd
-./bin/saanseoi init:streets:hkgov-landsd
-./bin/saanseoi init:addresses:official
+./bin/saanseoi init:streets:saanseoi
+./bin/saanseoi init:addresses:saanseoi
 ```
 
 The focused LandsD Streets initialiser publishes the current gazetted register and its

@@ -212,8 +212,8 @@ The current candidate inventory is maintained in
 
 ## Initial Statistics publication
 
-`./bin/saanseoi init:stats:official --target local` ingests the official C&SD launch
-set, defers intermediate Statistics release-set publication, and bootstraps the
+`./bin/saanseoi init:stats:government --target local` ingests the Government Statistics
+launch set, defers intermediate Statistics release-set publication, and bootstraps the
 completed cohorts once. Each reference period is therefore first published as one
 complete unadorned initial release set. Bootstrap considers every published Stats-family
 source and selects its linked `divisionStatistic` snapshots, so a source whose primary

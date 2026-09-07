@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import { note } from '@clack/prompts'
+import { note, outro } from '@clack/prompts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
 import type { ParsedArgs } from '../cli/options.ts'
@@ -30,12 +30,12 @@ const initialisationCommands = {
     supportsContinue: false,
     supportsTarget: false,
   },
-  'init:addresses:official': {
+  'init:addresses:saanseoi': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
     supportsTarget: true,
   },
-  'init:stats:official': {
+  'init:stats:government': {
     script: 'scripts/init/stats-hkgov-censtatd.fish',
     supportsContinue: true,
     supportsTarget: true,
@@ -65,12 +65,17 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:divisions:hkgov-censtatd-hma': {
+    script: 'scripts/init/divisions-hkgov-censtatd-hma.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:places:overture': {
     script: 'scripts/init/places-overture.fish',
     supportsContinue: true,
     supportsTarget: true,
   },
-  'init:streets:hkgov-landsd': {
+  'init:streets:saanseoi': {
     script: 'scripts/init/streets-hkgov-landsd.fish',
     supportsContinue: true,
     supportsTarget: true,
@@ -216,6 +221,14 @@ export async function runInitialisationCommand(
   if (exitCode !== 0) {
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
   }
+
+  const targetLabel =
+    args.command === 'init:production'
+      ? 'production'
+      : typeof target === 'string'
+        ? target
+        : 'local'
+  outro(`${args.command} initialisation complete @ ${targetLabel}`)
 }
 
 async function readInitialisationSummaryEvents(path: string) {
