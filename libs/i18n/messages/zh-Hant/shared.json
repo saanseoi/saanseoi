@@ -273,6 +273,7 @@
   "source_record_samples_intro": "此發布版本的一筆隨機原始來源記錄。完整儲存的酬載位於",
   "source_record_samples_unavailable": "此發布版本沒有可用的來源記錄。",
   "source_record_samples_empty": "此發布版本沒有來源記錄。",
+  "source_record_samples_loading": "正在載入來源記錄…",
   "source_record_samples_load_error": "無法載入範例。請再試一次。",
   "source_ingestion_notes": "攝入說明",
   "source_diff_since_last_release": "與上一版本比較",
