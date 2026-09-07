@@ -100,6 +100,11 @@ test('publishes addresses with provenance and places without bundled provenance'
       status: 'draft',
       timestamp: 1762300860000,
     })
+    await upsertSnapshotSource(db, snapshotId, datasetId, releaseId, 'primary', {
+      selectedByRule: `snapshot-assembly-${datasetType}-v1`,
+      selectionMode: 'exact_ref',
+      sourceCohortKey: '2026-06',
+    })
 
     if (datasetType === 'address') {
       const divisionReleaseId = 'release-dr-hk-overture-division-2026-06-17.0'

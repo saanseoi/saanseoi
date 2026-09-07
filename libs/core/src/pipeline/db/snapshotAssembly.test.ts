@@ -152,6 +152,9 @@ test('missing selection rules fail explicitly instead of recording invented prov
       'selection rule is missing',
     )
     expect(sqlite.query('SELECT * FROM snapshotAssemblyRuns').all()).toHaveLength(0)
+    await expect(readSnapshotAssemblySql(db, 'snapshot', true)).rejects.toThrow(
+      'assembly run is missing',
+    )
   } finally {
     sqlite.close()
   }
