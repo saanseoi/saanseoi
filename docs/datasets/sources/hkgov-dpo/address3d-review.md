@@ -331,6 +331,28 @@ are unchanged. Verification covers 60 building records across 30 releases, inclu
 backfills. The dated 3D locality event is accepted; the ledger is not an exhaustive 2D
 component audit, and later supplied block numbers are not backfilled by this decision.
 
+Kwong Fuk Estate's Kwong Yan House retains `[114.17515, 22.44896]`, the original point
+shown in its review card, until revoked. The rejected 25 April 2026 point
+`[114.17485, 22.44949]` remains raw provenance. The earlier under-50-metre historical
+backfill remains approved; the forward correction has an exact source-point guard and
+requires review if the publisher supplies another point.
+
+Lai Kok Estate's Lai Ho, Lai Kwai and Lai Lan houses retain their separate pre-collapse
+points until revoked. The shared point published from 25 April 2026 is preserved as
+source evidence, not used to merge the buildings or their inventories.
+
+Lin Tsui House uses the latest inventory-bearing CSU `4238313558T20180523` and its
+reviewed named address throughout retained history. The superseded named identity and
+the reviewed unnamed or street-only alternatives do not create additional canonical
+addresses. Their publisher identifiers, components and inventories remain provenance.
+
+Long Shin Estate retains `11–12 Yau Shin Street` at estate granularity. Shin Leung and
+Shin Oi houses retain their individual `11 Yau Shin Street` addresses, and Shin Yung
+House retains `12 Yau Shin Street`, including the house names and their own inventories.
+The estate address does not own or duplicate those building inventories. Shin Leung's
+unchanged 313-flat inventory is restored only for its three missing April 2026
+deliveries.
+
 The automatic coordinate-backfill policy reviews coordinate-only events only where every
 changed assertion is a single named occurrence and every geodesic shift is strictly
 below 50 metres. It backfills the current point over the immediately preceding
@@ -340,6 +362,24 @@ coordinate epoch for the same CSU. The raw 3D delivery remains historical eviden
 every derived Address2D row records both publisher and replacement geometries in
 curation provenance. This does not authorise anonymous records, Low Blocks or any
 premise merger.
+
+The reviewed estate batch in `hkgov-dpo-address-approved-estate-batch.json` stabilises
+the Lower Ngau Tau Kok Estate Plaza CSU as `4027420245P20120920`, the Lung Hang school
+as `3639525221T20050430`, and Ma Hang's Koon Ma House as `3934509146T20050430` across
+all retained releases. Exact bilingual premise/geometry signatures and inventory hashes
+guard the original assertions; the source CSU remains provenance. The school, Kam Tai
+House and Chun Tat House discard only reviewed blank-name aliases which add no address
+detail to their named owners. Empty-inventory guards prevent an alias acquiring units
+without review.
+
+Kwai Hin House is forward-filled from its January 2025 evidence until revoked, with no
+invented Address3D collection. Kwai Yuet's 879-flat inventory is not evidence of Kwai
+Hin's exact floor/unit labels merely because their designs match. Lok Sam House uses
+`[114.177, 22.36708]` throughout retained history; On Tai Shopping Centre uses
+`[114.22913, 22.327]`. Replaced points remain provenance. Model Housing's reviewed
+house-parent inventories and street-number sections cover every retained release, using
+guarded historical bilingual component variants rather than duplicating units on each
+section.
 
 Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
 `2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
@@ -410,6 +450,40 @@ unnamed Mei Tung occurrences and Wo Tin's inventory. Retain them as source evide
 create no residential collection and do not treat empty arrays as duplicate flats.
 
 ## Manual-review shortlist
+
+Exact bilingual additions on the same named or structured-block premise are reviewed
+publisher omissions. `hkgovAlsFlatOmissions.ts` detects strict inventory supersets;
+materialised corrections guard every targeted publisher inventory and its corrected
+hash. Earlier variants retain unrelated merger history. The retained-release review
+includes Kai Shun's flat 219, Kwong Yan's 14-flat stack, Lai Fu's 11 additions and Lei
+Muk Shue Block 6's flats 302 and 304. Ambiguous ownership and mixed
+removals/replacements are not pure additions and remain separate decisions.
+
+Kwai Ching's 2/F `211F` and Kwai Ming's 1/F `101F` are corrected to `211` and `101` in
+the guarded earlier releases. These specific label corrections preserve raw labels and
+do not authorise blanket suffix removal. Luen Yan House uses the corrected CSU across
+its historical publisher identifier replacement; 2D identity and 3D ownership use the
+same correction while raw records keep the supplied CSU.
+
+Ko Shing's proven empty duplicate is retained as provenance on the named owner, whose
+historical coordinates use the reviewed current point. The third unnamed Ko Yee address
+has a different GeoAddress and point and is the reviewed estate-level address at 28 Ko
+Chiu Road. Its publisher record is the complex parent of the four named houses; it does
+not own a flat inventory or merge with Ko Shing despite their shared CSU. Bik Tsui's
+precedence variants resolve to one 456-flat collection with both source assertions; Kwai
+Tsui's distinct inventory totals 866 flats.
+
+Hung Hom's conflicting unnamed 780-flat inventories are suppressed from materialisation
+while all raw source records remain. Phase 2 uses only 28 Tai Wan Road. Its unnamed CSU
+3752018776T20110715 belongs to Hung Yat's address provenance; the unnamed Tai Wan Road
+and invalid 9 Dyer Avenue variants do not create additional canonical addresses. Hung
+Yat, Hung Yan and Hung Yiu retain their individual named records and publisher points,
+with 456, 702 and 780 flats respectively. The approximate spacing supplied during review
+does not replace publisher geometry, and the stated 780 flats for Hung Yan does not
+override its verified 702-unit inventory. These exact ownership guards are recorded in
+`hkgov-dpo-address-reviewed-estate-ownership.json` across all 30 retained deliveries.
+The current collection has one canonical 2D owner; a separately selectable equivalent
+address requires an explicit alias relationship, not an unresolved section.
 
 Hoi Tat Estate retains Hoi Wah House and its 780-unit inventory across the omission
 beginning in April 2025 until the explicit curation is revoked. Hoi Shing House's three

@@ -1,6 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
-import { resolveAdminLevelValue } from '@repo/core/pipeline/services/division'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import type {
   DivisionSqlState,
@@ -15,7 +14,6 @@ import {
   asOptionalInteger,
   jsonText,
   processDivisionRecordBatches,
-  sourceString,
 } from './processLocalDivisionSqlUploadPreparation.ts'
 import {
   PRIMARY_HISTORY_OWNER_KEY,
@@ -47,13 +45,6 @@ export async function buildDivisionSourceSqlFile(
         changedIds.push(record.id)
         changedBaseRows.push({
           sourceRecordId: record.id,
-          names: jsonText(record.raw.names),
-          admin_level: resolveAdminLevelValue(record.raw),
-          subtype: sourceString(record.raw.subtype),
-          class: sourceString(record.raw.class),
-          wikidata: record.base.wikidata,
-          hierarchies: jsonText(record.raw.hierarchies),
-          cartography: jsonText(record.base.cartography),
           sources: jsonText(record.base.sources),
           rawProperties: jsonText(record.raw),
           version: asOptionalInteger(record.raw.version),
@@ -107,13 +98,6 @@ export async function buildDivisionSourceSqlFile(
       'overtureDivisions',
       [
         'sourceRecordId',
-        'names',
-        'admin_level',
-        'subtype',
-        'class',
-        'wikidata',
-        'hierarchies',
-        'cartography',
         'sources',
         'rawProperties',
         'version',

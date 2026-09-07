@@ -1,4 +1,4 @@
-import { box, log } from '@clack/prompts'
+import { log, note } from '@clack/prompts'
 import { formatMutedValue } from '../cli/display.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
@@ -12,8 +12,6 @@ import type {
   DivisionGeometryPlan,
   DivisionReleaseSetReadiness,
 } from './uploadReadiness.ts'
-
-const API_DOMAIN_RELEASE_WIDTH = 120
 
 export function formatSuccessfulReleaseMessage(startedAt: number) {
   const elapsed = formatDurationMs(Date.now() - startedAt) ?? '0 ms'
@@ -60,31 +58,7 @@ export function formatDivisionApiReleaseSetReadiness(
 }
 
 export function wideApiDomainReleaseNote(message: string) {
-  const output = Object.create(process.stdout) as NodeJS.WriteStream
-  Object.defineProperty(output, 'columns', {
-    configurable: true,
-    value: API_DOMAIN_RELEASE_WIDTH,
-  })
-  // Clack applies formatBorder to the box but not to its inherited guide.
-  // Keep the guide aligned with the muted box border in update output.
-  Object.defineProperty(output, 'write', {
-    configurable: true,
-    value: (chunk: string | Uint8Array) =>
-      process.stdout.write(
-        typeof chunk === 'string' ? formatMutedBoxGuide(chunk) : chunk,
-      ),
-  })
-
-  box(message, 'API DOMAIN RELEASE', {
-    contentPadding: 0,
-    formatBorder: mutedText,
-    output,
-    width: 1,
-  })
-}
-
-export function formatMutedBoxGuide(value: string) {
-  return value.replace(/^│ /gmu, `${mutedText('│')} `)
+  note(message, 'API DOMAIN RELEASE')
 }
 
 function formatResourceType(resourceType: string) {

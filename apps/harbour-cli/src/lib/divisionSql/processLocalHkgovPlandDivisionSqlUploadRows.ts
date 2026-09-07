@@ -280,7 +280,9 @@ export async function insertSourceRows(
     const cells = records as PreparedDivision['cells']
     const rows = await Promise.all(
       cells.map(async cell => ({
-        ...cell,
+        sourceRecordId: cell.sourceRecordId,
+        rawProperties: cell.rawProperties,
+        wasGeometryRepaired: cell.wasGeometryRepaired,
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
         sources: [{ dataset: 'hkgov-pland-pu', layer: 'TPUSU' }],
@@ -316,8 +318,11 @@ export async function insertSourceRows(
   const towns = records as Array<NonNullable<PreparedDivision['newTown']>>
   const rows = await Promise.all(
     towns.map(async town => ({
-      ...town,
-      newTownId: town.sourceRecordId,
+      sourceRecordId: town.sourceRecordId,
+      rawProperties: town.rawProperties,
+      sourceGeometry: town.sourceGeometry,
+      wasGeometryRepaired: town.wasGeometryRepaired,
+      repairedGeometry: town.repairedGeometry,
       sources: [{ dataset: 'hkgov-pland-new-town' }],
       version: null,
       versionHash: await createHash(town),

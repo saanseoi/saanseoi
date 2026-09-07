@@ -96,6 +96,11 @@ feature properties and original geometry remain in `hkgovPlandPlanningCells`; ca
 division IDs, hierarchy, aggregate geometry and canonical relationship rows do not enter
 the source schema.
 
+Planning-level codes and New Town labels remain only in `rawProperties`; source tables
+retain feature identity, release history, provenance and native geometry. Explicit
+geometry-repair evidence is keyed to the source version independently of canonical
+division fields.
+
 ## Geometry policy
 
 Only Polygon and MultiPolygon source geometry is accepted. The input artefacts have no

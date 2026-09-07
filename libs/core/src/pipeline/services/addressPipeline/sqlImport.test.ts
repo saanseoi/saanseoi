@@ -211,7 +211,7 @@ describe('address SQL import staging cleanup', () => {
 })
 
 describe('HKGov ALS source SQL', () => {
-  test('stores paired source addresses on the source record without a source i18n table', () => {
+  test('stores source payload and provenance without derived address projections', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(message, {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
@@ -222,9 +222,9 @@ describe('HKGov ALS source SQL', () => {
       totalRows: 0,
     })[0]
 
-    expect(sourceFile?.sql).toContain('addressEn, addressZhHant')
-    expect(sourceFile?.sql).toContain("AND i.locale = 'en')")
-    expect(sourceFile?.sql).toContain("AND i.locale = 'zh-hant')")
+    expect(sourceFile?.sql).toContain('sources, rawProperties')
+    expect(sourceFile?.sql).not.toContain('addressEn')
+    expect(sourceFile?.sql).not.toContain('addressZhHant')
     expect(sourceFile?.sql).not.toContain('hkgovAlsAddress2dI18n')
   })
 

@@ -1,11 +1,14 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import type { SourceDatabase } from '@repo/db'
 import {
   normaliseAddressRowForPipeline,
   buildHkgovAlsSourceHashInput,
 } from './normalisation'
 import { correctHkgovAddressComponents } from './componentCorrections'
 import { buildAddressSourceSqlImportFiles } from './sqlImport'
+import { writeAddressSourceChunkStage } from './sourceStage'
 import type { DatasetProcessingMessage } from '../../../types'
 import type { NormalisedAddressChunkArtefact } from './types'
 
@@ -129,54 +132,67 @@ test('limits corrections to the applicable release range and honours the ingesti
   ).toBe(source.enBuildingName)
 })
 
-test('SQL source projection retains the ALS building classification and raw source payload', () => {
-  const message = {
-    source: 'hkgov-dpo',
-    sourceVersion: source.sourceVersion,
-    datasetId: 'dataset-als',
-    releaseId: 'release-als',
-    cohortKey: source.sourceVersion,
-    regionCode: 'hk',
-  } as DatasetProcessingMessage
-  const row = {
-    ...normaliseAddressRowForPipeline(source),
-    raw: source,
-    sourcePayloadHash: 'source-hash',
-  }
-  const artefact = {
-    kind: 'address.normalised.v1',
-    processingRunStartedAt: '2026-09-06T00:00:00Z',
-    releaseId: 'release-als',
-    rowStart: 0,
-    rowEnd: 1,
-    totalRows: 1,
-    rows: [row],
-  } satisfies NormalisedAddressChunkArtefact
-  const db = new Database(':memory:')
-  try {
-    db.exec(`CREATE TABLE hkgovAlsAddresses2d (
-      sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
-      validToRelease TEXT, isCurrent INTEGER, identifiers TEXT, easting REAL,
-      northing REAL, geometry TEXT, addressEn TEXT, addressZhHant TEXT, sources TEXT,
-      rawProperties TEXT, updatedAt TEXT, PRIMARY KEY (sourceRecordId, versionHash)
-    )`)
-    for (const file of buildAddressSourceSqlImportFiles(message, artefact)) {
-      if (file.target === 'source') db.exec(file.sql)
+test.each(['sql', 'direct'] as const)(
+  '%s source storage retains the ALS payload without canonical projections',
+  async mode => {
+    const message = {
+      source: 'hkgov-dpo',
+      sourceVersion: source.sourceVersion,
+      datasetId: 'dataset-als',
+      releaseId: 'release-als',
+      cohortKey: source.sourceVersion,
+      regionCode: 'hk',
+    } as DatasetProcessingMessage
+    const row = {
+      ...normaliseAddressRowForPipeline(source),
+      raw: source,
+      sourcePayloadHash: 'source-hash',
     }
-    const saved = db
-      .query('SELECT addressEn, addressZhHant, rawProperties FROM hkgovAlsAddresses2d')
-      .get() as { addressEn: string; addressZhHant: string; rawProperties: string }
-    expect(JSON.parse(saved.addressEn)).toMatchObject({
-      buildingName: source.enBuildingName,
-      estateName: null,
-      buildingNumberFrom: '111',
-    })
-    expect(JSON.parse(saved.addressZhHant)).toMatchObject({
-      buildingName: source.zhHantBuildingName,
-      estateName: null,
-    })
-    expect(JSON.parse(saved.rawProperties)).toEqual(source)
-  } finally {
-    db.close()
-  }
-})
+    const artefact = {
+      kind: 'address.normalised.v1',
+      processingRunStartedAt: '2026-09-06T00:00:00Z',
+      releaseId: 'release-als',
+      rowStart: 0,
+      rowEnd: 1,
+      totalRows: 1,
+      rows: [row],
+    } satisfies NormalisedAddressChunkArtefact
+    const db = new Database(':memory:')
+    try {
+      db.exec(`CREATE TABLE hkgovAlsAddresses2d (
+      sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
+      validToRelease TEXT, isCurrent INTEGER, sources TEXT,
+      rawProperties TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
+      PRIMARY KEY (sourceRecordId, versionHash)
+    )`)
+      if (mode === 'sql') {
+        for (const file of buildAddressSourceSqlImportFiles(message, artefact)) {
+          if (file.target === 'source') db.exec(file.sql)
+        }
+      } else {
+        await writeAddressSourceChunkStage(
+          drizzle({ client: db }) as unknown as SourceDatabase,
+          {
+            async head() {
+              return null
+            },
+            async get() {
+              return {
+                async arrayBuffer() {
+                  return new TextEncoder().encode(JSON.stringify(artefact)).buffer
+                },
+              }
+            },
+          },
+          { ...message, artefactKey: 'normalised-address' } as DatasetProcessingMessage,
+        )
+      }
+      const saved = db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get() as {
+        rawProperties: string
+      }
+      expect(JSON.parse(saved.rawProperties)).toEqual(source)
+    } finally {
+      db.close()
+    }
+  },
+)

@@ -62,7 +62,9 @@ The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisi
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
 projected fields. The source record includes the publisher's original attribute object
 in `rawProperties` and its native geometry in `sourceGeometry`; normalised delivery
-fields and the redundant GeoJSON feature wrapper are not persisted.
+fields and the redundant GeoJSON feature wrapper are not persisted. Publisher
+identifiers also remain only in `rawProperties`: indexed source columns are reserved for
+record identity and release history, not canonical division lookup.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge

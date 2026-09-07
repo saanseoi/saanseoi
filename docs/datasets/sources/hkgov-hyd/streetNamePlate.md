@@ -1,5 +1,10 @@
 # Highways Department street datasets
 
+Native HyD feature attributes are stored only in `rawProperties`, alongside native
+geometry, source identity, provenance and release history. TD pedestrian imports follow
+the same contract, retaining their layer kind as a source collection discriminator.
+Extracted names, descriptions and times belong to canonical processing.
+
 The Highways Department Street Name Plate dataset provides point locations of street
 name plates maintained by the department. The source layer is `SNP`; its important
 attributes are `SNP_ID`, `LVL`, and `ROAD_NAME`.

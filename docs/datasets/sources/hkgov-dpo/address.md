@@ -1,9 +1,21 @@
 # HKGov DPO ALS addresses
 
+ALS Address2D and Address3D source tables retain their complete `rawProperties` payload
+with source identity, release tracking and provenance. Source identifiers, coordinates
+and bilingual components remain in that payload; canonical history/current tables own
+the extracted and normalised projections.
+
+History resolution preserves prepared ALS canonical premise IDs, including reviewed
+aliases. `CsuId` (or `GeoAddress`) and premise components establish source identity;
+district, street and building number cannot override it. Distinct premises sharing a
+street address retain separate Address2D records and Address3D ownership.
+
 Fresh official-address initialisation replaces a stale target manifest only after the
-clean address baseline checks pass and new before-images are captured. `--continue`
-reuses a running manifest. Failed baseline checks preserve the manifest and its reset
-ownership information.
+clean address baseline checks pass and new before-images are captured. A running
+manifest resumes automatically. Before ingestion, retained official-address SQL
+deliveries are replayed and their owning release finishes from its sealed prepared
+files, including Address3D and publication. Completed source releases are skipped.
+Failed baseline checks preserve the manifest and its reset ownership information.
 
 ALS preflight includes both passes of 3D preparation for each release: source-parent
 ownership resolution followed by corrected bilingual inventory validation. Shared-owner
@@ -103,10 +115,10 @@ correction revision when changing a reviewed decision.
 
 The correction moves the existing bilingual building labels into `estateName` and clears
 `buildingName`. It preserves publisher spelling and formatted address text. Source
-`rawProperties`, paired source addresses and source-content hashes retain the publisher
-classification. Canonical `sources.hkgovAlsComponentCorrections` records the fixture
-version and applied correction IDs/revisions; this provenance participates in canonical
-content versioning. Canonical IDs, street numbers and geometry are not overridden.
+`rawProperties` and source-content hashes retain the publisher classification. Canonical
+`sources.hkgovAlsComponentCorrections` records the fixture version and applied
+correction IDs/revisions; this provenance participates in canonical content versioning.
+Canonical IDs, street numbers and geometry are not overridden.
 
 ## Ngong Ping tourist complex
 

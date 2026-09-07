@@ -807,19 +807,10 @@ WHERE isCurrent = 1
   );
 INSERT INTO hkgovAlsAddresses2d (
   sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
+  sources, rawProperties
 )
 SELECT
   r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
-  json_object(
-    'geoAddress', ${jsonTextValue('r.rawProperties', 'geoAddress')},
-    'csuId', COALESCE(${jsonTextValue('r.rawProperties', 'hkgovCsuId')}, ${jsonTextValue('r.rawProperties', 'geoAddress')})
-  ),
-  CAST(json_extract(r.rawProperties, '$.easting') AS REAL),
-  CAST(json_extract(r.rawProperties, '$.northing') AS REAL),
-  r.geometry,
-  ${buildSourceAddressJsonSql('en')},
-  ${buildSourceAddressJsonSql('zh-hant')},
   CASE
     WHEN json_type(r.sources) = 'array' THEN r.sources
     WHEN json_type(r.sources, '$.hkgovAls') = 'array' THEN json_extract(r.sources, '$.hkgovAls')
@@ -836,46 +827,6 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   isCurrent = 1,
   updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now');
   `.trim()
-}
-
-function buildSourceAddressJsonSql(locale: 'en' | 'zh-hant') {
-  const isZhHant = locale === 'zh-hant'
-  const villageName = jsonTextValue(
-    'r.rawProperties',
-    isZhHant ? 'zhHantVillageName' : 'enVillageName',
-  )
-  const districtName = jsonTextValue(
-    'r.rawProperties',
-    isZhHant ? 'zhHantDistrict' : 'enDistrict',
-  )
-
-  return `(SELECT json_object(
-    'formattedAddress', i.formattedAddress,
-    'buildingName', ${jsonTextValue('r.rawProperties', isZhHant ? 'zhHantBuildingName' : 'enBuildingName')},
-    'buildingNumberExpression', i.buildingNumberExpression,
-    'buildingNumberFrom', i.buildingNumberFrom,
-    'buildingNumberTo', i.buildingNumberTo,
-    'buildingNumberConnector', i.buildingNumberConnector,
-    'blockExpression', i.blockExpression,
-    'blockType', i.blockType,
-    'blockRef', i.blockRef,
-    'blockTypeBeforeNumber', CASE
-      WHEN i.blockTypeBeforeNumber IS NULL THEN NULL
-      WHEN i.blockTypeBeforeNumber = 1 THEN json('true')
-      ELSE json('false')
-    END,
-    'phaseExpression', i.phaseExpression,
-    'phaseName', i.phaseName,
-    'phaseRef', i.phaseRef,
-    'estateName', ${jsonTextValue('r.rawProperties', isZhHant ? 'zhHantEstateName' : 'enEstateName')},
-    'streetName', i.streetName,
-    'villageName', ${villageName},
-    'districtName', ${districtName}
-  )
-  FROM ${NORMALIZED_I18N_TABLE} i
-  WHERE i.runId = r.runId
-    AND i.sourceRecordId = r.sourceRecordId
-    AND i.locale = ${sqlLiteral(locale)})`
 }
 
 function buildAddressHistoryApplySql(
@@ -1272,10 +1223,6 @@ function sqlLiteral(value: unknown): string {
 
 function jsonText(value: unknown): string | null {
   return value === null || value === undefined ? null : JSON.stringify(value)
-}
-
-function jsonTextValue(jsonColumn: string, key: string) {
-  return `NULLIF(TRIM(CAST(json_extract(${jsonColumn}, '$.${key}') AS TEXT)), '')`
 }
 
 function asNonEmptyString(value: unknown) {

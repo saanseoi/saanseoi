@@ -1,4 +1,4 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { integer, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { jsonText } from '../shared'
 import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
@@ -11,10 +11,6 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
   'hkgovPlandPlanningCells',
   {
     ...sourceSpatialAssertionColumns(),
-    ppuCode: text('ppuCode').notNull(),
-    spuCode: text('spuCode').notNull(),
-    tpuCode: text('tpuCode').notNull(),
-    subunitCode: text('subunitCode').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -23,21 +19,14 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovPlandPlanningCells'),
-    index('hkgovPlandPlanningCells_tpuCode_idx').on(table.tpuCode),
-    index('hkgovPlandPlanningCells_spuCode_idx').on(table.spuCode),
-    index('hkgovPlandPlanningCells_ppuCode_idx').on(table.ppuCode),
   ],
 )
 
-/** Native New Town features with publisher labels retained as paired fields. */
+/** Native New Town features with publisher labels retained in rawProperties. */
 export const sourceHkgovPlandNewTowns = sqliteTable(
   'hkgovPlandNewTowns',
   {
     ...sourceSpatialAssertionColumns(),
-    newTownId: text('newTownId').notNull(),
-    nameEn: text('nameEn').notNull(),
-    nameZhHant: text('nameZhHant').notNull(),
-    nameZhHans: text('nameZhHans').notNull(),
     wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
       .notNull()
       .default(false),
@@ -46,6 +35,5 @@ export const sourceHkgovPlandNewTowns = sqliteTable(
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovPlandNewTowns'),
-    index('hkgovPlandNewTowns_newTownId_idx').on(table.newTownId),
   ],
 )

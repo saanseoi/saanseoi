@@ -23,6 +23,7 @@ import {
   validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
+import { resumeAddressInitialisation } from './resumeAddressInitialisation.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/init-runs')
@@ -76,15 +77,19 @@ export async function beginOfficialAddressInitialisation(
   options: { continue: boolean } = { continue: false },
 ) {
   const path = manifestPath(target)
-  if (options.continue && existsSync(path)) {
+  if (existsSync(path)) {
     const existing = await readManifest(path)
+    if (existing.target !== targetName(target))
+      throw new Error('Official address initialisation manifest target does not match.')
     if (existing.status === 'running') {
+      await resumeAddressInitialisation(target)
       note(formatField('manifest', path), 'RESUMING OFFICIAL ADDRESS INITIALISATION')
       return
     }
-    throw new Error(
-      'Official address initialisation is already complete; cannot continue it.',
-    )
+    if (options.continue)
+      throw new Error(
+        'Official address initialisation is already complete; cannot continue it.',
+      )
   }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'address',

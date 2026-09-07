@@ -3,6 +3,14 @@
 Street ingestion records its selected release, source rule and effective recipe under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 
+Native feature source tables retain publisher attributes in `rawProperties`, native
+geometry separately, and identity, release history and provenance in the source
+envelope. TD's layer kind identifies the source collection. Names, descriptions,
+coordinates and classifications are not duplicated as extracted source columns. PDF
+baseline and notice records retain structured extracted evidence because these
+publishers supply documents, not feature-property objects; notice applications retain
+the audit decision separately from canonical street state.
+
 The Streets family publishes persistent logical street identities. Its first release is
 the current Lands Department gazetted street-name register: one active street per
 baseline source record, with the publisher's English and Traditional Chinese names and

@@ -28,6 +28,11 @@ the Places API family, rather than in the administrative division hierarchy.
 
 ## Native archive intake
 
+The parent feature attributes are retained only in `rawProperties`, alongside native
+geometry and the source identity, provenance and release history. `placeNames` retains
+the separate `PLACE_NAME` relationship, which is absent from the parent properties.
+Canonical names and classifications belong to the divisions projection.
+
 `hkgov-landsd:place-name` reads the locally mirrored FileGDB ZIP directly. It verifies
 the updater-supplied archive key and SHA-256, joins `GEO_PLACE_NAME` to `PLACE_NAME`,
 and writes the complete 2,706-record source ledger through the SQLite/D1 SQL pipeline.

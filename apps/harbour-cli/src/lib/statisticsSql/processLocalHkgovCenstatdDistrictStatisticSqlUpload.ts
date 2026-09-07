@@ -320,7 +320,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         releaseCode,
         releaseId,
         source: {
-          rows: sourceRows,
+          rows: sourceRows.map(sourceStatisticAssertion),
           table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
         },
       })
@@ -590,7 +590,14 @@ async function normaliseSourceRow(
     validFromRelease: releaseCode,
     validToRelease: null,
     version: 1,
-    versionHash: await createHash(stableJsonStringify(payload)),
+    versionHash: await createHash(
+      stableJsonStringify({
+        sourceRecordId,
+        rawProperties: payload.rawProperties,
+        sourceGeometry: payload.sourceGeometry,
+        sources: payload.sources,
+      }),
+    ),
   }
 }
 
@@ -760,3 +767,4 @@ function uniqueReferencePeriods(
     ).values(),
   ]
 }
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'

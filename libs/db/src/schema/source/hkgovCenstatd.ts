@@ -1,13 +1,6 @@
-import {
-  index,
-  integer,
-  primaryKey,
-  real,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { binaryText, geoBbox, jsonText, statisticsReferencePeriod } from '../shared'
+import { binaryText, geoBbox, jsonText } from '../shared'
 import {
   sourceAssertionColumns,
   sourceSpatialAssertionColumns,
@@ -26,18 +19,12 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
   {
     ...sourceAssertionColumns(),
     sourceGeometry: binaryText('sourceGeometry').notNull(),
-    districtClass: text('districtClass').notNull(),
-    districtCode: integer('districtCode').notNull(),
-    districtEn: text('districtEn').notNull(),
-    districtZhHant: text('districtZhHant').notNull(),
+    // Source cohort identity resolves version-linked geometry derivatives.
     censusYear: text('censusYear').notNull(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovCenstatdDivisionAreas'),
-    index('hkgovCenstatdDivisionAreas_districtClass_idx').on(table.districtClass),
-    index('hkgovCenstatdDivisionAreas_districtCode_idx').on(table.districtCode),
-    index('hkgovCenstatdDivisionAreas_censusYear_idx').on(table.censusYear),
   ],
 )
 
@@ -50,27 +37,10 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
   'hkgovCenstatdDistrictLandAreaPopulationDensities',
   {
     ...sourceSpatialAssertionColumns(),
-    // C&SD's numeric `DC` value; canonical district resolution occurs in history.
-    districtCode: integer('districtCode').notNull(),
-    districtEn: text('districtEn').notNull(),
-    districtZhHant: text('districtZhHant').notNull(),
-    ...statisticsReferencePeriod,
-    landAreaSqKm: real('landAreaSqKm').notNull(),
-    midYearPopulation: integer('midYearPopulation').notNull(),
-    midYearPopulationDensityPerSqKm: integer(
-      'midYearPopulationDensityPerSqKm',
-    ).notNull(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovCenstatdDistrictLandAreaPopulationDensities'),
-    index('hkgovCenstatdDistrictLandAreaPopulationDensities_districtCode_idx').on(
-      table.districtCode,
-    ),
-    index('hkgovCenstatdDistrictLandAreaPopulationDensities_referencePeriod_idx').on(
-      table.referencePeriodEndYear,
-      table.referencePeriodCode,
-    ),
   ],
 )
 
@@ -84,23 +54,11 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
   'hkgovCenstatdStatistics',
   {
     ...sourceAssertionColumns(),
-    datasetCode: text('datasetCode').notNull(),
-    layerName: text('layerName').notNull(),
-    ...statisticsReferencePeriod,
-    featureId: text('featureId').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovCenstatdStatistics'),
-    index('hkgovCenstatdStatistics_dataset_layer_idx').on(
-      table.datasetCode,
-      table.layerName,
-    ),
-    index('hkgovCenstatdStatistics_referencePeriod_idx').on(
-      table.referencePeriodEndYear,
-      table.referencePeriodCode,
-    ),
   ],
 )
 

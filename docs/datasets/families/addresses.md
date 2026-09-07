@@ -1,8 +1,19 @@
 # Addresses dataset family
 
+Source tables retain complete raw payloads with identity, release history and
+provenance. Extracted identifiers, coordinate projections and bilingual address
+components belong to canonical history/current snapshots, not duplicated source columns.
+
+ALS history matches prepared canonical premise IDs exactly. Reviewed aliases resolve
+during preparation; a shared district, street and building number does not merge
+distinct premises or replace Address3D owner identities.
+
 A fresh `saanseoi init:addresses` run automatically replaces the official-address
-manifest after verifying that the address database is empty. Existing address state
-still requires continuation or an explicit reset; its recovery manifest is preserved.
+manifest after verifying that the address database is empty. Existing address state with
+a running manifest resumes automatically: retained SQL delivery and its owning release
+finish before ingestion plans subsequent releases. Recovery preserves the manifest and
+processing-action records. State without a running manifest still requires an explicit
+reset.
 
 Reviewed named/block-only ALS aliases validate the owner's bilingual source building
 names and the alias's bilingual structured block references separately. Shared estate,
@@ -223,6 +234,10 @@ Reviewed locality backfills carry later publisher evidence into bounded earlier 
 addresses while retaining original assertions and evidence dates. Fai Ming Estate's
 Fanling locality detail changes neither address identity nor administrative divisions.
 
+Kwong Yan House retains its reviewed pre-25-April-2026 point until revoked. Its rejected
+later publisher point is preserved in provenance, and any further point change requires
+review rather than silently extending that exact-point guard.
+
 Reviewed coordinate backfills can carry a later confirmed point into selected earlier
 derived Address2D snapshots. The automatic coordinate policy accepts only named,
 coordinate-only source events where every geodesic shift is strictly below 50 metres. It
@@ -300,7 +315,35 @@ Hoi Shing House uses the reviewed current coordinates across its historical omis
 Hoi Ying's Ying Fai House includes flat 108 on 1/F from the earliest retained release,
 with the publisher's original inventory preserved.
 
+Reviewed estate corrections preserve address granularity and building ownership. Long
+Shin's `11–12 Yau Shin Street` address belongs to the estate, while each named house
+retains its specific street number and inventory; Shin Leung's missing 313-flat
+inventory is restored for the three affected deliveries. Lin Tsui uses one reviewed
+inventory-bearing identity and named address across historical identifier variants. Lai
+Kok's three affected houses retain separate pre-collapse points until revoked. Discarded
+coordinate and identity assertions remain source provenance.
+
+Ko Yee's reviewed publisher address at 28 Ko Chiu Road is the estate complex parent of
+its four houses, with no unit collection of its own. Hung Hom Phase 2 retains one named
+record per house at 28 Tai Wan Road; its invalid Dyer Avenue and unnamed variants remain
+provenance only. Distinct houses retain their source inventories and coordinates even
+when their street addresses or publisher CSUs coincide.
+
+Kwai Hin's retained 2D address continues until revoked without an inferred flat
+inventory. The Plaza, Lung Hang school and Koon Ma House use their explicitly reviewed
+CSUs throughout retained history. Source-signature guards preserve identifier evidence;
+empty aliases cannot acquire units silently. Model Housing inventories belong to their
+house parents across all retained releases, not separately to each street-number
+section.
+
 ## Granularity curation
+
+ALS pure bilingual flat additions are backfilled under the reviewed omission policy,
+with exact before/after inventory hashes and retained source evidence. Numbered blocks
+qualify without invented building names. Unrelated mergers and replacements remain
+dated. Specific flat-label and CSU corrections likewise preserve publisher assertions.
+Duplicate source records can share one physical inventory without increasing the
+distinct unit count; ambiguous address ownership remains a separate review.
 
 [`address-granularity.json`](../../../fixtures/meta/curations/address-granularity.json)
 provides explicit overrides for ALS and supplementary Addresses. Use the canonical

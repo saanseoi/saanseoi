@@ -60,6 +60,7 @@ import {
   resolveCenstatdFieldMetadata,
 } from './censtatdMeasureCuration.ts'
 import { hkgovCenstatdStatisticDivisionId } from '../sources/hkgov/hkgovCenstatdStatistics.ts'
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
@@ -300,7 +301,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       buildStatisticSqlBatches({
         releaseCode,
         releaseId,
-        source: { rows, table: 'hkgovCenstatdStatistics' },
+        source: {
+          rows: rows.map(sourceStatisticAssertion),
+          table: 'hkgovCenstatdStatistics',
+        },
       })
     const canonicalBatches = () =>
       buildCanonicalStatsSqlBatches({
@@ -529,7 +533,16 @@ async function* readRows(filePath: string, releaseId: string, releaseCode: strin
         validToRelease: null,
         isCurrent: true,
         version: 1,
-        versionHash: createHash('sha256').update(JSON.stringify(payload)).digest('hex'),
+        versionHash: createHash('sha256')
+          .update(
+            JSON.stringify({
+              sourceRecordId,
+              rawProperties: payload.rawProperties,
+              sourceGeometry: payload.sourceGeometry,
+              sources: payload.sources,
+            }),
+          )
+          .digest('hex'),
         createdAt: now,
         updatedAt: now,
       }
