@@ -347,16 +347,15 @@ Ingest all ALS release directories in chronological order into local D1:
 
 ```bash
 bun run dataops -- hkgov-dpo:backfill-local \
-  data/hkgov/dpo/ALS --target local --cohort-key 2026-08-19.0
+  data/hkgov/dpo/ALS --target local --cohort-key 2024-07-25.0
 ```
 
-For this command, `--cohort-key` establishes the default start year (January 2025 here);
+For this command, `--cohort-key` establishes the default start year (January 2024 here);
 it is **not** applied to every address release. Each ALS release uses its source version
-as its address cohort, while selecting the latest published same-year Overture division
-cohort at or before that version, falling back to that year's first published cohort.
-This is required because address and division uploads are sharded by year. Use
-`--from-source-version YYYY-MM-DD.NNNN` to choose a later start. Unknown future drift
-remains interactive.
+as its address cohort, while selecting the exact Overture division cohort, then the most
+recent published cohort, or the soonest published cohort when no earlier cohort exists.
+Use `--from-source-version YYYY-MM-DD.NNNN` to choose a later start. Unknown future
+drift remains interactive.
 
 It resumes safely after a successful local release: source versions with a published
 local HKGov ALS release are skipped rather than uploaded again. Pass `--force` to

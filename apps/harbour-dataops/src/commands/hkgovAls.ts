@@ -1039,110 +1039,77 @@ type AlsSourceRelease = {
 }
 
 /**
- * An address release must reference a published division snapshot from the same
- * database-shard year. Within that year use the latest snapshot not newer than
- * the ALS release; if none exists, use the first available snapshot.
+ * An address release references the exact published division snapshot when it
+ * exists, otherwise the most recent snapshot, or the soonest available snapshot.
+ * The selected snapshot is materialised before its address release is prepared.
  */
 async function resolveAlsSourceReleases(
   target: UploadTarget,
   sourceReleases: Array<Pick<AlsSourceRelease, 'sourceDir' | 'sourceVersion'>>,
 ): Promise<AlsSourceRelease[]> {
-  const cohortsByYear = new Map<string, string[]>()
-
-  for (const year of new Set(
-    sourceReleases.map(release => release.sourceVersion.slice(0, 4)),
-  )) {
-    const dbContext = await resolveLocalAddressDbContext(target, 'hk', year, {
-      cacheTableProfile: 'address',
-    })
-    try {
-      const rows = await dbContext.metaDb
-        .select({
-          cohortKey: metaSchema.metaSnapshots.cohortKey,
-          snapshotId: metaSchema.metaSnapshots.id,
-        })
-        .from(metaSchema.metaSnapshotSources)
-        .innerJoin(
-          metaSchema.metaReleases,
-          and(
-            eq(
-              metaSchema.metaReleases.id,
-              metaSchema.metaSnapshotSources.sourceReleaseId,
-            ),
-            eq(
-              metaSchema.metaReleases.datasetId,
-              metaSchema.metaSnapshotSources.datasetId,
-            ),
-          ),
-        )
-        .innerJoin(
-          metaSchema.metaDatasets,
-          eq(metaSchema.metaDatasets.id, metaSchema.metaSnapshotSources.datasetId),
-        )
-        .innerJoin(
-          metaSchema.metaSnapshots,
-          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
-        )
-        .innerJoin(
-          metaSchema.metaSnapshotLineages,
+  const firstRelease = sourceReleases[0]
+  if (!firstRelease) return []
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    firstRelease.sourceVersion.slice(0, 4),
+    { cacheTableProfile: 'address' },
+  )
+  let publishedCohorts: string[]
+  try {
+    const rows = await dbContext.metaDb
+      .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
+      .from(metaSchema.metaSnapshotSources)
+      .innerJoin(
+        metaSchema.metaReleases,
+        and(
           eq(
-            metaSchema.metaSnapshots.snapshotLineageId,
-            metaSchema.metaSnapshotLineages.id,
+            metaSchema.metaReleases.id,
+            metaSchema.metaSnapshotSources.sourceReleaseId,
           ),
-        )
-        .where(
-          and(
-            // Overture source releases are superseded by later monthly releases,
-            // but their published division snapshots remain valid historical
-            // anchors for same-year ALS shards.
-            inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
-            eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
-            eq(metaSchema.metaDatasets.regionCode, 'hk'),
-            eq(metaSchema.metaSnapshots.resourceType, 'division'),
-            eq(metaSchema.metaSnapshots.status, 'published'),
-            eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
-            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+          eq(
+            metaSchema.metaReleases.datasetId,
+            metaSchema.metaSnapshotSources.datasetId,
           ),
-        )
-        .all()
-      const candidateSnapshotIds = rows.map(row => row.snapshotId)
-      const [currentRows, historyRows] = await Promise.all([
-        dbContext.currentDb
-          .select({ snapshotId: currentSchema.divisions.snapshotId })
-          .from(currentSchema.divisions)
-          .where(inArray(currentSchema.divisions.snapshotId, candidateSnapshotIds))
-          .all(),
-        dbContext.historyDb
-          .select({ snapshotId: historySchema.divisions.snapshotId })
-          .from(historySchema.divisions)
-          .where(inArray(historySchema.divisions.snapshotId, candidateSnapshotIds))
-          .all(),
-      ])
-      const materialisedSnapshotIds = new Set([
-        ...currentRows.map(row => row.snapshotId),
-        ...historyRows.map(row => row.snapshotId),
-      ])
-      cohortsByYear.set(
-        year,
-        [
-          ...new Set(
-            rows
-              .filter(row => materialisedSnapshotIds.has(row.snapshotId))
-              .map(row => row.cohortKey)
-              .filter(isSameYearCohort(year)),
-          ),
-        ].sort(),
+        ),
       )
-    } finally {
-      await dbContext.cleanup()
-    }
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaDatasets.id, metaSchema.metaSnapshotSources.datasetId),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshots,
+        eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
+          eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
+          eq(metaSchema.metaDatasets.regionCode, 'hk'),
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+          eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        ),
+      )
+      .all()
+    publishedCohorts = [...new Set(rows.map(row => row.cohortKey))].sort()
+  } finally {
+    await dbContext.cleanup()
   }
 
   return sourceReleases.map(release => {
     const divisionCohortKey = selectAlsDivisionCohort(
       release.sourceVersion,
-      cohortsByYear.get(release.sourceVersion.slice(0, 4)) ?? [],
+      publishedCohorts,
     )
     return {
       ...release,
@@ -1152,25 +1119,19 @@ async function resolveAlsSourceReleases(
   })
 }
 
-/** Select the latest same-year cohort not later than the ALS release. */
+/** Select the exact, most recent, or soonest published Division cohort for ALS. */
 export function selectAlsDivisionCohort(
   sourceVersion: string,
   publishedCohorts: readonly string[],
 ) {
-  const year = sourceVersion.slice(0, 4)
-  const cohorts = [...new Set(publishedCohorts.filter(isSameYearCohort(year)))].sort()
+  const cohorts = [...new Set(publishedCohorts)].sort()
   const cohort = cohorts.filter(value => value <= sourceVersion).at(-1) ?? cohorts[0]
   if (!cohort) {
     throw new Error(
-      `No published Overture division snapshot is available for the ${year} ALS shard. ` +
-        'Publish a same-year division release before ingesting these addresses.',
+      `No published Overture division snapshot is available to match ALS release ${sourceVersion}.`,
     )
   }
   return cohort
-}
-
-function isSameYearCohort(year: string) {
-  return (cohortKey: string) => cohortKey.startsWith(`${year}-`)
 }
 
 function resolveAlsSourceVersion(args: ParsedArgs, sourceDir: string | undefined) {

@@ -100,7 +100,17 @@ describe('formatSourceDuplicateSummary', () => {
 })
 
 describe('ALS target division cohort selection', () => {
-  test('uses the target-published same-year cohort at or before the ALS release', () => {
+  test('uses the exact target-published cohort', () => {
+    expect(
+      selectAlsDivisionCohort('2026-07-22.0', [
+        '2026-03-18.0',
+        '2026-07-22.0',
+        '2026-08-19.0',
+      ]),
+    ).toBe('2026-07-22.0')
+  })
+
+  test('uses the most recent target-published cohort at or before the ALS release', () => {
     expect(
       selectAlsDivisionCohort('2026-07-26.0', [
         '2025-12-16.0',
@@ -110,15 +120,15 @@ describe('ALS target division cohort selection', () => {
     ).toBe('2026-07-22.0')
   })
 
-  test('uses the first target-published same-year cohort when none is earlier', () => {
-    expect(selectAlsDivisionCohort('2026-01-02.0', ['2026-01-14.0'])).toBe(
-      '2026-01-14.0',
-    )
+  test('uses the soonest target-published cohort when none is earlier', () => {
+    expect(
+      selectAlsDivisionCohort('2024-07-25.0', ['2025-09-24.0', '2025-12-17.0']),
+    ).toBe('2025-09-24.0')
   })
 
-  test('refuses a release with no eligible same-year division cohort', () => {
-    expect(() => selectAlsDivisionCohort('2026-07-26.0', ['2025-12-16.0'])).toThrow(
-      'No published Overture division snapshot is available for the 2026 ALS shard.',
+  test('refuses a release with no published division cohort', () => {
+    expect(() => selectAlsDivisionCohort('2026-07-26.0', [])).toThrow(
+      'No published Overture division snapshot is available to match ALS release 2026-07-26.0.',
     )
   })
 })
