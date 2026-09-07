@@ -1,8 +1,13 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
-import { readReleaseAuditDecisions } from '@repo/core/pipeline/db/processingActionStorage'
+import {
+  readReleaseAuditDecisions,
+  type StoredAuditDecision,
+} from '@repo/core/pipeline/db/processingActionStorage'
 import { migrateProcessingActionStorage } from './migrateProcessingActionStorage'
 
 const migration = readFileSync(
@@ -27,11 +32,13 @@ function originalDatabase() {
 test('offline conversion preserves published decisions, original IDs and timestamps', async () => {
   const sqlite = originalDatabase()
   const original = sqlite
-    .query('SELECT * FROM releaseProcessingActions ORDER BY id')
+    .query<Omit<StoredAuditDecision, 'evidence'> & { evidence: string }, []>(
+      'SELECT * FROM releaseProcessingActions ORDER BY id',
+    )
     .all()
     .map(row => ({
-      ...(row as Record<string, unknown>),
-      evidence: JSON.parse((row as { evidence: string }).evidence),
+      ...row,
+      evidence: JSON.parse(row.evidence),
     }))
   expect(await migrateProcessingActionStorage(sqlite, migration)).toEqual({
     decisions: 2,
@@ -61,4 +68,47 @@ test('failed generated migration rolls back the original evidence', async () => 
       .get(),
   ).toEqual({ n: 2 })
   sqlite.close()
+})
+
+test('conversion command leaves the input intact and records the migration on its copy', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'audit-conversion-'))
+  const source = join(directory, 'source.sqlite')
+  const output = join(directory, 'converted.sqlite')
+  const original = originalDatabase()
+  try {
+    original.exec(
+      'CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY, name TEXT UNIQUE)',
+    )
+    original.query('VACUUM INTO ?').run(source)
+    const command = new URL(
+      '../../../../../scripts/prepare-processing-action-migration.ts',
+      import.meta.url,
+    ).pathname
+    const result = Bun.spawnSync(['bun', command, source, output])
+    expect(new TextDecoder().decode(result.stderr)).toBe('')
+    expect(result.exitCode).toBe(0)
+    const unchanged = new Database(source, { readonly: true })
+    const converted = new Database(output, { readonly: true })
+    try {
+      expect(
+        unchanged
+          .query(
+            'SELECT count(*) AS n FROM releaseProcessingActions WHERE evidence IS NOT NULL',
+          )
+          .get(),
+      ).toEqual({ n: 2 })
+      expect(
+        converted.query('SELECT decisionCount FROM releaseProcessingActions').get(),
+      ).toEqual({ decisionCount: 2 })
+      expect(converted.query('SELECT name FROM d1_migrations').get()).toEqual({
+        name: '20260907075220_short_swordsman/migration.sql',
+      })
+    } finally {
+      unchanged.close()
+      converted.close()
+    }
+  } finally {
+    original.close()
+    rmSync(directory, { recursive: true, force: true })
+  }
 })

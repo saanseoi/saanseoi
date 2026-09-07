@@ -22,6 +22,7 @@ import { listApiFieldFixtures, resolveApiFieldFixture } from '@repo/db/apiFieldF
 import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import { chunkArray } from '../../pipeline/utils'
+import { recordEffectiveSnapshotAssembly } from '../../pipeline/db/snapshotAssembly'
 import {
   auditSummarySelection,
   readAuditPages,
@@ -73,7 +74,6 @@ const {
   metaSourceReleases,
   metaSnapshotShardAssignments,
   metaReleases,
-  metaSnapshotAssembly,
   metaSnapshotLineages,
   metaSnapshots,
   metaSnapshotAssemblyRuns,
@@ -1637,6 +1637,7 @@ async function queryRegistrySourceVersions(
                 metaSnapshotAssemblyRuns.snapshotAssemblyId,
               ),
               eq(metaSnapshotAssemblySources.datasetId, metaSnapshotSources.datasetId),
+              eq(metaSnapshotAssemblySources.role, metaSnapshotSources.role),
             ),
           )
           .leftJoin(
@@ -3503,64 +3504,7 @@ export async function recordSnapshotAssemblyRun(
     snapshotId: string
   },
 ) {
-  const assembly =
-    (await db
-      .select({
-        id: metaSnapshotAssembly.id,
-        code: metaSnapshotAssembly.code,
-      })
-      .from(metaSnapshotAssembly)
-      .where(
-        and(
-          eq(metaSnapshotAssembly.resourceType, args.resourceType),
-          eq(metaSnapshotAssembly.status, 'current'),
-        ),
-      )
-      .orderBy(desc(metaSnapshotAssembly.version), desc(metaSnapshotAssembly.createdAt))
-      .limit(1)
-      .get()) ?? null
-
-  if (!assembly) {
-    return null
-  }
-
-  const existing =
-    (await db
-      .select({
-        id: metaSnapshotAssemblyRuns.id,
-      })
-      .from(metaSnapshotAssemblyRuns)
-      .where(
-        and(
-          eq(metaSnapshotAssemblyRuns.snapshotId, args.snapshotId),
-          eq(metaSnapshotAssemblyRuns.snapshotAssemblyId, assembly.id),
-        ),
-      )
-      .limit(1)
-      .get()) ?? null
-
-  if (existing) {
-    return assembly
-  }
-
-  const now = toIsoTimestamp()
-
-  await db
-    .insert(metaSnapshotAssemblyRuns)
-    .values({
-      id: buildDeterministicSnapshotAssemblyRunId(args.snapshotId, assembly.id),
-      snapshotId: args.snapshotId,
-      snapshotAssemblyId: assembly.id,
-      anchorReleaseId: args.anchorReleaseId ?? null,
-      anchorCohortKey: args.anchorCohortKey,
-      status: 'selected',
-      selectionSummaryJson: args.selectionSummaryJson ?? null,
-      createdAt: now,
-      updatedAt: now,
-    })
-    .run()
-
-  return assembly
+  return recordEffectiveSnapshotAssembly(db, args)
 }
 
 export async function resolveSnapshotForRelease(
@@ -5433,6 +5377,22 @@ export async function recordSnapshotLookupDependency(
       sourceCohortKey: lookupSource.sourceCohortKey,
     },
   )
+  const snapshot = await db
+    .select({
+      resourceType: metaSnapshots.resourceType,
+      cohortKey: metaSnapshots.cohortKey,
+    })
+    .from(metaSnapshots)
+    .where(eq(metaSnapshots.id, args.snapshotId))
+    .get()
+  if (!snapshot)
+    throw new Error(`Lookup consumer snapshot is missing: ${args.snapshotId}.`)
+  await recordEffectiveSnapshotAssembly(db, {
+    snapshotId: args.snapshotId,
+    resourceType: snapshot.resourceType,
+    anchorCohortKey: snapshot.cohortKey,
+    anchorReleaseId: args.anchorReleaseId,
+  })
 }
 
 export async function upsertApiReleaseSetSnapshot(

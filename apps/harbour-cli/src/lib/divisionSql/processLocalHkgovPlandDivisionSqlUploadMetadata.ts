@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { metaSchema } from '@repo/db'
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
@@ -139,6 +140,7 @@ export async function buildPlandMetaSql(
     'createdAt',
     'updatedAt',
   ]
+  const assemblySql = await readSnapshotAssemblySql(context.metaDb, state.snapshotId)
   return sqlFile([
     ...buildInsertStatements('snapshotLineages', lineageColumns, lineages, {
       suffix: buildUpdateSuffix(lineageColumns, ['id']),
@@ -149,6 +151,7 @@ export async function buildPlandMetaSql(
     ...buildInsertStatements('snapshotSources', sourceColumns, sources, {
       suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'sourceReleaseId']),
     }),
+    ...assemblySql,
     ...buildInsertStatements('snapshotAssemblyRuns', assemblyRunColumns, assemblyRuns, {
       suffix: buildUpdateSuffix(assemblyRunColumns, ['id']),
     }),

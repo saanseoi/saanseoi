@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { resolve } from 'node:path'
 import {
   deliverSqlPhase,
@@ -35,6 +36,7 @@ type MetaContext = {
 }
 
 type StatisticSnapshotMeta = {
+  assemblySql?: string[]
   lineages: Array<Record<string, unknown>>
   releaseAssignments: Array<Record<string, unknown>>
   snapshotAssignments: Array<Record<string, unknown>>
@@ -288,6 +290,11 @@ export async function replayStatisticSnapshotMetaToRemote(
     target,
     context,
     buildStatisticSnapshotMetaSqlBatches({
+      assemblySql: (
+        await Promise.all(
+          uniqueSnapshotIds.map(id => readSnapshotAssemblySql(metaDb, id, true)),
+        )
+      ).flat(),
       lineages,
       releaseAssignments,
       snapshotAssignments,
@@ -338,6 +345,7 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
       metadata.snapshots,
       ['id'],
     ),
+    ...(metadata.assemblySql ?? []),
     ...buildMetaInsertStatements(
       'snapshotSources',
       [

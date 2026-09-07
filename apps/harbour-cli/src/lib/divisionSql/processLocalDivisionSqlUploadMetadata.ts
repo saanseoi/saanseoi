@@ -95,6 +95,7 @@ export async function buildDivisionMetaSqlFile(
     )
   }
 
+  const assemblySql = await readSnapshotAssemblySql(metaDb, state.snapshotId)
   const snapshotAssemblyRunRows = await metaDb
     .select({
       id: metaSnapshotAssemblyRuns.id,
@@ -264,6 +265,7 @@ ON CONFLICT(snapshotId, sourceReleaseId) DO UPDATE SET
   createdAt = excluded.createdAt`.trim(),
       },
     ),
+    ...assemblySql,
     ...buildInsertStatements(
       'snapshotAssemblyRuns',
       [
@@ -338,3 +340,4 @@ ON CONFLICT(id) DO UPDATE SET
   )
 }
 import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'
+import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'

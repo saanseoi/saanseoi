@@ -703,7 +703,10 @@ function createSnapshotAssemblyRunDb() {
       resourceType TEXT NOT NULL,
       version INTEGER NOT NULL,
       status TEXT NOT NULL,
-      createdAt TEXT NOT NULL
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT,
+      notes TEXT,
+      versionHash TEXT
     );
 
     CREATE TABLE snapshotAssemblyRuns (
@@ -728,6 +731,11 @@ function createSnapshotAssemblyRunDb() {
       'current',
       '2026-07-03T00:00:00.000Z'
     );
+    CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT, cohortKey TEXT);
+    INSERT INTO snapshots VALUES ('snapshot-division', 'division', 'draft', '2025-09-24.0');
+    CREATE TABLE snapshotSources (snapshotId TEXT, datasetId TEXT, sourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
+    INSERT INTO snapshotSources VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'snapshot-assembly-division-v1', 'exact_ref', 'release-division', '2025-09-24.0');
+    CREATE TABLE snapshotAssemblySources (snapshotAssemblyId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, selectorType TEXT, anchorDatasetId TEXT, maxLagDays INTEGER, priority INTEGER, configJson TEXT, PRIMARY KEY(snapshotAssemblyId, datasetId, role));
   `)
 
   return {

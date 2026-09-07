@@ -4,6 +4,7 @@ import {
   eq,
   metaSchema,
   toIsoTimestamp,
+  type MetaDatabase,
 } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type { ResourceType } from '../../types'
@@ -189,10 +190,11 @@ export async function recordEffectiveSnapshotAssembly(
 
 /** Parent rows must be replayed before their runs, including on an empty target. */
 export async function readSnapshotAssemblySql(
-  db: HarbourReadableDb,
+  database: HarbourReadableDb | MetaDatabase,
   snapshotId: string,
   includeRuns = false,
 ) {
+  const db = database as HarbourReadableDb
   const runs = await db
     .select()
     .from(metaSnapshotAssemblyRuns)
