@@ -10,7 +10,10 @@ export function publisherInventoryHash(feature: Als3dFeature) {
 }
 
 /** Correct a copy; the publisher feature remains the original source evidence. */
-export function applyAls3dCorrections(feature: Als3dFeature, sourceVersion: string) {
+export function applyAls3dCorrections(
+  feature: Als3dFeature,
+  sourceVersion: string,
+): { corrections: (typeof fixture.corrections)[number][]; feature: Als3dFeature } {
   const p = feature.properties.Address.PremisesAddress
   const corrections = fixture.corrections.filter(
     c =>
@@ -36,13 +39,20 @@ export function applyAls3dCorrections(feature: Als3dFeature, sourceVersion: stri
         `ALS 3D correction ${correction.id}: source changed; review required`,
       )
     }
+    const enUnits = en.Eng3dAddress
+    const zhUnits = zh.Chi3dAddress
+    if (!enUnits || !zhUnits) {
+      throw new Error(
+        `ALS 3D correction ${correction.id}: source is missing a bilingual unit inventory`,
+      )
+    }
     for (const { floor, unit } of correction.removals) {
-      const enMatches = en.Eng3dAddress.filter(
+      const enMatches = enUnits.filter(
         row =>
           String(row.EngFloor?.FloorNum) === String(floor) &&
           row.EngUnit?.UnitNo === unit,
       )
-      const zhMatches = zh.Chi3dAddress.filter(
+      const zhMatches = zhUnits.filter(
         row =>
           String(row.ChiFloor?.FloorNum) === String(floor) &&
           row.ChiUnit?.UnitNo === unit,
@@ -51,15 +61,22 @@ export function applyAls3dCorrections(feature: Als3dFeature, sourceVersion: stri
         throw new Error(
           `ALS 3D correction ${correction.id}: removal is not an exact bilingual unit`,
         )
-      en.Eng3dAddress = en.Eng3dAddress.filter(row => row !== enMatches[0])
-      zh.Chi3dAddress = zh.Chi3dAddress.filter(row => row !== zhMatches[0])
+      const [enMatch] = enMatches
+      const [zhMatch] = zhMatches
+      if (!enMatch || !zhMatch) {
+        throw new Error(
+          `ALS 3D correction ${correction.id}: removal is not an exact bilingual unit`,
+        )
+      }
+      enUnits.splice(enUnits.indexOf(enMatch), 1)
+      zhUnits.splice(zhUnits.indexOf(zhMatch), 1)
     }
     for (const { floor, unit } of correction.additions) {
-      en.Eng3dAddress.push({
+      enUnits.push({
         EngUnit: { UnitDescriptor: 'FLAT', UnitNo: unit },
         EngFloor: { FloorNum: floor, FloorDescription: `${floor}/F` },
       })
-      zh.Chi3dAddress.push({
+      zhUnits.push({
         ChiFloor: { FloorNum: floor, FloorDescription: `${floor}樓` },
         ChiUnit: { UnitNo: unit, UnitDescriptor: '室' },
       })

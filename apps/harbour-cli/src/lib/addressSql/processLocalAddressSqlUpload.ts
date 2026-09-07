@@ -187,7 +187,7 @@ export async function processLocalAddressSqlUpload(
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const progress = new OperationProgress()
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = target.remote ? undefined : 'address'
+  const cacheTableProfile = 'address'
   const remoteCacheScopeKey = undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>

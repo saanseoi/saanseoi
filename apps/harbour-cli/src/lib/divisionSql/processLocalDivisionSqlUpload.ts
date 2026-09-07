@@ -148,7 +148,7 @@ export async function processLocalDivisionSqlUpload(
     })
   }
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = target.remote ? undefined : 'division'
+  const cacheTableProfile = 'division'
   const remoteCacheScopeKey = undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>

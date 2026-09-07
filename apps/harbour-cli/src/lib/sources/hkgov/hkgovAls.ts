@@ -13,6 +13,7 @@ import {
   labelAlsPremiseReconstructions,
 } from './hkgovAlsPremiseReconstructions'
 import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
+import { retainNamedPremises } from './hkgovAlsNamedPremiseRetentions'
 import {
   buildAls2dBackfillFeatures,
   labelAls2dBackfillRows,
@@ -163,6 +164,7 @@ export async function prepareHkgovAlsAddressParquet(
   labelAls2dBackfillRows(rows)
   labelAlsPremiseReconstructions(rows, reconstructedPremises)
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
+  retainNamedPremises(rows, options.sourceVersion)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,

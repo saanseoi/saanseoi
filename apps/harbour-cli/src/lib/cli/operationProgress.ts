@@ -4,6 +4,11 @@ type ProgressBar = ReturnType<typeof progress>
 type ProgressSpinner = ReturnType<typeof spinner>
 type ProgressRenderer = ProgressBar | ProgressSpinner
 
+const ANSI_COLOUR_TOKEN = new RegExp(
+  `${String.fromCharCode(27)}\\[[0-9;]*m|[\\s\\S]`,
+  'gu',
+)
+
 type ProgressState = {
   current: number
   max: number | null
@@ -49,7 +54,7 @@ export class OperationProgress {
       }
 
       if (!this.progressBar) {
-        this.progressBar = this.ui.spinner({ withGuide: false })
+        this.progressBar = createProgressRenderer(this.state, this.ui, false)
         this.progressBar.start(label)
       } else {
         this.progressBar.message(label)
@@ -136,6 +141,7 @@ export class OperationProgress {
       this.progressBar = createProgressRenderer(
         { current: nextCurrent, max: nextMax },
         this.ui,
+        false,
       )
       this.progressBar.start(nextLabel)
       if (nextMax !== null && nextCurrent > 0) {
@@ -285,13 +291,56 @@ function canRenderAnimatedProgress() {
 function createProgressRenderer(
   state: ProgressState,
   ui: NonNullable<OperationProgressOptions['ui']>,
+  withGuide = true,
 ): ProgressRenderer {
-  if (state.max === null) {
-    return ui.spinner({ withGuide: true })
-  }
+  const reportedColumns =
+    process.stdout.columns ?? Number(process.env.SAANSEOI_TERMINAL_COLUMNS)
+  const columns =
+    Number.isFinite(reportedColumns) && reportedColumns > 0
+      ? Math.floor(reportedColumns)
+      : 80
+  const output = Object.create(process.stdout) as NodeJS.WriteStream
+  Object.defineProperty(output, 'columns', { value: columns })
+  const size = Math.min(40, Math.max(1, Math.floor(columns / 4)))
+  // Clack erases using the message width, excluding its prefix and animated dots.
+  // Keep live frames on one row, including those decorations and the bar.
+  const labelWidth = Math.max(1, columns - 7 - (state.max === null ? 0 : size + 1))
+  const fit = (label: string) => fitProgressLabel(label, labelWidth)
+  const renderer =
+    state.max === null
+      ? ui.spinner({ withGuide, output })
+      : ui.progress({ max: Math.max(state.max, 1), size, withGuide, output })
 
-  return ui.progress({
-    max: Math.max(state.max, 1),
-    withGuide: true,
-  })
+  return {
+    ...renderer,
+    start: (label = '') => renderer.start(fit(label)),
+    message: (label = '') => renderer.message(fit(label)),
+    ...(isProgressBar(renderer)
+      ? {
+          advance: (step = 1, label?: string) =>
+            (renderer as ProgressBar).advance(
+              step,
+              label === undefined ? undefined : fit(label),
+            ),
+        }
+      : {}),
+  }
+}
+
+function isProgressBar(renderer: ProgressRenderer): renderer is ProgressBar {
+  return 'advance' in renderer && typeof renderer.advance === 'function'
+}
+
+function fitProgressLabel(label: string, width: number) {
+  const singleLine = label.replace(/[\r\n]/g, ' ')
+  if (Bun.stringWidth(singleLine) <= width) return singleLine
+  let result = ''
+  let used = 0
+  for (const token of singleLine.match(ANSI_COLOUR_TOKEN) ?? []) {
+    const tokenWidth = Bun.stringWidth(token)
+    if (used + tokenWidth > width - 1) break
+    result += token
+    used += tokenWidth
+  }
+  return `${result}…\u001b[0m`
 }
