@@ -76,12 +76,12 @@ export function formatAddressApiReleaseSetReadiness(
 
   return [
     `${plan.regionCode.toUpperCase()} / ${domainCode} / ${plan.cohortKey}`,
-    `  ${addressAvailable ? greenText('✓') : yellowText('○')} address  ${addressAvailable ? 'available' : 'unavailable'}`,
+    `  ${addressAvailable ? greenText('✓') : yellowText('○')} ${greenText('address')}  ${addressAvailable ? greenText('available') : yellowText('unavailable')}`,
     ...(divisionCohortKey && divisionCohortKey !== plan.cohortKey
       ? [
           '',
-          'Out of Cohort',
-          `  ${greenText('✓')} division (overture)  ${divisionCohortKey}`,
+          orangeText('Out of Cohort'),
+          `  ${greenText('✓')} ${greenText('division')} ${orangeText('(overture)')}  ${divisionCohortKey}`,
         ]
       : []),
   ].join('\n')
