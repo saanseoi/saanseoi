@@ -4,6 +4,7 @@ import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
+import { reviewedComplexInventoryParents } from './hkgovAlsComplexPromotions'
 import {
   enrichAls3dParentBlock,
   hkgovAls3dBlocklessParentKey,
@@ -102,6 +103,12 @@ export async function prepareAls3dCollections(options: {
         row,
       ])
     }
+  }
+  for (const { csu, en, zh, owner } of reviewedComplexInventoryParents(options.rows)) {
+    const key = parentKey(csu, en, zh)
+    if (byKey.has(key))
+      throw new Error('Reviewed complex inventory parent is ambiguous')
+    byKey.set(key, [owner])
   }
   const writer =
     options.writeOutput === false

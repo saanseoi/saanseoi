@@ -1,5 +1,9 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
+import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-complex-promotions.json'
 import { applyReviewedComplexPromotions } from './hkgovAlsComplexPromotions'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
@@ -111,4 +115,47 @@ test('fails closed when Pik Lam blockless source evidence changes', async () => 
   expect(() => applyReviewedComplexPromotions(rows, '2026-08-19.0')).toThrow(
     'source changed',
   )
+})
+
+test('promoted complex preserves both Pik Lam 3D sources under Block 1', async () => {
+  const version = '2024-07-25.0'
+  const rows = await rowsFor(version)
+  applyReviewedComplexPromotions(rows, version)
+  const owner = requireDefined(rows.find(row => row.enBlockNumber === '1'))
+  const raw = await Bun.file(
+    `data/hkgov/dpo/ALS/${directories[version]}/als_addresses_3d_(public_rental_housing).geojson`,
+  ).json()
+  const features = raw.features.filter(
+    (f: any) =>
+      f.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId === rule.csu,
+  )
+  expect(features).toHaveLength(2)
+  const dir = await mkdtemp(join(tmpdir(), 'pik-lam-inventory-'))
+  try {
+    await writeFile(
+      join(dir, 'als_addresses_3d_test.geojson'),
+      JSON.stringify({ type: 'FeatureCollection', features }, null, 2),
+    )
+    for (const skipCurationChecks of [false, true]) {
+      const outputFile = join(dir, 'prepared')
+      expect(
+        await prepareAls3dCollections({
+          sourceDir: dir,
+          sourceVersion: version,
+          outputFile,
+          rows,
+          skipCurationChecks,
+        }),
+      ).toEqual({ collectionCount: 1, unitCount: 430, sourceCount: 2 })
+      const records = (await Bun.file(`${outputFile}.address3d.jsonl`).text())
+        .trim()
+        .split('\n')
+        .map(line => JSON.parse(line))
+      const collection = records.find(r => r.kind === 'collection')
+      expect(collection.address2dId).toBe(owner.id)
+      expect(collection.sourceRecordIds).toHaveLength(2)
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 })

@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Reviewed ALS complex promotions retain residential 3D inventories on their explicit
+building owner. Duplicate source assertions must agree on inventory and retain both
+source references.
+
 Source tables retain complete raw payloads with identity, release history and
 provenance. Extracted identifiers, coordinate projections and bilingual address
 components belong to canonical history/current snapshots, not duplicated source columns.
@@ -358,6 +362,13 @@ and the reviewed Shek Mun estate assertion is suppressed. Pok Hong Community Hal
 street number 6H throughout; Sha Kok's school extension retains its specific label
 separately from the main school and campus. Sau King retains its 799 flats with the
 user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidence.
+
+Reviewed street-bearing estate identities use `complex` granularity independently of
+house inventories. Upper Ngau Tau Kok's 15 On Tak Road complex remains distinct from the
+publisher car-park premise; Upper Wong Tai Sin's approved 8 Wong Tai Sin Road complex
+retains the source's 9 Wong Tai Sin Road assertion as provenance. Both persist until
+revoked. Tsui Heng's explicitly approved incomplete-suffix mergers are backfilled; Youth
+College's campus-label change remains dated to 19 August 2026, without backfill.
 
 Reviewed street-bearing estate identities use `complex` granularity independently of
 house identities and inventories. Tai Yuen Estate uses 10 Ting Kok Road and its
