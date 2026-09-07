@@ -8,7 +8,7 @@ export async function runCsdiArchiveIngestPlaceholder(
   target: import('../cli/options.ts').UploadTarget,
   prepared: PreparedSourceArchive,
   skipConfirm: boolean,
-  options: { deferStatsReleaseSet: boolean },
+  options: { deferStatsReleaseSet: boolean; includeGeography: boolean },
 ): Promise<'ingested' | 'not-implemented'> {
   const plandKind =
     dataset.code === 'ds-hk-hkgov-pland-division-pu'
@@ -51,6 +51,7 @@ export async function runCsdiArchiveIngestPlaceholder(
       buildHkgovCenstatdStatisticsArchiveIngestCommand({
         datasetCode: dataset.code,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
+        includeGeography: options.includeGeography,
         inputFile: prepared.sourcePath,
         releaseNotesUrl: release.sourceUrl,
         sourceArchiveKey: prepared.manifest.archive.objectKey,
@@ -84,6 +85,7 @@ export async function runCsdiArchiveIngestPlaceholder(
         sourceVersion: release.sourceVersion,
         target,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
+        includeGeography: options.includeGeography,
         yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
@@ -111,6 +113,7 @@ export async function runCsdiArchiveIngestPlaceholder(
         sourceVersion: release.sourceVersion,
         target,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
+        includeGeography: options.includeGeography,
         yes: skipConfirm,
       }),
       { cwd: REPO_ROOT, stdout: 'inherit', stderr: 'inherit' },
@@ -435,6 +438,7 @@ function buildHkgovLandsdNativeArchiveIngestCommand(
 export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
   datasetCode: string
   deferStatsReleaseSet?: boolean
+  includeGeography?: boolean
   inputFile: string
   releaseNotesUrl: string
   sourceArchiveKey: string
@@ -464,6 +468,7 @@ export function buildHkgovCenstatdStatisticsArchiveIngestCommand(input: {
     '--source-archive-sha256',
     input.sourceArchiveSha256,
     ...(input.deferStatsReleaseSet ? ['--defer-stats-release-set'] : []),
+    ...(input.includeGeography ? ['--include-geography'] : []),
     ...(input.yes ? ['--yes'] : []),
   ]
 }

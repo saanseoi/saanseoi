@@ -32,6 +32,7 @@ export async function processUpdate(
     forceDownload: boolean
     forceUpload: boolean
     deferStatsReleaseSet: boolean
+    includeGeography: boolean
     skipPrompts: boolean
     skipUpload: boolean
     target: UploadTarget
@@ -127,7 +128,10 @@ export async function processUpdate(
       options.target,
       prepared,
       options.skipPrompts,
-      { deferStatsReleaseSet: options.deferStatsReleaseSet },
+      {
+        deferStatsReleaseSet: options.deferStatsReleaseSet,
+        includeGeography: options.includeGeography,
+      },
     )
     return result === 'ingested' ? ('ingested' as const) : ('mirrored' as const)
   }

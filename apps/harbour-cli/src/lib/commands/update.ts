@@ -64,6 +64,7 @@ export async function runUpdateCommand(
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
   const includeDependencies = args.options['with-dependencies'] === true
   const deferStatsReleaseSet = args.options['defer-stats-release-set'] === true
+  const includeGeography = args.options['include-geography'] === true
   const selectedFamilyDatasets =
     selectedFamily === 'all'
       ? requestedDatasets
@@ -73,6 +74,12 @@ export async function runUpdateCommand(
     !selectedFamilyDatasets.every(dataset => dataset.theme === 'stats')
   ) {
     throw new Error('--defer-stats-release-set requires a Stats-only selection.')
+  }
+  if (
+    includeGeography &&
+    !selectedFamilyDatasets.every(dataset => dataset.theme === 'stats')
+  ) {
+    throw new Error('--include-geography requires a Stats-only selection.')
   }
   const selectedDatasets = selectUpdateDatasets(
     datasets,
@@ -216,6 +223,7 @@ export async function runUpdateCommand(
         added,
         errors,
         deferStatsReleaseSet,
+        includeGeography,
         forceDownload,
         forceUpload,
         printUsage,
@@ -270,6 +278,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'download',
     'force-download',
     'force-upload',
+    'include-geography',
     'no-upload',
     'release-notes-url',
     'scope',
@@ -286,6 +295,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'download',
     'force-download',
     'force-upload',
+    'include-geography',
     'no-upload',
     'with-dependencies',
     'yes',
@@ -395,6 +405,7 @@ async function processPlannedUpdates(
     added: Map<string, PublishedSourceRelease>
     errors: string[]
     deferStatsReleaseSet: boolean
+    includeGeography: boolean
     forceDownload: boolean
     forceUpload: boolean
     printUsage: () => void
@@ -421,6 +432,7 @@ async function processPlannedUpdates(
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
+        includeGeography: options.includeGeography,
         printUsage: options.printUsage,
         releaseNotesUrl:
           options.releaseNotesDatasetCode === plan.dataset.code
