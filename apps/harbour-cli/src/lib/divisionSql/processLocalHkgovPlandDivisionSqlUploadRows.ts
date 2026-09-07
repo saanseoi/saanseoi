@@ -85,6 +85,15 @@ export function compressPlanningDivisionGeometry(
   return compressedByDivisionId
 }
 
+/** A source-keyed artefact cache is useful only when it covers every division. */
+export function isCompleteCompressedPlanningDivisionGeometry(
+  value: unknown,
+  records: PreparedDivision[],
+): value is CompressedPlanningDivisionGeometry {
+  if (!(value instanceof Map) || value.size !== records.length) return false
+  return records.every(record => value.get(record.base.id) instanceof Uint8Array)
+}
+
 function requireCompressedPlanningDivisionGeometry(
   compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
   divisionId: string,

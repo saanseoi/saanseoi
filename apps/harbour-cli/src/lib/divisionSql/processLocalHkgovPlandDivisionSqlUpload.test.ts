@@ -4,6 +4,7 @@ import {
   resolvePlandDivisionCode,
   splitPlandSqlText,
 } from './processLocalHkgovPlandDivisionSqlUpload.ts'
+import { isCompleteCompressedPlanningDivisionGeometry } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
 
 describe('Planning Division code assignment', () => {
   test('attaches the curated code to a mapped New Town and leaves an unmapped Division blank', () => {
@@ -42,5 +43,27 @@ describe('Planning SQL text serialisation', () => {
     expect(
       Math.max(...chunks.map(chunk => Buffer.byteLength(chunk))),
     ).toBeLessThanOrEqual(8 * 1024 * 3)
+  })
+})
+
+describe('Planning geometry artefact cache', () => {
+  const records = [{ base: { id: 'one' } }, { base: { id: 'two' } }] as never
+
+  test('requires an entry for every prepared division', () => {
+    expect(
+      isCompleteCompressedPlanningDivisionGeometry(
+        new Map([['one', new Uint8Array([1])]]),
+        records,
+      ),
+    ).toBeFalse()
+    expect(
+      isCompleteCompressedPlanningDivisionGeometry(
+        new Map([
+          ['one', new Uint8Array([1])],
+          ['two', new Uint8Array([2])],
+        ]),
+        records,
+      ),
+    ).toBeTrue()
   })
 })

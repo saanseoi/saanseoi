@@ -35,6 +35,7 @@ import {
   resolveLocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
 import type {
+  CompressedPlanningDivisionGeometry,
   HkgovPlandDivisionUploadPlan,
   UploadResult,
 } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
@@ -45,11 +46,13 @@ import {
   insertHistoryI18nRows,
   insertHistoryRows,
   insertSourceRows,
+  isCompleteCompressedPlanningDivisionGeometry,
   replaceCurrentI18n,
   replaceCurrentSnapshot,
   requireString,
   statRow,
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
+import { openNormalisedArtefactCache } from '../localPipeline/normalisedArtefactCache.ts'
 import {
   LOCAL_RELEASE_ROOT,
   PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
@@ -74,7 +77,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   previewPlan: HkgovPlandDivisionUploadPlan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { skipSnapshotCleanup?: boolean } = {},
+  options: { cacheArtefacts?: boolean; skipSnapshotCleanup?: boolean } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
@@ -375,8 +378,30 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             progress,
             'Materialise',
             'Planning division geometry',
-            async reportProgress =>
-              compressPlanningDivisionGeometry(records, reportProgress),
+            async reportProgress => {
+              const geometryCache = options.cacheArtefacts
+                ? await openNormalisedArtefactCache({
+                    filePath: preparedUpload.filePath,
+                    processingContract: [
+                      'hkgov-pland-division-geometry-brotli-v1',
+                      previewPlan.source,
+                    ].join(':'),
+                  })
+                : null
+              const cached = geometryCache
+                ? await geometryCache.read<CompressedPlanningDivisionGeometry>()
+                : null
+              if (isCompleteCompressedPlanningDivisionGeometry(cached, records)) {
+                reportProgress(records.length)
+                return cached
+              }
+              const compressed = compressPlanningDivisionGeometry(
+                records,
+                reportProgress,
+              )
+              if (geometryCache) await geometryCache.write(compressed)
+              return compressed
+            },
             { totalUnits: records.length },
           )
           await runPlandProgressPhase(
