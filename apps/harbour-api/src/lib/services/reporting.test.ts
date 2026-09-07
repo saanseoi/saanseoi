@@ -642,7 +642,7 @@ function seedSourceRows(
 ) {
   sqlite.exec(`
     INSERT INTO hkgovAlsAddresses2d (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, version, sources, rawProperties
     ) VALUES (
       '${sourceRecordId}',
       'version-hash-1',
@@ -652,14 +652,9 @@ function seedSourceRows(
       1,
       '2026-06-24T10:40:00.000Z',
       '2026-06-24T10:40:00.000Z',
-      '{"geoAddress":"1 Example Road","csuId":"csu-1"}',
       null,
-      null,
-      null,
-      '{"formattedAddress":"1 Example Road"}',
-      '{"formattedAddress":"示例路1號"}',
       '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
-      null
+      '{"geoAddress":"1 Example Road","csuId":"csu-1"}'
     );
   `)
 }
