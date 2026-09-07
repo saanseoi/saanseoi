@@ -6,6 +6,12 @@
     "authority": "User decision, 2026-09-07: restore estate attribution temporarily dropped and subsequently restored throughout the queue.",
     "rule": "Same CSU and complete bilingual non-estate components; exactly one matching occurrence in every gap and both adjacent releases; identical complete bilingual estate components on both sides. Restore only the estate component, never an absent premise, changed attribution or ambiguous occurrence."
   },
+  "application": {
+    "state": "active",
+    "mode": "until-revoked",
+    "sourceVersionFrom": "2026-08-19.0",
+    "lastVerifiedSourceVersion": "2026-08-19.0"
+  },
   "sourceReleases": [
     "20240725-1048-ALS-GeoJSON",
     "20240731-1054-ALS-GeoJSON",
