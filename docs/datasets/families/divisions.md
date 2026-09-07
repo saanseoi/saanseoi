@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Canonical and geometry ingestion retain recipes, source rules and exact selections under
+the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
+Verified reuse preserves the published assembly evidence; draft companion inputs refresh
+it.
+
 Processing audits store action/mode summaries and compressed evidence chunks in D1.
 Canonical, Planning Department and geometry metadata replay retain both, including BLOB
 payloads. Audit reports expose the individual decisions through the

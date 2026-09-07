@@ -1,5 +1,9 @@
 # Planning Department TPU and subunit areas
 
+PLAND metadata delivery includes assembly recipes, input rules and selected-release runs
+under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 Processing audits retain action/mode summaries and compressed D1 evidence chunks.
 Metadata replay includes the chunks and processing metrics, preserving individual
 mapping decisions for the

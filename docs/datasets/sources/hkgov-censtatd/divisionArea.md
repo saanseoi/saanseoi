@@ -1,5 +1,10 @@
 # Census and Statistics Department District Council district areas
 
+Geometry assembly records retain contributed and inherited source rules and selected
+releases under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance). Verified
+identical reuse preserves the published snapshot's assembly evidence.
+
 Geometry replay streams current, history and source rows into bounded SQL statements
 when creating a delivery plan. Retained plans bypass replay-table reads and SQL packing;
 normalisation and local materialisation remain separate workflow stages.

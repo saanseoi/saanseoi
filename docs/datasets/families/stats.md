@@ -1,5 +1,9 @@
 # Statistics dataset family
 
+Each reference-period snapshot records its exact-release assembly under the
+[assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can
+share a recipe; each has its own run and cohort. Remote replay includes the full recipe.
+
 Processing audits retain action/mode summaries and compressed evidence chunks in D1.
 Statistics metadata replay stages bounded BLOB statements before the audit summaries and
 processing metrics. Reports retain access to every decision through the

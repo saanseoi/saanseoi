@@ -214,6 +214,7 @@ test('publishes addresses with provenance and places without bundled provenance'
         {
           selectedByRule:
             'api-composition:places/overture:place/default->address/overture-places',
+          selectionMode: 'exact_ref',
         },
       )
       await recordPlaceAddressAssembly(db, {

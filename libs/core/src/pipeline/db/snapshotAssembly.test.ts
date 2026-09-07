@@ -14,9 +14,7 @@ const now = '2026-09-07T00:00:00.000Z'
 function fixture() {
   const sqlite = new Database(':memory:')
   sqlite.exec(
-    loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
-      'meta',
-    ]),
+    loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), ['meta']),
   )
   sqlite.exec(`PRAGMA foreign_keys = ON;
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES ('publisher', 'publisher', 'hash', '${now}', '${now}');

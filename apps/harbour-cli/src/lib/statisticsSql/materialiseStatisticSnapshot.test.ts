@@ -76,6 +76,15 @@ test('assigns source delivery and canonical period snapshots to different shards
   })
 
   expect(snapshots.map(snapshot => snapshot.cohortKey)).toEqual(['2016', '2024/25'])
+  expect(sqlite.query('SELECT * FROM snapshotAssembly').all()).toHaveLength(1)
+  expect(sqlite.query('SELECT * FROM snapshotAssemblySources').all()).toHaveLength(1)
+  expect(
+    sqlite
+      .query(
+        'SELECT anchorCohortKey FROM snapshotAssemblyRuns ORDER BY anchorCohortKey',
+      )
+      .all(),
+  ).toEqual([{ anchorCohortKey: '2016' }, { anchorCohortKey: '2024/25' }])
   expect(
     (
       sqlite

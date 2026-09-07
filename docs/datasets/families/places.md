@@ -1,5 +1,10 @@
 # Places dataset family
 
+Place and supplementary Address snapshots retain source-selection recipes and run
+evidence under the
+[assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Planning
+and finalisation share a draft run, preserving review and materialisation hashes.
+
 Processing audits use action/mode summaries and compressed evidence chunks in D1.
 Address-review publication checks read summary counts; locale-conflict statistics and
 audit reports decode the retained individual decisions. Supplementary Address metadata
