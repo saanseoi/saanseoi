@@ -101,8 +101,8 @@ export function applyAlsAddressHierarchies(
         row.enDistrict === template.enDistrict &&
         !row.enBuildingName &&
         !row.enBlockNumber &&
-        !row.enStreetNumberFrom &&
-        !row.enStreetNumberTo,
+        ((!row.enStreetNumberFrom && !row.enStreetNumberTo) ||
+          row.curatedGranularity === 'complex'),
     )
     if (complexes.length > 1)
       throw new Error(`ALS hierarchy ${relationship.id}: multiple complex candidates`)

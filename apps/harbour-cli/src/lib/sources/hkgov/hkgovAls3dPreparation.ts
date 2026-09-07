@@ -13,6 +13,8 @@ import { applyAls3dCorrections } from './hkgovAls3dCorrections'
 import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
 import { als3dSuppression } from './hkgovAls3dSuppressions'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
+import { assertStreetEstateAliasInventoryEmpty } from './hkgovAlsStreetEstateComplexes'
+import { assertAlsCommercialInventoryAbsent } from './hkgovAlsCommercialRetentions'
 import {
   als3dHash,
   assertAddress3dRowBudget,
@@ -132,6 +134,8 @@ export async function prepareAls3dCollections(options: {
       backfill,
       houseRetention,
     } of readAls3dWithBackfills(file, options.sourceVersion, options.rows)) {
+      assertStreetEstateAliasInventoryEmpty(feature, options.sourceVersion)
+      assertAlsCommercialInventoryAbsent(feature, options.sourceVersion)
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
       const zh = p.ChiPremisesAddress ?? {}
@@ -191,7 +195,7 @@ export async function prepareAls3dCollections(options: {
           {
             dataset: 'hkgov-dpo-als-3d',
             sourceFile: basename(file),
-            featureIndexOneBased,
+            ...(houseRetention ? {} : { featureIndexOneBased }),
             sourceVersion:
               houseRetention?.evidenceSourceVersion ??
               backfill?.evidenceSourceVersion ??

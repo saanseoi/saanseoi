@@ -103,6 +103,40 @@ test('all reviewed releases suppress only approved variants and retain corrected
     }
   }
 })
+test('separate Sheung Tak owners retain independent identities and Tai Hang Tung retains the raw range', () => {
+  for (const { version } of fixture.decisions[0]!.releases) {
+    const rows = rowsFor(version)
+    const ownerCsus = [
+      '4443719049T20050430',
+      '4456219135T20050430',
+      '3575321200T20050430',
+    ]
+    const before = new Map(
+      rows
+        .filter(r => ownerCsus.includes(r.hkgovCsuId ?? ''))
+        .map(r => [r.hkgovCsuId, structuredClone(r)]),
+    )
+    applyApprovedIssueBatch(rows, version)
+    for (const csu of ownerCsus) {
+      const owners = rows.filter(r => r.hkgovCsuId === csu)
+      expect(owners).toHaveLength(1)
+      expect(owners[0]!.id).toBe(before.get(csu)!.id)
+      expect(owners[0]!.engPremisesAddressJson).toBe(
+        before.get(csu)!.engPremisesAddressJson,
+      )
+    }
+    const wong = rows.find(r => r.hkgovCsuId === '3575321200T20050430')!
+    const decision = JSON.parse(wong.sources).hkgovAlsApprovedIssues?.find(
+      (d: any) => d.id === 'tai-hang-tung-wong-empty',
+    )
+    if (decision) {
+      expect(wong.enStreetNumberFrom).toBe('83')
+      expect(
+        JSON.parse(decision.sourceEvidence[0].engPremisesAddressJson).EngStreet,
+      ).toMatchObject({ BuildingNoFrom: '83', BuildingNoTo: '88' })
+    }
+  }
+})
 test('changed source evidence, missing owner and incomplete hall assertions fail closed', () => {
   const version = '2025-06-20.0'
   for (const mutate of [

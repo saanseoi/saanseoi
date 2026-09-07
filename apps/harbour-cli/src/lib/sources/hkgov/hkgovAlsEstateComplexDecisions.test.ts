@@ -1,0 +1,127 @@
+import { expect, test } from 'bun:test'
+import { readdir } from 'node:fs/promises'
+import {
+  reconstructReviewedEstateComplexes,
+  applyReviewedEstateComplexes,
+} from './hkgovAlsEstateComplexDecisions'
+import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
+import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
+
+const root = 'data/hkgov/dpo/ALS'
+const maps = {
+  areaByEn: new Map(),
+  areaByZh: new Map(),
+  ambiguousAreaEn: new Set<string>(),
+  ambiguousAreaZh: new Set<string>(),
+  countryId: null,
+  districtByEn: new Map(),
+  districtByZh: new Map(),
+  ambiguousDistrictEn: new Set<string>(),
+  ambiguousDistrictZh: new Set<string>(),
+  snapshotId: 'test',
+}
+const csus = ['4129321323T20050430', '4139021210T20050430', '3720625766T20071129']
+async function load(release: string) {
+  const source: HkgovAlsSourceFeature[] = []
+  for (const district of ['kwun_tong', 'sha_tin']) {
+    const sourceFile = `als_addresses_(${district}_district).geojson`
+    const features = (await Bun.file(`${root}/${release}/${sourceFile}`).json())
+      .features
+    for (const [i, feature] of features.entries())
+      if (
+        ['SHUN LEE ESTATE', 'SUN TIN WAI ESTATE'].includes(
+          feature.properties.Address.PremisesAddress.EngPremisesAddress?.EngEstate
+            ?.EstateName,
+        )
+      )
+        source.push({ feature, sourceFile, featureIndexOneBased: i + 1 })
+  }
+  return source
+}
+test('all retained releases preserve distinct estate and centre points, raw names and stable granularity', async () => {
+  const ids = new Map<string, string>()
+  for (const release of (await readdir(root))
+    .filter(r => /^\d{8}-.*ALS-GeoJSON$/.test(r))
+    .sort()) {
+    const version = `${release.slice(0, 4)}-${release.slice(4, 6)}-${release.slice(6, 8)}.0`
+    const source = await load(release),
+      raw = JSON.stringify(source)
+    const originals = source.slice()
+    reconstructReviewedEstateComplexes(source, version)
+    expect(JSON.stringify(originals)).toBe(raw)
+    const rows = source.map(s =>
+      normaliseHkgovAlsFeature(
+        s.feature,
+        s.sourceFile,
+        s.featureIndexOneBased,
+        'test',
+        version,
+        maps,
+        true,
+        new Map(),
+        new Map(),
+        new Map(),
+      ),
+    )
+    applyReviewedEstateComplexes(rows, version)
+    const [estate, centre, sun] = csus.map(csu => rows.find(r => r.hkgovCsuId === csu)!)
+    expect(estate!.curatedGranularity).toBe('complex')
+    expect(estate!.enBuildingName).toBeNull()
+    expect(estate!.enStreetNumberFrom).toBe('15')
+    expect(centre!.enBuildingName).toBe('SHUN LEE COMMERCIAL CENTRE (PHASE II)')
+    expect(centre!.enStreetNumberFrom).toBe('6')
+    expect(centre!.parentAddressId).toBe(estate!.id)
+    expect(centre!.geometry).not.toBe(estate!.geometry)
+    expect(sun!.curatedGranularity).toBe('complex')
+    expect(sun!.enFormattedAddress).toContain('SUN TIN WAI ESTATE')
+    expect(
+      rows.filter(
+        r =>
+          r.enEstateName === 'SUN TIN WAI ESTATE' && r.curatedGranularity === 'complex',
+      ),
+    ).toHaveLength(1)
+    expect(rows.some(r => r.enBuildingName === 'SUN TIN WAI SHOPPING CENTRE')).toBe(
+      true,
+    )
+    for (const row of [estate!, centre!, sun!]) {
+      if (ids.has(row.hkgovCsuId!)) expect(row.id).toBe(ids.get(row.hkgovCsuId!)!)
+      ids.set(row.hkgovCsuId!, row.id)
+      const original = originals.find(
+        s =>
+          s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+            ?.CsuId === row.hkgovCsuId,
+      )
+      if (original) {
+        expect(row.geometry).toBe(JSON.stringify(original.feature.geometry))
+        expect(JSON.parse(row.engPremisesAddressJson!)).toEqual(
+          original.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress,
+        )
+      }
+    }
+  }
+})
+test('rejects another estate identity or changed reviewed source', async () => {
+  const source = await load('20260819-1047-ALS-GeoJSON')
+  const replacement = structuredClone(
+    source.find(
+      s =>
+        s.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!.EngEstate!
+          .EstateName === 'SUN TIN WAI ESTATE',
+    )!,
+  )
+  delete replacement.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!
+    .BuildingName
+  source.push(replacement)
+  expect(() => reconstructReviewedEstateComplexes(source, '2026-08-19.0')).toThrow(
+    'another estate identity',
+  )
+  const clean = await load('20240725-1048-ALS-GeoJSON')
+  clean.find(
+    s =>
+      s.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!.CsuId ===
+      csus[2],
+  )!.feature.geometry!.coordinates = [0, 0]
+  expect(() => reconstructReviewedEstateComplexes(clean, '2024-07-25.0')).toThrow(
+    'source assertion changed',
+  )
+})

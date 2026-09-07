@@ -2,6 +2,105 @@
   "version": 1,
   "corrections": [
     {
+      "id": "kui-wo-213-four-way-backfill-4002bd5d",
+      "revision": 1,
+      "estate": "TAI WO ESTATE",
+      "csu": "3480734540T20050430",
+      "expectedEnBuildingName": "KUI WO HOUSE",
+      "expectedZhBuildingName": "居和樓",
+      "expectedUnitCount": 830,
+      "expectedInventoryHash": "4002bd5de1e58893fb76f61540c8d10f7a8e3146c58e2361b2d886a30934c17b",
+      "correctedInventoryHash": "80a5ba990767f8cd9fb3111176573bb274383328f46a5c8bb219c0cf1d00a279",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-08-21.0",
+        "2024-08-28.0",
+        "2024-09-02.0"
+      ],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "213"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 2,
+          "unit": "213A"
+        },
+        {
+          "floor": 2,
+          "unit": "213B"
+        },
+        {
+          "floor": 2,
+          "unit": "213C"
+        },
+        {
+          "floor": 2,
+          "unit": "213D"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: merge and backfill Kui Wo House flat 213; automatically accept four-way mergers.",
+      "decision": "Backfill only the reviewed 2/F four-way merger. Preserve every unrelated unit and original publisher feature.",
+      "evidence": "Both languages replace exactly 213A/B/C/D with 213 in August 2025. Exact publisher and corrected inventory hashes guard each earlier variant."
+    },
+    {
+      "id": "kui-wo-213-four-way-backfill-bd59bf5f",
+      "revision": 1,
+      "estate": "TAI WO ESTATE",
+      "csu": "3480734540T20050430",
+      "expectedEnBuildingName": "KUI WO HOUSE",
+      "expectedZhBuildingName": "居和樓",
+      "expectedUnitCount": 828,
+      "expectedInventoryHash": "bd59bf5f477882b33f721cef4eac30eaa9a2b049321b1c88f6f687ca7093dac4",
+      "correctedInventoryHash": "569b45290ad584e4b6b2ee8ed26353422540e6352be58d7eda110339a165ecd2",
+      "sourceVersions": [
+        "2024-07-31.0",
+        "2024-08-25.0",
+        "2024-09-01.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "213"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 2,
+          "unit": "213A"
+        },
+        {
+          "floor": 2,
+          "unit": "213B"
+        },
+        {
+          "floor": 2,
+          "unit": "213C"
+        },
+        {
+          "floor": 2,
+          "unit": "213D"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: merge and backfill Kui Wo House flat 213; automatically accept four-way mergers.",
+      "decision": "Backfill only the reviewed 2/F four-way merger. Preserve every unrelated unit and original publisher feature.",
+      "evidence": "Both languages replace exactly 213A/B/C/D with 213 in August 2025. Exact publisher and corrected inventory hashes guard each earlier variant."
+    },
+    {
       "id": "shek-kip-mei-block-24-flat-omission-20250813",
       "revision": 1,
       "estate": "SHEK KIP MEI ESTATE",

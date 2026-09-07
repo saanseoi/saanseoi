@@ -1,0 +1,540 @@
+{
+  "version": 1,
+  "authority": "User decisions, 2026-09-08: Shun Lee estate at 15 Lee On Road and separate Phase II centre at 6 Shun King Street; enrich Sun Tin Wai estate identity if no other entry exists.",
+  "rules": [
+    {
+      "id": "shun-lee-estate",
+      "estate": "SHUN LEE ESTATE",
+      "csu": "4129321323T20050430",
+      "district": "kwun_tong",
+      "action": "complex",
+      "reconstruct": false,
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": ["a924fa6381d937cd63ebf9b8309378e76d350dc348742be89440d24d2b36c700"]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": ["888bb76a2c48ad7c8afe74f9548910bfdb1652c5af5e8a8294945451e726cc22"]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": ["888bb76a2c48ad7c8afe74f9548910bfdb1652c5af5e8a8294945451e726cc22"]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": ["340daa4fa6e4035f1636556f30c39c280dca59249c141e7954c5a6a2506a9b28"]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": ["340daa4fa6e4035f1636556f30c39c280dca59249c141e7954c5a6a2506a9b28"]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": ["340daa4fa6e4035f1636556f30c39c280dca59249c141e7954c5a6a2506a9b28"]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": ["340daa4fa6e4035f1636556f30c39c280dca59249c141e7954c5a6a2506a9b28"]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": ["340daa4fa6e4035f1636556f30c39c280dca59249c141e7954c5a6a2506a9b28"]
+        }
+      ],
+      "evidence": {
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [114.22607, 22.33026]
+          },
+          "properties": {
+            "Northing": 821247,
+            "Easting": 841336,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4129321323T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "觀塘區",
+                  "ChiStreet": {
+                    "StreetName": "利安道",
+                    "BuildingNoFrom": "15"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "順利邨"
+                  },
+                  "BuildingName": "順利商場"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SHUN LEE SHOPPING CENTRE",
+                  "EngEstate": {
+                    "EstateName": "SHUN LEE ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "15",
+                    "StreetName": "LEE ON ROAD"
+                  },
+                  "EngDistrict": "KWUN TONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "4133621247T20130125"
+              }
+            }
+          }
+        },
+        "sourceVersion": "2026-08-19.0",
+        "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+        "featureIndexOneBased": 2549
+      }
+    },
+    {
+      "id": "shun-lee-commercial-phase-ii",
+      "estate": "SHUN LEE ESTATE",
+      "csu": "4139021210T20050430",
+      "district": "kwun_tong",
+      "action": "phase",
+      "reconstruct": false,
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": ["136f4b38f91b46a31c0881bf568e7d2d6c5e0e25c8f44e4cecc3b46256a9983c"]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": ["ec6e6c998fa08e321cf79c2156e83c83eead8f68ed18f3ba4a99fd8fe2a7b254"]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": ["d75ea0118312ca8b7235e5cc0f22a5f93ba648190823568f9946356ca436e7b7"]
+        }
+      ],
+      "evidence": {
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [114.22659, 22.32992]
+          },
+          "properties": {
+            "Northing": 821210,
+            "Easting": 841390,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4139021210T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "觀塘區",
+                  "ChiStreet": {
+                    "StreetName": "順景街",
+                    "BuildingNoFrom": "6"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "順利邨"
+                  },
+                  "BuildingName": "順利商場(二期)"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SHUN LEE SHOPPING CENTRE (PHASE II)",
+                  "EngEstate": {
+                    "EstateName": "SHUN LEE ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "6",
+                    "StreetName": "SHUN KING STREET"
+                  },
+                  "EngDistrict": "KWUN TONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "4139021210T20050430"
+              }
+            }
+          }
+        },
+        "sourceVersion": "2026-08-19.0",
+        "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+        "featureIndexOneBased": 2263
+      }
+    },
+    {
+      "id": "sun-tin-wai-estate",
+      "estate": "SUN TIN WAI ESTATE",
+      "csu": "3720625766T20071129",
+      "district": "sha_tin",
+      "action": "complex",
+      "reconstruct": true,
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["29614a625494360872ce641ef888945ab44f97ed10e719fda2b8b60d57deebc2"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [114.18596, 22.371]
+          },
+          "properties": {
+            "Northing": 825758,
+            "Easting": 837204,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3720625766T20071129"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "沙田區",
+                  "ChiStreet": {
+                    "LocationName": "沙田",
+                    "StreetName": "沙田頭路",
+                    "BuildingNoFrom": "29"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "新田圍邨"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngEstate": {
+                    "EstateName": "SUN TIN WAI ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "29",
+                    "StreetName": "SHA TIN TAU ROAD",
+                    "LocationName": "SHA TIN"
+                  },
+                  "EngDistrict": "SHA TIN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3720425758T20071129"
+              }
+            }
+          }
+        },
+        "sourceVersion": "2024-09-03.0",
+        "sourceFile": "als_addresses_(sha_tin_district).geojson",
+        "featureIndexOneBased": 4569
+      }
+    }
+  ]
+}

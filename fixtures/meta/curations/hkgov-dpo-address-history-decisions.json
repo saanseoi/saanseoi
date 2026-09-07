@@ -26,10 +26,10 @@
     },
     {
       "id": "same-floor-ab-or-abc-unit-merger",
-      "revision": 2,
+      "revision": 3,
       "enabled": true,
-      "authority": "User decisions, 2026-09-07: auto-accept these mergers; extend exact A/B-to-base mergers throughout the queue alongside A/B/C mergers.",
-      "rule": "Accept an exact same-premise, same-floor merger of numeric unit A/B or A/B/C into its unsuffixed numeric unit when English and Traditional Chinese agree and all other unit expressions are unchanged. Reject partial suffix families, unmatched removals and mixed unrelated changes. Preserve dated publisher history; never backfill or reuse predecessor IDs. Other inventory changes remain pending.",
+      "authority": "User decisions, 2026-09-07 and 2026-09-08: automatically accept exact two-, three- and four-way mergers. Explicitly merge and backfill Kui Wo House flat 213.",
+      "rule": "Accept an exact same-premise, same-floor merger of numeric unit A/B, A/B/C or A/B/C/D into its unsuffixed numeric unit when English and Traditional Chinese agree and all other unit expressions are unchanged. Reject partial suffix families, unmatched removals and mixed unrelated changes. Preserve dated publisher history without reusing predecessor IDs, except separately approved inventory backfills such as Kui Wo House 2/F 213. Other inventory changes remain pending.",
       "confirmedExamples": [
         "CHUNG ON ESTATE / CHUNG TAK HSE: 307A, 307B to 307 on 3/F, April 2025",
         "CHEUNG HANG ESTATE / HANG CHI HOUSE: 601A, 601B, 601C to 601 on 6/F, April 2025",

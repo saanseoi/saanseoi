@@ -215,6 +215,24 @@ assertions. Sha Kok's extension label is backfilled without merging the main-sch
 campus records. Sau King uses the user-reviewed 101 Sau Mau Ping Road / 秀茂坪道 address
 while retaining the raw 101 Sau Ming Road / 秀明道 assertion and its 799-flat inventory.
 
+The same issue fixture suppresses Sheung Lok's empty assertion throughout retained
+history, Sheung Tak's separate Sheung Nim and Sheung Yee alias epochs, and the Bik Shui
+and Tung Wong aliases from 22 July 2026. The named houses retain their inventories; Tung
+Wong's discarded 83–88 Tai Hang Tung Road assertion is recorded in provenance.
+
+`hkgov-dpo-address-estate-complex-decisions.json` distinguishes Shun Lee Estate at 15
+Lee On Road from Shun Lee Commercial Centre (Phase II) at 6 Shun King Street. The centre
+references the estate as its parent, with separate coordinates and unchanged raw ALS
+names. The fixture also restores Sun Tin Wai's inventory-free estate premise at 29 Sha
+Tin Tau Road across retained omissions, guarded against another estate-level identity.
+The existing shopping centre is not merged into the estate. These decisions are bounded
+to the retained releases and preserve their source evidence dates.
+
+Camellia House at So Uk retains its last 374-flat inventory and one reviewed identity
+across the source omission, continuing until revoked with explicit verification status.
+Sun Fong House's approved current coordinates are backfilled across retained history;
+its inventory remains intact. Sun Yee's coordinate decision remains pending.
+
 Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
 omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23
 template is guarded by the exact August 2025 bilingual inventory hash. The paired 2D and
@@ -287,12 +305,28 @@ Easeful Court retains ALS Tower 1 and Tower 2 block components, matching the rev
 both source layers across retained releases; no building-name backfill or merge is
 needed.
 
-The historical review policy automatically accepts exact same-floor A/B- or
-A/B/C-to-base unit mergers when both languages and unchanged premise components agree.
+The historical review policy automatically accepts exact same-floor A/B-, A/B/C- or
+A/B/C/D-to-base unit mergers when both languages and unchanged premise components agree.
 Accepted events retain dated publisher inventories and distinct successor IDs; they do
 not backfill earlier snapshots. Policy and authority are stored in
 `hkgov-dpo-address-history-decisions.json`; generated decisions retain exact source
 hashes in the estate audit. Mixed or ambiguous changes remain pending.
+
+Kui Wo House's separately approved correction backfills the 2/F 213A/B/C/D merger to 213
+across earlier retained inventories. Exact bilingual publisher and corrected hashes
+guard this exception; automatic four-way merger acceptance alone preserves dated
+history.
+
+Hing Wai House uses the approved current point across retained releases. Fook Wo House
+uses its reviewed earlier point with Block 11 components. Tai Ping's empty aliases are
+suppressed against their respective Ping Ching and Ping Yee owners, preserving both
+house inventories and their shared 8 Po Ping Road address.
+
+Tai Wo Hau Shopping Centre retains CSU `3079225467T20050430`; the separate Tai Wo Hau
+Shopping Centre (2) retains its latest available CSU `3071925270P20050725`. Both remain
+available until revoked, guarded by reviewed source assertions and explicit verification
+status. The second centre's missing releases are restored from retained evidence,
+without an inferred unit inventory or a merge into the main centre.
 
 User satellite-map review identifies CSU `3363111709T20141201` as Lei Fook Low Block in
 the July and August 2026 deliveries. Its publisher identity and point represent the
