@@ -34,7 +34,8 @@
   Include technical details that help assess the work.
 - Use lists when they improve readability; avoid repetitive transitions and stock
   phrases such as "it's worth noting", "delve", "leverage", and "Bottom line".
-- Report what changed, what was verified, and any remaining uncertainty.
+- Report what changed with links to the files, what was verified, and any remaining
+  uncertainty.
 
 ### Verification
 
