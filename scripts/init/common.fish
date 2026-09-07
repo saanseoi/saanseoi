@@ -33,10 +33,12 @@ function init_clear_clean_run_manifests
 end
 
 set -g saanseoi_init_continue 0
-set -g saanseoi_init_cache_artefacts 0
+set -g saanseoi_init_cache_artefacts 1
 set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
 set -g saanseoi_init_completed_release_codes
+set -g saanseoi_init_completed_releases_loaded 0
+set -g saanseoi_init_release_column_width 0
 set -g saanseoi_init_docs_pending 0
 set -g saanseoi_init_upload_failures 0
 
@@ -49,12 +51,12 @@ function init_configure
             case --continue
                 set -g saanseoi_init_continue 1
                 set -e argv[1]
-            case --cache-artefacts --cacheArtefacts
-                set -g saanseoi_init_cache_artefacts 1
+            case --no-cache-artefacts
+                set -g saanseoi_init_cache_artefacts 0
                 set -e argv[1]
             case --target
                 if test (count $argv) -lt 2
-                    echo "Usage: $usage [--target local|preview|production] [--continue] [--cacheArtefacts]" >&2
+                    echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts]" >&2
                     exit 1
                 end
                 switch $argv[2]
@@ -66,12 +68,14 @@ function init_configure
                 end
                 set -e argv[1..2]
             case '*'
-                echo "Usage: $usage [--target local|preview|production] [--continue] [--cacheArtefacts]" >&2
+                echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts]" >&2
                 exit 1
         end
     end
+end
 
-    if test "$saanseoi_init_continue" -eq 1
+function init_prepare_completed_releases
+    if test "$saanseoi_init_completed_releases_loaded" -ne 1
         if test "$saanseoi_init_target" != local
             # A failed remote SQL replay may leave the persistent cache
             # invalidated after the release itself has already published.
@@ -90,8 +94,15 @@ function init_configure
         end
         init_load_completed_release_codes
         or begin
-            echo "Cannot continue initialisation: could not read completed releases." >&2
+            echo "Cannot initialise: could not read completed releases." >&2
             exit 1
+        end
+        set -g saanseoi_init_completed_releases_loaded 1
+        for release_code in $saanseoi_init_completed_release_codes
+            set -l width (string length -- "$release_code")
+            if test "$width" -gt "$saanseoi_init_release_column_width"
+                set -g saanseoi_init_release_column_width $width
+            end
         end
     end
 end
@@ -102,7 +113,7 @@ function init_load_completed_release_codes
         if set -q saanseoi_init_cache_table_profile
             set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
         end
-        set -l output (./bin/saanseoi cache:completed-releases \
+        set -l output (SAANSEOI_INIT_GUIDES= ./bin/saanseoi cache:completed-releases \
             --target $saanseoi_init_target $cache_profile_args 2>&1)
         set -l command_status $status
         if test $command_status -ne 0
@@ -142,7 +153,23 @@ function init_load_completed_release_codes
 end
 
 function init_is_completed_release
+    init_prepare_completed_releases
     contains -- $argv[1] $saanseoi_init_completed_release_codes
+end
+
+function init_skip_completed_release
+    set -l release_code $argv[1]
+    if init_is_completed_release "$release_code"
+        set -l guides (string split -- ',' "$SAANSEOI_INIT_GUIDES")
+        if test (count $guides) -gt 1
+            for guide in $guides[1..-2]
+                printf '\033[90m│   \033[39m'
+            end
+        end
+        printf '\033[36m◆\033[39m  %-*s  SKIPPED: already published or superseded\n' $saanseoi_init_release_column_width "$release_code"
+        return 0
+    end
+    return 1
 end
 
 function init_run_upload
@@ -150,9 +177,8 @@ function init_run_upload
     set -e argv[1]
     set -g saanseoi_init_last_upload_processed 0
 
-    if test "$saanseoi_init_continue" -eq 1; and init_is_completed_release "$release_code"
-        echo "Skipping completed release $release_code."
-        return
+    if init_skip_completed_release "$release_code"
+        return 0
     end
 
     set -l retry_args
@@ -183,8 +209,15 @@ end
 
 function init_publish_docs_if_needed
     if test "$saanseoi_init_docs_pending" -eq 1
-        init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
+        init_publish_docs
     end
+end
+
+function init_publish_docs
+    if test "$SAANSEOI_INIT_DEFER_DOCS" = 1
+        return 0
+    end
+    init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
 end
 
 function init_published_api_release_set_count

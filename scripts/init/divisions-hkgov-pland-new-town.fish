@@ -10,5 +10,5 @@ end
 
 init_run_step bun run --silent dataops -- hkgov-pland:backfill --kind new-town --target $saanseoi_init_target $continue_args
 if init_domain_has_pending_releases new-town 2006 2011 2016 2021
-    init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
+    init_publish_docs
 end
