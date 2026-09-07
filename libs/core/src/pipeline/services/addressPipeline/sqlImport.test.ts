@@ -1,7 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { resolve } from 'node:path'
 
 import type { DatasetProcessingMessage } from '../../../types'
+import { metaSchema } from '@repo/db'
+import { loadMigrationSql } from '../../../testing/metaFixtures'
 
 import {
   buildAddressHistoryApplySqlImportFile,
@@ -10,7 +14,7 @@ import {
   buildAddressSourceSqlImportFiles,
   buildAddressSqlCleanupFile,
 } from './sqlImport'
-import { resolveAddressDivisionCohortKey } from './sqlStages'
+import { buildAddressMetaSqlFile, resolveAddressDivisionCohortKey } from './sqlStages'
 import { splitSqlStatements } from './sqlImportStages'
 import { normaliseAddressRowForPipeline } from './normalisation'
 import type { ResolvedAddressChunkArtefact } from './types'
@@ -45,6 +49,85 @@ const resolvedArtefact = {
   totalRows: 0,
   unchangedRows: 0,
 } satisfies ResolvedAddressChunkArtefact
+
+test('Address SQL metadata delivery retains the published snapshot lineage', async () => {
+  const source = new Database(':memory:')
+  const delivered = new Database(':memory:')
+  try {
+    const migrationSql = loadMigrationSql(
+      resolve(import.meta.dir, '../../../../../db/migrations'),
+      ['meta'],
+    )
+    source.exec(migrationSql)
+    delivered.exec(migrationSql)
+    source.exec(`
+      INSERT INTO snapshotLineages (
+        id, code, regionCode, resourceType, variant, identityMode,
+        primaryDatasetId, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'address-lineage', 'sl-ds-hk-hkgov-dpo-address', 'hk', 'address', 'default',
+        'persistent', 'dataset-address', 'lineage-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+      );
+      INSERT INTO snapshots (
+        id, snapshotLineageId, parentSnapshotId, resourceType, code, cohortKey,
+        geometryStatus, revision, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      ) VALUES (
+        'address-snapshot', 'address-lineage', NULL, 'address', 'ss-hk-address-2026-08-19.0', '2026-08-19.0',
+        'authoritative', 0, 'draft', NULL, NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+      );
+      INSERT INTO snapshotSources (
+        snapshotId, datasetId, sourceReleaseId, role, selectedByRule, selectionMode,
+        anchorReleaseId, sourceCohortKey, createdAt
+      ) VALUES (
+        'address-snapshot', 'dataset-address', 'release-address', 'primary', 'snapshot-assembly-address-v1',
+        'exact_ref', 'release-address', '2026-08-19.0', '2026-09-07T00:00:00.000Z'
+      );
+      INSERT INTO releaseShardAssignments (releaseId, dataShardId)
+      VALUES ('release-address', 'history-shard');
+      INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
+      VALUES ('address-snapshot', 'history-shard');
+    `)
+    expect(
+      source
+        .query(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'snapshots'",
+        )
+        .get(),
+    ).toEqual({ name: 'snapshots' })
+
+    const file = await buildAddressMetaSqlFile(
+      drizzle(source, { schema: metaSchema }) as never,
+      message,
+      'address-snapshot',
+    )
+    delivered.exec(file.sql)
+
+    expect(
+      delivered
+        .query(
+          'SELECT snapshotLineageId, parentSnapshotId, revision FROM snapshots WHERE id = ?',
+        )
+        .get('address-snapshot'),
+    ).toEqual({
+      snapshotLineageId: 'address-lineage',
+      parentSnapshotId: null,
+      revision: 0,
+    })
+    expect(
+      delivered
+        .query('SELECT variant FROM snapshotLineages WHERE id = ?')
+        .get('address-lineage'),
+    ).toEqual({ variant: 'default' })
+    expect(
+      delivered
+        .query('SELECT dataShardId FROM snapshotShardAssignments WHERE snapshotId = ?')
+        .get('address-snapshot'),
+    ).toEqual({ dataShardId: 'history-shard' })
+  } finally {
+    source.close()
+    delivered.close()
+  }
+})
 
 describe('address SQL import staging cleanup', () => {
   test('drops current resolved staging tables after current apply SQL', () => {
