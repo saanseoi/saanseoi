@@ -31,6 +31,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .playwright-cli
 .cache
 .local/
+apps/basemap-viewer/local-review/
+apps/basemap-viewer/src/local-review
 *.tsbuildinfo
 tmp/*
 __pycache__/
