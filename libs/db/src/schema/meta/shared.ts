@@ -1,5 +1,6 @@
 import {
   check,
+  customType,
   index,
   integer,
   real,
@@ -81,14 +82,54 @@ export const releaseProcessingActions = sqliteTable(
       .references(() => metaReleases.id, { onDelete: 'cascade' }),
     action: text('action').notNull(),
     mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
-    summary: text('summary').notNull(),
+    generation: text('generation').notNull(),
+    decisionCount: integer('decisionCount').notNull(),
     affectedRecordCount: integer('affectedRecordCount').notNull(),
-    evidence: jsonText('evidence').notNull(),
     ...timestamps,
   },
   table => [
     index('releaseProcessingActions_releaseId_idx').on(table.releaseId),
     index('releaseProcessingActions_action_idx').on(table.action, table.mode),
+  ],
+)
+
+const auditBlob = customType<{ data: Uint8Array; driverData: Uint8Array }>({
+  dataType: () => 'blob',
+  toDriver: value => Uint8Array.from(value),
+  fromDriver: value => new Uint8Array(value),
+})
+
+// Chunks are staged before the summary generation is switched. Their lifetime is
+// release-owned, rather than tied to the currently visible summary rows.
+export const releaseProcessingActionChunks = sqliteTable(
+  'releaseProcessingActionChunks',
+  {
+    id: text('id').primaryKey(),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+    actionId: text('actionId').notNull(),
+    generation: text('generation').notNull(),
+    firstOrdinal: integer('firstOrdinal').notNull(),
+    decisionCount: integer('decisionCount').notNull(),
+    part: integer('part').notNull(),
+    parts: integer('parts').notNull(),
+    encoding: text('encoding', { enum: ['gzip-json-v1'] }).notNull(),
+    checksum: text('checksum').notNull(),
+    payload: auditBlob('payload').notNull(),
+  },
+  table => [
+    index('releaseProcessingActionChunks_page_idx').on(
+      table.actionId,
+      table.generation,
+      table.firstOrdinal,
+      table.part,
+    ),
+    index('releaseProcessingActionChunks_release_idx').on(table.releaseId),
+    check(
+      'releaseProcessingActionChunks_payload_chk',
+      sql`length(${table.payload}) <= 32768`,
+    ),
   ],
 )
 
