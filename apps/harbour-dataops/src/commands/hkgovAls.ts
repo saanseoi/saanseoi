@@ -23,6 +23,11 @@ import {
   prepareHkgovAlsAddressParquet,
   type HkgovAlsDivisionQuality,
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
+import {
+  serialiseHkgovAlsEstateCurationFixture,
+  updateHkgovAlsEstateCurationApplication,
+  type HkgovAlsEstateCurationFixture,
+} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
@@ -214,6 +219,10 @@ export async function runHkgovAlsIngestCommand(
     sourceReleases,
     target,
   })
+  await reviewHkgovAlsCurationApplications(
+    review.curationApplications,
+    Boolean(args.options.yes),
+  )
   log.message('\u001B[36mALS Preflight Checks\u001B[39m')
   note(
     [
@@ -225,6 +234,10 @@ export async function runHkgovAlsIngestCommand(
         ),
       ),
       formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
+      formatField(
+        'unverifiedCurationApplications',
+        String(review.curationApplications.length),
+      ),
     ].join('\n'),
     'DATASETS',
   )
@@ -778,6 +791,14 @@ async function reviewHkgovAlsIngest(args: {
 }) {
   let history = args.history
   const driftCandidates = new Set<string>()
+  const curationApplications = new Map<
+    string,
+    {
+      fixture: HkgovAlsEstateCurationFixture
+      ids: Set<string>
+      sourceVersion: string
+    }
+  >()
   for (const {
     addressCohortKey,
     divisionCohortKey,
@@ -806,10 +827,87 @@ async function reviewHkgovAlsIngest(args: {
       const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
       driftCandidates.add(key)
     }
+    for (const application of result.curationApplications) {
+      if (application.verification !== 'unverified') continue
+      const key = `${application.fixture}\u0000${sourceVersion}`
+      const group = curationApplications.get(key) ?? {
+        fixture: application.fixture,
+        ids: new Set<string>(),
+        sourceVersion,
+      }
+      group.ids.add(application.id)
+      curationApplications.set(key, group)
+    }
     history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
   }
   return {
+    curationApplications: [...curationApplications.values()].map(group => ({
+      ...group,
+      ids: [...group.ids].sort(),
+    })),
     driftCandidates: driftCandidates.size,
+  }
+}
+
+async function reviewHkgovAlsCurationApplications(
+  applications: Array<{
+    fixture: HkgovAlsEstateCurationFixture
+    ids: string[]
+    sourceVersion: string
+  }>,
+  nonInteractive: boolean,
+) {
+  for (const application of applications) {
+    const label = `${application.ids.length} ${application.ids.length === 1 ? 'correction' : 'corrections'} on ${application.sourceVersion}`
+    if (nonInteractive) {
+      throw new Error(
+        [
+          `ALS ${label} remain active but are newer than their last verification.`,
+          'Run without --yes to verify, keep them provisional, or revoke them.',
+        ].join('\n'),
+      )
+    }
+    note(
+      [
+        `Fixture: ${application.fixture}`,
+        `Decision IDs: ${application.ids.join(', ')}`,
+        `Source version: ${application.sourceVersion}`,
+      ].join('\n'),
+      'UNVERIFIED ALS CURATION',
+    )
+    const resolution = await select({
+      message: `How should ${label} be handled?`,
+      showInstructions: false,
+      options: [
+        {
+          label: 'Verify and continue',
+          value: 'verify',
+          hint: 'Records this source version as reviewed and keeps applying the corrections.',
+        },
+        {
+          label: 'Continue provisionally',
+          value: 'provisional',
+          hint: 'Applies them to this release with unverified provenance.',
+        },
+        {
+          label: 'Revoke correction',
+          value: 'revoke',
+          hint: 'Stops future application; historical releases remain unchanged.',
+        },
+      ],
+    })
+    if (isCancel(resolution)) throw new Error('ALS curation review cancelled.')
+    if (resolution === 'provisional') continue
+    updateHkgovAlsEstateCurationApplication(application.fixture, {
+      ...(resolution === 'revoke' ? { state: 'revoked' as const } : {}),
+      ...(resolution === 'verify'
+        ? { lastVerifiedSourceVersion: application.sourceVersion }
+        : {}),
+    })
+    await writeFile(
+      resolve(REPO_ROOT, 'fixtures/meta/curations', application.fixture),
+      serialiseHkgovAlsEstateCurationFixture(application.fixture),
+    )
   }
 }
 

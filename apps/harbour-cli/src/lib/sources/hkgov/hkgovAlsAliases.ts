@@ -1,4 +1,8 @@
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliases.json'
+import {
+  formatEnPremisesAddress,
+  formatZhPremisesAddress,
+} from './hkgovAlsNormalisation'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 const canonical = (value: unknown): string => {
@@ -20,7 +24,7 @@ export function resolveAlsAddressAliases(
     string,
     {
       owner: PreparedHkgovAlsRow
-      duplicate: PreparedHkgovAlsRow
+      duplicate?: PreparedHkgovAlsRow
       decision: (typeof fixture.aliases)[number]
     }
   >()
@@ -45,15 +49,27 @@ export function resolveAlsAddressAliases(
         `ALS alias ${decision.id}: source components changed; review required`,
       )
     }
-    if (candidates.length !== 2 || !owner || !duplicate || owner.id === duplicate.id) {
+    if (
+      !owner ||
+      candidates.length < 1 ||
+      candidates.length > 2 ||
+      (duplicate && owner.id === duplicate.id)
+    ) {
       fail()
       continue
     }
     if (
       owner.enEstateName !== decision.estate ||
-      duplicate.enEstateName !== decision.estate ||
       owner.enBuildingName !== decision.enBuildingName ||
-      owner.zhHantBuildingName !== decision.zhHantBuildingName ||
+      owner.zhHantBuildingName !== decision.zhHantBuildingName
+    )
+      fail()
+    if (!duplicate) {
+      aliases.set(owner.id, { owner, decision })
+      continue
+    }
+    if (
+      duplicate.enEstateName !== decision.estate ||
       owner.geometry !== duplicate.geometry
     )
       fail()
@@ -89,6 +105,28 @@ export function suppressAlsAddressAliases(
   aliases: ReturnType<typeof resolveAlsAddressAliases>,
 ) {
   for (const { owner, duplicate, decision } of aliases.values()) {
+    const en = JSON.parse(owner.engPremisesAddressJson ?? 'null')
+    const zh = JSON.parse(owner.chiPremisesAddressJson ?? 'null')
+    const duplicateEn =
+      duplicate && JSON.parse(duplicate.engPremisesAddressJson ?? 'null')
+    const duplicateZh =
+      duplicate && JSON.parse(duplicate.chiPremisesAddressJson ?? 'null')
+    en.EngBlock = duplicateEn?.EngBlock ?? {
+      BlockNo: decision.blockNumber,
+      BlockDescriptor: 'BLK',
+    }
+    zh.ChiBlock = duplicateZh?.ChiBlock ?? {
+      BlockNo: decision.blockNumber,
+      BlockDescriptor: '座',
+    }
+    owner.engPremisesAddressJson = JSON.stringify(en)
+    owner.chiPremisesAddressJson = JSON.stringify(zh)
+    owner.enBlockNumber = decision.blockNumber
+    owner.zhHantBlockNumber = decision.blockNumber
+    owner.enBlockDescriptor = en.EngBlock.BlockDescriptor ?? null
+    owner.zhHantBlockDescriptor = zh.ChiBlock.BlockDescriptor ?? null
+    owner.enFormattedAddress = formatEnPremisesAddress(en)
+    owner.zhHantFormattedAddress = formatZhPremisesAddress(zh)
     owner.curatedGranularity = 'building'
     const sources = JSON.parse(owner.sources ?? '{}')
     owner.sources = JSON.stringify({
@@ -98,16 +136,18 @@ export function suppressAlsAddressAliases(
         {
           dataset: 'saanseoi-address-alias',
           ...decision,
-          suppressedAddressId: duplicate.id,
+          suppressedAddressId: duplicate?.id ?? null,
           sourceEvidence: {
-            sources: JSON.parse(duplicate.sources ?? '{}'),
-            engPremisesAddress: JSON.parse(duplicate.engPremisesAddressJson ?? 'null'),
-            chiPremisesAddress: JSON.parse(duplicate.chiPremisesAddressJson ?? 'null'),
+            sources: duplicate ? JSON.parse(duplicate.sources ?? '{}') : null,
+            engPremisesAddress: duplicateEn,
+            chiPremisesAddress: duplicateZh,
           },
         },
       ],
     })
   }
-  const retained = rows.filter(row => !aliases.has(row.id))
+  const retained = rows.filter(
+    row => ![...aliases.values()].some(alias => alias.duplicate?.id === row.id),
+  )
   rows.splice(0, rows.length, ...retained)
 }

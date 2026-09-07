@@ -28,7 +28,7 @@ function rows() {
   )
 }
 
-test('suppresses only the reviewed duplicate and preserves raw alias evidence on its owner', () => {
+test('consolidates the reviewed duplicate and materialises its block on the HA house', () => {
   const input = rows()
   const aliases = resolveAlsAddressAliases(input, '2024-07-25.0')
   expect(input).toHaveLength(2)
@@ -36,7 +36,11 @@ test('suppresses only the reviewed duplicate and preserves raw alias evidence on
   suppressAlsAddressAliases(input, aliases)
   expect(input).toHaveLength(1)
   expect(input[0]?.id).toBe('source-0')
-  expect(input[0]?.enBlockNumber).toBeNull()
+  expect(input[0]?.enBlockNumber).toBe('6')
+  expect(input[0]?.zhHantBlockNumber).toBe('6')
+  expect(JSON.parse(input[0]?.engPremisesAddressJson ?? '{}').EngBlock.BlockNo).toBe(
+    '6',
+  )
   expect(JSON.parse(input[0]?.sources ?? '{}').hkgovAls.sourceFile).toBe(
     'publisher.geojson',
   )
@@ -46,10 +50,12 @@ test('suppresses only the reviewed duplicate and preserves raw alias evidence on
   ).toBe('6')
 })
 
-test('rejects missing, changed or ambiguous aliases and preserves out-of-bounds rows', () => {
-  expect(() => resolveAlsAddressAliases(rows().slice(0, 1), '2024-07-25.0')).toThrow(
-    'review required',
-  )
+test('backfills a sole unnumbered source owner and rejects changed or ambiguous aliases', () => {
+  const soleOwner = rows().slice(0, 1)
+  const soleOwnerAliases = resolveAlsAddressAliases(soleOwner, '2024-07-25.0')
+  suppressAlsAddressAliases(soleOwner, soleOwnerAliases)
+  expect(soleOwner).toHaveLength(1)
+  expect(soleOwner[0]?.enBlockNumber).toBe('6')
   const changed = rows()
   if (!changed[1]) throw new Error('Missing fixture')
   changed[1].geometry = 'another-point'

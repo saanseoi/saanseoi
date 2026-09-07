@@ -148,9 +148,10 @@ normal identity and division resolution, with June 2025 Address2D evidence and A
 2025 inventory evidence labelled separately. Unnamed publisher premises sharing a CSU
 remain distinct; they are not silently renamed or assigned the reconstructed inventory.
 
-Cheung Wah Estate retains ten named buildings and 5,120 units, suppressing their ten
-reviewed block-number duplicates while preserving source evidence. A block-number alias
-does not imply a separate section. Matching block numbers across buildings do not
+Cheung Wah Estate retains ten named buildings and 5,120 units. Their verified block
+numbers are materialised on the canonical HA house names across the reviewed historic
+range, while block-labelled duplicate assertions remain source evidence only. A block
+number does not imply a separate section. Matching block numbers across buildings do not
 establish equivalence. This differs from identified High/Low sections, which retain
 separate section records.
 

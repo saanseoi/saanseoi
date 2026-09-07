@@ -1,6 +1,11 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-components.json'
 import {
+  curationProvenance,
+  resolveHkgovAlsCurationVerification,
+  type HkgovAlsCurationApplication,
+} from './hkgovAlsCurationLifecycle'
+import {
   formatEnPremisesAddress,
   formatZhPremisesAddress,
 } from './hkgovAlsNormalisation'
@@ -12,8 +17,19 @@ export function restoreAlsEstateComponents(
   version: string,
 ) {
   let restored = 0
+  const applications: Array<{
+    fixture: 'hkgov-dpo-address-estate-components.json'
+    id: string
+    verification: 'unverified' | 'verified'
+  }> = []
   for (const d of fixture.restorations) {
-    if (!d.versions.includes(version)) continue
+    const application = fixture.application as HkgovAlsCurationApplication
+    const verification = resolveHkgovAlsCurationVerification(
+      version,
+      d.versions,
+      application,
+    )
+    if (!verification) continue
     for (const row of rows) {
       if (row.hkgovCsuId !== d.csu) continue
       const en = JSON.parse(row.engPremisesAddressJson ?? '{}')
@@ -24,6 +40,12 @@ export function restoreAlsEstateComponents(
       assert.equal(zh.ChiStreet?.StreetName, d.zhStreet)
       assert.equal(en.EngStreet?.BuildingNoFrom, d.streetNumber)
       assert.equal(zh.ChiStreet?.BuildingNoFrom, d.streetNumber)
+      if (
+        en.EngEstate?.EstateName === d.enEstate &&
+        zh.ChiEstate?.EstateName === d.zhEstate
+      ) {
+        continue
+      }
       assert(!en.EngEstate && !zh.ChiEstate, 'Reviewed estate gap source changed')
       assert.equal(row.enEstateName, null)
       assert.equal(row.zhHantEstateName, null)
@@ -41,12 +63,22 @@ export function restoreAlsEstateComponents(
         ...JSON.parse(row.sources),
         hkgovAlsEstateComponentRestoration: {
           ...d,
-          targetSourceVersion: version,
+          curation: curationProvenance({
+            application,
+            id: d.id,
+            sourceVersion: version,
+            verification,
+          }),
           originalEstate: { en: null, 'zh-hant': null },
         },
       })
       restored++
+      applications.push({
+        fixture: 'hkgov-dpo-address-estate-components.json',
+        id: d.id,
+        verification,
+      })
     }
   }
-  return { restored }
+  return { applications, restored }
 }

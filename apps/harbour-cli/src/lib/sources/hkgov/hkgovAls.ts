@@ -222,8 +222,8 @@ export async function prepareHkgovAlsAddressParquet(
   }
   applyAlsEstateNames(rows, options.sourceVersion)
   applyAlsLocalities(rows, options.sourceVersion)
-  restoreAlsEstateComponents(rows, options.sourceVersion)
-  restoreAlsEstateGaps(rows, options.sourceVersion, true)
+  const estateComponents = restoreAlsEstateComponents(rows, options.sourceVersion)
+  const estateGaps = restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
   backfillAlsCoordinates(rows, options.sourceVersion)
@@ -510,6 +510,10 @@ export async function prepareHkgovAlsAddressParquet(
   }
 
   return {
+    curationApplications: [
+      ...estateComponents.applications,
+      ...estateGaps.applications,
+    ],
     deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,
     driftCandidates: drift.candidates,
     featureCount: sourceFeatureCount,

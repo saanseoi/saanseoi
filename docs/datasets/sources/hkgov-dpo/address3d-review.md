@@ -122,40 +122,21 @@ The estate remains pending for its other baseline premises and chronological cha
 other April 2026 component changes. Both unnamed Low Block premises are identified;
 their source appearance and disappearance remain recorded in the publisher timeline.
 
-## Cheung Wah Estate: reviewed block-number aliases
+## Cheung Wah Estate: reviewed block-number components
 
-Cheung Yue House / 祥裕樓, CSU `3268539165T20050430`, suppresses its reviewed Block 2
-duplicate and retains one named building with 374 units. Both source assertions remain
-traceable. Verify the 30 release guards and earliest/latest preparation with
-`bun scripts/verify-cheung-lai-address3d.ts 3268539165T20050430 374`.
-
-Cheung Shun House / 祥順樓, CSU `3275739250T20050430`, also has a reviewed block-number
-alias: suppress Block 3 and retain the named building with its single 420-unit
-inventory. Both raw source assertions remain traceable. The rule covers all 30 retained
-releases and explicitly permits the August 2026 embedded `(BLK 3)` / `(3座)` labels.
-Verify with `bun scripts/verify-cheung-lai-address3d.ts 3275739250T20050430 420`.
-
-The user reviewed the Block 6 entry as an uncommon alternative description of Cheung Lai
-House / 祥禮樓, CSU `3252139344T20050430`. The
+The ten canonical HA house names retain their verified bilingual block components across
+the 30 retained releases: for example, Cheung Yue House / 祥裕樓 carries Block 2 /
+2座 and Cheung Lai House / 祥禮樓 carries Block 6 / 6座. The
 [`hkgov-dpo-address-aliases.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-aliases.json)
-fixture retains the unnumbered named building as the canonical address and suppresses
-the block-numbered duplicate. Both raw 3D assertions remain linked to its single
-560-unit inventory; the retained address also carries the suppressed 2D source evidence.
-Block 6 is not a section or a separate public address.
+fixture consolidates a paired block-labelled publisher assertion into its named house,
+or backfills the component when the only historic assertion is unnumbered. Each house
+remains one Address2D and its sole inventory owner; raw source assertions remain
+traceable. A block component is neither a building section nor a second public address.
 
-The rule checks the paired bilingual source components and equal coordinates across the
-30 retained releases. It accepts the explicitly listed August 2026 embedded block labels
-`CHEUNG LAI HSE (BLK 6)` / `祥禮樓(6座)` as well as the separate block fields.
-Conflicting inventories stop preparation before suppression.
-`bun scripts/verify-cheung-lai-address3d.ts` checks all release guards and the earliest
-and latest complete collection preparation.
-
-The user's estate-wide approval also covers Cheung Fung (Block 2, 404 units), Cheung Wo
-(Block 1, 404), Cheung Tak (Block 4, 792), Cheung Chi (Block 5, 816), Cheung King (Block
-3, 384), Cheung Lok (Block 1, 374) and Cheung Chung (Block 7, 592). All ten named
-buildings retain distinct ownership: 5,120 units, twenty raw 3D assertions and ten
-suppressed block-number aliases. No further per-building alias approval is required
-within these reviewed bounds. Other historical issues remain independently reviewable.
+The user-approved mapping also covers Cheung Fung (Block 2, 404 units), Cheung Wo (Block
+1, 404), Cheung Tak (Block 4, 792), Cheung Chi (Block 5, 816), Cheung King (Block 3,
+384), Cheung Lok (Block 1, 374), Cheung Shun (Block 3, 420) and Cheung Chung (Block 7,
+592). All ten houses retain distinct ownership of 5,120 units.
 
 `bun scripts/verify-cheung-lai-address3d.ts cheung-wah` checks all thirty release guards
 and earliest/latest combined preparation, including distinct owners and preserved source
