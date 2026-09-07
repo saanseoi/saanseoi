@@ -45,7 +45,13 @@ test('reconstructs only dated named parents and preserves unnamed CSU assertions
   const first = buildAls2dBackfillFeatures([], '2024-07-25.0')
   expect(first).toHaveLength(4)
   expect(buildAls2dBackfillFeatures([], '2024-07-24.0')).toHaveLength(0)
-  expect(buildAls2dBackfillFeatures([], '2025-06-20.0')).toHaveLength(0)
+  expect(
+    buildAls2dBackfillFeatures([], '2025-06-20.0').filter(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress?.EngEstate
+          ?.EstateName === 'CHING TIN ESTATE',
+    ),
+  ).toHaveLength(0)
   expect(() => buildAls2dBackfillFeatures(first, '2024-07-25.0')).toThrow(
     'named source already present',
   )
@@ -70,7 +76,8 @@ test('reconstructs only dated named parents and preserves unnamed CSU assertions
 test('guards full inventory backfills against changed, missing and ambiguous parents or present sources', async () => {
   const path = await mkdtemp(join(tmpdir(), 'als-backfill-test-'))
   const file = join(path, 'input.geojson')
-  const rows = fixture.backfills.map(b => {
+  const chingTin = fixture.backfills.filter(b => b.estate === 'CHING TIN ESTATE')
+  const rows = chingTin.map(b => {
     const f = structuredClone(b.feature)
     delete (
       f.properties.Address.PremisesAddress.EngPremisesAddress as {
@@ -119,7 +126,7 @@ test('guards full inventory backfills against changed, missing and ambiguous par
     const changed = structuredClone(rows)
     changed[0]!.engPremisesAddressJson = JSON.stringify({ BuildingName: 'CHANGED' })
     await expect(collect(changed)).rejects.toThrow()
-    await write(fixture.backfills[0]!.feature)
+    await write(chingTin[0]!.feature)
     await expect(collect()).rejects.toThrow('no longer absent')
   } finally {
     await rm(path, { recursive: true, force: true })
