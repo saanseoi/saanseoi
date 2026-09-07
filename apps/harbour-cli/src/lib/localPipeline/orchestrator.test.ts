@@ -148,6 +148,61 @@ describe('local import progress orchestration', () => {
     ])
   })
 
+  test('summarises imported SQL phases without redundant file counts', async () => {
+    const { createLocalImportProgressClient } = await import('./orchestrator.ts')
+    const completedLabels: string[] = []
+    const phase = (name: string) => ({
+      completedLabel: 'Import SQL (4)',
+      phase: name,
+      runningLabel: () => 'Import SQL (0/4)',
+      totalUnits: 1,
+    })
+    const client = createLocalImportProgressClient(
+      {
+        async publishDataset() {},
+        async stageCompleted() {},
+        async stageFailed() {},
+        async stageRunning() {},
+      },
+      {
+        beginPhase() {},
+        complete(label: string) {
+          completedLabels.push(stripAnsi(label))
+        },
+        update() {},
+      } as never,
+      {
+        cleanup: phase('cleanup'),
+        importPhases: [
+          phase('importAddressSqlSource'),
+          phase('importAddressSqlHistory'),
+          phase('importAddressSqlCurrent'),
+          phase('importAddressSqlStats'),
+        ],
+        publish: phase('publish'),
+      },
+    )
+
+    for (const [name, bytes] of [
+      ['importAddressSqlSource', 4.12 * 1024 ** 2],
+      ['importAddressSqlHistory', 6.83 * 1024 ** 2],
+      ['importAddressSqlCurrent', 3.35 * 1024 ** 2],
+      ['importAddressSqlStats', 482 * 1024],
+    ] as const) {
+      await client.stageRunning('release-id', name)
+      await client.stageCompleted('release-id', name, {
+        bytes,
+        durationMs: 100,
+        fileCount: 1,
+      })
+    }
+
+    expect(completedLabels.at(-1)).toContain(
+      'source: 100 ms · 4.12 MB; history: 100 ms · 6.83 MB; current: 100 ms · 3.35 MB; meta: 100 ms · 482 KB',
+    )
+    expect(completedLabels.at(-1)).not.toContain('1 files')
+  })
+
   test('rejects invalid concurrency instead of returning sparse results', async () => {
     const { mapWithConcurrency } = await import('./orchestrator.ts')
 
