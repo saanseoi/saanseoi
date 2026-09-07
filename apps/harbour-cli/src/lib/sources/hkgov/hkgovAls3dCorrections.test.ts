@@ -46,3 +46,51 @@ test('backfills Wing Ka House 8/F 817 and 819 from the reviewed July repair', as
     '9008b650bb3d791be1fc1e3aa51bba73d2878d26715fcea55ec8861abbc7a4e7',
   )
 })
+
+test('general omission policy backfills baseline inventories without backdating unrelated mergers', async () => {
+  const source = JSON.parse(
+    await readFile(
+      'data/hkgov/dpo/ALS/20240725-1048-ALS-GeoJSON/als_addresses_3d_(public_rental_housing).geojson',
+      'utf8',
+    ),
+  ) as { features: Als3dFeature[] }
+  for (const [building, addedCount] of [
+    ['KAI SHUN HOUSE', 1],
+    ['KWONG YAN HOUSE', 14],
+    ['LAI FU HOUSE', 11],
+  ] as const) {
+    const feature = source.features.find(
+      f =>
+        f.properties.Address.PremisesAddress.EngPremisesAddress?.BuildingName ===
+        building,
+    )
+    if (!feature) throw new Error(`Missing ${building}`)
+    const originalHash = publisherInventoryHash(feature)
+    const before =
+      feature.properties.Address.PremisesAddress.EngPremisesAddress!.Eng3dAddress!
+    const result = applyAls3dCorrections(feature, '2024-07-25.0')
+    const after =
+      result.feature.properties.Address.PremisesAddress.EngPremisesAddress!
+        .Eng3dAddress!
+    expect(after.length).toBe(before.length + addedCount)
+    expect(after).toEqual(expect.arrayContaining(before))
+    expect(publisherInventoryHash(feature)).toBe(originalHash)
+    expect(result.corrections).toHaveLength(1)
+    if (building === 'KAI SHUN HOUSE') {
+      expect(
+        after
+          .filter(
+            row =>
+              row.EngFloor?.FloorNum === 2 &&
+              String(row.EngUnit?.UnitNo).startsWith('218'),
+          )
+          .map(row => row.EngUnit?.UnitNo),
+      ).toEqual(['218A', '218B', '218C'])
+      expect(
+        after.some(
+          row => row.EngFloor?.FloorNum === 2 && row.EngUnit?.UnitNo === '219',
+        ),
+      ).toBe(true)
+    }
+  }
+})
