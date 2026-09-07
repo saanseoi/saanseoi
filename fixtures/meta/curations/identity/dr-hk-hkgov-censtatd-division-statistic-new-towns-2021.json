@@ -1,0 +1,65 @@
+{
+  "versionHash": "sha256:45ca6604480e1a79a115b3483713274f50bd267ec1f3e7001b3dc864da377b73",
+  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+  "resourceType": "division",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-new-towns-2021",
+  "cohortKey": "2021",
+  "domain": "new-town",
+  "authority": "hkgov-censtatd",
+  "mappingMethod": "manual-reviewed-identifiers",
+  "reviewStatus": "reviewed",
+  "mappings": [
+    {
+      "externalId": "11",
+      "canonicalId": "9598a407-bc95-5bce-84e1-d284b6322315"
+    },
+    {
+      "externalId": "13",
+      "canonicalId": "14dfb76e-4e82-5312-8fce-cfde214c04d5"
+    },
+    {
+      "externalId": "15",
+      "canonicalId": "355a5363-54d4-5784-9cdb-fcb10d826a9d"
+    },
+    {
+      "externalId": "17",
+      "canonicalId": "9da8edd6-58fa-51bd-8220-4269eea60585"
+    },
+    {
+      "externalId": "18",
+      "canonicalId": "47b64bdd-0605-58aa-b67f-824f143d4106"
+    },
+    {
+      "externalId": "20",
+      "canonicalId": "ecea60da-b31f-58c7-b32b-55ebb124039e"
+    },
+    {
+      "externalId": "22",
+      "canonicalId": "a529f49f-abe0-5a0b-8726-f9a78a6e5754"
+    },
+    {
+      "externalId": "24",
+      "canonicalId": "81587600-8b6a-5490-877a-358f82647bf4"
+    },
+    {
+      "externalId": "25",
+      "canonicalId": "84de4d2a-467f-5395-86cd-f873c84b4793"
+    },
+    {
+      "externalId": "27",
+      "canonicalId": "c13f1abe-eb5d-5255-b454-ef5e868913c1"
+    },
+    {
+      "externalId": "28",
+      "canonicalId": "d0b06deb-4842-507b-8284-a3254615e5aa"
+    },
+    {
+      "externalId": "30",
+      "canonicalId": "9e97c5d6-a99e-53ea-9e4f-61af2299ff50"
+    },
+    {
+      "externalId": "32",
+      "canonicalId": "c8f38f4d-2d3e-5dc4-b8f2-0eac3b05b23a"
+    }
+  ]
+}
