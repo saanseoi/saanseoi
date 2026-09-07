@@ -93,7 +93,14 @@ export default defineConfig({
           browser: {
             enabled: true,
             viewport: { width: 1280, height: 900 },
-            provider: playwright(),
+            // Share installed Chrome locally; CI uses its pinned Playwright browser.
+            provider: playwright({
+              launchOptions: {
+                channel:
+                  process.env.PLAYWRIGHT_CHROMIUM_CHANNEL ||
+                  (process.env.CI ? undefined : 'chrome'),
+              },
+            }),
             instances: [{ browser: 'chromium', headless: true }],
           },
           include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
