@@ -524,14 +524,14 @@ describe('resolveDivisionLookupSource', () => {
 
   test('uses remote Wrangler D1 for preview and production', () => {
     expect(resolveDivisionLookupSource({ environment: 'preview' })).toEqual({
-      databaseName: 'ss-current-db-preview',
+      databaseName: 'DB_CURRENT',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'preview',
     })
 
     expect(resolveDivisionLookupSource({ environment: 'production' })).toEqual({
-      databaseName: 'ss-current-db-prod',
+      databaseName: 'DB_CURRENT',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',
@@ -540,6 +540,17 @@ describe('resolveDivisionLookupSource', () => {
 })
 
 describe('resolveDivisionSnapshotSource', () => {
+  test('resolves remote metadata through the selected environment binding', () => {
+    for (const environment of ['preview', 'production'] as const) {
+      expect(resolveDivisionSnapshotSource({ environment })).toEqual({
+        databaseName: 'DB_META',
+        kind: 'wrangler',
+        mode: 'remote',
+        wranglerEnv: environment,
+      })
+    }
+  })
+
   test('uses the local meta sqlite path for dev by default', () => {
     const source = resolveDivisionSnapshotSource(
       { environment: 'dev' },

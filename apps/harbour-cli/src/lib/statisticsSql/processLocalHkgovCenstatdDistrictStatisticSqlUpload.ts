@@ -9,9 +9,15 @@ import {
   censtatdReleaseStatsProfileFor,
 } from '@repo/core/pipeline/services/censtatdReleaseStats'
 import { createHash as createNodeHash } from 'node:crypto'
+import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
+import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
-import type { SqlDeliveryPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import {
+  sqlDeliveryPhaseDirectory,
+  type SqlDeliveryPhase,
+} from '../localPipeline/sqlDeliveryPhase.ts'
+import { prepareCachedArtefact } from '../localPipeline/preparedArtefact.ts'
 import {
   completeSqlDeliveryRelease,
   readPendingSqlDelivery,
@@ -47,7 +53,7 @@ import {
   replayCanonicalStatsSqlBatches,
 } from './canonicalStatsSql.ts'
 import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
-import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import {
   loadCenstatdMeasureMetadata,
   resolveCenstatdFieldMetadata,
@@ -201,11 +207,19 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   let processingStarted = false
   let cacheMutationStarted = false
   const preparedSha256 = await deliveryFileSha256(preparedUpload.filePath)
+  let canonicalSha256: string | undefined
   const delivery = (phase: string): SqlDeliveryPhase => ({
+    nativeLocal: true,
     context,
     releaseId,
     phase,
-    inputs: { preparedSha256, sourceVersion: plan.sourceVersion },
+    inputs: {
+      preparedSha256,
+      sourceVersion: plan.sourceVersion,
+      releaseCode,
+      datasetCode,
+      canonicalSha256,
+    },
     onProgress: (completed, total) =>
       progress.message(`SQL delivery: ${completed}/${total} batches`),
   })
@@ -219,12 +233,27 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       progress,
       { action: 'Prepare', count: plan.rowCount, subject: 'statistic rows' },
       () =>
-        readSourceRows(
-          preparedUpload.filePath,
-          releaseId,
-          releaseCode,
-          plan.sourceVersion,
-        ),
+        prepareCachedArtefact({
+          directory: sqlDeliveryPhaseDirectory(
+            delivery('statistics-source-preparation'),
+          ),
+          inputs: {
+            contract: 'censtatd-district-source-v1',
+            preparedSha256,
+            releaseId,
+            releaseCode,
+            datasetCode,
+            sourceVersion: plan.sourceVersion,
+            rowCount: plan.rowCount,
+          },
+          generate: () =>
+            readSourceRows(
+              preparedUpload.filePath,
+              releaseId,
+              releaseCode,
+              plan.sourceVersion,
+            ),
+        }),
     )
     if (sourceRows.length !== 18 || sourceRows.length !== plan.rowCount) {
       throw new Error(
@@ -257,7 +286,10 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         sourceVersion: plan.sourceVersion,
       }
     })
-    let canonical = normaliseHkgovCenstatdStatistics(canonicalInput)
+    let canonical = await normaliseCachedStatistics(
+      sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+      canonicalInput,
+    )
     const fieldMetadata = await runStatisticProgressStep(
       progress,
       { action: 'Review', count: canonical.fields.length, subject: 'fields' },
@@ -272,39 +304,32 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       progress,
       { action: 'Curate', count: canonical.fields.length, subject: 'fields' },
       () =>
-        normaliseHkgovCenstatdStatistics(canonicalInput, {
-          fieldMetadata,
-          measureMetadata,
-        }),
-    )
-    const batches = await runStatisticProgressStep(
-      progress,
-      { action: 'Generate SQL', count: sourceRows.length, subject: 'source' },
-      () =>
-        buildStatisticSqlBatches({
-          history: { rows: historyRows, table: 'divisionStatistics' },
-          releaseCode,
-          releaseId,
-          source: {
-            rows: sourceRows,
-            table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        normaliseCachedStatistics(
+          sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+          canonicalInput,
+          {
+            fieldMetadata,
+            measureMetadata,
           },
-        }),
+        ),
     )
-    const canonicalBatches = await runStatisticProgressStep(
-      progress,
-      {
-        action: 'Generate SQL',
-        count: canonical.records.length,
-        subject: 'history',
-      },
-      () =>
-        buildCanonicalStatsSqlBatches({
-          current: canonicalCurrentRows(canonical),
-          history: canonicalHistoryRows(canonical, releaseId),
-          dictionaries: canonicalDictionaries(canonical, releaseId),
-        }),
-    )
+    canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const batches = () =>
+      buildStatisticSqlBatches({
+        history: { rows: historyRows, table: 'divisionStatistics' },
+        releaseCode,
+        releaseId,
+        source: {
+          rows: sourceRows,
+          table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        },
+      })
+    const canonicalBatches = () =>
+      buildCanonicalStatsSqlBatches({
+        current: canonicalCurrentRows(canonical),
+        history: canonicalHistoryRows(canonical, releaseId),
+        dictionaries: canonicalDictionaries(canonical, releaseId),
+      })
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -316,8 +341,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       progress,
       {
         action: 'Import SQL',
-        count:
-          (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
         subject: 'batches',
       },
       () =>
@@ -331,6 +354,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             onProgress(event) {
               if (event.phase === 'local-replay') cacheMutationStarted = true
               progress.update(event.completedBatches, {
+                max: event.totalBatches,
                 label: `Import SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
               })
             },
@@ -341,13 +365,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       progress,
       {
         action: 'Import canonical SQL',
-        count:
-          (canonicalBatches.current.length +
-            canonicalBatches.history.reduce(
-              (total, history) => total + history.batches.length,
-              0,
-            )) *
-          (target.remote ? 2 : 1),
         subject: 'batches',
       },
       () =>
@@ -355,6 +372,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           delivery: delivery('statistics-canonical'),
           onProgress(event) {
             progress.update(event.completedBatches, {
+              max: event.totalBatches,
               label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
             })
           },
@@ -468,8 +486,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         return published
       },
     )
-    if (target.remote)
-      await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
     progress.fail()

@@ -6,6 +6,7 @@ export async function captureSqlDeliveryBatches(
   capture: (target: { databaseId: string | null }, bytes: Uint8Array) => Promise<void>,
   generate: () => Promise<unknown>,
   maxBytes = 64 * 1024 * 1024,
+  local = false,
 ) {
   let target: { databaseId: string | null } | undefined
   let bytes = 0
@@ -41,27 +42,31 @@ export async function captureSqlDeliveryBatches(
     bytes += payload.byteLength + 1
   }
   try {
-    await withSqlDeliveryCapture((destination, payload) => {
-      pending = pending.then(async () => {
-        if (payload.byteLength + 1 <= maxBytes) {
-          await append(destination, payload)
-          return
-        }
-        // These are generated DML artefacts, not arbitrary user SQL or transactions.
-        const statements = splitSqlStatements(
-          new TextDecoder('utf-8', { fatal: true }).decode(payload),
-        )
-        if (
-          statements.some(statement =>
-            /^(BEGIN|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE)\b/i.test(statement),
+    await withSqlDeliveryCapture(
+      (destination, payload) => {
+        pending = pending.then(async () => {
+          if (payload.byteLength + 1 <= maxBytes) {
+            await append(destination, payload)
+            return
+          }
+          // These are generated DML artefacts, not arbitrary user SQL or transactions.
+          const statements = splitSqlStatements(
+            new TextDecoder('utf-8', { fatal: true }).decode(payload),
           )
-        )
-          throw new Error('Cannot split a SQL delivery transaction across payloads.')
-        for (const statement of statements)
-          await append(destination, new TextEncoder().encode(statement))
-      })
-      return pending
-    }, generate)
+          if (
+            statements.some(statement =>
+              /^(BEGIN|COMMIT|END|ROLLBACK|SAVEPOINT|RELEASE)\b/i.test(statement),
+            )
+          )
+            throw new Error('Cannot split a SQL delivery transaction across payloads.')
+          for (const statement of statements)
+            await append(destination, new TextEncoder().encode(statement))
+        })
+        return pending
+      },
+      generate,
+      local,
+    )
     await pending
     await flush()
   } finally {

@@ -459,6 +459,7 @@ async function prepareSupplementaryAddressesLocked(
         context: input.context,
         releaseId: input.releaseId,
         phase: 'places-address-actions',
+        nativeLocal: true,
         inputs: { plan: input.plan, snapshots: input.snapshots, actions },
       },
       async () => {
@@ -643,6 +644,7 @@ async function prepareSupplementaryAddressesLocked(
         context: input.context,
         releaseId: input.releaseId,
         phase: 'places-address-data',
+        nativeLocal: true,
         inputs: { materialisationHash, snapshotId: snapshot.id },
       },
       async () => {
@@ -778,6 +780,7 @@ async function prepareSupplementaryAddressesLocked(
         context: input.context,
         releaseId: input.releaseId,
         phase: 'places-address-metadata',
+        nativeLocal: true,
         inputs: { materialisationHash, snapshotId: snapshot.id },
       },
       async () =>

@@ -17,7 +17,7 @@ export type SqlDeliveryPlan = {
   id: string
   context: {
     releaseId: string
-    environment: 'preview' | 'production'
+    environment: 'local' | 'preview' | 'production'
     phase: string
     /** Frozen planning inputs, including selected snapshots and source checksums. */
     inputs: Record<string, unknown>
@@ -25,6 +25,8 @@ export type SqlDeliveryPlan = {
     cachePreparedAt: string
   }
   batches: SqlDeliveryBatch[]
+  /** Checksummed planner results required to continue the owning workflow. */
+  outputs?: Record<string, unknown>
   preparedAt: string
   generationMs: number
   mirrorPreparationMs: number

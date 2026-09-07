@@ -1,9 +1,10 @@
 import { readFile, rm } from 'node:fs/promises'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import {
   readDeliveryPlan,
   readDeliveryProgress,
   writeDeliveryFile,
+  withDeliveryLock,
 } from './sqlDeliveryFiles.ts'
 
 const NAME = 'pending-sql-delivery.json'
@@ -13,7 +14,21 @@ export async function readPendingSqlDelivery(
   cacheDir: string,
 ): Promise<Pending | null> {
   try {
-    return JSON.parse(await readFile(join(cacheDir, NAME), 'utf8')) as Pending
+    const pending = JSON.parse(await readFile(join(cacheDir, NAME), 'utf8')) as Pending
+    if (
+      !pending ||
+      typeof pending.releaseId !== 'string' ||
+      !pending.releaseId.trim() ||
+      !Array.isArray(pending.directories) ||
+      pending.directories.length === 0 ||
+      pending.directories.some(
+        directory => typeof directory !== 'string' || !directory.trim(),
+      )
+    )
+      throw new Error(
+        'Invalid SQL delivery ownership marker; refusing to infer an unowned cache.',
+      )
+    return pending
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
     throw error
@@ -52,16 +67,28 @@ export async function registerPendingSqlDelivery(
 
 /** Only the owning release may clear its marker after replay and metadata synchronisation. */
 export async function completeSqlDeliveryRelease(cacheDir: string, releaseId: string) {
+  return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), () =>
+    completeLocked(cacheDir, releaseId),
+  )
+}
+
+async function completeLocked(cacheDir: string, releaseId: string) {
   const pending = await readPendingSqlDelivery(cacheDir)
   if (pending?.releaseId !== releaseId) return false
   for (const directory of pending.directories) {
     const plan = await readDeliveryPlan(directory)
     if (!plan) throw new Error('Cannot clear an incomplete SQL delivery plan.')
+    if (
+      plan.context.releaseId !== releaseId ||
+      resolve(plan.context.cacheDir) !== resolve(cacheDir)
+    )
+      throw new Error('Pending SQL plan does not belong to this release and cache.')
     const progress = await readDeliveryProgress(directory, plan)
     if (
       plan.batches.some(
         batch =>
-          progress.remote[batch.index]?.status !== 'complete' ||
+          (plan.context.environment !== 'local' &&
+            progress.remote[batch.index]?.status !== 'complete') ||
           !progress.local[batch.index],
       )
     ) {

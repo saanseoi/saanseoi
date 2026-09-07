@@ -28,7 +28,6 @@ import {
 } from '@repo/core/pipeline/db/processingActions'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
-  importAddressSqlArtefactsAndPublish,
   importAddressSqlArtefacts,
   completeAddressSqlGenerationPhases,
   publishImportedAddressSqlRelease,
@@ -90,6 +89,10 @@ import {
   readDeliveryPlan,
 } from '../localPipeline/releaseSqlDelivery.ts'
 import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
+import {
+  prepareNativeSqlDelivery,
+  runNativeSqlDelivery,
+} from '../localPipeline/nativeSqlDelivery.ts'
 import { runReportedSqlImportPhase } from '../localPipeline/sqlImport.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
@@ -166,12 +169,8 @@ export async function processLocalAddressSqlUpload(
 
   await mkdir(releaseRoot, { recursive: true })
   const deliveryDirectory = resolve(releaseRoot, 'sql-delivery-address')
-  const retainedDelivery = target.remote
-    ? await readDeliveryPlan(deliveryDirectory)
-    : null
-  const preparedSha256 = target.remote
-    ? await fileSha256(preparedUpload.filePath)
-    : undefined
+  const retainedDelivery = await readDeliveryPlan(deliveryDirectory)
+  const preparedSha256 = await fileSha256(preparedUpload.filePath)
   if (
     retainedDelivery &&
     (retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
@@ -403,8 +402,40 @@ export async function processLocalAddressSqlUpload(
           ),
         })
       }
-      if (!target.remote) return generate3d(writeOptions)
       const directory = resolve(releaseRoot, 'sql-delivery-address3d')
+      if (!target.remote) {
+        const files = dbContext.state.files
+        if (!files) throw new Error('Missing native Address database paths.')
+        await prepareNativeSqlDelivery({
+          directory,
+          files,
+          ownershipDirectory: dbContext.state.dbCacheDir,
+          releaseId,
+          phase: 'address3d-data',
+          inputs: {
+            independentBoundTargets: true,
+            digest: prepared3d.digest,
+            snapshotId: versionInsertContext.snapshotId,
+            sourceVersion: previewPlan.sourceVersion,
+          },
+          generate: append =>
+            generate3d({
+              ...writeOptions,
+              captureQueries: async (destination, statements) => {
+                const binding = destination.binding?.bindingName
+                if (!binding || !files[binding])
+                  throw new Error('Unknown native Address3D binding.')
+                await append(
+                  { bindingName: binding, databaseId: binding },
+                  new TextEncoder().encode(JSON.stringify(statements)),
+                  'bound',
+                )
+              },
+            }),
+        })
+        await runNativeSqlDelivery(directory, { files })
+        return
+      }
       if (!writeOptions.isLocal) {
         await prepareReleaseSqlDelivery({
           directory,
@@ -695,13 +726,13 @@ export async function processLocalAddressSqlUpload(
       ),
     )
 
+    const noopClient = {
+      async publishDataset() {},
+      async stageRunning() {},
+      async stageCompleted() {},
+      async stageFailed() {},
+    }
     if (target.remote) {
-      const noopClient = {
-        async publishDataset() {},
-        async stageRunning() {},
-        async stageCompleted() {},
-        async stageFailed() {},
-      }
       await prepareReleaseSqlDelivery({
         directory: deliveryDirectory,
         context: dbContext,
@@ -750,15 +781,50 @@ export async function processLocalAddressSqlUpload(
         finalMessageWithMeta,
         { deferApiReleaseSet: options.deferApiReleaseSet },
       )
-    } else
-      publishResult = await importAddressSqlArtefactsAndPublish(
+    } else {
+      const files = dbContext.state.files
+      if (!files) throw new Error('Missing native Address database paths.')
+      await prepareNativeSqlDelivery({
+        directory: deliveryDirectory,
+        files,
+        ownershipDirectory: dbContext.state.dbCacheDir,
+        releaseId,
+        phase: 'address-data',
+        inputs: retainedDelivery?.context.inputs ?? {
+          preparedSha256,
+          address3dSha256: prepared3d?.digest ?? null,
+          message: finalMessageWithMeta,
+        },
+        generate: append =>
+          importAddressSqlArtefacts(
+            noopClient,
+            dbContext.metaDb,
+            bucket,
+            finalMessageWithMeta,
+            {
+              ...importOptions,
+              captureSql: async (destination, bytes) => {
+                const binding = destination.binding?.bindingName
+                if (!binding || !files[binding])
+                  throw new Error('Unknown native Address binding.')
+                await append({ bindingName: binding, databaseId: binding }, bytes)
+              },
+            },
+          ),
+      })
+      await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
+      await runNativeSqlDelivery(deliveryDirectory, {
+        files,
+        onProgress: (completed, total) =>
+          progress.message(`Local Address SQL: ${completed}/${total} batches`),
+      })
+      await import3d(importOptions)
+      publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
-        dbContext.metaDb,
-        bucket,
         finalMessageWithMeta,
-        importOptions,
         { deferApiReleaseSet: options.deferApiReleaseSet },
       )
+    }
     if (target.remote) {
       try {
         await runReportedSqlImportPhase(
@@ -802,6 +868,8 @@ export async function processLocalAddressSqlUpload(
       releaseCode,
       dbContext.historyDb,
     )
+    if (!target.remote)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
   } catch (error) {
     progress.fail()
     await harbourClient.stageFailed(

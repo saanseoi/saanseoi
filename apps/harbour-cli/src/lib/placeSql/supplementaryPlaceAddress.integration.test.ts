@@ -22,9 +22,15 @@ import { buildPlacesResetSql, collectOwnedPlaces } from '../commands/resetPlaces
 
 test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
-  const meta = new Database(':memory:')
-  const current = new Database(':memory:')
-  const history = new Database(':memory:')
+  const releaseId = `place-release-${crypto.randomUUID()}`
+  const files = {
+    DB_META: resolve(root, 'meta.sqlite'),
+    DB_CURRENT: resolve(root, 'current.sqlite'),
+    DB_HISTORY: resolve(root, 'history.sqlite'),
+  }
+  const meta = new Database(files.DB_META)
+  const current = new Database(files.DB_CURRENT)
+  const history = new Database(files.DB_HISTORY)
   try {
     for (const [db, profile] of [
       [meta, 'meta'],
@@ -45,7 +51,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       FROM datasets WHERE id = 'overture-hk-division';
       INSERT INTO datasetResourceTypes VALUES ('overture-hk-place', 'place');`)
     insertFixtureRelease(meta, {
-      releaseId: 'place-release',
+      releaseId,
       source: 'overture',
       regionCode: 'hk',
       rawObjectKey: 'places.parquet',
@@ -91,7 +97,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       datasetCode: 'ds-hk-overture-place',
       datasetId: 'overture-hk-place',
       regionCode: 'hk',
-      sourceReleaseId: 'place-release',
+      sourceReleaseId: releaseId,
     })
     const currentDb = drizzle({ client: current, schema: currentSchema })
     currentDb
@@ -127,7 +133,10 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     const target = (database: Database, name: 'current' | 'history' | 'meta') => ({
       name,
       databaseId: null,
-      binding: { prepare: (sql: string) => ({ run: async () => database.exec(sql) }) },
+      binding: {
+        bindingName: `DB_${name.toUpperCase()}`,
+        prepare: (sql: string) => ({ run: async () => database.exec(sql) }),
+      },
     })
     const place = normaliseOverturePlace(
       {
@@ -142,7 +151,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       curationPath,
       entryLedgerPath,
       context: {
-        state: { target: 'local' },
+        state: { target: 'local', dbCacheDir: root, files },
         currentDb,
         historyTargets: [
           {
@@ -160,7 +169,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       places: [place],
       historyRows: [],
       releaseRoot: root,
-      releaseId: 'place-release',
+      releaseId,
       datasetId: 'overture-hk-place',
       plan: {
         datasetCode: 'ds-hk-overture-place',
@@ -187,23 +196,10 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       resolve(root, 'entries.json.lock'),
       JSON.stringify({ pid: process.pid + 1_000_000, releaseId: 'interrupted-run' }),
     )
-    const failedImport = {
-      ...input,
-      targets: {
-        ...input.targets,
-        history: {
-          ...input.targets.history,
-          binding: {
-            prepare: () => ({
-              run: async () => {
-                throw new Error('simulated history import failure')
-              },
-            }),
-          },
-        },
-      },
-    } as unknown as typeof input
-    await expect(prepareSupplementaryAddresses(failedImport)).rejects.toThrow(
+    history.exec(
+      "CREATE TRIGGER fail_import BEFORE INSERT ON address2d BEGIN SELECT RAISE(ABORT, 'simulated history import failure'); END;",
+    )
+    await expect(prepareSupplementaryAddresses(input)).rejects.toThrow(
       'simulated history import failure',
     )
     expect(
@@ -213,6 +209,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         )
         .get(),
     ).toEqual({ n: 0 })
+    history.exec('DROP TRIGGER fail_import;')
     const progressEvents: string[] = []
     const first = await prepareSupplementaryAddresses({
       ...input,
@@ -225,7 +222,6 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         'stage:Place Address candidates',
         'progress:1',
         'stage:materialise supplementary Addresses',
-        'stage:rebuild supplementary Address search index',
       ]),
     )
     expect(
@@ -234,7 +230,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         .get(first.releaseId),
     ).toEqual({
       datasetId: 'overture-hk-place',
-      sourceReleaseId: 'source-place-release',
+      sourceReleaseId: `source-${releaseId}`,
     })
     expect(
       meta
@@ -244,7 +240,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(
       meta
         .query('SELECT status FROM sourceReleases WHERE id = ?')
-        .get('source-place-release'),
+        .get(`source-${releaseId}`),
     ).toEqual({ status: 'processing' })
     expect(first.addresses).toHaveLength(1)
     expect(first.addresses[0]?.canonical.granularity).toBe('unknown')
@@ -339,5 +335,13 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     current.close()
     history.close()
     await rm(root, { recursive: true, force: true })
+    await rm(
+      resolve(
+        import.meta.dir,
+        '../../../../../.local/harbour-sql/deliveries/local',
+        `release-${encodeURIComponent(releaseId)}`,
+      ),
+      { recursive: true, force: true },
+    )
   }
 })

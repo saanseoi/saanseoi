@@ -39,7 +39,11 @@ if (dbFamily === 'all') {
   progress.start('Clearing local upload state')
 
   await Promise.all([
-    rm(resolve(repoRoot, '.local/harbour-sql/releases'), {
+    rm(resolve(repoRoot, '.local/harbour-sql/releases/local'), {
+      force: true,
+      recursive: true,
+    }),
+    rm(resolve(repoRoot, '.local/harbour-sql/deliveries/local'), {
       force: true,
       recursive: true,
     }),

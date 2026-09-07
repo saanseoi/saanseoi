@@ -1,6 +1,12 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
-import type { SqlDeliveryPhase } from '../localPipeline/sqlDeliveryPhase.ts'
+import {
+  sqlDeliveryPhaseDirectory,
+  type SqlDeliveryPhase,
+} from '../localPipeline/sqlDeliveryPhase.ts'
+import { prepareCachedArtefact } from '../localPipeline/preparedArtefact.ts'
+import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
+import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
 import {
   completeSqlDeliveryRelease,
   readPendingSqlDelivery,
@@ -48,7 +54,7 @@ import {
   resolveHkgovCenstatdDistrictBridge,
   resolveHkgovCenstatdNewTownBridge,
 } from './censtatdDistrictBridge.ts'
-import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import {
   loadCenstatdMeasureMetadata,
   resolveCenstatdFieldMetadata,
@@ -150,11 +156,19 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   let processingStarted = false
   let cacheMutationStarted = false
   const preparedSha256 = await deliveryFileSha256(prepared.filePath)
+  let canonicalSha256: string | undefined
   const delivery = (phase: string): SqlDeliveryPhase => ({
+    nativeLocal: true,
     context,
     releaseId,
     phase,
-    inputs: { preparedSha256, sourceVersion: plan.sourceVersion },
+    inputs: {
+      preparedSha256,
+      sourceVersion: plan.sourceVersion,
+      releaseCode,
+      datasetCode,
+      canonicalSha256,
+    },
     onProgress: (completed, total) =>
       progress.message(`SQL delivery: ${completed}/${total} batches`),
   })
@@ -162,7 +176,22 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     const rows = await runStatisticProgressStep(
       progress,
       { action: 'Prepare', count: plan.rowCount, subject: 'statistic rows' },
-      () => readRows(prepared.filePath, releaseId, releaseCode),
+      () =>
+        prepareCachedArtefact({
+          directory: sqlDeliveryPhaseDirectory(
+            delivery('statistics-source-preparation'),
+          ),
+          inputs: {
+            contract: 'censtatd-general-source-v1',
+            preparedSha256,
+            releaseId,
+            releaseCode,
+            datasetCode,
+            sourceVersion: plan.sourceVersion,
+            rowCount: plan.rowCount,
+          },
+          generate: () => readRows(prepared.filePath, releaseId, releaseCode),
+        }),
     )
     if (rows.length !== plan.rowCount)
       throw new Error(
@@ -237,7 +266,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     let canonical = await runStatisticProgressStep(
       progress,
       { action: 'Normalise', count: rows.length, subject: 'records' },
-      () => normaliseHkgovCenstatdStatistics(canonicalInput),
+      () =>
+        normaliseCachedStatistics(
+          sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+          canonicalInput,
+        ),
     )
     const fieldMetadata = await runStatisticProgressStep(
       progress,
@@ -253,35 +286,28 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       { action: 'Curate', count: canonical.fields.length, subject: 'fields' },
       () =>
-        normaliseHkgovCenstatdStatistics(canonicalInput, {
-          fieldMetadata,
-          measureMetadata,
-        }),
+        normaliseCachedStatistics(
+          sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+          canonicalInput,
+          {
+            fieldMetadata,
+            measureMetadata,
+          },
+        ),
     )
-    const batches = await runStatisticProgressStep(
-      progress,
-      { action: 'Generate SQL', count: rows.length, subject: 'source' },
-      () =>
-        buildStatisticSqlBatches({
-          releaseCode,
-          releaseId,
-          source: { rows, table: 'hkgovCenstatdStatistics' },
-        }),
-    )
-    const canonicalBatches = await runStatisticProgressStep(
-      progress,
-      {
-        action: 'Generate SQL',
-        count: canonical.records.length,
-        subject: 'history',
-      },
-      () =>
-        buildCanonicalStatsSqlBatches({
-          current: canonicalCurrentRows(canonical),
-          history: canonicalHistoryRows(canonical, releaseId),
-          dictionaries: canonicalDictionaries(canonical, releaseId),
-        }),
-    )
+    canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const batches = () =>
+      buildStatisticSqlBatches({
+        releaseCode,
+        releaseId,
+        source: { rows, table: 'hkgovCenstatdStatistics' },
+      })
+    const canonicalBatches = () =>
+      buildCanonicalStatsSqlBatches({
+        current: canonicalCurrentRows(canonical),
+        history: canonicalHistoryRows(canonical, releaseId),
+        dictionaries: canonicalDictionaries(canonical, releaseId),
+      })
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -293,8 +319,6 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       {
         action: 'Import SQL',
-        count:
-          (batches.source.length + batches.history.length) * (target.remote ? 2 : 1),
         subject: 'batches',
       },
       () =>
@@ -308,6 +332,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             onProgress(event) {
               if (event.phase === 'local-replay') cacheMutationStarted = true
               progress.update(event.completedBatches, {
+                max: event.totalBatches,
                 label: `Import SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
               })
             },
@@ -318,13 +343,6 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       {
         action: 'Import canonical SQL',
-        count:
-          (canonicalBatches.current.length +
-            canonicalBatches.history.reduce(
-              (total, history) => total + history.batches.length,
-              0,
-            )) *
-          (target.remote ? 2 : 1),
         subject: 'batches',
       },
       () =>
@@ -332,6 +350,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           delivery: delivery('statistics-canonical'),
           onProgress(event) {
             progress.update(event.completedBatches, {
+              max: event.totalBatches,
               label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
             })
           },
@@ -438,8 +457,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         return published
       },
     )
-    if (target.remote)
-      await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
     progress.fail()
@@ -471,15 +489,12 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   }
 }
 
-async function readRows(filePath: string, releaseId: string, releaseCode: string) {
-  const rows: Array<Record<string, unknown>> = []
+async function* readRows(filePath: string, releaseId: string, releaseCode: string) {
   for await (const batch of readParquetObjectsInBatches(
     await asyncBufferFromFile(filePath),
     2048,
-  ))
-    rows.push(...batch)
-  return Promise.all(
-    rows.map(async row => {
+  )) {
+    for (const row of batch) {
       const sourceRecordId = requiredString(row.id, 'id')
       const properties = json(row.raw_properties, 'raw_properties')
       const source = json(row.sources, 'sources')
@@ -506,7 +521,7 @@ async function readRows(filePath: string, releaseId: string, releaseCode: string
         rawProperties: properties,
       }
       const now = new Date().toISOString()
-      return {
+      yield {
         ...payload,
         sourceRecordId,
         releaseId,
@@ -518,8 +533,8 @@ async function readRows(filePath: string, releaseId: string, releaseCode: string
         createdAt: now,
         updatedAt: now,
       }
-    }),
-  )
+    }
+  }
 }
 function json(value: unknown, field: string) {
   try {

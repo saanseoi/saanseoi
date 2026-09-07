@@ -304,20 +304,26 @@ export async function runResetOverturePlacesCommand(
     }
     if (dryRun) return
 
-    await rm(supplementaryEntryLedgerPath(targetName(target)), { force: true })
-    for (const asset of owned.assets) await deleteManagedSourceAsset(target, asset)
     const artefacts = buildResetArtefacts(context, owned)
     await executeResetSqlArtefacts({
       artefacts,
       cacheReleaseCodes: owned.releaseCodes,
+      cacheReleaseIds: owned.releaseIds,
       cacheRoot: RELEASE_ARTEFACT_ROOT,
       context,
       keepCache,
       remoteCacheErrorMessage:
         'Remote Places reset succeeded but its local cache could not be updated',
       target,
+      validateUnderLock: () => assertPlacesResetStillSafe(context, owned),
+      beforeSql: async () => {
+        for (const asset of owned.assets) await deleteManagedSourceAsset(target, asset)
+      },
+      afterSql: async () => {
+        await rm(supplementaryEntryLedgerPath(targetName(target)), { force: true })
+        await rm(manifestPath(target), { force: true })
+      },
     })
-    await rm(manifestPath(target), { force: true })
     outro('Overture Places reset complete')
   } finally {
     context.cleanup()

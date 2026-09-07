@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { createReadStream } from 'node:fs'
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type {
@@ -17,11 +18,28 @@ import {
   SOURCE_BUCKET,
   TILES_ROOT,
 } from './tilesConfig.ts'
-import { commandError, run, runQuiet, wranglerCommand } from './tilesExecution.ts'
+import { run, runQuiet, wranglerCommand } from './tilesExecution.ts'
+import { downloadTilesObject } from './tilesObjectRead.ts'
 
 export async function archiveMetadata(path: string) {
-  const [info, bytes] = await Promise.all([stat(path), readFile(path)])
-  return { size: info.size, sha256: createHash('sha256').update(bytes).digest('hex') }
+  const before = await stat(path)
+  const hash = createHash('sha256')
+  let size = 0
+  for await (const chunk of createReadStream(path)) {
+    size += chunk.length
+    hash.update(chunk)
+  }
+  const after = await stat(path)
+  if (
+    size !== before.size ||
+    after.size !== before.size ||
+    after.ino !== before.ino ||
+    after.dev !== before.dev ||
+    after.mtimeMs !== before.mtimeMs ||
+    after.ctimeMs !== before.ctimeMs
+  )
+    throw new Error('Basemap source changed while calculating archive metadata.')
+  return { size, sha256: hash.digest('hex') }
 }
 
 export function sourceArchiveKey(version: string) {
@@ -86,24 +104,17 @@ export async function getObject(
   key: string,
   path: string,
 ): Promise<boolean> {
-  await mkdir(resolve(path, '..'), { recursive: true })
-  const result = await runQuiet([
-    ...wranglerCommand(),
-    'r2',
-    'object',
-    'get',
-    `${bucket}/${key}`,
-    '--remote',
-    '--file',
-    path,
-  ])
-  if (result.exitCode === 0) return true
-  if (!result.stderr.trim() && !result.stdout.trim()) return false
-  if (/not found|does not exist|no such object/i.test(result.stderr)) return false
-  throw commandError(
-    [...wranglerCommand(), 'r2', 'object', 'get', `${bucket}/${key}`],
-    result.stderr,
-    result.stdout,
+  return downloadTilesObject(path, temporaryPath =>
+    runQuiet([
+      ...wranglerCommand(),
+      'r2',
+      'object',
+      'get',
+      `${bucket}/${key}`,
+      '--remote',
+      '--file',
+      temporaryPath,
+    ]),
   )
 }
 

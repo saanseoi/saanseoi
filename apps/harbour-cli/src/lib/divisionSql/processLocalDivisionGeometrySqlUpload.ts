@@ -80,7 +80,10 @@ import {
   selectOvertureHongKongAreasWithoutSourceGeometry,
 } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts'
 import { assertDivisionReferences } from './processLocalDivisionGeometrySqlUploadReferences.ts'
-import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
+import {
+  readNativeGeometryVersion,
+  writeGeometryRowsDurably,
+} from './nativeGeometryDelivery.ts'
 import {
   buildGeometryStats,
   buildOvertureGeometryProcessingActions,
@@ -488,16 +491,46 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    const identicalSnapshot = isCenstatdGeometryCompanionPlan(previewPlan)
-      ? await findIdenticalCenstatdGeometrySnapshot(
-          dbContext.currentDb,
-          metaDb,
-          previewPlan,
-          normalised,
-        )
+    const retainedVersion = await readNativeGeometryVersion(
+      dbContext,
+      releaseId,
+      previewPlan.type,
+      previewPlan.transform,
+    )
+    const retainedSnapshot = retainedVersion
+      ? await metaDb
+          .select({
+            id: metaSchema.metaSnapshots.id,
+            cohortKey: metaSchema.metaSnapshots.cohortKey,
+            parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId,
+            resourceType: metaSchema.metaSnapshots.resourceType,
+            snapshotLineageId: metaSchema.metaSnapshots.snapshotLineageId,
+            status: metaSchema.metaSnapshots.status,
+          })
+          .from(metaSchema.metaSnapshots)
+          .where(eq(metaSchema.metaSnapshots.id, retainedVersion.snapshotId))
+          .get()
       : null
-    const reusesExistingGeometrySnapshot = identicalSnapshot !== null
+    if (retainedVersion && !retainedSnapshot)
+      throw new Error(
+        'Retained native geometry snapshot is missing; refusing to replan.',
+      )
+    // A partial replay can already look identical in currentDb. Keep the sealed
+    // snapshot and materialisation decision instead of reclassifying that retry.
+    const identicalSnapshot =
+      !retainedVersion && isCenstatdGeometryCompanionPlan(previewPlan)
+        ? await findIdenticalCenstatdGeometrySnapshot(
+            dbContext.currentDb,
+            metaDb,
+            previewPlan,
+            normalised,
+          )
+        : null
+    const reusesExistingGeometrySnapshot = retainedVersion
+      ? Boolean(retainedVersion.skipCanonicalMaterialisation)
+      : identicalSnapshot !== null
     const snapshot =
+      retainedSnapshot ??
       identicalSnapshot ??
       (await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
         cohortKey: previewPlan.cohortKey,
@@ -605,7 +638,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         max: null,
       },
     )
-    const writeResult = await writeGeometryRows(
+    const writeResult = await writeGeometryRowsDurably(
       dbContext,
       previewPlan.type,
       normalised,
@@ -703,6 +736,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         (subject, operation) =>
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
         await deliveryFileSha256(preparedUpload.filePath),
+        releaseCode,
       )
     }
     if (options.deferPublish) {
@@ -778,8 +812,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         )
       }
     }
-    if (target.remote)
-      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
     return {
       snapshotId: snapshot.id,
       importedRows: normalised.length,

@@ -15,6 +15,8 @@ import {
   SOURCES_ROOT,
 } from './tilesConfig.ts'
 import { capture, commandSucceeds, dockerUser, run } from './tilesExecution.ts'
+import { archiveMetadata } from './tilesStorage.ts'
+import { retainTilesBuild } from './tilesBuildCheckpoint.ts'
 import {
   extractRegionalOsmSource,
   prepareGuangdongSource,
@@ -38,48 +40,43 @@ export async function buildTileset(
     .digest('hex')
     .slice(0, 12)
   const image = `protomaps/basemaps:${basemaps.commit.slice(0, 12)}-regional-coastline-${regionalPatchHash}`
-  const imageExists = await commandSucceeds(['docker', 'image', 'inspect', image])
-  if (!imageExists) {
-    await run(['docker', 'build', '--tag', image, resolve(basemaps.path, 'tiles')])
-  }
-
-  await run([
-    'docker',
-    'run',
-    '--rm',
-    '--user',
-    dockerUser(),
-    '--volume',
-    `${resolve(OUTPUT_ROOT, region.code)}:/tiles/data`,
-    '--volume',
-    `${SOURCES_ROOT}:/tiles/data/sources`,
+  const readBuildInputs = async () => ({
+    contract: 1,
+    region,
     image,
-    '--download',
-    `--output=data/${basename(outputPath)}`,
-    `--area=${prepared.source.planetilerArea}`,
-    `--clip=/tiles/data/sources/${prepared.clip.fileName}`,
-    '--clip-buffer=0',
-    `--regional-land=/tiles/data/${basename(coastline.land.path)}`,
-    `--regional-water=/tiles/data/${basename(coastline.water.path)}`,
-    `--regional-coastline=/tiles/data/${basename(coastline.line.path)}`,
-    ...(coastline.border
-      ? [`--regional-border=/tiles/data/${basename(coastline.border.path)}`]
-      : []),
-    ...(force ? ['--force'] : []),
-  ])
+    saanSeoiCommit: saanSeoiCommit.trim(),
+    source: prepared.source,
+    sourceFile: await archiveMetadata(prepared.source.path),
+    clip: await archiveMetadata(resolve(SOURCES_ROOT, prepared.clip.fileName)),
+    land: await archiveMetadata(coastline.land.path),
+    water: await archiveMetadata(coastline.water.path),
+    line: await archiveMetadata(coastline.line.path),
+    border: coastline.border ? await archiveMetadata(coastline.border.path) : null,
+  })
+  const buildInputs = await readBuildInputs()
+  return retainTilesBuild({
+    outputPath,
+    inputs: buildInputs,
+    force,
+    build: async temporaryPath => {
+      const imageExists = await commandSucceeds(['docker', 'image', 'inspect', image])
+      if (!imageExists) {
+        await run(['docker', 'build', '--tag', image, resolve(basemaps.path, 'tiles')])
+      }
 
-  return {
-    archivePath: outputPath,
-    provenance: {
-      type: 'planetiler',
-      basemaps: { repository: BASEMAPS_REPOSITORY, commit: basemaps.commit },
-      saanSeoi: { repository: SAANSEOI_REPOSITORY, commit: saanSeoiCommit.trim() },
-      dockerImage: image,
-      regionalCoastline:
-        'source-local earth, water, coastline, and optional land-border layers',
-      command: [
+      await run([
+        'docker',
+        'run',
+        '--rm',
+        '--user',
+        dockerUser(),
+        '--volume',
+        `${resolve(OUTPUT_ROOT, region.code)}:/tiles/data`,
+        '--volume',
+        `${SOURCES_ROOT}:/tiles/data/sources`,
+        image,
         '--download',
-        `--output=data/${basename(outputPath)}`,
+        `--output=data/${basename(temporaryPath)}`,
         `--area=${prepared.source.planetilerArea}`,
         `--clip=/tiles/data/sources/${prepared.clip.fileName}`,
         '--clip-buffer=0',
@@ -90,16 +87,46 @@ export async function buildTileset(
           ? [`--regional-border=/tiles/data/${basename(coastline.border.path)}`]
           : []),
         ...(force ? ['--force'] : []),
-      ],
-      clip: {
-        fileName: prepared.clip.fileName,
-        boundaryRelations: prepared.clip.boundaryRelations,
-        buffer: prepared.clip.buffer,
-      },
-      ...(prepared.source ? { source: prepared.source } : {}),
-      builtAt: new Date().toISOString(),
+      ])
+
+      if (JSON.stringify(await readBuildInputs()) !== JSON.stringify(buildInputs))
+        throw new Error(
+          'Basemap inputs changed during the build; refusing to retain the archive.',
+        )
+      return {
+        archivePath: outputPath,
+        provenance: {
+          type: 'planetiler',
+          basemaps: { repository: BASEMAPS_REPOSITORY, commit: basemaps.commit },
+          saanSeoi: { repository: SAANSEOI_REPOSITORY, commit: saanSeoiCommit.trim() },
+          dockerImage: image,
+          regionalCoastline:
+            'source-local earth, water, coastline, and optional land-border layers',
+          command: [
+            '--download',
+            `--output=data/${basename(temporaryPath)}`,
+            `--area=${prepared.source.planetilerArea}`,
+            `--clip=/tiles/data/sources/${prepared.clip.fileName}`,
+            '--clip-buffer=0',
+            `--regional-land=/tiles/data/${basename(coastline.land.path)}`,
+            `--regional-water=/tiles/data/${basename(coastline.water.path)}`,
+            `--regional-coastline=/tiles/data/${basename(coastline.line.path)}`,
+            ...(coastline.border
+              ? [`--regional-border=/tiles/data/${basename(coastline.border.path)}`]
+              : []),
+            ...(force ? ['--force'] : []),
+          ],
+          clip: {
+            fileName: prepared.clip.fileName,
+            boundaryRelations: prepared.clip.boundaryRelations,
+            buffer: prepared.clip.buffer,
+          },
+          ...(prepared.source ? { source: prepared.source } : {}),
+          builtAt: new Date().toISOString(),
+        },
+      }
     },
-  }
+  })
 }
 
 export async function prepareRegionInputs(

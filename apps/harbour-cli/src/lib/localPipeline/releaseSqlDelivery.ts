@@ -4,6 +4,12 @@ import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import { prepareSqlDelivery, runSqlDelivery, readDeliveryPlan } from './sqlDelivery.ts'
 import type { SqlDeliveryTarget } from './sqlDeliveryTypes.ts'
 import { readBoundDeliveryStatements } from './sqlDeliveryFiles.ts'
+import { withDeliveryLock } from './sqlDeliveryFiles.ts'
+import { readSqlDeliveryGeneration } from './sqlDeliveryGeneration.ts'
+import {
+  assertSqlDeliveryPlanningAllowed,
+  registerPendingSqlDelivery,
+} from './sqlDeliveryPending.ts'
 
 export async function prepareReleaseSqlDelivery(input: {
   directory: string
@@ -18,8 +24,29 @@ export async function prepareReleaseSqlDelivery(input: {
       bytes: Uint8Array,
       kind?: 'sql' | 'bound',
     ) => Promise<void>,
-  ) => Promise<void>
+  ) => Promise<void | Record<string, unknown>>
 }) {
+  return withDeliveryLock(
+    join(input.context.state.dbCacheDir, 'sql-delivery-lock'),
+    async () => {
+      const plan = await prepareReleaseSqlDeliveryLocked(input)
+      await registerPendingSqlDelivery(
+        input.context.state.dbCacheDir,
+        input.releaseId,
+        input.directory,
+      )
+      return plan
+    },
+  )
+}
+
+async function prepareReleaseSqlDeliveryLocked(
+  input: Parameters<typeof prepareReleaseSqlDelivery>[0],
+) {
+  await assertSqlDeliveryPlanningAllowed(
+    input.context.state.dbCacheDir,
+    input.releaseId,
+  )
   if (input.context.state.target === 'local')
     throw new Error('Remote SQL delivery requires a remote mirror.')
   const mirror = JSON.parse(
@@ -31,7 +58,13 @@ export async function prepareReleaseSqlDelivery(input: {
       releaseId: input.releaseId,
       environment: input.context.state.target,
       phase: input.phase,
-      inputs: input.inputs,
+      inputs: {
+        ...input.inputs,
+        resetGeneration: await readSqlDeliveryGeneration(
+          input.context.state.dbCacheDir,
+          input.releaseId,
+        ),
+      },
       cacheDir: input.context.state.dbCacheDir,
       cachePreparedAt: mirror.preparedAt,
     },
@@ -71,7 +104,7 @@ export async function prepareReleaseSqlDelivery(input: {
         boundBytes = 0
         boundTarget = undefined
       }
-      await input.generate(async (target, bytes, kind) => {
+      const outputs = await input.generate(async (target, bytes, kind) => {
         const binding = Object.entries(input.context.state.bindings).find(
           ([, value]) => value.databaseId === target.databaseId,
         )
@@ -119,6 +152,7 @@ export async function prepareReleaseSqlDelivery(input: {
       })
       await flushBound()
       for (const databaseId of independent.keys()) await flushIndependent(databaseId)
+      return outputs
     },
     input.timings,
   )

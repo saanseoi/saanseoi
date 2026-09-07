@@ -126,18 +126,21 @@ export async function replayStatisticSqlBatches(
     'historyBinding' | 'historyTargets' | 'sourceBinding' | 'sourceTargets'
   >,
   shardYear: string,
-  batches: StatisticSqlBatches,
+  input:
+    | StatisticSqlBatches
+    | (() => StatisticSqlBatches | Promise<StatisticSqlBatches>),
   options: StatisticSqlReplayOptions = {},
 ) {
-  if (target.remote && options.delivery) {
+  if (options.delivery) {
     await deliverSqlPhase(options.delivery, () =>
-      replayStatisticSqlBatches(target, context, shardYear, batches, {
+      replayStatisticSqlBatches(target, context, shardYear, input, {
         ...options,
         delivery: undefined,
       }),
     )
     return
   }
+  const batches = typeof input === 'function' ? await input() : input
   const execute = options.executeSql ?? executeSqlText
   const remoteReplay = target.remote
     ? resolveRemoteReplay(target, context, shardYear, batches, options)

@@ -1,5 +1,12 @@
 # Resumable SQL delivery
 
+Delivery phases may retain checksummed workflow outputs alongside SQL payloads. Native
+and remote preparation return the original outputs on resume without invoking their
+generators. Canonical and Planning Division imports retain their original completion
+counts, and canonical imports also retain their SQL artefact count. Family validators
+check these outputs before native or remote replay starts. Missing or invalid counts
+stop delivery without executing the retained SQL.
+
 Address 2D, grouped Address3D, Divisions, Statistics and Places SQL delivery use the
 local D1 mirror as their planning context. Each delivery phase seals every payload
 before sending writes.
@@ -21,6 +28,65 @@ Each plan contains:
 A sealed plan is immutable. Recovery reads retained payloads without calculating
 replacement SQL from a partially updated mirror. Changed checksums, target configuration
 or mirror generation stop recovery.
+
+## Local SQL execution
+
+Native SQLite bindings execute each generated SQL payload in one immediate transaction.
+Every statement result is checked before the next statement or completion receipt runs.
+A statement failure rolls back the entire payload, including work beyond an internal
+statement-batch boundary. Lock retries retry the complete transaction. Address imports
+and the shared Division, Statistics and Places SQL importer use this native path; D1
+bindings retain their bounded prepared-statement execution.
+
+Payload atomicity is not a durable local release checkpoint. A local workflow restart
+can still repeat preparation and previously successful payloads; receipt-backed remote
+mirror recovery remains distinct from native local-environment ingestion.
+
+The native local checkpoint executor accepts sealed plans with `environment: local`. It
+records a database identity in the operational receipt table and checks configured paths
+and identities before replay. Payloads and receipts commit together; acknowledged
+receipts that disappear cause recovery to stop. Full database reset scripts drop the
+receipt table, invalidating its identity. Local plans require no Cloudflare credentials
+and can be inspected or recovered with `sql:status` or `sql:resume --target local`.
+Family ingestion entry points must explicitly prepare native plans; the executor alone
+does not make a local workflow resumable.
+
+Native preparation holds the cache-wide delivery lock while checking ownership,
+registering database identities and sealing SQL. A successfully prepared plan reserves
+the cache for its release before replay starts. Competing preparation or replay fails
+while that lock is held; another release cannot prepare against a reserved cache.
+
+Both Statistics importers use native local plans for source and canonical SQL. Canonical
+Division and Planning Department SQL artefact imports also use native plans. Their local
+database context carries configured file paths and named shard bindings. An unfinished
+plan blocks another release from opening that context; successful publication releases
+ownership after all registered payloads have local receipts. Local metadata preparation
+and source preparation retain their own workflow boundaries.
+
+Native local geometry materialisation runs the existing writer against SQLite
+`VACUUM INTO` planning copies under the cache-wide lock. The copies include committed
+WAL data and preserve read-after-write behaviour. A disk-backed journal captures exact
+current, history and source mutations, including superseded-row closures and change
+journals, without mutating the target during generation. SQL payloads and churn outputs
+are checksummed in the sealed plan. Resume verifies normalised inputs and reuses those
+outputs without rerunning the geometry writer. Publication follows successful replay;
+deferred publication retains release ownership. Remote geometry materialisation retains
+its separate mirror workflow.
+
+Remote geometry plans include version-qualified closure updates for historical rows
+named by the snapshot change journal and source rows closed by the release code. These
+updates carry closure timestamps without retransmitting historical geometry. C&SD
+simplified phases also retain source-derivative rows and their composite-key closures.
+
+Local Places data, search and supplementary Address data use native plans. Supplementary
+review and policy decisions remain outside SQL capture. Search follows committed Place
+data, and the owning Places workflow clears its local pending marker only after success.
+
+Address 2D artefacts and grouped Address3D bound writes use native plans for local
+ingestion. Retained Address 2D plans supply the frozen generation message and timestamp
+on workflow restart. Address3D still performs owner reads during first preparation;
+mutations are sealed as parameterised collection payloads. Both phases finish before
+publication, and successful local lookup-cache finalisation releases ownership.
 
 ## Receipts
 
@@ -47,6 +113,17 @@ database's statement order. A collection is never split between requests. SQL pa
 flush all pending bound groups as an ordering barrier; other producers retain
 adjacent-only batching unless they explicitly declare independent target writes.
 
+Native Address3D delivery uses the same independent-target opt-in. Pending groups hold
+up to 64 statements or 16 MiB of serialised collections per target, with a 64 MiB
+aggregate buffer budget. A larger atomic collection is emitted directly rather than
+split. Ordinary SQL flushes all groups before execution order can cross that boundary.
+
+Run `bun run scripts/benchmark-native-bound-delivery.ts` for three alternating local
+control/grouped comparisons on identical synthetic collections. It measures durable
+preparation, native replay and receipt-backed resume, verifies every row and its order,
+and retains a report under `.cache/sql-delivery-benchmarks`. This measures delivery, not
+full Address3D ingestion; `--quick` runs a smaller smoke comparison.
+
 Recovery groups receipt lookups by target database, checking up to 99 batch indices in
 each query. Local replay verifies all required receipts before any local payload runs.
 Remote resume groups checks for previously attempted batches; new writes and ambiguous
@@ -58,6 +135,34 @@ releases cannot plan against that mirror until it is reconciled. Cache-wide and
 plan-specific advisory locks prevent competing local recovery writers. Receipts prove
 this delivery's completion; external writers must still respect release-operation
 ownership of the mirror and target databases.
+
+Release completion holds the same cache-wide lock as phase registration while checking
+plans and clearing ownership. Every registered plan must belong to that release and
+cache. Malformed pending markers stop planning and completion; they are never treated as
+an unowned cache.
+
+Both native and remote preparation register cache ownership before releasing the
+cache-wide lock after sealing a plan. A different release cannot begin preparation in
+the gap between sealing and execution. Failed unsealed preparation does not reserve the
+cache.
+
+Scoped family reset SQL acquires the cache-wide delivery lock and rechecks pending
+ownership immediately before execution. It refuses to issue local or remote SQL while a
+retained delivery owns the cache, even if that delivery started after the reset
+command's initial checks. This guard covers SQL execution and its cache cleanup; source
+asset deletion and review-file cleanup/restoration share that lock. Family ownership
+checks run again under the lock before invalidating plans or deleting assets. Source
+objects are removed before their database ownership records; review-file completion runs
+only after SQL and cache cleanup succeed. These steps are ordered, not a cross-storage
+transaction: failures still require inspecting the retained reset manifest.
+
+Scoped resets advance the owned releases' delivery generations before destructive SQL.
+Native and remote plans bind that generation and check it before replay, so receipts
+from reset data cannot confirm a fresh import. Other releases' generations and receipt
+evidence remain intact. Normal reset cleanup removes only the owned releases' retained
+phase directories; `--keep-cache` preserves them as invalidated diagnostic artefacts.
+Full local database reset clears local release and delivery artefacts without removing
+preview or production release artefacts.
 
 ## Commands
 
@@ -98,6 +203,12 @@ and replayed locally only after the retained Places data has reached the mirror.
 
 ## Timings
 
+Geometry replay reads data tables through SQLite iterators only when preparing a new
+plan. SQL generation retains a bounded statement window rather than whole-table row and
+SQL arrays. Existing plans bypass these replay-table reads and SQL generation. Metadata
+is small and materialised separately; source normalisation and geometry materialisation
+remain earlier workflow stages.
+
 Plans record mirror preparation and SQL generation durations. Batch progress records
 upload/initialisation, remote execution/polling and local replay time in milliseconds.
 Bound query execution has no separate bulk-upload phase. These client-observed timings
@@ -106,6 +217,27 @@ duration. A recovered receipt can prove completion without recovering a timing s
 lost when the process terminated.
 
 ## Local benchmark
+
+`bun scripts/benchmark-statistic-normalisation.ts` compares direct and cached canonical
+normalisation for synthetic 18-row and 2,000-row cohorts with 20 fields per row. It
+verifies identical output digests and includes cache-identity hashing and checksum
+validation in cache timings. An observed 2,000-row run took 93 ms for warmed direct
+normalisation and 69–70 ms for warm cache reads, with 295 ms to populate the cache. The
+18-row cohort takes approximately 1 ms directly and bypasses canonical disk caching.
+These are component measurements, not end-to-end release speedups.
+
+`bun scripts/benchmark-preparation.ts <existing.parquet>` compares direct Parquet
+decoding with cold and warm checksummed row preparation. It checks exact row digests,
+forbids network access, leaves application databases untouched and retains its report
+under `.cache/preparation-benchmarks/`. Timings exclude input-checksum calculation and
+result verification. Reported RSS is an end-of-phase process reading, not isolated peak
+memory for a phase.
+
+A preparation cache is not automatically faster than decoding Parquet. Measure the
+complete work it replaces, including normalisation and hashing, before applying it to
+another family. A local 5,269-row Planning geometry sample took 308 ms to decode, 2,900
+ms to create the row cache, and 370–371 ms to reopen it. Those measurements cover raw
+preparation only, not geometry materialisation, SQL delivery or a full release.
 
 Run `bun run scripts/benchmark-sql-delivery.ts` to compare coalesced and uncoalesced
 durable preparation on identical synthetic bound collections. Five alternating runs

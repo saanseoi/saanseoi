@@ -242,14 +242,12 @@ async function loadPublishedDivisionSnapshotIdFromWrangler(
   target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
   cohortKey: string,
 ) {
-  const metaDatabaseName =
-    target.wranglerEnv === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview'
   const args = [
     'x',
     'wrangler',
     'd1',
     'execute',
-    metaDatabaseName,
+    'DB_META',
     `--${target.mode}`,
     '--config',
     HARBOUR_API_WRANGLER_CONFIG,
@@ -329,7 +327,7 @@ export function resolveDivisionLookupSource(
 
   if (options.environment === 'production') {
     return {
-      databaseName: 'ss-current-db-prod',
+      databaseName: 'DB_CURRENT',
       kind: 'wrangler',
       mode: 'remote',
       wranglerEnv: 'production',
@@ -337,7 +335,7 @@ export function resolveDivisionLookupSource(
   }
 
   return {
-    databaseName: 'ss-current-db-preview',
+    databaseName: 'DB_CURRENT',
     kind: 'wrangler',
     mode: 'remote',
     wranglerEnv: 'preview',
@@ -365,8 +363,7 @@ export function resolveDivisionSnapshotSource(
   }
 
   return {
-    databaseName:
-      options.environment === 'production' ? 'ss-meta-db-prod' : 'ss-meta-db-preview',
+    databaseName: 'DB_META',
     kind: 'wrangler',
     mode: 'remote',
     wranglerEnv: options.environment === 'production' ? 'production' : 'preview',

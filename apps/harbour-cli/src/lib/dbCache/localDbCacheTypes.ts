@@ -47,9 +47,15 @@ export type RemoteCacheReplayJournal = {
 type LocalD1PreparedStatement = {
   run(): Promise<unknown>
   sql: string
+  params?: import('bun:sqlite').SQLQueryBindings[]
+  bind(...params: unknown[]): LocalD1PreparedStatement
+  all(): Promise<{ results: Record<string, unknown>[] }>
 }
 
 export type LocalD1ExecBinding = {
+  bindingName?: string
+  /** Native SQLite-only atomic execution of a generated SQL payload. */
+  executeSqlBatch?(sql: string): Promise<void>
   batch(statements: LocalD1PreparedStatement[]): Promise<unknown>
   prepare(sql: string): LocalD1PreparedStatement
 }
@@ -81,6 +87,7 @@ export type LocalAddressDbContext = {
     year: string
   }>
   state: {
+    files?: Record<string, string>
     bindings: Record<
       string,
       {
