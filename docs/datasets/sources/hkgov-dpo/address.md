@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+The reviewed Tsui Lam complex promotion routes the blockless Pik Lam House 3D assertion
+to retained Block 1. Both publisher assertions contribute source references to one
+430-unit inventory; conflicting inventories stop preparation. The promoted estate
+complex does not own those residential units.
+
 ALS Address2D and Address3D source tables retain their complete `rawProperties` payload
 with source identity, release tracking and provenance. Source identifiers, coordinates
 and bilingual components remain in that payload; canonical history/current tables own
@@ -257,6 +262,21 @@ assertion to the Tsui Lam Estate complex at 11 Tsui Lam Road. Its latest reviewe
 `[114.24977, 22.32093]`, is backfilled from the earliest retained release. Block 1 stays
 as the independent numbered building assertion, with its source components and point
 unchanged.
+
+Youth College's campus-specific bilingual label starts on 19 August 2026, guarded by the
+reviewed history-event fingerprint and CSU `4361820309T20050430`. The earlier
+`YOUTH COLLEGE / 青年學院` label is retained without backfill. Tsui Heng House's exact
+`311A/C/D → 311` and `408A/D → 408` mergers are instead backfilled from the start of
+retained history, using bilingual identity and inventory hashes in the 3D correction
+fixture. Original inventories remain source evidence.
+
+`hkgov-dpo-address-upper-estate-complexes.json` retains Upper Ngau Tau Kok Estate at 15
+On Tak Road and Upper Wong Tai Sin Estate at the user-approved 8 Wong Tai Sin Road until
+revoked. The former is a distinct estate identity, leaving the source car-park premise
+and Sheung Yuet House intact. The latter selects only CSU `3781722749T20080408`,
+preserving its original 9 Wong Tai Sin Road assertion as provenance and leaving the
+separate 136 Lung Cheung Road assertion intact. Derived estate identities carry neither
+publisher CSU nor GeoAddress nor house inventories.
 
 Tsz Fai House's exact `418A/B/C` to `418` merger is dated 13 August 2025. Flat `419`
 starts on that same date as a new flat and is not backfilled into earlier releases.
