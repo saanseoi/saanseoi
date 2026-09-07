@@ -1,3 +1,10 @@
+import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
+import { resolveDataRegion } from '../../../schema/region'
 import { derivePlaceReferenceName } from '@repo/core'
 import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
@@ -20,11 +27,9 @@ import {
   PlacesByCellParamsSchema,
   PlacesByCellQuerySchema,
   PlacesByCellResponseSchema,
-  PlacesListParamsSchema,
   PlacesListQuerySchema,
   PlacesListResponseSchema,
-  RegionPlaceParamsSchema,
-  SearchParamsSchema,
+  PlaceParamsSchema,
   SearchQuerySchema,
   SearchResponseSchema,
   ValidationErrorOpenAPIResponse,
@@ -67,10 +72,10 @@ const ROUTE_VARIANTS = [
     requestedVersionPath: 'places/v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-places-v0.1' as const,
-    listPath: '/places/v0/{region}',
-    detailPath: '/places/v0/{region}/{id}',
-    byCellPath: '/places/v0/{region}/by-cell/{h3Level}/{h3Cell}',
-    searchPath: '/places/v0/{region}/search',
+    listPath: '/places/v0',
+    detailPath: '/places/v0/{id}',
+    byCellPath: '/places/v0/by-cell/{h3Level}/{h3Cell}',
+    searchPath: '/places/v0/search',
     listOperationId: 'listPlacesV0',
     detailOperationId: 'getPlaceByIdV0',
     byCellOperationId: 'listPlacesByH3CellV0',
@@ -80,10 +85,10 @@ const ROUTE_VARIANTS = [
     requestedVersionPath: 'places/v0.1' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-places-v0.1' as const,
-    listPath: '/places/v0.1/{region}',
-    detailPath: '/places/v0.1/{region}/{id}',
-    byCellPath: '/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}',
-    searchPath: '/places/v0.1/{region}/search',
+    listPath: '/places/v0.1',
+    detailPath: '/places/v0.1/{id}',
+    byCellPath: '/places/v0.1/by-cell/{h3Level}/{h3Cell}',
+    searchPath: '/places/v0.1/search',
     listOperationId: 'listPlacesV01',
     detailOperationId: 'getPlaceByIdV01',
     byCellOperationId: 'listPlacesByH3CellV01',
@@ -180,12 +185,15 @@ const placeListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     operationId: routeVariant.listOperationId,
     tags: ['Places'],
     request: {
-      params: PlacesListParamsSchema,
       query: PlacesListQuerySchema,
     },
     responses: {
       200: {
-        content: { 'application/json': { schema: PlacesListResponseSchema } },
+        content: {
+          'application/json': {
+            schema: PlacesListResponseSchema.or(EmptyRegionCollectionSchema),
+          },
+        },
         description: openApiText('openapi_places_list_response_description'),
       },
       503: {
@@ -204,7 +212,7 @@ const placeDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     operationId: routeVariant.detailOperationId,
     tags: ['Places'],
     request: {
-      params: RegionPlaceParamsSchema,
+      params: PlaceParamsSchema,
       query: PlaceQuerySchema,
     },
     responses: {
@@ -260,7 +268,6 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     operationId: routeVariant.searchOperationId,
     tags: ['Places'],
     request: {
-      params: SearchParamsSchema,
       query: SearchQuerySchema,
     },
     responses: {
@@ -318,6 +325,7 @@ async function handlePlaceDetail(
   args: { regionCode: 'hk' | 'mo'; placeId: string; locale?: string },
 ) {
   const activeSnapshot = await activePlaceSnapshot(c, args.regionCode)
+  if (!activeSnapshot && args.regionCode === 'mo') return c.json(regionNotFound(), 404)
   if (!activeSnapshot) {
     return c.json(
       {
@@ -394,6 +402,7 @@ async function handlePlacesByCell(
   }
 
   const activeSnapshot = await activePlaceSnapshot(c, args.region)
+  if (!activeSnapshot && args.region === 'mo') return c.json({ places: [] }, 200)
   if (!activeSnapshot) {
     return c.json(
       {
@@ -421,6 +430,7 @@ async function handlePlaceSearch(
   args: { region: 'hk' | 'mo'; q: string; locale?: string; limit?: number },
 ) {
   const activeSnapshot = await activePlaceSnapshot(c, args.region)
+  if (!activeSnapshot && args.region === 'mo') return c.json({ results: [] }, 200)
   if (!activeSnapshot) {
     return c.json(
       {
@@ -468,7 +478,7 @@ export const placeRoutes = [
       route: routeConfig,
       handler: async c => {
         const routeVariant = ROUTE_VARIANTS[index] ?? ROUTE_VARIANTS[0]
-        const { region } = c.req.valid('param')
+        const region = resolveDataRegion(c.req.valid('query').region)
         const result = await listPlaces({
           currentDb: c.var.currentDb,
           historyDbsByBinding: c.var.historyDbsByBinding,
@@ -481,6 +491,8 @@ export const placeRoutes = [
           query: c.req.valid('query'),
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body as never, 200)
       },
@@ -492,7 +504,11 @@ export const placeRoutes = [
       handler: c => {
         const params = c.req.valid('param')
         const query = c.req.valid('query')
-        return handlePlacesByCell(c, { ...params, limit: query.limit })
+        return handlePlacesByCell(c, {
+          ...params,
+          region: resolveDataRegion(query.region),
+          limit: query.limit,
+        })
       },
     }),
   ),
@@ -500,9 +516,11 @@ export const placeRoutes = [
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,
       handler: c => {
-        const params = c.req.valid('param')
         const query = c.req.valid('query')
-        return handlePlaceSearch(c, { ...params, ...query })
+        return handlePlaceSearch(c, {
+          ...query,
+          region: resolveDataRegion(query.region),
+        })
       },
     }),
   ),
@@ -510,8 +528,9 @@ export const placeRoutes = [
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,
       handler: c => {
-        const { region: regionCode, id: placeId } = c.req.valid('param')
-        const { locale } = c.req.valid('query')
+        const { id: placeId } = c.req.valid('param')
+        const { locale, region } = c.req.valid('query')
+        const regionCode = resolveDataRegion(region)
         return handlePlaceDetail(c, { regionCode, placeId, locale })
       },
     }),

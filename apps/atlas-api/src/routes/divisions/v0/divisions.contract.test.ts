@@ -685,6 +685,36 @@ const requestCases = [
 ] as const
 
 describe('Divisions API responses through the Worker route', () => {
+  test('HK is the default and GBA selects the same published records', async () => {
+    const fixture = createFixtureEnvironment()
+    try {
+      const records = []
+      for (const region of ['', '&region=hk', '&region=gba']) {
+        const response = await app.fetch(
+          new Request(
+            `http://localhost/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}${region}`,
+          ),
+          fixture.env,
+        )
+        expect(response.status).toBe(200)
+        records.push(((await response.json()) as { data: unknown[] }).data)
+      }
+      expect(records[0]?.length).toBeGreaterThan(0)
+      expect(records[1]).toEqual(records[0])
+      expect(records[2]).toEqual(records[0])
+      const mo = await app.fetch(
+        new Request(
+          `http://localhost/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&region=mo`,
+        ),
+        fixture.env,
+      )
+      expect(mo.status).toBe(200)
+      expect(await mo.json()).toMatchObject({ data: [], meta: { region: 'mo' } })
+    } finally {
+      fixture.close()
+    }
+  })
+
   for (const requestCase of requestCases) {
     test(requestCase.name, async () => {
       const fixture = createFixtureEnvironment()

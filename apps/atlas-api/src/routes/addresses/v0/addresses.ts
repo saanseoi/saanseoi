@@ -1,3 +1,9 @@
+import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
@@ -69,7 +75,11 @@ const listRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     request: { query: AddressesListQuerySchema },
     responses: {
       200: {
-        content: { 'application/json': { schema: AddressesListResponseSchema } },
+        content: {
+          'application/json': {
+            schema: AddressesListResponseSchema.or(EmptyRegionCollectionSchema),
+          },
+        },
         description: openApiText('openapi_addresses_list_response_description'),
       },
       503: {
@@ -122,7 +132,11 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     request: { query: AddressSearchQuerySchema },
     responses: {
       200: {
-        content: { 'application/json': { schema: AddressesListResponseSchema } },
+        content: {
+          'application/json': {
+            schema: AddressesListResponseSchema.or(EmptyRegionCollectionSchema),
+          },
+        },
         description: openApiText('openapi_addresses_search_response_description'),
       },
       503: {
@@ -176,6 +190,8 @@ export const addressRoutes = [
           query: c.req.valid('query'),
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body, 200)
@@ -199,6 +215,8 @@ export const addressRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body, 200)
       },
@@ -221,6 +239,8 @@ export const addressRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body, 200)
       },
@@ -245,6 +265,8 @@ export const addressRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         if (result.status === 404) return c.json(result.body, 404)
         return c.json(result.body, 200)

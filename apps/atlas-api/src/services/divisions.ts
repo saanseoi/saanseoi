@@ -1,3 +1,4 @@
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import type { ApiProfileName } from '@repo/core/apiLocales'
 import {
   resolveApiReleaseSetSnapshotsForRequest,
@@ -85,7 +86,7 @@ async function getActiveDivisionSnapshot(
   variants: { area?: string; boundary?: string },
   selectors: Pick<
     DivisionListQuery,
-    'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+    'region' | 'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
   >,
   resolveReleaseSet: DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'] = resolveApiReleaseSetSnapshotsForRequest,
 ): Promise<ActiveDivisionSnapshot | null> {
@@ -96,7 +97,7 @@ async function getActiveDivisionSnapshot(
       domainCode,
       effectiveAt: selectors.effectiveAt,
       knownAt: selectors.knownAt,
-      regionCode: 'hk',
+      regionCode: resolveDataRegion(selectors.region),
       releaseSet: selectors.releaseSet,
     }),
   )
@@ -148,6 +149,7 @@ async function getActiveDivisionSnapshot(
 }
 
 async function resolveRequestedAreaSnapshot(args: {
+  region?: ApiRegion
   metaDb: AppEnv['Variables']['metaDb']
   cohortKey: string | undefined
   variant: string | undefined
@@ -159,7 +161,7 @@ async function resolveRequestedAreaSnapshot(args: {
     args.resolvePublishedSnapshotForResourceTypeRegionCohortKey(
       args.metaDb as never,
       'divisionArea',
-      'hk',
+      resolveDataRegion(args.region),
       cohortKey,
       { variant },
     ),
@@ -315,6 +317,7 @@ export async function listDivisions(args: {
     }
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    region: args.query.region,
     metaDb: args.metaDb,
     cohortKey: areaCohort,
     variant: geometryVariants.area,
@@ -505,6 +508,7 @@ export async function getDivisionDetail(args: {
     }
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    region: args.query.region,
     metaDb: args.metaDb,
     cohortKey: areaCohort,
     variant: geometryVariants.area,

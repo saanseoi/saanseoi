@@ -161,6 +161,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
           const sourceReleases = await listSourceReleases({
             datasetCode: query.dataset,
             family: familyDefinition.family,
+            region: query.region,
             metaDb: c.var.metaDb,
             selector,
           })
@@ -181,6 +182,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
             cursor: query.cursor,
             env: c.env,
             family: familyDefinition.family,
+            region: query.region,
             includeGeometry: query.include === 'geometry',
             metaDb: c.var.metaDb,
             sample: query.sample,
@@ -253,6 +255,7 @@ export async function streamSourceRecordsMiddleware(
       cursor: query.cursor,
       env: c.env,
       family,
+      region: query.region,
       includeGeometry: query.include === 'geometry',
       metaDb: c.var.metaDb,
       sourceReleaseCode: query.sourceRelease,

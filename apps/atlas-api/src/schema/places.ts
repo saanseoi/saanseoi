@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 
@@ -24,15 +25,15 @@ export {
   SearchUnavailableErrorResponseSchema,
 } from './placesSearchErrors'
 
-export const RegionPlaceParamsSchema = z
+export const PlaceParamsSchema = z
   .object({
-    region: RegionCode,
     id: z.string(),
   })
-  .openapi('RegionPlaceParams')
+  .openapi('PlaceParams')
 
 export const PlaceQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     locale: z.string().optional(),
   })
   .openapi('PlaceQuery')
@@ -502,7 +503,6 @@ export const PlaceResponseSchema = z
 
 export const PlacesByCellParamsSchema = z
   .object({
-    region: RegionCode,
     h3Level: z.string(),
     h3Cell: z.string(),
   })
@@ -510,6 +510,7 @@ export const PlacesByCellParamsSchema = z
 
 export const PlacesByCellQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
   })
   .openapi('PlacesByCellQuery')
@@ -554,14 +555,9 @@ export const PlacesByCellResponseSchema = z
   })
   .openapi('PlacesByCellResponse')
 
-export const SearchParamsSchema = z
-  .object({
-    region: RegionCode,
-  })
-  .openapi('SearchParams')
-
 export const SearchQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
     locale: z.string().optional(),
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
@@ -936,12 +932,9 @@ const PlacesListDocumentMetaSchema = z
   .extend(ApiVersionMetadataSchema.shape)
   .openapi('PlacesListDocumentMeta')
 
-export const PlacesListParamsSchema = z
-  .object({ region: RegionCode })
-  .openapi('PlacesListParams')
-
 export const PlacesListQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z.string().min(1).optional(),
     cohort: z.string().min(1).optional(),
     domain: z.literal('overture').optional(),

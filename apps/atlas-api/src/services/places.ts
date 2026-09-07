@@ -328,7 +328,7 @@ function buildPlacePermalink(args: {
   permalink.pathname = `/places/${args.routeState.resolvedApiVersion.replace(
     /^api-places-/,
     '',
-  )}/${args.region}`
+  )}`
   permalink.searchParams.delete('effectiveAt')
   permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
   permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)

@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 
 import { openApiText } from '../lib/openapi-i18n'
@@ -52,6 +53,7 @@ const SourceRecordPinSchema = z
 
 export const SourceRecordsQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     sourceRelease: SourceReleaseCodeSchema,
     cursor: SourceRecordCursorSchema.optional(),
     limit: z.coerce.number().int().min(1).max(500).optional(),
@@ -77,6 +79,7 @@ export const SourceRecordsResponseSchema = z
 
 export const SourceReleasesQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     releaseSet: z.string().min(1).optional(),
     snapshot: z.string().min(1).optional(),
     cohort: z.string().min(1).optional(),

@@ -562,12 +562,128 @@ function createFixtureEnvironment() {
 }
 
 describe('Places collection through the Worker route', () => {
+  test('defaults to HK, resolves GBA to HK, and keeps MO outside HK publications', async () => {
+    const fixture = createFixtureEnvironment()
+    try {
+      const documents = []
+      for (const region of ['', '&region=hk', '&region=gba']) {
+        const response = await app.fetch(
+          new Request(
+            `http://localhost/places/v0.1?releaseSet=${RELEASE_SET}&page[limit]=1${region}`,
+          ),
+          fixture.env,
+        )
+        expect(response.status).toBe(200)
+        const body = (await response.json()) as {
+          data: unknown[]
+          links: { next: string; permalink: string }
+          meta: { region: string }
+        }
+        expect(body.meta.region).toBe('hk')
+        expect(new URL(body.links.permalink).pathname).toBe('/places/v0.1')
+        if (region)
+          expect(new URL(body.links.next).searchParams.get('region')).toBe(
+            region.slice(8),
+          )
+        const pinned = await app.fetch(new Request(body.links.permalink), fixture.env)
+        expect(pinned.status).toBe(200)
+        expect(((await pinned.json()) as { data: unknown[] }).data).toEqual(body.data)
+        documents.push(body.data)
+      }
+      expect(documents[1]).toEqual(documents[0])
+      expect(documents[2]).toEqual(documents[0])
+      const mo = await app.fetch(
+        new Request(`http://localhost/places/v0.1?region=mo&releaseSet=${RELEASE_SET}`),
+        fixture.env,
+      )
+      expect(mo.status).toBe(200)
+      expect(await mo.json()).toMatchObject({
+        data: [],
+        meta: { region: 'mo', page: { total: 0 } },
+      })
+    } finally {
+      fixture.close()
+    }
+  })
+
+  test('MO has empty collections and missing records across every family', async () => {
+    const fixture = createFixtureEnvironment()
+    try {
+      for (const path of [
+        '/addresses/v0.1',
+        '/addresses/v0.1/search?q=central&match=full-text',
+        '/divisions/v0.1',
+        '/stats/v0.1',
+        '/stats/v0.1/geographies?filter[field]=population&filter[referencePeriod]=2021',
+        '/stats/v0.1/series?filter[field]=population',
+        '/stats/v0.1/registry',
+        '/stats/v0.1/registry/fields',
+        '/streets/v0.1/changelog',
+        '/places/v0.1',
+        '/places/v0',
+      ]) {
+        const response = await app.fetch(
+          new Request(
+            `http://localhost${path}${path.includes('?') ? '&' : '?'}region=mo`,
+          ),
+          fixture.env,
+        )
+        expect(response.status, `${path}: ${await response.clone().text()}`).toBe(200)
+        expect(await response.json()).toMatchObject({
+          data: [],
+          meta: { region: 'mo' },
+        })
+      }
+      for (const path of [
+        '/addresses/v0.1/a',
+        '/addresses/v0.1/a/units',
+        '/divisions/v0.1/division-central',
+        '/stats/v0.1/a',
+        '/streets/v0.1/a',
+        '/streets/v0.1/a/versions',
+        '/streets/v0.1/a/versions/1',
+        '/places/v0.1/place-ramen',
+      ]) {
+        const response = await app.fetch(
+          new Request(`http://localhost${path}?region=mo`),
+          fixture.env,
+        )
+        expect(response.status).toBe(404)
+      }
+      for (const [path, expected] of [
+        ['/places/v0.1/search?q=sushi', { results: [] }],
+        ['/places/v0.1/by-cell/9/89283470cdbffff?', { places: [] }],
+        ['/addresses/v0.1/source-releases?', { sourceReleases: [] }],
+        ['/divisions/v0.1/source-releases?', { sourceReleases: [] }],
+        ['/stats/v0.1/source-releases?', { sourceReleases: [] }],
+      ] as const) {
+        const response = await app.fetch(
+          new Request(`http://localhost${path}&region=mo`),
+          fixture.env,
+        )
+        expect(response.status).toBe(200)
+        expect((await response.json()) as Record<string, unknown>).toEqual(expected)
+      }
+      for (const format of ['json', 'ndjson']) {
+        const response = await app.fetch(
+          new Request(
+            `http://localhost/divisions/v0.1/sources?sourceRelease=dr-hk-overture-division-2026-08-19.0&region=mo&format=${format}`,
+          ),
+          fixture.env,
+        )
+        expect(response.status).toBe(404)
+      }
+    } finally {
+      fixture.close()
+    }
+  })
+
   test('paginates filtered compact records and pins the selected release set', async () => {
     const fixture = createFixtureEnvironment()
     try {
       const response = await app.fetch(
         new Request(
-          `http://localhost/places/v0.1/hk?releaseSet=${RELEASE_SET}&filter[basicCategory]=restaurant&filter[taxonomyPrimary]=ramen_restaurant&filter[operatingStatus]=open&page[limit]=1`,
+          `http://localhost/places/v0.1?releaseSet=${RELEASE_SET}&filter[basicCategory]=restaurant&filter[taxonomyPrimary]=ramen_restaurant&filter[operatingStatus]=open&page[limit]=1`,
         ),
         fixture.env,
       )
@@ -605,7 +721,7 @@ describe('Places collection through the Worker route', () => {
     try {
       const response = await app.fetch(
         new Request(
-          `http://localhost/places/v0/hk?releaseSet=${RELEASE_SET}&profile=map&filter[division]=division-central&include=divisions`,
+          `http://localhost/places/v0?releaseSet=${RELEASE_SET}&profile=map&filter[division]=division-central&include=divisions`,
         ),
         fixture.env,
       )
@@ -635,7 +751,7 @@ describe('Places collection through the Worker route', () => {
     try {
       const response = await app.fetch(
         new Request(
-          `http://localhost/places/v0.1/hk?releaseSet=${RELEASE_SET}&profile=full`,
+          `http://localhost/places/v0.1?releaseSet=${RELEASE_SET}&profile=full`,
         ),
         fixture.env,
       )

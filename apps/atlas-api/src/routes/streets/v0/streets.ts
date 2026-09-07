@@ -1,3 +1,10 @@
+import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
+import { RegionQuerySchema } from '../../../schema/region'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
@@ -25,7 +32,7 @@ const streetDetailRoute = createRoute({
   path: '/streets/v0.1/{id}',
   operationId: 'getHongKongStreetByIdV0',
   tags: ['Streets'],
-  request: { params: StreetDetailParamsSchema },
+  request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },
@@ -49,10 +56,16 @@ const streetChangelogRoute = createRoute({
   method: 'get',
   path: '/streets/v0.1/changelog',
   operationId: 'replayHongKongStreetChangelogV0',
+  request: { query: RegionQuerySchema },
   tags: ['Streets'],
   responses: {
+    422: ValidationErrorOpenAPIResponse,
     200: {
-      content: { 'application/json': { schema: StreetChangelogReplayResponseSchema } },
+      content: {
+        'application/json': {
+          schema: StreetChangelogReplayResponseSchema.or(EmptyRegionCollectionSchema),
+        },
+      },
       description: openApiText('openapi_streets_changelog_response_description'),
     },
     503: {
@@ -69,7 +82,7 @@ const streetVersionsRoute = createRoute({
   path: '/streets/v0.1/{id}/versions',
   operationId: 'listHongKongStreetVersionsV0',
   tags: ['Streets'],
-  request: { params: StreetDetailParamsSchema },
+  request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetVersionsResponseSchema } },
@@ -94,7 +107,7 @@ const streetVersionRoute = createRoute({
   path: '/streets/v0.1/{id}/versions/{version}',
   operationId: 'getHongKongStreetVersionV0',
   tags: ['Streets'],
-  request: { params: StreetVersionParamsSchema },
+  request: { query: RegionQuerySchema, params: StreetVersionParamsSchema },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },
@@ -121,8 +134,11 @@ export const streetRoutes = [
       const result = await replayHongKongStreetChangelog({
         historyDbsByBinding: c.var.historyDbsByBinding,
         metaDb: c.var.metaDb,
+        region: c.req.valid('query').region,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
+      if (isUnpublishedMacao(c.req.valid('query').region, result))
+        return c.json(emptyRegionCollection(c.req.url), 200)
       if (result.status === 503) return c.json(result.body, 503)
       return c.json(result.body, 200)
     },
@@ -135,8 +151,11 @@ export const streetRoutes = [
         currentDb: c.var.currentDb,
         id,
         metaDb: c.var.metaDb,
+        region: c.req.valid('query').region,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
+      if (isUnpublishedMacao(c.req.valid('query').region, result))
+        return c.json(regionNotFound(), 404)
       if (result.status === 503) return c.json(result.body, 503)
       if (result.status === 404) return c.json(result.body, 404)
       return c.json(result.body, 200)
@@ -150,8 +169,11 @@ export const streetRoutes = [
         historyDbsByBinding: c.var.historyDbsByBinding,
         id,
         metaDb: c.var.metaDb,
+        region: c.req.valid('query').region,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
       })
+      if (isUnpublishedMacao(c.req.valid('query').region, result))
+        return c.json(regionNotFound(), 404)
       if (result.status === 503) return c.json(result.body, 503)
       if (result.status === 404) return c.json(result.body, 404)
       return c.json(result.body, 200)
@@ -165,9 +187,12 @@ export const streetRoutes = [
         historyDbsByBinding: c.var.historyDbsByBinding,
         id,
         metaDb: c.var.metaDb,
+        region: c.req.valid('query').region,
         requestUrl: sanitiseResponseUrl(c.req.url).toString(),
         version,
       })
+      if (isUnpublishedMacao(c.req.valid('query').region, result))
+        return c.json(regionNotFound(), 404)
       if (result.status === 503) return c.json(result.body, 503)
       if (result.status === 404) return c.json(result.body, 404)
       return c.json(result.body, 200)

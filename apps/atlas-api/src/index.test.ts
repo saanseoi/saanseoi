@@ -585,6 +585,66 @@ function createAuthenticatedEnv(
 }
 
 describe('atlas-api', () => {
+  test('every data-family operation documents and validates the optional region filter', async () => {
+    const { env } = createEnv()
+    const paths = {}
+    for (const family of ['addresses', 'divisions', 'places', 'stats', 'streets']) {
+      const response = await app.fetch(
+        new Request(`http://localhost/openapi/${family}/v0.1`),
+        env,
+      )
+      expect(response.status).toBe(200)
+      Object.assign(paths, ((await response.json()) as { paths: object }).paths)
+    }
+    const document = { paths } as {
+      paths: Record<
+        string,
+        {
+          get?: {
+            parameters?: Array<{
+              name: string
+              in: string
+              required?: boolean
+              schema: { enum?: string[]; default?: string }
+            }>
+          }
+        }
+      >
+    }
+    let operations = 0
+    for (const [path, entry] of Object.entries(document.paths)) {
+      if (!/^\/(addresses|divisions|places|stats|streets)\//.test(path) || !entry.get)
+        continue
+      const parameter = entry.get.parameters?.find(
+        parameter => parameter.name === 'region',
+      )
+      expect(parameter, path).toMatchObject({
+        in: 'query',
+        required: false,
+        schema: { enum: ['hk', 'mo', 'gba'], default: 'hk' },
+      })
+      expect(path).not.toContain('{region}')
+      operations++
+    }
+    expect(operations).toBeGreaterThan(20)
+    for (const path of [
+      '/addresses/v0.1',
+      '/divisions/v0.1',
+      '/places/v0.1',
+      '/places/v0',
+      '/stats/v0.1',
+      '/streets/v0.1/changelog',
+      '/stats/v0.1/registry',
+      '/divisions/v0.1/source-releases',
+    ]) {
+      const invalid = await app.fetch(
+        apiRequest(`http://localhost${path}?region=invalid`),
+        env,
+      )
+      expect(invalid.status, path).toBe(422)
+    }
+  })
+
   test('dispatches both scheduled roll-ups with their matching cron', async () => {
     const originalFetch = globalThis.fetch
     const queries: string[] = []
@@ -1409,9 +1469,9 @@ describe('atlas-api', () => {
   test('Places endpoints reject unbounded limits', async () => {
     const { env } = createEnv()
     for (const path of [
-      '/places/v0/hk?page[limit]=101',
-      '/places/v0/hk/by-cell/9/89283470cdbffff?limit=101',
-      '/places/v0/hk/search?q=sushi&limit=101',
+      '/places/v0?page[limit]=101',
+      '/places/v0/by-cell/9/89283470cdbffff?limit=101',
+      '/places/v0/search?q=sushi&limit=101',
     ]) {
       const res = await app.fetch(apiRequest(`http://localhost${path}`), env)
       expect(res.status).toBe(422)
@@ -2117,12 +2177,10 @@ describe('atlas-api', () => {
     )
 
     expect(placesRes.status).toBe(200)
-    expect(places.paths['/places/v0.1/{region}']).toBeDefined()
-    expect(places.paths['/places/v0.1/{region}/{id}']).toBeDefined()
-    expect(
-      places.paths['/places/v0.1/{region}/by-cell/{h3Level}/{h3Cell}'],
-    ).toBeDefined()
-    expect(places.paths['/places/v0.1/{region}/search']).toBeDefined()
+    expect(places.paths['/places/v0.1']).toBeDefined()
+    expect(places.paths['/places/v0.1/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1/by-cell/{h3Level}/{h3Cell}']).toBeDefined()
+    expect(places.paths['/places/v0.1/search']).toBeDefined()
     expect(places.paths['/divisions/v0.1']).toBeUndefined()
     expect(places.tags?.map(tag => tag.name)).toEqual(['Places'])
     expect(places.components?.schemas).toHaveProperty('Place')
@@ -2458,7 +2516,7 @@ describe('atlas-api', () => {
         string,
         {
           get?: {
-            parameters?: Array<{ description?: string }>
+            parameters?: Array<{ name?: string; description?: string }>
             responses?: Record<string, { description?: string }>
           }
         }
@@ -2504,7 +2562,7 @@ describe('atlas-api', () => {
         string,
         {
           get?: {
-            parameters?: Array<{ description?: string }>
+            parameters?: Array<{ name?: string; description?: string }>
             responses?: Record<string, { description?: string }>
           }
         }
@@ -2538,7 +2596,9 @@ describe('atlas-api', () => {
     ])
     expect(divisionsRes.status).toBe(200)
     expect(
-      divisions.paths?.['/divisions/v0.1']?.get?.parameters?.[0]?.description,
+      divisions.paths?.['/divisions/v0.1']?.get?.parameters?.find(
+        parameter => parameter.name === 'catalogRevision',
+      )?.description,
     ).toBe('不可變的 API 家族及區域目錄檢查點。')
     expect(
       divisions.tags?.find(tag => tag.name === 'Divisions')?.['x-displayName'],
@@ -2577,7 +2637,9 @@ describe('atlas-api', () => {
       )?.description,
     ).toBe('單一座標位置；用於以一個位置而非區域表示的分區。')
     expect(
-      divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.[0]?.description,
+      divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.find(
+        parameter => parameter.name === 'sourceRelease',
+      )?.description,
     ).toBe('全域唯一的來源發布版本代碼。')
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.responses?.['200']
@@ -2607,10 +2669,10 @@ describe('atlas-api', () => {
     expect(registry.paths['/v0.1/api/families']).toBeUndefined()
 
     expect(placesRes.status).toBe(200)
-    expect(places.paths['/places/v0/{region}']).toBeDefined()
-    expect(places.paths['/places/v0/{region}/{id}']).toBeDefined()
-    expect(places.paths['/places/v0.1/{region}']).toBeUndefined()
-    expect(places.paths['/places/v0.1/{region}/{id}']).toBeUndefined()
+    expect(places.paths['/places/v0']).toBeDefined()
+    expect(places.paths['/places/v0/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1']).toBeUndefined()
+    expect(places.paths['/places/v0.1/{id}']).toBeUndefined()
 
     expect(streetsRes.status).toBe(200)
     expect(streets.paths['/streets/v0/{id}']).toBeDefined()

@@ -214,6 +214,7 @@ async function resolveAggregateValues(args: {
     domainCode,
     args.activeSnapshot.catalogPublishedAt,
     args.dependencies,
+    args.activeSnapshot.region,
   )
   const snapshotId = selection?.divisionSnapshotIds[0]
   if (!selection || !snapshotId) {

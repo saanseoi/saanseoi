@@ -231,9 +231,9 @@ Implemented Atlas routes now include:
 - `/divisions/v0`
 - `/divisions/v0/{id}`
 - `/v0/meta/...`
-- `/places/v0/{region}/places/{id}`
-- `/places/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
-- `/places/v0/{region}/search`
+- `/places/v0/{id}`
+- `/places/v0/by-cell/{h3Level}/{h3Cell}`
+- `/places/v0/search`
 
 ### Live runtime dependency on division data
 

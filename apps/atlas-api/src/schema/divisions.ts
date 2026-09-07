@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 
@@ -423,6 +424,7 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z
       .string()
       .min(1)
@@ -502,6 +504,7 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z
       .string()
       .min(1)

@@ -1,3 +1,4 @@
+import { resolveDataRegion } from '../schema/region'
 import type {
   StatisticFieldDefinition,
   StatisticMeasureDefinition,
@@ -24,6 +25,7 @@ import {
 
 export type StatisticRegistryQuery = Pick<
   StatisticListQuery,
+  | 'region'
   | 'catalogRevision'
   | 'cohort'
   | 'domain'
@@ -193,7 +195,7 @@ async function loadStatisticsRegistry(args: {
         domainCode: 'government',
         effectiveAt: args.query.effectiveAt,
         knownAt: args.query.knownAt,
-        regionCode: 'hk',
+        regionCode: resolveDataRegion(args.query.region),
         releaseSet: args.query.releaseSet,
       },
     ),

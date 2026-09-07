@@ -1,5 +1,18 @@
 # API endpoint structure
 
+All data-family endpoints accept an optional `region` query parameter: `hk` (Hong Kong,
+the default), `mo` (Macao), or `gba` (Greater Bay Area). GBA currently selects Hong Kong
+data. Macao collections return empty results and individual records return 404 while no
+data is published. Empty collections omit publication metadata and report
+`meta.region: "mo"` and `meta.page.total: 0`; Places search and cell lookups retain
+their `results: []` and `places: []` envelopes.
+
+Places uses `/places/v0.1`, `/places/v0.1/search`, `/places/v0.1/{id}`, and
+`/places/v0.1/by-cell/{h3Level}/{h3Cell}`. For example, request
+`/places/v0.1?region=gba&profile=map` or `/addresses/v0.1?region=hk`. Source-release
+discovery and JSON/NDJSON downloads apply the same region filter. Basemap coverage is
+independent of API data availability.
+
 SaanSeoi APIs use a small, explicit request path:
 
 ```text

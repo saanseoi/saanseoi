@@ -1,3 +1,4 @@
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
   parseRequestedApiLocales,
@@ -265,6 +266,7 @@ type ActiveAddressSnapshot = {
 }
 
 export type AddressListQuery = {
+  region?: ApiRegion
   catalogRevision?: string
   cohort?: string
   domain?: string
@@ -557,6 +559,7 @@ async function getActiveAddressSnapshot(
   metaDb: AppEnv['Variables']['metaDb'],
   selectors: Pick<
     AddressListQuery,
+    | 'region'
     | 'catalogRevision'
     | 'cohort'
     | 'effectiveAt'
@@ -572,7 +575,7 @@ async function getActiveAddressSnapshot(
       domainCode: 'saanseoi',
       effectiveAt: selectors.effectiveAt,
       knownAt: selectors.knownAt,
-      regionCode: 'hk',
+      regionCode: resolveDataRegion(selectors.region),
       releaseSet: selectors.releaseSet,
     }),
   )
