@@ -66,7 +66,7 @@ test('reviewed coordinate backfill guards match their April 2026 source events',
     const event = estate?.timeline.find(
       (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
     )
-    const changes = new Map(
+    const changes = new Map<string, { previous?: number[]; current?: number[] }>(
       event.changed
         .filter((change: { before: { building: string } }) => change.before.building)
         .map(
@@ -79,13 +79,14 @@ test('reviewed coordinate backfill guards match their April 2026 source events',
             after: {
               assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
             }
-          }) => [
-            JSON.stringify([change.before.csu, change.before.building]),
-            {
-              previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
-              current: change.after.assertions[0]?.occurrences[0]?.coordinates,
-            },
-          ],
+          }) =>
+            [
+              JSON.stringify([change.before.csu, change.before.building]),
+              {
+                previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
+                current: change.after.assertions[0]?.occurrences[0]?.coordinates,
+              },
+            ] as const,
         ),
     )
     const decisions = fixture.backfills.filter(

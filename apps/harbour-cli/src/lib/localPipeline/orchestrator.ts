@@ -455,16 +455,13 @@ function formatImportPhaseDetails(
   const details = [
     formatDurationMs(durationMs ?? Number.NaN),
     typeof stats?.bytes === 'number' ? formatBytes(stats.bytes) : null,
-    typeof stats?.fileCount === 'number'
-      ? `${formatCount(stats.fileCount)} files`
-      : null,
   ].filter((detail): detail is string => Boolean(detail))
 
   if (details.length === 0) {
     return null
   }
 
-  return `${formatImportPhaseName(phase)} ${details.join(' ')}`
+  return `${formatImportPhaseName(phase)}: ${details.join(' · ')}`
 }
 
 function formatImportBreakdown(
