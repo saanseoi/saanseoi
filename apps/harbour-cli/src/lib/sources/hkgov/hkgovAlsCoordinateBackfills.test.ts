@@ -174,6 +174,36 @@ test('automatic coordinate backfills retain exact named source-event guards', as
   }
 })
 
+test('Hing Wah II approved current points match the April 25 publisher event', async () => {
+  const audit = await Bun.file(
+    'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
+  ).json()
+  const event = audit.estates
+    .find((estate: { name: string }) => estate.name === 'HING WAH (II) ESTATE')
+    .timeline.find(
+      (entry: { release: string }) => entry.release === '20260425-1038-ALS-GeoJSON',
+    )
+  const decisions = fixture.backfills.filter(
+    decision =>
+      decision.estate === 'HING WAH (II) ESTATE' &&
+      decision.automaticPolicy === undefined,
+  )
+  expect(decisions).toHaveLength(8)
+  for (const decision of decisions) {
+    const change = event.changed.find(
+      (change: { before: { csu: string } }) => change.before.csu === decision.csu,
+    )
+    expect(decision.currentCoordinates).toEqual(
+      change.after.assertions[0].occurrences[0].coordinates,
+    )
+    if (decision.sourceVersionFrom === '2026-04-03.0') {
+      expect(decision.previousCoordinates).toEqual(
+        change.before.assertions[0].occurrences[0].coordinates,
+      )
+    }
+  }
+})
+
 test('Hing Wah II current points preserve raw geometry and dated Wo Hing inventory', () => {
   for (const version of ['2024-07-25.0', '2025-04-26.0', '2026-04-03.0']) {
     const decisions = fixture.backfills.filter(
