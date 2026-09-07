@@ -362,6 +362,46 @@ const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidat
   note(`Opened candidate map: ${path}`, 'Show on Map')
 }
 
+export async function showCoordinateChangesOnMap(input: {
+  title: string
+  changes: Array<{
+    label: string
+    previous: { lng: number; lat: number }
+    current: { lng: number; lat: number }
+  }>
+  outputPath?: string
+}) {
+  const accessToken = await getMapPreviewAccessToken()
+  if (!accessToken) return
+  const runtime = await getMapPreviewRuntime()
+  const changes = input.changes.map(change => ({
+    ...change,
+    label: escapeHtml(change.label),
+  }))
+  const html = `<!doctype html><meta charset="utf-8"><title>${escapeHtml(input.title)}</title>
+<style>${runtime.css}</style><style>html,body,#map{height:100%;margin:0}.legend{position:absolute;top:12px;left:12px;z-index:1;background:#fff;padding:10px 12px;border-radius:4px;box-shadow:0 1px 4px #0004;font:14px/1.5 sans-serif}.legend span{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px}.old{background:#d97706}.new{background:#2563eb}</style><div id="map"></div><div class="legend"><b>${escapeHtml(input.title)}</b><br><span class="old"></span>Previous coordinate<br><span class="new"></span>New coordinate<br>Click a marker for its block name.</div>
+<script>${runtime.library.replaceAll('</script>', '<\\/script>')}
+maplibregl.setWorkerUrl(URL.createObjectURL(new Blob([${JSON.stringify(runtime.worker)}],{type:'text/javascript'})));
+const changes=${JSON.stringify(changes)};
+(async()=>{const accessToken=${JSON.stringify(accessToken)};const basemapUrl='https://tiles.saanseoi.hk/hongkong-latest.json?access_token='+encodeURIComponent(accessToken);const response=await fetch('https://api.saanseoi.hk/v0/styles/light/1.0.0.json');if(!response.ok)throw new Error('Could not load the SaanSeoi basemap style.');const style=await response.json();style.sources={...style.sources,basemap:{type:'vector',url:basemapUrl}};
+const map=new maplibregl.Map({container:'map',style,center:[114.09857,22.3498],zoom:16,attributionControl:{compact:true}});map.addControl(new maplibregl.NavigationControl());
+map.on('load',()=>{const features=changes.flatMap(c=>[{type:'Feature',geometry:{type:'Point',coordinates:[c.previous.lng,c.previous.lat]},properties:{kind:'previous',label:c.label}},{type:'Feature',geometry:{type:'Point',coordinates:[c.current.lng,c.current.lat]},properties:{kind:'current',label:c.label}},{type:'Feature',geometry:{type:'LineString',coordinates:[[c.previous.lng,c.previous.lat],[c.current.lng,c.current.lat]]},properties:{label:c.label}}]);map.addSource('coordinate-review',{type:'geojson',data:{type:'FeatureCollection',features}});map.addLayer({id:'moves',type:'line',source:'coordinate-review',filter:['==',['geometry-type'],'LineString'],paint:{'line-color':'#64748b','line-width':2,'line-dasharray':[2,2]}});for(const [id,kind,colour] of [['previous','previous','#d97706'],['current','current','#2563eb']])map.addLayer({id,type:'circle',source:'coordinate-review',filter:['==',['get','kind'],kind],paint:{'circle-radius':7,'circle-color':colour,'circle-stroke-color':'#fff','circle-stroke-width':2}});map.on('click',['previous','current'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML('<b>'+e.features[0].properties.label+'</b><br>'+e.features[0].properties.kind+' coordinate').addTo(map));const bounds=new maplibregl.LngLatBounds();for(const c of changes){bounds.extend([c.previous.lng,c.previous.lat]);bounds.extend([c.current.lng,c.current.lat])}if(!bounds.isEmpty())map.fitBounds(bounds,{padding:80,maxZoom:17});});})().catch(error=>{document.body.textContent='Map preview failed: '+error.message;throw error});
+</script>`
+  const path =
+    input.outputPath ??
+    join(tmpdir(), `saanseoi-coordinate-review-${crypto.randomUUID()}.html`)
+  await Bun.write(path, html)
+  const command =
+    process.platform === 'darwin'
+      ? 'open'
+      : process.platform === 'win32'
+        ? 'start'
+        : 'xdg-open'
+  Bun.spawn([command, path], { stdout: 'ignore', stderr: 'ignore' })
+  note(`Opened coordinate review map: ${path}`, 'Show on Map')
+  return path
+}
+
 const reasonLabels: Record<string, string> = {
   unlinked_address_changed: 'Previously unlinked source address has changed',
   multiple_close_matches: 'Several candidates have similar scores',
