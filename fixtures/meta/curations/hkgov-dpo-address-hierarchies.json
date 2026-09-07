@@ -65,13 +65,7 @@
             {
               "id": "ap-lei-chau-estate-lei-moon-house-low",
               "enName": "LEI MOON HSE LOW BLK",
-              "zhHantName": "利滿樓低座",
-              "sourcePremise": {
-                "csu": "3370111759T20150127",
-                "from": "2025-02-25.0",
-                "to": "2026-07-10.0",
-                "evidence": "User identified the mapped source point as Lei Moon House Low Block on 2026-09-07, with a supplied map screenshot. This is reviewed identification, not a publisher building label. Both source unit arrays are empty; section unit membership remains unresolved."
-              }
+              "zhHantName": "利滿樓低座"
             }
           ],
           "threeDMapping": "building_inventory_unresolved_sections",
