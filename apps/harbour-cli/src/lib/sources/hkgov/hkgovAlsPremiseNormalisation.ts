@@ -3,7 +3,11 @@ export type HkgovAlsPremiseStructure = {
   blockNumber: string | null
   buildingName: string | null
   estateName: string | null
-  normalisation: 'none' | 'redundant-building-name' | 'embedded-block'
+  normalisation:
+    | 'none'
+    | 'redundant-building-name'
+    | 'redundant-estate-prefix'
+    | 'embedded-block'
 }
 
 export type HkgovAlsBuildingNameRomanNumeralNormalisation = {
@@ -214,6 +218,21 @@ export function normaliseHkgovAlsPremiseStructure(input: {
       buildingName: null,
       estateName,
       normalisation: 'redundant-building-name',
+    }
+  }
+
+  const estatePrefix = new RegExp(
+    `^${escapeRegExp(estateName).replace(/\\ /g, '\\s+')}\\s+(?<house>.+?)$`,
+    'i',
+  ).exec(buildingName)
+  const house = clean(estatePrefix?.groups?.house ?? null)
+  if (house && /\\b(?:HOUSE|HSE)$/i.test(house)) {
+    return {
+      blockDescriptor,
+      blockNumber,
+      buildingName: house,
+      estateName,
+      normalisation: 'redundant-estate-prefix',
     }
   }
 

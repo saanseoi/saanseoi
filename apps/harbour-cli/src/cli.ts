@@ -50,9 +50,11 @@ import {
 import { parseArgs, resolveUploadTarget } from './lib/cli/options.ts'
 import { printUsage } from './lib/cli/usage.ts'
 import { installInterruptHandler } from './lib/cli/interrupt.ts'
+import { installInitialisationIndent } from './lib/cli/initialisationIndent.ts'
 
 async function main() {
   const args = parseArgs(process.argv)
+  installInitialisationIndent(args.command ?? undefined)
   // `bin/saanseoi` changes into the CLI package before launching Bun. Keep
   // user-provided relative paths anchored to the directory from which that
   // launcher was invoked.

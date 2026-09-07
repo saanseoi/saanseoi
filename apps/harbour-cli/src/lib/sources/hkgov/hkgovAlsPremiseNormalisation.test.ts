@@ -40,6 +40,23 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
     ).toMatchObject({ buildingName: null, normalisation: 'redundant-building-name' })
   })
 
+  test('removes an estate prefix from a house name without changing its block fields', () => {
+    expect(
+      normaliseHkgovAlsPremiseStructure({
+        blockDescriptor: null,
+        blockNumber: null,
+        buildingName: 'FU TIP ESTATE BAN TIP HOUSE',
+        estateName: 'FU TIP ESTATE',
+      }),
+    ).toEqual({
+      blockDescriptor: null,
+      blockNumber: null,
+      buildingName: 'BAN TIP HOUSE',
+      estateName: 'FU TIP ESTATE',
+      normalisation: 'redundant-estate-prefix',
+    })
+  })
+
   test('does not invent a block for a free-form building name', () => {
     expect(
       normaliseHkgovAlsPremiseStructure({
