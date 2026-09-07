@@ -4,6 +4,8 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 
 import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
+import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
+import { metaSchema } from '@repo/db'
 import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
@@ -203,11 +205,16 @@ function createRegistryReleasesDb() {
       releaseId TEXT NOT NULL,
       action TEXT NOT NULL,
       mode TEXT NOT NULL,
-      summary TEXT NOT NULL,
+      generation TEXT NOT NULL,
+      decisionCount INTEGER NOT NULL,
       affectedRecordCount INTEGER NOT NULL,
-      evidence TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
+    );
+    CREATE TABLE releaseProcessingActionChunks (
+      id TEXT PRIMARY KEY, releaseId TEXT, actionId TEXT, generation TEXT,
+      firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER,
+      encoding TEXT, checksum TEXT, payload BLOB
     );
   `)
 
@@ -331,11 +338,27 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
 
       INSERT INTO releaseProcessingActions (
-        id, releaseId, action, mode, summary, affectedRecordCount, evidence, createdAt, updatedAt
+        id, releaseId, action, mode, generation, affectedRecordCount, decisionCount, createdAt, updatedAt
       ) VALUES
-        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'Normalised source A', 5, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
-        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'Normalised source B', 3, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
+        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'g1', 5, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'g1', 3, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
     `)
+    for (const parent of await db
+      .select()
+      .from(metaSchema.releaseProcessingActions)
+      .all()) {
+      const chunks = await encodeAuditGroup(parent, [
+        {
+          action: parent.action,
+          mode: parent.mode,
+          summary: `Normalised source ${parent.id === 'action-a' ? 'A' : 'B'}`,
+          affectedRecordCount: parent.affectedRecordCount,
+          evidence: {},
+        },
+      ])
+      for (const chunk of chunks)
+        await db.insert(metaSchema.releaseProcessingActionChunks).values(chunk).run()
+    }
 
     const [release] = await listRegistryReleases(db as never)
     if (!release) throw new Error('Expected API release to be returned.')
@@ -343,12 +366,12 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     expect(release.processingActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'action-a',
+          id: 'action-a:g1:0',
           sourceCode: 'hkgov-als',
           sourceReleaseCode: '2026-07-15',
         }),
         expect.objectContaining({
-          id: 'action-b',
+          id: 'action-b:g1:0',
           sourceCode: 'landsd-addresses',
           sourceReleaseCode: '2026-07-15',
         }),
@@ -436,8 +459,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'data-hk-addresses-2026-07-15.0',
       },
     )
-    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
-    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
+    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b:g1:0'])
+    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a:g1:0'])
 
     const sourceActionSections =
       await listRegistrySourceReleaseProcessingActionSections(db as never, {
@@ -462,7 +485,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'dr-hk-addresses-2026-07-15',
       },
     )
-    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a'])
+    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a:g1:0'])
     sqlite.close()
   })
 })

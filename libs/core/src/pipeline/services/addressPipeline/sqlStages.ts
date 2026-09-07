@@ -457,13 +457,9 @@ async function buildAddressMetaSqlFile(
     .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
     .all()
 
-  const [releaseStatsRows, processingActionRows] = await Promise.all([
+  const [releaseStatsRows, auditSql] = await Promise.all([
     metaDb.select().from(stats).where(eq(stats.releaseId, releaseId)).all(),
-    metaDb
-      .select()
-      .from(releaseProcessingActions)
-      .where(eq(releaseProcessingActions.releaseId, releaseId))
-      .all(),
+    readAuditReplaySql(metaDb, releaseId),
   ])
 
   if (releaseShardAssignmentRows.length === 0) {
@@ -588,28 +584,7 @@ async function buildAddressMetaSqlFile(
   groupValue = excluded.groupValue,
   updatedAt = excluded.updatedAt`,
     ),
-    buildInsertStatement(
-      'releaseProcessingActions',
-      [
-        'id',
-        'releaseId',
-        'action',
-        'mode',
-        'summary',
-        'affectedRecordCount',
-        'evidence',
-        'createdAt',
-        'updatedAt',
-      ],
-      processingActionRows.map(row => ({ ...row, evidence: jsonText(row.evidence) })),
-      `ON CONFLICT(id) DO UPDATE SET
-  action = excluded.action,
-  mode = excluded.mode,
-  summary = excluded.summary,
-  affectedRecordCount = excluded.affectedRecordCount,
-  evidence = excluded.evidence,
-  updatedAt = excluded.updatedAt`,
-    ),
+    ...auditSql,
   ].filter(Boolean)
   const sql = `${statements.join('\n\n')}\n`
 
@@ -824,3 +799,4 @@ function sqlLiteral(value: unknown): string {
 
   return `'${String(value).replaceAll("'", "''")}'`
 }
+import { readAuditReplaySql } from '../../db/processingActionReplay'
