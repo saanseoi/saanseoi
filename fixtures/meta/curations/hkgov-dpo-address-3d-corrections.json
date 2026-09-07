@@ -2,6 +2,1418 @@
   "version": 1,
   "corrections": [
     {
+      "id": "kai-tin-estate-kai-shun-house-flat-omission-20260708-earlier-67857ac2",
+      "revision": 1,
+      "estate": "KAI TIN ESTATE",
+      "csu": "4227818915T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0"
+      ],
+      "expectedEnBuildingName": "KAI SHUN HOUSE",
+      "expectedZhBuildingName": "啟信樓",
+      "expectedInventoryHash": "67857ac234763e910bcf2af7e240edfad0a7f242f4bcd847c15565cbb10cb76a",
+      "correctedInventoryHash": "4d6543936fde7ef57b5972bd8708c34a736c70c32c453e86839e62c86a93d2d5",
+      "expectedUnitCount": 761,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "219"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill only the independently omitted flats into the earlier historical inventory variant. Keep all unrelated source units and genuine merger dates intact.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later additions-only repair identifies these exact bilingual flats. The earlier variant contains neither those flats nor same-floor split/merged counterparts; its other unit rows are preserved exactly. The corrected inventory hash represents that guarded historical variant, not a wholesale replacement by the later inventory."
+    },
+    {
+      "id": "shun-tin-estate-tin-kam-house-flat-omission-20260708-earlier-eb279317",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4147420609T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-08-21.0",
+        "2024-08-28.0",
+        "2024-09-02.0"
+      ],
+      "expectedEnBuildingName": "TIN KAM HOUSE",
+      "expectedZhBuildingName": "天琴樓",
+      "expectedInventoryHash": "eb279317a1cc213a71301c3f54b84b56390eee9aa073cc03d0594363e96f2d34",
+      "correctedInventoryHash": "5c72e93566cfb2ff0091ae0973e9c56f719ac08e53a4a9c61c8cf4fe1e77ef23",
+      "expectedUnitCount": 698,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "118"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill only the independently omitted flats into the earlier historical inventory variant. Keep all unrelated source units and genuine merger dates intact.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later additions-only repair identifies these exact bilingual flats. The earlier variant contains neither those flats nor same-floor split/merged counterparts; its other unit rows are preserved exactly. The corrected inventory hash represents that guarded historical variant, not a wholesale replacement by the later inventory."
+    },
+    {
+      "id": "shun-tin-estate-tin-kam-house-flat-omission-20260708-earlier-e9d2c713",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4147420609T20050430",
+      "sourceVersions": ["2024-07-31.0", "2024-08-25.0", "2024-09-01.0"],
+      "expectedEnBuildingName": "TIN KAM HOUSE",
+      "expectedZhBuildingName": "天琴樓",
+      "expectedInventoryHash": "e9d2c713db3911232241541400784d761040587d88adb5e4817319a4e9d55bd6",
+      "correctedInventoryHash": "06ed662bda5b66899ea007fe67c8883775b85e1b2b292c56656103f88ae8cfc6",
+      "expectedUnitCount": 700,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "118"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill only the independently omitted flats into the earlier historical inventory variant. Keep all unrelated source units and genuine merger dates intact.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later additions-only repair identifies these exact bilingual flats. The earlier variant contains neither those flats nor same-floor split/merged counterparts; its other unit rows are preserved exactly. The corrected inventory hash represents that guarded historical variant, not a wholesale replacement by the later inventory."
+    },
+    {
+      "id": "sai-wan-estate-central-terrace-flat-omission-20240731",
+      "revision": 1,
+      "estate": "SAI WAN ESTATE",
+      "csu": "3101515782T20050430",
+      "sourceVersions": ["2024-07-25.0"],
+      "expectedEnBuildingName": "CENTRAL TERRACE",
+      "expectedZhBuildingName": "中苑臺",
+      "expectedInventoryHash": "17d1138936004b8e22fe5063bb58b6936356b5fa2630e9501e5118c7bc2055bb",
+      "correctedInventoryHash": "fb5d50b33e20da5a50502b236f66068aa128214abc520d34dcf167d2fea2faea",
+      "expectedUnitCount": 189,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 6,
+          "unit": "617"
+        }
+      ],
+      "evidenceSourceRelease": "20240731-1054-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-chu-house-flat-omission-20240731",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4149120680T20050430",
+      "sourceVersions": ["2024-07-25.0"],
+      "expectedEnBuildingName": "TIN CHU HOUSE",
+      "expectedZhBuildingName": "天柱樓",
+      "expectedInventoryHash": "7040419e5a3b76ae35714558f33939300d38ba1d6b895f46429e3cb8b5778a34",
+      "correctedInventoryHash": "412a68b92cb3c1059560bc5031a937ae929ed3adc33de123c340e7b3aafcac51",
+      "expectedUnitCount": 723,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "210"
+        },
+        {
+          "floor": 2,
+          "unit": "211"
+        },
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "227"
+        },
+        {
+          "floor": 2,
+          "unit": "228"
+        },
+        {
+          "floor": 2,
+          "unit": "229"
+        }
+      ],
+      "evidenceSourceRelease": "20240731-1054-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sai-wan-estate-central-terrace-flat-omission-20240825",
+      "revision": 1,
+      "estate": "SAI WAN ESTATE",
+      "csu": "3101515782T20050430",
+      "sourceVersions": ["2024-08-21.0"],
+      "expectedEnBuildingName": "CENTRAL TERRACE",
+      "expectedZhBuildingName": "中苑臺",
+      "expectedInventoryHash": "17d1138936004b8e22fe5063bb58b6936356b5fa2630e9501e5118c7bc2055bb",
+      "correctedInventoryHash": "fb5d50b33e20da5a50502b236f66068aa128214abc520d34dcf167d2fea2faea",
+      "expectedUnitCount": 189,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 6,
+          "unit": "617"
+        }
+      ],
+      "evidenceSourceRelease": "20240825-1042-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-chu-house-flat-omission-20240825",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4149120680T20050430",
+      "sourceVersions": ["2024-08-21.0"],
+      "expectedEnBuildingName": "TIN CHU HOUSE",
+      "expectedZhBuildingName": "天柱樓",
+      "expectedInventoryHash": "7040419e5a3b76ae35714558f33939300d38ba1d6b895f46429e3cb8b5778a34",
+      "correctedInventoryHash": "412a68b92cb3c1059560bc5031a937ae929ed3adc33de123c340e7b3aafcac51",
+      "expectedUnitCount": 723,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "210"
+        },
+        {
+          "floor": 2,
+          "unit": "211"
+        },
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "227"
+        },
+        {
+          "floor": 2,
+          "unit": "228"
+        },
+        {
+          "floor": 2,
+          "unit": "229"
+        }
+      ],
+      "evidenceSourceRelease": "20240825-1042-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sai-wan-estate-central-terrace-flat-omission-20240901",
+      "revision": 1,
+      "estate": "SAI WAN ESTATE",
+      "csu": "3101515782T20050430",
+      "sourceVersions": ["2024-08-28.0"],
+      "expectedEnBuildingName": "CENTRAL TERRACE",
+      "expectedZhBuildingName": "中苑臺",
+      "expectedInventoryHash": "17d1138936004b8e22fe5063bb58b6936356b5fa2630e9501e5118c7bc2055bb",
+      "correctedInventoryHash": "fb5d50b33e20da5a50502b236f66068aa128214abc520d34dcf167d2fea2faea",
+      "expectedUnitCount": 189,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 6,
+          "unit": "617"
+        }
+      ],
+      "evidenceSourceRelease": "20240901-1030-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-chu-house-flat-omission-20240901",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4149120680T20050430",
+      "sourceVersions": ["2024-08-28.0"],
+      "expectedEnBuildingName": "TIN CHU HOUSE",
+      "expectedZhBuildingName": "天柱樓",
+      "expectedInventoryHash": "7040419e5a3b76ae35714558f33939300d38ba1d6b895f46429e3cb8b5778a34",
+      "correctedInventoryHash": "412a68b92cb3c1059560bc5031a937ae929ed3adc33de123c340e7b3aafcac51",
+      "expectedUnitCount": 723,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "210"
+        },
+        {
+          "floor": 2,
+          "unit": "211"
+        },
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "227"
+        },
+        {
+          "floor": 2,
+          "unit": "228"
+        },
+        {
+          "floor": 2,
+          "unit": "229"
+        }
+      ],
+      "evidenceSourceRelease": "20240901-1030-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sai-wan-estate-central-terrace-flat-omission-20240903",
+      "revision": 1,
+      "estate": "SAI WAN ESTATE",
+      "csu": "3101515782T20050430",
+      "sourceVersions": ["2024-09-02.0"],
+      "expectedEnBuildingName": "CENTRAL TERRACE",
+      "expectedZhBuildingName": "中苑臺",
+      "expectedInventoryHash": "17d1138936004b8e22fe5063bb58b6936356b5fa2630e9501e5118c7bc2055bb",
+      "correctedInventoryHash": "fb5d50b33e20da5a50502b236f66068aa128214abc520d34dcf167d2fea2faea",
+      "expectedUnitCount": 189,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 6,
+          "unit": "617"
+        }
+      ],
+      "evidenceSourceRelease": "20240903-1049-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-chu-house-flat-omission-20240903",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4149120680T20050430",
+      "sourceVersions": ["2024-09-02.0"],
+      "expectedEnBuildingName": "TIN CHU HOUSE",
+      "expectedZhBuildingName": "天柱樓",
+      "expectedInventoryHash": "7040419e5a3b76ae35714558f33939300d38ba1d6b895f46429e3cb8b5778a34",
+      "correctedInventoryHash": "412a68b92cb3c1059560bc5031a937ae929ed3adc33de123c340e7b3aafcac51",
+      "expectedUnitCount": 723,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "210"
+        },
+        {
+          "floor": 2,
+          "unit": "211"
+        },
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "227"
+        },
+        {
+          "floor": 2,
+          "unit": "228"
+        },
+        {
+          "floor": 2,
+          "unit": "229"
+        }
+      ],
+      "evidenceSourceRelease": "20240903-1049-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-chiu-man-house-flat-omission-20241113",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3642319383T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0"
+      ],
+      "expectedEnBuildingName": "CHIU MAN HOUSE",
+      "expectedZhBuildingName": "昭民樓",
+      "expectedInventoryHash": "c64ec6867de4e56303fd60db9243cf86d23de083f7fcad5c080f50292a08c1ff",
+      "correctedInventoryHash": "c832fe03e00c436e0f53ba6332591e470623c96f1148f26e5b5a86ef1ceb880b",
+      "expectedUnitCount": 572,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 11,
+          "unit": "1118"
+        }
+      ],
+      "evidenceSourceRelease": "20241113-1041-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-chung-man-house-flat-omission-20241113",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3642519320T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0"
+      ],
+      "expectedEnBuildingName": "CHUNG MAN HOUSE",
+      "expectedZhBuildingName": "頌民樓",
+      "expectedInventoryHash": "e009f9bd574550f3e71b353ca49c082cfcadfb3a2d3ec5d462aace08af8fd1b5",
+      "correctedInventoryHash": "94342991cf15c2266a61b49d4974dfbd32774503d7d8e0cebe3975e05672c48a",
+      "expectedUnitCount": 576,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 11,
+          "unit": "1118"
+        }
+      ],
+      "evidenceSourceRelease": "20241113-1041-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "tsz-ching-estate-tsz-ching-estate-ancillary-facilities-blk-flat-omission-20241113",
+      "revision": 1,
+      "estate": "TSZ CHING ESTATE",
+      "csu": "3883823452T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0"
+      ],
+      "expectedEnBuildingName": "TSZ CHING ESTATE ANCILLARY FACILITIES BLK",
+      "expectedZhBuildingName": "慈正邨服務設施大樓",
+      "expectedInventoryHash": "35aef2ed66a74f80defc8cfaa890407a5a6364ab95a9c95471a22e304d2aa299",
+      "correctedInventoryHash": "9c0544ec97ad714e200603d5a33b0294af7e8e84d54bc4245ae37ce6bd0a745a",
+      "expectedUnitCount": 200,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 8,
+          "unit": "851"
+        },
+        {
+          "floor": 8,
+          "unit": "852"
+        },
+        {
+          "floor": 8,
+          "unit": "853"
+        },
+        {
+          "floor": 8,
+          "unit": "854"
+        }
+      ],
+      "evidenceSourceRelease": "20241113-1041-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "kwong-fuk-estate-kwong-yan-house-flat-omission-20250123",
+      "revision": 1,
+      "estate": "KWONG FUK ESTATE",
+      "csu": "3609034391T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0"
+      ],
+      "expectedEnBuildingName": "KWONG YAN HOUSE",
+      "expectedZhBuildingName": "廣仁樓",
+      "expectedInventoryHash": "5ff5bc58a0d04ebd4418438701b1b01c522b0f705979fb96c0162fca862829e5",
+      "correctedInventoryHash": "6874e226066baf0c0280b4629883555333ae915c6dc246c496f08feeda961972",
+      "expectedUnitCount": 960,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 5,
+          "unit": "561"
+        },
+        {
+          "floor": 6,
+          "unit": "661"
+        },
+        {
+          "floor": 7,
+          "unit": "761"
+        },
+        {
+          "floor": 8,
+          "unit": "861"
+        },
+        {
+          "floor": 9,
+          "unit": "961"
+        },
+        {
+          "floor": 10,
+          "unit": "1061"
+        },
+        {
+          "floor": 11,
+          "unit": "1161"
+        },
+        {
+          "floor": 12,
+          "unit": "1261"
+        },
+        {
+          "floor": 13,
+          "unit": "1361"
+        },
+        {
+          "floor": 14,
+          "unit": "1461"
+        },
+        {
+          "floor": 15,
+          "unit": "1561"
+        },
+        {
+          "floor": 16,
+          "unit": "1661"
+        },
+        {
+          "floor": 17,
+          "unit": "1761"
+        },
+        {
+          "floor": 18,
+          "unit": "1861"
+        }
+      ],
+      "evidenceSourceRelease": "20250123-1031-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "hing-wah-ii-estate-wo-hing-hse-flat-omission-20250426",
+      "revision": 1,
+      "estate": "HING WAH (II) ESTATE",
+      "csu": "4204713807T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0"
+      ],
+      "expectedEnBuildingName": "WO HING HSE",
+      "expectedZhBuildingName": "和興樓",
+      "expectedInventoryHash": "76a3297671524c8478c00042418e37414f6c97f111641f16d56cd76e43882be5",
+      "correctedInventoryHash": "b42fa04457170cfc8ebc01d9129ab599abfa879090797bfe0d092c1e0d2ae37e",
+      "expectedUnitCount": 1102,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "321"
+        },
+        {
+          "floor": 3,
+          "unit": "322"
+        }
+      ],
+      "evidenceSourceRelease": "20250426-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sai-wan-estate-north-terrace-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SAI WAN ESTATE",
+      "csu": "3099815836T20050430",
+      "sourceVersions": ["2025-04-26.0", "2025-05-22.0", "2025-06-20.0"],
+      "expectedEnBuildingName": "NORTH TERRACE",
+      "expectedZhBuildingName": "北苑臺",
+      "expectedInventoryHash": "c3777085fdb26454721adbc5c9321e8396ffec16d235da91ad1b02dde533c876",
+      "correctedInventoryHash": "e13087d909610d1f68dcbb78ec6bd97fae7062bd501df4a0ce12c24a50ae76e4",
+      "expectedUnitCount": 68,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 10,
+          "unit": "1002"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-tun-man-house-flat-omission-20250813",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3631419321T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "TUN MAN HOUSE",
+      "expectedZhBuildingName": "敦民樓",
+      "expectedInventoryHash": "1ce5d798f3529cc94ff0d44d0148259693b5da78f44312d75a379f33f140df04",
+      "correctedInventoryHash": "9087d87b4fe99fc111a093bdb65a4e0ace8602d2c4f6d6e21b42cc103618995f",
+      "expectedUnitCount": 680,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "434"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-tak-man-house-flat-omission-20250813",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3635019224T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "TAK MAN HOUSE",
+      "expectedZhBuildingName": "德民樓",
+      "expectedInventoryHash": "d558c77bfe2f30aceb1abd0a2d438fafa590dd003fd0ae8cbd5eb7605d750bc9",
+      "correctedInventoryHash": "60576b72ddc2b92f7d627af03cfd4a8e557be358856ea30782a802652e090aed",
+      "expectedUnitCount": 679,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "434"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-shun-man-house-flat-omission-20250813",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3649819067T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "SHUN MAN HOUSE",
+      "expectedZhBuildingName": "信民樓",
+      "expectedInventoryHash": "e609321b411386b369a971fb8bd266edc7380853379bc42b0ef0d52b6f7a73e1",
+      "correctedInventoryHash": "39ee094dcfba6b764714f37e7c78dbf58a40db0d8f12694cc46c6a05ad74ae6b",
+      "expectedUnitCount": 681,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "434"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "oi-man-estate-sun-man-house-flat-omission-20250813",
+      "revision": 1,
+      "estate": "OI MAN ESTATE",
+      "csu": "3643219146T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "SUN MAN HOUSE",
+      "expectedZhBuildingName": "新民樓",
+      "expectedInventoryHash": "e609321b411386b369a971fb8bd266edc7380853379bc42b0ef0d52b6f7a73e1",
+      "correctedInventoryHash": "39ee094dcfba6b764714f37e7c78dbf58a40db0d8f12694cc46c6a05ad74ae6b",
+      "expectedUnitCount": 681,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "434"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "tai-wo-hau-estate-fu-keung-house-flat-omission-20250813",
+      "revision": 1,
+      "estate": "TAI WO HAU ESTATE",
+      "csu": "3073725404T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "FU KEUNG HOUSE",
+      "expectedZhBuildingName": "富強樓",
+      "expectedInventoryHash": "cfa806c96c26c02f0fbb757ee9a204c7e2db79cfe93a239903cbc7b1a1614b72",
+      "correctedInventoryHash": "9c21e568cec2e068d23c6e9881f503a54a5031ee0c340acf41299f857b09ee68",
+      "expectedUnitCount": 785,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "313"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sau-mau-ping-estate-sau-mau-ping-estate-ancillary-facilities-blk-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SAU MAU PING ESTATE",
+      "csu": "4221319908T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "SAU MAU PING ESTATE ANCILLARY FACILITIES BLK",
+      "expectedZhBuildingName": "秀茂坪邨服務設施大樓",
+      "expectedInventoryHash": "00e751fd107c70c089c32017f757476d457a705c5b5ef078ee5bdb791d94d900",
+      "correctedInventoryHash": "1d0c778aa7812ceb671320ce114accf4a9a43f7c119b923c58b8ceeb9d701dda",
+      "expectedUnitCount": 133,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 6,
+          "unit": "666"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shek-kip-mei-estate-shek-kip-mei-estate-block-20-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SHEK KIP MEI ESTATE",
+      "csu": "3522321491T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "SHEK KIP MEI ESTATE BLOCK 20",
+      "expectedZhBuildingName": "石硤尾邨第二十座",
+      "expectedInventoryHash": "bdd9a005b4082ed1901b59b2da6f3b9545f1079723f9df6ddc11876ce0fd9952",
+      "correctedInventoryHash": "64417afedc43576037e9ca65d8607ec65e27b7899b5e8e51e3bae36225f3f415",
+      "expectedUnitCount": 179,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "417"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shek-kip-mei-estate-shek-kip-mei-estate-block-23-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SHEK KIP MEI ESTATE",
+      "csu": "3506021626T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "SHEK KIP MEI ESTATE BLOCK 23",
+      "expectedZhBuildingName": "石硤尾邨第二十三座",
+      "expectedInventoryHash": "3b5eea02fb2935eabbff5f32e887f9fc1401ad2869a3312296372dd9573c18f7",
+      "correctedInventoryHash": "92033c98e7c314e013f819e19a9bf19991a1455b8d08de9cb8f178002a1164ce",
+      "expectedUnitCount": 437,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "340"
+        },
+        {
+          "floor": 9,
+          "unit": "941"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "tai-hing-estate-hing-wai-hse-flat-omission-20250813",
+      "revision": 1,
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedEnBuildingName": "HING WAI HSE",
+      "expectedZhBuildingName": "興偉樓",
+      "expectedInventoryHash": "296f7f9f5f6b027474e0436fbf7bb71b259fa670c5b334e091f5c099ecf9a8f7",
+      "correctedInventoryHash": "35704d517ca6d16ad4f07b61e4604b3cd3b31e23f37f01f603be9978a8743c1f",
+      "expectedUnitCount": 280,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "113"
+        }
+      ],
+      "evidenceSourceRelease": "20250813-1053-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sheung-lok-estate-sheung-lok-house-flat-omission-20251104",
+      "revision": 1,
+      "estate": "SHEUNG LOK ESTATE",
+      "csu": "3675620124T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0"
+      ],
+      "expectedEnBuildingName": "SHEUNG LOK HOUSE",
+      "expectedZhBuildingName": "常樂樓",
+      "expectedInventoryHash": "cf30deeaa9aa630897e3cde48264f3a0319c0ebf447ae797b8191662da73db79",
+      "correctedInventoryHash": "f36fef0a688ca856e59fd47203e2b0272a2ba79bc7f9b86f0c0fc98ab76abb2d",
+      "expectedUnitCount": 358,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "335"
+        },
+        {
+          "floor": 3,
+          "unit": "336"
+        }
+      ],
+      "evidenceSourceRelease": "20251104-1033-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "sha-kok-estate-bean-goose-hse-flat-omission-20251104",
+      "revision": 1,
+      "estate": "SHA KOK ESTATE",
+      "csu": "3813826639T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0"
+      ],
+      "expectedEnBuildingName": "BEAN GOOSE HSE",
+      "expectedZhBuildingName": "美雁樓",
+      "expectedInventoryHash": "81671e95244d8f4898da1ad7f51290a0c518dc8b014d5cd8d00b404a97b31691",
+      "correctedInventoryHash": "9f4fc0fca256b624e33f8049a1f36cc51c8ea365056f6da420be5ef245b5c1f7",
+      "expectedUnitCount": 720,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 5,
+          "unit": "541"
+        },
+        {
+          "floor": 6,
+          "unit": "641"
+        },
+        {
+          "floor": 7,
+          "unit": "741"
+        },
+        {
+          "floor": 8,
+          "unit": "841"
+        },
+        {
+          "floor": 9,
+          "unit": "941"
+        },
+        {
+          "floor": 10,
+          "unit": "1041"
+        },
+        {
+          "floor": 11,
+          "unit": "1141"
+        },
+        {
+          "floor": 12,
+          "unit": "1241"
+        },
+        {
+          "floor": 13,
+          "unit": "1341"
+        },
+        {
+          "floor": 14,
+          "unit": "1441"
+        },
+        {
+          "floor": 15,
+          "unit": "1541"
+        },
+        {
+          "floor": 16,
+          "unit": "1641"
+        },
+        {
+          "floor": 17,
+          "unit": "1741"
+        },
+        {
+          "floor": 18,
+          "unit": "1841"
+        }
+      ],
+      "evidenceSourceRelease": "20251104-1033-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "lai-kok-estate-lai-fu-house-flat-omission-20251104",
+      "revision": 1,
+      "estate": "LAI KOK ESTATE",
+      "csu": "3435721449T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0"
+      ],
+      "expectedEnBuildingName": "LAI FU HOUSE",
+      "expectedZhBuildingName": "麗芙樓",
+      "expectedInventoryHash": "b62d12dab6edcff67fe31bb79bc807a45250d77bbac3a8434404942001eef478",
+      "correctedInventoryHash": "91c963a4b7a0f2141b7594a58ee25b753760d79a310bbd812a71ca482f2f2f5b",
+      "expectedUnitCount": 470,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "231"
+        },
+        {
+          "floor": 3,
+          "unit": "341"
+        },
+        {
+          "floor": 4,
+          "unit": "441"
+        },
+        {
+          "floor": 5,
+          "unit": "541"
+        },
+        {
+          "floor": 6,
+          "unit": "641"
+        },
+        {
+          "floor": 7,
+          "unit": "741"
+        },
+        {
+          "floor": 8,
+          "unit": "841"
+        },
+        {
+          "floor": 9,
+          "unit": "941"
+        },
+        {
+          "floor": 10,
+          "unit": "1041"
+        },
+        {
+          "floor": 11,
+          "unit": "1141"
+        },
+        {
+          "floor": 12,
+          "unit": "1241"
+        }
+      ],
+      "evidenceSourceRelease": "20251104-1033-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "kai-tin-estate-kai-shun-house-flat-omission-20260708",
+      "revision": 1,
+      "estate": "KAI TIN ESTATE",
+      "csu": "4227818915T20050430",
+      "sourceVersions": [
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0"
+      ],
+      "expectedEnBuildingName": "KAI SHUN HOUSE",
+      "expectedZhBuildingName": "啟信樓",
+      "expectedInventoryHash": "be8c073531267e29ccaef824555a206055512b26d493397e104ff97932f76b76",
+      "correctedInventoryHash": "b12383ec53aac88db9449568bc2144cb8da6f2a89d10ac03c0c6a196639dc327",
+      "expectedUnitCount": 759,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "219"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-kam-house-flat-omission-20260708",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4147420609T20050430",
+      "sourceVersions": [
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0"
+      ],
+      "expectedEnBuildingName": "TIN KAM HOUSE",
+      "expectedZhBuildingName": "天琴樓",
+      "expectedInventoryHash": "e9d2c713db3911232241541400784d761040587d88adb5e4817319a4e9d55bd6",
+      "correctedInventoryHash": "06ed662bda5b66899ea007fe67c8883775b85e1b2b292c56656103f88ae8cfc6",
+      "expectedUnitCount": 700,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "118"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shun-tin-estate-tin-chi-house-flat-omission-20260708",
+      "revision": 1,
+      "estate": "SHUN TIN ESTATE",
+      "csu": "4138020658T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0"
+      ],
+      "expectedEnBuildingName": "TIN CHI HOUSE",
+      "expectedZhBuildingName": "天池樓",
+      "expectedInventoryHash": "796f3bf1ccab69878260551fa0d1179255ea37188f0bb1c83024c55935f65767",
+      "correctedInventoryHash": "fc6d3acf3ac9292676064249d6a7c1079329cd43e18b4b0cfca1c253d2a324b8",
+      "expectedUnitCount": 697,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "118"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
+      "id": "shui-pin-wai-estate-bik-shui-house-flat-omission-20260708",
+      "revision": 1,
+      "estate": "SHUI PIN WAI ESTATE",
+      "csu": "2012033974T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0"
+      ],
+      "expectedEnBuildingName": "BIK SHUI HOUSE",
+      "expectedZhBuildingName": "碧水樓",
+      "expectedInventoryHash": "9039af46faa4eb74ed4685f12372e9fc5184aced0a48162cba64a8d2183e2514",
+      "correctedInventoryHash": "079450363be28abcbecd2a5f49de7a161a8447708f0ed1461e3998ff1714c60c",
+      "expectedUnitCount": 215,
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "344"
+        },
+        {
+          "floor": 4,
+          "unit": "444"
+        },
+        {
+          "floor": 5,
+          "unit": "544"
+        },
+        {
+          "floor": 6,
+          "unit": "644"
+        },
+        {
+          "floor": 7,
+          "unit": "744"
+        }
+      ],
+      "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
+      "decision": "Backfill the exact bilingual additions into earlier retained inventories as publisher omissions. Preserve raw source assertions and do not cross an intervening inventory replacement or merger.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "evidence": "The later bilingual inventory is an exact strict superset of the earlier inventory, adding only the listed flats. Both publisher hashes and the targeted source versions are guarded."
+    },
+    {
       "id": "ap-lei-chau-lei-tim-missing-second-floor-units",
       "revision": 1,
       "estate": "AP LEI CHAU ESTATE",
