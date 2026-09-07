@@ -467,8 +467,10 @@ Collection 响应会在 <black>meta.apiReleaseSet</black> 及
 
 ## 以文本及地图网格搜索地点
 
-以下端点查询当前 active Place
-snapshot，不接受 collection 的 release、profile、include 或时间旅行 selector；如需可重现的发布视图，请使用 collection。
+这些端点使用当前 active Place snapshot，不接受 collection 的
+<black>releaseSet</black>、<black>profile</black>、<black>include</black>
+或时间旅行 selector（<black>effectiveAt</black>、<black>knownAt</black> 及
+<black>catalogRevision</black>）；如需可重现的发布视图，请使用 collection。
 
 **获取一个当前 Place**
 
