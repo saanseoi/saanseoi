@@ -38,8 +38,13 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## Notes and limitations
 
 - The Place collection is anchored to the Overture Place source release for this cohort.
-  The source record, including publisher attribution and fields that are not exposed by
-  the canonical model, remains available through the Places source-record endpoint.
+  Discover its source release with
+  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>.
+  Read retained Overture records with
+  <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>.
+  Follow <black>nextCursor</black> for further JSON pages, or add
+  <black>format=ndjson</black> to stream the records. Add
+  <black>include=geometry</black> to expose the retained source geometry separately.
 - Address context is supplementary. `address2dId` is populated only when the Place
   address can be matched to the selected ALS snapshot; this release does not resolve an
   `address3dId`. An unmatched publisher address remains source data and does not create
@@ -81,8 +86,11 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Place collection 以此 cohort 的 Overture
-  Place 發布為錨點。原始記錄，包括發布者歸屬及標準模型沒有公開的欄位，仍可透過 Places 來源記錄端點查閱。
+- Place collection 以此 cohort 的 Overture Place 發布為錨點。Places
+  API 目前不會公開原始來源記錄。請使用 <black>profile=full</black>
+  保留發布者歸屬，然後把 release、canonical Place ID 及
+  <black>attributes.sources[].record_id</black> 交給可存取確切 Overture
+  release 的工具或 LLM。
 - 地址背景資料屬於補充資料。只有在 Place 地址能與所選 ALS snapshot 配對時，才會填入
   `address2dId`；此版本不會解析
   `address3dId`。未配對的發布者地址會保留為來源資料，不會建立或修改官方 ALS 地址。
@@ -117,8 +125,11 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Place collection 以此 cohort 的 Overture
-  Place 发布为锚点。原始记录，包括发布者归属及标准模型没有公开的字段，仍可通过 Places 源记录端点查阅。
+- Place collection 以此 cohort 的 Overture Place 发布为锚点。Places
+  API 目前不会公开原始源记录。请使用 <black>profile=full</black>
+  保留发布者归属，然后将 release、canonical Place ID 及
+  <black>attributes.sources[].record_id</black> 交给可访问确切 Overture
+  release 的工具或 LLM。
 - 地址背景数据属于补充数据。只有在 Place 地址能与所选 ALS snapshot 匹配时，才会填入
   `address2dId`；此版本不会解析
   `address3dId`。未匹配的发布者地址会保留为源数据，不会创建或修改官方 ALS 地址。
