@@ -130,6 +130,7 @@ export async function prepareAls3dCollections(options: {
       feature,
       featureIndexOneBased,
       backfill,
+      houseRetention,
     } of readAls3dWithBackfills(file, options.sourceVersion, options.rows)) {
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
@@ -155,24 +156,29 @@ export async function prepareAls3dCollections(options: {
         kind: 'source' as const,
         sourceRecordId,
         versionHash: als3dHash(
-          csuCorrection.decision
-            ? {
-                feature,
-                corrections,
-                suppression,
-                backfill,
-                csuCorrection: csuCorrection.decision,
-              }
-            : suppression
-              ? { feature, suppression }
-              : backfill
-                ? { feature, backfill }
-                : corrections.length
-                  ? { feature, corrections }
-                  : feature,
+          houseRetention
+            ? { feature, houseRetention }
+            : csuCorrection.decision
+              ? {
+                  feature,
+                  corrections,
+                  suppression,
+                  backfill,
+                  csuCorrection: csuCorrection.decision,
+                }
+              : suppression
+                ? { feature, suppression }
+                : backfill
+                  ? { feature, backfill }
+                  : corrections.length
+                    ? { feature, corrections }
+                    : feature,
         ),
         rawProperties: feature,
         sources: [
+          ...(houseRetention
+            ? [{ dataset: 'saanseoi-address-house-retention', ...houseRetention }]
+            : []),
           ...(csuCorrection.decision
             ? [
                 {
@@ -186,7 +192,10 @@ export async function prepareAls3dCollections(options: {
             dataset: 'hkgov-dpo-als-3d',
             sourceFile: basename(file),
             featureIndexOneBased,
-            sourceVersion: backfill?.evidenceSourceVersion ?? options.sourceVersion,
+            sourceVersion:
+              houseRetention?.evidenceSourceVersion ??
+              backfill?.evidenceSourceVersion ??
+              options.sourceVersion,
           },
           ...(backfill
             ? [

@@ -166,10 +166,14 @@ Chinese name is backfilled. Original components and discarded assertions are pre
 as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
 does not generalise shared points or CSU values into permission to merge.
 
-`--skip-curation-checks` skips Address3D suppression evidence checks while still
-applying the reviewed CSU and release bounds. Rejected Hung Hom Phase 2 inventories
-remain raw source evidence and do not emit collections referencing removed address
-owners.
+`--skip-curation-checks` applies reviewed Address3D suppressions when their evidence
+guards match. An unresolved guard mismatch does not fail preparation or apply the
+suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
+emit collections referencing removed address owners.
+
+Approved issue-batch evidence mismatches warn instead of stopping under
+`--skip-curation-checks`. The unresolved decision leaves its records unchanged, and
+other matching decisions continue to apply.
 
 Reviewed Housing Authority estate names are stored in
 `hkgov-dpo-address-estate-names.json`. Choi Wan uses the preferred `Choi Wan (I) Estate`
@@ -191,6 +195,25 @@ delivery dates, not asserted closure dates. Historical assertions remain availab
 these premises are not forward-filled. Pak Tin Shopping Centre remains a separate
 premise. Exact chronology fingerprints in `hkgov-dpo-address-history-decisions.json`
 guard the accepted removal events.
+
+`hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
+house assertions. Queens Hill's Wong Ching, Wong Lok, Wong Wui and Wong Yi Houses retain
+their named addresses and last inventories across the prolonged publisher omission; Wong
+Sheng, Wong Shun and Wong Yet receive their temporary inventory gaps. Exact source
+assertions guard empty replacements. Lai Shek retains its richer 120 Lei Muk Road
+address, 340 flats and original coordinates; Yung Shek retains its original coordinates
+and 813 flats without its empty duplicate. Active retention continues until revoked,
+with verification status recorded separately from the evidence release.
+
+`hkgov-dpo-address-approved-issue-batch.json` holds exact bilingual, geometry and
+inventory evidence for reviewed duplicate and component decisions. On Yam's combined Yiu
+Yam/Tak Yam assertion and Shek Kip Mei's combined Mei Shan/Mei Hung assertion do not
+emit additional collections; inventories belong to the separately named houses. Ping
+Tin's empty alias, Sau King's empty alias and the reviewed Shek Mun estate assertion are
+suppressed. Pok Hong Community Hall uses 6H Sha Kok Street across its equivalent
+assertions. Sha Kok's extension label is backfilled without merging the main-school or
+campus records. Sau King uses the user-reviewed 101 Sau Mau Ping Road / 秀茂坪道 address
+while retaining the raw 101 Sau Ming Road / 秀明道 assertion and its 799-flat inventory.
 
 Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
 omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23

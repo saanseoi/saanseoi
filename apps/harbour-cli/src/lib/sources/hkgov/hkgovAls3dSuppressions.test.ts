@@ -24,9 +24,7 @@ test('reviewed suppression rejects changed identity and is bounded by version', 
   expect(() => als3dSuppression(changed, '2026-08-19.0')).toThrow(
     'source evidence changed',
   )
-  expect(als3dSuppression(changed, '2026-08-19.0', true)?.id).toBe(
-    'hung-hom-phase-2-unnamed-inventory',
-  )
+  expect(als3dSuppression(changed, '2026-08-19.0', true)).toBeUndefined()
   expect(als3dSuppression(changed, '2026-08-20.0', true)).toBeUndefined()
   expect(als3dSuppression(changed, '2026-08-20.0')).toBeUndefined()
   expect(als3dSuppression(changed, '2024-07-24.0')).toBeUndefined()

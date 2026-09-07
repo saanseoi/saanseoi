@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import { retainAlsHouses, labelAlsHouseRetentions } from './hkgovAlsHouseRetentions'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
@@ -14,6 +15,7 @@ import {
   labelAlsPremiseReconstructions,
 } from './hkgovAlsPremiseReconstructions'
 import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
+import { applyApprovedIssueBatch } from './hkgovAlsApprovedIssueBatch'
 import { coalesceAlsAliasedPremises } from './hkgovAlsAliasedPremiseCoalescences'
 import { retainNamedPremises } from './hkgovAlsNamedPremiseRetentions'
 import { suppressAlsUnnamedPremises } from './hkgovAlsUnnamedPremiseSuppressions'
@@ -104,6 +106,7 @@ export async function prepareHkgovAlsAddressParquet(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  const retainedHouses = retainAlsHouses(sourceFeatures, options.sourceVersion)
   const reconstructedPremises = reconstructAlsPremises(
     sourceFeatures,
     options.sourceVersion,
@@ -165,7 +168,9 @@ export async function prepareHkgovAlsAddressParquet(
     ),
   )
   labelAls2dBackfillRows(rows)
+  labelAlsHouseRetentions(rows, retainedHouses)
   labelAlsPremiseReconstructions(rows, reconstructedPremises)
+  applyApprovedIssueBatch(rows, options.sourceVersion, options.skipCurationChecks)
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
   retainNamedPremises(rows, options.sourceVersion)
   const {

@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
-import { readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
+import type { Als3dFeature } from './hkgovAls3d'
+import { readAls3dWithHouseRetentions } from './hkgovAlsHouseRetentions'
 import { publisherInventoryHash } from './hkgovAls3dCorrections'
 import {
   curationProvenance,
@@ -86,7 +87,7 @@ export async function* readAls3dWithBackfills(
   const backfills = backfillsForVersion(version)
   const seen = new Map<string, Als3dFeature[]>()
   const estates = new Set(rows.map(row => row.enEstateName))
-  for await (const record of readAls3dFeatures(file)) {
+  for await (const record of readAls3dWithHouseRetentions(file, version, rows)) {
     const csu =
       record.feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId
     if (csu) seen.set(csu, [...(seen.get(csu) ?? []), record.feature])
@@ -144,6 +145,7 @@ export async function* readAls3dWithBackfills(
       feature,
       featureIndexOneBased: backfill.featureIndexOneBased,
       backfill: provenance,
+      houseRetention: undefined,
     }
   }
 }
