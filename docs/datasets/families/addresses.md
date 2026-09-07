@@ -14,16 +14,18 @@ ingestion. Output-free review applies the same ownership, block enrichment, inve
 and row-size checks as artefact preparation, without writing 3D sidecars.
 
 For reference and testing imports, `saanseoi init --skip-curation-checks` and
-`saanseoi init:addresses --skip-curation-checks` propagate acceptance of pending address
-curation checks to ALS ingestion. Existing corrections retain unverified provenance
-where applicable; unresolved identity changes receive generated IDs. Automatic
-acceptance does not write reviewed decisions to curation fixtures. Shared ALS 3D
-buildings may retain separate owners and inventories in this mode without a reviewed
-ownership merge. Block enrichment and duplicate suppression are omitted in this mode;
-inventories use exact parents or unique block-free matches, retaining publisher 2D
-components. Section inventories may retain their existing parent without reviewed
-ownership. Alias curations whose source guards no longer match are omitted in skip mode;
-both publisher records retain their identities, geometry and source assertions.
+`saanseoi init:addresses --skip-curation-checks` omit the upfront all-release review.
+Source and integrity validation still run during preparation of each ingested release.
+These commands propagate acceptance of pending address curation checks to ALS ingestion.
+Existing corrections retain unverified provenance where applicable; unresolved identity
+changes receive generated IDs. Automatic acceptance does not write reviewed decisions to
+curation fixtures. Shared ALS 3D buildings may retain separate owners and inventories in
+this mode without a reviewed ownership merge. Block enrichment and duplicate suppression
+are omitted in this mode; inventories use exact parents or unique block-free matches,
+retaining publisher 2D components. Section inventories may retain their existing parent
+without reviewed ownership. Alias curations whose source guards no longer match are
+omitted in skip mode; both publisher records retain their identities, geometry and
+source assertions.
 
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain
