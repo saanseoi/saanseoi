@@ -3,12 +3,19 @@ import { isDeepStrictEqual } from 'node:util'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-issue-batch.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
-import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import type {
+  HkgovLocalisedPremisesAddress,
+  PreparedHkgovAlsRow,
+} from './hkgovAlsTypes'
 
 const curationFile = 'hkgov-dpo-address-approved-issue-batch.json'
 const namespace = '3fc33c3e-2837-4fc7-a331-439be8c2c981'
 type Decision = (typeof fixture.decisions)[number]
-function matches(rule: Decision, csu: string | null | undefined, en: any) {
+function matches(
+  rule: Decision,
+  csu: string | null | undefined,
+  en: HkgovLocalisedPremisesAddress | null | undefined,
+) {
   return (
     rule.csus.includes(csu ?? '') &&
     en?.EngEstate?.EstateName === rule.estate &&

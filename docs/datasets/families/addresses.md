@@ -357,6 +357,14 @@ street number 6H throughout; Sha Kok's school extension retains its specific lab
 separately from the main school and campus. Sau King retains its 799 flats with the
 user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidence.
 
+Reviewed street-bearing estate identities use `complex` granularity independently of
+house identities and inventories. Tai Yuen Estate uses 10 Ting Kok Road and its
+user-reviewed marker; Tin Wan Estate uses 26 Tin Wan Street across retained gaps and
+until revoked. Derived SaanSeoi identities leave publisher GeoAddress and CSU null,
+retaining exact source assertions as provenance. Tsz Fai House's `418` merger and new
+flat `419` begin on 13 August 2025, without historical backfill of `419`. Sun Yee House
+uses its reviewed earlier point throughout retained history.
+
 Reviewed estate corrections preserve address granularity and building ownership. Long
 Shin's `11–12 Yau Shin Street` address belongs to the estate, while each named house
 retains its specific street number and inventory; Shin Leung's missing 313-flat

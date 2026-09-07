@@ -231,7 +231,19 @@ to the retained releases and preserve their source evidence dates.
 Camellia House at So Uk retains its last 374-flat inventory and one reviewed identity
 across the source omission, continuing until revoked with explicit verification status.
 Sun Fong House's approved current coordinates are backfilled across retained history;
-its inventory remains intact. Sun Yee's coordinate decision remains pending.
+its inventory remains intact. Sun Yee House retains its reviewed earlier point,
+`[114.18144, 22.36961]`, throughout retained history with its 720 flats.
+
+`hkgov-dpo-address-street-estate-complexes.json` derives separate `complex` identities
+for Tai Yuen Estate at 10 Ting Kok Road and Tin Wan Estate at 26 Tin Wan Street. Tai
+Yuen uses the user-supplied marker `[114.1667207, 22.4555134]` across the 30 reviewed
+releases; Tin Wan is backfilled and retained until revoked. Deterministic SaanSeoi
+`ss-UUID` identifiers do not claim publisher GeoAddress or CSU values: those fields
+remain null, and exact publisher assertions remain provenance. House inventories are not
+assigned to these estate identities.
+
+Tsz Fai House's exact `418A/B/C` to `418` merger is dated 13 August 2025. Flat `419`
+starts on that same date as a new flat and is not backfilled into earlier releases.
 
 Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
 omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23

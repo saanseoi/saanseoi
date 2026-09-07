@@ -4,12 +4,18 @@ import type { HkgovAlsSourceFeature, PreparedHkgovAlsRow } from './hkgovAlsTypes
 
 const curationFile = 'hkgov-dpo-address-premise-reconstructions.json'
 
+export type AlsPremiseReconstructionProvenance = {
+  evidence: { sourceVersion: string }
+  originalAssertions: HkgovAlsSourceFeature[]
+  [key: string]: unknown
+}
+
 /** Replace only reviewed named premises; preserve independent unnamed CSU assertions. */
 export function reconstructAlsPremises(
   features: HkgovAlsSourceFeature[],
   version: string,
 ) {
-  const provenance = new Map<string, unknown>()
+  const provenance = new Map<string, AlsPremiseReconstructionProvenance>()
   for (const d of fixture.reconstructions) {
     const release = d.releases.find(r => r.version === version)
     if (!release) continue
@@ -73,7 +79,7 @@ export function reconstructAlsPremises(
 
 export function labelAlsPremiseReconstructions(
   rows: PreparedHkgovAlsRow[],
-  provenance: Map<string, unknown>,
+  provenance: Map<string, AlsPremiseReconstructionProvenance>,
 ) {
   for (const row of rows) {
     if (row.sourceFile !== curationFile) continue
