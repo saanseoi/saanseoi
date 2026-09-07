@@ -161,9 +161,10 @@ addresses while retaining original assertions and evidence dates. Fai Ming Estat
 Fanling locality detail changes neither address identity nor administrative divisions.
 
 Reviewed coordinate backfills can carry a later confirmed point into selected earlier
-derived Address2D snapshots. Cheung Hong Estate's thirteen April 2026 points are guarded
-by release, CSU, estate, building and prior geometry; the historical publisher point is
-retained as provenance rather than overwritten in the source record.
+derived Address2D snapshots. Cheung Hong Estate's thirteen and Ap Lei Chau Estate's six
+April 2026 points are guarded by release, CSU, estate, building and prior geometry; the
+historical publisher point is retained as provenance rather than overwritten in the
+source record.
 
 A reviewed unnamed premise can be suppressed when its complete components identify a
 duplicate of a named owner. Lei Moon House's temporary zero-unit record is retained in
