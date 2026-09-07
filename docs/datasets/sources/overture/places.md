@@ -1,5 +1,10 @@
 # Overture Places
 
+The source table stores the complete publisher record only in `rawProperties`, plus
+source identity, provenance and version/release tracking. Names, coordinates,
+categories, brand, contacts and addresses are projected only into canonical
+history/current tables.
+
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their
 recipe and input rows under the

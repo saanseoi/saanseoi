@@ -598,14 +598,7 @@ export async function processDivisionDataset(
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
-            adminLevel: resolveAdminLevelValue(row),
-            names: row.names ?? null,
-            subtype: sourceString(row.subtype),
-            class: sourceString(row.class),
             version: asOptionalInteger(row.version),
-            wikidata: normalised.base.wikidata,
-            hierarchies: row.hierarchies,
-            cartography: normalised.base.cartography,
             sources: normaliseOvertureSourceReferences(row.sources, normalised.base.id),
             rawProperties: row,
           })
@@ -2232,10 +2225,6 @@ function resolveOvertureHongKongDivisionClassificationCorrection(id: string) {
     level: 4,
     type: 'macrohood' as const,
   }
-}
-
-function sourceString(value: unknown) {
-  return typeof value === 'string' ? value : null
 }
 
 function normaliseDivisionLevelToken(value: string | null) {

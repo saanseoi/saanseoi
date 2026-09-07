@@ -47,11 +47,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   assertArchiveHash(bytes, input.sha256)
   const features = await readLandsdPlaceNameArchive(bytes)
   const rows = features.map(feature => ({
-    district: optionalText(feature.properties.DISTRICT),
-    geoNameId: String(feature.id),
-    placeClass: requiredText(feature.properties.PLACE_CLASS, 'PLACE_CLASS'),
     placeNames: feature.placeNames,
-    placeType: requiredText(feature.properties.PLACE_TYPE, 'PLACE_TYPE'),
     rawProperties: feature.properties,
     sourceGeometry: feature.geometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
@@ -178,15 +174,10 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   }
   requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
-    nameEn: record.nameEn,
-    nameZhHant: record.nameZhHant,
-    objectId: record.objectId,
     rawProperties: record.rawProperties,
     sourceGeometry: record.sourceGeometry,
     sourceRecordId: record.sourceRecordId,
     sources: [provenance(input, archive.layerName)],
-    streetCode: record.streetCode,
-    streetType: record.streetType,
   }))
   await processNativeSourceSqlRelease(target, {
     archiveObjectKey: input.key,
@@ -419,16 +410,4 @@ function provenance(
 
 function assertArchiveHash(bytes: Uint8Array, expected: string) {
   assertSourceArchiveHash(bytes, expected, 'Prepared CSDI archive')
-}
-
-function requiredText(value: unknown, field: string) {
-  const text = optionalText(value)
-  if (!text) throw new Error(`LandsD Place Name requires ${field}.`)
-  return text
-}
-
-function optionalText(value: unknown) {
-  if (typeof value === 'string' && value.trim()) return value.trim()
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
-  return null
 }

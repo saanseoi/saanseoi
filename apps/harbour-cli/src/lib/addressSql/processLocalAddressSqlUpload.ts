@@ -60,6 +60,7 @@ import { createHarbourControlClient } from '../api/harbourControl.ts'
 import {
   createLocalImportProgressClient,
   runLocalGenerationPhase,
+  runLocalProgressPhase,
   writeLocalPipelineState,
 } from '../localPipeline/orchestrator.ts'
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
@@ -186,6 +187,8 @@ export async function processLocalAddressSqlUpload(
   const bucket = new LocalPipelineBucket(releaseRoot)
   await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   const progress = new OperationProgress()
+  const timed = <T>(action: string, subject: string, operation: () => Promise<T>) =>
+    runLocalProgressPhase(progress, { action, subject }, operation)
   const resolvedTargetName = resolveTargetName(target)
   const cacheTableProfile = 'address'
   const remoteCacheScopeKey = undefined
@@ -328,11 +331,12 @@ export async function processLocalAddressSqlUpload(
   })
 
   try {
-    await replaceReleaseProcessingActions(
-      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      releaseId,
-      options.processingActions ?? [],
-    )
+    if (!retainedDelivery || options.processingActions !== undefined)
+      await replaceReleaseProcessingActions(
+        dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        releaseId,
+        options.processingActions ?? [],
+      )
     await harbourClient.stageRunning(
       releaseId,
       'processDataset',
@@ -433,7 +437,11 @@ export async function processLocalAddressSqlUpload(
               },
             }),
         })
-        await runNativeSqlDelivery(directory, { files })
+        await runNativeSqlDelivery(directory, {
+          files,
+          onProgress: (completed, total) =>
+            progress.message(`Local Address3D SQL: ${completed}/${total} batches`),
+        })
         return
       }
       if (!writeOptions.isLocal) {
@@ -733,49 +741,54 @@ export async function processLocalAddressSqlUpload(
       async stageFailed() {},
     }
     if (target.remote) {
-      await prepareReleaseSqlDelivery({
-        directory: deliveryDirectory,
-        context: dbContext,
-        releaseId,
-        phase: 'address-data',
-        inputs: retainedDelivery?.context.inputs ?? {
-          parallelTargets: true,
-          preparedSha256,
-          address3dSha256: prepared3d?.digest ?? null,
-          message: finalMessageWithMeta,
-        },
-        timings: {
-          mirrorPreparationMs,
-          sqlGenerationMs: Date.now() - Date.parse(processingRunStartedAt),
-        },
-        generate: captureSql =>
-          importAddressSqlArtefacts(
-            noopClient,
-            dbContext.metaDb,
-            bucket,
-            finalMessageWithMeta,
-            { ...importOptions, captureSql },
-          ),
-      })
-      await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
-      await runReportedSqlImportPhase(
-        harbourClient,
-        releaseId,
-        releaseCode,
-        'deliverAddressSql',
-        report =>
-          executeReleaseSqlDelivery({
-            directory: deliveryDirectory,
-            context: dbContext,
-            ...importOptions,
-            mode: 'remote',
-            onProgress: (completed, total) => {
-              progress.message(`Deliver SQL: ${completed}/${total} batches`)
-              return report({ processedFiles: completed, totalFiles: total })
-            },
-          }),
+      await timed('Prepare SQL delivery', 'address', () =>
+        prepareReleaseSqlDelivery({
+          directory: deliveryDirectory,
+          context: dbContext,
+          releaseId,
+          phase: 'address-data',
+          inputs: retainedDelivery?.context.inputs ?? {
+            parallelTargets: true,
+            preparedSha256,
+            address3dSha256: prepared3d?.digest ?? null,
+            message: finalMessageWithMeta,
+          },
+          timings: {
+            mirrorPreparationMs,
+            sqlGenerationMs: Date.now() - Date.parse(processingRunStartedAt),
+          },
+          generate: captureSql =>
+            importAddressSqlArtefacts(
+              noopClient,
+              dbContext.metaDb,
+              bucket,
+              finalMessageWithMeta,
+              { ...importOptions, captureSql },
+            ),
+        }),
       )
-      await import3d(importOptions)
+      await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
+      await timed('Deliver SQL', 'address', () =>
+        runReportedSqlImportPhase(
+          harbourClient,
+          releaseId,
+          releaseCode,
+          'deliverAddressSql',
+          report =>
+            executeReleaseSqlDelivery({
+              directory: deliveryDirectory,
+              context: dbContext,
+              ...importOptions,
+              mode: 'remote',
+              onProgress: (completed, total) => {
+                progress.message(`Deliver SQL: ${completed}/${total} batches`)
+                return report({ processedFiles: completed, totalFiles: total })
+              },
+            }),
+        ),
+      )
+      if (prepared3d)
+        await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
         finalMessageWithMeta,
@@ -784,41 +797,46 @@ export async function processLocalAddressSqlUpload(
     } else {
       const files = dbContext.state.files
       if (!files) throw new Error('Missing native Address database paths.')
-      await prepareNativeSqlDelivery({
-        directory: deliveryDirectory,
-        files,
-        ownershipDirectory: dbContext.state.dbCacheDir,
-        releaseId,
-        phase: 'address-data',
-        inputs: retainedDelivery?.context.inputs ?? {
-          preparedSha256,
-          address3dSha256: prepared3d?.digest ?? null,
-          message: finalMessageWithMeta,
-        },
-        generate: append =>
-          importAddressSqlArtefacts(
-            noopClient,
-            dbContext.metaDb,
-            bucket,
-            finalMessageWithMeta,
-            {
-              ...importOptions,
-              captureSql: async (destination, bytes) => {
-                const binding = destination.binding?.bindingName
-                if (!binding || !files[binding])
-                  throw new Error('Unknown native Address binding.')
-                await append({ bindingName: binding, databaseId: binding }, bytes)
+      await timed('Prepare SQL delivery', 'address', () =>
+        prepareNativeSqlDelivery({
+          directory: deliveryDirectory,
+          files,
+          ownershipDirectory: dbContext.state.dbCacheDir,
+          releaseId,
+          phase: 'address-data',
+          inputs: retainedDelivery?.context.inputs ?? {
+            preparedSha256,
+            address3dSha256: prepared3d?.digest ?? null,
+            message: finalMessageWithMeta,
+          },
+          generate: append =>
+            importAddressSqlArtefacts(
+              noopClient,
+              dbContext.metaDb,
+              bucket,
+              finalMessageWithMeta,
+              {
+                ...importOptions,
+                captureSql: async (destination, bytes) => {
+                  const binding = destination.binding?.bindingName
+                  if (!binding || !files[binding])
+                    throw new Error('Unknown native Address binding.')
+                  await append({ bindingName: binding, databaseId: binding }, bytes)
+                },
               },
-            },
-          ),
-      })
+            ),
+        }),
+      )
       await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
-      await runNativeSqlDelivery(deliveryDirectory, {
-        files,
-        onProgress: (completed, total) =>
-          progress.message(`Local Address SQL: ${completed}/${total} batches`),
-      })
-      await import3d(importOptions)
+      await timed('Import SQL', 'address', () =>
+        runNativeSqlDelivery(deliveryDirectory, {
+          files,
+          onProgress: (completed, total) =>
+            progress.message(`Local Address SQL: ${completed}/${total} batches`),
+        }),
+      )
+      if (prepared3d)
+        await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
         finalMessageWithMeta,
@@ -827,23 +845,28 @@ export async function processLocalAddressSqlUpload(
     }
     if (target.remote) {
       try {
-        await runReportedSqlImportPhase(
-          harbourClient,
-          releaseId,
-          releaseCode,
-          'replayAddressSql',
-          () =>
-            executeReleaseSqlDelivery({
-              directory: deliveryDirectory,
-              context: dbContext,
-              ...importOptions,
-              mode: 'local',
-              onProgress: (completed, total) =>
-                progress.message(`Replay SQL: ${completed}/${total} batches`),
-            }),
+        await timed('Replay SQL', 'address', () =>
+          runReportedSqlImportPhase(
+            harbourClient,
+            releaseId,
+            releaseCode,
+            'replayAddressSql',
+            () =>
+              executeReleaseSqlDelivery({
+                directory: deliveryDirectory,
+                context: dbContext,
+                ...importOptions,
+                mode: 'local',
+                onProgress: (completed, total) =>
+                  progress.message(`Replay SQL: ${completed}/${total} batches`),
+              }),
+          ),
         )
         shouldRefreshRemoteMetaCache = true
-        await import3d({ ...importOptions, isLocal: true })
+        if (prepared3d)
+          await timed('Replay SQL', 'Address3D', () =>
+            import3d({ ...importOptions, isLocal: true }),
+          )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }
@@ -862,11 +885,13 @@ export async function processLocalAddressSqlUpload(
         addressQuality: options.quality,
       })
     }
-    await writeAddressCurrentLookupCache(
-      resolvedTargetName,
-      previewPlan.regionCode,
-      releaseCode,
-      dbContext.historyDb,
+    await timed('Write lookup cache', 'address', () =>
+      writeAddressCurrentLookupCache(
+        resolvedTargetName,
+        previewPlan.regionCode,
+        releaseCode,
+        dbContext.historyDb,
+      ),
     )
     if (!target.remote)
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)

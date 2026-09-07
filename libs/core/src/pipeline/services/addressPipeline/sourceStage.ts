@@ -116,15 +116,6 @@ async function writeHkgovSourceRows(
       validFromRelease: message.sourceVersion,
       validToRelease: null,
       isCurrent: true,
-      identifiers: {
-        geoAddress: asString(row.raw.geoAddress),
-        csuId: asString(row.raw.hkgovCsuId) ?? asString(row.raw.geoAddress),
-      },
-      easting: asNumber(row.raw.easting),
-      northing: asNumber(row.raw.northing),
-      geometry: row.base.geometry,
-      addressEn: getSourceAddress(row, 'en'),
-      addressZhHant: getSourceAddress(row, 'zh-hant'),
       sources: normaliseSourceReferences(row.base.sources, row.sourceId),
       rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
@@ -141,32 +132,6 @@ async function writeHkgovSourceRows(
   }
   await advanceSourceHkgovAlsAddress2dRelease(sourceDb, [...unchangedIds], releaseId)
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
-}
-
-function getSourceAddress(row: NormalisedAddressRecord, locale: 'en' | 'zh-hant') {
-  const localised = row.i18n.find(value => value.locale === locale)
-  if (!localised) return null
-
-  const isZhHant = locale === 'zh-hant'
-  return {
-    formattedAddress: localised.formattedAddress,
-    buildingName: asString(row.raw[isZhHant ? 'zhHantBuildingName' : 'enBuildingName']),
-    buildingNumberExpression: localised.buildingNumberExpression,
-    buildingNumberFrom: localised.buildingNumberFrom,
-    buildingNumberTo: localised.buildingNumberTo,
-    buildingNumberConnector: localised.buildingNumberConnector,
-    blockExpression: localised.blockExpression,
-    blockType: localised.blockType,
-    blockRef: localised.blockRef,
-    blockTypeBeforeNumber: localised.blockTypeBeforeNumber,
-    phaseExpression: localised.phaseExpression,
-    phaseName: localised.phaseName,
-    phaseRef: localised.phaseRef,
-    estateName: asString(row.raw[isZhHant ? 'zhHantEstateName' : 'enEstateName']),
-    streetName: localised.streetName,
-    villageName: asString(row.raw[isZhHant ? 'zhHantVillageName' : 'enVillageName']),
-    districtName: asString(row.raw[isZhHant ? 'zhHantDistrict' : 'enDistrict']),
-  }
 }
 
 function normaliseSourceReferences(
@@ -194,12 +159,4 @@ function hasSourceReference(value: unknown): value is SourceReferences[number] {
   if (!value || typeof value !== 'object') return false
   const dataset = (value as Record<string, unknown>).dataset
   return typeof dataset === 'string' && dataset.trim().length > 0
-}
-
-function asNumber(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null
-}
-
-function asString(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }

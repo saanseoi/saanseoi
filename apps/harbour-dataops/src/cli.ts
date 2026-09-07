@@ -237,6 +237,7 @@ main()
   })
   .catch(error => {
     disposeInterruptHandler()
+    process.stderr.write('\n')
     cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))
     process.exit(1)
   })

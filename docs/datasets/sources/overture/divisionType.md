@@ -1,5 +1,10 @@
 # division type and level
 
+Source Divisions retain the complete publisher record in `rawProperties`, alongside
+identity, provenance and release history. Names, admin level, subtype, class, Wikidata,
+hierarchies and cartography have no duplicate source columns; canonical history/current
+tables own the normalised projection.
+
 Canonical Division ingestion records its exact source-selection recipe and run under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 

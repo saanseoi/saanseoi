@@ -154,11 +154,8 @@ describe('Places SQL materialisation', () => {
       CREATE TABLE overturePlaces (
         sourceRecordId TEXT, sources TEXT, rawProperties TEXT, version INTEGER,
         versionHash TEXT, releaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
-        isCurrent INTEGER, createdAt TEXT, updatedAt TEXT, names TEXT, lng REAL, lat REAL,
-        bbox TEXT, operatingStatus TEXT, basicCategory TEXT, taxonomyPrimary TEXT,
-        taxonomyHierarchy TEXT, taxonomyAlternates TEXT, wikidataId TEXT,
-        brandNames TEXT, websites TEXT, socials TEXT, emails TEXT, phones TEXT,
-        addresses TEXT, confidence REAL, PRIMARY KEY (sourceRecordId, versionHash)
+        isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
+        PRIMARY KEY (sourceRecordId, versionHash)
       );
       CREATE TABLE places (
         snapshotId TEXT, id TEXT, releaseId TEXT, addressSnapshotId TEXT,
@@ -310,10 +307,12 @@ describe('Places SQL materialisation', () => {
       lng: 114.2,
       lat: 22.4,
     })
-    expect(sqlite.query('SELECT lng, lat FROM overturePlaces').get()).toEqual({
-      lng: 114.1694,
-      lat: 22.3193,
-    })
+    expect(
+      sqlite
+        .query('PRAGMA table_info(overturePlaces)')
+        .all()
+        .map(row => (row as { name: string }).name),
+    ).not.toContain('lng')
     expect(history.query('SELECT lng, lat FROM places').get()).toEqual({
       lng: 114.2,
       lat: 22.4,

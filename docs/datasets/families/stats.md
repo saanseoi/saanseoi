@@ -1,5 +1,11 @@
 # Statistics dataset family
 
+Publisher attributes are retained in `rawProperties` with source identity, release
+history, provenance and native geometry. Extracted measures, period labels and
+geographic codes are materialised in canonical history/current records rather than
+duplicated in source columns. Separately versioned geometry derivatives retain their
+exact input hash and transformation evidence.
+
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can
 share a recipe; each has its own run and cohort. Remote replay includes the full recipe.

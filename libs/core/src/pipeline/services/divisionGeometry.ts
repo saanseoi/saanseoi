@@ -125,15 +125,11 @@ export function normaliseDivisionAreaGeometryRow(
       divisionId,
     },
     source: {
-      isLand: base.isLand,
-      isTerritorial: base.isTerritorial,
       rawProperties: sourceRawProperties(row, source),
       sources: normaliseSourceReferences(row.sources, source, id),
       sourceRecordId: id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
-      subtype: asNonEmptyString(row.subtype),
-      class: asNonEmptyString(row.class),
       version: asOptionalInteger(row.version),
     },
   }
@@ -189,13 +185,9 @@ export function normaliseDivisionBoundaryGeometryRow(
       rightDivisionId: divisionIds[1],
     },
     source: {
-      isLand: base.isLand,
-      isTerritorial: base.isTerritorial,
       rawProperties: sourceRawProperties(row, source),
       sources: normaliseSourceReferences(row.sources, source, id),
       sourceRecordId: id,
-      subtype: asNonEmptyString(row.subtype),
-      class: asNonEmptyString(row.class),
       version: asOptionalInteger(row.version),
     },
   }

@@ -1,5 +1,11 @@
 # Divisions dataset family
 
+Source records retain publisher payloads in `rawProperties`, with identity, provenance
+and release history alongside them. Extracted names, classifications, hierarchy,
+cartography and geometry flags belong to canonical history/current tables, not duplicate
+source columns. Native geometry may be retained separately when the publisher delivers
+it outside the attribute payload.
+
 Canonical and geometry ingestion retain recipes, source rules and exact selections under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 Verified reuse preserves the published assembly evidence; draft companion inputs refresh

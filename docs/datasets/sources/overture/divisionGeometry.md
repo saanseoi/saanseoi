@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Source areas and boundaries retain the complete publisher record, including geometry, in
+`rawProperties`. Source columns track identity, provenance and release validity;
+classification and land/territorial flags are projected only into canonical tables.
+
 Geometry snapshots retain effective source rules, lookup selections and assembly runs.
 Replay includes recipe parents under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).

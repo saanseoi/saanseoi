@@ -22,12 +22,7 @@ import {
   getGeometryChurnBaseline,
   shouldCompressCanonicalGeometry,
 } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
-import {
-  asOptionalInteger,
-  asOptionalString,
-  requireInteger,
-  requireString,
-} from './processLocalDivisionGeometrySqlUploadPreparation.ts'
+import { requireString } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 
 export async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
@@ -72,8 +67,8 @@ export async function writeGeometryRows(
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && isDisplayDerivative
   // Statistics archive geometries are already retained in
-  // hkgovCenstatdStatistics. The district-only source table has mandatory
-  // district columns and must not be misused for Area/HMA assertions.
+  // hkgovCenstatdStatistics; do not duplicate Area/HMA assertions in the
+  // district-boundary source table.
   const isCenstatdStatisticGeometry =
     version.source === 'hkgov-censtatd' &&
     rows.some(
@@ -261,33 +256,15 @@ export async function writeGeometryRows(
           rows.map(async row => {
             const { sourceGeometry, ...sourceWithProvenance } = row.source
             const sourceAssertion = sourceWithProvenance
-            const sourceProperties = row.source.rawProperties as Record<string, unknown>
             return {
               ...sourceAssertion,
               ...(version.source === 'hkgov-had'
                 ? {
-                    objectId: asOptionalInteger(sourceProperties.OBJECTID),
-                    cdsiAdminAreaId: asOptionalInteger(
-                      sourceProperties.CSDI_ADMIN_AREA_ID,
-                    ),
-                    areaType: asOptionalString(sourceProperties.AREA_TYPE),
-                    areaId: asOptionalString(sourceProperties.AREA_ID),
-                    areaCode: asOptionalString(sourceProperties.AREA_CODE),
                     sourceGeometry,
                   }
                 : version.source === 'hkgov-censtatd'
                   ? {
                       censusYear: version.cohortKey,
-                      districtClass: requireString(
-                        sourceProperties.dc_class,
-                        'C&SD dc_class',
-                      ),
-                      districtCode: requireInteger(sourceProperties.dc, 'C&SD dc'),
-                      districtEn: requireString(sourceProperties.dc_eng, 'C&SD dc_eng'),
-                      districtZhHant: requireString(
-                        sourceProperties.dc_chi,
-                        'C&SD dc_chi',
-                      ),
                       sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
                   : {}),

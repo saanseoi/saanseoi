@@ -82,16 +82,10 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         const sourceRecordId = `TD:PEDESTRIAN:${kind}:${objectId}`
         baseRows.push({
           kind,
-          objectId,
-          descriptionEn: feature.properties.EN_Description ?? null,
-          descriptionZhHans: feature.properties.SC_Description ?? null,
-          descriptionZhHant: feature.properties.TC_Description ?? null,
           rawProperties: feature.properties,
           sourceGeometry: feature.geometry === null ? 'null' : feature.geometry,
           sourceRecordId,
           sources: [{ ...provenance, layerName: layer }],
-          startTime: feature.properties.Start_Time ?? null,
-          endTime: feature.properties.End_Time ?? null,
         })
       }
     }
@@ -139,20 +133,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         sourceRecordId,
         sources: [{ ...provenance, layerName: hydLayer(profile.kind) }],
       }
-      if (profile.kind === 'streetNamePlate') {
-        return {
-          ...common,
-          level: requiredInteger(properties.LVL, 'LVL'),
-          roadName: optionalText(properties.ROAD_NAME),
-          snpId: requiredText(properties.SNP_ID, 'SNP_ID'),
-        }
-      }
-      return {
-        ...common,
-        level: requiredInteger(properties.LVL, 'LVL'),
-        sectionBetween: optionalText(properties.SECT_BTWN),
-        streetName: optionalText(properties.ST_ENGNM),
-      }
+      return common
     }),
   )
   await processNativeSourceSqlRelease(target, {
@@ -216,10 +197,6 @@ function assertArchiveHash(bytes: Uint8Array, expected: string) {
 function requiredText(value: unknown, field: string) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`Missing ${field}.`)
   return value.trim()
-}
-
-function optionalText(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function requiredInteger(value: unknown, field: string) {

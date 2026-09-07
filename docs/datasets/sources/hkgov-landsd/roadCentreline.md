@@ -1,5 +1,9 @@
 # LandsD Road Centreline
 
+Source rows retain native `rawProperties` and `sourceGeometry` with source identity,
+release history and provenance. Extracted names, street codes and classifications are
+used during canonical processing without parallel columns in source storage.
+
 The Lands Department Road Centreline dataset supplies road-centreline segments for
 SaanSeoi Streets. It is intended for approximate location queries and map annotation
 labelling, not legal road boundaries.

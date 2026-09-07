@@ -1,5 +1,10 @@
 # Places dataset family
 
+Source Place records retain the complete publisher payload in `rawProperties`, alongside
+identity, provenance and release history. Normalised coordinates, names, taxonomy,
+contact details and addresses belong to canonical history/current tables; source tables
+do not duplicate those fields.
+
 The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
 optional `releaseSet`, `snapshot`, `cohort` and `dataset` selectors. Read retained
 Overture records at `/places/v0.1/sources?sourceRelease=<source-release-code>`. JSON

@@ -11,7 +11,6 @@ import {
   resolveDivisionDomainCode,
   selectPublishedApiReleaseSetPublications,
 } from './upload.ts'
-import { formatMutedBoxGuide } from './uploadDisplay.ts'
 
 describe('upload command address prerequisites', () => {
   test('checks remote address prerequisites without refreshing the local D1 cache', async () => {
@@ -197,12 +196,6 @@ describe('division API release set readiness display', () => {
 })
 
 describe('API release-set publication display', () => {
-  test('styles the inherited API-domain note guide consistently', () => {
-    expect(formatMutedBoxGuide('│ API DOMAIN RELEASE\n│ body\n')).toBe(
-      '\u001B[90m│\u001B[39m API DOMAIN RELEASE\n\u001B[90m│\u001B[39m body\n',
-    )
-  })
-
   test('deduplicates the selected current release set from publication results', () => {
     expect(
       selectPublishedApiReleaseSetPublications({

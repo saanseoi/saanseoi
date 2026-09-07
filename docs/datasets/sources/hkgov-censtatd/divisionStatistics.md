@@ -343,9 +343,10 @@ versioned division merge ruleset. It is a versioned description of the determini
 bridge operation, while any record-specific exception remains a release processing
 action with its own evidence.
 
-Each source record includes its publisher labels directly as `districtEn` and
-`districtZhHant`; the source shard has no locale-keyed child table. Canonical/API
-localisation is materialised only when a consumer needs it.
+Source records retain the complete publisher attributes in `rawProperties`, native
+geometry, identity, release history and provenance. Publisher labels, district codes,
+measure values and normalised reference periods are not duplicated as source columns.
+Canonical fields and API localisation belong to canonical history/current tables.
 
 `MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
 during canonical ingestion, so `numericValue` is the actual number of people while

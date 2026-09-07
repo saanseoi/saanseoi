@@ -164,7 +164,9 @@ export async function buildResolvedAddressChunkArtefact(
   for (const row of normalisedRows) {
     const matchedCurrent =
       currentAddressLookup.byId.get(row.canonicalId) ??
-      (!row.raw.hierarchyCuration && row.matchKey
+      // ALS preparation already resolves source premise identities and reviewed aliases.
+      // A shared street address must never replace that identity or merge its owners.
+      (message.source !== 'hkgov-dpo' && !row.raw.hierarchyCuration && row.matchKey
         ? currentAddressLookup.byMatchKey.get(row.matchKey)
         : null) ??
       null

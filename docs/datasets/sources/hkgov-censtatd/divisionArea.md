@@ -93,11 +93,14 @@ Each release contains exactly 18 Polygon/MultiPolygon features. Required propert
 All publisher properties, including the subdivided-unit measures, remain in
 `rawProperties`; the geometry resource path does not publish them through the Division
 Statistics family. The shared C&SD statistics intake can publish the corresponding
-statistical records from the same archive. The source record also projects the
-publisher-native `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it
-does not create locale-normalised source child rows. `dc_class` is bridged through a
-reviewed `hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
-`identifiers` expose the provider's `class` and numeric `code`.
+statistical records from the same archive. Publisher labels and district codes remain
+only in `rawProperties`, alongside source identity, release history, provenance and
+native geometry. `dc_class` is bridged through a reviewed `hkgov-censtatd` identifier
+bridge for each reference-year cohort; canonical `identifiers` expose the provider's
+`class` and numeric `code`.
+
+The source `censusYear` identifies the source cohort used to resolve exact input
+versions for geometry derivatives; it is release identity, not a canonical field.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the
