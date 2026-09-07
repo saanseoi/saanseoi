@@ -35,6 +35,38 @@ const rawPath = resolve(
   import.meta.dir,
   '../../../../../../data/hkgov/dpo/ALS/20240725-1048-ALS-GeoJSON/als_addresses_3d_(public_rental_housing).geojson',
 )
+test('Shek Kip Mei suppression preserves both named houses and rejects changed evidence', async () => {
+  const path = resolve(
+    import.meta.dir,
+    '../../../../../../data/hkgov/dpo/ALS/20260819-1047-ALS-GeoJSON/als_addresses_3d_(public_rental_housing).geojson',
+  )
+  if (!existsSync(path)) return
+  const input = JSON.parse(await readFile(path, 'utf8'))
+  const features: Als3dFeature[] = input.features.filter((f: Als3dFeature) =>
+    ['3532121484T20121220', '3530121496P20121220', '3527521523T20121220'].includes(
+      f.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ?? '',
+    ),
+  )
+  expect(features).toHaveLength(3)
+  for (const feature of features) {
+    const p = feature.properties.Address.PremisesAddress
+    if (p.BuildingCsuInformation?.CsuId !== '3532121484T20121220') {
+      expect(als3dSuppression(feature, '2026-08-19.0')).toBeUndefined()
+      expect(p.EngPremisesAddress?.Eng3dAddress).toHaveLength(779)
+      continue
+    }
+    expect(als3dSuppression(feature, '2026-08-19.0')?.id).toBe(
+      'shek-kip-mei-phase-2-unnamed-inventory',
+    )
+    expect(als3dSuppression(feature, '2026-08-20.0')).toBeUndefined()
+    const changed = structuredClone(feature)
+    changed.geometry.coordinates = [114, 22]
+    expect(() => als3dSuppression(changed, '2026-08-19.0')).toThrow(
+      'source evidence changed',
+    )
+    expect(als3dSuppression(changed, '2026-08-19.0', true)).toBeUndefined()
+  }
+})
 test.skipIf(!existsSync(rawPath))(
   'retained delivery keeps raw suppressed assertions and only named building collections',
   async () => {

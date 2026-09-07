@@ -4,9 +4,12 @@ import { als3dHash, type Als3dFeature } from './hkgovAls3d'
 import { assertKoYeeEmptyInventory } from './hkgovAlsKoYeeDuplicate'
 import { assertApprovedEmptyInventory } from './hkgovAlsApprovedEstateBatch'
 import { approvedIssue3dSuppression } from './hkgovAlsApprovedIssueBatch'
+import { reviewedYueWan3dSuppression } from './hkgovAlsYueWanSuppression'
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
+  const yueWan = reviewedYueWan3dSuppression(feature, version)
+  if (yueWan) return yueWan
   const approved = approvedIssue3dSuppression(feature, version)
   if (approved) return approved
   try {
@@ -22,6 +25,25 @@ function resolveAls3dSuppression(
   version: string,
   skip: boolean,
 ) {
+  if (
+    version >= '2026-07-22.0' &&
+    version <= '2026-08-19.0' &&
+    feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
+      '3532121484T20121220'
+  ) {
+    assert.equal(
+      als3dHash(feature),
+      'fcfd494831ac14fd6d8aac02d46e34f3c93c8972b7ddc72654ce2f69bd0ef4d0',
+      'ALS 3D suppression shek-kip-mei-phase-2-unnamed-inventory: source evidence changed',
+    )
+    return {
+      dataset: 'saanseoi-address3d-suppression',
+      id: 'shek-kip-mei-phase-2-unnamed-inventory',
+      sourceVersion: version,
+      reason:
+        'Reviewed unnamed 780-unit assertion is not an additional building inventory. Preserve both named houses and their separate 779-unit inventories; retain this rejected assertion as raw provenance.',
+    }
+  }
   if (!skip) {
     assertKoYeeEmptyInventory(feature, version)
     assertApprovedEmptyInventory(feature, version)

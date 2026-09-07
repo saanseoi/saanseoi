@@ -2021,6 +2021,173 @@
       "authority": "User decision, 2026-09-08: merge all reviewed Tsui Heng suffix families from the start of the retained dataset.",
       "decision": "Backfill exact 311A/C/D and 408A/D mergers only; retain publisher history.",
       "evidence": "Exact bilingual inventory hashes and identity guards."
+    },
+    {
+      "id": "yiu-cheong-all-mergers-0c0ca5e5",
+      "revision": 1,
+      "estate": "YIU TUNG ESTATE",
+      "csu": "4128915333T20050430",
+      "expectedEnBuildingName": "YIU CHEONG HSE",
+      "expectedZhBuildingName": "耀昌樓",
+      "expectedUnitCount": 277,
+      "expectedInventoryHash": "0c0ca5e5b89a4698e6238a1c4a7f305b015ca5acc972c41250c872feede02bb6",
+      "correctedInventoryHash": "5739cdad84ec9011550698f9c23fe732481bbd66200e7931f32347bb40915b6f",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-08-21.0",
+        "2024-08-28.0",
+        "2024-09-02.0"
+      ],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "412"
+        },
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "213"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 4,
+          "unit": "412A"
+        },
+        {
+          "floor": 4,
+          "unit": "412B"
+        },
+        {
+          "floor": 4,
+          "unit": "412C"
+        },
+        {
+          "floor": 2,
+          "unit": "212A"
+        },
+        {
+          "floor": 2,
+          "unit": "212B"
+        },
+        {
+          "floor": 2,
+          "unit": "212C"
+        },
+        {
+          "floor": 2,
+          "unit": "213A"
+        },
+        {
+          "floor": 2,
+          "unit": "213B"
+        }
+      ],
+      "evidenceSourceRelease": "20260819-1047-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: backfill all Yiu Cheong mergers as if always merged.",
+      "decision": "Backfill 412A/B/C, 212A/B/C and 213A/B into unsuffixed flats; preserve raw inventories.",
+      "evidence": "Exact bilingual names, CSU, release and full inventory hashes."
+    },
+    {
+      "id": "yiu-cheong-all-mergers-1a6c234b",
+      "revision": 1,
+      "estate": "YIU TUNG ESTATE",
+      "csu": "4128915333T20050430",
+      "expectedEnBuildingName": "YIU CHEONG HSE",
+      "expectedZhBuildingName": "耀昌樓",
+      "expectedUnitCount": 275,
+      "expectedInventoryHash": "1a6c234b1782bbc1a01a2ef828e50998583b7884521041b21ea4b99f0db09071",
+      "correctedInventoryHash": "5739cdad84ec9011550698f9c23fe732481bbd66200e7931f32347bb40915b6f",
+      "sourceVersions": [
+        "2024-07-31.0",
+        "2024-08-25.0",
+        "2024-09-01.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0"
+      ],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "212"
+        },
+        {
+          "floor": 2,
+          "unit": "213"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 2,
+          "unit": "212A"
+        },
+        {
+          "floor": 2,
+          "unit": "212B"
+        },
+        {
+          "floor": 2,
+          "unit": "212C"
+        },
+        {
+          "floor": 2,
+          "unit": "213A"
+        },
+        {
+          "floor": 2,
+          "unit": "213B"
+        }
+      ],
+      "evidenceSourceRelease": "20260819-1047-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: backfill all Yiu Cheong mergers as if always merged.",
+      "decision": "Backfill 412A/B/C, 212A/B/C and 213A/B into unsuffixed flats; preserve raw inventories.",
+      "evidence": "Exact bilingual names, CSU, release and full inventory hashes."
+    },
+    {
+      "id": "yiu-cheong-all-mergers-120123b4",
+      "revision": 1,
+      "estate": "YIU TUNG ESTATE",
+      "csu": "4128915333T20050430",
+      "expectedEnBuildingName": "YIU CHEONG HSE",
+      "expectedZhBuildingName": "耀昌樓",
+      "expectedUnitCount": 273,
+      "expectedInventoryHash": "120123b4b315e18e383af0cf3b220c4157fae2329b0392bf20d9bc4848254cc0",
+      "correctedInventoryHash": "5739cdad84ec9011550698f9c23fe732481bbd66200e7931f32347bb40915b6f",
+      "sourceVersions": [
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0"
+      ],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "213"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 2,
+          "unit": "213A"
+        },
+        {
+          "floor": 2,
+          "unit": "213B"
+        }
+      ],
+      "evidenceSourceRelease": "20260819-1047-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: backfill all Yiu Cheong mergers as if always merged.",
+      "decision": "Backfill 412A/B/C, 212A/B/C and 213A/B into unsuffixed flats; preserve raw inventories.",
+      "evidence": "Exact bilingual names, CSU, release and full inventory hashes."
     }
   ]
 }

@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyReviewedStreetEstateComplexes } from './hkgovAlsStreetEstateComplexes'
+import { suppressReviewedYueWanPremise } from './hkgovAlsYueWanSuppression'
 import {
   retainAlsCommercialPremises,
   labelAlsCommercialRetentions,
@@ -186,6 +187,7 @@ export async function prepareHkgovAlsAddressParquet(
   labelAls2dBackfillRows(rows)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
   applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
+  suppressReviewedYueWanPremise(rows, options.sourceVersion)
   applyReviewedComplexPromotions(rows, options.sourceVersion)
   labelAlsCommercialRetentions(rows, retainedCommercialPremises)
   applyReviewedEstateComplexes(rows, options.sourceVersion)

@@ -4,6 +4,7 @@ import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
+import { assertYungShingSharedInventory } from './hkgovAlsYungShingSharedBuilding'
 import { reviewedComplexInventoryParents } from './hkgovAlsComplexPromotions'
 import {
   enrichAls3dParentBlock,
@@ -142,6 +143,7 @@ export async function prepareAls3dCollections(options: {
       houseRetention,
     } of readAls3dWithBackfills(file, options.sourceVersion, options.rows)) {
       assertStreetEstateAliasInventoryEmpty(feature, options.sourceVersion)
+      assertYungShingSharedInventory(feature, options.sourceVersion)
       assertAlsCommercialInventoryAbsent(feature, options.sourceVersion)
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
