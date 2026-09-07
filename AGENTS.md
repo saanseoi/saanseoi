@@ -77,11 +77,11 @@
 - Use `bash` for scripts running on CI; use `fish` for scripts run locally.
 - The product is pre-release: avoid legacy compatibility paths or migration shims.
 - Validate complex front-end design changes with `playwright`. Ignore content changes.
-- Put temporary map-review pages in `apps/basemap-viewer/local-review/` and
-  `apps/basemap-viewer/src/local-review/` it can be served on localhost:5174. Provide
-  the localhost link whenever creating one. Review maps use the SaanSeoi MapLibre
-  basemap, fill the viewport, and keep explanatory text, controls and legends in compact
-  panels or cards over the map rather than in page chrome.
+- Put temporary map-review pages in `apps/basemap-viewer/local-review/`, with their
+  modules in `apps/basemap-viewer/src/local-review/`; both are ignored and served on
+  localhost:5174. Provide the localhost link whenever creating one. Review maps use the
+  SaanSeoi MapLibre basemap, fill the viewport, and keep explanatory text, controls and
+  legends in compact panels or cards over the map rather than in page chrome.
 
 ## Component and styling conventions
 
