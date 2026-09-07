@@ -37,7 +37,7 @@ Geodatabase `DCD` layer is required to contain 18 Polygon district features with
 are included in every source record's `sources` provenance and carried into canonical
 geometry provenance; the importer reads that local archive rather than the converted
 GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved
-through the versioned `identifierBridges` fixture/table for resource type `division`,
+through the versioned `curations/identity/` fixture for resource type `division`,
 authority `hkgov-had`, cohort `2022`, and the administrative domain. The source release
 is `dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source
 schema version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.

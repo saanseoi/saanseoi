@@ -185,6 +185,12 @@ Overture division ID, including the deterministic synthetic Hong Kong, Kowloon, 
 Territories IDs where Overture has no row. Request them with
 `include=areas:hkgov-censtatd`.
 
+Regional identities use `HK` for Hong Kong Island, `KLN` for Kowloon and `NT` for New
+Territories. The public identity lookup can extract these codes from the
+`CENSTATD:area:<code>` IDs of area records belonging to the selected release set. It
+returns their recorded `divisionId`, including Kowloon's retained Overture identity. The
+mapping does not equate C&SD polygons with Overture geometry.
+
 The companion snapshot preserves all its contributing C&SD source releases as
 provenance. Required publication membership does not make geometry part of the default
 response; clients still select it explicitly with `include`.

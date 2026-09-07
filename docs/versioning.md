@@ -141,7 +141,7 @@ flowchart LR
     Schemas[meta/schemaVersions<br/>canonical/API shapes]
     Rulesets[meta/rulesetVersions<br/>merge and selection semantics]
     Fields[meta/apiFields<br/>field provenance candidates]
-    Bridges[meta/identifierBridges<br/>source-to-canonical identity bridges]
+    Bridges[meta/curations/identity<br/>reviewed ingestion identity mappings]
     ReleaseDocs[meta/releases<br/>dataset-release documentation]
     ReleaseSetDocs[meta/apiReleaseSets<br/>domain-release documentation]
     SourceFixture[resource fixtures<br/>e.g. divisions/overture anchor]
@@ -201,7 +201,7 @@ The fixture groups have deliberately different jobs:
 | `apiCompositions/`                              | Domains and their required/optional resource-and-variant slots          | Exact snapshot IDs                                              |
 | `schemaVersions/`, `rulesetVersions/`           | Shape and executable transformation/selection semantics                 | A publication checkpoint                                        |
 | `apiFields/`                                    | A compatible field-provenance candidate                                 | A release set; it is resolved and pinned while one is published |
-| `identifierBridges/`                            | Source-release/cohort-specific identity reconciliation                  | A cross-cohort identity guarantee for an unrelated lineage      |
+| `curations/identity/`                           | Source-release/cohort-specific identity reconciliation                  | A cross-cohort identity guarantee for an unrelated lineage      |
 | `releases/`, `apiReleaseSets/`                  | Human-facing documentation for generated release records                | The records themselves                                          |
 | Resource fixtures outside `meta/`               | Source-specific ingestion inputs (for example, the Overture PRC anchor) | Registry policy or an API domain                                |
 

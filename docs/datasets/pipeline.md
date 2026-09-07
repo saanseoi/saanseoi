@@ -181,8 +181,8 @@ Create or update the applicable fixtures under `fixtures/meta/`:
   policy and release policy;
 - `releases/<dataset-code>/` for every published SaanSeoi release, including source
   version, release version, cohort, source schema version and localised release notes;
-- `identifierBridges/`, `curations/` and other source evidence fixtures when identity or
-  curated decisions require them;
+- `curations/identity/`, `curations/` and other source evidence fixtures when identity
+  or curated decisions require them;
 - `schemaVersions/`, `rulesetVersions/`, `apiCompositions/`, `apiFields/`,
   `apiEndpoints/` and `apiVersions/` when the source changes a public data or API
   contract.
@@ -203,9 +203,9 @@ record must declare its audit rules before its processor is written.
    `type: "record"` describes an individual decision that is emitted as a
    `releaseProcessingActions` row.
 2. For a mapping, include the ordered `mappings` and any `condition`, source and target
-   field paths. If the mapping is maintained by a reviewed `identifierBridges` fixture,
-   reference the bridge join, authority, domain, cohort and output fields rather than
-   copying its mapping rows into the rule.
+   field paths. If the mapping is maintained by a reviewed `curations/identity/`
+   fixture, reference the curation lookup, authority, domain, cohort and output fields
+   rather than copying its mapping rows into the rule.
 3. In the dataset fixture, add `mergeRules` references to the ruleset version and the
    exact operation codes that apply to that dataset. A dataset only selects rules; it
    does not repeat their descriptions or mappings.
