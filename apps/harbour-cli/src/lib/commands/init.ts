@@ -159,6 +159,21 @@ export async function runInitialisationCommand(
     throw new Error(`\`${args.command}\`${suffix}`)
   }
 
+  const targetLabel =
+    args.command === 'init:production'
+      ? 'production'
+      : typeof target === 'string'
+        ? target
+        : 'local'
+  note(
+    [
+      `command: ${args.command}`,
+      `target: ${targetLabel}`,
+      `artefact cache: ${cacheArtefacts ? 'retain' : 'discard after upload'}`,
+    ].join('\n'),
+    'INITIALISATION',
+  )
+
   let summaryDirectory: string | undefined
   let summaryPath = process.env.SAANSEOI_INIT_SUMMARY_PATH
   if (!summaryPath) {
@@ -222,12 +237,6 @@ export async function runInitialisationCommand(
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
   }
 
-  const targetLabel =
-    args.command === 'init:production'
-      ? 'production'
-      : typeof target === 'string'
-        ? target
-        : 'local'
   outro(`${args.command} initialisation complete @ ${targetLabel}`)
 }
 
