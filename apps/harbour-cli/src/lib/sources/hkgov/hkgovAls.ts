@@ -6,6 +6,7 @@ import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
 import { restoreAlsEstateComponents } from './hkgovAlsEstateComponents'
+import { restoreAlsEstateGaps } from './hkgovAlsEstateGapRestorations'
 import { applyAlsNestedPremises } from './hkgovAlsNestedPremises'
 import {
   reconstructAlsPremises,
@@ -218,6 +219,7 @@ export async function prepareHkgovAlsAddressParquet(
   applyAlsEstateNames(rows, options.sourceVersion)
   applyAlsLocalities(rows, options.sourceVersion)
   restoreAlsEstateComponents(rows, options.sourceVersion)
+  restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
   if (options.writeOutput !== false)
     parquetWriteFile({

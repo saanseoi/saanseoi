@@ -36,6 +36,24 @@ export function applyAls3dCorrections(feature: Als3dFeature, sourceVersion: stri
         `ALS 3D correction ${correction.id}: source changed; review required`,
       )
     }
+    for (const { floor, unit } of correction.removals) {
+      const enMatches = en.Eng3dAddress.filter(
+        row =>
+          String(row.EngFloor?.FloorNum) === String(floor) &&
+          row.EngUnit?.UnitNo === unit,
+      )
+      const zhMatches = zh.Chi3dAddress.filter(
+        row =>
+          String(row.ChiFloor?.FloorNum) === String(floor) &&
+          row.ChiUnit?.UnitNo === unit,
+      )
+      if (enMatches.length !== 1 || zhMatches.length !== 1)
+        throw new Error(
+          `ALS 3D correction ${correction.id}: removal is not an exact bilingual unit`,
+        )
+      en.Eng3dAddress = en.Eng3dAddress.filter(row => row !== enMatches[0])
+      zh.Chi3dAddress = zh.Chi3dAddress.filter(row => row !== zhMatches[0])
+    }
     for (const { floor, unit } of correction.additions) {
       en.Eng3dAddress.push({
         EngUnit: { UnitDescriptor: 'FLAT', UnitNo: unit },
