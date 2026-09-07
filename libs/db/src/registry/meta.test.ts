@@ -183,7 +183,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the official Stats domain', () => {
+  test('registers C&SD statistics under the Government Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
@@ -224,7 +224,7 @@ describe('fixture version hashes', () => {
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'official' })
+    ).toMatchObject({ defaultDomainCode: 'government' })
     expect(
       initialApiCompositionMembers
         .filter(
@@ -301,13 +301,13 @@ describe('fixture version hashes', () => {
     ])
   })
 
-  test('renames legacy official domain labels in published registry metadata', () => {
+  test('renames legacy domain labels in published registry metadata', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
     expect(apiDomainCodeRenames).toEqual([
       { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'official' },
-      { apiVersion: 'api-stats-v0.1', from: 'default', to: 'official' },
-      { apiVersion: 'api-streets-v0.1', from: 'hkgov-landsd', to: 'official' },
+      { apiVersion: 'api-stats-v0.1', from: 'official', to: 'government' },
+      { apiVersion: 'api-streets-v0.1', from: 'official', to: 'saanseoi' },
     ])
     expect(statements).toContain(
       'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
