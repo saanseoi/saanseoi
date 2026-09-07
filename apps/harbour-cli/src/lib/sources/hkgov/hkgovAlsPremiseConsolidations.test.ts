@@ -57,6 +57,9 @@ test('all thirty reviewed releases retain one named centre, stable identity and 
     const owner = rows[0]!
     id ??= owner.id
     expect(owner.id).toBe(id)
+    expect(owner.id).toMatch(/^ss-[0-9a-f-]{36}$/)
+    expect(owner.canonicalId).toBe(owner.id)
+    expect(owner.identityBuildingId).toBe(owner.id)
     expect(owner.zhHantBuildingName).toBe('彩盈坊')
     expect(owner.enBuildingName).toBe('CHOI YING PLACE')
     expect(owner.zhHantFormattedAddress).toContain('彩盈坊')

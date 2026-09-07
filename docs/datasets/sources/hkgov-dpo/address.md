@@ -158,11 +158,18 @@ normalised identity. Containment neither merges the unnamed same-CSU record nor 
 residential inventory to the food court.
 
 `hkgov-dpo-address-premise-consolidations.json` guards Choi Ying Place's reviewed
-cross-CSU consolidation. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
+cross-CSU consolidation. Reviewed consolidation, named-premise retention and derived
+hierarchy parents assign stable SaanSeoi-issued `ss-<uuid-v5>` address IDs; these are
+not GERS identifiers. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
 release; the underspecified duplicate is suppressed wherever present and the corrected
 Chinese name is backfilled. Original components and discarded assertions are preserved
 as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
 does not generalise shared points or CSU values into permission to merge.
+
+`--skip-curation-checks` skips Address3D suppression evidence checks while still
+applying the reviewed CSU and release bounds. Rejected Hung Hom Phase 2 inventories
+remain raw source evidence and do not emit collections referencing removed address
+owners.
 
 Reviewed Housing Authority estate names are stored in
 `hkgov-dpo-address-estate-names.json`. Choi Wan uses the preferred `Choi Wan (I) Estate`
@@ -176,6 +183,14 @@ House's June 2025 gap receives 949 units corroborated by identical May and Augus
 inventories. The June bilingual parent must match the evidence premise, and the source
 CSU must be absent from that 3D delivery. Cross-release evidence retains its actual date
 and separate curation provenance; raw deliveries remain unchanged.
+
+Reviewed closures remain dated source removals. Pak Tin Catholic Primary School is
+absent from 25 February 2025, Pak Tin Commercial Centre from 26 April 2025, and the
+Salvation Army Sam Shing Chuen Lau Ng Ying School from 18 October 2024. These are
+delivery dates, not asserted closure dates. Historical assertions remain available;
+these premises are not forward-filled. Pak Tin Shopping Centre remains a separate
+premise. Exact chronology fingerprints in `hkgov-dpo-address-history-decisions.json`
+guard the accepted removal events.
 
 Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
 omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23

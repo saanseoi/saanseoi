@@ -62,7 +62,7 @@ export function retainNamedPremises(rows: PreparedHkgovAlsRow[], version: string
       )
     }
     const originalId = owner.id
-    const id = buildDeterministicUuidV5(NAMESPACE, d.id)
+    const id = `ss-${buildDeterministicUuidV5(NAMESPACE, d.id)}`
     owner.identityAlias = originalId
     owner.id = owner.canonicalId = owner.identityBuildingId = id
     owner.identityKey = owner.identityContinuityKey = `reviewed-named-premise:${d.id}`

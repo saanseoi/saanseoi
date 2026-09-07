@@ -24,7 +24,10 @@ test('reviewed suppression rejects changed identity and is bounded by version', 
   expect(() => als3dSuppression(changed, '2026-08-19.0')).toThrow(
     'source evidence changed',
   )
-  expect(als3dSuppression(changed, '2026-08-19.0', true)).toBeUndefined()
+  expect(als3dSuppression(changed, '2026-08-19.0', true)?.id).toBe(
+    'hung-hom-phase-2-unnamed-inventory',
+  )
+  expect(als3dSuppression(changed, '2026-08-20.0', true)).toBeUndefined()
   expect(als3dSuppression(changed, '2026-08-20.0')).toBeUndefined()
   expect(als3dSuppression(changed, '2024-07-24.0')).toBeUndefined()
 })
@@ -90,44 +93,47 @@ test.skipIf(!existsSync(rawPath))(
         JSON.stringify({ type: 'FeatureCollection', features }, null, 2),
       )
       const outputFile = join(dir, 'output.parquet')
-      expect(
-        await prepareAls3dCollections({
-          sourceDir: dir,
-          sourceVersion: '2024-07-25.0',
-          outputFile,
-          rows,
-        }),
-      ).toEqual({ collectionCount: 5, unitCount: 2773, sourceCount: 7 })
-      const records = (await readFile(`${outputFile}.address3d.jsonl`, 'utf8'))
-        .trim()
-        .split('\n')
-        .map(line => JSON.parse(line))
-      const sources = records.filter(record => record.kind === 'source')
-      expect(sources.map(record => record.rawProperties)).toEqual(features)
-      expect(
-        sources.filter(record =>
-          record.sources.some(
-            (source: { dataset: string }) =>
-              source.dataset === 'saanseoi-address3d-suppression',
+      for (const skipCurationChecks of [false, true]) {
+        expect(
+          await prepareAls3dCollections({
+            sourceDir: dir,
+            sourceVersion: '2024-07-25.0',
+            outputFile,
+            rows,
+            skipCurationChecks,
+          }),
+        ).toEqual({ collectionCount: 5, unitCount: 2773, sourceCount: 7 })
+        const records = (await readFile(`${outputFile}.address3d.jsonl`, 'utf8'))
+          .trim()
+          .split('\n')
+          .map(line => JSON.parse(line))
+        const sources = records.filter(record => record.kind === 'source')
+        expect(sources.map(record => record.rawProperties)).toEqual(features)
+        expect(
+          sources.filter(record =>
+            record.sources.some(
+              (source: { dataset: string }) =>
+                source.dataset === 'saanseoi-address3d-suppression',
+            ),
           ),
-        ),
-      ).toHaveLength(2)
-      expect(rows).toHaveLength(7)
-      const suppressedIds = sources
-        .filter(record =>
-          record.sources.some(
-            (source: { dataset: string }) =>
-              source.dataset === 'saanseoi-address3d-suppression',
-          ),
-        )
-        .map(record => record.sourceRecordId)
-      expect(
-        records
-          .filter(record => record.kind === 'collection')
-          .some(record =>
-            record.sourceRecordIds.some((id: string) => suppressedIds.includes(id)),
-          ),
-      ).toBe(false)
+        ).toHaveLength(2)
+        expect(rows).toHaveLength(7)
+        const suppressedIds = sources
+          .filter(record =>
+            record.sources.some(
+              (source: { dataset: string }) =>
+                source.dataset === 'saanseoi-address3d-suppression',
+            ),
+          )
+          .map(record => record.sourceRecordId)
+        expect(
+          records
+            .filter(record => record.kind === 'collection')
+            .some(record =>
+              record.sourceRecordIds.some((id: string) => suppressedIds.includes(id)),
+            ),
+        ).toBe(false)
+      }
     } finally {
       await rm(dir, { recursive: true, force: true })
     }

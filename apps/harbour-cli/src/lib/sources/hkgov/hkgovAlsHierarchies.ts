@@ -232,7 +232,7 @@ function derivedRow(
   curationId: string,
   fields: Partial<HierarchyRow>,
 ): HierarchyRow {
-  const id = buildDeterministicUuidV5(NAMESPACE, curationId)
+  const id = `ss-${buildDeterministicUuidV5(NAMESPACE, curationId)}`
   return {
     ...template,
     ...fields,

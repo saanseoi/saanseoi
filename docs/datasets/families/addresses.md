@@ -178,9 +178,17 @@ newer source representation is backfilled through the two July 2026 gaps, with o
 dated assertions preserved and one normalised food-court identity.
 
 Explicit premise consolidation can suppress a reviewed underspecified duplicate and
+retain a stable SaanSeoi-issued `ss-<uuid-v5>` address identity. The `ss-` prefix
+denotes SaanSeoi identity ownership, not instability or GERS backing. Named-premise
+retentions and derived hierarchy parents use the same prefix. Consolidation can also
 backfill a corrected display name while preserving every raw assertion. Choi Ying Place
 uses one reviewed identity across its temporary publisher CSU change; this does not
 assign residential units to the shopping centre or authorise other same-point merges.
+
+Reviewed closures preserve the premises in earlier source releases and accept their
+dated removal without reconstructing them in later releases. This applies to Pak Tin
+Catholic Primary School, Pak Tin Commercial Centre and Sam Shing's Lau Ng Ying School;
+source delivery dates do not establish the exact physical closure date.
 
 Explicitly reviewed Housing Authority estate names can supply canonical display
 components while retaining ALS spellings in raw evidence. Choi Wan (I) Estate uses HA's
@@ -225,6 +233,9 @@ estate premise.
 The automatic estate-gap policy requires same-CSU, full non-estate component equality,
 one occurrence in every release and matching bilingual attribution on both sides of the
 gap. It cannot merge sections or alternative addresses just because a CSU coincides.
+
+`--skip-curation-checks` retains bounded Address3D inventory suppression decisions so
+removed address owners cannot acquire orphaned collections.
 
 Named-premise retentions are similarly explicit. Cheung Hong Commercial Centre No. 2
 keeps the reviewed named record and preserves its unnamed cross-reference as provenance,

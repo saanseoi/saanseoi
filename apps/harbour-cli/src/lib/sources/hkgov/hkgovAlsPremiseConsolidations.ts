@@ -44,7 +44,7 @@ export function applyAlsPremiseConsolidations(
       engPremisesAddress: JSON.parse(r.engPremisesAddressJson!),
       chiPremisesAddress: JSON.parse(r.chiPremisesAddressJson!),
     }))
-    const id = buildDeterministicUuidV5(NAMESPACE, decision.id)
+    const id = `ss-${buildDeterministicUuidV5(NAMESPACE, decision.id)}`
     owner.zhHantFormattedAddress = owner.zhHantFormattedAddress.replace(
       owner.zhHantBuildingName,
       decision.zhBuildingName,
