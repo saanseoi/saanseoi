@@ -148,6 +148,8 @@ export function resolveCacheTablesForBinding(
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
+        'address3d',
+        'address3dI18n',
         'snapshotVersionChanges',
       ]
     }
