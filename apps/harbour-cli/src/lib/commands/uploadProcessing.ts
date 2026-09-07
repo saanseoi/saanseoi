@@ -330,7 +330,10 @@ export async function processPreparedUpload({
       },
       uploadResult,
       preparedUploadFile,
-      { skipSnapshotCleanup: options.skipSnapshotCleanup },
+      {
+        cacheArtefacts,
+        skipSnapshotCleanup: options.skipSnapshotCleanup,
+      },
     )
     const releaseSetReadiness = await resolveDivisionApiReleaseSetReadiness(
       target,
