@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
-import { profileNames } from '../constants/schema'
+import { profileNames, resolverCodes } from '../constants/schema'
 import type {
   ApiFamilyType,
   ApiEndpointMethod,
@@ -51,16 +51,7 @@ export const metaRegistryRequiredTables = [
 
 export const initialProfiles: ProfileName[] = [...profileNames]
 
-export const initialResolverCodes: ResolverCode[] = [
-  'direct_copy',
-  'join_lookup',
-  'lookup_fk',
-  'derive_bbox_from_geometry',
-  'prefer_hkgov_then_overture',
-  'prefer_overture_then_hkgov',
-  'merge_first_non_empty',
-  'normalise_whitespace',
-]
+export const initialResolverCodes: ResolverCode[] = [...resolverCodes]
 
 type Locale = 'en' | 'zh-hant' | 'zh-hans'
 
