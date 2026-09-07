@@ -76,6 +76,12 @@ provider codes are retained in `identifiers` as `PLAND:PPU`, `PLAND:SPU`, `PLAND
 and `PLAND:SUBUNIT`. Canonical IDs are deterministic UUIDv5 values derived from the
 provider-scoped Planning Department identity and never reuse an Overture GERS ID.
 
+The public `/v0.1/identityBridge` lookup derives mappings from the selected release
+records. Namespaces are `PLAND:PPU`, `PLAND:SPU`, `PLAND:TPU` and `PLAND:SUBUNIT`;
+subunit values use `<TPU>-<subunit>`. Only the record's own planning level contributes
+an identity: inherited parent codes are excluded. The lookup does not require a
+checked-in inventory of deterministic UUID mappings.
+
 PPU, SPU and TPU areas are deterministic unions of their child cells. The raw cell
 feature properties and original geometry remain in `hkgovPlandPlanningCells`; canonical
 division IDs, hierarchy, aggregate geometry and canonical relationship rows do not enter
@@ -166,6 +172,11 @@ human-readable rendering of the publisher name, such as `tsuen-wan-tsing-yi-area
 a SaanSeoi code for addressing the canonical Planning division, not a Planning
 Department source identifier; C&SD's numeric New Town keys remain in their separately
 reviewed identifier bridge.
+
+New Town lookup identifiers are the importer's normalised English publisher names, not
+publisher-issued codes or curated public Division codes. The selected API release set
+determines the cohort and canonical UUIDs. Reviewed C&SD numeric New Town mappings
+remain ingestion curations.
 
 The trilingual publisher labels are retained verbatim on the native `hkgovPlandNewTowns`
 source row as `nameEn`, `nameZhHant`, and `nameZhHans`, then normalised into the

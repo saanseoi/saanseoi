@@ -318,7 +318,7 @@ The implementation also includes:
 
 - `dataShards`
 - `releaseShardAssignments`
-- `releaseSetShardAssignments`
+- `snapshotShardAssignments`
 
 These describe which D1 databases serve which role, region, year, and environment.
 

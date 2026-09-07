@@ -6,6 +6,12 @@ removes superseded codes for that same domain and canonical ID. Division process
 reads these curated assignments; domain codes and source identifiers retain their own
 formats.
 
+The `/v0.1/identityBridge` endpoint derives source-to-canonical mappings from the
+selected API release set. Planning keys include their level; subunit values include
+their TPU. Reviewed mappings needed by ingestion live in
+`fixtures/meta/curations/identity/` and are not metadata database rows. See
+[identity lookups](../../identity-bridge.md) for selectors and pagination.
+
 Planning Division retries reuse sealed SQL and completion counts without repeating
 normalisation, comparison, materialisation or import artefact generation. Local
 materialisation runs on WAL-safe planning copies; target mutations start only after the

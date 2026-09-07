@@ -50,7 +50,7 @@ Create or update the following files as applicable:
 | Provider facts and parsing decisions           | `docs/datasets/sources/<provider>/*.md`                                         |
 | Family membership and release-set rules        | `docs/datasets/families/<family>.md`                                            |
 | Resource contract                              | `docs/datasets/resourceType/<resource>.md` and, when normative, `spec/`         |
-| Canonical identity or curation                 | `fixtures/meta/identifierBridges/`, `fixtures/meta/curations/`                  |
+| Canonical identity or curation                 | `fixtures/meta/curations/`                                                      |
 | Normalisation and audit rules                  | `fixtures/meta/rulesetVersions/` plus the dataset's `mergeRules`                |
 | Public composition or schema                   | `fixtures/meta/apiCompositions/`, `apiFields/`, `apiEndpoints/`, `apiVersions/` |
 

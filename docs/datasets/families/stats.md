@@ -52,6 +52,11 @@ bridges, then records the canonical `divisionId`, canonical `districtCode`, refe
 year and measures. This prevents a publisher identifier from being mistaken for a
 SaanSeoi district code.
 
+These reviewed identity mappings live in `fixtures/meta/curations/identity/`. Ingestion
+reads the version-controlled curations directly and validates their content hashes;
+metadata synchronisation does not materialise identity mappings. Public identifier
+discovery uses the [release-scoped identity lookup](../../identity-bridge.md).
+
 Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
 `geography.code`; the publisher's numeric `DC` remains only in source provenance and the
 constructed `sourceFeatureRef`.
