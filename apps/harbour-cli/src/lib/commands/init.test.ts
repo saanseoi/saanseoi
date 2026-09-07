@@ -178,6 +178,121 @@ describe('initialisation commands', () => {
     }
   })
 
+  test('normal init skips completed releases before opening input files or the uploader', () => {
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+        source scripts/init/common.fish
+        set -g lookup_count 0
+        function init_load_completed_release_codes
+          set -g lookup_count (math $lookup_count + 1)
+          set -g saanseoi_init_completed_release_codes dr-test-published dr-test-superseded
+        end
+        init_configure "test init" --target local
+        set -gx SAANSEOI_INIT_GUIDES 0,4
+        init_run_upload dr-test-published /nonexistent-input.parquet; or exit 1
+        init_run_upload dr-test-superseded /nonexistent-input.parquet; or exit 1
+        test "$lookup_count" -eq 1; or exit 2
+        test "$saanseoi_init_last_upload_processed" -eq 0; or exit 3
+        test "$saanseoi_init_upload_failures" -eq 0; or exit 4
+        init_is_completed_release dr-test-incomplete; and exit 5
+        exit 0
+      `,
+      ],
+      cwd: repoRoot,
+    })
+    expect(result.exitCode).toBe(0)
+    const output = result.stdout.toString()
+    expect(output).toContain('dr-test-published   SKIPPED:')
+    expect(output).toContain('dr-test-superseded  SKIPPED:')
+    const rows = output.trimEnd().split('\n')
+    expect(rows[0]?.indexOf('SKIPPED:')).toBe(rows[1]?.indexOf('SKIPPED:'))
+    expect(output).not.toContain('UPLOAD PLAN')
+    expect(result.stderr.toString()).toBe('')
+  })
+
+  test('completed Permanent Living Quarters skips dataops and archive preparation without continue', () => {
+    const script = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions-overture.fish'),
+      'utf8',
+    )
+    const block = script.slice(
+      script.indexOf('set -l censtatd_area_release_code'),
+      script.indexOf('# A resumed initialiser'),
+    )
+    expect(block).toContain('init_skip_completed_release')
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+        source scripts/init/common.fish
+        function init_load_completed_release_codes
+          set -g saanseoi_init_completed_release_codes dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
+        end
+        function init_run_step
+          echo "Unexpected preparation or upload" >&2
+          exit 99
+        end
+        init_configure "test init" --target local
+        set -gx SAANSEOI_INIT_GUIDES 0,4
+        ${block}
+        test "$saanseoi_init_docs_pending" -eq 0; or exit 2
+      `,
+      ],
+      cwd: repoRoot,
+    })
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout.toString()).toContain(
+      'SKIPPED: already published or superseded',
+    )
+    expect(result.stdout.toString().trimEnd().split('\n')).toHaveLength(1)
+    expect(result.stderr.toString()).toBe('')
+  })
+
+  test('Divisions publishes docs once after all domains and standalone publishing still works', () => {
+    const script = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions.fish'),
+      'utf8',
+    )
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+        source scripts/init/common.fish
+        function init_run_step
+          if test "$argv[2]" = docs:publish
+            echo docs
+          else
+            echo $argv[2]
+            init_publish_docs
+          end
+        end
+        ${script.slice(script.indexOf('init_configure'))}
+        init_publish_docs
+      `,
+      ],
+      cwd: repoRoot,
+    })
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout.toString().trim().split('\n')).toEqual([
+      'init:divisions:geographic',
+      'init:divisions:hkgov-censtatd-hma',
+      'init:divisions:hkgov-pland-pu',
+      'init:divisions:hkgov-pland-new-town',
+      'init:divisions:hkgov-landsd',
+      'docs',
+      'docs',
+    ])
+    expect(result.stderr.toString()).toBe('')
+  })
+
   test('does not finalise Places after a failed cohort upload', () => {
     const source = readFileSync(
       resolve(repoRoot, 'scripts/init/places-overture.fish'),
