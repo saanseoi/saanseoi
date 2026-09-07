@@ -8,6 +8,7 @@ import {
 } from '../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from './lib/terminal.ts'
 import { installInterruptHandler } from '../../harbour-cli/src/lib/cli/interrupt.ts'
+import { installInitialisationIndent } from '../../harbour-cli/src/lib/cli/initialisationIndent.ts'
 
 function printUsage() {
   console.log(`  Usage:
@@ -49,6 +50,7 @@ async function main() {
     resolve(import.meta.dir, '../../..')
   process.chdir(invocationCwd)
   const args = parseArgs(process.argv)
+  installInitialisationIndent(args.command ?? undefined)
   const target = resolveUploadTarget(args)
 
   if (!args.command || args.command === '--help' || args.options.help) {
