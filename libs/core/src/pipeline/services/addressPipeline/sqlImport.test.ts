@@ -60,6 +60,8 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
     )
     source.exec(migrationSql)
     delivered.exec(migrationSql)
+    source.exec('PRAGMA foreign_keys = OFF;')
+    delivered.exec('PRAGMA foreign_keys = OFF;')
     source.exec(`
       INSERT INTO snapshotLineages (
         id, code, regionCode, resourceType, variant, identityMode,
@@ -82,6 +84,19 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
         'address-snapshot', 'dataset-address', 'release-address', 'primary', 'snapshot-assembly-address-v1',
         'exact_ref', 'release-address', '2026-08-19.0', '2026-09-07T00:00:00.000Z'
       );
+      INSERT INTO snapshotAssembly (
+        id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
+      ) VALUES (
+        'address-assembly', 'snapshot-assembly-address-v1', 'address', 1, 'active', NULL,
+        'assembly-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+      );
+      INSERT INTO snapshotAssemblyRuns (
+        id, snapshotId, snapshotAssemblyId, anchorReleaseId, anchorCohortKey, status,
+        selectionSummaryJson, createdAt, updatedAt
+      ) VALUES (
+        'address-assembly-run', 'address-snapshot', 'address-assembly', 'release-address',
+        '2026-08-19.0', 'selected', '{}', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+      );
       INSERT INTO releaseShardAssignments (releaseId, dataShardId)
       VALUES ('release-address', 'history-shard');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
@@ -94,9 +109,14 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
         )
         .get(),
     ).toEqual({ name: 'snapshots' })
+    expect(
+      source.query('SELECT id FROM snapshots WHERE id = ?').get('address-snapshot'),
+    ).toEqual({
+      id: 'address-snapshot',
+    })
 
     const file = await buildAddressMetaSqlFile(
-      drizzle(source, { schema: metaSchema }) as never,
+      drizzle({ client: source, schema: metaSchema }) as never,
       message,
       'address-snapshot',
     )

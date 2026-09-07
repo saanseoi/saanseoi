@@ -19,6 +19,11 @@ type PlanningDatabase = ReturnType<typeof drizzle>
 export async function captureNativePlanningCopy<T>(input: {
   targets: Record<string, { path: string; schema: Record<string, unknown> }>
   append: Append
+  onProgress?: (
+    completed: number,
+    total: number,
+    binding: string,
+  ) => void | Promise<void>
   generate: (databases: Record<string, PlanningDatabase>) => Promise<T>
 }) {
   const directory = await mkdtemp(join(tmpdir(), 'harbour-native-planning-'))
@@ -27,7 +32,8 @@ export async function captureNativePlanningCopy<T>(input: {
   const clients: Database[] = []
   const databases: Record<string, PlanningDatabase> = {}
   try {
-    for (const [index, [binding, target]] of Object.entries(input.targets).entries()) {
+    const targetEntries = Object.entries(input.targets)
+    for (const [index, [binding, target]] of targetEntries.entries()) {
       const path = join(directory, `${index}.sqlite`)
       const source = new Database(target.path, { readonly: true, create: false })
       try {
@@ -62,6 +68,7 @@ export async function captureNativePlanningCopy<T>(input: {
           },
         },
       }) as PlanningDatabase
+      await input.onProgress?.(index + 1, targetEntries.length, binding)
     }
     const result = await input.generate(databases)
     // Do not append anything if generation failed. Buffer at most one payload plus
