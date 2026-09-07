@@ -286,6 +286,15 @@ source assertions, identities, geometry, sections and alternate addresses remain
 The ledger fully reviews the 24 events for which the restored components account for the
 whole audited change; mixed events remain pending.
 
+Cheung Hong Commercial Centre No. 2 retains one named derived premise. It suppresses the
+unnamed, cross-referenced publisher duplicate in the 14 releases where both occur and
+reconstructs the named February 2026 representation for the five-release April–July 2026
+omission. Both source records then disappear on 22 July, which is retained as a dated
+publisher removal rather than backfilled. The retention fixture guards the two observed
+named component sets, the unnamed components, both recorded points and every source
+occurrence. It assigns one reviewed identity and embeds discarded source evidence in
+provenance; no CSU-only merge rule is introduced.
+
 Fai Ming Estate's reviewed locality decision backfills FANLING / 粉嶺 for Sing Fai House
 and Tai Fai House from the April 2025 source evidence into the 14 earlier retained
 releases. `hkgov-dpo-address-localities.json` guards the bilingual building, estate and
