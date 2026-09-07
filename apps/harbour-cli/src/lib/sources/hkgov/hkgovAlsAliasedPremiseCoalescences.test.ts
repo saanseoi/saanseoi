@@ -59,7 +59,13 @@ test('coalesces the reviewed named and structured aliases without losing provena
       blockRef: decision.blockRef,
     }),
   ])
+  const skipMappings = coalesceAlsAliasedPremises(
+    structuredClone(rows),
+    '2026-08-19.0',
+    true,
+  )
   const mappings = coalesceAlsAliasedPremises(rows, '2026-08-19.0')
+  expect(skipMappings).toEqual(mappings)
   expect(mappings.get('structured-1')).toBe('named-1')
   const owner = rows[0]
   if (!owner) throw new Error('Missing first reviewed owner')
@@ -86,6 +92,9 @@ test('requires the paired publisher points to remain identical', () => {
   expect(() => coalesceAlsAliasedPremises([owner, alias], '2026-08-19.0')).toThrow(
     'point changed',
   )
+  const original = structuredClone([owner, alias])
+  expect(coalesceAlsAliasedPremises([owner, alias], '2026-08-19.0', true).size).toBe(0)
+  expect([owner, alias]).toEqual(original)
 })
 
 test('rejects changed named owners and structured alias identities', () => {
@@ -118,5 +127,10 @@ test('rejects changed named owners and structured alias identities', () => {
     change(owner, alias)
     expect(() => coalesceAlsAliasedPremises([owner, alias], '2024-07-25.0')).toThrow()
     expect(owner.sources).toBe('{}')
+    const original = structuredClone([owner, alias])
+    expect(coalesceAlsAliasedPremises([owner, alias], '2024-07-25.0', true).size).toBe(
+      0,
+    )
+    expect([owner, alias]).toEqual(original)
   }
 })

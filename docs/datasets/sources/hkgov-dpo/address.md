@@ -22,7 +22,9 @@ skipped: each resolved owner keeps its own inventory and source occurrences. Amb
 parent matches and conflicting inventories for the same owner still stop preparation.
 Skip mode omits parent block enrichment and duplicate suppression, retaining publisher
 2D components and separate assertions. It uses exact parents or unique block-free
-matches and accepts section inventories without a reviewed ownership mapping.
+matches and accepts section inventories without a reviewed ownership mapping. Alias
+coalescences apply only when their source guards match. In skip mode, a guard mismatch
+omits that coalescence and retains both publisher records unchanged.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the

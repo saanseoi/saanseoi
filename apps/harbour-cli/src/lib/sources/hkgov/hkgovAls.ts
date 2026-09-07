@@ -209,7 +209,11 @@ export async function prepareHkgovAlsAddressParquet(
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
   assertUniquePreparedRowIds(rows)
   const divisionQuality = buildHkgovAlsDivisionQuality(rows)
-  const aliasOwnerIds = coalesceAlsAliasedPremises(rows, options.sourceVersion)
+  const aliasOwnerIds = coalesceAlsAliasedPremises(
+    rows,
+    options.sourceVersion,
+    options.skipCurationChecks,
+  )
 
   await mkdir(dirname(outputFile), { recursive: true })
   const has3d = globSync(resolve(sourceDir, 'als_addresses_3d_*.geojson')).length > 0

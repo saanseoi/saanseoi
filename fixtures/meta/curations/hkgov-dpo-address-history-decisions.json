@@ -27,6 +27,26 @@
   ],
   "decisions": [
     {
+      "id": "hoi-ying-ying-fai-flat-108-backfill",
+      "estate": "HOI YING ESTATE",
+      "release": "20250123-1031-ALS-GeoJSON",
+      "expectedFingerprint": "c57ea59253ea908554933576e977791c5004ba26df87ef3466501a89c288a708",
+      "action": "reviewed_inventory_backfill",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Backfill Ying Fai House flat 108 on 1/F into all eleven earlier retained releases from 25 July 2024, preserving the raw 559-unit assertions alongside the corrected 560-unit inventory.",
+      "authority": "User decision, 2026-09-07: Hoi Ying Estate — backfill till the start."
+    },
+    {
+      "id": "hoi-tat-hoi-wah-retain-until-revoked",
+      "estate": "HOI TAT ESTATE",
+      "release": "20250426-1053-ALS-GeoJSON",
+      "expectedFingerprint": "c55dd6c8bd69673646c31f4837a04d640e7fa3c56dc17ba8d92659f166422201",
+      "action": "reviewed_premise_retention",
+      "fixture": "hkgov-dpo-address-3d-backfills.json",
+      "decision": "Retain Hoi Wah House and its 780-unit inventory across the publisher omission until explicitly revoked, with the retained publisher feature as evidence.",
+      "authority": "User decision, 2026-09-07: Hoi Wah House / 海華樓 — 780 units — retain until revoked."
+    },
+    {
       "id": "hing-wah-ii-april-2026-current-coordinate-backfill",
       "estate": "HING WAH (II) ESTATE",
       "release": "20260425-1038-ALS-GeoJSON",
