@@ -9,6 +9,7 @@ import {
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import type { AppEnv } from '../types'
 import { runWithD1ReadRetry } from '../lib/d1'
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
 
 export type IdentityMapping = {
   namespace: string
@@ -17,7 +18,7 @@ export type IdentityMapping = {
 }
 export type IdentityBridgeQuery = {
   resourceType: 'division' | 'address2d'
-  region: 'hk' | 'mo'
+  region: ApiRegion
   domain: string
   releaseSet: string
   catalogRevision?: string
@@ -139,12 +140,16 @@ export async function listIdentityBridge(
   deps = dependencies,
 ) {
   const { query } = args
+  // Identity mappings are not published for Macao yet. Resolve the requested
+  // Hong Kong release metadata so an otherwise invalid selector is still
+  // rejected, then return an empty collection below.
+  const regionCode = query.region === 'mo' ? 'hk' : resolveDataRegion(query.region)
   const selection = await runWithD1ReadRetry(() =>
     deps.resolveApiReleaseSetSnapshotsForRequest(
       args.metaDb as never,
       query.resourceType === 'address2d' ? 'address' : query.resourceType,
       {
-        regionCode: query.region,
+        regionCode,
         domainCode: query.domain,
         releaseSet: query.releaseSet,
         catalogRevision: query.catalogRevision,
@@ -152,6 +157,17 @@ export async function listIdentityBridge(
     ),
   )
   if (!selection) return null
+  if (query.region === 'mo')
+    return {
+      data: [],
+      nextCursor: null,
+      meta: {
+        releaseSet: selection.releaseSet.code,
+        catalogRevision: selection.releaseSet.apiCatalogRevision,
+        resourceType: query.resourceType,
+        domain: selection.releaseSet.domainCode,
+      },
+    }
   const shards = new Map(
     Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
       bindingName,

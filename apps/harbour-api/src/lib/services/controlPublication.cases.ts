@@ -32,6 +32,13 @@ test('retains a dataset source variant when reading a release for publication', 
       'https://www.censtatd.gov.hk/', 'vh-dataset-hkgov-censtatd-hma', 1761264000000, 1761264000000
     );
 
+    INSERT INTO sourceReleases
+      (id, datasetId, code, sourceVersion, cohortKey, status)
+    SELECT
+      '${releaseId}', id, 'sr-${releaseId}', '2021', '2021', 'staged'
+    FROM datasets
+    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
+
     INSERT INTO releases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
@@ -40,13 +47,6 @@ test('retains a dataset source variant when reading a release for publication', 
       '${releaseId}', '${releaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
       'hk/hkgov-censtatd/2021/division-area.parquet', 'division-area.parquet', 'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
-    FROM datasets
-    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
-
-    INSERT INTO sourceReleases
-      (id, datasetId, code, sourceVersion, cohortKey, status)
-    SELECT
-      '${releaseId}', id, 'sr-${releaseId}', '2021', '2021', 'staged'
     FROM datasets
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
   `)
