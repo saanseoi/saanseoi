@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:05b93e7a5343bf405932e74c387a75b7cd3fcd88739a338a5d1c1bbaec283ed4",
+  "versionHash": "sha256:6fcbec2d4bc21ad2e77df3b83d2250fdce9ac8319a23e41dd7f0d32a20f24423",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -67,6 +67,78 @@
     {
       "sourceVersion": "2021",
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2001",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2006",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2011",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2016",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
     }
   ],
   "category": "boundaries",
