@@ -1,0 +1,2182 @@
+{
+  "version": 1,
+  "policy": {
+    "id": "bounded-bilingual-estate-component-gap",
+    "revision": 1,
+    "authority": "User decision, 2026-09-07: restore estate attribution temporarily dropped and subsequently restored throughout the queue.",
+    "rule": "Same CSU and complete bilingual non-estate components; exactly one matching occurrence in every gap and both adjacent releases; identical complete bilingual estate components on both sides. Restore only the estate component, never an absent premise, changed attribution or ambiguous occurrence."
+  },
+  "sourceReleases": [
+    "20240725-1048-ALS-GeoJSON",
+    "20240731-1054-ALS-GeoJSON",
+    "20240821-1044-ALS-GeoJSON",
+    "20240825-1042-ALS-GeoJSON",
+    "20240828-1021-ALS-GeoJSON",
+    "20240901-1030-ALS-GeoJSON",
+    "20240902-1020-ALS-GeoJSON",
+    "20240903-1049-ALS-GeoJSON",
+    "20241018-1048-ALS-GeoJSON",
+    "20241113-1041-ALS-GeoJSON",
+    "20241212-1050-ALS-GeoJSON",
+    "20250123-1031-ALS-GeoJSON",
+    "20250225-1050-ALS-GeoJSON",
+    "20250321-1021-ALS-GeoJSON",
+    "20250426-1053-ALS-GeoJSON",
+    "20250522-1029-ALS-GeoJSON",
+    "20250620-1033-ALS-GeoJSON",
+    "20250813-1053-ALS-GeoJSON",
+    "20250828-2008-ALS-GeoJSON",
+    "20250903-1043-ALS-GeoJSON",
+    "20251104-1033-ALS-GeoJSON",
+    "20251216-1038-ALS-GeoJSON",
+    "20260204-1057-ALS-GeoJSON",
+    "20260403-1056-ALS-GeoJSON",
+    "20260422-1040-ALS-GeoJSON",
+    "20260425-1038-ALS-GeoJSON",
+    "20260708-1050-ALS-GeoJSON",
+    "20260710-1054-ALS-GeoJSON",
+    "20260722-1931-ALS-GeoJSON",
+    "20260819-1047-ALS-GeoJSON"
+  ],
+  "restorations": [
+    {
+      "id": "estate-gap-cdf5a77ea1f84dfc-2026-04-03.0",
+      "identity": "cdf5a77ea1f84dfccc3c7f0adb39899b6280a73eba597b92e4ce3be714887680",
+      "csu": "3366613877T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK H",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ｈ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-e247fb548ee18e2b-2026-04-03.0",
+      "identity": "e247fb548ee18e2b57a9929a942ddb6b22eb070c414af389ec9c81f9970b9437",
+      "csu": "3364313875T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK E",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ｅ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-25612a464a2b50e1-2026-04-03.0",
+      "identity": "25612a464a2b50e199aab5d8df2fb4fae92a8c8d4b4539777853a3d0361c6021",
+      "csu": "3365813877T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK G",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ｇ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-b105e7dafab4b25d-2026-04-03.0",
+      "identity": "b105e7dafab4b25d3600155d70855e4e49b2586a5c0c80d63bf2fd83f8fb073e",
+      "csu": "3367313910T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK D",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ｄ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-6612c3121b1e7632-2026-04-03.0",
+      "identity": "6612c3121b1e7632f6c112395f4701ee5ca565af15b955137ee59734d917e941",
+      "csu": "3365813909T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK B",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ｂ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-c73d98b8a6673c74-2026-04-03.0",
+      "identity": "c73d98b8a6673c74b0107852667054f8fa9b0bedfab25ed6122a1fc45b30d7d0",
+      "csu": "3365013909T20050430",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WING ON VILLAS BLOCK A",
+        "EngStreet": {
+          "BuildingNoFrom": "7",
+          "StreetName": "PEEL RISE"
+        },
+        "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "中西區",
+        "ChiStreet": {
+          "StreetName": "貝璐道",
+          "BuildingNoFrom": "7"
+        },
+        "BuildingName": "永安邨Ａ座"
+      },
+      "enEstate": {
+        "EstateName": "WING ON VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "永安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-591a57a07bd56048-2026-04-03.0",
+      "identity": "591a57a07bd56048aa1bff0143b970afefedc32382f58a597dba7917b63b36cc",
+      "csu": "4293914229T20050430",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+        "EngStreet": {
+          "BuildingNoFrom": "365",
+          "StreetName": "CHAI WAN ROAD"
+        },
+        "EngDistrict": "EASTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "東區",
+        "ChiStreet": {
+          "StreetName": "柴灣道",
+          "BuildingNoFrom": "365"
+        },
+        "BuildingName": "房屋署漁灣邨泵房"
+      },
+      "enEstate": {
+        "EstateName": "YUE WAN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "漁灣邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-51c19252803717bb-2026-04-03.0",
+      "identity": "51c19252803717bbc6b3db161161489ff4ea1a8ad110f6b67eff86b8c8c03f23",
+      "csu": "3779416558T20050430",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "1",
+          "StreetName": "FOOK YUM ROAD"
+        },
+        "EngDistrict": "EASTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "東區",
+        "ChiStreet": {
+          "StreetName": "福蔭道",
+          "BuildingNoFrom": "1"
+        }
+      },
+      "enEstate": {
+        "EstateName": "HARBOUR HEIGHTS"
+      },
+      "zhEstate": {
+        "EstateName": "海峯園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-0766d4b09af6aae5-2026-04-03.0",
+      "identity": "0766d4b09af6aae57f4ca6139f7e0184d434bee9062aee4dd5899c3610278873",
+      "csu": "3771516587T20050430",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "5",
+          "StreetName": "FOOK YUM ROAD"
+        },
+        "EngDistrict": "EASTERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "東區",
+        "ChiStreet": {
+          "StreetName": "福蔭道",
+          "BuildingNoFrom": "5"
+        }
+      },
+      "enEstate": {
+        "EstateName": "HARBOUR HEIGHTS"
+      },
+      "zhEstate": {
+        "EstateName": "海峯園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-7ab996ba03ebb27d-2026-04-03.0",
+      "identity": "7ab996ba03ebb27d6017032a32f2d87b8c34dac5d2c700812fca06abd81e02f1",
+      "csu": "3849321018T20220414",
+      "sourceFile": "als_addresses_(kowloon_city_district).geojson",
+      "expectedEn": {
+        "BuildingName": "UPPER RIVERBANK TOWER 1",
+        "EngStreet": {
+          "BuildingNoFrom": "11",
+          "StreetName": "MUK TAI STREET"
+        },
+        "EngDistrict": "KOWLOON CITY DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "九龍城區",
+        "ChiStreet": {
+          "StreetName": "沐泰街",
+          "BuildingNoFrom": "11"
+        },
+        "BuildingName": "尚．珒溋第一座"
+      },
+      "enEstate": {
+        "EstateName": "UPPER RIVERBANK"
+      },
+      "zhEstate": {
+        "EstateName": "尚．珒溋"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-128cee5f2f056e8f-2026-04-03.0",
+      "identity": "128cee5f2f056e8fc0b246659ea1067e937947d5a35159ba5f94cdae944b0279",
+      "csu": "3128523244T20050430",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "2",
+          "StreetName": "LIM CHO STREET"
+        },
+        "EngDistrict": "KWAI TSING DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "葵青區",
+        "ChiStreet": {
+          "StreetName": "念祖街",
+          "BuildingNoFrom": "2"
+        }
+      },
+      "enEstate": {
+        "EstateName": "CHO YIU CHUEN"
+      },
+      "zhEstate": {
+        "EstateName": "祖堯邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-2be75c6b748c6b9a-2026-04-03.0",
+      "identity": "2be75c6b748c6b9ad6632b02028f1acc08ae428e9fbe323e22eab26ed873b311",
+      "csu": "3120423088T20050430",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "3",
+          "StreetName": "LAI CHO ROAD"
+        },
+        "EngDistrict": "KWAI TSING DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "葵青區",
+        "ChiStreet": {
+          "StreetName": "麗祖路",
+          "BuildingNoFrom": "3"
+        }
+      },
+      "enEstate": {
+        "EstateName": "CHO YIU CHUEN"
+      },
+      "zhEstate": {
+        "EstateName": "祖堯邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-0919acd5d5a05efa-2026-04-03.0",
+      "identity": "0919acd5d5a05efa382a1d8e6da0f0166fdc7fc655121cd599e5bf72fd0849b1",
+      "csu": "3129823085T20050430",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "1",
+          "StreetName": "LAI CHO ROAD"
+        },
+        "EngDistrict": "KWAI TSING DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "葵青區",
+        "ChiStreet": {
+          "StreetName": "麗祖路",
+          "BuildingNoFrom": "1"
+        }
+      },
+      "enEstate": {
+        "EstateName": "CHO YIU CHUEN"
+      },
+      "zhEstate": {
+        "EstateName": "祖堯邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-939f5b01a85c4b8c-2026-04-03.0",
+      "identity": "939f5b01a85c4b8ca95c296c89a9182785997aa232c7d8d6c38c978275c4152d",
+      "csu": "3146024612T20050430",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "expectedEn": {
+        "BuildingName": "KWAI FONG ESTATE CAR PARK 1",
+        "EngStreet": {
+          "BuildingNoFrom": "177",
+          "StreetName": "HING FONG ROAD"
+        },
+        "EngDistrict": "KWAI TSING DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "葵青區",
+        "ChiStreet": {
+          "StreetName": "興芳路",
+          "BuildingNoFrom": "177"
+        },
+        "BuildingName": "葵芳邨１號停車場"
+      },
+      "enEstate": {
+        "EstateName": "KWAI FONG ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "葵芳邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-1c9b37a093a6063a-2026-04-03.0",
+      "identity": "1c9b37a093a6063a1c780a5c28551f2304b08d958341194c575c827b74783f25",
+      "csu": "2813524004T20050430",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "expectedEn": {
+        "BuildingName": "CHEUNG HANG ESTATE COMMUNITY HALL SUBSTATION",
+        "EngStreet": {
+          "BuildingNoFrom": "6",
+          "StreetName": "LIU TO ROAD"
+        },
+        "EngDistrict": "KWAI TSING DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "葵青區",
+        "ChiStreet": {
+          "StreetName": "寮肚路",
+          "BuildingNoFrom": "6"
+        },
+        "BuildingName": "長亨邨社區中心變電站"
+      },
+      "enEstate": {
+        "EstateName": "CHEUNG HANG ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "長亨邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-2636873f21125794-2026-04-03.0",
+      "identity": "2636873f211257943e89c968ded67aa2748c55602ff3810952d74568bcba4452",
+      "csu": "4185419315T20050430",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "expectedEn": {
+        "BuildingName": "TSUI PING",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "TSUI PING ROAD"
+        },
+        "EngDistrict": "KWUN TONG DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "觀塘區",
+        "ChiStreet": {
+          "StreetName": "翠屏道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "翠屏（南）邨多層停車場"
+      },
+      "enEstate": {
+        "EstateName": "TSUI PING (SOUTH) ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "翠屏（南）邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-29dba3336ebb722e-2026-04-03.0",
+      "identity": "29dba3336ebb722e492816cc0277c58a211bc490d3d70750215390760093a7c0",
+      "csu": "4142221137T20050430",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHUN ON ESTATE ESTATE OFFICE",
+        "EngStreet": {
+          "BuildingNoFrom": "1",
+          "StreetName": "LEE ON ROAD"
+        },
+        "EngDistrict": "KWUN TONG DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "觀塘區",
+        "ChiStreet": {
+          "StreetName": "利安道",
+          "BuildingNoFrom": "1"
+        },
+        "BuildingName": "順安邨屋邨辦事處"
+      },
+      "enEstate": {
+        "EstateName": "SHUN ON ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "順安邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-179e4887e48eb9c7-2026-04-03.0",
+      "identity": "179e4887e48eb9c75ab45de7107a4b9d7e356b0e43d0c27e0a7bd479a9215b6c",
+      "csu": "4117545107T20050430",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHA TAU KOK CHUEN BLOCK 25-27",
+        "EngStreet": {
+          "BuildingNoFrom": "47",
+          "StreetName": "SHUN HING STREET"
+        },
+        "EngDistrict": "NORTH DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "北區",
+        "ChiStreet": {
+          "StreetName": "順興街",
+          "BuildingNoFrom": "47"
+        },
+        "BuildingName": "沙頭角邨第２５－２７座"
+      },
+      "enEstate": {
+        "EstateName": "SHA TAU KOK CHUEN"
+      },
+      "zhEstate": {
+        "EstateName": "沙頭角邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-49b3ed6ccfd22d19-2026-04-03.0",
+      "identity": "49b3ed6ccfd22d1995b3e968599e0e03a8217fa793201b32e388908f6f4dcf6c",
+      "csu": "3173140479T20050430",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "expectedEn": {
+        "BuildingName": "TIN PING MANAGEMENT OFFICE",
+        "EngStreet": {
+          "BuildingNoFrom": "48",
+          "StreetName": "TIN PING ROAD"
+        },
+        "EngDistrict": "NORTH DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "北區",
+        "ChiStreet": {
+          "StreetName": "天平路",
+          "BuildingNoFrom": "48"
+        },
+        "BuildingName": "天平邨管業處"
+      },
+      "enEstate": {
+        "EstateName": "TIN PING ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "天平邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-a575b33c3cabf7f4-2026-04-03.0",
+      "identity": "a575b33c3cabf7f4bfaec0876a63c8158052cfe833ab373ac921fce16a6ea0f1",
+      "csu": "4632427727T20050430",
+      "sourceFile": "als_addresses_(sai_kung_district).geojson",
+      "expectedEn": {
+        "BuildingName": "BURLINGAME GARDEN BLOCK 18",
+        "EngStreet": {
+          "BuildingNoFrom": "6A",
+          "StreetName": "CHUK YEUNG ROAD"
+        },
+        "EngDistrict": "SAI KUNG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "西貢區",
+        "ChiStreet": {
+          "StreetName": "竹洋路",
+          "BuildingNoFrom": "6A"
+        },
+        "BuildingName": "栢寧頓花園１８座"
+      },
+      "enEstate": {
+        "EstateName": "BURLINGAME GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "栢寧頓花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-e0596cbe1e79f6e8-2026-04-03.0",
+      "identity": "e0596cbe1e79f6e8a67bdccb19fe3ab5bbee376431b616d77c06a26e0e233f17",
+      "csu": "3938529900T20050430",
+      "sourceFile": "als_addresses_(sha_tin_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WINDSOR PARK PHASE 1 BLOCK 36",
+        "EngStreet": {
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88",
+          "StreetName": "MA LING PATH"
+        },
+        "EngDistrict": "SHA TIN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "沙田區",
+        "ChiStreet": {
+          "StreetName": "馬鈴徑",
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88"
+        },
+        "BuildingName": "寶栢苑一期第３６座"
+      },
+      "enEstate": {
+        "EstateName": "WINDSOR PARK PHASE 1"
+      },
+      "zhEstate": {
+        "EstateName": "寶栢苑一期"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-66f024bc53717d86-2026-04-03.0",
+      "identity": "66f024bc53717d8623a61d7f9ceedc305cea138551774cb947bad1537acbde96",
+      "csu": "3941029919T20050430",
+      "sourceFile": "als_addresses_(sha_tin_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WINDSOR PARK PHASE 1 BLOCK 33",
+        "EngStreet": {
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88",
+          "StreetName": "MA LING PATH"
+        },
+        "EngDistrict": "SHA TIN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "沙田區",
+        "ChiStreet": {
+          "StreetName": "馬鈴徑",
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88"
+        },
+        "BuildingName": "寶栢苑一期第３３座"
+      },
+      "enEstate": {
+        "EstateName": "WINDSOR PARK PHASE 1"
+      },
+      "zhEstate": {
+        "EstateName": "寶栢苑一期"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-44bd12c22d83f51c-2026-04-03.0",
+      "identity": "44bd12c22d83f51ca73032bf1f282882585799eb5780922a62d9b0bf19dfd682",
+      "csu": "3942929864T20050430",
+      "sourceFile": "als_addresses_(sha_tin_district).geojson",
+      "expectedEn": {
+        "BuildingName": "WINDSOR PARK PHASE 1 BLOCK 3",
+        "EngStreet": {
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88",
+          "StreetName": "MA LING PATH"
+        },
+        "EngDistrict": "SHA TIN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "沙田區",
+        "ChiStreet": {
+          "StreetName": "馬鈴徑",
+          "BuildingNoFrom": "2",
+          "BuildingNoTo": "88"
+        },
+        "BuildingName": "寶栢苑一期第３座"
+      },
+      "enEstate": {
+        "EstateName": "WINDSOR PARK PHASE 1"
+      },
+      "zhEstate": {
+        "EstateName": "寶栢苑一期"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-8493595be27a694c-2026-04-03.0",
+      "identity": "8493595be27a694c7c5713833c4d834bc1176b5f0d6a00723eaa93f63f5dda63",
+      "csu": "3522321491T20050430",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHEK KIP MEI ESTATE BLOCK 20",
+        "EngStreet": {
+          "BuildingNoFrom": "101",
+          "StreetName": "WOH CHAI STREET"
+        },
+        "EngDistrict": "SHAM SHUI PO DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "深水埗區",
+        "ChiStreet": {
+          "StreetName": "窩仔街",
+          "BuildingNoFrom": "101"
+        },
+        "BuildingName": "石硤尾邨第二十座"
+      },
+      "enEstate": {
+        "EstateName": "SHEK KIP MEI ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "石硤尾邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-70d1bda20595bcdb-2026-04-03.0",
+      "identity": "70d1bda20595bcdba2a49a9af19774fe158ab1f1fa523c51fc00df4fccf91f9e",
+      "csu": "3506021626T20050430",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHEK KIP MEI ESTATE BLOCK 23",
+        "EngStreet": {
+          "BuildingNoFrom": "125",
+          "StreetName": "WOH CHAI STREET"
+        },
+        "EngDistrict": "SHAM SHUI PO DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "深水埗區",
+        "ChiStreet": {
+          "StreetName": "窩仔街",
+          "BuildingNoFrom": "125"
+        },
+        "BuildingName": "石硤尾邨第二十三座"
+      },
+      "enEstate": {
+        "EstateName": "SHEK KIP MEI ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "石硤尾邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-5cebff3f5587a068-2026-04-03.0",
+      "identity": "5cebff3f5587a0685d3dc99a4b74bb6b2ceed0fd764ae608414faf9ed6bd5833",
+      "csu": "3571521700T20050430",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "expectedEn": {
+        "BuildingName": "NAM WAI HOUSE 'B' SUBSTATION",
+        "EngStreet": {
+          "BuildingNoFrom": "111",
+          "StreetName": "TAI HANG TUNG ROAD"
+        },
+        "EngDistrict": "SHAM SHUI PO DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "深水埗區",
+        "ChiStreet": {
+          "StreetName": "大坑東道",
+          "BuildingNoFrom": "111"
+        },
+        "BuildingName": "南山邨南偉樓Ｂ變電站"
+      },
+      "enEstate": {
+        "EstateName": "NAM SHAN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "南山邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-4b7cb74fecce8a48-2026-04-03.0",
+      "identity": "4b7cb74fecce8a48783b6dc8ccc79cafd74ff55f3b0fce9d0c2b838807d70a66",
+      "csu": "3349412374T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "26",
+          "StreetName": "TIN WAN STREET"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "田灣街",
+          "BuildingNoFrom": "26"
+        }
+      },
+      "enEstate": {
+        "EstateName": "TIN WAN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "田灣邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-9ce937ab83d39538-2026-04-03.0",
+      "identity": "9ce937ab83d39538ccf5636b3bf965de0268f80c0230d32c8f133f1e146192f6",
+      "csu": "3653012261T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 2",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園２座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-8ee565ea13261182-2026-04-03.0",
+      "identity": "8ee565ea132611826c072d5b919b415c808b30ad7bc43ef773ac3f8bffa04503",
+      "csu": "3654012277T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 3",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園３座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-351edaf3990c3289-2026-04-03.0",
+      "identity": "351edaf3990c3289354ebf10b9fec9ffc92c976a54dfacd147d37abeb754b07d",
+      "csu": "3657412283T20080707",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 5",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園５座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-3676c4ff8d6d1488-2026-04-03.0",
+      "identity": "3676c4ff8d6d148879db6592a18d3823f386b989b02729163a432f08116945bc",
+      "csu": "3659612289T20080707",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 6",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園６座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-9819fa2f1ee761c1-2026-04-03.0",
+      "identity": "9819fa2f1ee761c11d96bfdffa8b489bc51c560f4d54fe1b4f6fc13e19fdc5a9",
+      "csu": "3662512297T20080707",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 7",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園７座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-200b58ad8c268f8e-2025-08-13.0",
+      "identity": "200b58ad8c268f8e87947e5f56959f82597ab218083327abe078b8c0eaddaa38",
+      "csu": "3317311677T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "12A",
+          "StreetName": "SOUTH HORIZON DRIVE"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "海怡路",
+          "BuildingNoFrom": "12A"
+        }
+      },
+      "enEstate": {
+        "EstateName": "SOUTH HORIZONS"
+      },
+      "zhEstate": {
+        "EstateName": "海怡半島"
+      },
+      "versions": [
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2025-06-20.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-9c9161a1e1d26632-2026-04-03.0",
+      "identity": "9c9161a1e1d2663295cfa8558fe24e0aa548d0a0f74e5580ea6b7692ce329b86",
+      "csu": "3654212242T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "EVERGREEN GARDEN BLOCK 1",
+        "EngStreet": {
+          "BuildingNoFrom": "18",
+          "StreetName": "SHOUSON HILL ROAD"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "壽山村道",
+          "BuildingNoFrom": "18"
+        },
+        "BuildingName": "松栢花園１座"
+      },
+      "enEstate": {
+        "EstateName": "EVERGREEN GARDEN"
+      },
+      "zhEstate": {
+        "EstateName": "松栢花園"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-132624ef4385699e-2026-04-03.0",
+      "identity": "132624ef4385699e422d1a19564b689dbd1bf5d45450976ad571a2639d1afe82",
+      "csu": "3870711118T20050430",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SOUTH BAY VILLAS BLOCK D",
+        "EngStreet": {
+          "BuildingNoFrom": "4",
+          "StreetName": "SOUTH BAY CLOSE"
+        },
+        "EngDistrict": "SOUTHERN DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "南區",
+        "ChiStreet": {
+          "StreetName": "南灣坊",
+          "BuildingNoFrom": "4"
+        },
+        "BuildingName": "南灣新邨Ｄ座"
+      },
+      "enEstate": {
+        "EstateName": "SOUTH BAY VILLAS"
+      },
+      "zhEstate": {
+        "EstateName": "南灣新邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-92ff6c426372cec6-2026-04-03.0",
+      "identity": "92ff6c426372cec6b29449a6d8484e5c7d413faf486484ebb3bd332ac25b484d",
+      "csu": "3631335059T20050430",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "expectedEn": {
+        "BuildingName": "FU SHIN ESTATE LP GAS SUBSTATION",
+        "EngStreet": {
+          "BuildingNoFrom": "12",
+          "StreetName": "ON PO ROAD"
+        },
+        "EngDistrict": "TAI PO DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "大埔區",
+        "ChiStreet": {
+          "StreetName": "安埔路",
+          "BuildingNoFrom": "12"
+        },
+        "BuildingName": "富善邨石油氣變電站"
+      },
+      "enEstate": {
+        "EstateName": "FU SHIN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "富善邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-d07621637bba1711-2026-04-03.0",
+      "identity": "d07621637bba1711ecf3a9f0b41d49d44ec21a6df1c3eb3193dc4bd3fa026b4b",
+      "csu": "3613134391T20050430",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "expectedEn": {
+        "BuildingName": "KWONG FUK ESTATE PROPERTY SERVICES MANAGEMENT OFFICE",
+        "EngStreet": {
+          "BuildingNoFrom": "28",
+          "StreetName": "PLOVER COVE ROAD"
+        },
+        "EngDistrict": "TAI PO DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "大埔區",
+        "ChiStreet": {
+          "StreetName": "寶湖道",
+          "BuildingNoFrom": "28"
+        },
+        "BuildingName": "廣福邨物業服務辦事處"
+      },
+      "enEstate": {
+        "EstateName": "KWONG FUK ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "廣福邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-8af6891f1397a709-2026-04-03.0",
+      "identity": "8af6891f1397a709ab34b9901e768ddb424723403354bca61fad80c2072900ca",
+      "csu": "3075126300T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHEK WAI KOK ESTATE MULTI-STOREY CAR PARK",
+        "EngStreet": {
+          "BuildingNoFrom": "3",
+          "StreetName": "SHEK WAI KOK ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "石圍角路",
+          "BuildingNoFrom": "3"
+        },
+        "BuildingName": "石圍角邨多層停車場"
+      },
+      "enEstate": {
+        "EstateName": "SHEK WAI KOK ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "石圍角邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-48ee7f737fb09576-2026-04-03.0",
+      "identity": "48ee7f737fb0957608ba237fe7e150c6a204a83eedb189b03b50129b5350e5cb",
+      "csu": "3030626026T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "BuildingName": "LUK YEUNG SUN CHUEN BLOCK M",
+        "EngStreet": {
+          "BuildingNoFrom": "101",
+          "BuildingNoTo": "137",
+          "StreetName": "SAI LAU KOK ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "西樓角路",
+          "BuildingNoFrom": "101",
+          "BuildingNoTo": "137"
+        },
+        "BuildingName": "綠楊新邨Ｍ座"
+      },
+      "enEstate": {
+        "EstateName": "LUK YEUNG SUN CHUEN"
+      },
+      "zhEstate": {
+        "EstateName": "綠楊新邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-ea6a5d6fa9fa51a0-2026-04-03.0",
+      "identity": "ea6a5d6fa9fa51a0b9d49190c1dac6c7a7079fd6627f9e82e9b709db61d68885",
+      "csu": "3089126251T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "BuildingName": "SHEK WAI KOK ESTATE FOOD BAZAAR",
+        "EngStreet": {
+          "BuildingNoFrom": "3",
+          "StreetName": "SHEK WAI KOK ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "石圍角路",
+          "BuildingNoFrom": "3"
+        },
+        "BuildingName": "石圍角邨熟食檔"
+      },
+      "enEstate": {
+        "EstateName": "SHEK WAI KOK ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "石圍角邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-790af5859db7417d-2026-04-03.0",
+      "identity": "790af5859db7417db930d2eb4e2bfa54e750d66692218cdb8f04ad86125fc9ec",
+      "csu": "2932825730T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "BuildingName": "CLAGUE GARDEN ESTATE TOWER A",
+        "EngStreet": {
+          "BuildingNoFrom": "22",
+          "StreetName": "HOI SHING ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "海盛路",
+          "BuildingNoFrom": "22"
+        },
+        "BuildingName": "祈德尊新邨Ａ座"
+      },
+      "enEstate": {
+        "EstateName": "CLAGUE GARDEN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "祈德尊新邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-1fc5d73a374987b5-2026-04-03.0",
+      "identity": "1fc5d73a374987b5743735692d1080f7d82609c511936f1a927733c3910e9447",
+      "csu": "2943425608T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "BuildingName": "CLAGUE GARDEN ESTATE TOWER C",
+        "EngStreet": {
+          "BuildingNoFrom": "30",
+          "StreetName": "HOI SHING ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "海盛路",
+          "BuildingNoFrom": "30"
+        },
+        "BuildingName": "祈德尊新邨Ｃ座"
+      },
+      "enEstate": {
+        "EstateName": "CLAGUE GARDEN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "祈德尊新邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-9c6f494f0e834f0a-2026-04-03.0",
+      "identity": "9c6f494f0e834f0a1304bcce1d839c1076d4bc98d1ae23dc050cab042cb04170",
+      "csu": "2948725658T20050430",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "28",
+          "StreetName": "HOI SHING ROAD"
+        },
+        "EngDistrict": "TSUEN WAN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "荃灣區",
+        "ChiStreet": {
+          "StreetName": "海盛路",
+          "BuildingNoFrom": "28"
+        },
+        "BuildingName": "祈德尊新邨商場"
+      },
+      "enEstate": {
+        "EstateName": "CLAGUE GARDEN ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "祈德尊新邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-1131ceea3780a6f2-2026-04-03.0",
+      "identity": "1131ceea3780a6f278bbaba78c411013b486f1e5d2ff7215eb18bcf56c7cbec1",
+      "csu": "1571927652T20050430",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "expectedEn": {
+        "BuildingName": "ON TING ESSO LP GAS STATION SUBSTATION",
+        "EngStreet": {
+          "BuildingNoFrom": "2A",
+          "StreetName": "TUEN MUN HEUNG SZE WUI ROAD"
+        },
+        "EngDistrict": "TUEN MUN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "屯門區",
+        "ChiStreet": {
+          "StreetName": "屯門鄉事會路",
+          "BuildingNoFrom": "2A"
+        },
+        "BuildingName": "安定邨石油氣站變電站"
+      },
+      "enEstate": {
+        "EstateName": "ON TING ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "安定邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-9bd4db384726091e-2026-04-03.0",
+      "identity": "9bd4db384726091ec539b126f1a2854b4fc8222c50076ba3d114fc4a9ee7dd7d",
+      "csu": "1896225203T20050430",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "expectedEn": {
+        "BuildingName": "KINGS PARK VILLA BLOCK C",
+        "EngStreet": {
+          "BuildingNoFrom": "3",
+          "StreetName": "LOK CHUI STREET"
+        },
+        "EngDistrict": "TUEN MUN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "屯門區",
+        "ChiStreet": {
+          "StreetName": "樂翠街",
+          "BuildingNoFrom": "3"
+        },
+        "BuildingName": "栢濤居Ｃ座"
+      },
+      "enEstate": {
+        "EstateName": "KINGS PARK VILLA"
+      },
+      "zhEstate": {
+        "EstateName": "栢濤居"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-2eee56d8454499e0-2026-04-03.0",
+      "identity": "2eee56d8454499e05a60cb5fff8774aa832d37cad378e6afbbc12199a734f5c7",
+      "csu": "1895725201T20050430",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "expectedEn": {
+        "BuildingName": "KINGS PARK VILLA BLOCK B",
+        "EngStreet": {
+          "BuildingNoFrom": "3",
+          "StreetName": "LOK CHUI STREET"
+        },
+        "EngDistrict": "TUEN MUN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "屯門區",
+        "ChiStreet": {
+          "StreetName": "樂翠街",
+          "BuildingNoFrom": "3"
+        },
+        "BuildingName": "栢濤居Ｂ座"
+      },
+      "enEstate": {
+        "EstateName": "KINGS PARK VILLA"
+      },
+      "zhEstate": {
+        "EstateName": "栢濤居"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-39285e3262e4733d-2026-04-03.0",
+      "identity": "39285e3262e4733ddc33c4a4bfc9cb150eb4f22c324353af7aabac1ec5bc8469",
+      "csu": "1707331573T20170619",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "expectedEn": {
+        "BuildingName": "MOUNTAIN VIEW BLOCK H",
+        "EngVillage": {
+          "BuildingNoFrom": "500",
+          "VillageName": "NAI WAI"
+        },
+        "EngDistrict": "TUEN MUN DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "屯門區",
+        "ChiVillage": {
+          "VillageName": "泥圍",
+          "BuildingNoFrom": "500"
+        },
+        "BuildingName": "滙悅豪庭Ｈ座"
+      },
+      "enEstate": {
+        "EstateName": "MOUNTAIN VIEW"
+      },
+      "zhEstate": {
+        "EstateName": "滙悅豪庭"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-191011afdcb3c4b7-2024-07-31.0",
+      "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
+      "csu": "3781216131T20200107",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "68",
+          "StreetName": "ELECTRIC ROAD"
+        },
+        "EngDistrict": "WAN CHAI DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "灣仔區",
+        "ChiStreet": {
+          "StreetName": "電氣道",
+          "BuildingNoFrom": "68"
+        }
+      },
+      "enEstate": {
+        "EstateName": "GOLDEN WHEEL PLAZA"
+      },
+      "zhEstate": {
+        "EstateName": "金輪天地"
+      },
+      "versions": ["2024-07-31.0"],
+      "evidenceSourceVersions": ["2024-07-25.0", "2024-08-21.0"]
+    },
+    {
+      "id": "estate-gap-191011afdcb3c4b7-2024-08-25.0",
+      "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
+      "csu": "3781216131T20200107",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "68",
+          "StreetName": "ELECTRIC ROAD"
+        },
+        "EngDistrict": "WAN CHAI DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "灣仔區",
+        "ChiStreet": {
+          "StreetName": "電氣道",
+          "BuildingNoFrom": "68"
+        }
+      },
+      "enEstate": {
+        "EstateName": "GOLDEN WHEEL PLAZA"
+      },
+      "zhEstate": {
+        "EstateName": "金輪天地"
+      },
+      "versions": ["2024-08-25.0"],
+      "evidenceSourceVersions": ["2024-08-21.0", "2024-08-28.0"]
+    },
+    {
+      "id": "estate-gap-191011afdcb3c4b7-2024-09-01.0",
+      "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
+      "csu": "3781216131T20200107",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "68",
+          "StreetName": "ELECTRIC ROAD"
+        },
+        "EngDistrict": "WAN CHAI DISTRICT",
+        "Region": "HK"
+      },
+      "expectedZh": {
+        "Region": "香港",
+        "ChiDistrict": "灣仔區",
+        "ChiStreet": {
+          "StreetName": "電氣道",
+          "BuildingNoFrom": "68"
+        }
+      },
+      "enEstate": {
+        "EstateName": "GOLDEN WHEEL PLAZA"
+      },
+      "zhEstate": {
+        "EstateName": "金輪天地"
+      },
+      "versions": ["2024-09-01.0"],
+      "evidenceSourceVersions": ["2024-08-28.0", "2024-09-02.0"]
+    },
+    {
+      "id": "estate-gap-4fc2c0d3b9b4326f-2026-04-03.0",
+      "identity": "4fc2c0d3b9b4326fe4fad91365f1a45199343a0454b28642a737e6e3075ad615",
+      "csu": "3462719918T20050430",
+      "sourceFile": "als_addresses_(yau_tsim_mong_district).geojson",
+      "expectedEn": {
+        "BuildingName": "HSBC CENTRE TOWER 1",
+        "EngStreet": {
+          "BuildingNoFrom": "1",
+          "StreetName": "SHAM MONG ROAD"
+        },
+        "EngDistrict": "YAU TSIM MONG DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "油尖旺區",
+        "ChiStreet": {
+          "StreetName": "深旺道",
+          "BuildingNoFrom": "1"
+        },
+        "BuildingName": "滙豐中心第一座"
+      },
+      "enEstate": {
+        "EstateName": "HSBC CENTRE"
+      },
+      "zhEstate": {
+        "EstateName": "滙豐中心"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-f7f79091bd29a0b0-2026-04-03.0",
+      "identity": "f7f79091bd29a0b098c90e8b9b39809a7ad0e349ab5899f5644bc41e3e2acfd7",
+      "csu": "3462420011T20050430",
+      "sourceFile": "als_addresses_(yau_tsim_mong_district).geojson",
+      "expectedEn": {
+        "BuildingName": "HSBC CENTRE TOWER 3",
+        "EngStreet": {
+          "BuildingNoFrom": "1",
+          "StreetName": "SHAM MONG ROAD"
+        },
+        "EngDistrict": "YAU TSIM MONG DISTRICT",
+        "Region": "KLN"
+      },
+      "expectedZh": {
+        "Region": "九龍",
+        "ChiDistrict": "油尖旺區",
+        "ChiStreet": {
+          "StreetName": "深旺道",
+          "BuildingNoFrom": "1"
+        },
+        "BuildingName": "滙豐中心第三座"
+      },
+      "enEstate": {
+        "EstateName": "HSBC CENTRE"
+      },
+      "zhEstate": {
+        "EstateName": "滙豐中心"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-8fec47e043fb59d6-2026-04-03.0",
+      "identity": "8fec47e043fb59d64a1488b9a31b7e58faabdba1e8295705bd49e9293b87b841",
+      "csu": "1778836376T20050430",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "expectedEn": {
+        "EngStreet": {
+          "BuildingNoFrom": "71",
+          "StreetName": "TIN SHUI ROAD"
+        },
+        "EngDistrict": "YUEN LONG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "元朗區",
+        "ChiStreet": {
+          "StreetName": "天瑞路",
+          "BuildingNoFrom": "71"
+        }
+      },
+      "enEstate": {
+        "EstateName": "TIN CHAK ESTATE"
+      },
+      "zhEstate": {
+        "EstateName": "天澤邨"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-d9fbe2e7331b6fa8-2026-04-03.0",
+      "identity": "d9fbe2e7331b6fa8e265e7d3f7cc901ca18c10cd68a0c8ef712b6c984a3d7574",
+      "csu": "1919032604T20230612",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "expectedEn": {
+        "BuildingName": "THE BRYN BLOCK D",
+        "EngStreet": {
+          "BuildingNoFrom": "48",
+          "StreetName": "SHA TSENG ROAD"
+        },
+        "EngDistrict": "YUEN LONG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "元朗區",
+        "ChiStreet": {
+          "StreetName": "沙井路",
+          "BuildingNoFrom": "48"
+        },
+        "BuildingName": "琼霖第四座"
+      },
+      "enEstate": {
+        "EstateName": "THE BRYN"
+      },
+      "zhEstate": {
+        "EstateName": "琼霖"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-3342199b6e1867c7-2026-04-03.0",
+      "identity": "3342199b6e1867c7ec8db8aa96c455d098e633c4c0e9fe23c1338eb7cbf5fe49",
+      "csu": "1920132602T20230618",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "expectedEn": {
+        "BuildingName": "THE BRYN BLOCK C",
+        "EngStreet": {
+          "BuildingNoFrom": "48",
+          "StreetName": "SHA TSENG ROAD"
+        },
+        "EngDistrict": "YUEN LONG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "元朗區",
+        "ChiStreet": {
+          "StreetName": "沙井路",
+          "BuildingNoFrom": "48"
+        },
+        "BuildingName": "琼霖第三座"
+      },
+      "enEstate": {
+        "EstateName": "THE BRYN"
+      },
+      "zhEstate": {
+        "EstateName": "琼霖"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-99bc653e3dd44239-2026-04-03.0",
+      "identity": "99bc653e3dd4423934ac351764a6551bf20f57f9a90d987bc50e440d97ca408d",
+      "csu": "1921132600T20230618",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "expectedEn": {
+        "BuildingName": "THE BRYN BLOCK B",
+        "EngStreet": {
+          "BuildingNoFrom": "48",
+          "StreetName": "SHA TSENG ROAD"
+        },
+        "EngDistrict": "YUEN LONG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "元朗區",
+        "ChiStreet": {
+          "StreetName": "沙井路",
+          "BuildingNoFrom": "48"
+        },
+        "BuildingName": "琼霖第二座"
+      },
+      "enEstate": {
+        "EstateName": "THE BRYN"
+      },
+      "zhEstate": {
+        "EstateName": "琼霖"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    },
+    {
+      "id": "estate-gap-b3530bc01f40efc4-2026-04-03.0",
+      "identity": "b3530bc01f40efc43e903f1d16285066139b62f6346bb939eb1532701417d272",
+      "csu": "1922232598T20230618",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "expectedEn": {
+        "BuildingName": "THE BRYN BLOCK A",
+        "EngStreet": {
+          "BuildingNoFrom": "48",
+          "StreetName": "SHA TSENG ROAD"
+        },
+        "EngDistrict": "YUEN LONG DISTRICT",
+        "Region": "NT"
+      },
+      "expectedZh": {
+        "Region": "新界",
+        "ChiDistrict": "元朗區",
+        "ChiStreet": {
+          "StreetName": "沙井路",
+          "BuildingNoFrom": "48"
+        },
+        "BuildingName": "琼霖第一座"
+      },
+      "enEstate": {
+        "EstateName": "THE BRYN"
+      },
+      "zhEstate": {
+        "EstateName": "琼霖"
+      },
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"]
+    }
+  ]
+}

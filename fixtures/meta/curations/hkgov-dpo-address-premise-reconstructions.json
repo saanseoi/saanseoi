@@ -1398,6 +1398,57 @@
           "expected": []
         }
       ]
+    },
+    {
+      "id": "cheung-hong-commercial-centre-no-2-omission",
+      "estate": "CHEUNG HONG ESTATE",
+      "enName": "CHEUNG HONG COMMERCIAL CENTRE NO 2",
+      "oldCsu": "2819523425T20050430",
+      "newCsu": "2819523425T20050430",
+      "scopePremiseCsu": "2820723422P20060103",
+      "authority": "User decision, 2026-09-07: restore the named one; the unnamed record is a duplicate and is not needed.",
+      "decision": "Restore the named commercial centre only for the five-release April–July 2026 omission, using the immediately preceding named source record. The scope premise is the separately supplied unnamed duplicate, which is retained as raw evidence and then suppressed by the reviewed named-premise retention. Do not extend this reconstruction after both publisher records disappear on July 22.",
+      "evidence": {
+        "sourceVersion": "2026-02-04.0",
+        "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+        "featureIndexOneBased": 3061,
+        "feature": {
+          "type": "Feature",
+          "geometry": { "type": "Point", "coordinates": [114.09846, 22.34982] },
+          "properties": {
+            "Northing": 823415,
+            "Easting": 828191,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": { "CsuId": "2819523425T20050430" },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "葵青區",
+                  "ChiStreet": { "StreetName": "青康路", "BuildingNoFrom": "12" },
+                  "BuildingName": "長康第二商場"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "CHEUNG HONG COMMERCIAL CENTRE NO 2",
+                  "EngStreet": {
+                    "BuildingNoFrom": "12",
+                    "StreetName": "CHING HONG ROAD"
+                  },
+                  "EngDistrict": "KWAI TSING DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2819523425T20050430"
+              }
+            }
+          }
+        }
+      },
+      "releases": [
+        { "version": "2026-04-03.0", "expected": [] },
+        { "version": "2026-04-22.0", "expected": [] },
+        { "version": "2026-04-25.0", "expected": [] },
+        { "version": "2026-07-08.0", "expected": [] },
+        { "version": "2026-07-10.0", "expected": [] }
+      ]
     }
   ]
 }

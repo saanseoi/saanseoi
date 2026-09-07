@@ -2,18 +2,183 @@
   "version": 1,
   "automaticPolicies": [
     {
-      "id": "same-floor-abc-unit-merger",
+      "id": "coordinate-only-named-under-50m-backfill",
       "revision": 1,
       "enabled": true,
-      "authority": "User decision, 2026-09-07: Yep -- and please just auto-accept merges like this.",
-      "rule": "Accept an exact same-premise, same-floor merger of numeric unit A/B/C into its unsuffixed numeric unit when English and Traditional Chinese agree and all other unit expressions are unchanged. Preserve dated publisher history; never backfill or reuse predecessor IDs. Other inventory changes remain pending.",
+      "authority": "User decision, 2026-09-07: whenever every named coordinate-only source shift is less than 50m, backfill the new coordinates.",
+      "rule": "Accept a coordinate-only event only when it has no additions, removals or source ambiguity; every changed assertion has one named building occurrence before and after; and every geodesic movement is strictly below 50m. Backfill the current point over only the immediately preceding continuous publisher-coordinate epoch, guarded by release, CSU, estate, English building name and exact prior point. Preserve the replaced publisher geometry and source assertions as provenance. Do not treat CSU alone as an identity or merge instruction.",
       "confirmedExamples": [
+        "CHEUNG CHING ESTATE: eight named April 2026 shifts, maximum 27.2m",
+        "CHAI WAN ESTATE: two named April 2026 shifts, maximum 2.2m"
+      ]
+    },
+    {
+      "id": "same-floor-ab-or-abc-unit-merger",
+      "revision": 2,
+      "enabled": true,
+      "authority": "User decisions, 2026-09-07: auto-accept these mergers; extend exact A/B-to-base mergers throughout the queue alongside A/B/C mergers.",
+      "rule": "Accept an exact same-premise, same-floor merger of numeric unit A/B or A/B/C into its unsuffixed numeric unit when English and Traditional Chinese agree and all other unit expressions are unchanged. Reject partial suffix families, unmatched removals and mixed unrelated changes. Preserve dated publisher history; never backfill or reuse predecessor IDs. Other inventory changes remain pending.",
+      "confirmedExamples": [
+        "CHUNG ON ESTATE / CHUNG TAK HSE: 307A, 307B to 307 on 3/F, April 2025",
         "CHEUNG HANG ESTATE / HANG CHI HOUSE: 601A, 601B, 601C to 601 on 6/F, April 2025",
         "CHEUNG HANG ESTATE / HANG YIP HOUSE: 1021A, 1021B, 1021C to 1021 on 10/F, April 2025"
       ]
     }
   ],
   "decisions": [
+    {
+      "id": "ap-lei-chau-lei-moon-unnamed-duplicate-arrival",
+      "estate": "AP LEI CHAU ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "0a0ac6c011171862efc370426d7c7eb2b8412a7a52106f22dbe346dccf9269f6",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-unnamed-premise-suppressions.json",
+      "decision": "Suppress the unnamed zero-unit CSU 3370111759T20150127 as a duplicate of Lei Moon House while retaining its raw source assertion in owner provenance. It is not a Low Block source premise or a separate canonical address.",
+      "authority": "User decision, 2026-09-07: it looks more like Lei Moon House itself; drop it."
+    },
+    {
+      "id": "ap-lei-chau-lei-moon-unnamed-duplicate-removal",
+      "estate": "AP LEI CHAU ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "498f7582e8bb503231520fbdabe095093bcbebb26ab04571904b4e2efd8fd7b8",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-unnamed-premise-suppressions.json",
+      "decision": "Accept the removal of the suppressed Lei Moon duplicate. Retain the separately identified Lei Fook Low Block source premise; do not infer equivalence or unit ownership from the two dated records.",
+      "authority": "User decisions, 2026-09-07: the unnamed Lei Moon record is a duplicate to drop; the later source record is Lei Fook Low Block."
+    },
+    {
+      "id": "ap-lei-chau-lei-tim-november-2024-unit-backfill",
+      "estate": "AP LEI CHAU ESTATE",
+      "release": "20241113-1041-ALS-GeoJSON",
+      "expectedFingerprint": "186ab12982dd86be7389c588b71538889eb49c0013500d65cfe72d661b72483c",
+      "action": "reviewed_inventory_backfill",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Backfill Lei Tim House's November 2024 720-unit inventory over the nine earlier retained deliveries. Add only 2/F flats 207, 217 and 219, preserving the raw 717-unit publisher inventory and its source provenance.",
+      "authority": "User decision, 2026-09-07: backfill."
+    },
+    {
+      "id": "ap-lei-chau-april-2026-coordinate-backfill",
+      "estate": "AP LEI CHAU ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "a0b20cbd119399b073f1a8d106ad884d60b08a2a188308a1abb97be8f6d2dcaf",
+      "action": "reviewed_coordinate_backfill",
+      "fixture": "hkgov-dpo-address-coordinate-backfills.json",
+      "decision": "Backfill the April 2026 current coordinates for the six named Lei Chak, Lei Fook, Lei Moon, Lei Ning, Lei Tim and Lei Yee houses over their July 2024–February 2026 derived Address2D records. Preserve the replaced ALS points as provenance. The unnamed Lei Moon duplicate remains independently suppressed.",
+      "authority": "User decision, 2026-09-07: yes, please."
+    },
+    {
+      "id": "butterfly-april-2026-coordinate-backfill",
+      "estate": "BUTTERFLY ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "711a4f93bebf969007beff3fcfb66fb22c648866a3af983a5e688a99b601440a",
+      "action": "reviewed_coordinate_backfill",
+      "fixture": "hkgov-dpo-address-coordinate-backfills.json",
+      "decision": "Backfill the April 2026 current coordinates for Tip Chui, Tip Ling, Tip Mo, Tip Sum, Tip Yee and Tip Ying Houses over their July 2024–February 2026 derived Address2D records. Preserve each replaced ALS point as curation provenance.",
+      "authority": "User decision, 2026-09-07: backfill the new coordinates."
+    },
+    {
+      "id": "cheung-ching-november-2024-first-2d-appearance",
+      "estate": "CHEUNG CHING ESTATE",
+      "release": "20241113-1041-ALS-GeoJSON",
+      "expectedFingerprint": "249cc2efc2ced73363784288722acfba089380d1418052d3c702915d7b464889",
+      "action": "retain_publisher_history",
+      "decision": "Retain the November 2024 2D change as dated publisher history. It does not justify backfilling Ching Ho House or inferring a building delivery date beyond the separate reviewed evidence.",
+      "authority": "User decision, 2026-09-07: Ching Ho House seems like it was built then, so should not be backfilled."
+    },
+    {
+      "id": "cheung-hong-april-2026-coordinate-backfill",
+      "estate": "CHEUNG HONG ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "4150d3e0d3d51cebb31fed8aa5f0a0d214f524161dfa4c98fe067a6f9705dff5",
+      "action": "reviewed_coordinate_backfill",
+      "fixture": "hkgov-dpo-address-coordinate-backfills.json",
+      "decision": "Backfill the April 2026 current coordinates for the thirteen named Cheung Hong Estate blocks over their bounded July 2024 to February 2026 derived histories. Preserve the replaced ALS source geometry and all source assertions as provenance; do not apply the correction outside those historic releases.",
+      "authority": "User decision, 2026-09-07: backfill the current coordinates to override the past ones."
+    },
+    {
+      "id": "cheung-hong-commercial-centre-no-2-named-retention",
+      "estate": "CHEUNG HONG ESTATE",
+      "release": "20250620-1033-ALS-GeoJSON",
+      "expectedFingerprint": "767d2bf2512b392ee57d6af00ac35034cd034c20eab0fbc15f1c7965acfc3459",
+      "action": "reviewed_named_premise_retention",
+      "fixtures": [
+        "hkgov-dpo-address-named-premise-retentions.json",
+        "hkgov-dpo-address-premise-reconstructions.json"
+      ],
+      "decision": "Retain the named Cheung Hong Commercial Centre No. 2 as the canonical derived premise while suppressing the unnamed cross-referenced duplicate whenever both exist. Restore the named premise only in the bounded April–July 2026 source gap. Preserve all raw publisher assertions and do not backfill after both source records disappear on July 22.",
+      "authority": "User decision, 2026-09-07: restore the named one; the unnamed record is a duplicate and is not needed."
+    },
+    {
+      "id": "heng-tsui-unit-118-august-21-reversion",
+      "estate": "FU HENG ESTATE",
+      "release": "20240821-1044-ALS-GeoJSON",
+      "expectedFingerprint": "1c6a39067acc77d5a55fe9882ead5e70e7392730f72b593f61e5a8b89d488618",
+      "action": "reviewed_inventory_correction",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Correct the stale return of 1/F 118A/B/C to merged 118. Preserve the initial July 25 split inventory and retain 118 from the first July 31 merger onward, keeping all raw source assertions.",
+      "authority": "User decision, 2026-09-07: yep OK."
+    },
+    {
+      "id": "heng-tsui-unit-118-august-28-reversion",
+      "estate": "FU HENG ESTATE",
+      "release": "20240828-1021-ALS-GeoJSON",
+      "expectedFingerprint": "1c6a39067acc77d5a55fe9882ead5e70e7392730f72b593f61e5a8b89d488618",
+      "action": "reviewed_inventory_correction",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Correct the second stale return of 1/F 118A/B/C to merged 118 under the bounded, hash-guarded inventory correction.",
+      "authority": "User decision, 2026-09-07: yep OK."
+    },
+    {
+      "id": "heng-tsui-unit-118-september-2-reversion",
+      "estate": "FU HENG ESTATE",
+      "release": "20240902-1020-ALS-GeoJSON",
+      "expectedFingerprint": "1c6a39067acc77d5a55fe9882ead5e70e7392730f72b593f61e5a8b89d488618",
+      "action": "reviewed_inventory_correction",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Correct the third stale return of 1/F 118A/B/C to merged 118 under the bounded, hash-guarded inventory correction.",
+      "authority": "User decision, 2026-09-07: yep OK."
+    },
+    {
+      "id": "fortune-carpark-estate-component-gap",
+      "estate": "FORTUNE ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "8eef0dd585b021195ab13dcd429235364d77a13a8a5bcd3ff272fa782f138eca",
+      "action": "reviewed_estate_component_restoration",
+      "fixture": "hkgov-dpo-address-estate-components.json",
+      "decision": "Restore only the car park's missing bilingual estate component across five releases. Preserve publisher coordinates and unchanged residential inventories. Keep the car park distinct from the unnamed estate premise.",
+      "authority": "User decision, 2026-09-07: yep agree."
+    },
+    {
+      "id": "fortune-carpark-estate-component-return",
+      "estate": "FORTUNE ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "1c6af72a90d7025cede554bae04a8f037100d87cab2805d0e2bd63ff8d519c7b",
+      "action": "reviewed_estate_component_restoration",
+      "fixture": "hkgov-dpo-address-estate-components.json",
+      "decision": "Accept the returning estate component as corroboration of the gap restoration, not a newly created or merged car park.",
+      "authority": "User decision, 2026-09-07: yep agree."
+    },
+    {
+      "id": "fai-ming-estate-fanling-locality",
+      "estate": "FAI MING ESTATE",
+      "release": "20250426-1053-ALS-GeoJSON",
+      "expectedFingerprint": "870607d94a5aa7ff54235c71b955631e70cc80a5f3017b0d0a7629a55e609a42",
+      "action": "reviewed_locality_backfill",
+      "fixture": "hkgov-dpo-address-localities.json",
+      "decision": "Backfill FANLING / 粉嶺 for Sing Fai House and Tai Fai House into all earlier retained derived addresses. Preserve original components, identities, block details, geometry, divisions and all 952 units. This accepts the audited 3D locality event, not an exhaustive 2D component review.",
+      "authority": "User decision, 2026-09-07: Yes please, approving locality backfill."
+    },
+    {
+      "id": "chun-yeung-shopping-centre-alternative-address-removal",
+      "estate": "CHUN YEUNG ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "e885897f374105375e99ee93604e4d1d027079ce35e2399403aaac1a5053c542",
+      "csu": "3763628897T20180320",
+      "action": "retain_publisher_history",
+      "interpretation": "alternative_address_removal",
+      "decision": "Retain both supplied shopping-centre addresses before April 2026. Honour removal of 28 Wong Chuk Yeung Street from April onward, retaining 20 Kwei Tei Street. Do not backfill the removed alternative or interpret it as disappearance of the shopping centre. Residential inventories remain unchanged.",
+      "authority": "User decision, 2026-09-07: yeah ok, approving the dated alternative-address removal without backfill."
+    },
     {
       "id": "chun-shek-car-park-publisher-omission",
       "estate": "CHUN SHEK ESTATE",

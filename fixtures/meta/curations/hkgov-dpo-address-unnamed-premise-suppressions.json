@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "suppressions": [
+    {
+      "id": "ap-lei-chau-lei-moon-unnamed-duplicate",
+      "estate": "AP LEI CHAU ESTATE",
+      "zhHantEstateName": "鴨脷洲邨",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "owner": {
+        "csu": "3372511726T20141201",
+        "enBuildingName": "LEI MOON HSE HIGH BLK & LOW BLK",
+        "zhHantBuildingName": "利滿樓高座及低座"
+      },
+      "duplicate": {
+        "csu": "3370111759T20150127",
+        "streetNumber": "322",
+        "enStreetNames": ["AP LEI CHAU BRIDGE ROAD", null],
+        "zhHantStreetNames": ["鴨脷洲橋道", null],
+        "coordinates": [[114.15197, 22.24457], [114.15197, 22.24458]]
+      },
+      "decision": "Suppress the unnamed zero-unit premise as a duplicate of Lei Moon House. Retain it in Lei Moon House provenance, but do not expose it as a Low Block section or a second canonical address.",
+      "authority": "User decision, 2026-09-07: it looks more like Lei Moon House itself; drop it."
+    }
+  ]
+}

@@ -22,6 +22,7 @@
       "expectedInventoryHash": "78571746e74a8b70f3e4a3d44fd55e584b95b4ffe9c3e5e99edacdd10ae28cba",
       "correctedInventoryHash": "81671e95244d8f4898da1ad7f51290a0c518dc8b014d5cd8d00b404a97b31691",
       "expectedUnitCount": 717,
+      "removals": [],
       "additions": [
         { "floor": 2, "unit": "207" },
         { "floor": 2, "unit": "217" },
@@ -31,6 +32,28 @@
       "decision": "Backfill the three units into earlier retained inventories as a reviewed publisher omission, rather than treating November 2024 as their first existence.",
       "authority": "User decision, 2026-09-07: we should backfill, that seems like it was a mistake on their part.",
       "evidence": "The bilingual November inventory adds only flats 207, 217 and 219 on 2/F; no units are removed. Raw earlier source assertions remain unchanged."
+    },
+    {
+      "id": "fu-heng-heng-tsui-stale-unit-118-reversions",
+      "revision": 1,
+      "estate": "FU HENG ESTATE",
+      "csu": "3568535528T20050430",
+      "sourceVersions": ["2024-08-21.0", "2024-08-28.0", "2024-09-02.0"],
+      "expectedEnBuildingName": "HENG TSUI HOUSE",
+      "expectedZhBuildingName": "亨翠樓",
+      "expectedInventoryHash": "3788d1dd171789a7de0f6591f92cae251720efc91b615aa973411c1feffb90a0",
+      "correctedInventoryHash": "b132de7e661ddfb30203d6aa0611c019f2436667a535f3baebbe1f35dc199e02",
+      "expectedUnitCount": 822,
+      "removals": [
+        { "floor": 1, "unit": "118A" },
+        { "floor": 1, "unit": "118B" },
+        { "floor": 1, "unit": "118C" }
+      ],
+      "additions": [{ "floor": 1, "unit": "118" }],
+      "evidenceSourceRelease": "20240731-1054-ALS-GeoJSON",
+      "decision": "Keep the initial 25 July 2024 split inventory. Retain merged flat 118 from 31 July onward and correct only the three later reversions as reviewed stale inventories. Preserve the raw predecessor assertions and distinct merged successor identity.",
+      "authority": "User decision, 2026-09-07: yep OK, approving correction of the three reversions after the first merger.",
+      "evidence": "The three reversions repeat the exact initial bilingual inventory hash; the intervening and all later retained releases supply the same merged inventory hash. Corrected inventories must match the 31 July source hash exactly."
     }
   ]
 }

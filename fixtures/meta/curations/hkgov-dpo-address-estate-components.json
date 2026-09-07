@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "restorations": [
+    {
+      "id": "fortune-estate-carpark-estate-gap",
+      "csu": "3392321845T20050430",
+      "enBuilding": "FORTUNE ESTATE CARPARK",
+      "zhBuilding": "幸福邨停車場",
+      "enEstate": "FORTUNE ESTATE",
+      "zhEstate": "幸福邨",
+      "enStreet": "HANG CHEUNG STREET",
+      "zhStreet": "幸祥街",
+      "streetNumber": "8",
+      "versions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0"
+      ],
+      "evidenceSourceVersions": ["2026-02-04.0", "2026-07-22.0"],
+      "authority": "User decision, 2026-09-07: yep agree, restore the missing estate component across the five-release gap.",
+      "reason": "The named car park remains present with the same CSU and street address. Restore only its missing bilingual estate component using the surrounding publisher assertions. Preserve original source payloads, resolved identity, geometry, block details and all residential inventories; do not merge the independent unnamed estate premise."
+    }
+  ]
+}
