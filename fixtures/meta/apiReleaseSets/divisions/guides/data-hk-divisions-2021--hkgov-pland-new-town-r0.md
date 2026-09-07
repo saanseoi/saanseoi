@@ -88,21 +88,7 @@ infer a district relationship or filter on an empty <black>level</black>,
 
 ## Shaping the Response
 
-A <black>profile</black> controls how much information each response contains. If you do
-not choose one, the API uses <black>default</black>. <black>compact</black> is useful
-for a short list, <black>map</black> adds map coordinates, and <black>full</black> adds
-geometry and detailed provenance.
-
-{{apiProfileTable:en}}
-
-For a map-ready response, set <black>profile=map</black>:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:en}}
 
 ## Geometry
 
@@ -121,20 +107,11 @@ while <black>locales=null</black> omits names.
 
 ## Filters & Pagination
 
+{{paginationSection:en}}
+
 Filters only work when the selected domain supplies the field being filtered. In this
 release, <black>level</black>, <black>divisionType</black>, and <black>parent</black>
-are blank, so use the domain and cohort to select the data, then paginate the list:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-Follow <black>links.next</black>, <black>links.prev</black>, and
-<black>links.first</black> from the response instead of calculating the next page.
+are blank, so use the domain and cohort to select the data, then paginate the list.
 
 ## Time travel
 

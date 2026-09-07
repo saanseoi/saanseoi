@@ -71,21 +71,7 @@ affect the feature being explained.
 
 ## Shaping the Response
 
-A <black>profile</black> controls how much information each response contains. If you do
-not choose one, the API uses <black>default</black>. <black>compact</black> is useful
-for a short list, <black>map</black> adds map coordinates, and <black>full</black> adds
-geometry and detailed provenance.
-
-{{apiProfileTable:en}}
-
-For a map-ready response, set <black>profile=map</black>:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:en}}
 
 ## Adding Geometry
 
@@ -184,23 +170,11 @@ only the expansion of its identifiers into resources is omitted.
 
 ## Adding Languages (`I18n`)
 
-Unless you select <black>profile=full</black>, names are returned in English and
-Traditional Chinese by default: <black>locales=en,zh-hant</black>. With
-<black>profile=full</black>, every available locale is returned by default. To add
-Simplified Chinese to the usual default selection, call
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-Use <black>locales=*</black> for every available locale, or provide another supported
-comma-separated list. Use <black>locales=null</black> to leave <black>i18n</black> out
-of the response.
+{{localeSelectionSection:en}}
 
 ## Filters & Pagination
+
+{{paginationSection:en}}
 
 Filters narrow the list before it is split into pages. Use `filter[level]` for a
 [hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[divisionType]`
@@ -217,21 +191,6 @@ Tin District:
                  filter[divisionType]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
-
-Use <black>page[limit]</black> and <black>page[offset]</black> to work through the
-filtered results. A page can contain at most 100 items:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-Follow the response's <black>links.next</black>, <black>links.prev</black>, and
-<black>links.first</black> instead of calculating the next offset yourself. Use
-<black>meta.page.total</black> to show or plan for the complete filtered result.
 
 ## Time travel
 
@@ -317,19 +276,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 ## 設定回應形狀
 
-profile 控制每個回應所含資料的多寡。可在[範例分頁](?tab=samples)試用各個 profile。以
-<black>profile=</black> 設定；省略時，API 使用 <black>default</black>。
-
-{{apiProfileTable:zh-Hant}}
-
-如需適合地圖使用的回應，請設定 <black>profile=map</black>：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:zh-Hant}}
 
 ## 加入幾何資料
 
@@ -419,23 +366,11 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 
 ## 加入語言（`I18n`）
 
-除非選取
-<black>profile=full</black>，否則名稱預設以英文及繁體中文傳回：<black>locales=en,zh-hant</black>。使用
-<black>profile=full</black>
-時，預設傳回所有可用 locale。如要在一般預設選擇中加入簡體中文，請呼叫：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-使用 <black>locales=*</black>
-取得所有可用 locale，或提供另一個受支援的逗號分隔清單。使用 <black>locales=null</black>
-可使回應不包含 <black>i18n</black>。
+{{localeSelectionSection:zh-Hant}}
 
 ## 篩選及分頁
+
+{{paginationSection:zh-Hant}}
 
 篩選會先縮小清單，再分頁。使用 `filter[level]`
 篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用
@@ -452,21 +387,6 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
                  filter[divisionType]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
-
-使用 <black>page[limit]</black> 及 <black>page[offset]</black>
-瀏覽篩選結果。每頁最多可含 100 項：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-請跟隨回應中的 <black>links.next</black>、<black>links.prev</black> 及
-<black>links.first</black>，而非自行計算下一個 offset。使用
-<black>meta.page.total</black> 顯示或規劃完整的篩選結果。
 
 ## 時間旅行
 
@@ -548,19 +468,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 ## 设置响应形状
 
-profile 控制每个响应所含数据的多少。可在[示例分页](?tab=samples)试用各个 profile。以
-<black>profile=</black> 设置；省略时，API 使用 <black>default</black>。
-
-{{apiProfileTable:zh-Hans}}
-
-如需适合地图使用的响应，请设置 <black>profile=map</black>：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:zh-Hans}}
 
 ## 添加几何数据
 
@@ -650,23 +558,11 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
 
 ## 添加语言（`I18n`）
 
-除非选择
-<black>profile=full</black>，否则名称默认以英文及繁体中文返回：<black>locales=en,zh-hant</black>。使用
-<black>profile=full</black>
-时，默认返回所有可用 locale。如要在一般默认选择中加入简体中文，请调用：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-使用 <black>locales=*</black>
-获取所有可用 locale，或提供另一个受支持的逗号分隔列表。使用 <black>locales=null</black>
-可使响应不包含 <black>i18n</black>。
+{{localeSelectionSection:zh-Hans}}
 
 ## 筛选及分页
+
+{{paginationSection:zh-Hans}}
 
 筛选会先缩小列表，再分页。使用 `filter[level]`
 筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用
@@ -683,21 +579,6 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
                  filter[divisionType]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
-
-使用 <black>page[limit]</black> 及 <black>page[offset]</black>
-浏览筛选结果。每页最多可含 100 项：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-请跟随响应中的 <black>links.next</black>、<black>links.prev</black> 及
-<black>links.first</black>，而非自行计算下一个 offset。使用
-<black>meta.page.total</black> 显示或规划完整的筛选结果。
 
 ## 时间旅行
 

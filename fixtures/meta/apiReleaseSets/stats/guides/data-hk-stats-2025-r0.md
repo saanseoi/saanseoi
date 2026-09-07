@@ -256,6 +256,8 @@ for every available language, or provide a supported comma-separated list of lan
 
 ## Filters & Pagination
 
+{{paginationSection:en}}
+
 Filters narrow a statistics list before it is split into pages. Use
 <black>filter[dataset]</black> for one source dataset, <black>filter[field]</black> for
 one exact field, <black>filter[division]</black> for one canonical division ID, and
@@ -273,21 +275,6 @@ For example, this requests one field for one division in the {{ cohortKey }} rel
           filter[field]=domesticHouseholds&
           filter[division]=106de92f-8a6d-44ba-b2c6-488d181a0deb
 ```
-
-Use <black>page[limit]</black> and <black>page[offset]</black> to work through the
-filtered results. A page can contain at most 100 records:
-
-```url
-/stats/v0?
-          domain={{ domainCode }}&
-          cohort={{ cohortKey }}&
-          page[limit]=25&
-          page[offset]=50
-```
-
-Follow the response's <black>links.next</black>, <black>links.prev</black>, and
-<black>links.first</black> instead of calculating the next offset yourself. Use
-<black>meta.page.total</black> to show or plan for the complete filtered result.
 
 ## Time Travel
 
