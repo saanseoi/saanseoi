@@ -43,7 +43,7 @@ describe('api field fixtures', () => {
       for (const anchor of anchors) {
         const lookup = {
           apiVersion: 'api-stats-v0.1',
-          domainCode: 'official',
+          domainCode: 'government',
           schemaVersion: 'sv-statistics-v1',
           rulesetVersion: 'rs-division-statistic-merge-v1',
           lineageSnapshotVersions: [

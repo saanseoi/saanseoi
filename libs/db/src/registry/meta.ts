@@ -685,13 +685,13 @@ export const apiDomainCodeRenames = [
   },
   {
     apiVersion: 'api-stats-v0.1',
-    from: 'default',
-    to: 'official',
+    from: 'official',
+    to: 'government',
   },
   {
     apiVersion: 'api-streets-v0.1',
-    from: 'hkgov-landsd',
-    to: 'official',
+    from: 'official',
+    to: 'saanseoi',
   },
 ] as const
 
