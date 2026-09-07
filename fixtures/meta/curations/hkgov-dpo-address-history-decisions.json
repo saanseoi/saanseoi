@@ -317,6 +317,75 @@
       "evidence": [
         "The December 2024 to January 2025 raw bilingual diff removes only 1/F units 121A, 121B and 121C and adds only 1/F unit 121. The delivery date is the observed change boundary, not an established physical conversion date."
       ]
+    },
+    {
+      "id": "fu-shin-august-2026-block-components",
+      "estate": "FU SHIN ESTATE",
+      "release": "20260819-1047-ALS-GeoJSON",
+      "expectedFingerprint": "44212954be8091e7e3601f3087183f7a50bdc4dd24b930291064ec06da33a124",
+      "action": "automatic_3d_parent_block_enrichment",
+      "rule": "als_3d_parent_block_enriched",
+      "decision": "The six canonical HA houses receive their verified bilingual block components from their unique, otherwise identical ALS 3D parents. The raw 2D block-labelled variants are retained in provenance and suppressed as duplicates; no second address, alias or part-whole relation is created.",
+      "authority": "User direction, 2026-09-07: automate safe duplicate-alias handling rather than repeatedly queue it.",
+      "evidence": [
+        "Every August 2026 block-labelled variant has the same CSU and coordinates as its block-free parent: Shin Kwan 1, Shin Lun 2, Shin Nga 3, Shin Tsui 4, Shin Mei 5 and Shin King 6.",
+        "All six corresponding 3D inventories and their unit counts are unchanged from the preceding release."
+      ]
+    }
+  ],
+  "reviewedEventSeries": [
+    {
+      "id": "ching-tin-existing-curation-signal",
+      "estate": "CHING TIN ESTATE",
+      "action": "reviewed_existing_curation_signal",
+      "decision": "Treat the complete observed Ching Tin event series as already reviewed. The July–September 2024, February 2025 and July 2026 events only add, remove or replace unnamed zero-unit source premises; they remain independent raw assertions and never establish an alias or unit ownership. The June 2025 Ching Sum omission is restored by its reviewed backfill. The August 2025 named inventories corroborate the existing baseline reconstruction.",
+      "authority": "User direction, 2026-09-07: do not surface already-curated Ching Tin records in the estate review queue.",
+      "events": [
+        {
+          "release": "20240731-1054-ALS-GeoJSON",
+          "expectedFingerprint": "4369c02b35fc27562dd86b65155d80f88be494a7345637a89e83f8e8031232a2"
+        },
+        {
+          "release": "20240821-1044-ALS-GeoJSON",
+          "expectedFingerprint": "3c0331890f2b81234b6c653713a86581f9a5492bbb594f01d7886248151b8b9a"
+        },
+        {
+          "release": "20240825-1042-ALS-GeoJSON",
+          "expectedFingerprint": "4369c02b35fc27562dd86b65155d80f88be494a7345637a89e83f8e8031232a2"
+        },
+        {
+          "release": "20240828-1021-ALS-GeoJSON",
+          "expectedFingerprint": "3c0331890f2b81234b6c653713a86581f9a5492bbb594f01d7886248151b8b9a"
+        },
+        {
+          "release": "20240901-1030-ALS-GeoJSON",
+          "expectedFingerprint": "4369c02b35fc27562dd86b65155d80f88be494a7345637a89e83f8e8031232a2"
+        },
+        {
+          "release": "20240902-1020-ALS-GeoJSON",
+          "expectedFingerprint": "3c0331890f2b81234b6c653713a86581f9a5492bbb594f01d7886248151b8b9a"
+        },
+        {
+          "release": "20240903-1049-ALS-GeoJSON",
+          "expectedFingerprint": "4369c02b35fc27562dd86b65155d80f88be494a7345637a89e83f8e8031232a2"
+        },
+        {
+          "release": "20250225-1050-ALS-GeoJSON",
+          "expectedFingerprint": "688d6468ed1ae23a1d082eaa526f41f1c05b8f4afaef25d261df418262eaa1d2"
+        },
+        {
+          "release": "20250620-1033-ALS-GeoJSON",
+          "expectedFingerprint": "728633ed00fe49456d34a7d0cf1828d91d975e175f454751113ade21cc0529fd"
+        },
+        {
+          "release": "20250813-1053-ALS-GeoJSON",
+          "expectedFingerprint": "2eba63a319453fa58f4d3b1b6df6486c79404b4daa11edf08f6ce4e17694f5a3"
+        },
+        {
+          "release": "20260722-1931-ALS-GeoJSON",
+          "expectedFingerprint": "48cf1551ad89e5e1c3a9db68e902efa2ac0865eaf2efce77ecd5bef2d76a3e7f"
+        }
+      ]
     }
   ]
 }

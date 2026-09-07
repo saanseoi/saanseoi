@@ -232,6 +232,19 @@ source CSU, or altered evidence fail validation.
 `bun scripts/verify-ching-sum-address3d.ts` runs the estate-wide verification above.
 This does not authorise backfilling other buildings or rewriting published snapshots.
 
+The estate-review audit records the observed arrivals, removals and replacements of
+unnamed, zero-unit Ching Tin source premises as reviewed, release-by-release and
+fingerprint-guarded. They remain raw source provenance only: they neither create a
+building nor an alias, and cannot suppress review signals for other estates. The August
+2025 named inventory arrival is likewise recorded as corroboration of the existing
+baseline reconstruction and June Ching Sum backfill, rather than a new review item.
+
+Fu Shin Estate's August 2026 block-labelled 2D variants are handled by the same
+automatic parent-block enrichment. Each of its six variants has the same CSU and point
+as one unique, block-free parent and a matching unchanged 3D inventory. The canonical
+address receives the verified BLK/座 components; the variant remains source provenance,
+not an alias or a second address. The release-audit decision is fingerprint-guarded.
+
 Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories
 and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The
 user chose no backfill. The physical cause and exact physical change date are unknown.
