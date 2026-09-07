@@ -1,12 +1,16 @@
 import { readFile, writeFile } from 'node:fs/promises'
 import { buildEstateChronology, type SourceReport } from './lib/als-estate-timeline'
-import { mergerEventKey, reviewAlsUnitMergers } from './lib/als-unit-merger-review'
-import { reviewAlsBlockIdentities } from './lib/als-block-identities'
-import { reviewEstateGapEvents } from './lib/als-estate-gap-review'
+import {
+  mergerEventKey,
+  reviewAlsUnitMergers,
+} from './review/lib/als-unit-merger-review'
+import { reviewAlsBlockIdentities } from './review/lib/als-block-identities'
+import { reviewAlsStructuredBlocks } from './review/lib/als-structured-block-review'
+import { reviewEstateGapEvents } from './review/lib/als-estate-gap-review'
 import {
   coordinateBackfillPolicyId,
   reviewAlsCoordinateBackfills,
-} from './lib/als-coordinate-backfill-review'
+} from './review/lib/als-coordinate-backfill-review'
 import estateComponentGaps from '../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
 import namedPremiseRetentions from '../fixtures/meta/curations/hkgov-dpo-address-named-premise-retentions.json'
 import coordinateBackfills from '../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
@@ -18,6 +22,7 @@ audit.reports.sort((a: SourceReport, b: SourceReport) =>
   a.release.localeCompare(b.release),
 )
 const blockIdentities = await reviewAlsBlockIdentities(audit.reports)
+const structuredBlocks = await reviewAlsStructuredBlocks(audit.reports)
 const chronology = buildEstateChronology(audit.reports)
 const estateGapReviews = await reviewEstateGapEvents(audit.reports, chronology.estates)
 const historyDecisions = JSON.parse(
@@ -229,6 +234,7 @@ const estates = chronology.estates.map(history => {
       d => d.enEstate.EstateName === name,
     ),
     reviewedBlockIdentities: blockIdentities.decisions.filter(d => d.estate === name),
+    automaticStructuredBlockIdentities: structuredBlocks.filter(d => d.estate === name),
     reviewedPremiseReconstructions: premiseReconstructions.reconstructions
       .filter((d: any) => d.estate === name)
       .map(({ releases, evidence, ...decision }: any) => ({
