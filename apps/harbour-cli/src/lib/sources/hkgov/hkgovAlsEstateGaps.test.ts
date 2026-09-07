@@ -1,5 +1,7 @@
 import { test, expect } from 'bun:test'
 import { boundedEstateGaps, estateGapIdentity } from './hkgovAlsEstateGaps'
+import { restoreAlsEstateGaps } from './hkgovAlsEstateGapRestorations'
+import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 const named = {
   count: 1,
   enEstate: { EstateName: 'ESTATE' },
@@ -75,4 +77,19 @@ test('uses CSU together with all non-estate bilingual components, preserving sec
       { BuildingName: '乙' },
     ),
   ).not.toBe(key)
+})
+test('fails closed when a scheduled source target is absent', () => {
+  const row = {
+    hkgovCsuId: '3631335059T20050430',
+    enEstateName: null,
+    zhHantEstateName: null,
+    engPremisesAddressJson: JSON.stringify({ BuildingName: 'OTHER' }),
+    chiPremisesAddressJson: JSON.stringify({ BuildingName: '其他' }),
+    enFormattedAddress: 'OTHER',
+    zhHantFormattedAddress: '其他',
+    sources: '{}',
+  } as PreparedHkgovAlsRow
+  expect(() => restoreAlsEstateGaps([row], '2026-04-03.0', true)).toThrow(
+    'expected source target missing',
+  )
 })

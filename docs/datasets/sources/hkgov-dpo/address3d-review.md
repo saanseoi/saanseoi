@@ -100,6 +100,17 @@ reference also records the correction decision. November 2024 supplies the corro
 720-unit inventory. This is a user-reviewed historical correction, not a publisher claim
 about the earlier dates.
 
+Heng Tsui House / 亨翠樓, Fu Heng Estate, retains 1/F flats 118A/B/C in the initial 25
+July 2024 inventory (822 units). The first merged inventory on 31 July supplies flat 118
+(820 units). The user-reviewed correction treats the exact initial inventory reappearing
+on 21 August, 28 August and 2 September as stale reversions: remove only those three
+suffixed flats and add 118 on the same floor. Original and corrected bilingual hashes
+guard every change. Raw assertions remain intact; the merged unit retains its distinct
+successor ID. This does not authorise automatic correction of other reverse splits.
+`bun scripts/verify-heng-tsui-unit-118.ts` checks the initial, first merged, three
+corrected and latest inventories, including source preservation and stable successor
+identity.
+
 Decisions live in
 [`hkgov-dpo-address-hierarchies.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
 for containment and
@@ -253,6 +264,27 @@ expressions for all retained units. Multiple exact mergers, including a mixture 
 and A/B/C sets in one building, are supported. Retained C/D siblings, reverse splits,
 partial suffix sets, different floors, unrelated additions/deletions and ambiguous
 occurrences remain pending.
+
+Fortune Estate Carpark / 幸福邨停車場 (CSU `3392321845T20050430`) retains its reviewed
+Fortune Estate / 幸福邨 component in the five releases from 3 April to 10 July 2026
+where ALS omits it. The car park itself remains present. The fixture
+`hkgov-dpo-address-estate-components.json` records the surrounding February and July
+evidence and exact target versions. Restoration changes derived estate fields and
+formatted addresses only, after source identity and 3D ownership resolution. Raw source
+JSON, geometry and residential inventories remain intact. Verification covers all 30
+releases and preserves the distinct unnamed estate premise (`3385421875T20050430`).
+
+The user-approved bounded bilingual estate-component-gap policy extends that correction
+to a source premise that remains present, has the same CSU and complete matching
+non-estate components, loses its estate component for a continuous interval, and has the
+same complete bilingual estate component immediately before and after it. The generated
+fixture identifies 57 such gaps across 31 estates (279 release records), including Fu
+Shin Estate's LP-gas substation. It rejects repeated occurrences, an absent premise,
+changed components, one-language-only loss, changed return attribution, and unbounded
+gaps. Only derived estate fields, formatted addresses and provenance change; original
+source assertions, identities, geometry, sections and alternate addresses remain intact.
+The ledger fully reviews the 24 events for which the restored components account for the
+whole audited change; mixed events remain pending.
 
 Fai Ming Estate's reviewed locality decision backfills FANLING / 粉嶺 for Sing Fai House
 and Tai Fai House from the April 2025 source evidence into the 14 earlier retained

@@ -39,6 +39,46 @@ benchmark ratio.
 Reports live under `.cache/sql-delivery-benchmarks` or `.cache/preparation-benchmarks`.
 They are local run artefacts, not published datasets.
 
+## Small-fixture local acceptance evidence
+
+The retained `run-YhCQaM` experiment under `.cache/ingestion-acceptance` uses an
+independent source snapshot, dependency installation, local D1 databases, bucket, queue
+and Harbour API on port 18888. Source archives, existing application state, secrets and
+live Wrangler configurations are excluded. Remote API endpoints in the snapshot are
+disabled. No remote resources or uploads were used in this experiment.
+
+The Division fixture is a 2,648-byte synthetic Parquet containing the 18 district
+identities and SAR anchor needed by the Hong Kong normaliser. The pipeline adds four
+required anchors, producing 23 canonical rows and 69 localisations. All three name
+locales are supplied so the test makes no translation requests.
+
+- The uninterrupted materialisation and completion call took 1,362 ms. This is a
+  small-fixture observation, not a measured production speedup.
+- A controlled history-write failure left 23 current rows and 23 source rows committed,
+  with zero history rows. Retrying the same release completed delivery and the Harbour
+  completion call.
+- `division-parity-report.json` verifies identical current, history and source Division
+  rows and localisations, excluding only `createdAt` and `updatedAt`.
+- Direct database inspection confirms the source resource release remains `processing`
+  and the API release set remains `draft` with no publication timestamp. Internal
+  snapshots are marked published by the deferred-completion operation; these exist only
+  in the isolated local test databases.
+
+Reports are `division-local-report.json`, `division-local-resumed-report.json`,
+`division-interruption-state.json` and `division-parity-report.json`. The baseline
+databases and failed fixture-development attempts are retained separately.
+
+This test invokes the production Division materialisation adapter and real local Harbour
+API, but seeds registry metadata directly and does not exercise upload registration or
+source-object upload. Other families, geometry companions, remote D1 and complete
+registration/upload workflows still require acceptance evidence.
+
+`scripts/prepare-ingestion-acceptance.ts --prepare` creates a source-only workspace;
+`scripts/configure-ingestion-acceptance-local.ts <run-directory>` creates local-only
+bindings and a separate local API key. Neither script provisions or uploads remote
+resources. The manifest proposes a 32-record-per-family, 5 MiB aggregate fixture budget;
+a remote upload runner must enforce it before any upload.
+
 ## End-to-end acceptance procedure
 
 Before running application ingestion, agree the disposable local and preview databases,

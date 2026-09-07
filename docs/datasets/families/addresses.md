@@ -70,6 +70,9 @@ historical releases. Their guarded fixtures retain the decision and later corrob
 source; collection source references carry correction provenance while original
 publisher assertions remain intact. Historical curated inventory can therefore differ
 from the raw delivery without claiming the publisher supplied those units at that time.
+Explicitly reviewed stale reversions may likewise use guarded removals and additions:
+Heng Tsui retains its initial split inventory, then the merged unit from 31 July 2024,
+correcting only three later reversions. This is not a general reverse-split policy.
 
 CSU identifies a publisher premise in conjunction with its supplied components; it is
 not a universal address deduplication key. Separate buildings retain separate unit IDs
@@ -139,6 +142,15 @@ reviewed block-number duplicates while preserving source evidence. A block-numbe
 does not imply a separate section. Matching block numbers across buildings do not
 establish equivalence. This differs from identified High/Low sections, which retain
 separate section records.
+
+Reviewed estate-component restorations fill bounded source omissions in derived fields
+without rewriting original assertions or changing identity. Fortune Estate Carpark
+retains its estate attribution across the five-release gap, separately from the unnamed
+estate premise.
+
+The automatic estate-gap policy requires same-CSU, full non-estate component equality,
+one occurrence in every release and matching bilingual attribution on both sides of the
+gap. It cannot merge sections or alternative addresses just because a CSU coincides.
 
 Reviewed locality backfills carry later publisher evidence into bounded earlier derived
 addresses while retaining original assertions and evidence dates. Fai Ming Estate's

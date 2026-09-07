@@ -144,6 +144,17 @@ suppressed 2D source components remain traceable. Matching CSU alone never autho
 suppression; the bilingual components must match after removal of the explicitly
 reviewed block alias, with equal coordinates.
 
+Fortune Estate Carpark's reviewed estate-component restoration fills the five-release
+April–July 2026 gap in derived fields and formatted addresses. Exact versions, CSU and
+bilingual building/street components guard the correction. Raw assertions and identities
+remain intact; the unnamed estate premise is not merged into the car park.
+
+Bounded bilingual estate-component gaps are restored throughout the retained source
+range only where a single unchanged premise has identical bilingual estate components on
+both adjacent source releases. The generated fixture and verification retain the exact
+target and bracketing versions. This restores derived fields rather than raw publisher
+JSON, and never generalises from a CSU alone.
+
 The Fai Ming Estate locality fixture backfills FANLING / 粉嶺 into the derived locality
 provenance and formatted addresses for both reviewed buildings. Exact bilingual source
 components and dates guard the decision. Raw source JSON, identities, divisions, block
@@ -176,11 +187,15 @@ review.
 Inventory corrections are stored in
 [`hkgov-dpo-address-3d-corrections.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json).
 Each rule specifies source versions, CSU, expected building components, original and
-corrected bilingual inventory hashes, additions, evidence and review authority.
-Preparation corrects a copy and records the decision in source provenance; raw publisher
-assertions remain intact. Changed evidence fails with a review error. Lei Tim's reviewed
-omission adds flats 207, 217 and 219 on 2/F to nine July–October 2024 inventories,
-yielding 720 units in each, matching the November 2024 evidence.
+corrected bilingual inventory hashes, exact floor/unit removals and additions, evidence
+and review authority. Preparation corrects a copy and records the decision in source
+provenance; raw publisher assertions remain intact. Changed evidence fails with a review
+error. Lei Tim's reviewed omission adds flats 207, 217 and 219 on 2/F to nine
+July–October 2024 inventories, yielding 720 units in each, matching the November 2024
+evidence. Heng Tsui House's three reviewed August–September 2024 stale reversions
+replace 1/F 118A/B/C with 118, matching the first merged July 31 inventory. The initial
+July 25 split inventory stays unchanged; removal requires exactly one matching unit in
+each language.
 
 Lei Fook and Lei Moon in Ap Lei Chau Estate retain distinct building owners and 404
 units each. Each owner has reviewed High and Low `section` children with unresolved unit
