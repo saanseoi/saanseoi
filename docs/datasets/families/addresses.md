@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Tsz Lok Phase 3's redundant unnamed 633-expression inventory is suppressed from 3D
+collections with exact source guards. Raw provenance and every named building inventory
+remain intact; repeated floor/flat labels do not imply shared flats.
+
 Tung Tau (II) Estate multi-storey car park persists as a separate address until revoked.
 Oi Hei House retains its CSU while its latest reviewed GeoAddress and point are
 backfilled throughout retained history, preserving publisher evidence.

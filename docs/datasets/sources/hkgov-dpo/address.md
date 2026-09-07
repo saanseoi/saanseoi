@@ -186,6 +186,12 @@ guards match. An unresolved guard mismatch does not fail preparation or apply th
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
 emit collections referencing removed address owners.
 
+Tsz Lok Phase 3 unnamed CSU `3864823026T20050430` is suppressed from 3D collections for
+its reviewed July 2024–January 2025 assertions using a complete feature hash. Its 633
+bilingual floor/flat expressions are already represented in named building records. Raw
+evidence and 2D addresses remain intact, with no changes to the named inventories or
+reassignment of ownership.
+
 Tung Tau (II) Estate multi-storey car park CSU `3790621798T20050430` persists at 183
 Tung Tau Tsuen Road until revoked under the address-only retention rules. Complete
 source assertions guard the restoration after its publisher disappearance.

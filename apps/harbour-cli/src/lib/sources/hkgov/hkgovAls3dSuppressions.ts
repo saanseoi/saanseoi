@@ -26,6 +26,25 @@ function resolveAls3dSuppression(
   skip: boolean,
 ) {
   if (
+    version >= '2024-07-25.0' &&
+    version <= '2025-01-23.0' &&
+    feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
+      '3864823026T20050430'
+  ) {
+    assert.equal(
+      als3dHash(feature),
+      '0f1e35cee47833b7cc9001ca39a0b4dcef1727ab445d92836d9aedf10783a4ed',
+      'ALS 3D suppression tsz-lok-phase-3-unnamed-inventory: source evidence changed',
+    )
+    return {
+      dataset: 'saanseoi-address3d-suppression',
+      id: 'tsz-lok-phase-3-unnamed-inventory',
+      sourceVersion: version,
+      reason:
+        'Approved suppression of the redundant unnamed 633-expression inventory. Preserve its raw provenance and every named building inventory; no shared physical flats or additional building are inferred.',
+    }
+  }
+  if (
     version >= '2026-07-22.0' &&
     version <= '2026-08-19.0' &&
     feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
