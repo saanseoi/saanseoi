@@ -15,9 +15,9 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) =>
     sources: '{}',
   }) as PreparedHkgovAlsRow
 
-test('backfills only the reviewed Cheung Hong historic points and retains provenance', () => {
+test('backfills only reviewed historic points and retains provenance', () => {
   const rows = fixture.backfills.map(rowFor)
-  expect(backfillAlsCoordinates(rows, '2026-02-04.0')).toEqual({ backfilled: 13 })
+  expect(backfillAlsCoordinates(rows, '2026-02-04.0')).toEqual({ backfilled: 19 })
   for (const [index, decision] of fixture.backfills.entries()) {
     const row = rows[index]
     if (!row?.geometry) throw new Error('Missing coordinate-backfill test row')
