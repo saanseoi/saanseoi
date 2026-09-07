@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS `snapshotAssemblySources`;
 DROP TABLE IF EXISTS `snapshotAssemblyRuns`;
 DROP TABLE IF EXISTS `snapshotAssembly`;
 DROP TABLE IF EXISTS `releaseShardAssignments`;
+DROP TABLE IF EXISTS `releaseSetShardAssignments`;
 DROP TABLE IF EXISTS `snapshotShardAssignments`;
 DROP TABLE IF EXISTS `snapshotSources`;
 DROP TABLE IF EXISTS `ingestRuns`;
