@@ -31,7 +31,9 @@ test('bounds exact releases and CSU; contradictory source fields fail closed', (
     before = JSON.stringify(r)
   restoreAlsEstateComponents([r], '2026-07-22.0')
   expect(JSON.stringify(r)).toBe(before)
-  const en = JSON.parse(r.engPremisesAddressJson!)
+  const rawEn = r.engPremisesAddressJson
+  if (!rawEn) throw new Error('Missing English source premise')
+  const en = JSON.parse(rawEn)
   en.EngEstate = { EstateName: 'OTHER' }
   r.engPremisesAddressJson = JSON.stringify(en)
   expect(() => restoreAlsEstateComponents([r], '2026-04-03.0')).toThrow()
@@ -57,6 +59,37 @@ test('forward-applies an active estate correction with unverified provenance', (
       lastVerifiedSourceVersion: '2026-08-19.0',
       targetSourceVersion: '2026-09-01.0',
       verificationStatus: 'unverified',
+    }),
+  )
+})
+
+test('restores a reviewed bilingual street omission without changing raw ALS', () => {
+  const r = {
+    ...row(),
+    hkgovCsuId: '3608735975T20210226',
+    enStreetName: null,
+    enStreetNumberFrom: null,
+    enStreetNumberTo: null,
+    zhHantStreetName: null,
+    zhHantStreetNumberFrom: null,
+    zhHantStreetNumberTo: null,
+    engPremisesAddressJson: JSON.stringify({ BuildingName: 'HIN TIP HOUSE' }),
+    chiPremisesAddressJson: JSON.stringify({ BuildingName: '蜆蝶樓' }),
+  } as PreparedHkgovAlsRow
+  const raw = r.engPremisesAddressJson
+
+  const result = restoreAlsEstateComponents([r], '2026-08-19.0')
+
+  expect(result.restored).toBe(1)
+  expect(r.engPremisesAddressJson).toBe(raw)
+  expect(r.enStreetName).toBe('CHOI TIP STREET')
+  expect(r.enStreetNumberFrom).toBe('11')
+  expect(r.zhHantStreetName).toBe('彩蝶街')
+  expect(JSON.parse(r.sources).hkgovAlsStreetComponentRestoration.curation).toEqual(
+    expect.objectContaining({
+      applicationMode: 'until-revoked',
+      lastVerifiedSourceVersion: '2026-08-19.0',
+      verificationStatus: 'verified',
     }),
   )
 })

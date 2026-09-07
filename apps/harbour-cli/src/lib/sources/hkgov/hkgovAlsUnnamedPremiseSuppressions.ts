@@ -21,7 +21,14 @@ export function suppressAlsUnnamedPremises(
         row.enBuildingName === decision.owner.enBuildingName &&
         row.zhHantBuildingName === decision.owner.zhHantBuildingName,
     )
-    const duplicates = rows.filter(row => row.hkgovCsuId === decision.duplicate.csu)
+    const duplicates = rows.filter(
+      row =>
+        row.hkgovCsuId === decision.duplicate.csu &&
+        row.enBuildingName === null &&
+        row.zhHantBuildingName === null &&
+        row.enBlockNumber === null &&
+        row.zhHantBlockNumber === null,
+    )
     assert.equal(owner.length, 1, `Unnamed premise ${decision.id}: owner changed`)
     assert.equal(
       duplicates.length,
