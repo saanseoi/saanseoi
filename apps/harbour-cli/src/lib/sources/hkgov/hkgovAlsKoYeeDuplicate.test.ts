@@ -1,5 +1,9 @@
 import { expect, test } from 'bun:test'
-import { suppressKoYeeDuplicate } from './hkgovAlsKoYeeDuplicate'
+import {
+  assertKoYeeEmptyInventory,
+  suppressKoYeeDuplicate,
+} from './hkgovAlsKoYeeDuplicate'
+import type { Als3dFeature } from './hkgovAls3d'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 function rows() {
@@ -42,6 +46,25 @@ function rows() {
     },
   ] as PreparedHkgovAlsRow[]
 }
+
+test('Ko Yee refuses a newly populated inventory on the suppressed empty alias', () => {
+  const feature = {
+    properties: {
+      Address: {
+        PremisesAddress: {
+          BuildingCsuInformation: { CsuId: '4286117561T20050430' },
+          EngPremisesAddress: {},
+          ChiPremisesAddress: {},
+        },
+      },
+    },
+  } as Als3dFeature
+  expect(() => assertKoYeeEmptyInventory(feature, '2024-07-25.0')).not.toThrow()
+  feature.properties.Address.PremisesAddress.ChiPremisesAddress!.Chi3dAddress = [{}]
+  expect(() => assertKoYeeEmptyInventory(feature, '2024-07-25.0')).toThrow(
+    'Chinese inventory is no longer empty',
+  )
+})
 
 test('Ko Yee retains the distinct unnamed assertion and all suppressed publisher evidence', () => {
   const input = rows()

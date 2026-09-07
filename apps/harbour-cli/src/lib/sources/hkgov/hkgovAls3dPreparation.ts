@@ -10,6 +10,7 @@ import {
   suppressAls3dParentBlockDuplicate,
 } from './hkgovAls3dBlockEnrichment'
 import { applyAls3dCorrections } from './hkgovAls3dCorrections'
+import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
 import { als3dSuppression } from './hkgovAls3dSuppressions'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import {
@@ -129,12 +130,16 @@ export async function prepareAls3dCollections(options: {
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
       const zh = p.ChiPremisesAddress ?? {}
-      const key = parentKey(p.BuildingCsuInformation?.CsuId, en, zh)
-      const occurrence = (sourceOccurrences.get(key) ?? 0) + 1
-      sourceOccurrences.set(key, occurrence)
+      const csuCorrection = resolveAlsCsuCorrection(feature, options.sourceVersion)
+      const rawKey = parentKey(p.BuildingCsuInformation?.CsuId, en, zh)
+      const key = parentKey(csuCorrection.csu, en, zh)
+      const occurrence = (sourceOccurrences.get(rawKey) ?? 0) + 1
+      sourceOccurrences.set(rawKey, occurrence)
       const sourceRecordId = buildDeterministicUuidV5(
         SOURCE_NAMESPACE,
-        JSON.stringify(backfill ? [key, occurrence, backfill.id] : [key, occurrence]),
+        JSON.stringify(
+          backfill ? [rawKey, occurrence, backfill.id] : [rawKey, occurrence],
+        ),
       )
       const { corrections } = applyAls3dCorrections(feature, options.sourceVersion)
       const suppression = als3dSuppression(
@@ -156,6 +161,14 @@ export async function prepareAls3dCollections(options: {
         ),
         rawProperties: feature,
         sources: [
+          ...(csuCorrection.decision
+            ? [
+                {
+                  dataset: 'saanseoi-address-csu-correction',
+                  ...csuCorrection.decision,
+                },
+              ]
+            : []),
           ...(suppression ? [suppression] : []),
           {
             dataset: 'hkgov-dpo-als-3d',
@@ -186,11 +199,7 @@ export async function prepareAls3dCollections(options: {
       if (suppression) continue
       if (!(en.Eng3dAddress?.length || zh.Chi3dAddress?.length)) continue
       let candidates = byKey.get(key) ?? []
-      const blocklessKey = hkgovAls3dBlocklessParentKey(
-        p.BuildingCsuInformation?.CsuId,
-        en,
-        zh,
-      )
+      const blocklessKey = hkgovAls3dBlocklessParentKey(csuCorrection.csu, en, zh)
       const structuralCandidates = blocklessParentsByKey.get(blocklessKey) ?? []
       const hasBlockComponents = Boolean(en.EngBlock || zh.ChiBlock)
       if (
@@ -256,7 +265,7 @@ export async function prepareAls3dCollections(options: {
         ownership.get(parent.id)?.ownerId ??
         parent.id
       const physicalKey = JSON.stringify([
-        p.BuildingCsuInformation?.CsuId,
+        csuCorrection.csu,
         en.EngEstate?.EstateName,
         en.BuildingName,
         en.EngBlock?.BlockNo,
@@ -285,7 +294,7 @@ export async function prepareAls3dCollections(options: {
       )
         continue
       const key = parentKey(
-        p.BuildingCsuInformation?.CsuId,
+        resolveAlsCsuCorrection(feature, options.sourceVersion).csu,
         p.EngPremisesAddress ?? {},
         p.ChiPremisesAddress ?? {},
       )

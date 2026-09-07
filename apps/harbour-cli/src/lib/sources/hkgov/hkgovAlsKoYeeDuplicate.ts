@@ -1,5 +1,26 @@
 import { strict as assert } from 'node:assert'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import type { Als3dFeature } from './hkgovAls3d'
+
+export function assertKoYeeEmptyInventory(feature: Als3dFeature, version: string) {
+  const p = feature.properties.Address.PremisesAddress
+  if (
+    version < '2024-07-25.0' ||
+    version > '2026-07-10.0' ||
+    p.BuildingCsuInformation?.CsuId !== '4286117561T20050430'
+  )
+    return
+  assert.equal(
+    p.EngPremisesAddress?.Eng3dAddress?.length ?? 0,
+    0,
+    'Ko Yee duplicate: English inventory is no longer empty',
+  )
+  assert.equal(
+    p.ChiPremisesAddress?.Chi3dAddress?.length ?? 0,
+    0,
+    'Ko Yee duplicate: Chinese inventory is no longer empty',
+  )
+}
 
 /** The other unnamed Ko Yee row has a different point and GeoAddress; retain it. */
 export function suppressKoYeeDuplicate(rows: PreparedHkgovAlsRow[], version: string) {

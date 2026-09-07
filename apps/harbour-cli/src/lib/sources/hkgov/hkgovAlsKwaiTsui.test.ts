@@ -13,7 +13,10 @@ test('Bik Tsui precedence variants retain both assertions in one 456-unit collec
   }))
   const features = ['N', 'Y'].map(precedence => ({
     type: 'Feature' as const,
-    geometry: { type: 'Point' as const, coordinates: [114.12924, 22.3563] },
+    geometry: {
+      type: 'Point' as const,
+      coordinates: [114.12924, 22.3563] as [number, number],
+    },
     properties: {
       Address: {
         PremisesAddress: {
