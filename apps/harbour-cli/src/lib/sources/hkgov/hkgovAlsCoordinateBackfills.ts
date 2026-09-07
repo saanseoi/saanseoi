@@ -13,7 +13,8 @@ export function backfillAlsCoordinates(rows: PreparedHkgovAlsRow[], version: str
     const candidates = rows.filter(
       row =>
         row.hkgovCsuId === decision.csu &&
-        row.enEstateName === decision.estate &&
+        (JSON.parse(row.engPremisesAddressJson ?? '{}').EngEstate?.EstateName ??
+          row.enEstateName) === decision.estate &&
         row.enBuildingName === decision.enBuildingName,
     )
     assert.equal(

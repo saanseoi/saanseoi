@@ -131,12 +131,22 @@ export async function runHkgovPlandBackfillCommand(
 ) {
   assertBackfillArguments(args, printUsage)
   const continueUpload = Boolean(args.options.continue)
-  const completedReleaseCodes = continueUpload
-    ? await (dependencies.getCompletedReleaseCodes ?? getCompletedReleaseCodes)(target)
-    : new Set<string>()
+  const completedReleaseCodes =
+    continueUpload || process.env.SAANSEOI_INIT_COMMAND
+      ? await (dependencies.getCompletedReleaseCodes ?? getCompletedReleaseCodes)(
+          target,
+        )
+      : new Set<string>()
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
+  const releaseColumnWidth = Math.max(
+    ...releases.flatMap(release =>
+      (['division', 'divisionArea'] as const).map(
+        type => buildDatasetReleaseCode('hk', source, release.year, type).length,
+      ),
+    ),
+  )
   const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
   const preparedArtefactCacheRoot = resolve(
     dependencies.preparedArtefactCacheRoot ??
@@ -146,11 +156,15 @@ export async function runHkgovPlandBackfillCommand(
   for (const release of releases) {
     const types = (['division', 'divisionArea'] as const).filter(type => {
       const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
+      if (completedReleaseCodes.has(releaseCode)) {
+        console.log(
+          `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: already published or superseded`,
+        )
+      }
       return !completedReleaseCodes.has(releaseCode)
     })
 
     if (types.length === 0) {
-      console.log(`Skipping completed ${source} ${release.year} backfill.`)
       continue
     }
 

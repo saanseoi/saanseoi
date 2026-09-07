@@ -187,8 +187,10 @@ derived section, and the later distinct Lei Fook Low Block source premise is una
 continuous publisher-coordinate epoch only when the audited event is named,
 coordinate-only and every shift is strictly below 50 metres. Each generated rule is
 bounded by release, CSU, estate, English building name and the exact earlier point. The
-replaced publisher point is retained in the row's curation provenance; no later record
-or unreviewed premise is altered.
+estate guard uses the retained publisher estate name when supplied, independently of HA
+display-name curation, and otherwise uses the prepared estate component. The replaced
+publisher point is retained in the row's curation provenance; no later record or
+unreviewed premise is altered.
 
 Cheung Hong Commercial Centre No. 2 uses a bounded named-premise retention: preserve the
 named premise, suppress the reviewed unnamed cross-reference only while both source

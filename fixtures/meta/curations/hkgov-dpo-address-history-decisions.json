@@ -178,6 +178,36 @@
       "authority": "User decision, 2026-09-07: yep agree."
     },
     {
+      "id": "fu-tung-market-unnamed-duplicate-arrival",
+      "estate": "FU TUNG ESTATE",
+      "release": "20241212-1050-ALS-GeoJSON",
+      "expectedFingerprint": "d4f9f72c5e60b7b949fa06b6da437ad68165727f38569d02db89c8ffbd446c4b",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-unnamed-premise-suppressions.json",
+      "decision": "Suppress the blank-name 2D duplicate of Fu Tung Market while retaining it in market provenance. It has the market's CSU, bilingual estate/street components and exact point, with no block or building name.",
+      "authority": "Automated application of the reviewed exact unnamed-duplicate rule."
+    },
+    {
+      "id": "fu-tung-market-unnamed-duplicate-removal",
+      "estate": "FU TUNG ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "1d1734e92e531903ce51ea1c4f1e25f8da7212658bd185428f0c73ef28a097f6",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-unnamed-premise-suppressions.json",
+      "decision": "Accept the removal of the already-suppressed blank-name Fu Tung Market duplicate. The named market remains independently sourced; do not backfill the duplicate after its disappearance.",
+      "authority": "Automated application of the reviewed exact unnamed-duplicate rule."
+    },
+    {
+      "id": "fuk-loi-wing-ka-house-july-2026-inventory-backfill",
+      "estate": "FUK LOI ESTATE",
+      "release": "20260708-1050-ALS-GeoJSON",
+      "expectedFingerprint": "0ebb4c474b98ab597e60ce0da46826a3d316ad75ee3d7429298c39d371455059",
+      "action": "reviewed_inventory_backfill",
+      "fixture": "hkgov-dpo-address-3d-corrections.json",
+      "decision": "Backfill the July 2026 repair of Wing Ka House flats 8/F 817 and 819 into all earlier retained inventories. Preserve each raw 507-unit ALS assertion and attach correction provenance; later 509-unit publisher records remain raw current evidence.",
+      "authority": "User decision, 2026-09-07: this is bad upstream data that they fixed, so backfill it."
+    },
+    {
       "id": "fai-ming-estate-fanling-locality",
       "estate": "FAI MING ESTATE",
       "release": "20250426-1053-ALS-GeoJSON",
@@ -384,6 +414,60 @@
         {
           "release": "20260722-1931-ALS-GeoJSON",
           "expectedFingerprint": "48cf1551ad89e5e1c3a9db68e902efa2ac0865eaf2efce77ecd5bef2d76a3e7f"
+        }
+      ]
+    },
+    {
+      "id": "fu-tip-estate-house-alias-block-and-street-component-series",
+      "estate": "FU TIP ESTATE",
+      "action": "reviewed_alias_and_component_restoration",
+      "fixture": "hkgov-dpo-address-estate-components.json",
+      "decision": "Canonicalise the estate-prefixed Ban Tip variant as BAN TIP HOUSE; retain HIN TIP HOUSE as the canonical house for the exact FU TIP ESTATES BLOCK 7 alias, carrying its verified BLK/座 7 through the existing 3D parent-block enrichment; and restore the four blank bilingual street-component records from July 2026 until revoked. These are source-expression omissions and aliases, not separate premises or street removals.",
+      "authority": "User decisions, 2026-09-07: do not repeat the estate in a house name; retain verified block information until revoked; do not accept the street loss.",
+      "events": [
+        {
+          "release": "20240731-1054-ALS-GeoJSON",
+          "expectedFingerprint": "702d9d1740154b97dfc5ca32c9cf707a0c43e17fe97b9f6cbf82876fbd39a3a6"
+        },
+        {
+          "release": "20240821-1044-ALS-GeoJSON",
+          "expectedFingerprint": "cd29463e253b24460fc4463abd70f88b6c5d49c30d23be21311be52bc6d5305a"
+        },
+        {
+          "release": "20240825-1042-ALS-GeoJSON",
+          "expectedFingerprint": "702d9d1740154b97dfc5ca32c9cf707a0c43e17fe97b9f6cbf82876fbd39a3a6"
+        },
+        {
+          "release": "20240828-1021-ALS-GeoJSON",
+          "expectedFingerprint": "cd29463e253b24460fc4463abd70f88b6c5d49c30d23be21311be52bc6d5305a"
+        },
+        {
+          "release": "20240901-1030-ALS-GeoJSON",
+          "expectedFingerprint": "702d9d1740154b97dfc5ca32c9cf707a0c43e17fe97b9f6cbf82876fbd39a3a6"
+        },
+        {
+          "release": "20240902-1020-ALS-GeoJSON",
+          "expectedFingerprint": "cd29463e253b24460fc4463abd70f88b6c5d49c30d23be21311be52bc6d5305a"
+        },
+        {
+          "release": "20240903-1049-ALS-GeoJSON",
+          "expectedFingerprint": "702d9d1740154b97dfc5ca32c9cf707a0c43e17fe97b9f6cbf82876fbd39a3a6"
+        },
+        {
+          "release": "20241018-1048-ALS-GeoJSON",
+          "expectedFingerprint": "1eb556b1ada6dbacf1520a7f3b68f6dcfc50491db3984a0379090493c51cc82c"
+        },
+        {
+          "release": "20241113-1041-ALS-GeoJSON",
+          "expectedFingerprint": "35c6d9dc1a7b99f2d5c4ea82b6b57e1c5f6d0360a7c1fca7734009cc01199f36"
+        },
+        {
+          "release": "20241212-1050-ALS-GeoJSON",
+          "expectedFingerprint": "f43d07a16931dd4f788d1989ff45a89a0dd55de7df6445b541394bbbccf38330"
+        },
+        {
+          "release": "20260708-1050-ALS-GeoJSON",
+          "expectedFingerprint": "53d8a5b8784481264111ffc83e1b238832725ad27315f088d15dcfad806b3975"
         }
       ]
     }

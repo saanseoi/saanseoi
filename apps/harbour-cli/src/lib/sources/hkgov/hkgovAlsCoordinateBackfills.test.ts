@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
+import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 const rowFor = (decision: (typeof fixture.backfills)[number]) =>
@@ -53,6 +54,31 @@ test('does not apply outside the approved history or after source geometry chang
   expect(() => backfillAlsCoordinates(changed, '2026-02-04.0')).toThrow(
     'source point changed',
   )
+})
+
+test('coordinate guards retain publisher estate names after HA display curation', () => {
+  const version = '2024-07-25.0'
+  const rows = fixture.backfills
+    .filter(d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version)
+    .map(rowFor)
+  const row = rows.find(r => r.hkgovCsuId === '4028421562T20050430')!
+  row.engPremisesAddressJson = JSON.stringify({
+    EngEstate: { EstateName: 'CHOI WAN (1) ESTATE' },
+  })
+  row.chiPremisesAddressJson = JSON.stringify({
+    ChiEstate: { EstateName: '彩雲(一)邨' },
+  })
+  row.zhHantEstateName = '彩雲(一)邨'
+  row.enFormattedAddress = 'BOON YUET HOUSE, CHOI WAN (1) ESTATE'
+  row.zhHantFormattedAddress = '彩雲(一)邨伴月樓'
+  applyAlsEstateNames(rows, version)
+  expect(row.enEstateName).toBe('Choi Wan (I) Estate')
+  expect(backfillAlsCoordinates(rows, version).backfilled).toBe(rows.length)
+  expect(JSON.parse(row.geometry!).coordinates).toEqual([114.21586, 22.3331])
+  expect(row.enEstateName).toBe('Choi Wan (I) Estate')
+  expect(
+    JSON.parse(row.sources).hkgovAlsCoordinateBackfill.publisherGeometry.coordinates,
+  ).toEqual([114.21588, 22.33308])
 })
 
 test('reviewed coordinate backfill guards match their April 2026 source events', async () => {
