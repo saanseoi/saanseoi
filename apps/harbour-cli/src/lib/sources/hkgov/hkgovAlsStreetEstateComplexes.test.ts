@@ -46,6 +46,8 @@ test('estate IDs and marker are independent of publisher house identifiers', () 
     expect(row.id).toMatch(/^ss-/)
     expect(row.geoAddress).toBeNull()
     expect(row.hkgovCsuId).toBeNull()
+    expect(row.easting).toBeNull()
+    expect(row.northing).toBeNull()
     expect(row.identifiers).toBeNull()
     expect(row.curatedGranularity).toBe('complex')
     expect(

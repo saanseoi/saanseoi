@@ -5,6 +5,8 @@ import {
   applyApprovedIssueBatch,
   approvedIssue3dSuppression,
 } from './hkgovAlsApprovedIssueBatch'
+import type { Als3dFeature } from './hkgovAls3d'
+import type { HkgovAlsFeature } from './hkgovAlsTypes'
 
 const maps = {
   areaByEn: new Map(),
@@ -28,7 +30,7 @@ function rowsFor(version: string) {
   return distinct.map((f, i) =>
     normaliseHkgovAlsFeature(
       {
-        geometry: f.geometry as any,
+        geometry: f.geometry as HkgovAlsFeature['geometry'],
         properties: { Address: { PremisesAddress: f.premises } },
       },
       'test',
@@ -127,7 +129,7 @@ test('separate Sheung Tak owners retain independent identities and Tai Hang Tung
     }
     const wong = rows.find(r => r.hkgovCsuId === '3575321200T20050430')!
     const decision = JSON.parse(wong.sources).hkgovAlsApprovedIssues?.find(
-      (d: any) => d.id === 'tai-hang-tung-wong-empty',
+      (d: { id?: string }) => d.id === 'tai-hang-tung-wong-empty',
     )
     if (decision) {
       expect(wong.enStreetNumberFrom).toBe('83')
@@ -192,16 +194,17 @@ test('skip mode retains unresolved owner evidence and still applies matching dec
 test('empty 3D suppression is signature-guarded and rejects a newly populated inventory', () => {
   for (const rule of fixture.decisions.filter(d => d.pattern === '^$')) {
     for (const a of rule.assertions.filter(a => a.kind === '3d')) {
-      const feature: any = {
-        geometry: a.evidence.geometry,
+      const feature: Als3dFeature = {
+        geometry: a.evidence.geometry as Als3dFeature['geometry'],
         properties: {
           Address: { PremisesAddress: structuredClone(a.evidence.premises) },
         },
       }
       expect(approvedIssue3dSuppression(feature, a.versions[0]!)?.id).toBe(rule.id)
-      feature.properties.Address.PremisesAddress.EngPremisesAddress.Eng3dAddress = [
-        { FloorNum: '1' },
-      ]
+      feature.properties.Address.PremisesAddress.EngPremisesAddress = {
+        ...feature.properties.Address.PremisesAddress.EngPremisesAddress,
+        Eng3dAddress: [{ EngFloor: { FloorNum: '1' } }],
+      }
       expect(() => approvedIssue3dSuppression(feature, a.versions[0]!)).toThrow(
         'source evidence changed',
       )

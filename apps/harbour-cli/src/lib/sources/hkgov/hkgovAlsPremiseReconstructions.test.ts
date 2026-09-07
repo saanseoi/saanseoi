@@ -53,10 +53,9 @@ test('backfills all twenty-eight earlier releases and retains original assertion
       JSON.stringify(d.evidence.feature),
     )
     expect(old).toEqual(before)
-    expect((provenance.get(d.newCsu) as any).originalAssertions).toEqual(before)
-    expect((provenance.get(d.newCsu) as any).evidence.sourceVersion).toBe(
-      '2026-07-22.0',
-    )
+    const record = provenance.get(d.newCsu)
+    expect(record?.originalAssertions).toEqual(before)
+    expect(record?.evidence.sourceVersion).toBe('2026-07-22.0')
     old.length ? replacements++ : gaps++
   }
   expect(replacements).toBe(26)
@@ -104,10 +103,9 @@ test('restores the separate car park only in the seven reviewed omissions', () =
     expect(JSON.stringify(features[1]!.feature)).toBe(
       JSON.stringify(carPark.evidence.feature),
     )
-    expect((result.get(carPark.newCsu) as any).originalAssertions).toEqual([])
-    expect((result.get(carPark.newCsu) as any).evidence.sourceVersion).toBe(
-      '2026-02-04.0',
-    )
+    const record = result.get(carPark.newCsu)
+    expect(record?.originalAssertions).toEqual([])
+    expect(record?.evidence.sourceVersion).toBe('2026-02-04.0')
     expect(() => reconstructAlsPremises(features, release.version)).toThrow(
       'publisher source changed',
     )

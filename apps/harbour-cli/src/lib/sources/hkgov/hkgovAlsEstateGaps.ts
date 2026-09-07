@@ -1,16 +1,20 @@
 import { createHash } from 'node:crypto'
 
-const canonical = (value: any): string =>
+type JsonObject = { [key: string]: unknown }
+
+const canonical = (value: unknown): string =>
   value && typeof value === 'object'
     ? Array.isArray(value)
       ? `[${value.map(canonical).join(',')}]`
       : `{${Object.keys(value)
           .sort()
-          .map(k => `${JSON.stringify(k)}:${canonical(value[k])}`)
+          .map(k => `${JSON.stringify(k)}:${canonical((value as JsonObject)[k])}`)
           .join(',')}}`
     : JSON.stringify(value)
 
-export function estateGapIdentity(csu: string, en: any, zh: any) {
+export type GapAddress = JsonObject | null
+
+export function estateGapIdentity(csu: string, en: GapAddress, zh: GapAddress) {
   const e = { ...en },
     z = { ...zh }
   delete e.EngEstate
@@ -19,15 +23,19 @@ export function estateGapIdentity(csu: string, en: any, zh: any) {
     .update(canonical([csu, e, z]))
     .digest('hex')
 }
-export type GapObservation = { count: number; enEstate: any; zhEstate: any }
+export type GapObservation = {
+  count: number
+  enEstate: GapAddress
+  zhEstate: GapAddress
+}
 export function boundedEstateGaps(series: Array<GapObservation | undefined>) {
   const result: Array<{
     from: number
     to: number
     before: number
     after: number
-    enEstate: any
-    zhEstate: any
+    enEstate: GapAddress
+    zhEstate: GapAddress
   }> = []
   const missing = (o: GapObservation | undefined) =>
     o?.count === 1 && o.enEstate == null && o.zhEstate == null

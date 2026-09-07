@@ -66,9 +66,9 @@ test('all thirty reviewed releases retain one named centre, stable identity and 
     const evidence = JSON.parse(owner.sources).hkgovAlsPremiseConsolidation
       .sourceEvidence
     expect(evidence).toHaveLength(before.length)
-    expect(evidence.map((e: any) => e.chiPremisesAddress)).toEqual(
-      before.map(r => JSON.parse(r.chiPremisesAddressJson!)),
-    )
+    expect(
+      evidence.map((e: { chiPremisesAddress: unknown }) => e.chiPremisesAddress),
+    ).toEqual(before.map(r => JSON.parse(r.chiPremisesAddressJson!)))
     removed += before.length - rows.length
     renamed += Number(before.some(r => r.zhHantBuildingName === '彩盈商場'))
   }

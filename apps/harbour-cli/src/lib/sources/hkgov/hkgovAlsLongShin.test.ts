@@ -7,6 +7,7 @@ import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyLongShinHierarchy } from './hkgovAlsLongShin'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
+import type { Als3dFeature } from './hkgovAls3d'
 
 const evidence = fixture.backfills.find(
   b => b.id === 'long-shin-shin-leung-april-omission',
@@ -16,10 +17,16 @@ const specs = [
   ['2271133599T20151209', 'SHIN OI HOUSE', '善愛樓', '11'],
   ['2262033581T20151210', 'SHIN YUNG HOUSE', '善勇樓', '12'],
 ]
-function features(ranges = false) {
+function features(ranges = false): Als3dFeature[] {
   return specs.flatMap(([csu, en, zh, number]) => {
-    const f = structuredClone(evidence.feature) as any
+    const f = structuredClone(evidence.feature) as unknown as Als3dFeature
     const p = f.properties.Address.PremisesAddress
+    if (
+      !p.BuildingCsuInformation ||
+      !p.EngPremisesAddress?.EngStreet ||
+      !p.ChiPremisesAddress?.ChiStreet
+    )
+      throw new Error('Test fixture is missing the Long Shin premise components.')
     p.BuildingCsuInformation.CsuId = csu
     p.EngPremisesAddress.BuildingName = en
     p.ChiPremisesAddress.BuildingName = zh
@@ -28,6 +35,8 @@ function features(ranges = false) {
     if (!ranges) return [f]
     const alias = structuredClone(f),
       a = alias.properties.Address.PremisesAddress
+    if (!a.EngPremisesAddress?.EngStreet || !a.ChiPremisesAddress?.ChiStreet)
+      throw new Error('Test fixture is missing the Long Shin range components.')
     Object.assign(a.EngPremisesAddress.EngStreet, {
       BuildingNoFrom: '11',
       BuildingNoTo: '12',
@@ -39,13 +48,14 @@ function features(ranges = false) {
     return [f, alias]
   })
 }
-function rows(fs: any[], version: string) {
+function rows(fs: Als3dFeature[], version: string) {
   return fs.map((f, i) => {
     f = structuredClone(f)
-    delete f.properties.Address.PremisesAddress.EngPremisesAddress.Eng3dAddress
-    delete f.properties.Address.PremisesAddress.ChiPremisesAddress.Chi3dAddress
+    const p = f.properties.Address.PremisesAddress
+    if (p.EngPremisesAddress) delete p.EngPremisesAddress.Eng3dAddress
+    if (p.ChiPremisesAddress) delete p.ChiPremisesAddress.Chi3dAddress
     return normaliseHkgovAlsFeature(
-      f as HkgovAlsFeature,
+      f as unknown as HkgovAlsFeature,
       'test.geojson',
       i + 1,
       'test',

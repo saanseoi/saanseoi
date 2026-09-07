@@ -113,16 +113,15 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
     for (const release of releases) {
       const v = `${release.slice(0, 4)}-${release.slice(4, 6)}-${release.slice(6, 8)}.0`
       const sourceFile = 'als_addresses_(kwai_tsing_district).geojson'
-      const fs = (await Bun.file(`${root}/${release}/${sourceFile}`).json()).features
+      const fs = (await Bun.file(`${root}/${release}/${sourceFile}`).json())
+        .features as HkgovAlsSourceFeature['feature'][]
       const sources: HkgovAlsSourceFeature[] = fs
-        .filter((f: any) =>
-          fixture.retentions.some(r =>
-            r.csus.includes(
-              f.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId,
-            ),
-          ),
-        )
-        .map((feature: any, i: number) => ({
+        .filter(f => {
+          const csu =
+            f.properties?.Address?.PremisesAddress?.BuildingCsuInformation?.CsuId
+          return csu ? fixture.retentions.some(r => r.csus.includes(csu)) : false
+        })
+        .map((feature, i) => ({
           feature,
           sourceFile,
           featureIndexOneBased: i + 1,
