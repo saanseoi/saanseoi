@@ -9,7 +9,6 @@ import {
   getUniqueAddressSamples,
   groupAddressSamples,
   sampleValueTones,
-  toCompleteSample,
   type AddressSample,
 } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
 import GroupedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesGroupedField.svelte'
@@ -58,13 +57,16 @@ function toSourceSample(value: unknown) {
   const sourceRecordId = record.sourceRecordId
   if (typeof sourceRecordId !== 'string' || !sourceRecordId.trim()) return null
 
-  return toCompleteSample({
-    geometry: record.geometry,
+  // Keep this as a raw presentation value. getUniqueAddressSamples performs the
+  // one conversion to AddressSample below; converting here too turns the
+  // renderer's internal `fields` array into a visible record property.
+  return {
     id: sourceRecordId,
-    rawProperties: record.rawProperties,
     resourceType: record.resourceType,
     variant: record.variant,
-  })
+    rawProperties: record.rawProperties,
+    geometry: record.geometry,
+  }
 }
 
 async function getRandomRecords(limit: number) {
