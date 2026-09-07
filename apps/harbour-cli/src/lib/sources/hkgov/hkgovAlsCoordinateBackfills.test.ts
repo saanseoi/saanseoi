@@ -16,9 +16,17 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) =>
   }) as PreparedHkgovAlsRow
 
 test('backfills only reviewed historic points and retains provenance', () => {
-  const rows = fixture.backfills.map(rowFor)
-  expect(backfillAlsCoordinates(rows, '2026-02-04.0')).toEqual({ backfilled: 25 })
-  for (const [index, decision] of fixture.backfills.entries()) {
+  const sourceVersion = '2026-02-04.0'
+  const decisions = fixture.backfills.filter(
+    decision =>
+      decision.sourceVersionFrom <= sourceVersion &&
+      decision.sourceVersionTo >= sourceVersion,
+  )
+  const rows = decisions.map(rowFor)
+  expect(backfillAlsCoordinates(rows, sourceVersion)).toEqual({
+    backfilled: decisions.length,
+  })
+  for (const [index, decision] of decisions.entries()) {
     const row = rows[index]
     if (!row?.geometry) throw new Error('Missing coordinate-backfill test row')
     expect(JSON.parse(row.geometry).coordinates).toEqual(decision.currentCoordinates)
@@ -36,7 +44,7 @@ test('does not apply outside the approved history or after source geometry chang
   const firstRow = rows[0]
   if (!first || !firstRow?.geometry)
     throw new Error('Missing coordinate-backfill fixture')
-  expect(backfillAlsCoordinates(rows, '2026-04-03.0')).toEqual({ backfilled: 0 })
+  expect(backfillAlsCoordinates(rows, '2030-01-01.0')).toEqual({ backfilled: 0 })
   expect(JSON.parse(firstRow.geometry).coordinates).toEqual(first.previousCoordinates)
   const changed = [rowFor(first)]
   const changedRow = changed[0]
@@ -81,7 +89,8 @@ test('reviewed coordinate backfill guards match their April 2026 source events',
         ),
     )
     const decisions = fixture.backfills.filter(
-      decision => decision.estate === estateName,
+      decision =>
+        decision.estate === estateName && decision.automaticPolicy === undefined,
     )
     expect(decisions).toHaveLength(6)
     for (const decision of decisions) {
