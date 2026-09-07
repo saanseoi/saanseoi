@@ -12,11 +12,11 @@ afterEach(() => {
 test('overlapping rollups finalise both sides of UTC day and month boundaries', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`
-    CREATE TABLE api_key (id TEXT PRIMARY KEY);
-    CREATE TABLE api_key_usage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
+    CREATE TABLE apiKey (id TEXT PRIMARY KEY);
+    CREATE TABLE apiKeyUsage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
       PRIMARY KEY (api_key_id, window, window_started_at));
-    CREATE TABLE api_key_usage_rollup (id TEXT PRIMARY KEY, datasets TEXT NOT NULL, revision TEXT NOT NULL, completed_through INTEGER NOT NULL);
-    INSERT INTO api_key VALUES ('key-123');
+    CREATE TABLE apiKeyUsageRollup (id TEXT PRIMARY KEY, datasets TEXT NOT NULL, revision TEXT NOT NULL, completed_through INTEGER NOT NULL);
+    INSERT INTO apiKey VALUES ('key-123');
   `)
   const rows = [
     { apiKeyId: 'key-123', requestCount: 7, windowStartedAt: '2026-08-31T23:59:00Z' },
@@ -47,7 +47,7 @@ test('overlapping rollups finalise both sides of UTC day and month boundaries', 
       await rollUpApiKeyUsage(env, Date.parse('2026-09-01T00:05:00Z'))
       const totals = sqlite
         .query(
-          "SELECT window, window_started_at AS startedAt, request_count AS count FROM api_key_usage WHERE window != 'minute' ORDER BY window, window_started_at",
+          "SELECT window, window_started_at AS startedAt, request_count AS count FROM apiKeyUsage WHERE window != 'minute' ORDER BY window, window_started_at",
         )
         .all()
       expect(totals).toEqual([

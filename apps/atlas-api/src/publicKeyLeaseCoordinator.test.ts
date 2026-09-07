@@ -10,11 +10,11 @@ const publicKey = `pk.${'a'.repeat(43)}`
 test('revocation is honoured at the lease deadline with a real local key record', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`
-    CREATE TABLE api_key (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER, requests_per_day INTEGER, requests_per_month INTEGER);
-    CREATE TABLE api_key_origin_policy (api_key_id TEXT, hostname TEXT, action TEXT);
+    CREATE TABLE apiKey (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER, requests_per_day INTEGER, requests_per_month INTEGER);
+    CREATE TABLE apiKeyOriginPolicy (api_key_id TEXT, hostname TEXT, action TEXT);
   `)
   sqlite
-    .query('INSERT INTO api_key (id, key_digest) VALUES (?, ?)')
+    .query('INSERT INTO apiKey (id, key_digest) VALUES (?, ?)')
     .run('key-123', await publicApiKeyDigest(publicKey))
   let cached: unknown = null
   const now = Date.now
@@ -49,7 +49,7 @@ test('revocation is honoured at the lease deadline with a real local key record'
     const first = await coordinator.fetch(request())
     const lease = (await first.json()) as { nextCheckAt: number }
     assert.equal(first.status, 200)
-    sqlite.query('UPDATE api_key SET revoked_at = ?').run(clock)
+    sqlite.query('UPDATE apiKey SET revoked_at = ?').run(clock)
     clock = lease.nextCheckAt - 1
     assert.equal((await coordinator.fetch(request())).status, 200)
     clock = lease.nextCheckAt
@@ -104,7 +104,7 @@ test('the coordinator coalesces concurrent refreshes for one public key', async 
           return {
             bind: () => ({
               first: async () => {
-                if (query.includes('FROM api_key')) {
+                if (query.includes('FROM apiKey')) {
                   keyLookups += 1
                   return {
                     id: 'key-123',

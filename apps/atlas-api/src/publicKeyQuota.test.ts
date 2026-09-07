@@ -48,14 +48,14 @@ for (const fixture of [
   test(`the coordinator enforces ${fixture.name} settled usage quotas and UTC resets`, async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`
-      CREATE TABLE api_key (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER, requests_per_day INTEGER, requests_per_month INTEGER);
-      CREATE TABLE api_key_origin_policy (api_key_id TEXT, hostname TEXT, action TEXT);
-      CREATE TABLE api_key_usage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER);
+      CREATE TABLE apiKey (id TEXT PRIMARY KEY, key_digest TEXT, revoked_at INTEGER, last_used_at INTEGER, requests_per_day INTEGER, requests_per_month INTEGER);
+      CREATE TABLE apiKeyOriginPolicy (api_key_id TEXT, hostname TEXT, action TEXT);
+      CREATE TABLE apiKeyUsage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER);
     `)
     const apiKey = `pk.${'q'.repeat(43)}`
     sqlite
       .query(
-        'INSERT INTO api_key (id, key_digest, requests_per_day, requests_per_month) VALUES (?, ?, ?, ?)',
+        'INSERT INTO apiKey (id, key_digest, requests_per_day, requests_per_month) VALUES (?, ?, ?, ?)',
       )
       .run(
         'quota-key',
@@ -64,10 +64,10 @@ for (const fixture of [
         fixture.monthLimit,
       )
     sqlite
-      .query('INSERT INTO api_key_usage VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO apiKeyUsage VALUES (?, ?, ?, ?)')
       .run('quota-key', 'day', Date.parse('2026-09-07T00:00:00Z'), fixture.dayCount)
     sqlite
-      .query('INSERT INTO api_key_usage VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO apiKeyUsage VALUES (?, ?, ?, ?)')
       .run('quota-key', 'month', Date.parse('2026-09-01T00:00:00Z'), fixture.monthCount)
     const realNow = Date.now
     let now = Date.parse('2026-09-07T23:59:00Z')

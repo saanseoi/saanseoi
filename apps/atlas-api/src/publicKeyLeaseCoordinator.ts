@@ -76,7 +76,7 @@ export class PublicKeyLeaseCoordinator {
     const key = await this.env.DB_META.prepare(
       `SELECT id, revoked_at AS revokedAt,
          requests_per_day AS requestsPerDay, requests_per_month AS requestsPerMonth
-       FROM api_key
+       FROM apiKey
        WHERE key_digest = ?
        LIMIT 1`,
     )
@@ -97,7 +97,7 @@ export class PublicKeyLeaseCoordinator {
       this.env.PUBLIC_KEY_LEASES.put(storageKey, JSON.stringify(lease), {
         expiration: Math.floor((lease.nextCheckAt + PROPAGATION_BUFFER_MS) / 1_000),
       }),
-      this.env.DB_META.prepare('UPDATE api_key SET last_used_at = ? WHERE id = ?')
+      this.env.DB_META.prepare('UPDATE apiKey SET last_used_at = ? WHERE id = ?')
         .bind(now, key.id)
         .run(),
     ])
@@ -119,7 +119,7 @@ export class PublicKeyLeaseCoordinator {
     const nextMonth = new Date(month)
     nextMonth.setUTCMonth(nextMonth.getUTCMonth() + 1)
     const usage = await this.env.DB_META.prepare(
-      `SELECT window, request_count AS requestCount FROM api_key_usage
+      `SELECT window, request_count AS requestCount FROM apiKeyUsage
        WHERE api_key_id = ? AND (
          (window = 'day' AND window_started_at = ?) OR
          (window = 'month' AND window_started_at = ?)
@@ -143,7 +143,7 @@ export class PublicKeyLeaseCoordinator {
   async getOriginPolicy(keyId: string) {
     const result = await this.env.DB_META.prepare(
       `SELECT hostname, action
-       FROM api_key_origin_policy
+       FROM apiKeyOriginPolicy
        WHERE api_key_id = ?`,
     )
       .bind(keyId)
