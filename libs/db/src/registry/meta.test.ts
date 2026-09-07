@@ -14,7 +14,6 @@ import {
   initialDatasetTransforms,
   initialDataShards,
   initialDivisionCodes,
-  initialIdentifierBridges,
   initialPublishers,
   resolveInitialDataShardsForEnvironment,
   validateDivisionCodeFixtures,
@@ -98,33 +97,6 @@ describe('fixture version hashes', () => {
         assignment => assignment.divisionCode === 'TSUEN_WAN_TSING_YI_AREA',
       ),
     ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
-  })
-  test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
-    const newTownMappings = initialIdentifierBridges.filter(
-      bridge =>
-        bridge.authority === 'hkgov-censtatd' &&
-        bridge.cohortKey === '2021' &&
-        bridge.domain === 'new-town' &&
-        bridge.resourceType === 'division',
-    )
-
-    expect(newTownMappings).toHaveLength(13)
-    expect(newTownMappings.map(mapping => mapping.externalId).sort()).toEqual([
-      '11',
-      '13',
-      '15',
-      '17',
-      '18',
-      '20',
-      '22',
-      '24',
-      '25',
-      '27',
-      '28',
-      '30',
-      '32',
-    ])
-    expect(newTownMappings.every(mapping => mapping.canonicalId)).toBe(true)
   })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
@@ -333,28 +305,6 @@ describe('fixture version hashes', () => {
       'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
     )
     expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
-  })
-
-  test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
-    const bridgesFor = (cohortKey: string) =>
-      initialIdentifierBridges.filter(
-        bridge =>
-          bridge.authority === 'hkgov-censtatd' &&
-          bridge.cohortKey === cohortKey &&
-          bridge.domain === 'administrative' &&
-          bridge.resourceType === 'division',
-      )
-
-    const bridges2016 = bridgesFor('2016')
-    const bridges2021 = bridgesFor('2021')
-
-    expect(bridges2016).toHaveLength(18)
-    expect(bridges2021).toHaveLength(18)
-    expect(new Set(bridges2016.map(bridge => bridge.externalCode)).size).toBe(18)
-    expect(new Set(bridges2021.map(bridge => bridge.externalCode)).size).toBe(18)
-    expect(new Set(bridges2016.map(bridge => bridge.canonicalId))).toEqual(
-      new Set(bridges2021.map(bridge => bridge.canonicalId)),
-    )
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {

@@ -45,7 +45,6 @@ export const metaRegistryRequiredTables = [
   'apiEndpoints',
   'dataShards',
   'divisionCodes',
-  'identifierBridges',
 ] as const
 
 export const initialProfiles: ProfileName[] = [...profileNames]
@@ -465,21 +464,6 @@ const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
 validateDivisionCodeFixtures(divisionCodeFixtures)
-const identifierBridgeFixtures = readFixtureDir<{
-  resourceType: ResourceType
-  sourceDatasetCode: string
-  sourceReleaseCode: string
-  cohortKey: string
-  domain: string
-  authority: string
-  mappingMethod: string
-  reviewStatus: string
-  mappings: Array<{
-    externalId: string
-    externalCode?: string
-    canonicalId: string
-  }>
-}>('identifierBridges')
 
 export const initialPublishers: InitialPublisherSeed[] = publisherFixtures
   // Parent rows must be inserted before children because child links use a
@@ -702,20 +686,6 @@ export const initialDataShards: InitialDataShardSeed[] = dataShardFixtures.flatM
     })),
 )
 
-export const initialIdentifierBridges = identifierBridgeFixtures.flatMap(fixture =>
-  fixture.mappings.map(mapping => ({
-    ...mapping,
-    resourceType: fixture.resourceType,
-    sourceDatasetCode: fixture.sourceDatasetCode,
-    sourceReleaseCode: fixture.sourceReleaseCode,
-    cohortKey: fixture.cohortKey,
-    domain: fixture.domain,
-    authority: fixture.authority,
-    mappingMethod: fixture.mappingMethod,
-    reviewStatus: fixture.reviewStatus,
-  })),
-)
-
 export const initialDivisionCodes = divisionCodeFixtures.flatMap(fixture =>
   fixture.assignments.map(assignment => ({
     ...assignment,
@@ -853,39 +823,6 @@ INSERT INTO unitsI18n (
 ON CONFLICT(unitId, locale) DO UPDATE SET
   name = excluded.name,
   description = excluded.description,
-  updatedAt = excluded.updatedAt;`.trim(),
-    )
-  }
-
-  for (const bridge of initialIdentifierBridges) {
-    statements.push(
-      `
-INSERT INTO identifierBridges (
-  resourceType, cohortKey, domain, authority, externalId, externalCode,
-  canonicalId, sourceDatasetCode, sourceReleaseCode,
-  mappingMethod, reviewStatus, createdAt, updatedAt
-) VALUES (
-  ${sqlString(bridge.resourceType)},
-  ${sqlString(bridge.cohortKey)},
-  ${sqlString(bridge.domain)},
-  ${sqlString(bridge.authority)},
-  ${sqlString(bridge.externalId)},
-  ${sqlNullable(bridge.externalCode)},
-  ${sqlString(bridge.canonicalId)},
-  ${sqlString(bridge.sourceDatasetCode)},
-  ${sqlString(bridge.sourceReleaseCode)},
-  ${sqlString(bridge.mappingMethod)},
-  ${sqlString(bridge.reviewStatus)},
-  ${nowSql},
-  ${nowSql}
-)
-ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SET
-  externalCode = excluded.externalCode,
-  canonicalId = excluded.canonicalId,
-  sourceDatasetCode = excluded.sourceDatasetCode,
-  sourceReleaseCode = excluded.sourceReleaseCode,
-  mappingMethod = excluded.mappingMethod,
-  reviewStatus = excluded.reviewStatus,
   updatedAt = excluded.updatedAt;`.trim(),
     )
   }
