@@ -5,6 +5,7 @@ import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
+import { restoreAlsEstateComponents } from './hkgovAlsEstateComponents'
 import { applyAlsNestedPremises } from './hkgovAlsNestedPremises'
 import {
   reconstructAlsPremises,
@@ -216,6 +217,7 @@ export async function prepareHkgovAlsAddressParquet(
   }
   applyAlsEstateNames(rows, options.sourceVersion)
   applyAlsLocalities(rows, options.sourceVersion)
+  restoreAlsEstateComponents(rows, options.sourceVersion)
   applyAlsNestedPremises(rows, options.sourceVersion)
   if (options.writeOutput !== false)
     parquetWriteFile({
