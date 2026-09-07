@@ -1,5 +1,9 @@
 # HKGov DPO ALS addresses
 
+ALS ingestion retains the effective Address assembly recipe and exact source selections,
+including enrichment and lookup inputs, following the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 ALS processing evidence retains every canonical selection and reviewed source variant in
 compressed D1 audit chunks. Action/mode summaries provide counts; reports decode
 individual decisions. Metadata replay carries both under the

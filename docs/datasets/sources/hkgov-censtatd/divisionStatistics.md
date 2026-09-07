@@ -1,5 +1,9 @@
 # Census and Statistics Department division statistics
 
+Every materialised reference period retains an assembly run pinned to its source
+release. Recipes and source rules accompany remote metadata replay under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 Processing-action replay includes compressed evidence chunks, action/mode summaries and
 aggregate processing metrics. Individual mapping decisions remain available to audit
 reports; chunk sizes follow the

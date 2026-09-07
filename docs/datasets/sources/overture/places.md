@@ -1,5 +1,10 @@
 # Overture Places
 
+Places and supplementary Address assembly runs preserve analysis and finalisation
+evidence, alongside exact source and lookup selections. Metadata replay includes their
+recipe and input rows under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 Enriched Place JSONL is published locally only after complete writes and a file sync. An
 enrichment failure cannot replace completed staging, and resolution streams close on
 failure. Supplementary review and same-snapshot Address edits remain inputs to each

@@ -1,5 +1,8 @@
 # division type and level
 
+Canonical Division ingestion records its exact source-selection recipe and run under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 Canonical Division ingestion seals comparison results and completion counts with its SQL
 delivery plan. Local and remote retries reuse those outputs without rereading partially
 updated source versions or repeating record normalisation. See the

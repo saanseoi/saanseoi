@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Geometry snapshots retain effective source rules, lookup selections and assembly runs.
+Replay includes recipe parents under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 Replay SQL streams from mirror-table iterators during plan preparation. Bounded
 statement packing preserves row order and oversized-geometry append semantics. Retained
 plans reuse payloads without reading the replay tables again.

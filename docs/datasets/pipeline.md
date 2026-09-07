@@ -1,5 +1,27 @@
 # Dataset pipeline
 
+## Snapshot assembly provenance
+
+Each ingestion records its effective source-selection recipe in `snapshotAssembly` and
+its dataset/role rules in `snapshotAssemblySources`. The recipe hash covers the resource
+type, recording version and sorted input rules; release IDs and cohort values belong to
+the run. Identical recipes can serve multiple snapshots. These records describe the
+selected inputs, rather than a catalogue of optional future inputs: `isRequired` means
+the input is needed to reproduce that effective selection.
+
+`snapshotAssemblyRuns` retains one evolving record per draft snapshot, including exact
+source releases, roles, selection rules, selection modes and source cohorts. Enrichment
+and lookup selection refresh the draft recipe and preserve specialised review and
+materialisation evidence. Places analysis can record a `planning` run before source
+selection; finalisation records `selected`. Missing source-selection rules fail
+ingestion. Published assembly records remain fixed, including when another release
+verifies an identical published geometry snapshot. That later association remains in
+`snapshotSources`.
+
+SQL delivery includes recipe and input rows before run rows, so a fresh target does not
+depend on pre-seeded assembly definitions. Assembly records describe sources producing
+one snapshot; API composition records describe snapshots belonging to a release set.
+
 This is the working guide for adding a source dataset to SaanSeoi. Follow the stages in
 order. A source is not complete merely because a local import works: its public
 metadata, repeatable intake, storage, release assembly and verification must agree.

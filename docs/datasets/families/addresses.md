@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+Address ingestion records the effective assembly recipe, selected source releases and
+lookup dependencies under the
+[assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Draft
+enrichment refreshes the run; SQL replay includes recipe, input and run records.
+
 Processing audits retain action/mode summaries and lossless, compressed evidence chunks
 in D1. Address SQL metadata replay includes both; reports decode individual decisions,
 including canonical ALS records and reviewed source variants. Chunk limits and

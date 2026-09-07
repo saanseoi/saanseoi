@@ -1,5 +1,8 @@
 # LandsD street names
 
+Street snapshot ingestion records the exact staged release and its assembly rule under
+the [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
 The Lands Department publishes a complete gazetted street-name list as a PDF and
 separate bilingual Government Notices and Gazette Plans. SaanSeoi publishes the current
 register first. Historical evidence and lifecycle reconstruction are separate revision
