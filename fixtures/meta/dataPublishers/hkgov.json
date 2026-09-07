@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cc2b2fc60cb0abe61d4e66a7f3138e67afef26d793c0659c1f8267bf608bcd84",
+  "versionHash": "sha256:4d8111ff00f62129c98b462972091dba9ca7b56efc1ca8fb4058b6aa7feea8e3",
   "code": "hkgov",
   "url": "https://data.gov.hk",
   "contactUrl": "https://data.gov.hk/en/feedback",
@@ -7,16 +7,19 @@
     {
       "locale": "en",
       "name": "Hong Kong SAR Government",
+      "nameShort": "HKGov",
       "description": "Hong Kong SAR Government open data, published through DATA.GOV.HK."
     },
     {
       "locale": "zh-hant",
       "name": "香港特別行政區政府",
+      "nameShort": "香港政府",
       "description": "透過資料一線通發布香港特別行政區政府開放數據。"
     },
     {
       "locale": "zh-hans",
       "name": "香港特别行政区政府",
+      "nameShort": "香港政府",
       "description": "通过资料一线通发布香港特别行政区政府开放数据。"
     }
   ]
