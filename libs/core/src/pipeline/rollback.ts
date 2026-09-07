@@ -271,6 +271,7 @@ function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
     `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)} OR snapshotId = ${literal(input.snapshotId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM releaseProcessingActions WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM releaseProcessingActionChunks WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
     `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR sourceReleaseId = ${literal(input.releaseId)};`,

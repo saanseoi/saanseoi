@@ -23,6 +23,11 @@ import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import { chunkArray } from '../../pipeline/utils'
 import {
+  auditSummarySelection,
+  readAuditPages,
+  readReleaseAuditDecisions,
+} from '../../pipeline/db/processingActionStorage'
+import {
   buildDatasetCode,
   datasetVariantForSource,
   publisherCodeForSource,
@@ -365,26 +370,9 @@ export async function listRegistryReleases(
           .all(),
       ),
       includeProcessingActions
-        ? queryInBatches(sourceReleaseIds, ids =>
-            db
-              .select({
-                id: releaseProcessingActions.id,
-                releaseId: releaseProcessingActions.releaseId,
-                action: releaseProcessingActions.action,
-                mode: releaseProcessingActions.mode,
-                summary: releaseProcessingActions.summary,
-                affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-                evidence: releaseProcessingActions.evidence,
-                createdAt: releaseProcessingActions.createdAt,
-                updatedAt: releaseProcessingActions.updatedAt,
-              })
-              .from(releaseProcessingActions)
-              .where(inArray(releaseProcessingActions.releaseId, ids))
-              .orderBy(
-                desc(releaseProcessingActions.createdAt),
-                desc(releaseProcessingActions.id),
-              )
-              .all(),
+        ? readReleaseAuditDecisions(
+            db as unknown as HarbourReadableDb,
+            sourceReleaseIds,
           )
         : Promise.resolve([]),
       includeProcessingActions
@@ -393,7 +381,7 @@ export async function listRegistryReleases(
             db
               .select({
                 releaseId: releaseProcessingActions.releaseId,
-                count: sql<number>`count(*)`,
+                count: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
               })
               .from(releaseProcessingActions)
               .where(inArray(releaseProcessingActions.releaseId, ids))
@@ -878,7 +866,7 @@ export async function listRegistryApiReleaseProcessingActionSections(
         then 'automatic'
         else 'manual'
       end`,
-      totalCount: sql<number>`count(*)`,
+      totalCount: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
     })
     .from(releaseProcessingActions)
     .where(processingActionBelongsToApiRelease(input))
@@ -901,18 +889,11 @@ export async function listRegistryApiReleaseProcessingActions(
     offset: number
   },
 ): Promise<RegistryApiReleaseProcessingAction[] | null> {
-  return db
+  const parents = await db
     .select({
-      action: releaseProcessingActions.action,
-      affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-      createdAt: releaseProcessingActions.createdAt,
-      evidence: releaseProcessingActions.evidence,
-      id: releaseProcessingActions.id,
-      mode: releaseProcessingActions.mode,
+      ...auditSummarySelection,
       sourceCode: metaDatasets.code,
       sourceReleaseCode: metaReleases.code,
-      summary: releaseProcessingActions.summary,
-      updatedAt: releaseProcessingActions.updatedAt,
     })
     .from(releaseProcessingActions)
     .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
@@ -927,9 +908,13 @@ export async function listRegistryApiReleaseProcessingActions(
       desc(releaseProcessingActions.createdAt),
       desc(releaseProcessingActions.id),
     )
-    .limit(input.limit)
-    .offset(input.offset)
     .all()
+  return readAuditPages(
+    db as unknown as HarbourReadableDb,
+    parents,
+    input.offset,
+    input.limit,
+  )
 }
 
 export async function listRegistrySourceReleaseProcessingActionSections(
@@ -946,7 +931,7 @@ export async function listRegistrySourceReleaseProcessingActionSections(
         then 'automatic'
         else 'manual'
       end`,
-      totalCount: sql<number>`count(*)`,
+      totalCount: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
     })
     .from(releaseProcessingActions)
     .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
@@ -980,18 +965,11 @@ export async function listRegistrySourceReleaseProcessingActions(
     offset: number
   },
 ): Promise<RegistryApiReleaseProcessingAction[]> {
-  return db
+  const parents = await db
     .select({
-      action: releaseProcessingActions.action,
-      affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-      createdAt: releaseProcessingActions.createdAt,
-      evidence: releaseProcessingActions.evidence,
-      id: releaseProcessingActions.id,
-      mode: releaseProcessingActions.mode,
+      ...auditSummarySelection,
       sourceCode: metaDatasets.code,
       sourceReleaseCode: metaSourceReleases.code,
-      summary: releaseProcessingActions.summary,
-      updatedAt: releaseProcessingActions.updatedAt,
     })
     .from(releaseProcessingActions)
     .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
@@ -1011,9 +989,13 @@ export async function listRegistrySourceReleaseProcessingActions(
       desc(releaseProcessingActions.createdAt),
       desc(releaseProcessingActions.id),
     )
-    .limit(input.limit)
-    .offset(input.offset)
     .all()
+  return readAuditPages(
+    db as unknown as HarbourReadableDb,
+    parents,
+    input.offset,
+    input.limit,
+  )
 }
 
 export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
@@ -1443,7 +1425,9 @@ export async function getRegistrySourceReleaseShell(
   const processingActionCount = selectedRelease
     ? await timed('processing-action-count', async () => {
         const row = await db
-          .select({ count: sql<number>`count(*)` })
+          .select({
+            count: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
+          })
           .from(releaseProcessingActions)
           .innerJoin(
             metaReleases,
@@ -1746,26 +1730,9 @@ async function queryRegistrySourceVersions(
       .all(),
   )
   const processingActions = includeProcessingActions
-    ? await queryInBatches(resourceReleaseIds, ids =>
-        db
-          .select({
-            id: releaseProcessingActions.id,
-            releaseId: releaseProcessingActions.releaseId,
-            action: releaseProcessingActions.action,
-            mode: releaseProcessingActions.mode,
-            summary: releaseProcessingActions.summary,
-            affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-            evidence: releaseProcessingActions.evidence,
-            createdAt: releaseProcessingActions.createdAt,
-            updatedAt: releaseProcessingActions.updatedAt,
-          })
-          .from(releaseProcessingActions)
-          .where(inArray(releaseProcessingActions.releaseId, ids))
-          .orderBy(
-            desc(releaseProcessingActions.createdAt),
-            desc(releaseProcessingActions.id),
-          )
-          .all(),
+    ? await readReleaseAuditDecisions(
+        db as unknown as HarbourReadableDb,
+        resourceReleaseIds,
       )
     : []
 
