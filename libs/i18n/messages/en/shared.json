@@ -273,6 +273,7 @@
   "source_record_samples_intro": "A random raw source record from this release. The complete stored payload appears under",
   "source_record_samples_unavailable": "Source records are not available for this release.",
   "source_record_samples_empty": "No source records are available for this release.",
+  "source_record_samples_loading": "Loading a source record…",
   "source_record_samples_load_error": "Examples could not be loaded. Please try again.",
   "source_ingestion_notes": "Notes",
   "source_diff_since_last_release": "Changes since last",

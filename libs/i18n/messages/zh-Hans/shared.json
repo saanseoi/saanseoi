@@ -273,6 +273,7 @@
   "source_record_samples_intro": "此发布版本的一条随机原始来源记录。完整存储的有效负载位于",
   "source_record_samples_unavailable": "此发布版本没有可用的来源记录。",
   "source_record_samples_empty": "此发布版本没有来源记录。",
+  "source_record_samples_loading": "正在加载来源记录…",
   "source_record_samples_load_error": "无法加载示例。请再试一次。",
   "source_ingestion_notes": "摄入说明",
   "source_diff_since_last_release": "与上一版本比较",
