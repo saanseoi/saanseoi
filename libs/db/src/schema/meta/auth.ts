@@ -175,7 +175,7 @@ export const passkey = sqliteTable(
 )
 
 export const apiKey = sqliteTable(
-  'api_key',
+  'apiKey',
   {
     id: text('id').primaryKey(),
     userId: text('user_id')
@@ -214,7 +214,7 @@ export type ApiKeyOriginPolicyAction = (typeof apiKeyOriginPolicyActions)[number
  * when a public-key lease is refreshed at the edge.
  */
 export const apiKeyOriginPolicy = sqliteTable(
-  'api_key_origin_policy',
+  'apiKeyOriginPolicy',
   {
     apiKeyId: text('api_key_id')
       .notNull()
@@ -230,7 +230,7 @@ export const apiKeyOriginPolicy = sqliteTable(
 )
 
 export const apiKeyUsage = sqliteTable(
-  'api_key_usage',
+  'apiKeyUsage',
   {
     apiKeyId: text('api_key_id')
       .notNull()
@@ -246,7 +246,7 @@ export const apiKeyUsage = sqliteTable(
 )
 
 /** Atomic usage replay checkpoint; revision protects against overlapping jobs. */
-export const apiKeyUsageRollup = sqliteTable('api_key_usage_rollup', {
+export const apiKeyUsageRollup = sqliteTable('apiKeyUsageRollup', {
   id: text('id').primaryKey(),
   datasets: text('datasets').notNull(),
   revision: text('revision').notNull(),

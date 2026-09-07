@@ -17,10 +17,10 @@ function fixture() {
   const sqlite = new Database(':memory:')
   databases.push(sqlite)
   sqlite.exec(`
-    CREATE TABLE api_key (id TEXT PRIMARY KEY);
-    CREATE TABLE api_key_usage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
+    CREATE TABLE apiKey (id TEXT PRIMARY KEY);
+    CREATE TABLE apiKeyUsage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
       PRIMARY KEY (api_key_id, window, window_started_at));
-    INSERT INTO api_key VALUES ('key-123');
+    INSERT INTO apiKey VALUES ('key-123');
   `)
   sqlite.exec(
     readFileSync(
@@ -109,9 +109,7 @@ test('duplicate dataset names are counted once', async () => {
     scheduledTime,
   )
   expect(
-    sqlite
-      .query("SELECT request_count FROM api_key_usage WHERE window = 'minute'")
-      .get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'minute'").get(),
   ).toEqual({ request_count: 3 })
   expect(queries).toHaveLength(1)
 })
@@ -120,7 +118,7 @@ test('a derived-write failure rolls back more than one old minute batch', async 
   const { sqlite, env, failWrites } = fixture()
   const rows = Array.from({ length: 101 }, (_, index) => {
     const apiKeyId = `key-${index}`
-    sqlite.query('INSERT INTO api_key VALUES (?)').run(apiKeyId)
+    sqlite.query('INSERT INTO apiKey VALUES (?)').run(apiKeyId)
     return { ...row, apiKeyId }
   })
   mockUsage(rows)
@@ -128,16 +126,14 @@ test('a derived-write failure rolls back more than one old minute batch', async 
   await expect(rollUpApiKeyUsage(env, scheduledTime)).rejects.toThrow(
     'Injected permanent write failure',
   )
-  expect(sqlite.query('SELECT COUNT(*) AS count FROM api_key_usage').get()).toEqual({
+  expect(sqlite.query('SELECT COUNT(*) AS count FROM apiKeyUsage').get()).toEqual({
     count: 0,
   })
   failWrites(() => false)
   await rollUpApiKeyUsage(env, scheduledTime)
   expect(
     sqlite
-      .query(
-        "SELECT SUM(request_count) AS count FROM api_key_usage WHERE window = 'day'",
-      )
+      .query("SELECT SUM(request_count) AS count FROM apiKeyUsage WHERE window = 'day'")
       .get(),
   ).toEqual({ count: 303 })
 })
@@ -173,12 +169,10 @@ test('a slower old invocation cannot replace a newer committed snapshot', async 
   }
   await old
   expect(
-    sqlite
-      .query("SELECT request_count FROM api_key_usage WHERE window = 'minute'")
-      .get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'minute'").get(),
   ).toEqual({ request_count: 9 })
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 9 })
 })
 
@@ -190,7 +184,7 @@ test('a later run recovers usage in a missed interval beyond the overlap', async
   expect(
     sqlite
       .query(
-        "SELECT SUM(request_count) AS count FROM api_key_usage WHERE window = 'minute'",
+        "SELECT SUM(request_count) AS count FROM apiKeyUsage WHERE window = 'minute'",
       )
       .get(),
   ).toEqual({ count: 10 })
@@ -203,7 +197,7 @@ test('an empty authoritative replay clears previously counted usage', async () =
   mockUsage([])
   await rollUpApiKeyUsage(env, scheduledTime + 60_000)
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 0 })
 })
 
@@ -214,7 +208,7 @@ test('malformed analytics rows fail the snapshot rather than silently undercount
     { preconnect: originalFetch.preconnect },
   )
   await expect(rollUpApiKeyUsage(env, scheduledTime)).rejects.toThrow()
-  expect(sqlite.query('SELECT COUNT(*) AS count FROM api_key_usage').get()).toEqual({
+  expect(sqlite.query('SELECT COUNT(*) AS count FROM apiKeyUsage').get()).toEqual({
     count: 0,
   })
 })
@@ -224,7 +218,7 @@ test('one unavailable dataset leaves all totals and the checkpoint unchanged', a
   const configured = { ...env, USAGE_ROLLUP_DATASETS: 'api-usage,tile-usage' }
   mockUsage([row])
   await rollUpApiKeyUsage(configured, scheduledTime)
-  const checkpoint = sqlite.query('SELECT * FROM api_key_usage_rollup').get()
+  const checkpoint = sqlite.query('SELECT * FROM apiKeyUsageRollup').get()
   globalThis.fetch = Object.assign(
     async (_input: unknown, init?: RequestInit) =>
       String(init?.body).includes('"tile-usage"')
@@ -233,9 +227,9 @@ test('one unavailable dataset leaves all totals and the checkpoint unchanged', a
     { preconnect: originalFetch.preconnect },
   )
   await expect(rollUpApiKeyUsage(configured, scheduledTime + 60_000)).rejects.toThrow()
-  expect(sqlite.query('SELECT * FROM api_key_usage_rollup').get()).toEqual(checkpoint)
+  expect(sqlite.query('SELECT * FROM apiKeyUsageRollup').get()).toEqual(checkpoint)
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 6 })
 })
 
@@ -251,7 +245,7 @@ test('transient batch failures replay once without duplicate usage', async () =>
   await rollUpApiKeyUsage(env, scheduledTime)
   expect(calls).toBe(2)
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 3 })
 })
 
@@ -268,11 +262,11 @@ test('a lost batch acknowledgement cannot reapply or undo a committed snapshot',
   await rollUpApiKeyUsage(env, scheduledTime)
   expect(calls).toBe(2)
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 3 })
   expect(
     sqlite
-      .query('SELECT completed_through AS completedThrough FROM api_key_usage_rollup')
+      .query('SELECT completed_through AS completedThrough FROM apiKeyUsageRollup')
       .get(),
   ).toEqual({ completedThrough: scheduledTime - 120_000 })
 })
@@ -286,11 +280,11 @@ test('empty intervals advance the checkpoint and later outages recover from it',
     await rollUpApiKeyUsage(env, scheduledTime + 60 * 60_000)
   expect(
     sqlite
-      .query('SELECT completed_through AS completedThrough FROM api_key_usage_rollup')
+      .query('SELECT completed_through AS completedThrough FROM apiKeyUsageRollup')
       .get(),
   ).toEqual({ completedThrough: scheduledTime + 58 * 60_000 })
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 3 })
 })
 
@@ -298,10 +292,10 @@ test('out-of-order cron deliveries cannot rewind a completed checkpoint', async 
   const { sqlite, env } = fixture()
   const queries = mockUsage([row])
   await rollUpApiKeyUsage(env, scheduledTime)
-  const checkpoint = sqlite.query('SELECT * FROM api_key_usage_rollup').get()
+  const checkpoint = sqlite.query('SELECT * FROM apiKeyUsageRollup').get()
   await rollUpApiKeyUsage(env, scheduledTime - 60_000)
   expect(queries).toHaveLength(1)
-  expect(sqlite.query('SELECT * FROM api_key_usage_rollup').get()).toEqual(checkpoint)
+  expect(sqlite.query('SELECT * FROM apiKeyUsageRollup').get()).toEqual(checkpoint)
 })
 
 test('dataset reordering is harmless but dataset replacement requires reconciliation', async () => {
@@ -319,7 +313,7 @@ test('dataset reordering is harmless but dataset replacement requires reconcilia
     'reconcile historical usage',
   )
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 6 })
 })
 
@@ -327,7 +321,7 @@ test('oversized snapshots fail without advancing the checkpoint or changing tota
   const { sqlite, env } = fixture()
   mockUsage([row])
   await rollUpApiKeyUsage(env, scheduledTime)
-  const checkpoint = sqlite.query('SELECT * FROM api_key_usage_rollup').get()
+  const checkpoint = sqlite.query('SELECT * FROM apiKeyUsageRollup').get()
   globalThis.fetch = Object.assign(
     async () => Response.json({ data: Array.from({ length: 10_001 }, () => row) }),
     { preconnect: originalFetch.preconnect },
@@ -335,9 +329,9 @@ test('oversized snapshots fail without advancing the checkpoint or changing tota
   await expect(rollUpApiKeyUsage(env, scheduledTime)).rejects.toThrow(
     'bounded query size',
   )
-  expect(sqlite.query('SELECT * FROM api_key_usage_rollup').get()).toEqual(checkpoint)
+  expect(sqlite.query('SELECT * FROM apiKeyUsageRollup').get()).toEqual(checkpoint)
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 3 })
 })
 
@@ -374,7 +368,7 @@ test('large queries subdivide into disjoint time ranges before an atomic commit'
   expect(intervals[1]?.[1]).toBe(intervals[2]?.[0])
   expect(intervals[2]?.[1]).toBe(intervals[0]?.[1])
   expect(
-    sqlite.query("SELECT request_count FROM api_key_usage WHERE window = 'day'").get(),
+    sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
   ).toEqual({ request_count: 10 })
 })
 
@@ -400,9 +394,7 @@ test('invalid counts, timestamps, and duplicate groups cannot partially replace 
       'Invalid or duplicate usage row',
     )
     expect(
-      sqlite
-        .query("SELECT request_count FROM api_key_usage WHERE window = 'day'")
-        .get(),
+      sqlite.query("SELECT request_count FROM apiKeyUsage WHERE window = 'day'").get(),
     ).toEqual({ request_count: 3 })
   }
 })

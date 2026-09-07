@@ -57,9 +57,9 @@ function createMockDb(options: MockDbOptions = {}) {
               return { count: 0 } as T
             }
 
-            if (query.includes('FROM api_key_usage_rollup')) return null as T
+            if (query.includes('FROM apiKeyUsageRollup')) return null as T
 
-            if (query.includes('FROM api_key')) {
+            if (query.includes('FROM apiKey')) {
               if (options.apiKey === null) return null as T
 
               return {
