@@ -63,6 +63,47 @@ function premises() {
   )
 }
 
+test('High Prosperity structured towers link to their publisher estate without curation', () => {
+  const rows = [undefined, '1', '2'].map((block, index) =>
+    normaliseTestFeature({
+      geometry: { type: 'Point', coordinates: [114.12, 22.36] },
+      properties: {
+        Address: {
+          PremisesAddress: {
+            BuildingCsuInformation: {
+              CsuId: [
+                '3069325029T20050430',
+                '3067325047T20050430',
+                '3070325094T20050430',
+              ][index],
+            },
+            EngPremisesAddress: {
+              EngEstate: { EstateName: 'HIGH PROSPERITY TERRACE' },
+              EngStreet: { StreetName: 'KWAI SHING CIRCUIT', BuildingNoFrom: '188' },
+              ...(block
+                ? { EngBlock: { BlockNo: block, BlockDescriptor: 'TOWER' } }
+                : {}),
+            },
+            ChiPremisesAddress: {
+              ChiEstate: { EstateName: '高盛臺' },
+              ChiStreet: { StreetName: '葵盛圍', BuildingNoFrom: '188' },
+              ...(block ? { ChiBlock: { BlockNo: block, BlockDescriptor: '座' } } : {}),
+            },
+          },
+        },
+      },
+    }),
+  )
+  applyAlsAddressHierarchies(rows, '2026-08-19.0')
+  expect(rows).toHaveLength(3)
+  expect(rows.slice(1).map(row => row.parentAddressId)).toEqual([
+    rows[0]!.id,
+    rows[0]!.id,
+  ])
+  expect(rows[0]!.parentAddressId).toBeUndefined()
+  expect(rows.slice(1).map(row => row.enBlockNumber)).toEqual(['1', '2'])
+})
+
 test('identical designs retain distinct building inventories and unresolved High/Low sections', () => {
   const rows = premises()
   const original = rows.map(row => ({ ...row }))

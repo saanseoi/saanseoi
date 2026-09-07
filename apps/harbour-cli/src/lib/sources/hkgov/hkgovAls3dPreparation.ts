@@ -183,13 +183,27 @@ export async function prepareAls3dCollections(options: {
       )
       const structuralCandidates = blocklessParentsByKey.get(blocklessKey) ?? []
       const hasBlockComponents = Boolean(en.EngBlock || zh.ChiBlock)
-      if (hasBlockComponents && structuralCandidates.length > 1) {
+      if (
+        hasBlockComponents &&
+        structuralCandidates.length > 1 &&
+        !options.skipCurationChecks
+      ) {
         throw new Error(
           `ALS 3D parent block enrichment requires review: ${en.EngEstate?.EstateName} / ${en.BuildingName}, feature ${featureIndexOneBased}: ${structuralCandidates.length} block-free candidates`,
         )
       }
       const structuralOwner = structuralCandidates[0]
-      if (hasBlockComponents && structuralOwner) {
+      if (hasBlockComponents && options.skipCurationChecks) {
+        // Reference imports retain publisher components and separate assertions.
+        if (
+          candidates.length === 0 &&
+          structuralCandidates.length === 1 &&
+          structuralOwner
+        ) {
+          candidates = [structuralOwner]
+          byKey.set(key, candidates)
+        }
+      } else if (hasBlockComponents && structuralOwner) {
         enrichAls3dParentBlock({
           en,
           hkgovCsuId: p.BuildingCsuInformation?.CsuId ?? null,
@@ -221,7 +235,11 @@ export async function prepareAls3dCollections(options: {
         )
       const parent = candidates[0]
       if (!parent) throw new Error('Missing ALS parent')
-      if (parent.curatedGranularity === 'section' && !ownership.has(parent.id))
+      if (
+        parent.curatedGranularity === 'section' &&
+        !ownership.has(parent.id) &&
+        !options.skipCurationChecks
+      )
         throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
       const owner =
         options.aliasOwnerIds?.get(parent.id) ??

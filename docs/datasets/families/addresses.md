@@ -19,7 +19,10 @@ curation checks to ALS ingestion. Existing corrections retain unverified provena
 where applicable; unresolved identity changes receive generated IDs. Automatic
 acceptance does not write reviewed decisions to curation fixtures. Shared ALS 3D
 buildings may retain separate owners and inventories in this mode without a reviewed
-ownership merge.
+ownership merge. Block enrichment and duplicate suppression are omitted in this mode;
+inventories use exact parents or unique block-free matches, retaining publisher 2D
+components. Section inventories may retain their existing parent without reviewed
+ownership.
 
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain
@@ -167,6 +170,18 @@ assign residential units to the shopping centre or authorise other same-point me
 Explicitly reviewed Housing Authority estate names can supply canonical display
 components while retaining ALS spellings in raw evidence. Choi Wan (I) Estate uses HA's
 Roman numeral without changing its source identity or conflating it with Choi Wan (2).
+Hing Wah (I) Estate retains the explicitly reviewed Roman numeral and uses HA's Chinese
+name `興華一邨`; the supporting HA profile spells the English numeral `(1)`. This is an
+estate-specific display decision, with raw ALS spellings and identities retained.
+
+Hing Wah (II)'s reviewed current coordinates apply over the exact earlier publisher
+coordinate epochs, including Chin Hing House's movement above the automatic 50-metre
+threshold. Original geometries remain provenance and inventory changes remain dated.
+
+Structured bilingual tower records retain their publisher estate relationship without
+inventing building names. High Prosperity Terrace's two towers link to its separate
+estate-level address. The review audit recognises a block-only record only when a unique
+2D publisher record corroborates its structured identity and 3D inventory evidence.
 
 A reviewed missing inventory can be backfilled without changing the dated Address2D.
 Ching Sum House's June 2025 correction restores 949 units from matching bracketing
