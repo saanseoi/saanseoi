@@ -144,7 +144,9 @@ const wrapLlmsText = (markdown: string) => {
 
     const listMatch = line.match(/^(\s*(?:[-*+]\s+|\d+[.)]\s+))(.*)$/)
     if (listMatch) {
+      const wasList = Boolean(buffer?.listPrefix)
       flushBuffer()
+      if (!wasList && wrapped.at(-1) !== '') wrapped.push('')
       buffer = {
         continuationPrefix: ' '.repeat(listMatch[1].length),
         listPrefix: listMatch[1],
@@ -171,8 +173,8 @@ const wrapLlmsText = (markdown: string) => {
 }
 
 /** The complete Markdown guide served from `/guides/create-a-map/llms.txt`. */
-export const createAMapLlmInstructions = () =>
-  wrapLlmsText(
+export const createAMapLlmInstructions = () => {
+  const formatted = wrapLlmsText(
     joinInstructions([
       createAMapLlmOverviewInstructions(),
       createAMapLlmWorkingAgreementInstructions(),
@@ -182,6 +184,9 @@ export const createAMapLlmInstructions = () =>
       createAMapLlmLaterSectionInstructions(),
     ]),
   )
+
+  return formatted.endsWith('\n') ? formatted : `${formatted}\n`
+}
 
 /** Shared setup material included in the first collaborative assistance prompt. */
 export const createAMapPrerequisitesInstructions = (input?: {

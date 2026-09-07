@@ -270,6 +270,21 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
+    expect(instructions).toContain(
+      'folder (an agentic LLM should inspect and confirm this itself).\n\n5. Use the renderer-specific',
+    )
+    expect(instructions.endsWith('\n')).toBe(true)
+    for (const listStart of [
+      '- As a web chat, we expect you cannot inspect or edit my computer directly.',
+      '- Before setup, have me inspect the operating system and shell,',
+      '- For every action, name the exact paste target:',
+    ]) {
+      const line = instructions
+        .split('\n')
+        .find(candidate => candidate.startsWith(listStart))
+      expect(line).toBeDefined()
+      expect(line?.length).toBeLessThanOrEqual(88)
+    }
     expect(instructions).toContain('## Decision matrix and order')
     expect(instructions).toContain('Use the preceding **Decision matrix and order**')
     expect(instructions).toContain('If you are an agentic LLM')
