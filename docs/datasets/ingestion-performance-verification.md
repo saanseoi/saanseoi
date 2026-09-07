@@ -102,13 +102,20 @@ through the Cloudflare D1 API. It does not upload a source archive to R2.
   release is still `processing`; `data-hk-divisions-2026-08` is `draft` and has no
   publication time.
 - During this first run the pre-profile mirror had 127 work units. Remote Address and
-  Division processors now retain their dependency-specific mirror profiles; the Division
-  profile requires 37 work units for the same eight bindings. The new narrower profile
-  needs a fresh remote acceptance run before its elapsed-time benefit is claimed.
+  Division processors now retain their dependency-specific mirror profiles; a fresh,
+  read-only Division-profile clone of the same eight D1 bindings completed 37 work units
+  in 45,665 ms. This is a mirror-preparation observation, not a complete-release
+  throughput claim.
+- A separate two-batch, acceptance-only D1 delivery was deliberately stopped after the
+  first acknowledged batch. Its receipt persisted with the first write (value `1`); the
+  resumed run issued exactly one D1 ingest for the remaining batch and reached value
+  `11`. Both remote receipts and both local replay receipts were retained. The complete
+  interruption/resume check took 46,428 ms.
 
 `division-preview-report.json` and the sealed plan and progress receipt under
 `workspace/.local/harbour-sql/deliveries/preview` retain the evidence. Remote controlled
-interruption/resume and all remaining family fixtures still require acceptance evidence.
+interruption/resume through each family processor and all remaining family fixtures
+still require acceptance evidence.
 
 ## End-to-end acceptance procedure
 
