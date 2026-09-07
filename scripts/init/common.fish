@@ -65,7 +65,7 @@ function init_configure
                 set -e argv[1]
             case --target
                 if test (count $argv) -lt 2
-                    echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts]" >&2
+                    echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]" >&2
                     exit 1
                 end
                 switch $argv[2]
@@ -77,7 +77,7 @@ function init_configure
                 end
                 set -e argv[1..2]
             case '*'
-                echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts]" >&2
+                echo "Usage: $usage [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]" >&2
                 exit 1
         end
     end
