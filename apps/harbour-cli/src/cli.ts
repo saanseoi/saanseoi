@@ -251,6 +251,7 @@ main()
         type: 'error',
       }).catch(() => undefined)
     }
+    process.stderr.write('\n')
     cancel(message)
     finishInitialisationGuide()
     process.exit(1)
