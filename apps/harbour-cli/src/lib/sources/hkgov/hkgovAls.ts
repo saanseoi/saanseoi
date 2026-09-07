@@ -13,6 +13,7 @@ import { retainAlsHouses, labelAlsHouseRetentions } from './hkgovAlsHouseRetenti
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
+import { backfillOiHei } from './hkgovAlsOiHeiBackfill'
 import {
   reconstructReviewedEstateComplexes,
   applyReviewedEstateComplexes,
@@ -268,6 +269,7 @@ export async function prepareHkgovAlsAddressParquet(
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
   backfillAlsCoordinates(rows, options.sourceVersion, options.skipCurationChecks)
+  backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,
