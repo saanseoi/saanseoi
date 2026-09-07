@@ -96,6 +96,23 @@ describe('initialisation commands', () => {
     }
   })
 
+  test('retains artefact caches by default and forwards the explicit opt-out', () => {
+    const common = readFileSync(resolve(repoRoot, 'scripts/init/common.fish'), 'utf8')
+    expect(common).toContain('set -g saanseoi_init_cache_artefacts 1')
+    expect(common).toContain('case --no-cache-artefacts')
+    expect(common).toContain('set cache_artefact_args --cacheArtefacts')
+
+    for (const script of [
+      'all.fish',
+      'local.fish',
+      'production.fish',
+      'divisions.fish',
+    ]) {
+      const source = readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8')
+      expect(source).toContain('set cache_artefact_opt_out_args --no-cache-artefacts')
+    }
+  })
+
   test('does not finalise Places after a failed cohort upload', () => {
     const source = readFileSync(
       resolve(repoRoot, 'scripts/init/places-overture.fish'),
