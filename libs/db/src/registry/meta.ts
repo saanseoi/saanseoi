@@ -37,7 +37,6 @@ export const metaRegistryRequiredTables = [
   'units',
   'unitsI18n',
   'datasets',
-  'datasetResourceTypes',
   'datasetI18n',
   'datasetTransforms',
   'apiVersions',
@@ -274,19 +273,13 @@ type InitialUnitI18nSeed = {
 type InitialDatasetSeed = VersionedFixture<
   Omit<
     DatasetFixture,
-    'i18n' | 'mergeRules' | 'resourceTypes' | 'subType' | 'sourceVariant' | 'transforms'
+    'i18n' | 'mergeRules' | 'subType' | 'sourceVariant' | 'transforms'
   > & {
     subType: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
   }
 >
-
-type InitialDatasetResourceTypeSeed = {
-  datasetCode: string
-  publisherCode: string
-  resourceType: ResourceType
-}
 
 type InitialDatasetI18nSeed = {
   datasetCode: string
@@ -383,7 +376,7 @@ export function validateDivisionCodeFixtures(
     if (!fixture.domainCode.trim())
       throw new Error('Division code fixture has no domainCode.')
     for (const assignment of fixture.assignments) {
-      if (!assignment.divisionCode.trim() || /\s/.test(assignment.divisionCode)) {
+      if (!/^[A-Z0-9]+(?:_[A-Z0-9]+)*$/.test(assignment.divisionCode)) {
         throw new Error(`Invalid Division code=${assignment.divisionCode}.`)
       }
       if (!assignment.canonicalId.trim()) {
@@ -537,6 +530,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   theme: fixture.theme,
   subType: fixture.subType ?? null,
   sourceVariant: fixture.sourceVariant ?? 'default',
+  resourceTypes: [...new Set(fixture.resourceTypes)],
   sourceCrs: fixture.sourceCrs,
   licenseCode: fixture.licenseCode,
   attribution: fixture.attribution,
@@ -585,15 +579,6 @@ export function resolveDatasetMergeRules(
     }),
   }
 }
-
-export const initialDatasetResourceTypes: InitialDatasetResourceTypeSeed[] =
-  datasetFixtures.flatMap(fixture =>
-    fixture.resourceTypes.map(resourceType => ({
-      datasetCode: fixture.code,
-      publisherCode: fixture.publisherCode,
-      resourceType,
-    })),
-  )
 
 export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flatMap(
   fixture =>
@@ -907,6 +892,12 @@ ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SE
 
   for (const divisionCode of initialDivisionCodes) {
     statements.push(
+      `DELETE FROM divisionCodes
+WHERE domainCode = ${sqlString(divisionCode.domainCode)}
+  AND canonicalId = ${sqlString(divisionCode.canonicalId)}
+  AND divisionCode <> ${sqlString(divisionCode.divisionCode)};`,
+    )
+    statements.push(
       `
 INSERT INTO divisionCodes (
   domainCode, divisionCode, canonicalId, versionHash, createdAt, updatedAt
@@ -930,7 +921,7 @@ WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -947,6 +938,7 @@ INSERT INTO datasets (
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
+  ${sqlString(JSON.stringify(dataset.resourceTypes))},
   ${sqlNullable(
     dataset.processingRules ? JSON.stringify(dataset.processingRules) : undefined,
   )},
@@ -967,29 +959,12 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
   category = excluded.category,
+  resourceTypes = excluded.resourceTypes,
   processingRules = excluded.processingRules,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE datasets.versionHash <> excluded.versionHash
    OR datasets.schemaURL IS NOT excluded.schemaURL;`.trim(),
-    )
-  }
-
-  for (const resource of initialDatasetResourceTypes) {
-    statements.push(
-      `
-INSERT INTO datasetResourceTypes (datasetId, resourceType)
-VALUES (
-  (
-    SELECT d.id
-    FROM datasets d
-    JOIN publishers p ON p.id = d.publisherId
-    WHERE p.code = ${sqlString(resource.publisherCode)}
-      AND d.code = ${sqlString(resource.datasetCode)}
-  ),
-  ${sqlString(resource.resourceType)}
-)
-ON CONFLICT(datasetId, resourceType) DO NOTHING;`.trim(),
     )
   }
 

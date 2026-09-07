@@ -31,6 +31,9 @@ Key points:
 - Saanseoi-owned code segments are lowercase kebab-case; structured fields are never
   recovered by parsing a code.
 - Programmatic resource types such as `divisionArea` become `division-area` in codes.
+- `datasets.resourceTypes` is a non-null JSON array of distinct supported resource
+  types. Registry reads return this array directly; upload validation checks membership
+  for the selected dataset.
 
 ## Snapshot Registry
 

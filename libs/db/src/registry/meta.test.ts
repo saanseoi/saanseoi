@@ -1,4 +1,7 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
+import { resolve } from 'node:path'
+import { loadMigrationSql } from '../../../core/src/testing/metaFixtures'
 
 import {
   buildMetaRegistrySyncStatements,
@@ -8,7 +11,6 @@ import {
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
-  initialDatasetResourceTypes,
   initialDatasetTransforms,
   initialDataShards,
   initialDivisionCodes,
@@ -19,6 +21,19 @@ import {
 } from './meta'
 
 describe('fixture version hashes', () => {
+  test.each(['tseung-kwan-o', 'tseung_kwan_o', 'TSEUNG-KWAN-O', '_HK', 'HK__AREA'])(
+    'rejects Division code outside SCREAMING_SNAKE_CASE: %s',
+    divisionCode => {
+      expect(() =>
+        validateDivisionCodeFixtures([
+          {
+            domainCode: 'geographic',
+            assignments: [{ divisionCode, canonicalId: 'division-hk' }],
+          },
+        ]),
+      ).toThrow('Invalid Division code')
+    },
+  )
   test('validates curated Division code fixtures directly', () => {
     const valid = {
       domainCode: 'geographic',
@@ -55,7 +70,7 @@ describe('fixture version hashes', () => {
     ).toBe(173)
     expect(hmaAssignments.every(assignment => !('level' in assignment))).toBe(true)
   })
-  test('retains URL-safe Planning Department New Town Division codes', () => {
+  test('retains SCREAMING_SNAKE_CASE Planning Department New Town Division codes', () => {
     const newTownAssignments = initialDivisionCodes.filter(
       assignment => assignment.domainCode === 'hkgov-pland-new-town',
     )
@@ -64,23 +79,23 @@ describe('fixture version hashes', () => {
     expect(
       newTownAssignments.map(assignment => assignment.divisionCode).sort(),
     ).toEqual([
-      'fanling-sheung-shui-kwu-tung',
-      'hung-shui-kiu-ha-tsuen',
-      'sha-tin-ma-on-shan-area',
-      'sha-tin-sha-tin-area',
-      'tai-po',
-      'tin-shui-wai',
-      'tseung-kwan-o',
-      'tsuen-wan-kwai-chung-area',
-      'tsuen-wan-tsing-yi-area',
-      'tsuen-wan-tsuen-wan-area',
-      'tuen-mun',
-      'tung-chung',
-      'yuen-long',
+      'FANLING_SHEUNG_SHUI_KWU_TUNG',
+      'HUNG_SHUI_KIU_HA_TSUEN',
+      'SHA_TIN_MA_ON_SHAN_AREA',
+      'SHA_TIN_SHA_TIN_AREA',
+      'TAI_PO',
+      'TIN_SHUI_WAI',
+      'TSEUNG_KWAN_O',
+      'TSUEN_WAN_KWAI_CHUNG_AREA',
+      'TSUEN_WAN_TSING_YI_AREA',
+      'TSUEN_WAN_TSUEN_WAN_AREA',
+      'TUEN_MUN',
+      'TUNG_CHUNG',
+      'YUEN_LONG',
     ])
     expect(
       newTownAssignments.find(
-        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+        assignment => assignment.divisionCode === 'TSUEN_WAN_TSING_YI_AREA',
       ),
     ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
   })
@@ -197,12 +212,7 @@ describe('fixture version hashes', () => {
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
         dataset.theme === 'stats' &&
-        initialDatasetResourceTypes.some(
-          resourceType =>
-            resourceType.publisherCode === dataset.publisherCode &&
-            resourceType.datasetCode === dataset.code &&
-            resourceType.resourceType === 'divisionStatistic',
-        ),
+        dataset.resourceTypes.includes('divisionStatistic'),
     )
 
     expect(censtatdStats).toHaveLength(8)
@@ -221,7 +231,7 @@ describe('fixture version hashes', () => {
     expect(
       censtatdStats
         .filter(dataset => dataset.sourceVariant === 'census')
-        .every(dataset => dataset.releaseFrequency === 'five-yearly'),
+        .every(dataset => dataset.releaseFrequency === 'census'),
     ).toBe(true)
     expect(
       censtatdStats
@@ -468,6 +478,64 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('replaces superseded Division codes and remains idempotent', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(`CREATE TABLE divisionCodes (
+        domainCode TEXT, divisionCode TEXT, canonicalId TEXT,
+        versionHash TEXT, createdAt INTEGER, updatedAt INTEGER,
+        PRIMARY KEY (domainCode, divisionCode)
+      )`)
+      db.exec(`INSERT INTO divisionCodes VALUES (
+        'hkgov-pland-new-town', 'tseung-kwan-o',
+        '9598a407-bc95-5bce-84e1-d284b6322315', 'old', 0, 0
+      )`)
+      const statements = buildMetaRegistrySyncStatements('preview').filter(statement =>
+        /^(INSERT INTO|DELETE FROM) divisionCodes\b/.test(statement.trim()),
+      )
+      for (let attempt = 0; attempt < 2; attempt++) {
+        for (const statement of statements) db.exec(statement)
+        expect(
+          db
+            .query(`SELECT divisionCode FROM divisionCodes
+          WHERE canonicalId = '9598a407-bc95-5bce-84e1-d284b6322315'`)
+            .all(),
+        ).toEqual([{ divisionCode: 'TSEUNG_KWAN_O' }])
+        expect(db.query('SELECT * FROM divisionCodes').all()).toHaveLength(
+          initialDivisionCodes.length,
+        )
+      }
+    } finally {
+      db.close()
+    }
+  })
+  test('seeds resource arrays directly on datasets and preserves them on repeated sync', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
+      const statements = buildMetaRegistrySyncStatements('preview')
+      for (let attempt = 0; attempt < 2; attempt++) {
+        for (const statement of statements) db.exec(statement)
+        const rows = db
+          .query(`
+          SELECT d.code, p.code AS publisherCode, d.resourceTypes
+          FROM datasets d JOIN publishers p ON p.id = d.publisherId
+        `)
+          .all() as { code: string; publisherCode: string; resourceTypes: string }[]
+        expect(rows).toHaveLength(initialDatasets.length)
+        for (const dataset of initialDatasets) {
+          const row = rows.find(
+            row =>
+              row.code === dataset.code && row.publisherCode === dataset.publisherCode,
+          )
+          expect(JSON.parse(row!.resourceTypes)).toEqual(dataset.resourceTypes)
+        }
+      }
+    } finally {
+      db.close()
+    }
+  })
+
   test('allows source-versioned transforms to share a public output variant', () => {
     const sharedVariantTransforms = initialDatasetTransforms.filter(
       transform => transform.outputVariant === 'hkgov-censtatd:simplified',

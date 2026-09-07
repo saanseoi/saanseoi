@@ -184,16 +184,13 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
       code TEXT NOT NULL,
       subType TEXT
     );
 
-    CREATE TABLE datasetResourceTypes (
-      datasetId TEXT NOT NULL,
-      resourceType TEXT NOT NULL
-    );
 
     CREATE TABLE datasetI18n (
       datasetId TEXT NOT NULL,
@@ -310,10 +307,9 @@ describe('listRegistryReleases', () => {
         ('dataset-b', 'publisher-b', 'landsd-addresses'),
         ('dataset-c', 'publisher-c', 'overture-divisions');
 
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-a', 'address'),
-        ('dataset-b', 'address'),
-        ('dataset-c', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'dataset-a' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'dataset-b' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-c' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
 
       INSERT INTO datasetI18n (datasetId, locale, name) VALUES
         ('dataset-a', 'en', 'Hong Kong addresses'),
@@ -727,6 +723,7 @@ function createRegionalSnapshotLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
       regionCode TEXT NOT NULL
@@ -772,6 +769,7 @@ function createLatestDatasetLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -831,11 +829,6 @@ function createLatestDatasetLookupDb() {
       updatedAt TEXT NOT NULL
     );
 
-    CREATE TABLE datasetResourceTypes (
-      datasetId TEXT NOT NULL,
-      resourceType TEXT NOT NULL,
-      PRIMARY KEY (datasetId, resourceType)
-    );
   `)
 
   return {
@@ -929,6 +922,7 @@ function createActiveSnapshotLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -959,6 +953,7 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL
@@ -1939,9 +1934,8 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division'),
         ('dataset-pland-new-town', 'publisher-pland', 'ds-hk-hkgov-pland-division-new-town', 'hk', 'divisions', 'division');
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-pland-pu', 'division'),
-        ('dataset-pland-new-town', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-pu' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-new-town' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
     `)
 
     await insertDataset(
@@ -2104,8 +2098,7 @@ describe('source release lifecycle status', () => {
       INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-pland-pu', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-pu' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
     `)
 
     await insertDataset(
