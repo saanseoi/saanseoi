@@ -1,7 +1,5 @@
 import { afterEach, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { readFileSync } from 'node:fs'
-import { URL as NodeURL } from 'node:url'
 import { rollUpApiKeyUsage } from './apiKeyUsageRollup'
 
 const originalFetch = globalThis.fetch
@@ -20,17 +18,14 @@ function fixture() {
     CREATE TABLE apiKey (id TEXT PRIMARY KEY);
     CREATE TABLE apiKeyUsage (api_key_id TEXT, window TEXT, window_started_at INTEGER, request_count INTEGER,
       PRIMARY KEY (api_key_id, window, window_started_at));
+    CREATE TABLE apiKeyUsageRollup (
+      id TEXT PRIMARY KEY,
+      datasets TEXT NOT NULL,
+      revision TEXT NOT NULL,
+      completed_through INTEGER NOT NULL
+    );
     INSERT INTO apiKey VALUES ('key-123');
   `)
-  sqlite.exec(
-    readFileSync(
-      new NodeURL(
-        '../../../../libs/db/migrations/meta/20260906175725_wooden_celestials/migration.sql',
-        import.meta.url,
-      ),
-      'utf8',
-    ),
-  )
   let fail: (sql: string) => boolean = () => false
   const db = {
     prepare(query: string) {
