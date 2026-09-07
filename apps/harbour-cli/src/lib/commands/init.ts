@@ -158,6 +158,7 @@ export async function runInitialisationCommand(
     key =>
       !(key === 'continue' && supportsContinue) &&
       !(key === 'target' && supportsTarget) &&
+      key !== 'skip-curation-checks' &&
       key !== 'no-cache-artefacts',
   )
   const target = args.options.target
@@ -166,6 +167,8 @@ export async function runInitialisationCommand(
     !command ||
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
+    (args.options['skip-curation-checks'] !== undefined &&
+      args.options['skip-curation-checks'] !== true) ||
     (args.options.continue !== undefined && args.options.continue !== true) ||
     (args.options['no-cache-artefacts'] !== undefined && !cacheArtefacts) ||
     (target !== undefined &&
@@ -177,6 +180,7 @@ export async function runInitialisationCommand(
       ...(supportsTarget ? ['`--target local|preview|production`'] : []),
       ...(supportsContinue ? ['`--continue`'] : []),
       '`--no-cache-artefacts`',
+      '`--skip-curation-checks`',
     ]
     const suffix =
       acceptedOptions.length > 0
@@ -220,6 +224,7 @@ export async function runInitialisationCommand(
       resolve(REPO_ROOT, command.script),
       ...(typeof target === 'string' ? ['--target', target] : []),
       ...(args.options.continue ? ['--continue'] : []),
+      ...(args.options['skip-curation-checks'] ? ['--skip-curation-checks'] : []),
       ...(!cacheArtefacts ? ['--no-cache-artefacts'] : []),
     ],
     cwd: REPO_ROOT,

@@ -13,6 +13,37 @@ import { parseInitialisationSummaryEvents } from './initialisationSummary.ts'
 describe('initialisation commands', () => {
   const repoRoot = resolve(import.meta.dir, '../../../../..')
 
+  test('broadcasts curation bypass to child initialisers but not lifecycle commands', () => {
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+        source scripts/init/common.fish
+        ${readFileSync(resolve(repoRoot, 'scripts/init/common.fish'), 'utf8')
+          .match(/function init_run_step\n[\s\S]*?\nend/)?.[0]
+          .replace('    $argv\n', "    string join ' ' -- $argv[2..-1]\n")}
+        init_configure test --skip-curation-checks
+        init_run_step ./bin/saanseoi init:addresses --target local
+        init_run_step ./bin/saanseoi init:addresses:saanseoi --target local
+        init_run_step ./bin/saanseoi init:addresses:saanseoi:begin --target local
+        string join ' ' -- $saanseoi_init_curation_args
+        exit 0
+      `,
+      ],
+      cwd: repoRoot,
+    })
+    expect(result.stderr.toString()).toBe('')
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout.toString().trim().split('\n')).toEqual([
+      'init:addresses --target local --skip-curation-checks',
+      'init:addresses:saanseoi --target local --skip-curation-checks',
+      'init:addresses:saanseoi:begin --target local',
+      '--skip-curation-checks',
+    ])
+  })
+
   test('maps each supported family and domain to a dedicated script', () => {
     expect(resolveInitialisationCommand('init')).toEqual({
       script: 'scripts/init/all.fish',
