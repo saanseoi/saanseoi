@@ -65,6 +65,15 @@ export function wideApiDomainReleaseNote(message: string) {
     configurable: true,
     value: API_DOMAIN_RELEASE_WIDTH,
   })
+  // Clack applies formatBorder to the box but not to its inherited guide.
+  // Keep the guide aligned with the muted box border in update output.
+  Object.defineProperty(output, 'write', {
+    configurable: true,
+    value: (chunk: string | Uint8Array) =>
+      process.stdout.write(
+        typeof chunk === 'string' ? formatMutedBoxGuide(chunk) : chunk,
+      ),
+  })
 
   box(message, 'API DOMAIN RELEASE', {
     contentPadding: 0,
@@ -72,6 +81,10 @@ export function wideApiDomainReleaseNote(message: string) {
     output,
     width: 1,
   })
+}
+
+export function formatMutedBoxGuide(value: string) {
+  return value.replace(/^│ /gmu, `${mutedText('│')} `)
 }
 
 function formatResourceType(resourceType: string) {
@@ -126,6 +139,11 @@ export async function logApiReleaseSetPublication(
   for (const publication of publications) {
     log.success(
       `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
+      {
+        secondarySymbol: mutedText('│'),
+        spacing: 2,
+        withGuide: true,
+      },
     )
     await recordInitialisationSummaryEvent({
       apiReleaseSetCode: publication.apiReleaseSetCode,
