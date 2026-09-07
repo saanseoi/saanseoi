@@ -31,7 +31,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
       meta.exec(
-        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblyRuns(snapshotId,snapshotAssemblyId); CREATE TABLE snapshotAssembly(id); CREATE TABLE snapshotAssemblySources(snapshotAssemblyId); CREATE TABLE snapshotSources(snapshotId); CREATE TABLE releaseShardAssignments(releaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(releaseId); CREATE TABLE stats(releaseId);",
+        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblyRuns(snapshotId,snapshotAssemblyId); CREATE TABLE snapshotAssembly(id); CREATE TABLE snapshotAssemblySources(snapshotAssemblyId); CREATE TABLE snapshotSources(snapshotId); CREATE TABLE releaseShardAssignments(releaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(releaseId); CREATE TABLE releaseProcessingActionChunks(releaseId); CREATE TABLE stats(releaseId);",
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(

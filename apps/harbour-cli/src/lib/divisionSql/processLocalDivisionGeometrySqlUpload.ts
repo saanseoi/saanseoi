@@ -1,3 +1,4 @@
+import { resolveIdentityCuration } from '../identityCurations'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
@@ -336,29 +337,10 @@ export async function processLocalDivisionGeometrySqlUpload(
       ? null
       : providerBridgeConfig !== null
         ? new Map(
-            (
-              await metaDb
-                .select({
-                  externalId: metaSchema.metaIdentifierBridges.externalId,
-                  externalCode: metaSchema.metaIdentifierBridges.externalCode,
-                  canonicalId: metaSchema.metaIdentifierBridges.canonicalId,
-                })
-                .from(metaSchema.metaIdentifierBridges)
-                .where(
-                  and(
-                    eq(metaSchema.metaIdentifierBridges.resourceType, 'division'),
-                    eq(
-                      metaSchema.metaIdentifierBridges.cohortKey,
-                      providerBridgeConfig.cohortKey ?? previewPlan.cohortKey,
-                    ),
-                    eq(metaSchema.metaIdentifierBridges.domain, 'administrative'),
-                    eq(
-                      metaSchema.metaIdentifierBridges.authority,
-                      providerBridgeConfig.authority,
-                    ),
-                  ),
-                )
-                .all()
+            resolveIdentityCuration(
+              providerBridgeConfig.authority,
+              providerBridgeConfig.cohortKey ?? previewPlan.cohortKey,
+              'administrative',
             ).flatMap(row => [
               [row.externalId, row.canonicalId] as const,
               [row.externalCode, row.canonicalId] as const,

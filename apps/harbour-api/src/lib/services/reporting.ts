@@ -147,17 +147,11 @@ export async function listProcessingActions(
 ): Promise<ProcessingActionReportRow[]> {
   const query = db
     .select({
-      action: releaseProcessingActions.action,
-      affectedRecordCount: releaseProcessingActions.affectedRecordCount,
-      createdAt: releaseProcessingActions.createdAt,
+      ...auditSummarySelection,
       datasetCode: metaDatasets.code,
-      evidence: releaseProcessingActions.evidence,
-      id: releaseProcessingActions.id,
-      mode: releaseProcessingActions.mode,
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       source: metaPublishers.code,
-      summary: releaseProcessingActions.summary,
       type: metaReleases.resourceType,
       updatedAt: releaseProcessingActions.updatedAt,
     })
@@ -194,9 +188,9 @@ export async function listProcessingActions(
           : query.where(inArray(metaReleases.id, releaseIdBatch)).all(),
       ),
     )
-  ).flat() as ProcessingActionQueryRow[]
+  ).flat()
 
-  return rows.map(row => ({
+  return (await readAuditPages(db, rows)).map(row => ({
     ...row,
     createdAt: toIsoString(row.createdAt) ?? '',
     evidence: normaliseJsonField(row.evidence),
@@ -396,3 +390,7 @@ export type {
   ListStatsOptions,
   ReleaseReportRow,
 } from './reportingTypes.ts'
+import {
+  auditSummarySelection,
+  readAuditPages,
+} from '@repo/core/pipeline/db/processingActionStorage'

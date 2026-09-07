@@ -218,10 +218,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       plan.sourceVersion,
     )
     const districtsBySourceCode = bridgeCohort
-      ? await resolveHkgovCenstatdDistrictBridge(metaDb, bridgeCohort)
+      ? await resolveHkgovCenstatdDistrictBridge(bridgeCohort)
       : null
     const newTownsBySourceCode = newTownBridgeCohort
-      ? await resolveHkgovCenstatdNewTownBridge(metaDb, newTownBridgeCohort)
+      ? await resolveHkgovCenstatdNewTownBridge(newTownBridgeCohort)
       : null
     const canonicalInput = rows.map(row => {
       const properties = object(row.rawProperties, 'rawProperties')

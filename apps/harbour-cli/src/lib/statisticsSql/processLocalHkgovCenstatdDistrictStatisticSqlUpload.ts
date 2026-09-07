@@ -227,7 +227,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     const resolutionBySourceDistrictCode = await runStatisticProgressStep(
       progress,
       { action: 'Prepare', count: 18, subject: 'canonical districts' },
-      () => resolveHkgovCenstatdDistrictBridge(metaDb, '2021'),
+      () => resolveHkgovCenstatdDistrictBridge('2021'),
     )
     const sourceRows = await runStatisticProgressStep(
       progress,

@@ -37,6 +37,10 @@ let mapPreviewRuntime:
       worker: string
     }>
   | undefined
+// Embedded previews are opened directly from local `file:` URLs. MapLibre's worker
+// loader still resolves its module URL even when a worker blob is supplied, so it
+// needs an absolute base rather than an empty build-time `import.meta.url` value.
+const mapPreviewModuleUrl = JSON.stringify('https://api.saanseoi.hk/map-preview.mjs')
 
 async function getMapPreviewAccessToken() {
   const configured = process.env.SAANSEOI_MAP_PREVIEW_API_KEY?.trim()
@@ -67,14 +71,14 @@ function getMapPreviewRuntime() {
     const [library, worker] = await Promise.all([
       Bun.build({
         entrypoints: [entryPath],
-        define: { 'import.meta.url': '""' },
+        define: { 'import.meta.url': mapPreviewModuleUrl },
         format: 'iife',
         minify: true,
         target: 'browser',
       }),
       Bun.build({
         entrypoints: [new URL('maplibre-gl-worker.mjs', maplibreDirectory).pathname],
-        define: { 'import.meta.url': '""' },
+        define: { 'import.meta.url': mapPreviewModuleUrl },
         format: 'iife',
         minify: true,
         target: 'browser',

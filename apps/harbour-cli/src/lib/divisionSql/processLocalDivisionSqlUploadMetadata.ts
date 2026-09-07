@@ -148,12 +148,8 @@ export async function buildDivisionMetaSqlFile(
     )
   }
 
-  const [processingActionRows, processingStatsRows] = await Promise.all([
-    metaDb
-      .select()
-      .from(releaseProcessingActions)
-      .where(eq(releaseProcessingActions.releaseId, releaseId))
-      .all(),
+  const [auditSql, processingStatsRows] = await Promise.all([
+    readAuditReplaySql(metaDb, releaseId),
     metaDb
       .select()
       .from(stats)
@@ -200,18 +196,6 @@ export async function buildDivisionMetaSqlFile(
       updatedAt: row.updatedAt,
     })
   }
-
-  const actionRows = processingActionRows.map(row => ({
-    id: row.id,
-    releaseId: row.releaseId,
-    action: row.action,
-    mode: row.mode,
-    summary: row.summary,
-    affectedRecordCount: row.affectedRecordCount,
-    evidence: jsonText(row.evidence),
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }))
 
   const statements = [
     ...buildInsertStatements(
@@ -349,22 +333,7 @@ ON CONFLICT(id) DO UPDATE SET
         suffix: `ON CONFLICT(snapshotId, dataShardId) DO NOTHING`,
       },
     ),
-    `DELETE FROM releaseProcessingActions WHERE releaseId = ${sqlLiteral(releaseId)};`,
-    ...buildInsertStatements(
-      'releaseProcessingActions',
-      [
-        'id',
-        'releaseId',
-        'action',
-        'mode',
-        'summary',
-        'affectedRecordCount',
-        'evidence',
-        'createdAt',
-        'updatedAt',
-      ],
-      actionRows,
-    ),
+    ...auditSql,
     `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)};`,
     ...buildInsertStatements(
       'stats',
@@ -394,3 +363,4 @@ ON CONFLICT(id) DO UPDATE SET
     statements,
   )
 }
+import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'

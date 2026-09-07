@@ -286,7 +286,6 @@ function resolveExpectedTablesForBinding(
       'snapshotAssembly',
       'snapshotAssemblySources',
       'snapshotAssemblyRuns',
-      'identifierBridges',
     ]
   }
 

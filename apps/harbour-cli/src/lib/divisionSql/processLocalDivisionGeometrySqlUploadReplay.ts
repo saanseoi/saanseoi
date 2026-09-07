@@ -258,6 +258,7 @@ function readGeometryReplayMetadata(
     ['releaseShardAssignments', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
     ['snapshotShardAssignments', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
     ['releaseProcessingActions', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+    ['releaseProcessingActionChunks', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
     ['stats', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
   ] as const
 
