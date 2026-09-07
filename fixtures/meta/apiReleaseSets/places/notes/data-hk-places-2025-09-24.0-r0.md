@@ -86,11 +86,13 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Place collection 以此 cohort 的 Overture Place 發布為錨點。Places
-  API 目前不會公開原始來源記錄。請使用 <black>profile=full</black>
-  保留發布者歸屬，然後把 release、canonical Place ID 及
-  <black>attributes.sources[].record_id</black> 交給可存取確切 Overture
-  release 的工具或 LLM。
+- Place collection 以此 cohort 的 Overture Place 來源發布為基礎。使用
+  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>
+  尋找其來源發布。使用
+  <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
+  讀取保留的 Overture 記錄。沿 <black>nextCursor</black> 取得後續 JSON 頁面，或加入
+  <black>format=ndjson</black> 串流傳輸記錄。加入 <black>include=geometry</black>
+  可另行取得保留的來源幾何資料。
 - 地址背景資料屬於補充資料。只有在 Place 地址能與所選 ALS snapshot 配對時，才會填入
   `address2dId`；此版本不會解析
   `address3dId`。未配對的發布者地址會保留為來源資料，不會建立或修改官方 ALS 地址。
@@ -125,11 +127,13 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Place collection 以此 cohort 的 Overture Place 发布为锚点。Places
-  API 目前不会公开原始源记录。请使用 <black>profile=full</black>
-  保留发布者归属，然后将 release、canonical Place ID 及
-  <black>attributes.sources[].record_id</black> 交给可访问确切 Overture
-  release 的工具或 LLM。
+- Place collection 以此 cohort 的 Overture Place 源发布为基础。使用
+  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>
+  查找其源发布。使用
+  <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
+  读取保留的 Overture 记录。沿 <black>nextCursor</black> 获取后续 JSON 页面，或添加
+  <black>format=ndjson</black> 流式传输记录。添加 <black>include=geometry</black>
+  可另行获取保留的源几何数据。
 - 地址背景数据属于补充数据。只有在 Place 地址能与所选 ALS snapshot 匹配时，才会填入
   `address2dId`；此版本不会解析
   `address3dId`。未匹配的发布者地址会保留为源数据，不会创建或修改官方 ALS 地址。

@@ -69,8 +69,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- 此 domain 只包含<black>聚居地名稱</black>，並非<black>區議會分區</black>或行政層級。<black>Hydrographic</black>
-  及 <black>Topographic</black> 來源記錄仍在 Divisions projection 以外。
+- 此 domain 只包含<black>聚居地名稱</black>，不提供行政層級。
+- <black>Hydrographic</black> 及 <black>Topographic</black>
+  來源記錄仍在 Divisions 投影以外。
 - 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
 - 請參閱 <black>{{ primarySourceRelease }}</black>
   的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
@@ -100,8 +101,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- 此 domain 只包含<black>聚居地名称</black>，并非<black>区议会分区</black>或行政层级。<black>Hydrographic</black>
-  及 <black>Topographic</black> 源记录仍在 Divisions projection 以外。
+- 此 domain 只包含<black>聚居地名称</black>，不提供行政层级。
+- <black>Hydrographic</black> 及 <black>Topographic</black>
+  源记录仍在 Divisions 投影以外。
 - 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
 - 请参阅 <black>{{ primarySourceRelease }}</black>
   的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。
