@@ -186,6 +186,20 @@ guards match. An unresolved guard mismatch does not fail preparation or apply th
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
 emit collections referencing removed address owners.
 
+The house-retention fixture also retains refuse collection point CSU
+`3796421950T20050430` at 183 Tung Tau Tsuen Road until revoked, including releases after
+its June 2025 source disappearance. Exact 2D assertion hashes guard the retained
+evidence. It has no 3D inventory and is excluded from 3D retention. Its canonical
+English building label is Tung Tau (II) Estate Refuse Collection Point; raw `TUNG TAU`
+and `東頭（二）邨垃圾站` labels remain in provenance. No residential inventory or
+estate-level identity is inferred.
+
+Shek Kip Mei Phase 2 unnamed CSU `3532121484T20121220` is suppressed only for its
+reviewed July and August 2026 assertions, guarded by the complete source-feature hash,
+including bilingual inventory and identity. Both named houses retain their separate
+779-unit inventories. Raw assertions and 2D addresses remain intact; neither a shared
+inventory parent nor a block-number correction is inferred.
+
 Approved issue-batch evidence mismatches warn instead of stopping under
 `--skip-curation-checks`. The unresolved decision leaves its records unchanged, and
 other matching decisions continue to apply.
@@ -210,6 +224,24 @@ delivery dates, not asserted closure dates. Historical assertions remain availab
 these premises are not forward-filled. Pak Tin Shopping Centre remains a separate
 premise. Exact chronology fingerprints in `hkgov-dpo-address-history-decisions.json`
 guard the accepted removal events.
+
+Yung Shing's `8 Fai Ming Road` and `22 Wah Ming Road` entries are two valid addresses of
+one physical building, guarded by `hkgov-dpo-address-yung-shing-shared-building.json`.
+Both address records and bilingual source labels remain available with `building`
+granularity. They share an explicit physical-building identifier and inventory-owner
+reference; Address3D emits one 138-unit collection containing references to both
+original assertions. Neither address is modelled as a subordinate section.
+
+Hin Fat House retains its 872-unit inventory across all reviewed releases from
+January 2025. Its reviewed estate membership aligns the early 2D and 3D assertions; the
+later evidence dates remain explicit. Yip Wong's Yip Wo, Yip Tsz, Yip Tak and Yip Sin
+Houses retain independent identities and inventories of 684, 680, 888 and 1,036 units
+from the July 2024 baseline until revoked. These rules reconstruct missing named 2D
+owners as well as 3D inventories, even where the estate is wholly absent from that
+release's district delivery. Exact source hashes guard each omission and reappearance;
+future retained releases are marked unverified. Earlier evidence is backfilled only for
+these explicitly approved houses, without changing other retention rules' dated-evidence
+requirements.
 
 `hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
 house assertions. Queens Hill's Wong Ching, Wong Lok, Wong Wui and Wong Yi Houses retain
@@ -280,6 +312,23 @@ publisher CSU nor GeoAddress nor house inventories.
 
 Tsz Fai House's exact `418A/B/C` to `418` merger is dated 13 August 2025. Flat `419`
 starts on that same date as a new flat and is not backfilled into earlier releases.
+
+`hkgov-dpo-address-yau-yue-decisions.json` retains separate street-bearing complexes for
+Yau Lai Estate at 9 Yau Tong Road, Yau Oi Estate at 3 Yau Oi Road and Yue Wan Estate at
+365 Chai Wan Road. Yau Lai's other estate premises reference the complex as their
+parent; the Fung Lai/Ying Lai identity and inventory ambiguity is left unchanged. Exact
+source assertions and their evidence dates guard the retained complexes, with publisher
+identifiers kept only in provenance rather than assigned to the derived estate
+identities.
+
+The same fixture removes only Yue Wan's unnamed CSU `4304314177T20050430` across the
+reviewed releases. Both that assertion and the separately retained named pump house are
+checked against release-specific hashes. The discarded assertion remains provenance,
+including its later GeoAddress changes; no pump-house or residential inventory is moved.
+Yiu Cheong House's `412A/B/C`, `212A/B/C` and `213A/B` mergers are backfilled to the
+start of retained history, producing 272 units with exact bilingual inventory guards. Oi
+Hei House retains CSU `1545427760T20050430`, which is already unchanged throughout the
+retained releases; this decision does not change its separate GeoAddress or geometry.
 
 Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
 omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23

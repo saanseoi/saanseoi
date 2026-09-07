@@ -4,6 +4,7 @@ import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { linkAlsStructuredBlocks } from './hkgovAlsStructuredBlocks'
 import { applyLongShinHierarchy } from './hkgovAlsLongShin'
 import { applyKoYeeEstateOwnership } from './hkgovAlsReviewedEstateOwnership'
+import { applyYungShingSharedBuilding } from './hkgovAlsYungShingSharedBuilding'
 
 const NAMESPACE = 'b2da2675-daca-5920-a99e-c4d562a4c950'
 type HierarchyRow = PreparedHkgovAlsRow & {
@@ -18,6 +19,8 @@ export function applyAlsAddressHierarchies(
   sourceVersion: string,
 ) {
   const ownership = applyLongShinHierarchy(rows, sourceVersion)
+  for (const [id, owner] of applyYungShingSharedBuilding(rows, sourceVersion))
+    ownership.set(id, owner)
   for (const [id, owner] of applyKoYeeEstateOwnership(rows, sourceVersion))
     ownership.set(id, owner)
   const sourceByCsu = new Map<string, HierarchyRow[]>()

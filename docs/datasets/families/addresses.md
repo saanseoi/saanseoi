@@ -1,5 +1,13 @@
 # Addresses dataset family
 
+Tung Tau (II) Estate Refuse Collection Point is retained at 183 Tung Tau Tsuen Road
+throughout retained releases until revoked. Its facility label does not promote it to
+estate granularity, and publisher assertions remain provenance.
+
+Shek Kip Mei Phase 2 retains separate 779-unit inventories for Mei Leong and Mei Wui.
+Its reviewed unnamed 780-unit assertion is suppressed from collections, not deleted from
+raw source evidence or added to the residential total.
+
 Reviewed ALS complex promotions retain residential 3D inventories on their explicit
 building owner. Duplicate source assertions must agree on inventory and retain both
 source references.
@@ -362,6 +370,20 @@ and the reviewed Shek Mun estate assertion is suppressed. Pok Hong Community Hal
 street number 6H throughout; Sha Kok's school extension retains its specific label
 separately from the main school and campus. Sau King retains its 799 flats with the
 user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidence.
+
+Yung Shing retains two valid building-level street addresses with a shared physical
+identity and one 138-unit inventory; alternate addresses do not imply subordinate
+sections. Hin Fat's full 872-unit inventory covers the reviewed releases from
+January 2025. Yip Wong's four houses retain their separate 3,288-unit total from the
+dataset baseline until revoked, with original assertions and actual evidence dates
+preserved.
+
+Yau Lai, Yau Oi and Yue Wan retain their reviewed street-bearing estate complexes. Yau
+Lai's estate membership supplies parent links without resolving or merging Fung Lai and
+Ying Lai. Yue Wan's separately reviewed unnamed pump-vicinity assertion is removed with
+exact source guards and retained provenance. Yiu Cheong's three approved flat-merger
+families are backfilled throughout retained history; such explicit approvals do not
+broaden the general dated-merger policy.
 
 Reviewed street-bearing estate identities use `complex` granularity independently of
 house inventories. Upper Ngau Tau Kok's 15 On Tak Road complex remains distinct from the

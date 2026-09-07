@@ -1,5 +1,6 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
+import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
 import { als3dHash, readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
 import {
@@ -8,13 +9,19 @@ import {
   type HkgovAlsCurationApplication,
 } from './hkgovAlsCurationLifecycle'
 import type { HkgovAlsSourceFeature, PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import {
+  formatEnPremisesAddress,
+  formatZhPremisesAddress,
+} from './hkgovAlsNormalisation'
 
 const curationFile = 'hkgov-dpo-address-house-retentions.json'
 type Rule = (typeof fixture.retentions)[number]
 const premise = (f: Als3dFeature) => f.properties.Address.PremisesAddress
 function active(version: string) {
   return fixture.retentions.flatMap(rule => {
-    const application = rule.application as HkgovAlsCurationApplication
+    const application = (rule.application ?? undefined) as
+      | HkgovAlsCurationApplication
+      | undefined
     const verification = resolveHkgovAlsCurationVerification(
       version,
       rule.sourceVersions,
@@ -53,7 +60,10 @@ function retain(
   const assertion =
     assertions.find(a => a.sourceVersions.includes(version)) ??
     assertions.find(a =>
-      a.sourceVersions.includes(rule.application.lastVerifiedSourceVersion),
+      a.sourceVersions.includes(
+        rule.application?.lastVerifiedSourceVersion ??
+          requireDefined(rule.sourceVersions.at(-1)),
+      ),
     )
   assert(assertion, `House retention ${rule.id}: missing reviewed release`)
   assert.deepEqual(
@@ -68,17 +78,45 @@ function retain(
       premise(f).BuildingCsuInformation?.CsuId === rule.csus[0] &&
       (kind === '2d' || premise(f).EngPremisesAddress?.Eng3dAddress?.length),
   )
-  const dated = evidence
+  const datedEvidence = evidence
     .flatMap(e =>
       e.sourceVersions.filter(v => v <= version).map(v => ({ e, version: v })),
     )
     .sort((a, b) => a.version.localeCompare(b.version))
     .at(-1)
+  const dated =
+    datedEvidence ??
+    ('backfillBeforeEvidence' in rule && rule.backfillBeforeEvidence
+      ? evidence
+          .flatMap(e => e.sourceVersions.map(version => ({ e, version })))
+          .sort((a, b) => a.version.localeCompare(b.version))[0]
+      : undefined)
   const chosen = rule.retainOriginalCoordinates ? evidence[0] : dated?.e
   assert(chosen, `House retention ${rule.id}: missing dated evidence`)
   const feature = structuredClone(
     !rule.retainOriginalCoordinates && rich ? rich : chosen.feature,
   ) as Als3dFeature
+  if (
+    'canonicalEnBuildingName' in rule &&
+    typeof rule.canonicalEnBuildingName === 'string'
+  ) {
+    requireDefined(premise(feature).EngPremisesAddress).BuildingName =
+      rule.canonicalEnBuildingName
+  }
+  if ('backfillBeforeEvidence' in rule && rule.backfillBeforeEvidence) {
+    const bilingual = rule.evidence2d.find(
+      e => e.feature.properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate,
+    )?.feature.properties.Address.PremisesAddress
+    assert(
+      bilingual?.ChiPremisesAddress.ChiEstate,
+      `House retention ${rule.id}: missing reviewed estate membership`,
+    )
+    const p = premise(feature)
+    requireDefined(p.EngPremisesAddress).EngEstate = { EstateName: rule.estate }
+    requireDefined(p.ChiPremisesAddress).ChiEstate = {
+      EstateName: bilingual.ChiPremisesAddress.ChiEstate.EstateName,
+    }
+  }
   return {
     feature,
     evidenceSourceVersion: !rule.retainOriginalCoordinates
@@ -98,6 +136,17 @@ export function retainAlsHouses(features: HkgovAlsSourceFeature[], version: stri
         s =>
           s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress?.EngEstate
             ?.EstateName === rule.estate,
+      ) &&
+      !(
+        'materialiseWithoutEstate' in rule &&
+        rule.materialiseWithoutEstate &&
+        features.some(
+          s =>
+            s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
+              ?.EngDistrict ===
+            rule.evidence2d[0]?.feature.properties.Address.PremisesAddress
+              .EngPremisesAddress.EngDistrict,
+        )
       )
     )
       continue
@@ -139,6 +188,35 @@ export function labelAlsHouseRetentions(
         hkgovAlsHouseRetention: provenance.get(requireDefined(row.hkgovCsuId)),
       })
       row.identityMatchMethod = 'reviewed-house-retention'
+      const rule = fixture.retentions.find(rule =>
+        rule.csus.includes(row.hkgovCsuId ?? ''),
+      )
+      if (rule && 'backfillBeforeEvidence' in rule && rule.backfillBeforeEvidence) {
+        const bilingual = rule.evidence2d.find(
+          e =>
+            e.feature.properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate,
+        )?.feature.properties.Address.PremisesAddress
+        assert(
+          bilingual?.ChiPremisesAddress.ChiEstate,
+          `House retention ${rule.id}: missing bilingual estate evidence`,
+        )
+        row.enEstateName = rule.estate
+        row.zhHantEstateName = bilingual.ChiPremisesAddress.ChiEstate.EstateName
+        row.enFormattedAddress = formatEnPremisesAddress({
+          ...JSON.parse(requireDefined(row.engPremisesAddressJson)),
+          EngEstate: { EstateName: row.enEstateName },
+        })
+        row.zhHantFormattedAddress = formatZhPremisesAddress({
+          ...JSON.parse(requireDefined(row.chiPremisesAddressJson)),
+          ChiEstate: { EstateName: row.zhHantEstateName },
+        })
+        const id = `ss-${buildDeterministicUuidV5('3fc33c3e-2837-4fc7-a331-439be8c2c981', rule.id)}`
+        row.identityAlias = row.id
+        row.id = row.canonicalId = row.identityBuildingId = id
+        row.identityKey =
+          row.identityContinuityKey = `reviewed-house-retention:${rule.id}`
+        row.identitySummary = { ...row.identitySummary, estateName: rule.estate }
+      }
     }
 }
 
@@ -148,8 +226,10 @@ export async function* readAls3dWithHouseRetentions(
   version: string,
   rows: PreparedHkgovAlsRow[],
 ) {
-  const rules = active(version).filter(({ rule }) =>
-    rows.some(r => r.enEstateName === rule.estate),
+  const rules = active(version).filter(
+    ({ rule }) =>
+      !('addressOnly' in rule && rule.addressOnly) &&
+      rows.some(r => r.enEstateName === rule.estate),
   )
   const captured = new Map<
     Rule,

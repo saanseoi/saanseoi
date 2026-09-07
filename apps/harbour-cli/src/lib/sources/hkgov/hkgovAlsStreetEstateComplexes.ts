@@ -3,6 +3,7 @@ import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-street-estate-complexes.json'
 import upperFixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-upper-estate-complexes.json'
+import yauYueFixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-yau-yue-decisions.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
 import {
   curationProvenance,
@@ -20,8 +21,16 @@ type Rule = (typeof fixture.rules)[number] & {
   sourceCsu?: string
   retainSourcePremise?: boolean
   streetOverride?: { en: string; zh: string; number: string } | null
+  curationFile?: string
 }
-const rules: Rule[] = [...fixture.rules, ...upperFixture.rules]
+const rules: Rule[] = [
+  ...fixture.rules,
+  ...upperFixture.rules,
+  ...yauYueFixture.rules.map(rule => ({
+    ...rule,
+    curationFile: 'hkgov-dpo-address-yau-yue-decisions.json',
+  })),
+]
 function active(version: string) {
   return rules.flatMap(rule => {
     const application = rule.application as HkgovAlsCurationApplication | null,
@@ -61,9 +70,9 @@ export function applyReviewedStreetEstateComplexes(
 ) {
   let count = 0
   for (const { rule, curation } of active(version)) {
-    const curationFile = rule.sourceCsu
-      ? 'hkgov-dpo-address-upper-estate-complexes.json'
-      : sourceFile
+    const curationFile =
+      rule.curationFile ??
+      (rule.sourceCsu ? 'hkgov-dpo-address-upper-estate-complexes.json' : sourceFile)
     const estateRows = rows.filter(r => r.enEstateName === rule.estate)
     if (!estateRows.length) continue
     const aliases = estateRows.filter(r => {
@@ -195,6 +204,26 @@ export function applyReviewedStreetEstateComplexes(
     delete derived.identityPreviousSummary
     const discard = new Set(rule.retainSourcePremise ? [] : aliases)
     rows.splice(0, rows.length, ...rows.filter(r => !discard.has(r)), derived)
+    if (rule.id === 'yau-lai-street-complex') {
+      for (const child of estateRows.filter(row => !discard.has(row))) {
+        assert.equal(
+          child.zhHantEstateName,
+          zh.ChiEstate.EstateName,
+          'Yau Lai estate parent: bilingual membership changed',
+        )
+        if (child.parentAddressId) continue
+        child.parentAddressId = id
+        child.sources = JSON.stringify({
+          ...JSON.parse(child.sources),
+          reviewedEstateParent: {
+            id: rule.id,
+            parentAddressId: id,
+            sourceFile: curationFile,
+            sourceVersion: version,
+          },
+        })
+      }
+    }
     count++
   }
   return { complexCount: count }
