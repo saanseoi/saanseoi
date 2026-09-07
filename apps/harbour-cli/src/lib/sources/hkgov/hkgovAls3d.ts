@@ -19,7 +19,11 @@ export type Als3dLocale = {
   ChiDistrict?: string
   EngEstate?: { EstateName?: string }
   ChiEstate?: { EstateName?: string }
-  EngBlock?: { BlockNo?: string; BlockDescriptor?: string }
+  EngBlock?: {
+    BlockNo?: string
+    BlockDescriptor?: string
+    BlockDescriptorPrecedenceIndicator?: string
+  }
   ChiBlock?: { BlockNo?: string; BlockDescriptor?: string }
   EngStreet?: { StreetName?: string; BuildingNoFrom?: string; BuildingNoTo?: string }
   ChiStreet?: { StreetName?: string; BuildingNoFrom?: string; BuildingNoTo?: string }

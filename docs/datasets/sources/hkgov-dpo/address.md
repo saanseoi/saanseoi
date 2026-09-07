@@ -145,14 +145,13 @@ the ordinary identity and division pipeline; later publisher assertions retain t
 normalised identities. Existing unnamed same-CSU premises remain separate source
 records.
 
-Reviewed duplicate address descriptions are stored in `hkgov-dpo-address-aliases.json`.
-The ten reviewed Cheung Wah Estate block-number assertions are consolidated across the
-30 retained releases after their shared inventories pass validation. Each canonical HA
-house name carries its verified bilingual block components and remains the sole owner of
-the 5,120 units. All twenty raw 3D assertions and the suppressed 2D source components
-remain traceable. Matching CSU alone never authorises suppression; the bilingual
-components must match after removal of the explicitly reviewed block alias, with equal
-coordinates.
+When a uniquely matching bilingual ALS 2D parent lacks a block while its ALS 3D parent
+supplies matching `BLK n` and `n座` components, SaanSeoi enriches the canonical
+Address2D with the existing building and block fields. The rule requires the same CSU,
+estate, building name, street and number components in both languages. It records the
+exact 3D source feature in Address2D provenance and as a release processing action.
+Missing, ambiguous or non-standard components stop Address3D preparation for review
+rather than creating another Address2D record.
 
 Fortune Estate Carpark's reviewed estate-component restoration fills the five-release
 April–July 2026 gap in derived fields and formatted addresses. Exact versions, CSU and

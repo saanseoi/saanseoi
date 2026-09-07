@@ -8,6 +8,7 @@ import type {
 } from './hkgovAlsDrift.ts'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/stats'
+import type { HkgovAls3dParentBlockEnrichment } from './hkgovAls3dBlockEnrichment.ts'
 
 export type PrepareHkgovAlsOptions = {
   dbPath?: string
@@ -143,6 +144,7 @@ export type HkgovLocalisedPremisesAddress = {
 }
 
 export type PreparedHkgovAlsRow = {
+  als3dParentBlockEnrichment?: HkgovAls3dParentBlockEnrichment
   parentAddressId?: string
   curatedGranularity?: 'complex' | 'building' | 'section'
   hierarchyCuration?: string

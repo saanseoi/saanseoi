@@ -260,6 +260,68 @@ describe('buildHkgovAlsProcessingActions', () => {
     })
   })
 
+  test('records each verified 3D parent block enrichment', () => {
+    const row = {
+      als3dParentBlockEnrichment: {
+        enBlock: { descriptor: 'BLK', ref: '6' },
+        hkgovCsuId: '123',
+        sourceFeatureIndexOneBased: 7,
+        sourceFile: 'als_addresses_3d.geojson',
+        sourceVersion: '2026-08-19.0',
+        suppressed2dSources: [
+          {
+            addressId: 'als-duplicate',
+            premises: { en: {}, zhHant: {} },
+            source: { featureIndexOneBased: 8, file: 'als_addresses.geojson' },
+            sources: {},
+          },
+        ],
+        zhHantBlock: { descriptor: '座', ref: '6' },
+      },
+      canonicalId: 'als-example',
+      chiPremisesAddressJson: null,
+      enFormattedAddress: 'BLK 6, EXAMPLE HOUSE',
+      engPremisesAddressJson: null,
+      identityKey: 'example-identity',
+      identityMatchMethod: 'als-premise',
+      identitySummary: {},
+      sourceFeatureIndexOneBased: 1,
+      sourceFile: 'als_addresses.geojson',
+      zhHantFormattedAddress: '示例樓6座',
+    } as unknown as Parameters<
+      typeof buildHkgovAlsProcessingActions
+    >[0]['resolvedRows'][number]
+
+    expect(
+      buildHkgovAlsProcessingActions({
+        decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+        identityEquivalentFeatureGroups: [],
+        resolvedRows: [row],
+        sourceDuplicateFeatureGroups: [],
+      }),
+    ).toContainEqual({
+      action: 'als_3d_parent_block_enriched',
+      affectedRecordCount: 1,
+      evidence: {
+        block: {
+          en: { descriptor: 'BLK', ref: '6' },
+          zhHant: { descriptor: '座', ref: '6' },
+        },
+        canonicalRecord: expect.any(Object),
+        hkgovCsuId: '123',
+        source: {
+          featureIndexOneBased: 7,
+          file: 'als_addresses_3d.geojson',
+          sourceVersion: '2026-08-19.0',
+        },
+        suppressed2dSourceIds: ['als-duplicate'],
+      },
+      mode: 'automatic',
+      summary:
+        'Enriched an exact bilingual ALS 2D parent with its verified ALS 3D block components.',
+    })
+  })
+
   test('records the field and prior value when an address component is dropped', () => {
     const row = {
       canonicalId: 'ss-example',
