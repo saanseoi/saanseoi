@@ -69,7 +69,6 @@ const {
   metaPublisherI18n,
   metaDataShards,
   metaPublishedDataJournal,
-  metaReleaseSetShardAssignments,
   metaReleaseShardAssignments,
   metaSourceReleases,
   metaSnapshotShardAssignments,
@@ -6093,21 +6092,6 @@ export async function resolveSnapshotReplayPlan(
     })
   }
   return result
-}
-
-export async function upsertReleaseSetShardAssignment(
-  db: HarbourWritableDb,
-  releaseSetId: string,
-  dataShardId: string,
-) {
-  await db
-    .insert(metaReleaseSetShardAssignments)
-    .values({
-      apiReleaseSetId: releaseSetId,
-      dataShardId,
-    })
-    .onConflictDoNothing()
-    .run()
 }
 
 export async function insertIngestRun(

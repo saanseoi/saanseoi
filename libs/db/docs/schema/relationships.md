@@ -53,8 +53,10 @@
 - `dataShards`
 
 - `apiReleaseSets`
-- -> routed to canonical current/history databases through
-- `releaseSetShardAssignments`
+- -> select snapshots through
+- `apiReleaseSetSnapshots`
+- -> replay each snapshot's parent chain using
+- `snapshotShardAssignments`
 - -> target shard rows are in
 - `dataShards`
 
