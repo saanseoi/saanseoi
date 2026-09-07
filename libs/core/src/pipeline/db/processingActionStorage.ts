@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, inArray, lt, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, gte, inArray, lt, sql } from 'drizzle-orm'
 import { metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { chunkArray, getMaxItemsPerInClause } from '../utils'
@@ -67,6 +67,7 @@ export async function readAuditSummaryPage<T extends AuditSummary>(
       and(
         eq(chunks.actionId, summary.id),
         eq(chunks.generation, summary.generation),
+        gte(chunks.firstOrdinal, Math.max(0, offset - 255)),
         lt(chunks.firstOrdinal, end),
         gt(sql`${chunks.firstOrdinal} + ${chunks.decisionCount}`, offset),
       ),

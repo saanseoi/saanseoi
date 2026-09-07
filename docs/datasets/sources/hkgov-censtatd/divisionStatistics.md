@@ -1,5 +1,10 @@
 # Census and Statistics Department division statistics
 
+Processing-action replay includes compressed evidence chunks, action/mode summaries and
+aggregate processing metrics. Individual mapping decisions remain available to audit
+reports; chunk sizes follow the
+[pipeline contract](../../pipeline.md#release-presentation-metadata).
+
 Local source and canonical SQL retain native delivery plans for both general and
 district Statistics imports. Publication clears local ownership only after their
 payloads have receipts; a failed replay keeps the owning release resumable.

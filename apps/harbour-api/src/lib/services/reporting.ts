@@ -23,7 +23,6 @@ import {
 import type {
   IngestRunReportRow,
   ListStatsOptions,
-  ProcessingActionQueryRow,
   ProcessingActionReportRow,
   ReleaseQueryRow,
   ReleaseReportRow,

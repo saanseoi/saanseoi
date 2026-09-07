@@ -1,5 +1,10 @@
 # Planning Department TPU and subunit areas
 
+Processing audits retain action/mode summaries and compressed D1 evidence chunks.
+Metadata replay includes the chunks and processing metrics, preserving individual
+mapping decisions for the
+[audit reports](../../pipeline.md#release-presentation-metadata).
+
 Local SQL artefact imports use native delivery receipts with named current, history,
 source and metadata bindings. The release can resume retained payloads after
 interruption; publication follows successful local delivery and releases database

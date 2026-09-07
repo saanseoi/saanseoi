@@ -1,5 +1,11 @@
 # Addresses dataset family
 
+Processing audits retain action/mode summaries and lossless, compressed evidence chunks
+in D1. Address SQL metadata replay includes both; reports decode individual decisions,
+including canonical ALS records and reviewed source variants. Chunk limits and
+generation replacement follow the
+[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+
 Local 2D and grouped 3D ingestion retain native SQL plans and transactional receipts.
 Restarting a local 2D workflow reuses its retained generation message; 3D plans preserve
 bound values and collection transaction boundaries. Publication follows both deliveries.

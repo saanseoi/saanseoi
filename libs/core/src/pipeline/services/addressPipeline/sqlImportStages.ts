@@ -948,16 +948,14 @@ async function execSqlWithBoundD1(
   }
 
   if (target.binding.batch) {
-    for (
-      let index = 0;
-      index < statements.length;
-      index += LOCAL_D1_BATCH_STATEMENT_COUNT
-    ) {
+    for (const batch of groupAuditSqlStatements(
+      statements,
+      LOCAL_D1_BATCH_STATEMENT_COUNT,
+    )) {
       await runWithWriteRetry(
         () =>
           target.binding?.batch?.(
-            statements
-              .slice(index, index + LOCAL_D1_BATCH_STATEMENT_COUNT)
+            batch
               .map(statement => target.binding?.prepare?.(statement))
               .filter(isLocalD1PreparedStatement),
           ),
@@ -970,6 +968,9 @@ async function execSqlWithBoundD1(
 
     return statements.length
   }
+
+  if (statements.includes(AUDIT_COMMIT_START))
+    throw new Error('Audit replay requires a transactional D1 batch binding.')
 
   for (const statement of statements) {
     await runWithWriteRetry(() => target.binding?.prepare?.(statement).run(), {
@@ -1228,3 +1229,7 @@ function parseSqlArtefactRowStart(key: string) {
 
   return Number.parseInt(rowStart, 10)
 }
+import {
+  groupAuditSqlStatements,
+  AUDIT_COMMIT_START,
+} from '../../db/processingActionSqlGroups'

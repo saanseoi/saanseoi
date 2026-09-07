@@ -18,7 +18,7 @@ import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createD1ImportClient } from '@repo/core/d1ImportApi'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
-import { and, currentSchema, eq, metaSchema, sql } from '@repo/db'
+import { and, currentSchema, eq, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { AnyColumn } from 'drizzle-orm'
 

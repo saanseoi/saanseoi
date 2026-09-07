@@ -7,7 +7,7 @@ import { migrateProcessingActionStorage } from './migrateProcessingActionStorage
 
 const migration = readFileSync(
   new URL(
-    '../../../../../../libs/db/migrations/meta/20260907075220_short_swordsman/migration.sql',
+    '../../../../../libs/db/migrations/meta/20260907075220_short_swordsman/migration.sql',
     import.meta.url,
   ),
   'utf8',
@@ -30,7 +30,7 @@ test('offline conversion preserves published decisions, original IDs and timesta
     .query('SELECT * FROM releaseProcessingActions ORDER BY id')
     .all()
     .map(row => ({
-      ...row,
+      ...(row as Record<string, unknown>),
       evidence: JSON.parse((row as { evidence: string }).evidence),
     }))
   expect(await migrateProcessingActionStorage(sqlite, migration)).toEqual({

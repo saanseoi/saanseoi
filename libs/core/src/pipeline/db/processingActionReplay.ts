@@ -1,9 +1,13 @@
 import type { HarbourReadableDb } from '../../lib/db/types'
-import type { MetaDatabase } from '@repo/db'
+import { metaSchema, type MetaDatabase } from '@repo/db'
+import { and, eq } from 'drizzle-orm'
+import type { ReleaseStatsRow } from '@repo/db/metaSchema'
 import type { MaterialisedReleaseProcessingActions } from './processingActions'
+import { AUDIT_COMMIT_START, AUDIT_COMMIT_END } from './processingActionSqlGroups'
 import {
   listReleaseAuditSummaries,
   readReleaseAuditChunks,
+  readAuditPages,
 } from './processingActionStorage'
 
 function literal(value: unknown): string {
@@ -37,11 +41,55 @@ export function buildAuditReplaySql(
     materialised.chunks.some(row => row.releaseId !== releaseId)
   )
     throw new Error('Audit replay release mismatch.')
+  const guards: string[] = []
+  const owned = new Set<string>()
+  for (const action of materialised.actions) {
+    const rows = materialised.chunks
+      .filter(
+        chunk => chunk.actionId === action.id && chunk.generation === action.generation,
+      )
+      .sort((a, b) => a.firstOrdinal - b.firstOrdinal || a.part - b.part)
+    let ordinal = 0
+    for (let index = 0; index < rows.length; ) {
+      const first = rows[index]!
+      if (
+        first.firstOrdinal !== ordinal ||
+        first.part !== 0 ||
+        first.parts < 1 ||
+        first.decisionCount < 1
+      )
+        throw new Error('Incomplete audit replay generation.')
+      for (let part = 0; part < first.parts; part++) {
+        const row = rows[index + part]
+        if (
+          !row ||
+          owned.has(row.id) ||
+          row.part !== part ||
+          row.parts !== first.parts ||
+          row.firstOrdinal !== ordinal ||
+          row.decisionCount !== first.decisionCount ||
+          row.payload.length > 32768
+        )
+          throw new Error('Invalid audit replay chunk.')
+        owned.add(row.id)
+      }
+      ordinal += first.decisionCount
+      index += first.parts
+    }
+    if (ordinal !== action.decisionCount)
+      throw new Error('Incomplete audit replay generation.')
+    guards.push(
+      `(SELECT count(*) FROM releaseProcessingActionChunks WHERE actionId = ${literal(action.id)} AND generation = ${literal(action.generation)}) = ${rows.length}`,
+    )
+  }
+  if (owned.size !== materialised.chunks.length)
+    throw new Error('Unowned audit replay chunks.')
   const stage = materialised.chunks.map(row =>
     insert('releaseProcessingActionChunks', row, 'ON CONFLICT(id) DO NOTHING'),
   )
   const commit = [
-    `UPDATE releases SET updatedAt = CASE WHEN status IN ('staged','processing') THEN updatedAt ELSE json('Immutable release audit') END WHERE id = ${literal(releaseId)};`,
+    AUDIT_COMMIT_START,
+    `UPDATE releases SET updatedAt = CASE WHEN status IN ('staged','processing') ${guards.length ? `AND ${guards.join(' AND ')}` : ''} THEN updatedAt ELSE json('Immutable release or incomplete audit') END WHERE id = ${literal(releaseId)};`,
     `DELETE FROM "releaseProcessingActions" WHERE "releaseId" = ${literal(releaseId)};`,
     ...materialised.actions.map(row => insert('releaseProcessingActions', row)),
     ...(materialised.stats
@@ -50,6 +98,7 @@ export function buildAuditReplaySql(
           ...materialised.stats.map(row => insert('stats', row)),
         ]
       : []),
+    AUDIT_COMMIT_END,
   ].join('\n')
   if (new TextEncoder().encode(commit).length > 90_000)
     throw new Error('Audit summary commit exceeds replay batch budget.')
@@ -62,6 +111,17 @@ export async function readAuditReplaySql(
 ) {
   const db = database as HarbourReadableDb
   const actions = await listReleaseAuditSummaries(db, [releaseId])
+  await readAuditPages(db, actions)
   const chunks = await readReleaseAuditChunks(db, actions)
-  return buildAuditReplaySql(releaseId, { actions, chunks })
+  const stats = (await db
+    .select()
+    .from(metaSchema.stats)
+    .where(
+      and(
+        eq(metaSchema.stats.releaseId, releaseId),
+        eq(metaSchema.stats.type, 'processing'),
+      ),
+    )
+    .all()) as ReleaseStatsRow[]
+  return buildAuditReplaySql(releaseId, { actions, chunks, stats })
 }

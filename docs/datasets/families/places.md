@@ -1,5 +1,11 @@
 # Places dataset family
 
+Processing audits use action/mode summaries and compressed evidence chunks in D1.
+Address-review publication checks read summary counts; locale-conflict statistics and
+audit reports decode the retained individual decisions. Supplementary Address metadata
+replay includes the evidence chunks. See the
+[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+
 Enrichment staging writes complete JSONL rows and syncs the temporary output before
 replacement. Failed enrichment preserves the completed output, and interrupted or
 misaligned resolution streams are closed. Snapshot IDs alone are not enrichment cache

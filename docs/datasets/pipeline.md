@@ -200,8 +200,8 @@ record must declare its audit rules before its processor is written.
 1. Add the complete rule definition to the applicable merge `rulesetVersions/` fixture.
    A rule has a stable `operationCode`, `type` and all three localised descriptions.
    `type: "bulk"` describes a deterministic operation applied to every matching row;
-   `type: "record"` describes an individual decision that is emitted as a
-   `releaseProcessingActions` row.
+   `type: "record"` describes an individual decision that is emitted as a logical
+   release audit decision.
 2. For a mapping, include the ordered `mappings` and any `condition`, source and target
    field paths. If the mapping is maintained by a reviewed `curations/identity/`
    fixture, reference the curation lookup, authority, domain, cohort and output fields
@@ -332,11 +332,12 @@ the registry and does not derive it from terminal output or release notes.
   quality, locale coverage, component completeness or geographic distribution. Use the
   release-level stats replacement helper so a re-run replaces the release's previous
   values atomically.
-- **Audit** reads detailed rows from `releaseProcessingActions`. Emit one row for each
-  auditable automated or manual processing decision, with an action name, mode, summary,
-  affected-record count and structured JSON evidence. The replacement helper also stores
-  aggregate processing metrics in `stats`; these support reporting, while the detailed
-  action rows and evidence support the Audit tab.
+- **Audit** reads action/mode summaries from `releaseProcessingActions` and paginated
+  evidence from `releaseProcessingActionChunks`. Emit one logical decision per auditable
+  automatic or manual operation, with its summary, affected-record count and structured
+  JSON evidence. The storage helper groups decisions, deduplicates summary text and
+  compresses independently readable chunks. It also stores aggregate processing metrics
+  in `stats`. Decision counts and affected-record counts remain separate.
 
 At source-release creation, the processor resolves the dataset's selected merge rules
 and freezes the complete ruleset revision, hash and definitions on the release. The
@@ -353,6 +354,21 @@ decisions should replace the release's action rows with an empty set, so a re-ru
 retain stale audit evidence. Action replacement is allowed only while the source release
 is staged or processing; published release actions and frozen rules are immutable. A
 reprocess or correction after publication must create a new source release.
+
+Audit chunks contain at most 256 decisions, 256 KiB of decoded JSON and 32 KiB of
+compressed bytes. A single oversized decision uses ordered, independently compressed
+byte fragments; UTF-8 decoding follows reassembly. Every fragment has a SHA-256
+checksum. Readers pin the summary generation and fetch only chunks overlapping the
+requested ordinal range. Complete reports iterate bounded pages.
+
+Replacement stages and verifies chunks before atomically replacing summaries and
+processing statistics. Identical content retains its generation without row writes.
+Published evidence is immutable. Inactive generations observed before replacement are
+collected in bounded batches; chunks are also removed by release purge and reset. SQL
+replay includes the chunk BLOBs as bounded hexadecimal literals before the summary
+commit. See
+[audit storage](../../libs/db/docs/schema/provenance-model.md#release-processing-actions)
+for the offline conversion workflow.
 
 The shared stages are `normalise`, `sql-source`, `sql-history`, `sql-current`, meta
 updates and publication. See [resource processing](resourceType/common.md) for the

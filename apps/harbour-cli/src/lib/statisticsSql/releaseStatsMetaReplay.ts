@@ -369,30 +369,6 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
   ])
 }
 
-function insertStatsRow(row: ReleaseStatsRow) {
-  return (
-    'INSERT INTO "stats" ("id", "type", "releaseId", "snapshotId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
-    [
-      row.id,
-      row.type,
-      row.releaseId,
-      row.snapshotId,
-      row.apiReleaseSetId,
-      row.dimension,
-      row.metric,
-      row.metricUnit,
-      row.value,
-      row.groupBy,
-      row.groupValue,
-      row.createdAt,
-      row.updatedAt,
-    ]
-      .map(sqlValue)
-      .join(', ') +
-    ');'
-  )
-}
-
 async function replayMetaSql(
   target: UploadTarget,
   context: MetaContext,

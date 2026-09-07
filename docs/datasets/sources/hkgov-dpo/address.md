@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+ALS processing evidence retains every canonical selection and reviewed source variant in
+compressed D1 audit chunks. Action/mode summaries provide counts; reports decode
+individual decisions. Metadata replay carries both under the
+[pipeline contract](../../pipeline.md#release-presentation-metadata).
+
 Local ALS delivery retains separate 2D SQL and grouped 3D bound plans. Owner validation
 precedes initial 3D mutation capture, and replay uses the sealed parameters without
 regenerating committed collections. Local publication follows successful delivery of

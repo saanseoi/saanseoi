@@ -38,7 +38,9 @@
 
 #### Release audit
 
-Each affected source record is retained in `releaseProcessingActions` for investigation:
+Each affected source record is retained in compressed `releaseProcessingActionChunks`,
+with action/mode counts in `releaseProcessingActions`, for investigation. Audit pages
+and locale-conflict statistics decode the same lossless evidence:
 
 - `overture_division_locale_inferred` records source `names`, normalised i18n rows, and
   the inferred locales when unlabeled text requires script-based inference.
