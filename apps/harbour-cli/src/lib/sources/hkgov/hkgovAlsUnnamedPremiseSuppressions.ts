@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-unnamed-premise-suppressions.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { suppressKoYeeDuplicate } from './hkgovAlsKoYeeDuplicate'
 
 const curationFile = 'hkgov-dpo-address-unnamed-premise-suppressions.json'
 
@@ -9,7 +10,7 @@ export function suppressAlsUnnamedPremises(
   rows: PreparedHkgovAlsRow[],
   version: string,
 ) {
-  let suppressed = 0
+  let suppressed = suppressKoYeeDuplicate(rows, version)
   for (const decision of fixture.suppressions) {
     if (version < decision.sourceVersionFrom || version > decision.sourceVersionTo)
       continue

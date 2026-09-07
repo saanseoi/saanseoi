@@ -22,7 +22,18 @@ function sources(version: string) {
   )
 }
 function parents(version: string) {
-  return sources(version).map(s => {
+  const selected = sources(version)
+  if (['2026-04-03.0', '2026-04-22.0', '2026-04-25.0'].includes(version)) {
+    const b = fixture.backfills.find(b => b.csu === shing)!
+    selected.push({
+      feature: structuredClone(
+        b.feature,
+      ) as unknown as (typeof selected)[number]['feature'],
+      sourceFile: 'publisher.geojson',
+      featureIndexOneBased: 1,
+    })
+  }
+  return selected.map(s => {
     const p = s.feature.properties!.Address!.PremisesAddress!
     return {
       enEstateName: estate,
@@ -38,15 +49,11 @@ function parents(version: string) {
 test('Hoi Tat keeps Hoi Wah active and bounds Hoi Shing to the three omissions at current coordinates', () => {
   expect(sources('2025-03-21.0')).toHaveLength(0)
   expect(sources('2025-04-26.0')).toHaveLength(1)
-  for (const v of ['2026-04-03.0', '2026-04-22.0', '2026-04-29.0']) {
+  for (const v of ['2026-04-03.0', '2026-04-22.0', '2026-04-25.0']) {
     const restored = sources(v)
-    expect(restored).toHaveLength(2)
+    expect(restored).toHaveLength(1)
     expect(
-      restored.find(
-        s =>
-          s.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!
-            .CsuId === shing,
-      )!.feature.geometry!.coordinates,
+      fixture.backfills.find(b => b.csu === shing)!.feature.geometry.coordinates,
     ).toEqual([114.15146, 22.32915])
   }
   expect(sources('2026-07-08.0')).toHaveLength(1)
@@ -65,13 +72,33 @@ test('Hoi Tat materialises hash-exact bilingual inventories with provenance and 
   const file = join(dir, 'input.geojson')
   async function collect(version: string, rows = parents(version)) {
     const result = []
-    for await (const r of readAls3dWithBackfills(file, version, rows)) result.push(r)
+    for await (const r of readAls3dWithBackfills(file, version, rows))
+      if (r.backfill) result.push(r)
     return result
   }
   try {
     await writeFile(
       file,
-      JSON.stringify({ type: 'FeatureCollection', features: [] }, null, 2),
+      JSON.stringify(
+        {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              geometry: { type: 'Point', coordinates: [114, 22] },
+              properties: {
+                Address: {
+                  PremisesAddress: {
+                    EngPremisesAddress: { EngEstate: { EstateName: 'OTHER ESTATE' } },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        null,
+        2,
+      ),
     )
     const restored = await collect('2026-04-03.0')
     expect(restored).toHaveLength(2)

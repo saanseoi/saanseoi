@@ -3,6 +3,30 @@
   "automaticPolicy": "coordinate-only-named-under-50m-backfill",
   "backfills": [
     {
+      "id": "ko-yee-ko-shing-current-coordinate-backfill",
+      "estate": "KO YEE ESTATE",
+      "csu": "4291717546T20050430",
+      "enBuildingName": "KO SHING HOUSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [114.24114, 22.29688],
+      "currentCoordinates": [114.24086, 22.29696],
+      "authority": "User decision, 2026-09-07: collapse the confirmed Ko Shing duplicate and backfill current coordinates; the other unnamed GeoAddress remains unresolved."
+    },
+    {
+      "id": "hoi-tat-hoi-shing-house-current-coordinate-backfill",
+      "estate": "HOI TAT ESTATE",
+      "csu": "3365021124T20180122",
+      "enBuildingName": "HOI TAT ESTATE HOI SHING HOUSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [114.1512, 22.3291],
+      "currentCoordinates": [114.15146, 22.32915],
+      "authority": "User decision, 2026-09-07: backfill Hoi Shing House at the current coordinates; preserve raw geometry and dated inventory."
+    },
+    {
       "id": "hing-wah-ii-estate-chin-hing-hse-4205813718T20050430-20260425-coordinate-backfill",
       "estate": "HING WAH (II) ESTATE",
       "csu": "4205813718T20050430",

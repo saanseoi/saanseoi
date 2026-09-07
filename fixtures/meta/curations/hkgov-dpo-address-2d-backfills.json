@@ -2,6 +2,83 @@
   "version": 1,
   "backfills": [
     {
+      "id": "hoi-tat-hoi-wah-house-until-revoked",
+      "estate": "HOI TAT ESTATE",
+      "csu": "3351321157T20180122",
+      "sourceVersions": [
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2025-03-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "evidenceSourceVersion": "2025-03-21.0",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "featureIndexOneBased": 320,
+      "authority": "User decision, 2026-09-07: retain Hoi Wah House / 海華樓, 780 units, until revoked.",
+      "decision": "Retain the last supplied named premise and its 780-unit inventory from April 2025 onward until explicitly revoked. Preserve publisher omissions and dated evidence; releases after August 2026 are unverified.",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.15014, 22.32971]
+        },
+        "properties": {
+          "Northing": 821186,
+          "Easting": 833514,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "3351321157T20180122"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "深旺道",
+                  "BuildingNoFrom": "38"
+                },
+                "ChiEstate": {
+                  "EstateName": "海達邨"
+                },
+                "BuildingName": "海華樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "HOI WAH HOUSE",
+                "EngEstate": {
+                  "EstateName": "HOI TAT ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "38",
+                  "StreetName": "SHAM MONG ROAD"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3351321157T20180122"
+            }
+          }
+        }
+      }
+    },
+    {
       "csu": "1521830205T20220125",
       "sourceVersions": [
         "2024-07-25.0",
