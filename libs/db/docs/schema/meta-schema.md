@@ -79,4 +79,3 @@ Tables:
 - `dataShards`
 - `releaseShardAssignments`
 - `snapshotShardAssignments` (history shards containing each snapshot journal delta)
-- `releaseSetShardAssignments`

@@ -69,8 +69,8 @@ timing test.
 - currently used
 - now modelled as a pure join table
 
-`releaseSetShardAssignments`
+`snapshotShardAssignments`
 
-- intended to map published canonical release sets to physical canonical shards
-- currently not populated by the publish flow
-- still planned rather than fully implemented
+- maps each snapshot to the history shards containing its immutable journal delta
+- historical reads resolve a release set's snapshots and replay their parent chains
+- each replay step uses its snapshot's recorded shard assignments

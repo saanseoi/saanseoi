@@ -13,7 +13,7 @@ import {
   dataShardTypes,
 } from '../../constants/schema'
 import { primaryUuid, timestamps } from '../shared'
-import { metaApiReleaseSets, metaSnapshots } from './api'
+import { metaSnapshots } from './api'
 import { metaReleases } from './datasets'
 
 export const metaDataShards = sqliteTable(
@@ -84,23 +84,5 @@ export const metaSnapshotShardAssignments = sqliteTable(
   table => [
     primaryKey({ columns: [table.snapshotId, table.dataShardId] }),
     index('snapshotShardAssignments_dataShardId_idx').on(table.dataShardId),
-  ],
-)
-
-export const metaReleaseSetShardAssignments = sqliteTable(
-  'releaseSetShardAssignments',
-  {
-    apiReleaseSetId: text('apiReleaseSetId')
-      .notNull()
-      .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' }),
-    dataShardId: text('dataShardId')
-      .notNull()
-      .references(() => metaDataShards.id, { onDelete: 'restrict' }),
-  },
-  table => [
-    primaryKey({
-      columns: [table.apiReleaseSetId, table.dataShardId],
-    }),
-    index('releaseSetShardAssignments_dataShardId_idx').on(table.dataShardId),
   ],
 )
