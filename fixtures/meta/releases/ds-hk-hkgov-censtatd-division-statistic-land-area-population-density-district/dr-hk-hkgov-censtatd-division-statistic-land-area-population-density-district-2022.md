@@ -111,7 +111,7 @@ release's C&SD
 - `MYPOPN_LAND` - C&SD 以千為單位表示此值。資料擷取時會乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是實際人數。
 
-### 相容性欄位
+### 來源欄位
 
 - `DC_ENG` 及 `DC_CHI` 會保留在來源記錄的 <black>rawProperties</black> 中。
 
@@ -164,7 +164,7 @@ release's C&SD
 - `MYPOPN_LAND` - C&SD 以千为单位表示此值。数据摄取时会乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是实际人数。
 
-### 兼容性字段
+### 来源字段
 
 - `DC_ENG` 及 `DC_CHI` 会保留在源记录的 <black>rawProperties</black> 中。
 

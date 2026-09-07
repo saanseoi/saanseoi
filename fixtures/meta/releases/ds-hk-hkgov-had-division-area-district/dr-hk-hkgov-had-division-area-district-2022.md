@@ -112,14 +112,14 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 - `geometry` - 保留為標準 <black>EPSG:4326</black> GeoJSON
 
-### 兼容性欄位
+### 識別碼欄位
 
-以下來源欄位不會直接作為 <black>divisionArea</black> 屬性公開，而會透過
-<black>hkgov</black> 兼容性層提供，並使用本系統的資料庫命名方式：
+以下來源欄位不會直接作為 <black>divisionArea</black>
+屬性公開。真正的提供者識別碼可在標準 <black>identifiers.hkgov</black>
+物件下取得，採用本系統的資料庫大小寫方式：
 
 - `OBJECTID` -> <black>hkgov.objectId</black>
 - `CSDI_ADMIN_AREA_ID` -> <black>hkgov.cdsiAdminAreaId</black>
-- `AREA_TYPE` -> <black>hkgov.areaType</black>
 - `AREA_ID` -> <black>hkgov.areaId</black>
 - `AREA_CODE` -> <black>hkgov.areaCode</black>
 
@@ -176,14 +176,13 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 - `geometry` - 保留为标准 <black>EPSG:4326</black> GeoJSON
 
-### 兼容性字段
+### 标识码字段
 
-以下源字段不会直接作为 <black>divisionArea</black> 属性公开，而会通过
-<black>hkgov</black> 兼容性层提供，并使用本系统的数据库命名方式：
+以下源字段不会直接作为 <black>divisionArea</black> 属性公开。真正的提供者标识码可在标准
+<black>identifiers.hkgov</black> 对象下获取，采用本系统的数据库大小写方式：
 
 - `OBJECTID` -> <black>hkgov.objectId</black>
 - `CSDI_ADMIN_AREA_ID` -> <black>hkgov.cdsiAdminAreaId</black>
-- `AREA_TYPE` -> <black>hkgov.areaType</black>
 - `AREA_ID` -> <black>hkgov.areaId</black>
 - `AREA_CODE` -> <black>hkgov.areaCode</black>
 

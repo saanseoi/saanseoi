@@ -162,7 +162,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 直接保留 Overture 值的欄位：
 
-- `id` - [Id](/docs#models/Id)
+- `id` - [Id](/docs#models/Id) - 穩定的 GERS UUID；見
+  [Overture 的 GERS 文件](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
 - `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
@@ -180,37 +181,31 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 為了儲存、查詢或塑造 API 回應而重新整理的欄位：
 
 - `names` -
-  [按 locale 正規化](saanseoi:en:note/overture-division-locale-normalization/v1) 為
+  [按 locale 正規化](saanseoi:zh-hant:note/overture-division-locale-normalization/v1) 為
   [DivisionI18n](/docs#models/DivisionI18n)
   - `names.common` 作為 <black>i18n.{{ LOCALE }}.name</black>
   - `names.primary` 作為 <black>i18n.{{LOCALE}}.name</black> 的 fallback，並推斷 locale
   - `names.rules` 作為 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
-  [正規化為 division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
+  [正規化為 division hierarchy](saanseoi:zh-hant:note/overture-division-hierarchy-normalization/v1)
   為
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始來源 hierarchy 可在來源記錄回應的
   <black>rawProperties.hierarchies</black> 中取得。
-  - `hierarchies[][].division_id` - 作為 <black>hierarchy[].division_id</black>
+  - `hierarchies[][].division_id` - 作為 <black>hierarchies[].division_id</black>
 
-- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)
-- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 映射至canonical
-  <black>type</black> 和 <black>level</black>
+- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  對應至[標準 <black>type</black> 及 <black>level</black>](saanseoi:zh-hant:note/overture-division-type-level-mapping/v1)
+- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 對應至標準
+  <black>type</black> 及 <black>level</black>
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
-  映射至 canonical hierarchy entry 的 <black>type</black> 和 <black>level</black>
+  對應至標準層級項目的 <black>type</black> 及 <black>level</black>
 
 ### 不公開欄位
 
 以下欄位不會作為 [Division](/docs#models/Division)
 的一部分公開。原始來源值會在來源記錄獲保留時，透過
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。以下列出的欄位均可在保留來源記錄的 `rawProperties`
-中取得；這些欄位不會在 canonical `Division` 資源中重複保存。
-
-#### 因為來源擁有權
-
-- `version` - 保留為來源記錄 metadata 及原始發布者物件的一部分，但不會在 canonical
-  Division 回應中重複保存
+`rawProperties` 提供。
 
 #### 因為沒有變異
 
@@ -258,6 +253,11 @@ village        199
   capital 的概念
 - `capital_of_divisions` - 見 <black>capital_division_ids</black>。
 
+#### 因為來源擁有權
+
+- `version` - 保留為來源記錄 metadata 及原始發布者物件的一部分，但不會在 canonical
+  Division 回應中重複保存
+
 ### 不保留的值
 
 #### 因為冗餘
@@ -285,7 +285,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 直接保留 Overture 值的字段：
 
-- `id` - [Id](/docs#models/Id)
+- `id` - [Id](/docs#models/Id) - 稳定的 GERS UUID；见
+  [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
 - `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
@@ -303,37 +304,31 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
 - `names` -
-  [按 locale 规范化](saanseoi:en:note/overture-division-locale-normalization/v1) 为
+  [按 locale 规范化](saanseoi:zh-hans:note/overture-division-locale-normalization/v1) 为
   [DivisionI18n](/docs#models/DivisionI18n)
   - `names.common` 作为 <black>i18n.{{ LOCALE }}.name</black>
   - `names.primary` 作为 <black>i18n.{{LOCALE}}.name</black> 的 fallback，并推断 locale
   - `names.rules` 作为 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
-  [规范化为 division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
+  [规范化为 division hierarchy](saanseoi:zh-hans:note/overture-division-hierarchy-normalization/v1)
   为
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始来源 hierarchy 可在源记录响应的
   <black>rawProperties.hierarchies</black> 中获取。
-  - `hierarchies[][].division_id` - 作为 <black>hierarchy[].division_id</black>
+  - `hierarchies[][].division_id` - 作为 <black>hierarchies[].division_id</black>
 
-- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)
-- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 映射至canonical
-  <black>type</black> 和 <black>level</black>
+- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  对应至[标准 <black>type</black> 及 <black>level</black>](saanseoi:zh-hans:note/overture-division-type-level-mapping/v1)
+- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 对应至标准
+  <black>type</black> 及 <black>level</black>
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
-  映射至 canonical hierarchy entry 的 <black>type</black> 和 <black>level</black>
+  对应至标准层级项目的 <black>type</black> 及 <black>level</black>
 
 ### 不公开字段
 
 以下字段不会作为 [Division](/docs#models/Division)
-的一部分公开。原始来源值会在源记录得到保留时，通过
+的一部分公开。原始源值会在源记录得到保留时，通过
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。以下列出的字段均可在保留源记录的 `rawProperties`
-中取得；这些字段不会在 canonical `Division` 资源中重复保存。
-
-#### 因为来源拥有权
-
-- `version` - 保留为源记录 metadata 及原始发布者对象的一部分，但不会在 canonical
-  Division 响应中重复保存
+`rawProperties` 提供。
 
 #### 因为没有变化
 
@@ -380,6 +375,11 @@ village        199
 - `capital_division_ids` - 虽然每个 district 都获指定一个“capital”，但香港并没有 district
   capital 的概念
 - `capital_of_divisions` - 见 <black>capital_division_ids</black>。
+
+#### 因为来源拥有权
+
+- `version` - 保留为源记录 metadata 及原始发布者对象的一部分，但不会在 canonical
+  Division 响应中重复保存
 
 ### 不保留的值
 

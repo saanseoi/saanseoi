@@ -119,20 +119,19 @@ under `rawProperties`, where the source record remains available.
 
 ## 更新紀錄
 
-- <orange>上游</orange>
-  Overture 資料版本：<black>2026-07-22.0</black>；OSM 截止日期：<black>2026-07-14</black>
+- <orange>上游</orange> OSM 截止日期：<black>2026-07-14</black>
 - <orange>上游</orange> 對資料作出輕微、逐步的更新
-- <orange>上游</orange> Overture schema
-  <black>v1.18.0</black>：sources 物件新增可選的 provider、resource 及 version 欄位，用於資料來源追蹤（這是淘汰 dataset 的第一步，目標在九月的 breaking
-  change 中完成）。（[GitHub issue #535](https://github.com/OvertureMaps/schema/pull/535)）
-  - `provider`：產生資料的實體名稱：<black>meta</black>、<black>esri</black>、<black>microsoft</black>、<black>osm</black>
+- <orange>上游</orange> 在 sources 物件新增可選的 `provider`、`resource` 及 `version`
+  欄位，用於追蹤資料溯源（這是淘汰 dataset 的第一步，目標在九月作出不相容變更）。[GitHub issue #535](https://github.com/OvertureMaps/schema/pull/535)
+  - `provider`：產生資料的實體名稱，例如
+    <black>meta</black>、<black>esri</black>、<black>microsoft</black>、<black>osm</black>
     等。
-  - `resource`：提供者提供的資料主題或類型：<black>division-names</black>、<black>buildings</black>、<black>planet</black>
-    等。
+  - `resource`：提供者提供的資料主題或類型，例如
+    <black>division-names</black>、<black>buildings</black>、<black>planet</black> 等。
   - `version`：可排序的識別碼，例如日期或數字：<black>2026-02-13</black>、<black>5.3</black>、<black>A5692</black>
     等。
 - <orange>上游</orange> 修正 schema，允許 `is_land` 和 `is_territorial`
-  同時為 true（先前兩者互斥）。（[GitHub issue #546](https://github.com/OvertureMaps/schema/pull/546)）
+  同時為 true（先前兩者互斥）。[GitHub issue #546](https://github.com/OvertureMaps/schema/pull/546)
 
 ## 兼容性
 
@@ -162,6 +161,12 @@ schema（`{{sourceSchemaVersion}}`）。
 - `sources` - [來源](/docs#models/Sources) - 包裹於 <black>overture</black>
   鍵之下，以便與其他資料集融合，同時保留來源鏈歸屬
 
+上游 `sources` 物件現可選擇性地提供以下溯源欄位：
+
+- `provider` - 產生資料的實體名稱：meta、esri、microsoft、osm 等。
+- `resource` - 提供者提供的資料主題或類型：division-names、buildings、planet 等。
+- `version` - 可排序的識別碼，例如日期或數字：2026-02-13、5.3、A5692。
+
 ### 正規化欄位
 
 為了儲存、查詢或塑造 API 回應而重新整理的欄位：
@@ -172,16 +177,10 @@ schema（`{{sourceSchemaVersion}}`）。
   <black>type</black>（<black>land</black>、<black>maritime</black>，或在兩個覆蓋標誌均為真時為
   <black>mixed</black>）
 
-### 兼容欄位
+### 來源欄位
 
-透過 Overture 兼容 key 保留的欄位：
-
-- `version` - 可於 <black>overture.version</black> 取得
-- `subtype` - 可於 <black>overture.subtype</black> 取得
-- `class` - 可於 <black>overture.class</black> 取得
-
-這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `rawProperties`
+下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
 
@@ -210,20 +209,19 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ## 更新记录
 
-- <orange>上游</orange>
-  Overture 数据版本：<black>2026-07-22.0</black>；OSM 截止日期：<black>2026-07-14</black>
-- <orange>上游</orange> 对数据作出轻微、逐步的更新
-- <orange>上游</orange> Overture schema
-  <black>v1.18.0</black>：sources 对象新增可选的 provider、resource 及 version 字段，用于数据来源追踪（这是弃用 dataset 的第一步，目标在九月的 breaking
-  change 中完成）。（[GitHub issue #535](https://github.com/OvertureMaps/schema/pull/535)）
-  - `provider`：产生数据的实体名称：<black>meta</black>、<black>esri</black>、<black>microsoft</black>、<black>osm</black>
+- <orange>上游</orange> OSM 截止日期：<black>2026-07-14</black>
+- <orange>上游</orange> 对数据作出轻微、渐进式的更新
+- <orange>上游</orange> 在 sources 对象新增可选的 `provider`、`resource` 及 `version`
+  字段，用于追踪数据溯源（这是淘汰 dataset 的第一步，目标在九月作出不兼容变更）。[GitHub issue #535](https://github.com/OvertureMaps/schema/pull/535)
+  - `provider`：生成数据的实体名称，例如
+    <black>meta</black>、<black>esri</black>、<black>microsoft</black>、<black>osm</black>
     等。
-  - `resource`：提供者提供的数据主题或类型：<black>division-names</black>、<black>buildings</black>、<black>planet</black>
-    等。
-  - `version`：可排序的标识符，例如日期或数字：<black>2026-02-13</black>、<black>5.3</black>、<black>A5692</black>
+  - `resource`：提供者提供的数据主题或类型，例如
+    <black>division-names</black>、<black>buildings</black>、<black>planet</black> 等。
+  - `version`：可排序的标识码，例如日期或数字：<black>2026-02-13</black>、<black>5.3</black>、<black>A5692</black>
     等。
 - <orange>上游</orange> 修正 schema，允许 `is_land` 和 `is_territorial`
-  同时为 true（先前两者互斥）。（[GitHub issue #546](https://github.com/OvertureMaps/schema/pull/546)）
+  同时为 true（此前两者互斥）。[GitHub issue #546](https://github.com/OvertureMaps/schema/pull/546)
 
 ## 兼容性
 
@@ -243,8 +241,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `id` - [标识码](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `geometry` - [几何](/docs#models/Geometry) - 保留 Polygon 和 MultiPolygon 值
-- `is_land` - 规范化為 <black>isLand</black>
-- `is_territorial` - 规范化為 <black>isTerritorial</black>
+- `is_land` - 规范化为 <black>isLand</black>
+- `is_territorial` - 规范化为 <black>isTerritorial</black>
 
 ### 增补字段
 
@@ -253,26 +251,26 @@ schema（`{{sourceSchemaVersion}}`）。
 - `sources` - [来源](/docs#models/Sources) - 包裹在 <black>overture</black>
   键下，以便与其他数据集融合，同时保留来源链归属
 
+上游 `sources` 对象现可选择性地提供以下溯源字段：
+
+- `provider` - 生成数据的实体名称：meta、esri、microsoft、osm 等。
+- `resource` - 提供者提供的数据主题或类型：division-names、buildings、planet 等。
+- `version` - 可排序的标识码，例如日期或数字：2026-02-13、5.3、A5692。
+
 ### 规范化字段
 
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
-- `division_id` - 规范化為 <black>divisionId</black>
+- `division_id` - 规范化为 <black>divisionId</black>
 - `bbox` - [包围盒](/docs#models/BBox)，由发布的标准几何计算得出
 - `class` - 规范化为标准
   <black>type</black>（<black>land</black>、<black>maritime</black>，或两个覆盖标志均为真时为
   <black>mixed</black>）
 
-### 兼容字段
+### 来源字段
 
-通过 Overture 兼容 key 保留的字段：
-
-- `version` - 可在 <black>overture.version</black> 取得
-- `subtype` - 可在 <black>overture.subtype</black> 取得
-- `class` - 可在 <black>overture.class</black> 取得
-
-这些字段可在任何包含此几何的 API 响应中，通过
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `rawProperties`
+下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
 

@@ -61,7 +61,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年下半年永久性居住屋宇統計資料。
+  {{ sourceVersion }}永久性居住屋宇統計資料。
 
 ## 版本控制
 
@@ -101,7 +101,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年下半年永久性居住屋宇统计数据。
+  {{ sourceVersion }}永久性居住屋宇统计数据。
 
 ## 版本控制
 

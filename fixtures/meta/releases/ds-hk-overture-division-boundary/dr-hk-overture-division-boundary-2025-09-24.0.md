@@ -100,10 +100,10 @@ upload and trigger a schema review.
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本。
+- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 在 <black>sources</black> 中新增
   <black>license</black>，並填入適用的授權資訊
-- <orange>上游</orange> OSM 資料更新至 <black>2025-08-29</black>
+- <orange>上游</orange> 更新 OSM 資料至 <black>2025-08-29</black>
 
 ## 兼容性
 
@@ -145,16 +145,10 @@ schema（`{{sourceSchemaVersion}}`）。
   <black>type</black>（<black>land</black>、<black>maritime</black>，或在兩個覆蓋標誌均為真時為
   <black>mixed</black>）
 
-### 兼容欄位
+### 來源欄位
 
-透過 Overture 兼容 key 保留的欄位（即 <black>overture.{{ PROPERTYNAME }}</black>）：
-
-- `version` - 可於 <black>overture.version</black> 取得
-- `subtype` - 可於 <black>overture.subtype</black> 取得
-- `class` - 可於 <black>overture.class</black> 取得
-
-這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `rawProperties`
+下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
 
@@ -179,10 +173,10 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本。
+- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 在 <black>sources</black> 中新增
-  <black>license</black>，并填入适用的授权信息
-- <orange>上游</orange> OSM 数据更新至 <black>2025-08-29</black>
+  <black>license</black>，并填入适用的许可信息
+- <orange>上游</orange> 更新 OSM 数据至 <black>2025-08-29</black>
 
 ## 兼容性
 
@@ -203,8 +197,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `id` - [标识码](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `geometry` - [几何](/docs#models/Geometry)，保留 LineString 和 MultiLineString 值
-- `is_land` - 规范化為 <black>isLand</black>
-- `is_territorial` - 规范化為 <black>isTerritorial</black>
+- `is_land` - 规范化为 <black>isLand</black>
+- `is_territorial` - 规范化为 <black>isTerritorial</black>
 
 ### 增补字段
 
@@ -217,23 +211,17 @@ schema（`{{sourceSchemaVersion}}`）。
 
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
-- `division_ids[0]` 和 `division_ids[1]` - 规范化為 <black>leftDivisionId</black>，以及
+- `division_ids[0]` 和 `division_ids[1]` - 规范化为 <black>leftDivisionId</black>，以及
   <black>rightDivisionId</black>
 - `bbox` - [包围盒](/docs#models/BBox)，由发布的标准几何计算得出
 - `class` - 规范化为标准
   <black>type</black>（<black>land</black>、<black>maritime</black>，或两个覆盖标志均为真时为
   <black>mixed</black>）
 
-### 兼容字段
+### 来源字段
 
-通过 Overture 兼容 key 保留的字段（即 <black>overture.{{ PROPERTYNAME }}</black>）：
-
-- `version` - 可在 <black>overture.version</black> 取得
-- `subtype` - 可在 <black>overture.subtype</black> 取得
-- `class` - 可在 <black>overture.class</black> 取得
-
-这些字段可在任何包含此几何的 API 响应中，通过
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `rawProperties`
+下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
 

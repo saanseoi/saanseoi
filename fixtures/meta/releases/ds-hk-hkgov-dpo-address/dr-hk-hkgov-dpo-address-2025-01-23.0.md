@@ -133,7 +133,7 @@ Fields which are not exposed as part of the two-dimensional
 
 SaanSeoi 的 [Address](/docs#models/Address) 匯入 ALS 二維樓宇地址。來源模型為
 [ALS 資料字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
-所述的中英文結構化 <black>PremisesAddress</black>。相對於 ALS delivery
+所述的英文及繁體中文結構化 <black>PremisesAddress</black>。相對於 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨立的公共租住房屋三維資料不屬於此二維資源。
 
 ### 直接保留欄位
@@ -226,7 +226,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 
 SaanSeoi 的 [Address](/docs#models/Address) 导入 ALS 二维楼宇地址。来源模型为
 [ALS 数据字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
-所述的中英文结构化 <black>PremisesAddress</black>。相对于 ALS delivery
+所述的英文及繁体中文结构化 <black>PremisesAddress</black>。相对于 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独立的公共租赁房屋三维数据不属于此二维资源。
 
 ### 直接保留字段
