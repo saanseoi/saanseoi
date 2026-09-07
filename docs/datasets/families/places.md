@@ -1,5 +1,42 @@
 # Places dataset family
 
+Enrichment staging writes complete JSONL rows and syncs the temporary output before
+replacement. Failed enrichment preserves the completed output, and interrupted or
+misaligned resolution streams are closed. Snapshot IDs alone are not enrichment cache
+identities: Address division links, parent IDs and unit collections can change within a
+snapshot. Enrichment reuse hashes staged source and reviewed resolution files, selected
+Address links, Division IDs and supplementary rows. It records exact Address3D lookup
+dependencies, including missing owners, and revalidates their collection contents on
+retry. Changed dependencies regenerate enrichment; corrupted retained outputs stop
+reuse. Review and supplementary analysis run before this cache is consulted.
+
+Cold enrichment rechecks observed Address3D dependencies before replacing the staged
+output; a detected concurrent edit leaves the completed file intact.
+
+`bun run scripts/benchmark-place-enrichment.ts` compares direct, cold-cache and
+warm-cache enrichment on 2,000 synthetic unlinked Places using migrated local SQLite
+tables. It includes staged source parsing and cache verification, checks identical JSONL
+digests and statistics, and retains its report under `.cache/preparation-benchmarks`.
+`--linked` uses 100 real Address2D/Address3D collections with 20 units each in the
+isolated SQLite fixture. It includes collection dependency revalidation, verifies every
+selected unit and checks invalidation after a same-snapshot unit edit. Neither mode is a
+full-release benchmark. `--quick` uses 100 Places.
+
+Native local delivery retains Place data, search and supplementary Address SQL with
+transactional receipts. Review gates remain part of the workflow; a retry replays the
+retained payloads before verification and publication.
+
+Source normalisation retains its JSONL output and source-review actions in a checksummed
+staging manifest. Local and remote retries verify the prepared source and staged-file
+identities before reuse, avoiding repeated Parquet decoding and normalisation. Address
+matching, supplementary-address review and enrichment remain outside this source-only
+cache.
+
+Enrichment shares concurrent Address3D collection lookups within one invocation. Its
+least-recently-used cache retains at most 128 owners and 16 MiB of serialised collection
+data, including missing-owner results. Each invocation starts fresh, so a retry reads
+same-snapshot Address edits; failed reads are not retained.
+
 The Places search rebuild recreates the derived `placesFts` index as an FTS5 virtual
 table. Verification includes `MATCH` queries against the migrated schema, not just
 index-row counts.

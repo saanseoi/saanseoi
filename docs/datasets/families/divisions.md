@@ -1,5 +1,31 @@
 # Divisions dataset family
 
+Planning Division retries reuse sealed SQL and completion counts without repeating
+normalisation, comparison, materialisation or import artefact generation. Local
+materialisation runs on WAL-safe planning copies; target mutations start only after the
+complete plan is sealed. Remote preparation uses its isolated release mirror.
+
+Canonical Division delivery reads comparison baselines, normalises records and builds
+source, history, current and metadata SQL only inside new-plan preparation. The sealed
+plan retains the original SQL artefact count and extraction/localisation counts as
+checksummed workflow outputs. Retries skip those baseline reads and normalisation, and
+report the original counts even after partial replay. Snapshot lineage preparation
+remains a separate stage.
+
+Remote geometry delivery generates SQL from lazy mirror-table iterators inside the
+sealed-plan preparation callback. A retained plan skips those reads. Statement packing
+tracks UTF-8 byte counts incrementally and closes the iterator on interruption.
+
+Remote replay includes superseded history and source versions, selected through the
+snapshot change journal and closing release code. Closures update exact version keys
+without replacing historical geometry; C&SD source derivatives are retained too.
+
+Canonical Division and Planning Department SQL artefact imports use native local
+delivery plans as well as remote delivery plans. Local geometry materialisation uses
+WAL-safe SQLite planning copies, capturing exact mutations and retained churn outputs
+for receipt-backed replay without regenerating geometry writes. See
+[SQL delivery](../sql-delivery.md).
+
 Canonical, Planning Department and geometry SQL imports use
 [sealed delivery phases](../sql-delivery.md). The local mirror supplies the planning
 context. Remote receipts confirm each retained payload before the identical SQL reaches

@@ -1,5 +1,10 @@
 # ALS estate hierarchy and Address3D review
 
+Local and remote Address3D SQL delivery group independent history/current target writes
+without splitting a collection. Native plans bound pending groups and commit each
+payload with its receipt; retries reuse the exact bound statements. Review decisions and
+owner validation remain prerequisites to preparation.
+
 ## Scope and evidence
 
 The review runs earliest to latest across 30 retained ALS releases, starting with
@@ -240,13 +245,31 @@ Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inven
 and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The
 user chose no backfill. The physical cause and exact physical change date are unknown.
 
-The user-approved `same-floor-abc-unit-merger` policy automatically accepts numeric
-units ending A/B/C becoming their single unsuffixed unit on the same floor. It requires
-unchanged bilingual premise components, one source occurrence on each side, matching
-English and Traditional Chinese inventories, and unchanged expressions for all retained
-units. Multiple exact mergers in one building are supported. Reverse splits, partial
-suffix sets, different floors, unrelated additions/deletions and ambiguous occurrences
-remain pending.
+The user-approved `same-floor-ab-or-abc-unit-merger` policy (revision 2) automatically
+accepts numeric units ending A/B or A/B/C becoming their single unsuffixed unit on the
+same floor. It requires unchanged bilingual premise components, one source occurrence on
+each side, matching English and Traditional Chinese inventories, and unchanged
+expressions for all retained units. Multiple exact mergers, including a mixture of A/B
+and A/B/C sets in one building, are supported. Retained C/D siblings, reverse splits,
+partial suffix sets, different floors, unrelated additions/deletions and ambiguous
+occurrences remain pending.
+
+Fai Ming Estate's reviewed locality decision backfills FANLING / 粉嶺 for Sing Fai House
+and Tai Fai House from the April 2025 source evidence into the 14 earlier retained
+releases. `hkgov-dpo-address-localities.json` guards the bilingual building, estate and
+street components. Derived locality provenance and formatted addresses carry the detail;
+raw assertions, resolved identities, geometry, divisions, block components and 952 units
+are unchanged. Verification covers 60 building records across 30 releases, including 28
+backfills. The dated 3D locality event is accepted; the ledger is not an exhaustive 2D
+component audit, and later supplied block numbers are not backfilled by this decision.
+
+Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
+`2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
+units). The user confirmed that Tower 1 is the larger building. The mapping is stored in
+`hkgov-dpo-address-block-identities.json`. The rebuild verifies bilingual tower, estate
+and street components in both source layers and inventory counts for every retained
+release before clearing only `missing_building`. No name backfill or merge is needed;
+raw components, identities and geometry remain intact.
 
 The ledger rebuild reads the exact source inventories and verifies their audit hashes.
 `automaticMergerReview` records the policy revision, source releases, hashes, buildings,
@@ -254,10 +277,12 @@ floors and predecessor/successor tokens. An entire event is reviewed automatical
 when all its substantive changes are covered; mixed events retain their pending issues.
 Accepted changes preserve publisher history and distinct successor IDs, with no
 backfill. This covers the April 2025 Hang Chi 601A/B/C → 601 and Hang Yip 1021A/B/C →
-1021 decisions as well as subsequent matching cases.
+1021 decisions, the April 2025 Chung Tak 307A/B → 307 merger, and subsequent matching
+cases.
 
-Across the 30 retained releases, the policy accepts 98 mergers in 78 estate/release
-events. It fully reviews 76 events; two mixed events retain other pending changes.
+Across the 30 retained releases, the policy accepts 135 mergers (36 A/B and 99 A/B/C) in
+113 estate/release events. It fully reviews 111 events; two mixed events retain other
+pending changes.
 
 [`hkgov-dpo-address-history-decisions.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-history-decisions.json)
 records accepted publisher chronology separately from inventory corrections. Rebuilding
@@ -312,9 +337,9 @@ Lower Wong Tai Sin (II), On Yam, Po Tat, Queens Hill, Sau Mau Ping, Shek Kip Mei
 Shing. Name mismatches are not evidence that the ALS name is wrong.
 
 Missing building identifiers, sometimes combined with profile mismatches, need review
-for Easeful Court, Grandeur Terrace, High Prosperity Terrace, Hung Hom Phase 2, Kwai
-Shing West, Lei Muk Shue, Po Tin, Shek Kip Mei, Shek Kip Mei Phase 2 and Upper Ngau Tau
-Kok. Sai Wan additionally requires the explicit ownership decision above.
+for Grandeur Terrace, High Prosperity Terrace, Hung Hom Phase 2, Kwai Shing West, Lei
+Muk Shue, Po Tin, Shek Kip Mei, Shek Kip Mei Phase 2 and Upper Ngau Tau Kok. Sai Wan
+additionally requires the explicit ownership decision above.
 
 Cheung Wah, Fu Shin, Lai On, Long Ping, Lung Tin and Tsui Lam have current name
 corroboration but still need 2D hierarchy/component review. They have no enabled fixture

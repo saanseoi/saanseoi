@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+Local ALS delivery retains separate 2D SQL and grouped 3D bound plans. Owner validation
+precedes initial 3D mutation capture, and replay uses the sealed parameters without
+regenerating committed collections. Local publication follows successful delivery of
+both outputs; the release retains database ownership until lookup-cache finalisation.
+
 ALS Address3D delivery groups independent history, current and source writes into
 bounded requests. Each database retains generation order and each collection stays
 within one transaction. The local mirror replays the same retained statements after
@@ -139,10 +144,20 @@ suppressed 2D source components remain traceable. Matching CSU alone never autho
 suppression; the bilingual components must match after removal of the explicitly
 reviewed block alias, with equal coordinates.
 
-The historical review policy automatically accepts exact same-floor A/B/C-to-base unit
-mergers when both languages and unchanged premise components agree. Accepted events
-retain dated publisher inventories and distinct successor IDs; they do not backfill
-earlier snapshots. Policy and authority are stored in
+The Fai Ming Estate locality fixture backfills FANLING / 粉嶺 into the derived locality
+provenance and formatted addresses for both reviewed buildings. Exact bilingual source
+components and dates guard the decision. Raw source JSON, identities, divisions, block
+details and inventories remain unchanged.
+
+Easeful Court retains ALS Tower 1 and Tower 2 block components, matching the reviewed
+360-unit and 150-unit buildings respectively. The block-identity review fixture guards
+both source layers across retained releases; no building-name backfill or merge is
+needed.
+
+The historical review policy automatically accepts exact same-floor A/B- or
+A/B/C-to-base unit mergers when both languages and unchanged premise components agree.
+Accepted events retain dated publisher inventories and distinct successor IDs; they do
+not backfill earlier snapshots. Policy and authority are stored in
 `hkgov-dpo-address-history-decisions.json`; generated decisions retain exact source
 hashes in the estate audit. Mixed or ambiguous changes remain pending.
 

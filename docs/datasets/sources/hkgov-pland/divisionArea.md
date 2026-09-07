@@ -1,5 +1,23 @@
 # Planning Department TPU and subunit areas
 
+Local SQL artefact imports use native delivery receipts with named current, history,
+source and metadata bindings. The release can resume retained payloads after
+interruption; publication follows successful local delivery and releases database
+ownership.
+
+Planning Division normalisation, comparison and materialisation run inside delivery-plan
+preparation. Retained local and remote plans skip those stages and reuse sealed payloads
+and completion counts. Local preparation uses disposable WAL-safe database copies;
+remote preparation uses its isolated release mirror. Completion is reported after
+delivery, before publication.
+
+Local geometry materialisation uses WAL-safe SQLite planning copies to retain exact
+mutations and churn outputs. Native receipts protect interrupted replay; the existing
+geometry writer supplies the SQL and runs only when preparing a new plan.
+
+Remote geometry replay includes version-qualified history closures referenced by the
+snapshot change journal, without retransmitting historical geometry.
+
 SQL generation uses the release-scoped planning mirror.
 [Sealed delivery phases](../../sql-delivery.md) retain the generated payloads and replay
 confirmed imports into the shared mirror before publication. Recovery targets that

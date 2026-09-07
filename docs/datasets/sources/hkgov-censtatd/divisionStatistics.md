@@ -1,5 +1,36 @@
 # Census and Statistics Department division statistics
 
+Local source and canonical SQL retain native delivery plans for both general and
+district Statistics imports. Publication clears local ownership only after their
+payloads have receipts; a failed replay keeps the owning release resumable.
+
+Source and canonical SQL builders run only when their delivery phase needs a new plan,
+for both local and remote targets. The plan binds the prepared source, dataset and
+release identities and a row-wise checksum of reviewed canonical preparation. Field
+review and bridge resolution remain mandatory; a changed result stops retained-plan
+reuse before SQL generation or replay.
+
+Source-row preparation is retained in a checksummed binary artefact keyed by the
+prepared-file identity, release, dataset, source version, expected row count and
+processing contract. Local and remote retries verify the file checksum and reuse decoded
+rows with frozen timestamps. Corrupt or mismatched artefacts stop processing; incomplete
+generation can retry. General source preparation normalises bounded Parquet batches
+without keeping an additional complete raw-row array. Canonical normalisation, bridge
+resolution and field review remain outside this source cache.
+
+Canonical field discovery and curated normalisation use separate content-addressed
+artefacts for cohorts larger than 18 rows, retaining sections as individually framed
+rows. The fixed 18-district cohort normalises directly without canonical cache writes.
+Cache identities include source properties and references, current Division mappings,
+area-companion templates, and reviewed field and measure metadata. Field review still
+runs on every attempt; changed metadata or mappings select fresh normalisation, and
+retained SQL validates the resulting canonical checksum before replay.
+
+The source cache serialises rows incrementally into 4 MiB chunks, with oversized rows
+isolated. The final manifest checksums chunk ordering and row counts. Recovery verifies
+each chunk before decoding it; an interrupted stream without a committed manifest can
+retry. Neither cache writing nor reading requires a cohort-sized serialisation buffer.
+
 Both district and general Statistics importers use
 [sealed delivery phases](../../sql-delivery.md) for source, canonical,
 release-statistics, processing-action and snapshot metadata SQL. Each phase combines
