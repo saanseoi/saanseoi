@@ -206,6 +206,15 @@ describe('validateOvertureSchema', () => {
     expect(result.schema.id).toBe('overture-division-v2026-02-18.0')
   })
 
+  test('accepts the pre-admin_level divisionArea schema before 2026-02-18.0', () => {
+    const result = validateOvertureSchema(
+      makeDivisionAreaPlan('2026-02-17.0'),
+      makeInspection(BASE_DIVISION_AREA_FIELDS),
+    )
+
+    expect(result.schema.id).toBe('overture-division-area-v2025-09-24.0')
+  })
+
   test('accepts admin_level for divisionArea uploads from 2026-02-18.0 onward', () => {
     const result = validateOvertureSchema(
       makeDivisionAreaPlan('2026-02-18.0'),

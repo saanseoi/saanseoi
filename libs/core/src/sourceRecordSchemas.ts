@@ -67,7 +67,6 @@ const overtureDivisionBoundaryFields: SourceRecordSchemaField[] = [
   { name: 'sources', type: 'list', nullable: true },
   { name: 'subtype', type: 'utf8', nullable: true },
   { name: 'class', type: 'utf8', nullable: true },
-  { name: 'names', type: 'struct', nullable: true },
   { name: 'division_ids', type: 'list', nullable: true },
   { name: 'is_land', type: 'boolean', nullable: true },
   { name: 'is_territorial', type: 'boolean', nullable: true },
