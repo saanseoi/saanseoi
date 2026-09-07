@@ -28,5 +28,107 @@
       "authority": "User decision, 2026-09-07: yep agree, restore the missing estate component across the five-release gap.",
       "reason": "The named car park remains present with the same CSU and street address. Restore only its missing bilingual estate component using the surrounding publisher assertions. Preserve original source payloads, resolved identity, geometry, block details and all residential inventories; do not merge the independent unnamed estate premise."
     }
+  ],
+  "streetRestorations": [
+    {
+      "id": "fu-tip-estate-street-omission-hei-tip-house",
+      "csu": "3613035991T20210226",
+      "enBuilding": "HEI TIP HOUSE",
+      "zhBuilding": "喜蝶樓",
+      "enStreet": {
+        "StreetName": "CHOI TIP STREET",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "zhStreet": {
+        "StreetName": "彩蝶街",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "versions": ["2026-07-08.0", "2026-07-10.0", "2026-07-22.0", "2026-08-19.0"],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2026-07-07.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "authority": "User decision, 2026-09-07: do not accept the street loss; retain it until revoked.",
+      "reason": "ALS removed only the bilingual street components while the CSU, building, point and inventory remained unchanged. Retain the verified street components in the derived canonical address while preserving the raw blank source assertion."
+    },
+    {
+      "id": "fu-tip-estate-street-omission-hin-tip-house",
+      "csu": "3608735975T20210226",
+      "enBuilding": "HIN TIP HOUSE",
+      "zhBuilding": "蜆蝶樓",
+      "enStreet": {
+        "StreetName": "CHOI TIP STREET",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "zhStreet": {
+        "StreetName": "彩蝶街",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "versions": ["2026-07-08.0", "2026-07-10.0", "2026-07-22.0", "2026-08-19.0"],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2026-07-07.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "authority": "User decision, 2026-09-07: do not accept the street loss; retain it until revoked.",
+      "reason": "ALS removed only the bilingual street components while the CSU, building, point and inventory remained unchanged. Retain the verified street components in the derived canonical address while preserving the raw blank source assertion."
+    },
+    {
+      "id": "fu-tip-estate-street-omission-tsz-tip-house",
+      "csu": "3618936097T20210226",
+      "enBuilding": "TSZ TIP HOUSE",
+      "zhBuilding": "紫蝶樓",
+      "enStreet": {
+        "StreetName": "CHOI TIP STREET",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "zhStreet": {
+        "StreetName": "彩蝶街",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "versions": ["2026-07-08.0", "2026-07-10.0", "2026-07-22.0", "2026-08-19.0"],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2026-07-07.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "authority": "User decision, 2026-09-07: do not accept the street loss; retain it until revoked.",
+      "reason": "ALS removed only the bilingual street components while the CSU, building, point and inventory remained unchanged. Retain the verified street components in the derived canonical address while preserving the raw blank source assertion."
+    },
+    {
+      "id": "fu-tip-estate-street-omission-wong-tip-house",
+      "csu": "3627336096T20210226",
+      "enBuilding": "WONG TIP HOUSE",
+      "zhBuilding": "黃蝶樓",
+      "enStreet": {
+        "StreetName": "CHOI TIP STREET",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "zhStreet": {
+        "StreetName": "彩蝶街",
+        "BuildingNoFrom": "11",
+        "BuildingNoTo": null
+      },
+      "versions": ["2026-07-08.0", "2026-07-10.0", "2026-07-22.0", "2026-08-19.0"],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2026-07-07.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "authority": "User decision, 2026-09-07: do not accept the street loss; retain it until revoked.",
+      "reason": "ALS removed only the bilingual street components while the CSU, building, point and inventory remained unchanged. Retain the verified street components in the derived canonical address while preserving the raw blank source assertion."
+    }
   ]
 }

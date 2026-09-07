@@ -64,6 +64,48 @@ import {
 } from './backfillHkgovPland.ts'
 
 describe('Planning Department backfills', () => {
+  test('init skips completed Planning domains without continue or preparing uploads', async () => {
+    const previous = process.env.SAANSEOI_INIT_COMMAND
+    const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+    const uploadCalls = runUploadCommandMock.mock.calls.length
+    try {
+      for (const kind of ['pu', 'new-town'] as const) {
+        process.env.SAANSEOI_INIT_COMMAND = `init:divisions:hkgov-pland-${kind}`
+        let inspected = false
+        await runHkgovPlandBackfillCommand(
+          {
+            command: 'hkgov-pland:backfill',
+            positionals: [],
+            options: { target: 'local' },
+          },
+          { environment: 'dev', remote: false },
+          kind,
+          () => undefined,
+          {
+            getCompletedReleaseCodes: async () => {
+              inspected = true
+              return new Set(
+                ['2001', '2006', '2011', '2016', '2021'].flatMap(year =>
+                  ['division', 'division-area'].map(
+                    type => `dr-hk-hkgov-pland-${type}-${kind}-${year}`,
+                  ),
+                ),
+              )
+            },
+            prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+            runUploadCommand: runUploadCommandMock,
+          },
+        )
+        expect(inspected).toBe(true)
+      }
+      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(prepareCalls)
+      expect(runUploadCommandMock.mock.calls.length).toBe(uploadCalls)
+    } finally {
+      if (previous === undefined) delete process.env.SAANSEOI_INIT_COMMAND
+      else process.env.SAANSEOI_INIT_COMMAND = previous
+    }
+  })
+
   test('publishes each division before attaching its division area', async () => {
     const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
     try {

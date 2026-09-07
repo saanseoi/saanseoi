@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+ALS coordinate-backfill estate guards use retained publisher names when supplied,
+independently of curated display names. Exact source-point and release bounds remain
+required, and replaced geometry is retained in curation provenance.
+
 Address ingestion records the effective assembly recipe, selected source releases and
 lookup dependencies under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Draft

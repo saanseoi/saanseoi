@@ -245,6 +245,28 @@ as one unique, block-free parent and a matching unchanged 3D inventory. The cano
 address receives the verified BLK/座 components; the variant remains source provenance,
 not an alias or a second address. The release-audit decision is fingerprint-guarded.
 
+Fu Tip Estate treats estate-prefixed house strings as aliases, not repeated canonical
+building names: `FU TIP ESTATE BAN TIP HOUSE` resolves to `BAN TIP HOUSE`. The exact
+November 2024 `FU TIP ESTATES BLOCK 7` expression remains provenance for HIN TIP HOUSE
+/ 蜆蝶樓, whose verified BLK/座 7 is carried by the parent-block enrichment. From 8 July
+2026 ALS blanked the street components of Hei Tip, Hin Tip, Tsz Tip and Wong Tip Houses
+without changing their CSUs, points or inventories. Their derived addresses retain 11
+Choi Tip Street / 彩蝶街11號 until a non-empty conflicting source revokes the repair;
+raw ALS payloads remain unchanged. The component fixture and release audit both record
+the verification boundary.
+
+Fu Tung Market / 富東街市 retains the two anonymous December 2024–January 2025 2D
+assertions in its provenance only. They have the market's CSU, bilingual estate and
+street components, and exact point, but no building or block name; they are therefore
+suppressed as duplicates, not exposed as a second address. The February 2025 removal is
+accepted as the disappearance of that suppressed source assertion, with no backfill.
+
+Wing Ka House / 永嘉樓, Fuk Loi Estate, has its July 2026 publisher repair backfilled
+over every earlier retained inventory: 8/F flats 817 and 819 raise the count from 507
+to 509. The correction is guarded by the exact earlier and repaired bilingual
+inventories; it preserves the original 507-unit source assertion and correction
+provenance rather than rewriting ALS history.
+
 Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories
 and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The
 user chose no backfill. The physical cause and exact physical change date are unknown.
