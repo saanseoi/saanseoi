@@ -79,15 +79,19 @@ Geometry uploads must reference the exact cohort of the anchored division snapsh
 release set is publishable only when all family-required snapshots are present; optional
 provider variants may be added without replacing required members.
 
-Provider identifiers must be resolved through a versioned generic `identifierBridges`
-table/fixture keyed by resource type, authority, domain, cohort and external identifier.
-The bridge maps source IDs/codes to a generic `canonicalId`; it does not duplicate
-localised names, which remain source provenance or canonical resource data. Ambiguous or
-missing mappings block publication. Sparse pre-2025 periods may use explicit
-`SOURCE_BEFORE` and `HISTORY_BEFORE` shard assignments; `CURRENT` contains only the
-selected latest snapshot. For Hong Kong, these assignments are region-scoped through
-`DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`; their shard metadata uses `regionCode`
-`hk` and no numeric `year`.
+Provider identifiers requiring reviewed reconciliation must resolve through versioned
+`curations/identity/` fixtures keyed by resource type, authority, domain, cohort and
+external identifier. These ingestion curations map source IDs/codes to a generic
+`canonicalId`; they do not duplicate localised names, which remain source provenance or
+canonical resource data. Ambiguous or missing mappings block publication. Sparse
+pre-2025 periods may use explicit `SOURCE_BEFORE` and `HISTORY_BEFORE` shard
+assignments; `CURRENT` contains only the selected latest snapshot. For Hong Kong, these
+assignments are region-scoped through `DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`;
+their shard metadata uses `regionCode` `hk` and no numeric `year`.
+
+Public consumers use `/v0.1/identityBridge` to derive mappings from the identifiers
+retained by the selected API release set. Deterministic identity mappings do not need an
+enumerated fixture or a metadata bridge table.
 
 ## CSDI catalogue planning registry
 
