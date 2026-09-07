@@ -95,7 +95,10 @@ export const account = sqliteTable(
   'account',
   {
     id: text('id').primaryKey(),
-    issuer: text('issuer').notNull(),
+    // Better Auth 1.7.3 no longer writes the temporary 1.7.0-1.7.2 issuer
+    // value. Retain backfilled issuers for existing identities but allow new
+    // accounts to be created by the current adapter.
+    issuer: text('issuer'),
     accountId: text('account_id').notNull(),
     providerId: text('provider_id').notNull(),
     userId: text('user_id')
@@ -114,7 +117,10 @@ export const account = sqliteTable(
       .notNull(),
   },
   table => [
-    uniqueIndex('account_issuer_accountId_uidx').on(table.issuer, table.accountId),
+    uniqueIndex('account_providerId_accountId_uidx').on(
+      table.providerId,
+      table.accountId,
+    ),
     index('account_userId_idx').on(table.userId),
   ],
 )
