@@ -319,11 +319,11 @@ const CommonQueryShape = {
       examples: ['2023', '2021'],
     }),
   domain: z
-    .literal('official')
+    .literal('government')
     .optional()
     .openapi({
       description: openApiText('openapi_statistics_domain_description'),
-      examples: ['official'],
+      examples: ['government'],
     }),
   effectiveAt: z.iso
     .datetime()
@@ -442,9 +442,9 @@ const StatisticsDocumentMetaSchema = z
       description: openApiText('openapi_statistics_meta_cohort_description'),
       examples: ['2023', '2021'],
     }),
-    domain: z.literal('official').openapi({
+    domain: z.literal('government').openapi({
       description: openApiText('openapi_statistics_meta_domain_description'),
-      examples: ['official'],
+      examples: ['government'],
     }),
     profile: ProfileName.openapi({
       description: openApiText('openapi_statistics_meta_profile_description'),

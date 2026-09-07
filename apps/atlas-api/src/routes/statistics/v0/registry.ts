@@ -36,7 +36,7 @@ const RegistryQuerySchema = z
         description: openApiText('openapi_statistics_cohort_description'),
       }),
     domain: z
-      .literal('official')
+      .literal('government')
       .optional()
       .openapi({
         description: openApiText('openapi_statistics_domain_description'),

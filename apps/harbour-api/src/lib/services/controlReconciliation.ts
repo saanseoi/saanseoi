@@ -249,7 +249,7 @@ export async function handleBootstrapStatsReleaseSets(
     const regionCode = request.regionCode ?? 'hk'
     const members = (
       await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
-    ).filter(member => member.domainCode === 'official')
+    ).filter(member => member.domainCode === 'government')
     const memberVariants = new Set(members.map(member => member.variant))
     // A Statistics source may publish DivisionArea artefacts as its primary
     // resource while also materialising a linked divisionStatistic snapshot.
@@ -315,7 +315,7 @@ export async function handleBootstrapStatsReleaseSets(
       const existing = await resolveLatestReleaseSetForTypeDomainCohort(
         db,
         'divisionStatistic',
-        'official',
+        'government',
         regionCode,
         cohortKey,
       )
@@ -335,7 +335,7 @@ export async function handleBootstrapStatsReleaseSets(
           and(
             eq(metaApiVersions.code, 'api-stats-v0.1'),
             eq(metaApiReleaseSets.regionCode, regionCode),
-            eq(metaApiReleaseSets.domainCode, 'official'),
+            eq(metaApiReleaseSets.domainCode, 'government'),
             eq(metaApiReleaseSets.cohortKey, cohortKey),
             eq(metaApiReleaseSets.status, 'draft'),
           ),
@@ -362,7 +362,7 @@ export async function handleBootstrapStatsReleaseSets(
         db,
         'divisionStatistic',
         { cohortKey, regionCode },
-        { domainCode: 'official' },
+        { domainCode: 'government' },
       )
       const orderedCandidates = candidates
         .slice()

@@ -51,7 +51,7 @@ export type StatisticProfile = ApiProfileName
 export type StatisticListQuery = {
   catalogRevision?: string
   cohort?: string
-  domain?: 'official'
+  domain?: 'government'
   effectiveAt?: string
   knownAt?: string
   releaseSet?: string
@@ -149,7 +149,7 @@ export type ActiveStatisticSnapshot = {
   apiCatalogRevision: string
   catalogPublishedAt: string
   cohortKey: string
-  domainCode: 'official'
+  domainCode: 'government'
   schemaVersion: string
   rulesetVersion: string
 }
@@ -162,7 +162,7 @@ export type StatisticRegistrySnapshot = {
   catalogPublishedAt: string
   apiReleaseSets: string[]
   cohorts: string[]
-  domainCode: 'official'
+  domainCode: 'government'
   rulesetVersions: string[]
   schemaVersions: string[]
 }
@@ -240,7 +240,7 @@ type StatisticDocumentMeta = ApiVersionMetadata & {
   apiCatalogRevision: string
   catalogPublishedAt: string
   cohort: string
-  domain: 'official'
+  domain: 'government'
   profile: StatisticProfile
   locales: ApiDocumentLocales
   filters?: {
@@ -416,7 +416,7 @@ export async function getActiveStatisticSnapshot(
         // Keep explicit publication selectors authoritative, but make the
         // required geography period useful without a redundant cohort param.
         cohortKey: selectors.cohort ?? selectors['filter[referencePeriod]'],
-        domainCode: 'official',
+        domainCode: 'government',
         effectiveAt: selectors.effectiveAt,
         knownAt: selectors.knownAt,
         regionCode: 'hk',
@@ -440,7 +440,7 @@ export async function getActiveStatisticSnapshot(
     apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
     catalogPublishedAt: selection.releaseSet.catalogPublishedAt,
     cohortKey: selection.releaseSet.cohortKey,
-    domainCode: 'official',
+    domainCode: 'government',
     schemaVersion: selection.releaseSet.schemaVersion,
     rulesetVersion: selection.releaseSet.rulesetVersion,
   } satisfies ActiveStatisticSnapshot
@@ -630,7 +630,7 @@ function buildPermalink(args: {
   permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
   permalink.searchParams.set('releaseSet', args.activeSnapshot.apiReleaseSet)
   permalink.searchParams.set('cohort', args.activeSnapshot.cohortKey)
-  permalink.searchParams.set('domain', 'official')
+  permalink.searchParams.set('domain', 'government')
   permalink.searchParams.set('profile', args.routeState.profile)
   permalink.searchParams.set(
     'locales',
@@ -674,7 +674,7 @@ function documentMeta(
     apiCatalogRevision: activeSnapshot.apiCatalogRevision,
     catalogPublishedAt: activeSnapshot.catalogPublishedAt,
     cohort: activeSnapshot.cohortKey,
-    domain: 'official',
+    domain: 'government',
     profile: routeState.profile,
     locales: resolveApiMetaLocales(routeState.localeSelection),
   }

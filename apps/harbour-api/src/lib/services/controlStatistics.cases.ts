@@ -57,7 +57,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       status, versionHash, createdAt, updatedAt
     ) VALUES (
       'api-composition-stats-v1', 'api-version-stats-v0.1', 'comp-stats-v1', 1,
-      'divisionStatistic', 'official', 'current', 'vh-comp-stats-v1',
+      'divisionStatistic', 'government', 'current', 'vh-comp-stats-v1',
       1761264000000, 1761264000000
     );
     INSERT INTO apiCompositionMembers (
@@ -65,11 +65,11 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       cohortMatchingMode, priority
     ) VALUES
       (
-        'api-composition-stats-v1', 'official', 'divisionStatistic',
+        'api-composition-stats-v1', 'government', 'divisionStatistic',
         '${datasetCode}', 'primary', 0, 'exact_ref', 0
       ),
       (
-        'api-composition-stats-v1', 'official', 'divisionStatistic',
+        'api-composition-stats-v1', 'government', 'divisionStatistic',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
         'primary', 0, 'exact_ref', 1
       );
@@ -175,7 +175,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       status, versionHash, createdAt, updatedAt
     ) VALUES (
       'api-composition-stats-v1', 'api-version-stats-v0.1', 'comp-stats-v1', 1,
-      'divisionStatistic', 'official', 'current', 'vh-comp-stats-v1',
+      'divisionStatistic', 'government', 'current', 'vh-comp-stats-v1',
       1761264000000, 1761264000000
     );
   `)
@@ -199,7 +199,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         apiCompositionId, domainCode, resourceType, variant, role, isRequired,
         cohortMatchingMode, priority
       ) VALUES (
-        'api-composition-stats-v1', 'official', 'divisionStatistic', '${datasetCode}',
+        'api-composition-stats-v1', 'government', 'divisionStatistic', '${datasetCode}',
         'primary', 0, 'exact_ref', ${index}
       );
       INSERT INTO releases (
@@ -431,7 +431,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     db,
     'divisionStatistic',
     { cohortKey: '2022', regionCode: 'hk' },
-    { domainCode: 'official' },
+    { domainCode: 'government' },
   )
   expect(legacyReleaseSet.code).toBe('data-hk-stats-2022')
 
