@@ -91,7 +91,13 @@ test('uses the bounded family profiles for remote mirrors', () => {
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(98)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(53)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(47)
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(47)
+  expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
+    'divisions',
+    'divisionsI18n',
+    'divisionAreas',
+    'divisionBoundaries',
+  ])
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(48)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {

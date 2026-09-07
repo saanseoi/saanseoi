@@ -81,7 +81,7 @@ export function resolveCacheTablesForBinding(
     ) {
       return cacheTableProfile === 'planningDivisionGeometry'
         ? ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
-        : ['divisions', 'divisionAreas', 'divisionBoundaries']
+        : ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
     }
 
     return [
