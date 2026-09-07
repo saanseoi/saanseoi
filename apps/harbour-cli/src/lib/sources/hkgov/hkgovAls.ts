@@ -5,6 +5,7 @@ import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
+import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
 import { restoreAlsEstateComponents } from './hkgovAlsEstateComponents'
 import { restoreAlsEstateGaps } from './hkgovAlsEstateGapRestorations'
 import { applyAlsNestedPremises } from './hkgovAlsNestedPremises'
@@ -223,6 +224,7 @@ export async function prepareHkgovAlsAddressParquet(
   restoreAlsEstateComponents(rows, options.sourceVersion)
   restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
+  backfillAlsCoordinates(rows, options.sourceVersion)
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,

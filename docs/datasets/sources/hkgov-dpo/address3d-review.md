@@ -304,6 +304,12 @@ are unchanged. Verification covers 60 building records across 30 releases, inclu
 backfills. The dated 3D locality event is accepted; the ledger is not an exhaustive 2D
 component audit, and later supplied block numbers are not backfilled by this decision.
 
+The April 2026 Cheung Hong Estate coordinate event is reviewed separately. The thirteen
+current ALS points are backfilled only over the 23 retained July 2024–February 2026
+Address2D releases, with exact CSU, estate, building and earlier-point guards. The raw
+3D delivery remains historical evidence; each derived Address2D row records both the
+publisher and replacement geometries in curation provenance.
+
 Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
 `2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
 units). The user confirmed that Tower 1 is the larger building. The mapping is stored in

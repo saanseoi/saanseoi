@@ -160,6 +160,11 @@ Reviewed locality backfills carry later publisher evidence into bounded earlier 
 addresses while retaining original assertions and evidence dates. Fai Ming Estate's
 Fanling locality detail changes neither address identity nor administrative divisions.
 
+Reviewed coordinate backfills can carry a later confirmed point into selected earlier
+derived Address2D snapshots. Cheung Hong Estate's thirteen April 2026 points are guarded
+by release, CSU, estate, building and prior geometry; the historical publisher point is
+retained as provenance rather than overwritten in the source record.
+
 Reviewed block components can identify a building without a separate building-name
 field. Easeful Court's two towers retain those publisher components; the guarded review
 mapping does not create names, merge identities or alter historical inventories.
