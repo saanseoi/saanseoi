@@ -16,6 +16,7 @@ test('renders the first source record without fetching surplus candidates', asyn
       JSON.stringify({
         records: [
           {
+            geometry: { coordinates: [114.2, 22.3], type: 'Point' },
             rawProperties: { name: 'Example division' },
             resourceType: 'division',
             sourceRecordId: 'record-1',
@@ -34,6 +35,16 @@ test('renders the first source record without fetching surplus candidates', asyn
   })
 
   await expect.element(screen.getByText('record-1')).toBeVisible()
+  await expect.element(screen.getByText('resourceType')).toBeVisible()
+  await expect.element(screen.getByText('division')).toBeVisible()
+  await expect.element(screen.getByText('variant')).toBeVisible()
+  await expect.element(screen.getByText('default')).toBeVisible()
+  await expect.element(screen.getByText('rawProperties')).toBeVisible()
+  await expect.element(screen.getByText('name')).toBeVisible()
+  await expect.element(screen.getByText('Example division')).toBeVisible()
+  await expect.element(screen.getByText('geometry')).toBeVisible()
+  await expect.element(screen.getByText('coordinates')).toBeVisible()
+  await expect.element(screen.getByText('fields')).not.toBeInTheDocument()
   expect(fetch).toHaveBeenCalledWith(
     expect.objectContaining({
       search: expect.stringContaining('limit=1'),
