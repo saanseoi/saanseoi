@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
 import { listApiFieldFixtures, resolveApiFieldFixture } from './apiFieldFixtures'
+import { resolverCodes } from './constants/schema'
+import { computeVersionHash } from './versioning'
 
 const overtureSourceSchemas = {
   'ds-hk-overture-division': '1.17.0',
@@ -13,6 +15,71 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('bundled mappings have current hashes and registered resolvers', () => {
+    for (const fixture of listApiFieldFixtures()) {
+      expect(fixture.versionHash).toBe(computeVersionHash(fixture))
+      for (const field of fixture.fields) {
+        expect(resolverCodes).toContain(field.resolverCode)
+      }
+    }
+  })
+
+  test('every exact signature attributes fields only to selected sources', () => {
+    for (const bundled of listApiFieldFixtures()) {
+      for (const anchor of bundled.lineageAnchors) {
+        const fixture = resolveApiFieldFixture({
+          ...bundled,
+          lineageSnapshotVersions: [anchor.snapshotVersion],
+          sourceSchemas: anchor.sourceSchemas,
+        })
+        expect(fixture).not.toBeNull()
+        if (!fixture) throw new Error('Missing fixture')
+        expect(fixture.fields.length).toBeGreaterThan(0)
+        expect(fixture.versionHash).toBe(computeVersionHash(fixture))
+        const ids = fixture.fields.map(field =>
+          JSON.stringify([
+            field.apiField,
+            field.variant ?? null,
+            field.sourceDatasetCode,
+            field.sourceFieldPath,
+            field.contributionType,
+            field.priority,
+          ]),
+        )
+        expect(new Set(ids).size).toBe(ids.length)
+        for (const field of fixture.fields) {
+          expect(Object.hasOwn(anchor.sourceSchemas, field.sourceDatasetCode)).toBe(
+            true,
+          )
+        }
+        if (fixture.apiVersion === 'api-stats-v0.1') {
+          expect(
+            [...new Set(fixture.fields.map(field => field.sourceDatasetCode))].sort(),
+          ).toEqual(Object.keys(anchor.sourceSchemas).sort())
+          expect(
+            fixture.fields
+              .filter(field => field.apiField === 'statistic.id')
+              .every(field => field.resolverCode === 'derive_statistics_record_id'),
+          ).toBe(true)
+        }
+      }
+    }
+  })
+
+  test('maps current Division names and excludes internal source columns', () => {
+    for (const fixture of listApiFieldFixtures().filter(
+      f => f.apiVersion === 'api-divisions-v0.1',
+    )) {
+      const paths = fixture.fields.map(field => field.apiField)
+      expect(paths).toContain('division.attributes.type')
+      for (const path of paths) {
+        expect(path).not.toMatch(
+          /attributes\.(divisionType|subtype|divisionClass|wikidata|overture)(\.|$)/,
+        )
+      }
+    }
+  })
+
   test('covers materialised C&SD reference-period cohorts with exact signatures', () => {
     const population = 'population-households-district'
     const cohorts: Array<[string, string[], string[]?]> = [

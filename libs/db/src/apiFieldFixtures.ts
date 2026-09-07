@@ -265,5 +265,15 @@ export function resolveApiFieldFixture(args: {
         ),
     )
 
-  return candidates[0] ? cloneApiFieldFixture(candidates[0].fixture) : null
+  const selected = candidates[0]
+  if (!selected) return null
+
+  const fixture = cloneApiFieldFixture(selected.fixture)
+  // Bundled mappings cover several exact source signatures. Only sources in
+  // this release set can contribute to its published provenance.
+  fixture.fields = fixture.fields.filter(field =>
+    Object.hasOwn(args.sourceSchemas, field.sourceDatasetCode),
+  )
+  fixture.versionHash = computeVersionHash(fixture)
+  return fixture
 }

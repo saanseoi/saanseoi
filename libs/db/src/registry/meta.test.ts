@@ -142,8 +142,12 @@ describe('fixture version hashes', () => {
     expect(addressPaths).toEqual([
       '/addresses/v0',
       '/addresses/v0.1',
+      '/addresses/v0.1/search',
       '/addresses/v0.1/{id}',
+      '/addresses/v0.1/{id}/units',
+      '/addresses/v0/search',
       '/addresses/v0/{id}',
+      '/addresses/v0/{id}/units',
     ])
     expect(divisionPaths).toEqual([
       '/divisions/v0',
@@ -151,7 +155,12 @@ describe('fixture version hashes', () => {
       '/divisions/v0.1/{id}',
       '/divisions/v0/{id}',
     ])
-    expect(placePaths).toEqual(['/places/v0.1/{region}/{id}'])
+    expect(placePaths).toEqual([
+      '/places/v0.1',
+      '/places/v0.1/by-cell/{h3Level}/{h3Cell}',
+      '/places/v0.1/search',
+      '/places/v0.1/{id}',
+    ])
     expect(statsPaths).toEqual([
       '/stats/v0',
       '/stats/v0.1',

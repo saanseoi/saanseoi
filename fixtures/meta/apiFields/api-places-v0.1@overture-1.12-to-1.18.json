@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:254a66ab9bc9fe648084b907e8ee9ee513ef9c856c88873b4636fa09ed7261bb",
+  "versionHash": "sha256:cf1d19b0b9e1d09e5e7176866421fc06090fdf0c66ba30fc49be9c0005da6f2e",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-place-v1",
@@ -135,16 +135,7 @@
       "apiField": "place.attributes.basicCategory",
       "sourceDatasetCode": "ds-hk-overture-place",
       "sourceFieldPath": "basic_category",
-      "resolverCode": "direct_copy",
-      "contributionType": "primary",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
-      "apiField": "place.attributes.taxonomy",
-      "sourceDatasetCode": "ds-hk-overture-place",
-      "sourceFieldPath": "taxonomy",
-      "resolverCode": "direct_copy",
+      "resolverCode": "merge_first_non_empty",
       "contributionType": "primary",
       "priority": 0,
       "confidence": 1
@@ -273,6 +264,78 @@
       "resolverCode": "lookup_fk",
       "contributionType": "enrichment",
       "priority": 10,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "basicCategory",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "taxonomy.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "categories.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 3,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.taxonomy.primary",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "taxonomy.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.taxonomy.primary",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "categories.primary",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.taxonomy.hierarchy",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "taxonomy.hierarchy",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.taxonomy.alternates",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "categories.alternate",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "place.attributes.taxonomy.alternates",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceFieldPath": "taxonomy.alternate",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
       "confidence": 1
     }
   ]
