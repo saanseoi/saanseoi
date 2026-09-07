@@ -155,6 +155,12 @@ both adjacent source releases. The generated fixture and verification retain the
 target and bracketing versions. This restores derived fields rather than raw publisher
 JSON, and never generalises from a CSU alone.
 
+`hkgov-dpo-address-coordinate-backfills.json` applies the April 2026 current point for
+each of thirteen reviewed Cheung Hong Estate houses to their July 2024–February 2026
+derived Address2D records. Each rule is bounded by release, CSU, estate, English
+building name and the exact earlier point. The replaced publisher point is retained in
+the row's curation provenance; no later record or unreviewed premise is altered.
+
 Cheung Hong Commercial Centre No. 2 uses a bounded named-premise retention: preserve the
 named premise, suppress the reviewed unnamed cross-reference only while both source
 records occur, and reconstruct the name only for its five-release absence. The later
