@@ -33,6 +33,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .local/
 apps/basemap-viewer/local-review/
 apps/basemap-viewer/src/local-review
+scripts/review/
+scripts/verification/
+scripts/benchmarks/
+scripts/ingestion/
+scripts/migration/
 *.tsbuildinfo
 tmp/*
 __pycache__/
