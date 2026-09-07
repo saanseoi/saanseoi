@@ -239,7 +239,7 @@ async function runApiReleaseSetDocsPublishCommand(
   note(
     [
       formatField('target', describeTarget(target).label),
-      formatField('dryRun', String(dryRun)),
+      ...(dryRun ? [formatField('dryRun', 'true')] : []),
       formatField('inspected', String(rows.length)),
       formatField('changed', String(updates.length)),
       formatField(
@@ -398,7 +398,7 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
   note(
     [
       formatField('target', describeTarget(target).label),
-      formatField('dryRun', String(dryRun)),
+      ...(dryRun ? [formatField('dryRun', 'true')] : []),
       formatField('inspected', String(rows.length)),
       formatField('changed', String(updates.length)),
       formatField(

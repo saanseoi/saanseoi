@@ -54,7 +54,7 @@ export async function runBootstrapStatsReleaseSetsCommand(
     [
       formatField('inspected snapshots', String(result.inspectedSnapshots)),
       formatField(
-        'created',
+        'published release sets',
         result.createdReleaseSetCodes.length > 0
           ? result.createdReleaseSetCodes.join(', ')
           : '-',
@@ -70,7 +70,11 @@ export async function runBootstrapStatsReleaseSetsCommand(
     ].join('\n'),
     'STATISTICS RELEASE-SET BOOTSTRAP',
   )
-  outro('Statistics release-set bootstrap complete ✓')
+  outro(
+    result.createdReleaseSetCodes.length > 0
+      ? 'Statistics release-set bootstrap complete: new release sets published ✓'
+      : 'Statistics release-set bootstrap complete: no new release sets published ✓',
+  )
 }
 
 function optionRegionCode(

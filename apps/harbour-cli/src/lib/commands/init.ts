@@ -199,7 +199,14 @@ export async function runInitialisationCommand(
     ].join('\n'),
     'INITIALISATION',
   )
-  process.stdout.write('\n')
+  process.stdout.write(
+    initialisationIndent(
+      args.command ?? undefined,
+      process.env.SAANSEOI_INIT_GUIDES,
+    ) === 0
+      ? `${formatMutedValue('│')}\n`
+      : '\n',
+  )
 
   let summaryDirectory: string | undefined
   let summaryPath = process.env.SAANSEOI_INIT_SUMMARY_PATH
