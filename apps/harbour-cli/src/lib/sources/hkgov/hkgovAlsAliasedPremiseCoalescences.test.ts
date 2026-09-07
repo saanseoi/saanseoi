@@ -21,8 +21,8 @@ function row(input: {
     zhHantEstateName: '俊宏軒',
     enBlockDescriptor: 'BLK',
     enBlockNumber: blockRef,
-    zhHantBlockDescriptor: '座',
-    zhHantBlockNumber: blockRef,
+    zhHantBlockDescriptor: isOwner ? null : '座',
+    zhHantBlockNumber: isOwner ? null : blockRef,
     enStreetName: 'TIN SHUI ROAD',
     zhHantStreetName: '天瑞路',
     enStreetNumberFrom: '88',
@@ -86,4 +86,37 @@ test('requires the paired publisher points to remain identical', () => {
   expect(() => coalesceAlsAliasedPremises([owner, alias], '2026-08-19.0')).toThrow(
     'point changed',
   )
+})
+
+test('rejects changed named owners and structured alias identities', () => {
+  for (const change of [
+    (owner: PreparedHkgovAlsRow, _alias: PreparedHkgovAlsRow) => {
+      owner.chiPremisesAddressJson = JSON.stringify({ BuildingName: '俊宏軒第二座' })
+    },
+    (_owner: PreparedHkgovAlsRow, alias: PreparedHkgovAlsRow) => {
+      alias.zhHantBlockDescriptor = null
+    },
+    (_owner: PreparedHkgovAlsRow, alias: PreparedHkgovAlsRow) => {
+      const raw = JSON.parse(alias.chiPremisesAddressJson!)
+      raw.ChiBlock.BlockNo = '2'
+      alias.chiPremisesAddressJson = JSON.stringify(raw)
+    },
+  ]) {
+    const decision = fixture.coalescences[0]!
+    const owner = row({
+      csu: decision.owner.csu,
+      id: 'named',
+      buildingName: decision.owner.enBuildingName,
+      zhBuildingName: decision.owner.zhHantBuildingName,
+    })
+    const alias = row({
+      csu: decision.aliasCsu,
+      id: 'structured',
+      buildingName: null,
+      zhBuildingName: null,
+    })
+    change(owner, alias)
+    expect(() => coalesceAlsAliasedPremises([owner, alias], '2024-07-25.0')).toThrow()
+    expect(owner.sources).toBe('{}')
+  }
 })

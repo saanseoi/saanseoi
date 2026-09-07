@@ -69,6 +69,7 @@ export async function prepareAls3dCollections(options: {
   outputFile: string
   rows: PreparedHkgovAlsRow[]
   aliasOwnerIds?: ReadonlyMap<string, string>
+  writeOutput?: boolean
 }) {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
@@ -93,13 +94,17 @@ export async function prepareAls3dCollections(options: {
       ])
     }
   }
-  const writer = createWriteStream(`${options.outputFile}.address3d.jsonl`)
+  const writer =
+    options.writeOutput === false
+      ? undefined
+      : createWriteStream(`${options.outputFile}.address3d.jsonl`)
   // Observe errors even when the stream has not reached its high-water mark.
   let streamError: Error | undefined
-  writer.on('error', error => {
+  writer?.on('error', error => {
     streamError = error
   })
   const write = async (record: PreparedAls3dRecord) => {
+    if (!writer) return
     if (streamError) throw streamError
     if (!writer.write(`${JSON.stringify(record)}\n`)) await once(writer, 'drain')
   }
@@ -290,8 +295,10 @@ export async function prepareAls3dCollections(options: {
       unitCount,
       sourceCount,
     })
-    writer.end()
-    await once(writer, 'finish')
+    if (writer) {
+      writer.end()
+      await once(writer, 'finish')
+    }
     if (suppressed2dIds.size) {
       options.rows.splice(
         0,
@@ -300,7 +307,7 @@ export async function prepareAls3dCollections(options: {
       )
     }
   } finally {
-    writer.destroy()
+    writer?.destroy()
   }
   return { collectionCount: ownerHashes.size, unitCount, sourceCount }
 }

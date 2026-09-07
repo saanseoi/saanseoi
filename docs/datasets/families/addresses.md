@@ -1,5 +1,14 @@
 # Addresses dataset family
 
+Reviewed named/block-only ALS aliases validate the owner's bilingual source building
+names and the alias's bilingual structured block references separately. Shared estate,
+street and point guards apply to both records, and suppressed assertions remain in
+provenance.
+
+ALS preflight validates both Address2D parents and Address3D inventories before
+ingestion. Output-free review applies the same ownership, block enrichment, inventory
+and row-size checks as artefact preparation, without writing 3D sidecars.
+
 For reference and testing imports, `saanseoi init --skip-curation-checks` and
 `saanseoi init:addresses --skip-curation-checks` propagate acceptance of pending address
 curation checks to ALS ingestion. Existing corrections retain unverified provenance

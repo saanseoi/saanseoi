@@ -213,13 +213,14 @@ export async function prepareHkgovAlsAddressParquet(
 
   await mkdir(dirname(outputFile), { recursive: true })
   const has3d = globSync(resolve(sourceDir, 'als_addresses_3d_*.geojson')).length > 0
-  if (options.writeOutput !== false && has3d) {
+  if (has3d) {
     await prepareAls3dCollections({
       sourceDir,
       sourceVersion: options.sourceVersion,
       outputFile,
       rows,
       aliasOwnerIds,
+      writeOutput: options.writeOutput,
     })
     assertUniquePreparedRowIds(rows)
   }
