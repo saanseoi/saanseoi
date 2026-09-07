@@ -17,7 +17,7 @@ const fixtureGroups = [
   'datasets',
   'dataShards',
   'divisionCodes',
-  'identifierBridges',
+  'curations/identity',
   'rulesetVersions',
   'schemaVersions',
 ]

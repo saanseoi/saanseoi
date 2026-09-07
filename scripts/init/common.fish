@@ -14,6 +14,9 @@ function init_fail
 end
 
 function init_run_step
+    if test "$saanseoi_init_skip_curation_checks" -eq 1; and test "$argv[1]" = ./bin/saanseoi; and string match -qr '^init(:|$)' -- $argv[2]; and not string match -qr ':(begin|complete|fail)$' -- $argv[2]
+        set -a argv --skip-curation-checks
+    end
     $argv
     or init_fail $status
 end
@@ -33,6 +36,8 @@ function init_clear_clean_run_manifests
 end
 
 set -g saanseoi_init_continue 0
+set -g saanseoi_init_skip_curation_checks 0
+set -g saanseoi_init_curation_args
 set -g saanseoi_init_cache_artefacts 1
 set -g saanseoi_init_target local
 set -g saanseoi_init_last_upload_processed 0
@@ -48,6 +53,10 @@ function init_configure
 
     while test (count $argv) -gt 0
         switch $argv[1]
+            case --skip-curation-checks
+                set -g saanseoi_init_skip_curation_checks 1
+                set -g saanseoi_init_curation_args --skip-curation-checks
+                set -e argv[1]
             case --continue
                 set -g saanseoi_init_continue 1
                 set -e argv[1]
