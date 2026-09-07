@@ -313,6 +313,11 @@ earlier releases. The unnamed Lei Moon source record is separately suppressed as
 duplicate; its coordinate change does not authorise it as a Low Block or coordinate
 backfill target.
 
+Butterfly Estate's six April 2026 coordinate changes are also backfilled across the 23
+earlier releases. Tip Chui, Tip Ling, Tip Mo, Tip Sum, Tip Yee and Tip Ying Houses
+retain their exact replaced publisher point as provenance; no inventory or component
+change is inferred from the reviewed point update.
+
 Easeful Court's supplied block components identify Tower 1 / 第一座 (CSU
 `2873924582T20050430`, 360 units) and Tower 2 / 第二座 (CSU `2873024523T20050430`, 150
 units). The user confirmed that Tower 1 is the larger building. The mapping is stored in
