@@ -2,6 +2,8 @@ import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-csu-corrections.json'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 import type { Als3dFeature } from './hkgovAls3d'
+import { resolveLinTsui } from './hkgovAlsLinTsui'
+import { resolveApprovedEstateCsu } from './hkgovAlsApprovedEstateBatch'
 /** Resolve a reviewed identifier without modifying the publisher feature. */
 export function resolveAlsCsuCorrection(
   feature: HkgovAlsFeature | Als3dFeature,
@@ -9,6 +11,10 @@ export function resolveAlsCsuCorrection(
 ) {
   const p = feature.properties?.Address?.PremisesAddress
   const rawCsu = p?.BuildingCsuInformation?.CsuId ?? null
+  const linTsui = resolveLinTsui(feature, version)
+  if (linTsui?.named) return { csu: linTsui.to, decision: linTsui }
+  const approved = resolveApprovedEstateCsu(feature, version)
+  if (approved) return approved
   const decision = fixture.corrections.find(
     c =>
       c.from === rawCsu &&

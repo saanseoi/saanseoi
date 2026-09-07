@@ -30,6 +30,21 @@ function feature(units: string[]): Als3dFeature {
   }
 }
 
+test('recognises structured bilingual blocks without inventing names', () => {
+  const before = feature(['101'])
+  const after = feature(['101', '102'])
+  for (const f of [before, after]) {
+    const p = f.properties.Address.PremisesAddress
+    delete p.EngPremisesAddress!.BuildingName
+    delete p.ChiPremisesAddress!.BuildingName
+    p.EngPremisesAddress!.EngBlock = { BlockNo: '6', BlockDescriptor: 'BLK' }
+    p.ChiPremisesAddress!.ChiBlock = { BlockNo: '6', BlockDescriptor: '座' }
+  }
+  expect(alsFlatOmissionAdditions(before, after)).toEqual([{ floor: 1, unit: '102' }])
+  after.properties.Address.PremisesAddress.ChiPremisesAddress!.ChiBlock!.BlockNo = '7'
+  expect(alsFlatOmissionAdditions(before, after)).toBeNull()
+})
+
 test('recognises only exact bilingual additions without mutating evidence', () => {
   const before = feature(['101'])
   expect(alsFlatOmissionAdditions(before, feature(['101', '102', '103']))).toEqual([

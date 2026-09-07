@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "sourceVersionFrom": "2024-07-25.0",
+  "sourceVersionTo": "2026-08-19.0",
+  "hungHom": {
+    "id": "hung-hom-phase-2-house-ownership",
+    "aliasCsu": "3752018776T20110715",
+    "ownerCsu": "3757718779P20110504",
+    "ownerName": "HUNG YAT HOUSE",
+    "ownerZhName": "紅日樓",
+    "geoAddress": "3752018776T20110715",
+    "earlierCoordinates": [114.18909, 22.30801],
+    "coordinates": [114.18903, 22.30795],
+    "authority": "User decision, 2026-09-07: Phase 2 uses only 28 Tai Wan Road. The unnamed CSU belongs to Hung Yat; retain one record per named house, not duplicated inventories. Preserve the named publisher inventories and individual points."
+  },
+  "koYee": {
+    "id": "ko-yee-publisher-estate-address",
+    "csu": "4291717546T20050430",
+    "geoAddress": "4290617573T20050430",
+    "earlierCoordinates": [114.24128, 22.29708],
+    "coordinates": [114.24129, 22.29707],
+    "buildings": [
+      ["4292517616T20050430", "KO CHI HOUSE", "高志樓"],
+      ["4297617596T20050430", "KO YUEN HOUSE", "高遠樓"],
+      ["4291717546T20050430", "KO SHING HOUSE", "高盛樓"],
+      ["4288817513T20050430", "KO YUET HOUSE", "高悅樓"]
+    ],
+    "authority": "User decision, 2026-09-07: the unnamed 28 Ko Chiu Road address with a different GeoAddress is the estate-level entry, not a Ko Shing duplicate."
+  }
+}

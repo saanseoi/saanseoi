@@ -175,9 +175,9 @@ identifiers, and projected address fields, so an actual ALS record change create
 version.
 
 The source record includes the original bilingual ALS properties unchanged in
-`rawProperties`. Its paired `addressEn` and `addressZhHant` fields record the
-reproducible address-component projection for that exact evidence; only canonical
-address snapshots materialise locale-keyed rows.
+`rawProperties`, alongside source identity, release history and provenance. Extracted
+identifiers, coordinate projections and bilingual address components are materialised
+only in canonical address snapshots.
 
 ## Stable ALS premise ID
 

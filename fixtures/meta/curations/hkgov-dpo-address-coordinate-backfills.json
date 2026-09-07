@@ -3,6 +3,42 @@
   "automaticPolicy": "coordinate-only-named-under-50m-backfill",
   "backfills": [
     {
+      "id": "lung-hang-lok-sam-current-point-baseline",
+      "estate": "LUNG HANG ESTATE",
+      "csu": "3628125324T20050430",
+      "enBuildingName": "LOK SAM HSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-07-08.0",
+      "previousCoordinates": [114.17711, 22.36733],
+      "currentCoordinates": [114.177, 22.36708],
+      "authority": "User decision, 2026-09-07: backfill the current coordinates throughout retained history."
+    },
+    {
+      "id": "lung-hang-lok-sam-current-point-april",
+      "estate": "LUNG HANG ESTATE",
+      "csu": "3628125324T20050430",
+      "enBuildingName": "LOK SAM HSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "2026-04-25.0",
+      "evidenceSourceVersion": "2026-07-08.0",
+      "previousCoordinates": [114.17644, 22.36724],
+      "currentCoordinates": [114.177, 22.36708],
+      "authority": "User decision, 2026-09-07: backfill the current coordinates throughout retained history."
+    },
+    {
+      "id": "on-tai-shopping-centre-current-point",
+      "estate": "ON TAI ESTATE",
+      "csu": "4165220887P20180704",
+      "enBuildingName": "ON TAI SHOPPING CENTRE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-07-08.0",
+      "previousCoordinates": [114.22828, 22.32742],
+      "currentCoordinates": [114.22913, 22.327],
+      "authority": "User decision, 2026-09-07: backfill the current coordinates throughout retained history."
+    },
+    {
       "id": "ko-yee-ko-shing-current-coordinate-backfill",
       "estate": "KO YEE ESTATE",
       "csu": "4291717546T20050430",
@@ -5081,6 +5117,19 @@
       "automaticPolicy": "coordinate-only-named-under-50m-backfill"
     },
     {
+      "id": "kwong-fuk-kwong-yan-original-point-until-revoked",
+      "estate": "KWONG FUK ESTATE",
+      "csu": "3609034391T20050430",
+      "enBuildingName": "KWONG YAN HOUSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "9999-12-31.0",
+      "evidenceSourceVersion": "2026-04-03.0",
+      "previousCoordinates": [114.17485, 22.44949],
+      "currentCoordinates": [114.17515, 22.44896],
+      "retention": "until-revoked",
+      "authority": "User decision, 2026-09-07: retain the original point shown in the review card (the pre-25-April point) until revoked; reject the separate over-50-metre shift on 25 April 2026. The approved earlier under-50-metre backfill remains. Any new publisher point requires review."
+    },
+    {
       "id": "kwong-fuk-estate-kwong-yau-house-3603934289T20050430-20260403-coordinate-backfill",
       "estate": "KWONG FUK ESTATE",
       "csu": "3603934289T20050430",
@@ -5339,6 +5388,45 @@
       "currentCoordinates": [114.1261, 22.34722],
       "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
       "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+    },
+    {
+      "id": "lai-kok-lai-ho-original-point-until-revoked",
+      "estate": "LAI KOK ESTATE",
+      "csu": "3429121622T20050430",
+      "enBuildingName": "LAI HO HOUSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "9999-12-31.0",
+      "evidenceSourceVersion": "2026-04-03.0",
+      "previousCoordinates": [114.15717, 22.33301],
+      "currentCoordinates": [114.15768, 22.33365],
+      "retention": "until-revoked",
+      "authority": "User decision, 2026-09-07: retain the separate pre-collapse point until revoked; reject the shared publisher point introduced on 25 April 2026. Earlier approved under-50-metre backfills remain. Any new publisher point requires review."
+    },
+    {
+      "id": "lai-kok-lai-kwai-original-point-until-revoked",
+      "estate": "LAI KOK ESTATE",
+      "csu": "3420421607T20050430",
+      "enBuildingName": "LAI KWAI HOUSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "9999-12-31.0",
+      "evidenceSourceVersion": "2026-04-03.0",
+      "previousCoordinates": [114.15717, 22.33301],
+      "currentCoordinates": [114.15684, 22.33351],
+      "retention": "until-revoked",
+      "authority": "User decision, 2026-09-07: retain the separate pre-collapse point until revoked; reject the shared publisher point introduced on 25 April 2026. Earlier approved under-50-metre backfills remain. Any new publisher point requires review."
+    },
+    {
+      "id": "lai-kok-lai-lan-original-point-until-revoked",
+      "estate": "LAI KOK ESTATE",
+      "csu": "3423821541T20050430",
+      "enBuildingName": "LAI LAN HOUSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "9999-12-31.0",
+      "evidenceSourceVersion": "2026-04-03.0",
+      "previousCoordinates": [114.15717, 22.33301],
+      "currentCoordinates": [114.15717, 22.33292],
+      "retention": "until-revoked",
+      "authority": "User decision, 2026-09-07: retain the separate pre-collapse point until revoked; reject the shared publisher point introduced on 25 April 2026. Earlier approved under-50-metre backfills remain. Any new publisher point requires review."
     },
     {
       "id": "lai-kok-estate-lai-fu-house-3435721449T20050430-20260403-coordinate-backfill",

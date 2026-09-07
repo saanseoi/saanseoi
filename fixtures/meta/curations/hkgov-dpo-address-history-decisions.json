@@ -2,6 +2,18 @@
   "version": 1,
   "automaticPolicies": [
     {
+      "id": "exact-bilingual-flat-additions-backfill",
+      "revision": 1,
+      "enabled": true,
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat; this is bad upstream data.",
+      "rule": "Treat an exact bilingual inventory superset on the same corroborated named or structured-block premise as a publisher omission. Materialise additions into earlier retained inventories with exact CSU, estate, names or block, publisher hash, corrected hash and version guards. Preserve unrelated mergers and replacements as dated history; ambiguous ownership or mixed additions/removals still requires review.",
+      "confirmedExamples": [
+        "Kai Shun House: 2/F 219",
+        "Kwong Yan House: 14 flats ending 61",
+        "Lei Muk Shue Block 6: 3/F 302 and 304"
+      ]
+    },
+    {
       "id": "coordinate-only-named-under-50m-backfill",
       "revision": 1,
       "enabled": true,
@@ -26,6 +38,136 @@
     }
   ],
   "decisions": [
+    {
+      "id": "lower-ngau-tau-kok-estate-approved-20250225",
+      "estate": "LOWER NGAU TAU KOK ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "a11dc2d13f529425d24562a05b9e326e3c22aa760475cbb9be830706a23b8d2e",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Forward-fill Kwai Hin until revoked; backfill the Plaza CSU.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "lung-hang-estate-approved-20260722",
+      "estate": "LUNG HANG ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "923db43458044b1050e3e318f288cccd195301469d0cd4a7245eef878000748a",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Backfill the school CSU and suppress its empty alias.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "ma-hang-estate-approved-20250225",
+      "estate": "MA HANG ESTATE",
+      "release": "20250225-1050-ALS-GeoJSON",
+      "expectedFingerprint": "27840351397c1280861208d1cf70b32e035d712f55abdf3a43a296a7a73d4af7",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Use CSU 3934509146T20050430 throughout retained history.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "ma-hang-estate-approved-20260722",
+      "estate": "MA HANG ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "ed247482ebe17b11021ea2d573278288241bf9c78396d7f5f0f9a3b0df967bcf",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Correct the reverted CSU to 3934509146T20050430.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "model-housing-estate-approved-20240725",
+      "estate": "MODEL HOUSING ESTATE",
+      "release": "20240725-1048-ALS-GeoJSON",
+      "expectedFingerprint": "db3380f41021c410d1adfc1784b77252f6d29772eacc4da35aae198f4da5121e",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Extend the reviewed house-parent inventories and street sections to the start.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "on-tai-estate-approved-20260722",
+      "estate": "ON TAI ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "fe5a775ec72a34583679dbbdbd73eaa3ff0f4d3e8fcc744dd25674571f8ad2a7",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Suppress the empty Kam Tai duplicate throughout its earlier appearances.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "on-tat-estate-approved-20260722",
+      "estate": "ON TAT ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "1ebb046fd0979dd915077ba7c4cbfb0ff5e167a6dee15e118295a413b508c5b8",
+      "action": "reviewed_estate_correction",
+      "fixture": "hkgov-dpo-address-approved-estate-batch.json",
+      "decision": "Suppress the empty Chun Tat duplicate and retain the original named inventory owner.",
+      "authority": "User decision, 2026-09-07: approved estate corrections and parent inventory ownership."
+    },
+    {
+      "id": "hung-hom-phase-2-address-ownership-baseline",
+      "estate": "HUNG HOM ESTATE PHASE 2",
+      "release": "20240725-1048-ALS-GeoJSON",
+      "expectedFingerprint": "46e3c1b2a29e6b3cd3ef2c410b2badb5bfa335809762ed2ec4c5962b3393b670",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-reviewed-estate-ownership.json",
+      "decision": "Coalesce the unnamed CSU into Hung Yat address provenance. Reject 9 Dyer Avenue for Phase 2; retain one named house at 28 Tai Wan Road with its own point and inventory. The incorrect unnamed 780-flat inventory remains suppressed.",
+      "authority": "User decision, 2026-09-07: 9 Dyer Avenue does not apply to Phase 2, CSU 3752018776T20110715 belongs to Hung Yat; one record per house."
+    },
+    {
+      "id": "hung-hom-phase-2-address-ownership-april",
+      "estate": "HUNG HOM ESTATE PHASE 2",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "9e6b263d6732a985bf7b2fd8aab72ba937a4986d19fbc1ba311efa58941de3b8",
+      "action": "reviewed_unnamed_premise_suppression",
+      "fixture": "hkgov-dpo-address-reviewed-estate-ownership.json",
+      "decision": "Accept removal of the invalid Dyer Avenue variant; the remaining unnamed Tai Wan Road assertion is provenance on Hung Yat, not another canonical house or inventory.",
+      "authority": "User decision, 2026-09-07: retain only 28 Tai Wan Road and one record per house."
+    },
+    {
+      "id": "ko-yee-estate-address-and-duplicate-removal",
+      "estate": "KO YEE ESTATE",
+      "release": "20260722-1931-ALS-GeoJSON",
+      "expectedFingerprint": "20977409bfa8b24577e33d9e55c71cdb3e14448c3f51bea3c09f4b3e5b010487",
+      "action": "reviewed_hierarchy",
+      "fixture": "hkgov-dpo-address-reviewed-estate-ownership.json",
+      "decision": "The proven Ko Shing duplicate is suppressed historically. Retain the distinct GeoAddress 4290617573T20050430 at 28 Ko Chiu Road as the estate complex and parent of four separate named building inventories.",
+      "authority": "User decision, 2026-09-07: the unnamed 28 Ko Chiu Road address with a different GeoAddress is the estate-level entry."
+    },
+    {
+      "id": "long-shin-estate-range-and-april-inventory",
+      "estate": "LONG SHIN ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "220ea64ec326be968747f1f4b22661b505e0746afaf33b86c560d069b5e641c3",
+      "action": "reviewed_hierarchy_and_inventory_backfill",
+      "fixture": "hkgov-dpo-address-3d-backfills.json",
+      "decision": "Restore Shin Leung's 313-flat inventory for the three missing April deliveries. Retain 11–12 Yau Shin Street at estate granularity and the named 11 and 12 building addresses as the three inventory owners. Coalesce historical building-range aliases without discarding source assertions.",
+      "authority": "User decision, 2026-09-07: backfill missing Shin Leung inventories; keep 11–12 as the estate address and 11 and 12 with their respective named houses and inventories."
+    },
+    {
+      "id": "long-shin-shin-leung-inventory-return",
+      "estate": "LONG SHIN ESTATE",
+      "release": "20260708-1050-ALS-GeoJSON",
+      "expectedFingerprint": "8fba58d09ed56f8a7eb454ff822f0243e833518233fe0e25d6fa714b16d059e0",
+      "action": "reviewed_inventory_backfill",
+      "fixture": "hkgov-dpo-address-3d-backfills.json",
+      "decision": "The unchanged returning 313-flat Shin Leung inventory corroborates restoration of the three earlier April omissions; it does not create a new building or collection.",
+      "authority": "User decision, 2026-09-07: backfill Shin Leung's missing inventories."
+    },
+    {
+      "id": "lin-tsui-current-inventory-owner-backfill",
+      "estate": "LIN TSUI ESTATE",
+      "release": "20260403-1056-ALS-GeoJSON",
+      "expectedFingerprint": "d182fe98aa6ae00babf1c8d328a5d99e72dca853573bca8098b5b34ee0a03357",
+      "action": "reviewed_identity_correction",
+      "fixture": "hkgov-dpo-address-lin-tsui.json",
+      "decision": "Backfill the latest inventory-bearing CSU and named address as one Lin Tsui House identity; remove the superseded and unnamed or street-only canonical variants while preserving raw source evidence and 288 units.",
+      "authority": "User decision, 2026-09-07: use the latest CSU which has the inventory, backfill the correct entry with its address, and remove the other entries."
+    },
     {
       "id": "hoi-ying-ying-fai-flat-108-backfill",
       "estate": "HOI YING ESTATE",

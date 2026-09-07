@@ -2,6 +2,124 @@
   "version": 1,
   "corrections": [
     {
+      "id": "shek-kip-mei-block-24-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SHEK KIP MEI ESTATE",
+      "csu": "3509021571T20050430",
+      "expectedBlockNumber": "24",
+      "expectedUnitCount": 172,
+      "expectedInventoryHash": "6149f15111b6a17e6ce3742f94ab7e5e5d7bdac81f1fa96577937b3874c7cca2",
+      "correctedInventoryHash": "b32e91a15a3e32d53243995759e90fbb5525800e1b832d860035538c339e8065",
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "215"
+        }
+      ],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "removals": [],
+      "decision": "Backfill exact bilingual additions in the same structured block, with no invented building names and raw publisher assertions preserved.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat."
+    },
+    {
+      "id": "shek-kip-mei-block-20-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SHEK KIP MEI ESTATE",
+      "csu": "3522021506T20050430",
+      "expectedBlockNumber": "20",
+      "expectedUnitCount": 179,
+      "expectedInventoryHash": "bdd9a005b4082ed1901b59b2da6f3b9545f1079723f9df6ddc11876ce0fd9952",
+      "correctedInventoryHash": "64417afedc43576037e9ca65d8607ec65e27b7899b5e8e51e3bae36225f3f415",
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "417"
+        }
+      ],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "removals": [],
+      "decision": "Backfill exact bilingual additions in the same structured block, with no invented building names and raw publisher assertions preserved.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat."
+    },
+    {
+      "id": "shek-kip-mei-block-23-flat-omission-20250813",
+      "revision": 1,
+      "estate": "SHEK KIP MEI ESTATE",
+      "csu": "3507721622T20050430",
+      "expectedBlockNumber": "23",
+      "expectedUnitCount": 437,
+      "expectedInventoryHash": "3b5eea02fb2935eabbff5f32e887f9fc1401ad2869a3312296372dd9573c18f7",
+      "correctedInventoryHash": "92033c98e7c314e013f819e19a9bf19991a1455b8d08de9cb8f178002a1164ce",
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "340"
+        },
+        {
+          "floor": 9,
+          "unit": "941"
+        }
+      ],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "removals": [],
+      "decision": "Backfill exact bilingual additions in the same structured block, with no invented building names and raw publisher assertions preserved.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat."
+    },
+    {
       "id": "lei-muk-shue-block-6-flat-omission-20250813",
       "revision": 1,
       "estate": "LEI MUK SHUE ESTATE",
