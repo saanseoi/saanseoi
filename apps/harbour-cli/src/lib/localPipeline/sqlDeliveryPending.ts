@@ -10,6 +10,33 @@ import {
 const NAME = 'pending-sql-delivery.json'
 type Pending = { releaseId: string; directories: string[] }
 
+/**
+ * Returns the retained release only when every sealed plan proves that it is
+ * the source release about to be registered. Callers must still let the normal
+ * ownership assertion reject every other pending release.
+ */
+export async function findPendingSqlDeliveryReleaseId(
+  cacheDir: string,
+  releaseCode: string,
+) {
+  const pending = await readPendingSqlDelivery(cacheDir)
+  if (!pending) return undefined
+
+  for (const directory of pending.directories) {
+    const plan = await readDeliveryPlan(directory)
+    if (
+      !plan ||
+      plan.context.releaseId !== pending.releaseId ||
+      resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
+      !hasReleaseCode(plan.context.inputs, releaseCode)
+    ) {
+      return undefined
+    }
+  }
+
+  return pending.releaseId
+}
+
 export async function readPendingSqlDelivery(
   cacheDir: string,
 ): Promise<Pending | null> {
@@ -97,4 +124,14 @@ async function completeLocked(cacheDir: string, releaseId: string) {
   }
   await rm(join(cacheDir, NAME))
   return true
+}
+
+function hasReleaseCode(inputs: Record<string, unknown>, releaseCode: string) {
+  const version = inputs.version
+  return (
+    typeof version === 'object' &&
+    version !== null &&
+    !Array.isArray(version) &&
+    (version as Record<string, unknown>).releaseCode === releaseCode
+  )
 }

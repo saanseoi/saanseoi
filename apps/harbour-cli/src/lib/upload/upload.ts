@@ -1,3 +1,4 @@
+import { dirname } from 'node:path'
 import type { ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
@@ -10,8 +11,13 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  mapLocalTargetPaths,
+  resolveD1Targets,
+} from '../dbCache/localDbCacheTargets.ts'
 import type { CliUploadOptions, UploadTarget } from '../cli/options.ts'
 import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
+import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -134,12 +140,16 @@ async function registerUploadLocally(
     previewResult.plan.sourceVersion,
   )
   const resolveDbContext = options.resolveLocalDbContext ?? resolveLocalAddressDbContext
+  const resumeSqlDeliveryReleaseId = await findMatchingPendingReleaseId(
+    previewResult.plan.releaseCode,
+  )
   const dbContext = await resolveDbContext(
     target,
     previewResult.plan.regionCode,
     shardYear,
     {
       cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
+      resumeSqlDeliveryReleaseId,
     },
   )
 
@@ -156,6 +166,13 @@ async function registerUploadLocally(
         : options.reuseExistingRelease
           ? ['processing']
           : undefined
+    if (
+      resumeSqlDeliveryReleaseId &&
+      allowExistingDatasetStatuses &&
+      !allowExistingDatasetStatuses.includes('processing')
+    ) {
+      allowExistingDatasetStatuses.push('processing')
+    }
     const registered = await registerLocalUpload(metaDb, {
       ...registerOptions,
       allowExistingDatasetStatuses,
@@ -197,6 +214,13 @@ async function registerUploadLocally(
   } finally {
     dbContext.cleanup()
   }
+}
+
+async function findMatchingPendingReleaseId(releaseCode: string) {
+  const localTargets = await resolveD1Targets('local')
+  const metaPath = mapLocalTargetPaths(localTargets).DB_META
+  if (!metaPath) throw new Error('Local SQL recovery requires the DB_META binding.')
+  return findPendingSqlDeliveryReleaseId(dirname(metaPath), releaseCode)
 }
 
 async function requestRemoteRegistration(

@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import {
   assertSqlDeliveryPlanningAllowed,
   completeSqlDeliveryRelease,
+  findPendingSqlDeliveryReleaseId,
   readPendingSqlDelivery,
   registerPendingSqlDelivery,
 } from './sqlDeliveryPending.ts'
@@ -58,6 +59,31 @@ test('completion cannot clear ownership while another phase holds the cache lock
     })
     expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
     expect(await readPendingSqlDelivery(root)).toBeNull()
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('recognises only a retained plan for the exact source release', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pending-release-code-'))
+  try {
+    const directory = join(root, 'plan')
+    await prepareSqlDelivery(
+      directory,
+      {
+        environment: 'local',
+        releaseId: 'release',
+        phase: 'source',
+        inputs: { version: { releaseCode: 'release-code' } },
+        cacheDir: root,
+        cachePreparedAt: 'fixed',
+      },
+      async () => {},
+    )
+    await registerPendingSqlDelivery(root, 'release', directory)
+
+    expect(await findPendingSqlDeliveryReleaseId(root, 'release-code')).toBe('release')
+    expect(await findPendingSqlDeliveryReleaseId(root, 'other-code')).toBeUndefined()
   } finally {
     await rm(root, { recursive: true, force: true })
   }
