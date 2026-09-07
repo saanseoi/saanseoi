@@ -1,4 +1,5 @@
 import { join, resolve } from 'node:path'
+import { Database } from 'bun:sqlite'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   resolveD1Targets,
@@ -57,12 +58,37 @@ export async function runSqlDeliveryCommand(
     return
   }
   if (environment === 'local') {
+    const localFiles = mapLocalTargetPaths(await resolveD1Targets('local'))
     const result = await runNativeSqlDelivery(directory, {
-      files: mapLocalTargetPaths(await resolveD1Targets('local')),
+      files: localFiles,
       onProgress: (completed, total) =>
         console.log(`local: ${completed}/${total} confirmed SQL batches`),
     })
     console.log(JSON.stringify(result))
+    const metaPath = localFiles.DB_META
+    if (!metaPath)
+      throw new Error('Local SQL recovery requires the configured DB_META binding.')
+    const metaDb = new Database(metaPath, { readonly: true })
+    let published = false
+    try {
+      published =
+        metaDb
+          .query<{ status: string }, [string]>(
+            'SELECT status FROM releases WHERE id = ? LIMIT 1',
+          )
+          .get(plan.context.releaseId)?.status === 'published'
+    } finally {
+      metaDb.close()
+    }
+    const released =
+      published &&
+      (await completeSqlDeliveryRelease(plan.context.cacheDir, plan.context.releaseId))
+    if (released) {
+      console.log(
+        'Native local SQL recovered and the published release released its database ownership.',
+      )
+      return
+    }
     console.log(
       'Native local SQL recovered. Resume the owning release workflow to finish publication and release its database ownership.',
     )

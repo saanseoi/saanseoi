@@ -12,6 +12,7 @@ import {
   resolveCacheTablesForBinding,
   resolveShardBindingName,
 } from './localDbCache.ts'
+import { countRemoteCacheWorkUnits } from './localDbCacheMirror.ts'
 
 const cacheRoot = resolve(
   import.meta.dir,
@@ -50,6 +51,27 @@ test('includes the Places full-text index in the current cache profile', () => {
   const historyTables = resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'places')
   expect(historyTables).not.toContain('placesDivision')
   expect(historyTables).not.toContain('placesCells')
+})
+
+test('uses the narrow Division profile for a remote mirror', () => {
+  const targets = [
+    'DB_META',
+    'DB_CURRENT',
+    'DB_HISTORY_HK_BEFORE',
+    'DB_HISTORY_HK_2025',
+    'DB_HISTORY_HK_2026',
+    'DB_SOURCE_HK_BEFORE',
+    'DB_SOURCE_HK_2025',
+    'DB_SOURCE_HK_2026',
+  ].map(bindingName => ({
+    bindingName,
+    databaseId: 'acceptance-database-id',
+    databaseName: 'acceptance-database',
+    localDatabaseId: 'acceptance-local-database',
+  }))
+
+  expect(countRemoteCacheWorkUnits(targets)).toBe(127)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(37)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {

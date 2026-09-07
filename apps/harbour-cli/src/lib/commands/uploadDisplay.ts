@@ -17,7 +17,7 @@ const API_DOMAIN_RELEASE_WIDTH = 120
 
 export function formatSuccessfulReleaseMessage(startedAt: number) {
   const elapsed = formatDurationMs(Date.now() - startedAt) ?? '0 ms'
-  return `✔ ${blueText('Release successful')} ${formatMutedValue(`(${elapsed})`)}`
+  return `✔ ${blueText('Source Release successful')} ${formatMutedValue(`(${elapsed})`)}`
 }
 
 function blueText(value: string) {

@@ -25,13 +25,19 @@ export function applyAlsLocalities(rows: PreparedHkgovAlsRow[], version: string)
       assert.equal(zh.ChiStreet.LocationName ?? null, isBackfill ? null : d.zhLocality)
       const enRoute = `${d.number} ${d.enStreet}`
       const zhRoute = `${d.number}${d.zhStreet}`
-      assert(row.enFormattedAddress?.includes(enRoute))
-      assert(row.zhHantFormattedAddress?.includes(zhRoute))
-      row.enFormattedAddress = row.enFormattedAddress.replace(
+      const enFormattedAddress = row.enFormattedAddress
+      const zhHantFormattedAddress = row.zhHantFormattedAddress
+      if (!enFormattedAddress?.includes(enRoute)) {
+        throw new Error(`ALS locality ${d.id}: English formatted address changed`)
+      }
+      if (!zhHantFormattedAddress?.includes(zhRoute)) {
+        throw new Error(`ALS locality ${d.id}: Chinese formatted address changed`)
+      }
+      row.enFormattedAddress = enFormattedAddress.replace(
         enRoute,
         `${enRoute}, ${d.enLocality}`,
       )
-      row.zhHantFormattedAddress = row.zhHantFormattedAddress.replace(
+      row.zhHantFormattedAddress = zhHantFormattedAddress.replace(
         zhRoute,
         `${d.zhLocality}${zhRoute}`,
       )

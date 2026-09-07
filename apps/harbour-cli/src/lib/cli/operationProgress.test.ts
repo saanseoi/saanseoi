@@ -1,6 +1,42 @@
 import { describe, expect, test } from 'bun:test'
 
 describe('OperationProgress', () => {
+  test('keeps counted substage frames within the piped terminal width without extra guides', () => {
+    const source = `
+      import { OperationProgress } from ${JSON.stringify(`${import.meta.dir}/operationProgress.ts`)};
+      const progress = new OperationProgress();
+      progress.beginPhase('Materialise divisionArea', {});
+      for (const label of ['write current rows', 'write history rows']) {
+        progress.update(0, { max: 18, reset: true, label: 'Materialise ' + label + ' 界'.repeat(30) });
+        await Bun.sleep(180);
+        progress.update(18);
+      }
+      progress.complete('Materialise complete');
+    `
+    const result = Bun.spawnSync([process.execPath, '--eval', source], {
+      env: {
+        ...process.env,
+        SAANSEOI_TERMINAL_INTERACTIVE: '1',
+        SAANSEOI_TERMINAL_COLUMNS: '60',
+        TERM: 'xterm-256color',
+        CI: 'false',
+        FORCE_COLOR: '1',
+      },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+    expect(result.exitCode).toBe(0)
+    const output = result.stdout.toString()
+    const plain = Bun.stripANSI(output)
+    expect(plain.split('\n')).toHaveLength(3)
+    expect(plain).toContain('Materialise complete')
+    const frames = output.split('\u001b[1G\u001b[J').slice(1)
+    expect(frames.length).toBeGreaterThan(1)
+    for (const frame of frames) {
+      expect(Bun.stringWidth(Bun.stripANSI(frame).trim())).toBeLessThan(60)
+    }
+  })
+
   test('redraws through the terminal logging pipe and keeps non-interactive output static', () => {
     const source = `
       import { OperationProgress } from ${JSON.stringify(`${import.meta.dir}/operationProgress.ts`)};
