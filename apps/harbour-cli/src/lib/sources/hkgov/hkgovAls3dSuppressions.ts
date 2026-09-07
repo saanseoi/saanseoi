@@ -1,10 +1,12 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-suppressions.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
+import { assertKoYeeEmptyInventory } from './hkgovAlsKoYeeDuplicate'
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
   if (skip) return undefined
+  assertKoYeeEmptyInventory(feature, version)
   const p = feature.properties.Address.PremisesAddress
   const en = p.EngPremisesAddress ?? {}
   const zh = p.ChiPremisesAddress ?? {}

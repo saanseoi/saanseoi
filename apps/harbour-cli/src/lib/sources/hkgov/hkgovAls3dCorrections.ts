@@ -31,6 +31,11 @@ export function applyAls3dCorrections(
       en.EngEstate?.EstateName !== correction.estate ||
       en.BuildingName !== correction.expectedEnBuildingName ||
       zh.BuildingName !== correction.expectedZhBuildingName ||
+      ('expectedBlockNumber' in correction &&
+        (en.EngBlock?.BlockNo !== correction.expectedBlockNumber ||
+          zh.ChiBlock?.BlockNo !== correction.expectedBlockNumber ||
+          en.EngBlock?.BlockDescriptor !== 'BLK' ||
+          zh.ChiBlock?.BlockDescriptor !== '座')) ||
       en.Eng3dAddress?.length !== correction.expectedUnitCount ||
       zh.Chi3dAddress?.length !== correction.expectedUnitCount ||
       publisherInventoryHash(corrected) !== correction.expectedInventoryHash

@@ -151,13 +151,21 @@ export async function prepareAls3dCollections(options: {
         kind: 'source' as const,
         sourceRecordId,
         versionHash: als3dHash(
-          suppression
-            ? { feature, suppression }
-            : backfill
-              ? { feature, backfill }
-              : corrections.length
-                ? { feature, corrections }
-                : feature,
+          csuCorrection.decision
+            ? {
+                feature,
+                corrections,
+                suppression,
+                backfill,
+                csuCorrection: csuCorrection.decision,
+              }
+            : suppression
+              ? { feature, suppression }
+              : backfill
+                ? { feature, backfill }
+                : corrections.length
+                  ? { feature, corrections }
+                  : feature,
         ),
         rawProperties: feature,
         sources: [
