@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "coalescences": [
+    {
+      "id": "grandeur-terrace-block-1",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "1",
+      "owner": {
+        "csu": "1812336595T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 1",
+        "zhHantBuildingName": "俊宏軒第一座"
+      },
+      "aliasCsu": "1812336606P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-4",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "4",
+      "owner": {
+        "csu": "1820936688T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 4",
+        "zhHantBuildingName": "俊宏軒第四座"
+      },
+      "aliasCsu": "1820936699P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-5",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "5",
+      "owner": {
+        "csu": "1823836719T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 5",
+        "zhHantBuildingName": "俊宏軒第五座"
+      },
+      "aliasCsu": "1823836730P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-6",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "6",
+      "owner": {
+        "csu": "1827336660T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 6",
+        "zhHantBuildingName": "俊宏軒第六座"
+      },
+      "aliasCsu": "1827336673P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-7",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "7",
+      "owner": {
+        "csu": "1828436620T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 7",
+        "zhHantBuildingName": "俊宏軒第七座"
+      },
+      "aliasCsu": "1828436633P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-8",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "8",
+      "owner": {
+        "csu": "1829536579T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 8",
+        "zhHantBuildingName": "俊宏軒第八座"
+      },
+      "aliasCsu": "1829536592P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-9",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "9",
+      "owner": {
+        "csu": "1830636540T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 9",
+        "zhHantBuildingName": "俊宏軒第九座"
+      },
+      "aliasCsu": "1830636551P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-10",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "10",
+      "owner": {
+        "csu": "1822436601T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 10",
+        "zhHantBuildingName": "俊宏軒第十座"
+      },
+      "aliasCsu": "1822436611P20120105"
+    },
+    {
+      "id": "grandeur-terrace-block-11",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "estate": "GRANDEUR TERRACE",
+      "zhEstate": "俊宏軒",
+      "blockRef": "11",
+      "owner": {
+        "csu": "1818836578T20120105",
+        "enBuildingName": "GRANDEUR TERRACE BLOCK 11",
+        "zhHantBuildingName": "俊宏軒第十一座"
+      },
+      "aliasCsu": "1818836583P20120105"
+    }
+  ]
+}

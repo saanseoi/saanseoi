@@ -405,10 +405,15 @@ Lower Wong Tai Sin (II), On Yam, Po Tat, Queens Hill, Sau Mau Ping, Shek Kip Mei
 6, Shek Lei, Tin Wah, Tin Wan, Tsui Ping (North), Tsz Ching, Yat Tung, Yau Oi and Yung
 Shing. Name mismatches are not evidence that the ALS name is wrong.
 
+Grandeur Terrace has a reviewed source-expression repair: nine named/block-only
+cross-CSU pairs are coalesced into their existing `BLK`/`座` references, while Blocks 2
+and 3 retain their directly supplied structured components. Every suppressed assertion
+and its 3D source record stays attached to the canonical block as provenance.
+
 Missing building identifiers, sometimes combined with profile mismatches, need review
-for Grandeur Terrace, High Prosperity Terrace, Hung Hom Phase 2, Kwai Shing West, Lei
-Muk Shue, Po Tin, Shek Kip Mei, Shek Kip Mei Phase 2 and Upper Ngau Tau Kok. Sai Wan
-additionally requires the explicit ownership decision above.
+for High Prosperity Terrace, Hung Hom Phase 2, Kwai Shing West, Lei Muk Shue, Po Tin,
+Shek Kip Mei, Shek Kip Mei Phase 2 and Upper Ngau Tau Kok. Sai Wan additionally requires
+the explicit ownership decision above.
 
 Cheung Wah, Fu Shin, Lai On, Long Ping, Lung Tin and Tsui Lam have current name
 corroboration but still need 2D hierarchy/component review. They have no enabled fixture

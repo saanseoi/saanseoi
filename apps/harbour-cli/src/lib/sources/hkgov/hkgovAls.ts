@@ -14,6 +14,7 @@ import {
   labelAlsPremiseReconstructions,
 } from './hkgovAlsPremiseReconstructions'
 import { applyAlsPremiseConsolidations } from './hkgovAlsPremiseConsolidations'
+import { coalesceAlsAliasedPremises } from './hkgovAlsAliasedPremiseCoalescences'
 import { retainNamedPremises } from './hkgovAlsNamedPremiseRetentions'
 import { suppressAlsUnnamedPremises } from './hkgovAlsUnnamedPremiseSuppressions'
 import {
@@ -208,6 +209,7 @@ export async function prepareHkgovAlsAddressParquet(
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
   assertUniquePreparedRowIds(rows)
   const divisionQuality = buildHkgovAlsDivisionQuality(rows)
+  const aliasOwnerIds = coalesceAlsAliasedPremises(rows, options.sourceVersion)
 
   await mkdir(dirname(outputFile), { recursive: true })
   const has3d = globSync(resolve(sourceDir, 'als_addresses_3d_*.geojson')).length > 0
@@ -217,7 +219,12 @@ export async function prepareHkgovAlsAddressParquet(
       sourceVersion: options.sourceVersion,
       outputFile,
       rows,
+      aliasOwnerIds,
     })
+    assertUniquePreparedRowIds(rows)
+  }
+  if (aliasOwnerIds.size) {
+    rows.splice(0, rows.length, ...rows.filter(row => !aliasOwnerIds.has(row.id)))
     assertUniquePreparedRowIds(rows)
   }
   applyAlsEstateNames(rows, options.sourceVersion)
