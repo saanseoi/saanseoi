@@ -8,7 +8,7 @@ The versioned provenance path is:
 4. `snapshotSources`
 5. `apiFieldProvenance`
 
-Saanseoi tracks provenance at two levels.
+SaanSeoi tracks provenance at two levels.
 
 ## Release Processing Actions
 
@@ -48,6 +48,30 @@ Scope:
 - per published API release set
 - per API field
 - NOT per entity row
+
+Bundled mappings in `fixtures/meta/apiFields/` use the public resource field names and
+may cover several exact source-schema signatures. Resolution selects an explicit lineage
+anchor and retains only contributions from datasets in the selected release set. The
+resolved mapping has its own content hash. A fixture match does not imply that every
+mapped source contributes to every entity.
+
+Source paths can identify prepared inputs as well as publisher fields. For Statistics,
+`raw_properties` supplies the dataset-specific geography, period and measure inputs;
+`fieldMetadata` identifies the reviewed field definitions used for dimensions, labels,
+units and comparability. `normalise_statistics` records this interpretation. Public
+record IDs use `derive_statistics_record_id` over dimensions, reference period and
+source feature reference; `compose_source_feature_ref` records construction of the
+publisher/dataset/version/layer/feature reference.
+
+Address granularity uses `derive_address_granularity` over premise components and
+reviewed overrides. Parent identity resolution uses `join_lookup`. Street and village
+number inputs are conditional on the presence of a street name. Phase inputs include
+both prepared top-level fields and the nested estate representation.
+
+Resolver codes are seeded from the shared `resolverCodes` vocabulary. Regression checks
+validate fixture hashes, resolver membership, exact-signature source coverage, duplicate
+contribution identities and public contract paths. Release and request metadata, such as
+snapshot IDs, timestamps and pagination, is outside source-field coverage.
 
 Stored fields:
 
