@@ -54,7 +54,7 @@ describe('listRegistrySourcesPage', () => {
     const result = await listRegistrySourcesPage(db as never)
 
     expect(result).toHaveLength(200)
-    expect(allCalls).toBe(11)
+    expect(allCalls).toBe(8)
   })
 
   test('batches explicit snapshot cleanup candidates within D1 limits', async () => {
