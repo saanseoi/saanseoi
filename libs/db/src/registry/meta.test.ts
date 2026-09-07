@@ -305,7 +305,8 @@ describe('fixture version hashes', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
     expect(apiDomainCodeRenames).toEqual([
-      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'official' },
+      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'saanseoi' },
+      { apiVersion: 'api-addresses-v0.1', from: 'official', to: 'saanseoi' },
       { apiVersion: 'api-stats-v0.1', from: 'official', to: 'government' },
       { apiVersion: 'api-streets-v0.1', from: 'official', to: 'saanseoi' },
     ])
