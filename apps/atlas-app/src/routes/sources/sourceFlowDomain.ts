@@ -6,7 +6,7 @@ import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
  * domain, while Streets use the SaanSeoi domain.
  */
 export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) => {
-  if (familyType === 'addresses') return 'official'
+  if (familyType === 'addresses') return 'saanseoi'
   if (familyType === 'stats') return 'government'
   if (familyType === 'streets') return 'saanseoi'
 

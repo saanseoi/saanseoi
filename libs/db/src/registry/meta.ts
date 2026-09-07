@@ -675,13 +675,18 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
  * Canonical domain-code renames applied to published registry metadata.
  *
  * A domain identifies a lineage, so these are deliberately limited to cases
- * where the previous code was only a label for the same official lineage.
+ * where the previous code was only a label for the same lineage.
  */
 export const apiDomainCodeRenames = [
   {
     apiVersion: 'api-addresses-v0.1',
     from: 'default',
-    to: 'official',
+    to: 'saanseoi',
+  },
+  {
+    apiVersion: 'api-addresses-v0.1',
+    from: 'official',
+    to: 'saanseoi',
   },
   {
     apiVersion: 'api-stats-v0.1',

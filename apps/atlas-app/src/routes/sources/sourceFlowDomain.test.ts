@@ -24,8 +24,8 @@ describe('sourceFlowDomain', () => {
     expect(sourceFlowDomain(source({}), 'stats')).toBe('government')
   })
 
-  test('uses the Official Addresses domain', () => {
-    expect(sourceFlowDomain(source({}), 'addresses')).toBe('official')
+  test('uses the SaanSeoi Addresses domain', () => {
+    expect(sourceFlowDomain(source({}), 'addresses')).toBe('saanseoi')
   })
 
   test('uses the SaanSeoi Streets domain', () => {
