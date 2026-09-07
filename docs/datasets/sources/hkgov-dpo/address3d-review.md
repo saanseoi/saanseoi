@@ -69,14 +69,11 @@ replacing the derived Low Block child in those releases. It has unresolved cover
 Lei Fook's 404-unit inventory. Its appearance alongside the disappearance of Lei Moon
 Low Block's CSU does not make the two premises equivalent.
 
-User map review identifies CSU `3370111759T20150127` as Lei Moon House Low Block. The
-hierarchy fixture links that unnamed publisher premise to Lei Moon in the 16 retained
-releases from February 2025 through 10 July 2026. It reuses the source address identity
-and point instead of creating a duplicate Low Block child. The source's blank building
-name remains intact; the identification is recorded as user curation. Its empty unit
-arrays do not partition Lei Moon's 404-unit inventory. Other releases retain the derived
-Low Block representation; the disappearance of this CSU does not establish demolition or
-identity equivalence with another CSU.
+CSU `3370111759T20150127` is an unnamed, zero-unit duplicate of Lei Moon House rather
+than evidence for its Low Block. It is suppressed from derived Address2D releases from
+February 2025 through 10 July 2026, with its complete source assertion retained in Lei
+Moon House provenance. The Housing Authority Low Block child remains derived from the
+named building; its empty source arrays do not partition Lei Moon's 404-unit inventory.
 
 The reviewed Lei Fook and Lei Moon rule covers July 2024 through August 2026. They are
 distinct buildings with different CSUs, each owning 404 units despite identical

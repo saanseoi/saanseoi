@@ -1,5 +1,11 @@
 # Divisions dataset family
 
+Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
+Metadata registry synchronisation assigns each code to its canonical Division and
+removes superseded codes for that same domain and canonical ID. Division processing
+reads these curated assignments; domain codes and source identifiers retain their own
+formats.
+
 Planning Division retries reuse sealed SQL and completion counts without repeating
 normalisation, comparison, materialisation or import artefact generation. Local
 materialisation runs on WAL-safe planning copies; target mutations start only after the
