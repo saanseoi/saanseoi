@@ -61,11 +61,11 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年按區議會分區劃分的人口及住戶統計資料。
+  {{ sourceVersion }}按區議會分區劃分的人口及住戶統計資料。
 
 ## 版本控制
 
-此發布使用發布者 <black>{{ sourceVersion }}</black> 年來源彙編，版本為
+此發布使用發布者 <black>{{ sourceVersion }}</black>來源彙編，版本為
 <black>{{ releaseVersion }}</black>。觀測保留其標示的參考時段；彙編版本不會把年度 series 合併為單一期間。
 
 ## 相容性
@@ -100,11 +100,11 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水 | SaanSeoi 初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年按区议会分区划分的人口及住户统计数据。
+  {{ sourceVersion }}按区议会分区划分的人口及住户统计数据。
 
 ## 版本控制
 
-此发布使用发布者 <black>{{ sourceVersion }}</black> 年来源汇编，版本为
+此发布使用发布者 <black>{{ sourceVersion }}</black>来源汇编，版本为
 <black>{{ releaseVersion }}</black>。观测保留其标示的参考时段；汇编版本不会把年度 series 合并为单一期间。
 
 ## 兼容性

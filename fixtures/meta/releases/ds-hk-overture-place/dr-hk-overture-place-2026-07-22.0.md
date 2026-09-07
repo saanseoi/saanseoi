@@ -115,9 +115,6 @@ under `rawProperties`, where the source record remains available.
 
 ## 更新紀錄
 
-- <orange>上游</orange> 為 BrightQuery 引入三個先前被過濾的頂層分類：
-  <black>arts_and_entertainment</black>、<black>lodging</black> 及
-  <black>cultural_and_historic</black>
 - <orange>上游</orange> 改進配對，提高已配對地點數量並減少重複記錄
 
 ## 兼容性
@@ -146,27 +143,13 @@ schema（`{{sourceSchemaVersion}}`）。
 - `emails` - [Array<EmailStr>](/docs#models/EmailStr) - 發布者電郵值
 - `phones` - [Array<PhoneNumber>](/docs#models/PhoneNumber) - 發布者電話值
 
-### 來源欄位
+### 增補欄位
 
-保留原始資料完整範圍並加以補充的欄位：
+包含原始資料完整範圍並加以補充的欄位：
 
-- `sources` - 保留完整的發布者來源歸屬陣列，包括每個來源記錄的 property、dataset、license、記錄識別碼及其他可用的溯源欄位
-- `addresses` - 保留發布者地址物件及文字值。只有在值能與所選 ALS
-  snapshot 配對時，才會另外填入 <black>address2dId</black>；此 release 不會解析
-  <black>address3dId</black>
-- `brand` - 完整的發布者品牌物件會保留在 Overture source
-  record 中。API 會將其 Wikidata 識別碼公開為 <black>place.wikidataId</black>
-  （[WikidataId](/docs#models/WikidataId)），並將本地化名稱公開於
-  <black>i18n[].brandName</black>、<black>i18n[].brandNameVariant</black> 及
-  <black>i18n[].brandNameAlts</black>（[PlaceI18n](/docs#models/PlaceI18n)）。
-
-不會假定 Overture 地址識別碼就是 SaanSeoi ALS 識別碼。Places
-ingest 只有在識別碼存在於所選 ALS
-snapshot 時才會先採用；否則會對 ALS 格式化地址值進行 Unicode 正規化、轉為小寫、摺疊空白及去除首尾空白後，嘗試精確配對。未配對的值會保留為發布者地址資料，不會建立或修改官方 ALS 地址。
-
-所選的 ALS address
-snapshot 是此 cohort 之前或當時最新發布的兼容 snapshot；只有在沒有較早 snapshot 時，才會向前選取最早的兼容 snapshot。其相關的已發布 division
-snapshot 會為目前的 Place projection 提供 division IDs。
+- `sources` - [Sources](/docs#models/Sources)
+  完整的發布者來源歸屬陣列，包括每個來源記錄的 property、dataset、授權、記錄識別碼及其他可用溯源欄位。它會包裹於
+  <black>overture</black> key 下，以便與其他資料集融合，同時保留來源歸屬鏈。
 
 ### 正規化欄位
 
@@ -185,7 +168,8 @@ snapshot 會為目前的 Place projection 提供 division IDs。
 - `addresses` - <black>freeform</black> 地址按 locale 正規化為
   [PlaceI18n](/docs#models/PlaceI18n)，並透過 <black>i18n[].freeformAddress</black>
   公開。只有在值能與所選 ALS snapshot 配對時才會填入
-  <black>address2dId</black>；此版本不會解析 <black>address3dId</black>。
+  <black>address2dId</black>；此版本不會解析
+  <black>address3dId</black>。地址下的其他鍵因品質問題而省略。
 - `names` - 按 locale 正規化為
   [PlaceI18n](/docs#models/PlaceI18n)。每個 locale 的第一個值為標準名稱，其後的值保留為替代名稱及變體；沒有 locale 的值會標記為推斷所得。
 
@@ -194,17 +178,13 @@ snapshot 會為目前的 Place projection 提供 division IDs。
 - 每個 Place 會在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
 - 目前 snapshot 會重建全文索引，內容來自本地化名稱、品牌名稱、taxonomy、地址、division 及 street 文字
-- <black>placesDivision</black>
-  是只供目前使用的 projection，由已接受的 ALS 地址列、其記錄的 division
-  snapshot，以及該列的 division IDs 衍生。它不是歷史真相，也不會複製到 Place history
-- 對於已連接 ALS 的 Place，Place history 會記錄所選的 address snapshot 及 address
-  ID。歷史讀取必須沿著這些已記錄的參考，讀取歷史地址，再使用地址項目的 division
-  IDs；不得將歷史 Place 連接至最新的 address 或 division projection
 
 ### 不公開欄位
 
-以下欄位不會作為標準 Place 欄位重複儲存。原始值仍可在保留的 Overture 來源斷言中取得。未來會透過 Overture 兼容 API 提供這些欄位
-<orange>即將推出</orange>。
+以下欄位不會作為 [Place](/docs#models/Place)
+的一部分公開。原始來源值會在來源記錄獲保留時，透過
+[Places 來源記錄端點](/docs#tag/Sources/operation/listPlaceSourceRecordsV0) 的
+`rawProperties` 提供。
 
 #### 因為沒有變異
 
@@ -214,10 +194,7 @@ snapshot 會為目前的 Place projection 提供 division IDs。
 #### 因為正規化
 
 - `categories` - 因與 <black>place.basicCategory</black> 及
-  <black>place.taxonomy</black> 重複而不再公開；完整來源物件會保留於 Overture 來源記錄中
-- `brand` - 其中已填入的值會透過標準品牌欄位及本地化品牌名稱列公開；完整來源物件會保留於 Overture 來源斷言中
-- `names` - 透過 [PlaceI18n](/docs#models/PlaceI18n)
-  公開，而不是以原始巢狀 locale 物件公開
+  <black>place.taxonomy</black> 重複而捨棄。
 
 #### 因為來源所有權
 
@@ -227,9 +204,6 @@ snapshot 會為目前的 Place projection 提供 division IDs。
 
 ## 更新记录
 
-- <orange>上游</orange> 为 BrightQuery 引入三个此前被过滤的顶层分类：
-  <black>arts_and_entertainment</black>、<black>lodging</black> 和
-  <black>cultural_and_historic</black>
 - <orange>上游</orange> 改进匹配，提高已匹配地点数量并减少重复记录
 
 ## 兼容性
@@ -258,27 +232,13 @@ schema（`{{sourceSchemaVersion}}`）。
 - `emails` - [Array<EmailStr>](/docs#models/EmailStr) - 发布者电子邮件值
 - `phones` - [Array<PhoneNumber>](/docs#models/PhoneNumber) - 发布者电话值
 
-### 来源字段
+### 增补字段
 
-保留原始数据完整范围并加以补充的字段：
+包含原始数据完整范围并加以补充的字段：
 
-- `sources` - 保留完整的发布者来源归属数组，包括每个来源记录的 property、dataset、license、记录标识码及其他可用的溯源字段
-- `addresses` - 保留发布者地址对象及文本值。只有在值能与所选 ALS
-  snapshot 匹配时，才会另外填入 <black>address2dId</black>；此 release 不会解析
-  <black>address3dId</black>
-- `brand` - 完整的发布者品牌对象会保留在 Overture source
-  record 中。API 会将其 Wikidata 标识符公开为 <black>place.wikidataId</black>
-  （[WikidataId](/docs#models/WikidataId)），并将本地化名称公开于
-  <black>i18n[].brandName</black>、<black>i18n[].brandNameVariant</black> 及
-  <black>i18n[].brandNameAlts</black>（[PlaceI18n](/docs#models/PlaceI18n)）。
-
-不会假定 Overture 地址标识码就是 SaanSeoi ALS 标识码。Places
-ingest 只有在标识码存在于所选 ALS
-snapshot 时才会先采用；否则会对 ALS 格式化地址值进行 Unicode 规范化、转换为小写、折叠空格及去除首尾空格后，尝试精确匹配。未匹配的值会保留为发布者地址资料，不会创建或修改官方 ALS 地址。
-
-所选的 ALS address
-snapshot 是此 cohort 之前或当时最新发布的兼容 snapshot；只有在没有较早 snapshot 时，才会向前选取最早的兼容 snapshot。其相关的已发布 division
-snapshot 会为当前 Place projection 提供 division IDs。
+- `sources` - [Sources](/docs#models/Sources)
+  完整的发布者来源归属数组，包括每个源记录的 property、dataset、许可、记录标识码及其他可用溯源字段。它会包裹于
+  <black>overture</black> key 下，以便与其他数据集融合，同时保留来源归属链。
 
 ### 规范化字段
 
@@ -297,7 +257,8 @@ snapshot 会为当前 Place projection 提供 division IDs。
 - `addresses` - <black>freeform</black> 地址按 locale 规范化为
   [PlaceI18n](/docs#models/PlaceI18n)，并通过 <black>i18n[].freeformAddress</black>
   公开。只有在值能与所选 ALS snapshot 匹配时才会填入
-  <black>address2dId</black>；此版本不会解析 <black>address3dId</black>。
+  <black>address2dId</black>；此版本不会解析
+  <black>address3dId</black>。地址下的其他键因质量问题而省略。
 - `names` - 按 locale 规范化为
   [PlaceI18n](/docs#models/PlaceI18n)。每个 locale 的第一个值为标准名称，其后的值保留为替代名称及变体；没有 locale 的值会标记为推断所得。
 
@@ -306,17 +267,13 @@ snapshot 会为当前 Place projection 提供 division IDs。
 - 每个 Place 会在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
 - 当前 snapshot 会重建全文索引，内容来自本地化名称、品牌名称、taxonomy、地址、division 及 street 文本
-- <black>placesDivision</black>
-  是只供当前使用的 projection，由已接受的 ALS 地址行、其记录的 division
-  snapshot，以及该行的 division IDs 衍生。它不是历史真相，也不会复制到 Place history
-- 对于已连接 ALS 的 Place，Place history 会记录所选的 address snapshot 及 address
-  ID。历史读取必须沿着这些已记录的参考，读取历史地址，再使用地址项目的 division
-  IDs；不得将历史 Place 连接至最新的 address 或 division projection
 
 ### 不公开字段
 
-以下字段不会作为标准 Place 字段重复存储。原始值仍可在保留的 Overture 源断言中取得。未来会通过 Overture 兼容 API 提供这些字段
-<orange>即将推出</orange>。
+以下字段不会作为 [Place](/docs#models/Place)
+的一部分公开。原始源值会在源记录得到保留时，通过
+[Places 源记录端点](/docs#tag/Sources/operation/listPlaceSourceRecordsV0) 的
+`rawProperties` 提供。
 
 #### 因为没有变化
 
@@ -326,10 +283,7 @@ snapshot 会为当前 Place projection 提供 division IDs。
 #### 因为规范化
 
 - `categories` - 因与 <black>place.basicCategory</black> 及
-  <black>place.taxonomy</black> 重复而不再公开；完整源对象会保留在 Overture 源记录中
-- `brand` - 其中已填入的值会通过标准品牌字段及本地化品牌名称列公开；完整源对象会保留在 Overture 源断言中
-- `names` - 通过 [PlaceI18n](/docs#models/PlaceI18n)
-  公开，而不是以原始嵌套 locale 对象公开
+  <black>place.taxonomy</black> 重复而舍弃。
 
 #### 因为来源所有权
 

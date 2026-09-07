@@ -155,11 +155,11 @@ village        199
 
 - <orange>上游</orange> 更新 OSM 資料
 - <orange>上游</orange> 新增 `admin_level`
-  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
-  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級，因此 Saanseoi
-    <black>Division</black> 僅會在有值時將其用作 canonical
-    <black>level</black>；原始值會保留於 <black>rawProperties.admin_level</black>。
-  - 相關數值已回填，確保自第一個 <black>Division</black> 發布版本起即可使用。
+  屬性，更準確表達區劃在所屬國家行政層級中的位置，即較小數字代表較高層級的行政單位（0、1、2）。
+  - 在香港，只有特區本身及 18 個地區屬於行政層級，因此 SaanSeoi <black>Division</black>
+    只會在可用時將此值提供為標準 <black>level</black>；原始值保留於
+    <black>rawProperties.admin_level</black>。
+  - 這些值已回填至首個 <black>Division</black> 版本。
 
 ## 兼容性
 
@@ -172,7 +172,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 直接保留 Overture 值的欄位：
 
-- `id` - [Id](/docs#models/Id)
+- `id` - [Id](/docs#models/Id) - 穩定的 GERS UUID；見
+  [Overture 的 GERS 文件](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
 - `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
@@ -190,42 +191,33 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 為了儲存、查詢或塑造 API 回應而重新整理的欄位：
 
 - `names` -
-  [按 locale 正規化](saanseoi:en:note/overture-division-locale-normalization/v1) 為
+  [按 locale 正規化](saanseoi:zh-hant:note/overture-division-locale-normalization/v1) 為
   [DivisionI18n](/docs#models/DivisionI18n)
   - `names.common` 作為 <black>i18n.{{ LOCALE }}.name</black>
   - `names.primary` 作為 <black>i18n.{{LOCALE}}.name</black> 的 fallback，並推斷 locale
   - `names.rules` 作為 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
-  [正規化為 division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
+  [正規化為 division hierarchy](saanseoi:zh-hant:note/overture-division-hierarchy-normalization/v1)
   為
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始來源 hierarchy 可在來源記錄回應的
   <black>rawProperties.hierarchies</black> 中取得。
-  - `hierarchies[][].division_id` - 作為 <black>hierarchy[].division_id</black>
+  - `hierarchies[][].division_id` - 作為 <black>hierarchies[].division_id</black>
 
-- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，並可於
-  <black>rawProperties.subtype</black> 中取得原始值
-- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 映射至canonical
-  <black>type</black> 和 <black>level</black>，原始值可於
-  <black>rawProperties.class</black> 中取得
-- `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 則保留於
-  <black>rawProperties.hierarchies</black>
-- `admin_level` - 在有值時用於 canonical <black>level</black>；原始值可於來源記錄回應的
-  <black>rawProperties.admin_level</black> 中取得
+- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  對應至[標準 <black>type</black> 及 <black>level</black>](saanseoi:zh-hant:note/overture-division-type-level-mapping/v1)
+- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 對應至標準
+  <black>type</black> 及 <black>level</black>
+- `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  對應至標準層級項目的 <black>type</black> 及 <black>level</black>
+- `admin_level` - 在有值時用於標準 <black>level</black>；原始來源值保留於
+  <black>rawProperties</black>
 
 ### 不公開欄位
 
 以下欄位不會作為 [Division](/docs#models/Division)
 的一部分公開。原始來源值會在來源記錄獲保留時，透過
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。以下列出的欄位均可在保留來源記錄的 `rawProperties`
-中取得；這些欄位不會在 canonical `Division` 資源中重複保存。
-
-#### 因為來源擁有權
-
-- `version` - 保留為來源記錄 metadata 及原始發布者物件的一部分，但不會在 canonical
-  Division 回應中重複保存
+`rawProperties` 提供。
 
 #### 因為沒有變異
 
@@ -273,6 +265,11 @@ village        199
   capital 的概念
 - `capital_of_divisions` - 見 <black>capital_division_ids</black>。
 
+#### 因為來源擁有權
+
+- `version` - 保留為來源記錄 metadata 及原始發布者物件的一部分，但不會在 canonical
+  Division 回應中重複保存
+
 ### 不保留的值
 
 #### 因為冗餘
@@ -286,11 +283,11 @@ village        199
 
 - <orange>上游</orange> 更新 OSM 数据
 - <orange>上游</orange> 新增 `admin_level`
-  属性，以更准确地表示一个 division 在其所属国家行政层级中的位置，即数值越小代表层级越高的行政单位（0、1 和 2）。
-  - 在香港，只有香港特别行政区本身和 18 个区属于行政层级，因此 Saanseoi
-    <black>Division</black> 仅会在有值时将其用作 canonical
-    <black>level</black>；原始值会保留于 <black>rawProperties.admin_level</black>。
-  - 相关数值已回填，确保自第一个 <black>Division</black> 发布版本起即可使用。
+  属性，更准确表达区划在所属国家行政层级中的位置，即较小数字代表较高层级的行政单位（0、1、2）。
+  - 在香港，只有特区本身及 18 个地区属于行政层级，因此 SaanSeoi <black>Division</black>
+    只会在可用时将此值提供为标准 <black>level</black>；原始值保留于
+    <black>rawProperties.admin_level</black>。
+  - 这些值已回填至首个 <black>Division</black> 版本。
 
 ## 兼容性
 
@@ -303,7 +300,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 直接保留 Overture 值的字段：
 
-- `id` - [Id](/docs#models/Id)
+- `id` - [Id](/docs#models/Id) - 稳定的 GERS UUID；见
+  [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
 - `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
@@ -321,42 +319,33 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
 - `names` -
-  [按 locale 规范化](saanseoi:en:note/overture-division-locale-normalization/v1) 为
+  [按 locale 规范化](saanseoi:zh-hans:note/overture-division-locale-normalization/v1) 为
   [DivisionI18n](/docs#models/DivisionI18n)
   - `names.common` 作为 <black>i18n.{{ LOCALE }}.name</black>
   - `names.primary` 作为 <black>i18n.{{LOCALE}}.name</black> 的 fallback，并推断 locale
   - `names.rules` 作为 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
-  [规范化为 division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
+  [规范化为 division hierarchy](saanseoi:zh-hans:note/overture-division-hierarchy-normalization/v1)
   为
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始来源 hierarchy 可在源记录响应的
   <black>rawProperties.hierarchies</black> 中获取。
-  - `hierarchies[][].division_id` - 作为 <black>hierarchy[].division_id</black>
+  - `hierarchies[][].division_id` - 作为 <black>hierarchies[].division_id</black>
 
-- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，并可于
-  <black>rawProperties.subtype</black> 中取得原始值
-- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 映射至canonical
-  <black>type</black> 和 <black>level</black>，原始值可于
-  <black>rawProperties.class</black> 中取得
-- `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) 映射至
-  [canonical <black>type</black> 和 <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)，原始 hierarchy 则保留于
-  <black>rawProperties.hierarchies</black>
-- `admin_level` - 在有值时用于 canonical <black>level</black>；原始值可在源记录响应的
-  <black>rawProperties.admin_level</black> 中获取
+- `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  对应至[标准 <black>type</black> 及 <black>level</black>](saanseoi:zh-hans:note/overture-division-type-level-mapping/v1)
+- `class` - [OvertureDivisionClass](/docs#models/OvertureDivisionClass) 对应至标准
+  <black>type</black> 及 <black>level</black>
+- `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
+  对应至标准层级项目的 <black>type</black> 及 <black>level</black>
+- `admin_level` - 在有值时用于标准 <black>level</black>；原始源值保留于
+  <black>rawProperties</black>
 
 ### 不公开字段
 
 以下字段不会作为 [Division](/docs#models/Division)
-的一部分公开。原始来源值会在源记录得到保留时，通过
+的一部分公开。原始源值会在源记录得到保留时，通过
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。以下列出的字段均可在保留源记录的 `rawProperties`
-中取得；这些字段不会在 canonical `Division` 资源中重复保存。
-
-#### 因为来源拥有权
-
-- `version` - 保留为源记录 metadata 及原始发布者对象的一部分，但不会在 canonical
-  Division 响应中重复保存
+`rawProperties` 提供。
 
 #### 因为没有变化
 
@@ -403,6 +392,11 @@ village        199
 - `capital_division_ids` - 虽然每个 district 都获指定一个“capital”，但香港并没有 district
   capital 的概念
 - `capital_of_divisions` - 见 <black>capital_division_ids</black>。
+
+#### 因为来源拥有权
+
+- `version` - 保留为源记录 metadata 及原始发布者对象的一部分，但不会在 canonical
+  Division 响应中重复保存
 
 ### 不保留的值
 

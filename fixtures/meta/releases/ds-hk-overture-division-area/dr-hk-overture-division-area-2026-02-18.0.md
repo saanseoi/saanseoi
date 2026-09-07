@@ -105,10 +105,10 @@ under `rawProperties`, where the source record remains available.
 ## 更新紀錄
 
 - <orange>上游</orange> 新增 `admin_level`
-  屬性，以更準確地表示一個 division 在其所屬國家行政層級中的位置，即數值越小代表層級越高的行政單位（0、1 和 2）。
-  - 對於 `DivisionArea`，`admin_level` 在預檢時接受，但不在標準幾何上公開；相關
+  屬性，更準確表達區劃在所屬國家行政層級中的位置，即較小數字代表較高層級的行政單位（0、1、2）。
+  - 對於 `DivisionArea`，`admin_level` 在預檢時接受，但不會在標準幾何資料中公開；相關
     <black>Division</black> 是此行政層級屬性的標準擁有者。
-  - 在香港，只有香港特別行政區本身及 18 個地區屬於行政層級。
+  - 在香港，只有特區本身及 18 個地區屬於行政層級。
 
 ## 兼容性
 
@@ -148,16 +148,10 @@ schema（`{{sourceSchemaVersion}}`）。
   <black>type</black>（<black>land</black>、<black>maritime</black>，或在兩個覆蓋標誌均為真時為
   <black>mixed</black>）
 
-### 兼容欄位
+### 來源欄位
 
-透過 Overture 兼容 key 保留的欄位：
-
-- `version` - 可於 <black>overture.version</black> 取得
-- `subtype` - 可於 <black>overture.subtype</black> 取得
-- `class` - 可於 <black>overture.class</black> 取得
-
-這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `rawProperties`
+下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
 
@@ -187,10 +181,10 @@ schema（`{{sourceSchemaVersion}}`）。
 ## 更新记录
 
 - <orange>上游</orange> 新增 `admin_level`
-  属性，以更准确地表示一个 division 在其所属国家行政层级中的位置，即数值越小代表层级越高的行政单位（0、1 和 2）。
-  - 对于 `DivisionArea`，`admin_level` 在预检时接受，但不在标准几何上公开；相关
-    <black>Division</black> 是此行政层级属性的标准所有者。
-  - 在香港，只有香港特别行政区本身及 18 个区属于行政层级。
+  属性，更准确表达区划在所属国家行政层级中的位置，即较小数字代表较高层级的行政单位（0、1、2）。
+  - 对于 `DivisionArea`，`admin_level` 在预检时接受，但不会在标准几何数据中公开；相关
+    <black>Division</black> 是此行政层级属性的标准拥有者。
+  - 在香港，只有特区本身及 18 个地区属于行政层级。
 
 ## 兼容性
 
@@ -210,8 +204,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `id` - [标识码](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `geometry` - [几何](/docs#models/Geometry) - 保留 Polygon 和 MultiPolygon 值
-- `is_land` - 规范化為 <black>isLand</black>
-- `is_territorial` - 规范化為 <black>isTerritorial</black>
+- `is_land` - 规范化为 <black>isLand</black>
+- `is_territorial` - 规范化为 <black>isTerritorial</black>
 
 ### 增补字段
 
@@ -224,22 +218,16 @@ schema（`{{sourceSchemaVersion}}`）。
 
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
-- `division_id` - 规范化為 <black>divisionId</black>
+- `division_id` - 规范化为 <black>divisionId</black>
 - `bbox` - [包围盒](/docs#models/BBox)，由发布的标准几何计算得出
 - `class` - 规范化为标准
   <black>type</black>（<black>land</black>、<black>maritime</black>，或两个覆盖标志均为真时为
   <black>mixed</black>）
 
-### 兼容字段
+### 来源字段
 
-通过 Overture 兼容 key 保留的字段：
-
-- `version` - 可在 <black>overture.version</black> 取得
-- `subtype` - 可在 <black>overture.subtype</black> 取得
-- `class` - 可在 <black>overture.class</black> 取得
-
-这些字段可在任何包含此几何的 API 响应中，通过
-<black>rawProperties.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `rawProperties`
+下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
 

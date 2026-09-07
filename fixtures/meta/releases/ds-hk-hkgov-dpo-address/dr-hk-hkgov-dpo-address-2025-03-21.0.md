@@ -104,7 +104,8 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 - `geometry` 作為來源點幾何保留
 - 中英文樓宇地址組成部分作為本地化來源記錄保留
-- `Easting`、`Northing`、`CsuId` 和 `GeoAddress` 隨來源記錄保留
+- `Easting` 及 `Northing` 隨來源記錄保留
+- `CsuId` 及 `GeoAddress` 保留為來源識別碼及來源證據
 
 ### 增補欄位
 
@@ -166,7 +167,8 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 - `geometry` 作为源点几何保留
 - 中英文楼宇地址组成部分作为本地化源记录保留
-- `Easting`、`Northing`、`CsuId` 和 `GeoAddress` 随源记录保留
+- `Easting` 及 `Northing` 随源记录保留
+- `CsuId` 及 `GeoAddress` 保留为源标识码及源证据
 
 ### 增补字段
 
