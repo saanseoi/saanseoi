@@ -19,6 +19,11 @@ import {
   WikidataIdSchema,
 } from './common'
 import { openApiText } from '../lib/openapi-i18n'
+import {
+  placeBasicCategoryFilterDescription,
+  placeTaxonomyFilterDescription,
+  placeOperatingStatusFilterDescription,
+} from './placeFilterVocabulary'
 export {
   SearchFtsNotReadyErrorResponseSchema,
   SearchSnapshotNotReadyErrorResponseSchema,
@@ -946,10 +951,19 @@ export const PlacesListQuerySchema = z
     include: z.enum(['divisions']).optional(),
     'page[limit]': z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
-    'filter[basicCategory]': z.string().min(1).optional(),
-    'filter[taxonomyPrimary]': z.string().min(1).optional(),
-    'filter[operatingStatus]': z.string().min(1).optional(),
-    'filter[division]': IdSchema.optional(),
+    'filter[basicCategory]': z.string().min(1).optional().openapi({
+      description: placeBasicCategoryFilterDescription,
+    }),
+    'filter[taxonomyPrimary]': z.string().min(1).optional().openapi({
+      description: placeTaxonomyFilterDescription,
+    }),
+    'filter[operatingStatus]': z.string().min(1).optional().openapi({
+      description: placeOperatingStatusFilterDescription,
+    }),
+    'filter[division]': IdSchema.optional().openapi({
+      description:
+        'Filter by a canonical Division ID from the Divisions API. Division IDs identify resources and are not a fixed category vocabulary. Use the ID of the related Division resource.',
+    }),
   })
   .openapi('PlacesListQuery')
 
