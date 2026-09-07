@@ -1,5 +1,11 @@
 {
   "version": 1,
+  "application": {
+    "state": "active",
+    "mode": "until-revoked",
+    "sourceVersionFrom": "2026-08-19.0",
+    "lastVerifiedSourceVersion": "2026-08-19.0"
+  },
   "restorations": [
     {
       "id": "fortune-estate-carpark-estate-gap",

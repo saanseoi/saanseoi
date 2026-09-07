@@ -86,6 +86,15 @@
       "authority": "User decision, 2026-09-07: Ching Ho House seems like it was built then, so should not be backfilled."
     },
     {
+      "id": "cheung-ching-april-2025-2d-removals",
+      "estate": "CHEUNG CHING ESTATE",
+      "release": "20250426-1053-ALS-GeoJSON",
+      "expectedFingerprint": "1c8f8684f7a3b9a8a34e4ca7b2cf9786b32c13369f67e803db31a3c024fddb77",
+      "action": "retain_publisher_history",
+      "decision": "Retain the dated removal of Cheung Ching Community Hall and Podium from the 2D source. Do not infer a replacement, relation to Ching Ho House or a coordinate correction; do not backfill either premise.",
+      "authority": "User decision, 2026-09-07: retain these entries."
+    },
+    {
       "id": "cheung-hong-april-2026-coordinate-backfill",
       "estate": "CHEUNG HONG ESTATE",
       "release": "20260403-1056-ALS-GeoJSON",
@@ -94,6 +103,16 @@
       "fixture": "hkgov-dpo-address-coordinate-backfills.json",
       "decision": "Backfill the April 2026 current coordinates for the thirteen named Cheung Hong Estate blocks over their bounded July 2024 to February 2026 derived histories. Preserve the replaced ALS source geometry and all source assertions as provenance; do not apply the correction outside those historic releases.",
       "authority": "User decision, 2026-09-07: backfill the current coordinates to override the past ones."
+    },
+    {
+      "id": "cheung-wah-august-2026-block-components",
+      "estate": "CHEUNG WAH ESTATE",
+      "release": "20260819-1047-ALS-GeoJSON",
+      "expectedFingerprint": "37e2b5fb757a7d4b8f01b52587888860f2e7080b5883de7d54aaa17c32648aa6",
+      "action": "automatic_3d_parent_block_enrichment",
+      "rule": "als_3d_parent_block_enriched",
+      "decision": "The canonical HA house receives its verified bilingual block component when its unique bilingual 2D parent exactly matches an ALS 3D parent. The 3D source evidence is retained; no second address or part-whole section relation is created.",
+      "authority": "User decision, 2026-09-07: retain and backfill verified block numbers on their canonical house."
     },
     {
       "id": "cheung-hong-commercial-centre-no-2-named-retention",
