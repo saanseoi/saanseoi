@@ -7,7 +7,7 @@ type Props = {
   observerContainer?: boolean
 }
 
-let { children, class: className = '', observerContainer = false }: Props = $props()
+let { class: className = '', observerContainer = false }: Props = $props()
 </script>
 
 <div

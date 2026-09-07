@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { readFileSync, readdirSync } from 'node:fs'
 import { computeVersionHash } from '@repo/db'
 
@@ -53,7 +54,7 @@ export function resolveIdentityCuration(
     throw new Error(
       `Expected one reviewed identity curation for ${authority}/${domain}/${cohortKey}; found ${fixtures.length}.`,
     )
-  const rows = fixtures[0]!.mappings
+  const rows = requireDefined(fixtures[0]).mappings
   if (
     !rows.length ||
     new Set(rows.map(row => row.externalId)).size !== rows.length ||

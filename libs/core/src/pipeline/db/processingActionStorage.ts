@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import { and, asc, eq, gt, gte, inArray, lt, sql } from 'drizzle-orm'
 import { metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
@@ -79,7 +80,7 @@ export async function readAuditSummaryPage<T extends AuditSummary>(
     Omit<T, 'generation' | 'decisionCount'> & { summary: string; evidence: unknown }
   > = []
   for (let index = 0; index < rows.length; ) {
-    const first = rows[index]!
+    const first = requireDefined(rows[index])
     const parts = rows.slice(index, index + first.parts)
     const records = await decodeAuditChunkParts(parts)
     for (const [relative, record] of records.entries()) {

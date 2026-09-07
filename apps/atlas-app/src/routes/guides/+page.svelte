@@ -358,9 +358,9 @@ const guides = [
     scroll-behavior: auto;
   }
 
-  :global(.guide-card-cta__arrow),
-  :global(.guide-jump-link__arrow) {
-    animation: none !important;
+  :global(.guide-card-cta:hover .guide-card-cta__arrow),
+  :global(.guide-jump-link:hover .guide-jump-link__arrow) {
+    animation: none;
   }
 }
 

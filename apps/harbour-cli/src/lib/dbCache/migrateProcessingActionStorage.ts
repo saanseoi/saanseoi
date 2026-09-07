@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import type { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { metaSchema } from '@repo/db'
@@ -57,10 +58,10 @@ export async function migrateProcessingActionStorage(
     const normalised = normaliseAuditActions(rows)
     const summary: AuditSummary = {
       id: await createHash(key),
-      releaseId: rows[0]!.releaseId,
-      action: rows[0]!.action,
-      mode: rows[0]!.mode,
-      generation: generations.get(rows[0]!.releaseId)!,
+      releaseId: requireDefined(rows[0]).releaseId,
+      action: requireDefined(rows[0]).action,
+      mode: requireDefined(rows[0]).mode,
+      generation: requireDefined(generations.get(requireDefined(rows[0]).releaseId)),
       decisionCount: rows.length,
       affectedRecordCount: normalised.reduce(
         (sum, row) => sum + row.affectedRecordCount,
@@ -82,9 +83,9 @@ export async function migrateProcessingActionStorage(
         normalised.map((row, index) => ({
           ...row,
           original: {
-            id: rows[index]!.id,
-            createdAt: rows[index]!.createdAt,
-            updatedAt: rows[index]!.updatedAt,
+            id: requireDefined(rows[index]).id,
+            createdAt: requireDefined(rows[index]).createdAt,
+            updatedAt: requireDefined(rows[index]).updatedAt,
           },
         })),
       )),

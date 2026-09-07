@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFile } from 'node:fs/promises'
@@ -21,7 +22,7 @@ test('renders shared time travel sections for Divisions and Places only', async 
     expect(directives, path).not.toBeNull()
     const rendered = await renderMarkdownFixtureBody({
       ...fixture,
-      body: directives!.join('\n'),
+      body: requireDefined(directives).join('\n'),
     })
     expect(rendered).not.toContain('{{')
     expect(rendered).toContain(

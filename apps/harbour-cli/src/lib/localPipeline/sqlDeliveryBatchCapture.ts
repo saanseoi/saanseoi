@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import {
   groupAuditSqlStatements,
@@ -68,7 +69,7 @@ export async function captureSqlDeliveryBatches(
             const sql =
               group.length > 1
                 ? [AUDIT_COMMIT_START, ...group, AUDIT_COMMIT_END].join('\n')
-                : group[0]!
+                : requireDefined(group[0])
             await append(destination, new TextEncoder().encode(sql))
           }
         })

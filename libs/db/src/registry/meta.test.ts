@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../core/src/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -478,7 +479,9 @@ describe('buildMetaRegistrySyncStatements', () => {
             row =>
               row.code === dataset.code && row.publisherCode === dataset.publisherCode,
           )
-          expect(JSON.parse(row!.resourceTypes)).toEqual(dataset.resourceTypes)
+          expect(JSON.parse(requireDefined(row).resourceTypes)).toEqual(
+            dataset.resourceTypes,
+          )
         }
       }
     } finally {

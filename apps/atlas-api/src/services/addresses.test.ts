@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -124,7 +125,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       currentRelease: null,
       currentReleaseIsCorrected: false,
       releaseSetId: releaseSet.id,
-      snapshotId: snapshots.get('supplementary')!,
+      snapshotId: requireDefined(snapshots.get('supplementary')),
       snapshotVariant: 'overture-places',
       type: 'address',
       publishedAt: '2025-09-25T00:00:00Z',
@@ -133,17 +134,17 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         {
           resourceType: 'address',
           variant: 'default',
-          snapshotId: snapshots.get('als')!,
+          snapshotId: requireDefined(snapshots.get('als')),
         },
         {
           resourceType: 'division',
           variant: 'overture',
-          snapshotId: snapshots.get('division')!,
+          snapshotId: requireDefined(snapshots.get('division')),
         },
       ],
     })
     expect(publication?.code).toBeDefined()
-    const divisionSnapshotId = snapshots.get('division')!
+    const divisionSnapshotId = requireDefined(snapshots.get('division'))
     currentDb
       .insert(currentSchema.divisions)
       .values({ snapshotId: divisionSnapshotId, id: 'hk', type: 'country' })
@@ -267,7 +268,9 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       expect(result.body.meta.page?.total).toBe(expected.length)
       expect(result.body.meta.filters?.dataset).toBe(dataset)
       expect(
-        new URL(result.body.links.permalink!).searchParams.get('filter[dataset]'),
+        new URL(requireDefined(result.body.links.permalink)).searchParams.get(
+          'filter[dataset]',
+        ),
       ).toBe(dataset)
     }
     const detail = await getAddressDetail({ ...args, id: 'b', query: {} })

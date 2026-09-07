@@ -1,3 +1,4 @@
+import { requireDefined } from '../../core/src/requireDefined'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readdirSync, readFileSync } from 'node:fs'
@@ -13,7 +14,7 @@ test('source baseline contains exact Statistics reference-period columns', () =>
 
   expect(baselineDirectory).toBeDefined()
   const migration = readFileSync(
-    resolve(migrationsRoot, baselineDirectory!, 'migration.sql'),
+    resolve(migrationsRoot, requireDefined(baselineDirectory), 'migration.sql'),
     'utf8',
   ).replaceAll('--> statement-breakpoint', '')
   const sqlite = new Database(':memory:')

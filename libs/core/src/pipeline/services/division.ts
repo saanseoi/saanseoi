@@ -32,7 +32,6 @@ import {
   deleteStaleDivisionCurrentRows,
   getDivisionCurrentSnapshotTraceState,
   getDivisionVersionMapForSnapshot,
-  getMergedCurrentDivisionVersionMap,
   insertDivisionVersionRows,
   prepareDivisionVersionInsertContext,
   replaceDivisionCurrentI18n,

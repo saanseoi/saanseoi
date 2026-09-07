@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { z } from '@hono/zod-openapi'
 import { listApiFieldFixtures } from '@repo/db/apiFieldFixtures'
@@ -43,12 +44,18 @@ describe('API field provenance contract paths', () => {
       division: z.toJSONSchema(DivisionResourceSchema) as Schema,
       divisionArea: z.toJSONSchema(DivisionGeometryResourceSchema) as Schema,
       divisionBoundary: z.toJSONSchema(DivisionGeometryResourceSchema) as Schema,
-      address: z.toJSONSchema(AddressDetailResponseSchema).properties!.data as Schema,
-      place: (z.toJSONSchema(PlacesListResponseSchema).properties!.data as Schema)
-        .items!,
-      statistic: z.toJSONSchema(StatisticDetailResponseSchema).properties!
+      address: requireDefined(z.toJSONSchema(AddressDetailResponseSchema).properties)
         .data as Schema,
-      'statistic-field': statisticField!,
+      place: requireDefined(
+        (
+          requireDefined(z.toJSONSchema(PlacesListResponseSchema).properties)
+            .data as Schema
+        ).items,
+      ),
+      statistic: requireDefined(
+        z.toJSONSchema(StatisticDetailResponseSchema).properties,
+      ).data as Schema,
+      'statistic-field': requireDefined(statisticField),
     }
     for (const fixture of listApiFieldFixtures()) {
       for (const field of fixture.fields) {

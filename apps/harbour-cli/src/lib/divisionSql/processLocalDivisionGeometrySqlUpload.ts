@@ -23,7 +23,7 @@ import {
   type NormalisedDivisionArea,
 } from '@repo/core/pipeline/services/divisionGeometry'
 import { metaSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
 import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'

@@ -2,8 +2,6 @@
 import type { Snippet } from 'svelte'
 import { Popover } from 'bits-ui'
 
-import Icon from '#lib/bits/primitives/icon/icon.svelte'
-
 type Props = {
   attribution?: string | null
   actions?: Snippet

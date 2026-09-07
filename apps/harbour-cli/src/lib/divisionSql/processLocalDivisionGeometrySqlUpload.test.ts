@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { geometryIterateUpsertSql } from './processLocalDivisionGeometrySqlUploadReplay.ts'
@@ -215,7 +216,7 @@ describe('Overture Hong Kong area geometry', () => {
           },
         } as never,
       ]),
-    ).toEqual([areas[0]!, areas[2]!])
+    ).toEqual([requireDefined(areas[0]), requireDefined(areas[2])])
   })
 })
 
@@ -296,7 +297,9 @@ describe('C&SD geometry materialisation identity', () => {
         { hash: 'district-b', id: 'district-b' },
       ]),
     ).toBeFalse()
-    expect(hasIdenticalGeometryMaterialisation(expected, [expected[0]!])).toBeFalse()
+    expect(
+      hasIdenticalGeometryMaterialisation(expected, [requireDefined(expected[0])]),
+    ).toBeFalse()
   })
 })
 

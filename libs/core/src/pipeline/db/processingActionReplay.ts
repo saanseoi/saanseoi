@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { metaSchema, type MetaDatabase } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
@@ -51,7 +52,7 @@ export function buildAuditReplaySql(
       .sort((a, b) => a.firstOrdinal - b.firstOrdinal || a.part - b.part)
     let ordinal = 0
     for (let index = 0; index < rows.length; ) {
-      const first = rows[index]!
+      const first = requireDefined(rows[index])
       if (
         first.firstOrdinal !== ordinal ||
         first.part !== 0 ||

@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -48,7 +49,7 @@ test('ALS history preserves distinct source owners at one street address and exa
       }),
     )
     expect(new Set(rows.map(row => row.matchKey)).size).toBe(1)
-    expect(rows[0]!.matchKey).not.toBeNull()
+    expect(requireDefined(rows[0]).matchKey).not.toBeNull()
     const message = {
       ...release,
       datasetId: 'hkgov-dpo-hk-address',
@@ -63,7 +64,10 @@ test('ALS history preserves distinct source owners at one street address and exa
       addressCurrentLookupCache: {
         byId: new Map([['reviewed-owner', { id: 'reviewed-owner', churnHash: 'old' }]]),
         byMatchKey: new Map([
-          [rows[0]!.matchKey!, { id: 'unrelated-owner', churnHash: 'old' }],
+          [
+            requireDefined(requireDefined(rows[0]).matchKey),
+            { id: 'unrelated-owner', churnHash: 'old' },
+          ],
         ]),
       },
     } as AddressPipelineMessage

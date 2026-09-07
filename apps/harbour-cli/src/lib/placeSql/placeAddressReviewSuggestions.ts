@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import {
   normaliseAddressText,
   type PlaceAddressDefinition,
@@ -26,10 +27,14 @@ export function suggestBuildingInitialVariants(
     if (target.length !== source.length) return []
     let differences = 0
     for (let index = 0; index < source.length; index++) {
-      const a = source[index]!,
-        b = target[index]!
+      const a = requireDefined(source[index]),
+        b = requireDefined(target[index])
       if (a === b) continue
-      if (a.slice(1) !== b.slice(1) || !['LN', 'NL'].includes(a[0]! + b[0]!)) return []
+      if (
+        a.slice(1) !== b.slice(1) ||
+        !['LN', 'NL'].includes(requireDefined(a[0]) + requireDefined(b[0]))
+      )
+        return []
       differences++
     }
     return differences === 1

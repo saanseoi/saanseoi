@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 
@@ -102,10 +103,10 @@ describe('source records', () => {
       sqlite
         .query('INSERT INTO overturePlaces VALUES (?, ?, ?, ?, ?)')
         .run(
-          id!,
-          hash!,
+          requireDefined(id),
+          requireDefined(hash),
           JSON.stringify({ id, names: { primary: name }, geometry }),
-          from!,
+          requireDefined(from),
           to ?? null,
         )
     }
@@ -146,7 +147,7 @@ describe('source records', () => {
       expect(first?.nextCursor).toBeString()
       const second = await listSourceRecords({
         ...args,
-        cursor: first!.nextCursor!,
+        cursor: requireDefined(requireDefined(first).nextCursor),
         limit: 1,
       })
       expect(second?.records.map(row => row.sourceRecordId)).toEqual(['place-b'])
@@ -156,7 +157,10 @@ describe('source records', () => {
         .trim()
         .split('\n')
         .map(line => JSON.parse(line))
-      expect(records).toEqual([...first!.records, ...second!.records])
+      expect(records).toEqual([
+        ...requireDefined(first).records,
+        ...requireDefined(second).records,
+      ])
       const sample = await listSourceRecords({ ...args, sample: 'random', limit: 2 })
       expect(sample?.records).toHaveLength(2)
       expect(sample?.nextCursor).toBeNull()

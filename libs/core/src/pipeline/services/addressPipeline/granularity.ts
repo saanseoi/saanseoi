@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../requireDefined'
 import {
   addressGranularities,
   buildDeterministicUuidV5,
@@ -107,7 +108,7 @@ function classifyLocale(value: GranularityComponents): {
     // These labels can name either one building or an entire site/complex.
     const ambiguousFacility =
       /\b(?:AIRPORT|STATION|SCHOOL|COLLEGE|UNIVERSITY|HOSPITAL|CAMPUS|ESTATE|VILLAGE|SHOPPING CENT(?:RE|ER)|OUTLETS|SPORTS GROUND|STADIUM|YARD|DEPOT)\b|機場|机场|車站|车站|鐵站|铁站|學校|学校|小學|小学|中學|中学|大學|大学|醫院|医院|商場|商场|屋邨|屋苑|村|運動場|运动场|貨場|货场/i.test(
-        value.buildingName!,
+        requireDefined(value.buildingName),
       )
     return {
       granularity: ambiguousFacility ? 'unknown' : 'building',
@@ -184,9 +185,10 @@ export function establishAddressGranularity(
     }
     const applies =
       (!override.sourceVersionFrom ||
-        compare(input.sourceVersion!, override.sourceVersionFrom) >= 0) &&
+        compare(requireDefined(input.sourceVersion), override.sourceVersionFrom) >=
+          0) &&
       (!override.sourceVersionTo ||
-        compare(input.sourceVersion!, override.sourceVersionTo) <= 0)
+        compare(requireDefined(input.sourceVersion), override.sourceVersionTo) <= 0)
     if (applies) {
       if (!addressGranularities.includes(override.granularity))
         fail('invalid granularity')

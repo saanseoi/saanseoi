@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import { metaSchema, toIsoTimestamp } from '@repo/db'
@@ -161,8 +162,8 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     const summary: AuditSummary = {
       id: await createHash([releaseId, key]),
       releaseId,
-      action: records[0]!.action,
-      mode: records[0]!.mode,
+      action: requireDefined(records[0]).action,
+      mode: requireDefined(records[0]).mode,
       generation,
       decisionCount: records.length,
       affectedRecordCount: records.reduce(

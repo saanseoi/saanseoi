@@ -1,3 +1,4 @@
+import { requireDefined } from '../../requireDefined'
 import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
@@ -98,7 +99,7 @@ describe('replaceReleaseProcessingActions', () => {
     })
     await expect(
       replaceReleaseProcessingActions(racing, 'release-1', [
-        { ...original[0]!, summary: 'New' },
+        { ...requireDefined(original[0]), summary: 'New' },
       ]),
     ).rejects.toThrow()
     expect(await readReleaseAuditDecisions(db, ['release-1'])).toEqual(before)
@@ -120,8 +121,8 @@ describe('replaceReleaseProcessingActions', () => {
       actions,
     )
     expect(materialised.actions).toHaveLength(1)
-    expect(materialised.actions[0]!.decisionCount).toBe(1000)
-    expect(materialised.actions[0]!.affectedRecordCount).toBe(2000)
+    expect(requireDefined(materialised.actions[0]).decisionCount).toBe(1000)
+    expect(requireDefined(materialised.actions[0]).affectedRecordCount).toBe(2000)
     expect(materialised.chunks).toHaveLength(4)
     expect(materialised.chunks.every(chunk => chunk.payload.length <= 32768)).toBe(true)
     const page = await readAuditPages(db, materialised.actions, 250, 20)
@@ -164,10 +165,12 @@ describe('replaceReleaseProcessingActions', () => {
       ],
     )
     expect(materialised.chunks.length).toBeGreaterThan(1)
-    expect(materialised.chunks[0]!.parts).toBe(materialised.chunks.length)
-    expect((await readReleaseAuditDecisions(db, ['release-1']))[0]!.evidence).toEqual(
-      evidence,
+    expect(requireDefined(materialised.chunks[0]).parts).toBe(
+      materialised.chunks.length,
     )
+    expect(
+      requireDefined((await readReleaseAuditDecisions(db, ['release-1']))[0]).evidence,
+    ).toEqual(evidence)
     sqlite.exec(
       "UPDATE releaseProcessingActionChunks SET checksum = 'broken' WHERE part = 0",
     )
@@ -195,7 +198,7 @@ describe('replaceReleaseProcessingActions', () => {
     )
     await expect(
       replaceReleaseProcessingActions(db, 'release-1', [
-        { ...original[0]!, affectedRecordCount: 5, summary: 'Second' },
+        { ...requireDefined(original[0]), affectedRecordCount: 5, summary: 'Second' },
       ]),
     ).rejects.toThrow()
     expect(await readReleaseAuditDecisions(db, ['release-1'])).toEqual(before)

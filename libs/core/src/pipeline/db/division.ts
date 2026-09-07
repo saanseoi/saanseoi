@@ -575,7 +575,7 @@ export async function closeCurrentDivisionVersions(
   db: HarbourReadableDb & HarbourWritableDb,
   divisionIds: string[],
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
   sourceReleaseId?: string,
 ) {
   if (divisionIds.length === 0) {
@@ -660,7 +660,7 @@ export async function closeCurrentDivisionVersions(
 export async function deleteMissingCurrentDivisions(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
-  cohortKey: string,
+  _cohortKey: string,
   currentRows: Map<string, DivisionVersionSnapshot>,
   seenIds: Set<string>,
 ) {

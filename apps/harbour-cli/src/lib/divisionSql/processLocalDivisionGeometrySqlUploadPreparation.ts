@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { datasetVariantForSource } from '@repo/core'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
@@ -362,7 +363,7 @@ export async function simplifyHkgovDivisionAreas(rows: NormalisedDivisionArea[])
 
   return rows.map((row, index) => {
     const geometry = requireAreaGeometry(
-      simplified.geometries[index]!,
+      requireDefined(simplified.geometries[index]),
       row.canonical.id,
     )
     const parsed = reader.read(geometry)
