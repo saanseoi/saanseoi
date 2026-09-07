@@ -71,10 +71,9 @@ test('reconciles a draft division release set once its required C&SD areas are a
       ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-division-boundary', 'hk', 'static', 'monthly', 'divisions', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
       ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district', 'hk', 'static', 'as-needed', 'divisions', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-      ('overture-hk-divisionArea', 'divisionArea'),
-      ('overture-hk-divisionBoundary', 'divisionBoundary'),
-      ('hkgov-had-hk-district', 'divisionArea');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'overture-hk-divisionArea' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionBoundary') WHERE id = 'overture-hk-divisionBoundary' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionBoundary');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-had-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
   `)
 
   const division = insertFixtureRelease(sqlite, {
@@ -245,10 +244,8 @@ test('reconciles a draft division release set once its required C&SD areas are a
       'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly', 'divisions', 'https://www.censtatd.gov.hk/', 'vh-censtatd-district-annual', 1761264000001, 1761264000001
     );
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES
-      ('hkgov-censtatd-hk-district', 'divisionArea'),
-      ('hkgov-censtatd-hk-district-annual', 'divisionArea');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district-annual' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
   `)
   for (const year of ['2016', '2021']) {
     const releaseId = `release-dr-hk-hkgov-censtatd-division-area-district-${year}`
@@ -361,8 +358,7 @@ test('reconciles a draft division release set once its required C&SD areas are a
       1761264000001, 1761264000001
     );
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-permanent-living-quarters' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 
     INSERT INTO sourceReleases (
       id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,

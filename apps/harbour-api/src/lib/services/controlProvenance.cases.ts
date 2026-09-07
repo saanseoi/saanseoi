@@ -65,8 +65,7 @@ test('publishes addresses with provenance and places without bundled provenance'
           1718236800000
         );
 
-        INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
-        VALUES ('overture-hk-place', 'place');
+        UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');
       `)
     }
 

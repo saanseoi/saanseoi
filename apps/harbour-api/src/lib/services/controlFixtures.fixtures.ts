@@ -147,11 +147,9 @@ export function seedCompleteDivisionSourceSignature(
         'vh-dataset-hkgov-censtatd-hk-permanent-living-quarters-v1', 1761264000000, 1761264000000
       );
 
-    INSERT OR IGNORE INTO datasetResourceTypes (datasetId, resourceType)
-    VALUES
-      ('hkgov-censtatd-hk-district', 'divisionArea'),
-      ('hkgov-censtatd-hk-district-annual', 'divisionArea'),
-      ('hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district-annual' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-permanent-living-quarters' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 
     INSERT OR IGNORE INTO releases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,

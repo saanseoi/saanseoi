@@ -44,7 +44,8 @@ test('publishes and serves a curated Address union with dataset filtering, globa
     meta.exec(`INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, versionHash)
       SELECT 'overture-hk-place', publisherId, 'ds-hk-overture-place', 'hk', 'static', 'monthly', 'places', 'fixture'
       FROM datasets WHERE id = 'overture-hk-division';
-      INSERT INTO datasetResourceTypes VALUES ('overture-hk-place', 'place'), ('overture-hk-place', 'address');`)
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');`)
     const cohort = '2025-09-24.0'
     const members = [
       {
