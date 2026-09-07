@@ -223,39 +223,44 @@ export async function runHkgovAlsIngestCommand(
         }),
       ),
   )
-  log.info(
-    `Check identities, curations and division linkage across ${sourceReleases.length} ALS releases before ingestion`,
-  )
-  const review = await reviewHkgovAlsIngest({
-    args,
-    decisions,
-    history,
-    sourceReleases,
-    target,
-  })
-  await reviewHkgovAlsCurationApplications(
-    review.curationApplications,
-    Boolean(args.options.yes),
-    args.options['skip-curation-checks'] === true,
-  )
-  log.message('\u001B[36mALS Preflight Checks\u001B[39m')
-  note(
-    [
-      formatField('releases', String(sourceReleases.length)),
-      formatField(
-        'divisionCohorts',
-        [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
-          ', ',
+  if (args.options['skip-curation-checks'] === true) {
+    log.info(
+      'Skipping all-release curation preflight; source and integrity checks run during each release preparation.',
+    )
+  } else {
+    log.info(
+      `Check identities, curations and division linkage across ${sourceReleases.length} ALS releases before ingestion`,
+    )
+    const review = await reviewHkgovAlsIngest({
+      args,
+      decisions,
+      history,
+      sourceReleases,
+      target,
+    })
+    await reviewHkgovAlsCurationApplications(
+      review.curationApplications,
+      Boolean(args.options.yes),
+    )
+    log.message('\u001B[36mALS Preflight Checks\u001B[39m')
+    note(
+      [
+        formatField('releases', String(sourceReleases.length)),
+        formatField(
+          'divisionCohorts',
+          [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
+            ', ',
+          ),
         ),
-      ),
-      formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
-      formatField(
-        'unverifiedCurationApplications',
-        String(review.curationApplications.length),
-      ),
-    ].join('\n'),
-    'DATASETS',
-  )
+        formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
+        formatField(
+          'unverifiedCurationApplications',
+          String(review.curationApplications.length),
+        ),
+      ].join('\n'),
+      'DATASETS',
+    )
+  }
 
   for (const {
     addressCohortKey,

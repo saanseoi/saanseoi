@@ -12,19 +12,21 @@ ingestion. `writeOutput: false` suppresses artefact writes, while retaining 3D
 validation and its parent block enrichment and duplicate suppression.
 
 `--skip-curation-checks` accepts pending correction verification and identity drift
-checks during ingestion, including with `--yes`. Grouped initialisers broadcast the flag
-to address ingestion; direct `hkgov-dpo:ingest` also accepts it. Corrections retain
-their existing verification provenance. Unresolved identity changes use generated IDs
-for the run, without writing human-reviewed decisions or verification dates to fixtures.
-This mode supports pre-curation reference and testing imports; source validation and
-database integrity checks still apply. The shared-building ownership curation check is
-skipped: each resolved owner keeps its own inventory and source occurrences. Ambiguous
-parent matches and conflicting inventories for the same owner still stop preparation.
-Skip mode omits parent block enrichment and duplicate suppression, retaining publisher
-2D components and separate assertions. It uses exact parents or unique block-free
-matches and accepts section inventories without a reviewed ownership mapping. Alias
-coalescences apply only when their source guards match. In skip mode, a guard mismatch
-omits that coalescence and retains both publisher records unchanged.
+checks during ingestion, including with `--yes`, without running the upfront all-release
+review. Source and integrity validation run during preparation of each ingested release.
+Grouped initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest`
+also accepts it. Corrections retain their existing verification provenance. Unresolved
+identity changes use generated IDs for the run, without writing human-reviewed decisions
+or verification dates to fixtures. This mode supports pre-curation reference and testing
+imports; source validation and database integrity checks still apply. The
+shared-building ownership curation check is skipped: each resolved owner keeps its own
+inventory and source occurrences. Ambiguous parent matches and conflicting inventories
+for the same owner still stop preparation. Skip mode omits parent block enrichment and
+duplicate suppression, retaining publisher 2D components and separate assertions. It
+uses exact parents or unique block-free matches and accepts section inventories without
+a reviewed ownership mapping. Alias coalescences apply only when their source guards
+match. In skip mode, a guard mismatch omits that coalescence and retains both publisher
+records unchanged.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
