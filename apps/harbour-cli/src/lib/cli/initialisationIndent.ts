@@ -1,5 +1,6 @@
 import { Console } from 'node:console'
 import { styleText } from 'node:util'
+import { resolveInitialisationCommand } from './initialisationCommands.ts'
 
 const OUTPUT_TOKEN = new RegExp(
   `${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]|[\\s\\S]`,
@@ -10,6 +11,7 @@ let closeInitialisationGuide = () => {}
 
 export function finishInitialisationGuide() {
   closeInitialisationGuide()
+  closeInitialisationGuide = () => {}
 }
 
 /** Only init commands actually invoked in this run contribute a level. */
@@ -17,7 +19,7 @@ export function initialisationIndent(command: string | undefined, guides = '') {
   const depth = guides
     .split(',')
     .filter(value => value !== '' && Number.isInteger(Number(value))).length
-  const isInit = command === 'init' || command?.startsWith('init:')
+  const isInit = command !== undefined && !!resolveInitialisationCommand(command)
   return Math.max(0, depth - (isInit ? 0 : 1)) * 4
 }
 
@@ -75,7 +77,7 @@ export function createIndentedOutput(
 
 export function installInitialisationIndent(command: string | undefined) {
   const owner =
-    command === 'init' || command?.startsWith('init:')
+    command !== undefined && resolveInitialisationCommand(command)
       ? command
       : process.env.SAANSEOI_INIT_COMMAND
   const width = initialisationIndent(command, process.env.SAANSEOI_INIT_GUIDES)

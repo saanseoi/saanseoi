@@ -76,14 +76,14 @@ export async function beginOfficialAddressInitialisation(
   options: { continue: boolean } = { continue: false },
 ) {
   const path = manifestPath(target)
-  if (existsSync(path)) {
+  if (options.continue && existsSync(path)) {
     const existing = await readManifest(path)
-    if (options.continue && existing.status === 'running') {
+    if (existing.status === 'running') {
       note(formatField('manifest', path), 'RESUMING OFFICIAL ADDRESS INITIALISATION')
       return
     }
     throw new Error(
-      `An official-address initialisation manifest already exists: ${path}. Reset it before starting another clean initialisation.`,
+      'Official address initialisation is already complete; cannot continue it.',
     )
   }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
@@ -118,6 +118,8 @@ export async function beginOfficialAddressInitialisation(
       version: 1,
     }
     await mkdir(dirname(path), { recursive: true })
+    // Replace stale manifests only after validating the clean baseline and
+    // capturing its before-images, preserving reset ownership on failure.
     await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
     note(formatField('manifest', path), 'OFFICIAL ADDRESS INITIALISATION')
   } finally {

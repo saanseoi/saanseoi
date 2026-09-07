@@ -7,6 +7,7 @@ import { note, outro } from '@clack/prompts'
 import { formatField, formatMutedValue } from '../cli/display.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
+import { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
 import {
   finishInitialisationGuide,
   initialisationIndent,
@@ -20,99 +21,8 @@ import {
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 
-const initialisationCommands = {
-  init: {
-    script: 'scripts/init/all.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:local': {
-    script: 'scripts/init/local.fish',
-    supportsContinue: false,
-    supportsTarget: false,
-  },
-  'init:production': {
-    script: 'scripts/init/production.fish',
-    supportsContinue: false,
-    supportsTarget: false,
-  },
-  'init:addresses': {
-    script: 'scripts/init/addresses.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:addresses:saanseoi': {
-    script: 'scripts/init/addresses-hkgov-dpo.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:stats:government': {
-    script: 'scripts/init/stats-hkgov-censtatd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:stats': {
-    script: 'scripts/init/stats.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions': {
-    script: 'scripts/init/divisions.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-pland-new-town': {
-    script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-pland-pu': {
-    script: 'scripts/init/divisions-hkgov-pland-pu.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-landsd': {
-    script: 'scripts/init/divisions-hkgov-landsd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:geographic': {
-    script: 'scripts/init/divisions-overture.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-censtatd-hma': {
-    script: 'scripts/init/divisions-hkgov-censtatd-hma.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:places:overture': {
-    script: 'scripts/init/places-overture.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:places': {
-    script: 'scripts/init/places.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:streets:saanseoi': {
-    script: 'scripts/init/streets-hkgov-landsd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:streets': {
-    script: 'scripts/init/streets.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-} as const
-
-export type InitialisationCommand = keyof typeof initialisationCommands
-
-export function resolveInitialisationCommand(command: string) {
-  return initialisationCommands[command as InitialisationCommand]
-}
+export { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
+export type { InitialisationCommand } from '../cli/initialisationCommands.ts'
 
 type InitialisationSubprocess = {
   kill(signal?: number | NodeJS.Signals): void
@@ -218,6 +128,7 @@ export async function runInitialisationCommand(
     summaryDirectory = await mkdtemp(join(tmpdir(), 'saanseoi-init-'))
     summaryPath = join(summaryDirectory, 'summary.jsonl')
   }
+  const eventsBefore = await readInitialisationSummaryEvents(summaryPath)
   const child = Bun.spawn({
     cmd: [
       'fish',
@@ -259,7 +170,10 @@ export async function runInitialisationCommand(
   } finally {
     disposeChildInterrupt()
   }
-  if (exitCode !== 0) {
+  const childEvents = (await readInitialisationSummaryEvents(summaryPath)).slice(
+    eventsBefore.length,
+  )
+  if (exitCode !== 0 && !childEvents.some(event => event.type === 'error')) {
     await recordInitialisationSummaryEvent(
       {
         command: args.command ?? null,
