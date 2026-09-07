@@ -2,6 +2,133 @@
   "version": 1,
   "corrections": [
     {
+      "id": "lei-muk-shue-block-6-flat-omission-20250813",
+      "revision": 1,
+      "estate": "LEI MUK SHUE ESTATE",
+      "csu": "3194426721T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "expectedInventoryHash": "2f599cf316788a47aea49f328379c6351e7fbb52ee3f5d5c2706082a91591f17",
+      "correctedInventoryHash": "0e61ce0a68fe1fda7b54b32372c49972b6417d346d6ee08bbe05fa35b7c7dd4f",
+      "expectedUnitCount": 228,
+      "expectedBlockNumber": "6",
+      "removals": [],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "302"
+        },
+        {
+          "floor": 3,
+          "unit": "304"
+        }
+      ],
+      "decision": "Backfill the exact bilingual additions in structured Block 6 without inventing a building name. Preserve raw assertions.",
+      "authority": "User decision, 2026-09-07: backfill earlier omissions for ALL estate buildings which suddenly gain a new flat."
+    },
+    {
+      "id": "kwai-fong-211-label-backfill",
+      "revision": 1,
+      "estate": "KWAI FONG ESTATE",
+      "csu": "3136024324T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0"
+      ],
+      "expectedEnBuildingName": "KWAI CHING HOUSE",
+      "expectedZhBuildingName": "葵正樓",
+      "expectedInventoryHash": "f6b56352ccbef6505e5807f663adb84d04c214858aea5d33f5d5c473e46be9c5",
+      "correctedInventoryHash": "56c3bcb3e4ab76158879668957d92011f63840d32d78966ea13bde2ecd642265",
+      "expectedUnitCount": 766,
+      "removals": [
+        {
+          "floor": 2,
+          "unit": "211F"
+        }
+      ],
+      "additions": [
+        {
+          "floor": 2,
+          "unit": "211"
+        }
+      ],
+      "decision": "Backfill the reviewed flat label correction, retaining raw publisher labels and unrelated dated inventory changes.",
+      "authority": "User decision, 2026-09-07: data quality correction; backfill."
+    },
+    {
+      "id": "kwai-fong-101-label-backfill",
+      "revision": 1,
+      "estate": "KWAI FONG ESTATE",
+      "csu": "3139624361T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0"
+      ],
+      "expectedEnBuildingName": "KWAI MING HOUSE",
+      "expectedZhBuildingName": "葵明樓",
+      "expectedInventoryHash": "6208c9c4618533b1abaa59c50e7068e0c62a2d07ed0ed98c83866abbc18f5b18",
+      "correctedInventoryHash": "2dc9f609b368adbb540e1f23d46d9ce60e0bb059e66a9c40007c58b52dfa5ae6",
+      "expectedUnitCount": 762,
+      "removals": [
+        {
+          "floor": 1,
+          "unit": "101F"
+        }
+      ],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "101"
+        }
+      ],
+      "decision": "Backfill the reviewed flat label correction, retaining raw publisher labels and unrelated dated inventory changes.",
+      "authority": "User decision, 2026-09-07: data quality correction; backfill."
+    },
+    {
       "id": "kai-tin-estate-kai-shun-house-flat-omission-20260708-earlier-67857ac2",
       "revision": 1,
       "estate": "KAI TIN ESTATE",

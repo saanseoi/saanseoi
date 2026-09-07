@@ -1,22 +1,12 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-csu-corrections.json'
-import type { Als3dLocale } from './hkgovAls3d'
-
-type Feature = {
-  geometry?: { type: string; coordinates: number[] }
-  properties?: {
-    Address?: {
-      PremisesAddress?: {
-        GeoAddress?: string
-        BuildingCsuInformation?: { CsuId?: string }
-        EngPremisesAddress?: Als3dLocale
-        ChiPremisesAddress?: Als3dLocale
-      }
-    }
-  }
-}
+import type { HkgovAlsFeature } from './hkgovAlsTypes'
+import type { Als3dFeature } from './hkgovAls3d'
 /** Resolve a reviewed identifier without modifying the publisher feature. */
-export function resolveAlsCsuCorrection(feature: Feature, version: string) {
+export function resolveAlsCsuCorrection(
+  feature: HkgovAlsFeature | Als3dFeature,
+  version: string,
+) {
   const p = feature.properties?.Address?.PremisesAddress
   const rawCsu = p?.BuildingCsuInformation?.CsuId ?? null
   const decision = fixture.corrections.find(
@@ -63,7 +53,7 @@ export function resolveAlsCsuCorrection(feature: Feature, version: string) {
     ],
     `CSU correction ${decision.id}: publisher components changed`,
   )
-  if (p?.GeoAddress !== undefined) assert.equal(p.GeoAddress, decision.geoAddress)
+  if (p && 'GeoAddress' in p) assert.equal(p.GeoAddress, decision.geoAddress)
   assert.equal(feature.geometry?.type, 'Point')
   assert.deepEqual(feature.geometry?.coordinates, decision.coordinates)
   return { csu: decision.to, decision }
