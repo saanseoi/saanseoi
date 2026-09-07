@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -19,6 +20,76 @@ export function coalesceAlsAliasedPremises(
       continue
     const owners = rows.filter(row => row.hkgovCsuId === decision.owner.csu)
     const aliases = rows.filter(row => row.hkgovCsuId === decision.aliasCsu)
+    if (owners.length === 0 && aliases.length === 0) continue
+    if ('sharedBuilding' in decision) {
+      try {
+        assert.equal(
+          owners.length,
+          2,
+          `ALS alias ${decision.id}: paired assertions changed`,
+        )
+        assert.equal(
+          aliases.length,
+          2,
+          `ALS alias ${decision.id}: paired assertions changed`,
+        )
+        const owner = owners.find(
+          row => row.enStreetName === decision.ownerStreet.en.StreetName,
+        )
+        const alias = owners.find(row => row.enStreetName === null)
+        if (!owner || !alias)
+          throw new Error(`ALS alias ${decision.id}: paired assertions are missing`)
+        const ownerEn = JSON.parse(owner.engPremisesAddressJson ?? 'null')
+        const ownerZh = JSON.parse(owner.chiPremisesAddressJson ?? 'null')
+        const aliasEn = JSON.parse(alias.engPremisesAddressJson ?? 'null')
+        const aliasZh = JSON.parse(alias.chiPremisesAddressJson ?? 'null')
+        assert.equal(ownerEn?.BuildingName, decision.owner.enBuildingName)
+        assert.equal(ownerZh?.BuildingName, decision.owner.zhHantBuildingName)
+        assert.equal(aliasEn?.BuildingName, decision.owner.enBuildingName)
+        assert.equal(aliasZh?.BuildingName, decision.owner.zhHantBuildingName)
+        assert.deepEqual(ownerEn?.EngStreet, decision.ownerStreet.en)
+        assert.deepEqual(ownerZh?.ChiStreet, decision.ownerStreet.zh)
+        assert.equal(aliasEn?.EngStreet ?? null, null)
+        assert.equal(aliasZh?.ChiStreet ?? null, null)
+        assert.equal(owner.enEstateName, decision.estate)
+        assert.equal(owner.zhHantEstateName, decision.zhEstate)
+        assert.equal(alias.enEstateName, decision.estate)
+        assert.equal(alias.zhHantEstateName, decision.zhEstate)
+        assert.equal(
+          owner.geometry,
+          alias.geometry,
+          `ALS alias ${decision.id}: point changed`,
+        )
+      } catch (error) {
+        if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+        continue
+      }
+      const owner = requireDefined(
+        owners.find(row => row.enStreetName === decision.ownerStreet.en.StreetName),
+      )
+      const alias = requireDefined(owners.find(row => row.enStreetName === null))
+      const aliasEn = JSON.parse(alias.engPremisesAddressJson ?? 'null')
+      const aliasZh = JSON.parse(alias.chiPremisesAddressJson ?? 'null')
+      owner.sources = JSON.stringify({
+        ...JSON.parse(owner.sources ?? '{}'),
+        hkgovAlsAliasedPremiseCoalescence: {
+          ...decision,
+          curationFile,
+          sourceVersion: version,
+          suppressedAddress: {
+            addressId: alias.id,
+            canonicalId: alias.canonicalId,
+            identityKey: alias.identityKey,
+            geometry: JSON.parse(alias.geometry ?? 'null'),
+            sources: JSON.parse(alias.sources ?? '{}'),
+            engPremisesAddress: aliasEn,
+            chiPremisesAddress: aliasZh,
+          },
+        },
+      })
+      ownerIdByAliasId.set(alias.id, owner.id)
+      continue
+    }
     try {
       assert.equal(owners.length, 1, `ALS alias ${decision.id}: owner changed`)
       assert.equal(aliases.length, 1, `ALS alias ${decision.id}: alias changed`)
@@ -64,8 +135,8 @@ export function coalesceAlsAliasedPremises(
       continue
     }
 
-    const owner = owners[0]!
-    const alias = aliases[0]!
+    const owner = requireDefined(owners[0])
+    const alias = requireDefined(aliases[0])
     const aliasEn = JSON.parse(alias.engPremisesAddressJson ?? 'null')
     const aliasZh = JSON.parse(alias.chiPremisesAddressJson ?? 'null')
 

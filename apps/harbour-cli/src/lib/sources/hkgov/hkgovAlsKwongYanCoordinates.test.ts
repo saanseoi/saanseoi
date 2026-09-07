@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
@@ -21,8 +22,10 @@ test('Kwong Yan retains its reviewed original point until revoked with raw prove
           }) as PreparedHkgovAlsRow,
       )
     backfillAlsCoordinates(rows, version)
-    const row = rows.find(r => r.hkgovCsuId === '3609034391T20050430')!
-    expect(JSON.parse(row.geometry!).coordinates).toEqual([114.17515, 22.44896])
+    const row = requireDefined(rows.find(r => r.hkgovCsuId === '3609034391T20050430'))
+    expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual([
+      114.17515, 22.44896,
+    ])
     const sources = JSON.parse(row.sources)
     expect(sources.publisherInventory).toBe(974)
     expect(sources.hkgovAlsCoordinateBackfill.publisherGeometry.coordinates).toEqual([

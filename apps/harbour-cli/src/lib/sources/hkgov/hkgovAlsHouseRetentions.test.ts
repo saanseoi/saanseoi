@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -39,9 +40,9 @@ const normalise = (s: HkgovAlsSourceFeature, v: string) =>
   )
 
 test('guards complete publisher evidence and preserves unrelated source data', () => {
-  const r = rules.find(r => r.id === 'shek-yam-lai-shek-house')!
+  const r = requireDefined(rules.find(r => r.id === 'shek-yam-lai-shek-house'))
   const f = structuredClone(
-    r.evidence2d[0]!.feature,
+    requireDefined(r.evidence2d[0]).feature,
   ) as unknown as HkgovAlsSourceFeature['feature']
   const source = [{ feature: f, sourceFile: 'test.geojson', featureIndexOneBased: 1 }]
   expect(() => retainAlsHouses(source, '2024-07-25.0')).toThrow(
@@ -60,7 +61,10 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
     const dir = await mkdtemp(join(tmpdir(), 'als-house-retentions-'))
     const ids = new Map<string, string>()
     try {
-      for (const [releaseIndex, release] of [...releases, releases.at(-1)!].entries()) {
+      for (const [releaseIndex, release] of [
+        ...releases,
+        requireDefined(releases.at(-1)),
+      ].entries()) {
         const v = releaseIndex === releases.length ? '2030-01-01.0' : version(release)
         const source: HkgovAlsSourceFeature[] = []
         for (const district of ['north', 'kwai_tsing']) {
@@ -79,11 +83,15 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         }
         if (v === '2030-01-01.0') {
           const changed = structuredClone(source)
-          changed.find(
-            s =>
-              s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
-                ?.CsuId === '3433440473T20210825',
-          )!.feature.geometry!.coordinates = [0, 0]
+          requireDefined(
+            requireDefined(
+              changed.find(
+                s =>
+                  s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+                    ?.CsuId === '3433440473T20210825',
+              ),
+            ).feature.geometry,
+          ).coordinates = [0, 0]
           expect(() => retainAlsHouses(changed, v)).toThrow(
             'publisher assertions changed',
           )
@@ -91,10 +99,11 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         const provenance = retainAlsHouses(source, v)
         const rows = source.map(s => normalise(s, v))
         labelAlsHouseRetentions(rows, provenance)
-        expect(rows.filter(r => csus.has(r.hkgovCsuId!))).toHaveLength(9)
+        expect(rows.filter(r => csus.has(requireDefined(r.hkgovCsuId)))).toHaveLength(9)
         for (const r of rows) {
-          if (ids.has(r.hkgovCsuId!)) expect(r.id).toBe(ids.get(r.hkgovCsuId!)!)
-          else ids.set(r.hkgovCsuId!, r.id!)
+          if (ids.has(requireDefined(r.hkgovCsuId)))
+            expect(r.id).toBe(requireDefined(ids.get(requireDefined(r.hkgovCsuId))))
+          else ids.set(requireDefined(r.hkgovCsuId), requireDefined(r.id))
         }
         const three = []
         for await (const { feature } of readAls3dFeatures(
@@ -123,7 +132,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           .split('\n')
           .map(line => JSON.parse(line))
         const targetIds = new Set(
-          rows.filter(r => csus.has(r.hkgovCsuId!)).map(r => r.id),
+          rows.filter(r => csus.has(requireDefined(r.hkgovCsuId))).map(r => r.id),
         )
         const collections = records.filter(
           r => r.kind === 'collection' && targetIds.has(r.address2dId),
@@ -134,18 +143,18 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           const collection = collections.find(c => c.address2dId === row.id)
           expect(collection).toBeDefined()
           expect(collection.sourceRecordIds.length).toBeGreaterThan(0)
-          const rule = rules.find(r => r.csus[0] === row.hkgovCsuId)!
+          const rule = requireDefined(rules.find(r => r.csus[0] === row.hkgovCsuId))
           expect(collection.unitCount).toBe(
-            rule.evidence3d[0]!.feature.properties.Address.PremisesAddress
-              .EngPremisesAddress.Eng3dAddress.length,
+            requireDefined(rule.evidence3d[0]).feature.properties.Address
+              .PremisesAddress.EngPremisesAddress.Eng3dAddress.length,
           )
           const retained = JSON.parse(row.sources).hkgovAlsHouseRetention
           expect(retained.curation.verificationStatus).toBe(
             v === '2030-01-01.0' ? 'unverified' : 'verified',
           )
           if (rule.retainOriginalCoordinates)
-            expect(JSON.parse(row.geometry!).coordinates).toEqual(
-              rule.evidence2d[0]!.feature.geometry.coordinates,
+            expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual(
+              requireDefined(rule.evidence2d[0]).feature.geometry.coordinates,
             )
           if (row.hkgovCsuId === '3247025674T20050805')
             expect(collection.unitCount).toBe(340)

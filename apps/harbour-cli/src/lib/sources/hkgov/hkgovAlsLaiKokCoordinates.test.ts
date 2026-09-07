@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
@@ -34,8 +35,10 @@ test('Lai Kok keeps separate reviewed points through future releases without cha
     const rows = rowsFor(version)
     backfillAlsCoordinates(rows, version)
     for (const decision of retained) {
-      const row = rows.find(r => r.hkgovCsuId === decision.csu)!
-      expect(JSON.parse(row.geometry!).coordinates).toEqual(decision.currentCoordinates)
+      const row = requireDefined(rows.find(r => r.hkgovCsuId === decision.csu))
+      expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual(
+        decision.currentCoordinates,
+      )
       const sources = JSON.parse(row.sources)
       expect(sources.hkgovAlsCoordinateBackfill.publisherGeometry.coordinates).toEqual([
         114.15717, 22.33301,
@@ -50,10 +53,11 @@ test('Lai Kok keeps separate reviewed points through future releases without cha
 test('Lai Kok future retention fails closed for new publisher points', () => {
   for (const decision of retained) {
     const rows = rowsFor('2030-01-01.0')
-    rows.find(r => r.hkgovCsuId === decision.csu)!.geometry = JSON.stringify({
-      type: 'Point',
-      coordinates: [0, 0],
-    })
+    requireDefined(rows.find(r => r.hkgovCsuId === decision.csu)).geometry =
+      JSON.stringify({
+        type: 'Point',
+        coordinates: [0, 0],
+      })
     expect(() => backfillAlsCoordinates(rows, '2030-01-01.0')).toThrow(
       'source point changed',
     )
@@ -68,13 +72,15 @@ test('Lai Kok retention guards preserve the reviewed points and earlier backfill
   }
   for (const decision of retained) {
     expect(decision.currentCoordinates).toEqual(
-      reviewedPoints[decision.enBuildingName]!,
+      requireDefined(reviewedPoints[decision.enBuildingName]),
     )
     expect(decision.previousCoordinates).toEqual([114.15717, 22.33301])
     expect(
-      fixture.backfills.find(
-        d => d.csu === decision.csu && d.sourceVersionFrom === '2024-07-25.0',
-      )!.currentCoordinates,
+      requireDefined(
+        fixture.backfills.find(
+          d => d.csu === decision.csu && d.sourceVersionFrom === '2024-07-25.0',
+        ),
+      ).currentCoordinates,
     ).toEqual(decision.currentCoordinates)
   }
 })

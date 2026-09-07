@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
 import { suppressAlsUnnamedPremises } from './hkgovAlsUnnamedPremiseSuppressions'
@@ -97,10 +98,10 @@ test('High Prosperity structured towers link to their publisher estate without c
   applyAlsAddressHierarchies(rows, '2026-08-19.0')
   expect(rows).toHaveLength(3)
   expect(rows.slice(1).map(row => row.parentAddressId)).toEqual([
-    rows[0]!.id,
-    rows[0]!.id,
+    requireDefined(rows[0]).id,
+    requireDefined(rows[0]).id,
   ])
-  expect(rows[0]!.parentAddressId).toBeUndefined()
+  expect(requireDefined(rows[0]).parentAddressId).toBeUndefined()
   expect(rows.slice(1).map(row => row.enBlockNumber)).toEqual(['1', '2'])
 })
 
@@ -139,14 +140,14 @@ test('identical designs retain distinct building inventories and unresolved High
   }
   const unitIds = []
   for (const source of original) {
-    const owner = owners.get(source.id)!
+    const owner = requireDefined(owners.get(source.id))
     expect(owner.ownerId).toBe(source.id)
     expect(owner.unresolvedSectionIds).toHaveLength(2)
     const units = normaliseAls3dInventory(
       inventoryFeature,
       owner.physicalBuildingId,
     ).units
-    unitIds.push(units[0]!.id)
+    unitIds.push(requireDefined(units[0]).id)
     const collection = {
       id: source.id,
       address2dId: owner.ownerId,
@@ -154,7 +155,7 @@ test('identical designs retain distinct building inventories and unresolved High
       units,
     }
     for (const id of owner.unresolvedSectionIds) {
-      const section = rows.find(row => row.id === id)!
+      const section = requireDefined(rows.find(row => row.id === id))
       expect(section.curatedGranularity).toBe('section')
       expect(section.id).toMatch(/^ss-[0-9a-f-]{36}$/)
       expect(section.canonicalId).toBe(section.id)
@@ -177,7 +178,7 @@ test('identical designs retain distinct building inventories and unresolved High
 
 test('unnamed Lei Moon duplicate is not reused as a Low Block section', () => {
   const rows = premises()
-  const moon = rows[1]!
+  const moon = requireDefined(rows[1])
   const low = {
     ...moon,
     id: 'publisher-low',
@@ -212,12 +213,12 @@ test('unnamed Lei Moon duplicate is not reused as a Low Block section', () => {
 
 test('changed street components, repeated same-CSU assertions and out-of-bounds releases are not silently accepted', () => {
   const changed = premises()
-  changed[0]!.enStreetNumberFrom = '324'
+  requireDefined(changed[0]).enStreetNumberFrom = '324'
   expect(() => applyAlsAddressHierarchies(changed, '2024-07-25.0')).toThrow(
     'review required',
   )
   const duplicate = premises()
-  duplicate.push({ ...duplicate[0]!, id: 'alternative-address' })
+  duplicate.push({ ...requireDefined(duplicate[0]), id: 'alternative-address' })
   expect(() => applyAlsAddressHierarchies(duplicate, '2024-07-25.0')).toThrow(
     'ambiguous',
   )

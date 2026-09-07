@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import type { Als3dFeature } from './hkgovAls3d'
 import { alsFlatOmissionAdditions } from './hkgovAlsFlatOmissions'
@@ -35,13 +36,22 @@ test('recognises structured bilingual blocks without inventing names', () => {
   const after = feature(['101', '102'])
   for (const f of [before, after]) {
     const p = f.properties.Address.PremisesAddress
-    delete p.EngPremisesAddress!.BuildingName
-    delete p.ChiPremisesAddress!.BuildingName
-    p.EngPremisesAddress!.EngBlock = { BlockNo: '6', BlockDescriptor: 'BLK' }
-    p.ChiPremisesAddress!.ChiBlock = { BlockNo: '6', BlockDescriptor: '座' }
+    delete requireDefined(p.EngPremisesAddress).BuildingName
+    delete requireDefined(p.ChiPremisesAddress).BuildingName
+    requireDefined(p.EngPremisesAddress).EngBlock = {
+      BlockNo: '6',
+      BlockDescriptor: 'BLK',
+    }
+    requireDefined(p.ChiPremisesAddress).ChiBlock = {
+      BlockNo: '6',
+      BlockDescriptor: '座',
+    }
   }
   expect(alsFlatOmissionAdditions(before, after)).toEqual([{ floor: 1, unit: '102' }])
-  after.properties.Address.PremisesAddress.ChiPremisesAddress!.ChiBlock!.BlockNo = '7'
+  requireDefined(
+    requireDefined(after.properties.Address.PremisesAddress.ChiPremisesAddress)
+      .ChiBlock,
+  ).BlockNo = '7'
   expect(alsFlatOmissionAdditions(before, after)).toBeNull()
 })
 
@@ -62,23 +72,28 @@ test('does not treat mergers, splits, replacements, duplicates or removals as om
     [['101'], ['101', '101']],
     [['101', '102'], ['101']],
   ])
-    expect(alsFlatOmissionAdditions(feature(before!), feature(after!))).toBeNull()
+    expect(
+      alsFlatOmissionAdditions(
+        feature(requireDefined(before)),
+        feature(requireDefined(after)),
+      ),
+    ).toBeNull()
 })
 
 test('requires stable bilingual building identity and matching bilingual added flats', () => {
   const before = feature(['101'])
   for (const mutate of [
     (p: Als3dFeature['properties']['Address']['PremisesAddress']) => {
-      p.BuildingCsuInformation!.CsuId = 'other'
+      requireDefined(p.BuildingCsuInformation).CsuId = 'other'
     },
     (p: Als3dFeature['properties']['Address']['PremisesAddress']) => {
-      p.EngPremisesAddress!.BuildingName = 'OTHER'
+      requireDefined(p.EngPremisesAddress).BuildingName = 'OTHER'
     },
     (p: Als3dFeature['properties']['Address']['PremisesAddress']) => {
-      p.ChiPremisesAddress!.BuildingName = '別樓'
+      requireDefined(p.ChiPremisesAddress).BuildingName = '別樓'
     },
     (p: Als3dFeature['properties']['Address']['PremisesAddress']) => {
-      p.ChiPremisesAddress!.Chi3dAddress!.pop()
+      requireDefined(requireDefined(p.ChiPremisesAddress).Chi3dAddress).pop()
     },
   ]) {
     const after = feature(['101', '102'])

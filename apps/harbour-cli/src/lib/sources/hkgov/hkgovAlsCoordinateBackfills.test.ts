@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
@@ -18,9 +19,11 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) =>
 
 test('skip mode omits missing, ambiguous and changed coordinate targets without mutations', () => {
   const version = '2026-02-04.0'
-  const decision = fixture.backfills.find(
-    d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
-  )!
+  const decision = requireDefined(
+    fixture.backfills.find(
+      d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
+    ),
+  )
   const changed = rowFor(decision)
   changed.geometry = JSON.stringify({ type: 'Point', coordinates: [0, 0] })
   for (const rows of [[], [rowFor(decision), rowFor(decision)], [changed]]) {
@@ -68,11 +71,13 @@ test('does not apply outside the approved history or after source geometry chang
     throw new Error('Missing coordinate-backfill fixture')
   expect(backfillAlsCoordinates(rows, '2020-01-01.0')).toEqual({ backfilled: 0 })
   expect(JSON.parse(firstRow.geometry).coordinates).toEqual(first.previousCoordinates)
-  const guarded = fixture.backfills.find(
-    decision =>
-      decision.sourceVersionFrom <= '2026-02-04.0' &&
-      decision.sourceVersionTo >= '2026-02-04.0',
-  )!
+  const guarded = requireDefined(
+    fixture.backfills.find(
+      decision =>
+        decision.sourceVersionFrom <= '2026-02-04.0' &&
+        decision.sourceVersionTo >= '2026-02-04.0',
+    ),
+  )
   const changed = [rowFor(guarded)]
   const changedRow = changed[0]
   if (!changedRow) throw new Error('Missing changed coordinate-backfill row')
@@ -87,7 +92,7 @@ test('coordinate guards retain publisher estate names after HA display curation'
   const rows = fixture.backfills
     .filter(d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version)
     .map(rowFor)
-  const row = rows.find(r => r.hkgovCsuId === '4028421562T20050430')!
+  const row = requireDefined(rows.find(r => r.hkgovCsuId === '4028421562T20050430'))
   row.engPremisesAddressJson = JSON.stringify({
     EngEstate: { EstateName: 'CHOI WAN (1) ESTATE' },
   })
@@ -100,7 +105,9 @@ test('coordinate guards retain publisher estate names after HA display curation'
   applyAlsEstateNames(rows, version)
   expect(row.enEstateName).toBe('Choi Wan (I) Estate')
   expect(backfillAlsCoordinates(rows, version).backfilled).toBe(rows.length)
-  expect(JSON.parse(row.geometry!).coordinates).toEqual([114.21586, 22.3331])
+  expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual([
+    114.21586, 22.3331,
+  ])
   expect(row.enEstateName).toBe('Choi Wan (I) Estate')
   expect(
     JSON.parse(row.sources).hkgovAlsCoordinateBackfill.publisherGeometry.coordinates,
@@ -232,7 +239,9 @@ test('Hing Wah II current points preserve raw geometry and dated Wo Hing invento
         decision.sourceVersionFrom <= version && decision.sourceVersionTo >= version,
     )
     const rows = decisions.map(rowFor)
-    const woHing = rows.find(row => row.hkgovCsuId === '4204713807T20050430')!
+    const woHing = requireDefined(
+      rows.find(row => row.hkgovCsuId === '4204713807T20050430'),
+    )
     const inventory = version < '2025-04-26.0' ? 1102 : 1104
     woHing.sources = JSON.stringify({ publisherInventory: inventory })
     backfillAlsCoordinates(rows, version)
@@ -242,12 +251,15 @@ test('Hing Wah II current points preserve raw geometry and dated Wo Hing invento
       ['4203613739T20050430', [114.23274, 22.26268]],
       ['4204713807T20050430', [114.23293, 22.26295]],
     ] as const) {
-      const row = rows.find(row => row.hkgovCsuId === csu)!
-      expect(JSON.parse(row.geometry!).coordinates).toEqual(coordinates)
+      const row = requireDefined(rows.find(row => row.hkgovCsuId === csu))
+      expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual(coordinates)
       expect(
         JSON.parse(row.sources).hkgovAlsCoordinateBackfill.publisherGeometry
           .coordinates,
-      ).toEqual(decisions.find(decision => decision.csu === csu)!.previousCoordinates)
+      ).toEqual(
+        requireDefined(decisions.find(decision => decision.csu === csu))
+          .previousCoordinates,
+      )
     }
     expect(JSON.parse(woHing.sources).publisherInventory).toBe(inventory)
   }

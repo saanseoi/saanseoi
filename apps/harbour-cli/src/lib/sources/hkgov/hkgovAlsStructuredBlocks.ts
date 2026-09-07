@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 /** Publisher estate and bilingual address components must identify one existing parent. */
@@ -56,6 +57,6 @@ export function linkAlsStructuredBlocks(rows: PreparedHkgovAlsRow[]) {
       continue
     const candidates = parents.get(key(row)) ?? []
     if (candidates.length !== 1) continue
-    row.parentAddressId = candidates[0]!.id
+    row.parentAddressId = requireDefined(candidates[0]).id
   }
 }

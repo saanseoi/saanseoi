@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 
 import type { LandsdStreetRecord } from './landsdStreetIngestTypes.ts'
@@ -83,7 +84,7 @@ test('rejects a target-specific staged ID that conflicts with the registry', () 
 
   expect(() =>
     mergeLandsdStreetBaselineCandidates(registry, [
-      { ...registry.records[0]!, streetId: 'different-street-id' },
+      { ...requireDefined(registry.records[0]), streetId: 'different-street-id' },
     ]),
   ).toThrow('checked-in identity registry')
 })

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { readFile } from 'node:fs/promises'
 import { expect, test } from 'bun:test'
 
@@ -66,12 +67,16 @@ test('general omission policy backfills baseline inventories without backdating 
     )
     if (!feature) throw new Error(`Missing ${building}`)
     const originalHash = publisherInventoryHash(feature)
-    const before =
-      feature.properties.Address.PremisesAddress.EngPremisesAddress!.Eng3dAddress!
+    const before = requireDefined(
+      requireDefined(feature.properties.Address.PremisesAddress.EngPremisesAddress)
+        .Eng3dAddress,
+    )
     const result = applyAls3dCorrections(feature, '2024-07-25.0')
-    const after =
-      result.feature.properties.Address.PremisesAddress.EngPremisesAddress!
-        .Eng3dAddress!
+    const after = requireDefined(
+      requireDefined(
+        result.feature.properties.Address.PremisesAddress.EngPremisesAddress,
+      ).Eng3dAddress,
+    )
     expect(after.length).toBe(before.length + addedCount)
     expect(after).toEqual(expect.arrayContaining(before))
     expect(publisherInventoryHash(feature)).toBe(originalHash)

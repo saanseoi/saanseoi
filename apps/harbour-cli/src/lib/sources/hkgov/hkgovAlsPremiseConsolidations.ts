@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-consolidations.json'
@@ -15,7 +16,9 @@ export function applyAlsPremiseConsolidations(
     if (!release) continue
     const candidates = rows
       .filter(r => r.hkgovCsuId && decision.csus.includes(r.hkgovCsuId))
-      .sort((a, b) => a.hkgovCsuId!.localeCompare(b.hkgovCsuId!))
+      .sort((a, b) =>
+        requireDefined(a.hkgovCsuId).localeCompare(requireDefined(b.hkgovCsuId)),
+      )
     if (!candidates.length) continue
     const evidence = candidates.map(r => ({
       csu: r.hkgovCsuId,
@@ -31,7 +34,7 @@ export function applyAlsPremiseConsolidations(
     )
     const named = candidates.filter(r => r.enBuildingName === decision.enBuildingName)
     assert.equal(named.length, 1)
-    const owner = named[0]!
+    const owner = requireDefined(named[0])
     assert(owner.zhHantBuildingName && owner.zhHantFormattedAddress)
     const sourceEvidence = candidates.map(r => ({
       addressId: r.id,
@@ -41,8 +44,8 @@ export function applyAlsPremiseConsolidations(
       geoAddress: r.geoAddress,
       geometry: JSON.parse(r.geometry ?? 'null'),
       sources: JSON.parse(r.sources),
-      engPremisesAddress: JSON.parse(r.engPremisesAddressJson!),
-      chiPremisesAddress: JSON.parse(r.chiPremisesAddressJson!),
+      engPremisesAddress: JSON.parse(requireDefined(r.engPremisesAddressJson)),
+      chiPremisesAddress: JSON.parse(requireDefined(r.chiPremisesAddressJson)),
     }))
     const id = `ss-${buildDeterministicUuidV5(NAMESPACE, decision.id)}`
     owner.zhHantFormattedAddress = owner.zhHantFormattedAddress.replace(

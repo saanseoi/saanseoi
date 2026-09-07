@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -67,7 +68,7 @@ export function backfillAlsCoordinates(
       if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
       continue
     }
-    const row = candidates[0]!
+    const row = requireDefined(candidates[0])
     const publisherGeometry = JSON.parse(row.geometry ?? 'null')
     const derivedGeometry = {
       ...publisherGeometry,
@@ -77,8 +78,8 @@ export function backfillAlsCoordinates(
     if ('expectedPremises' in decision && decision.expectedPremises) {
       row.identitySummary = {
         ...row.identitySummary,
-        longitude: decision.currentCoordinates[0]!.toFixed(5),
-        latitude: decision.currentCoordinates[1]!.toFixed(5),
+        longitude: requireDefined(decision.currentCoordinates[0]).toFixed(5),
+        latitude: requireDefined(decision.currentCoordinates[1]).toFixed(5),
       }
     }
     if ('blockNumber' in decision && decision.blockNumber) {

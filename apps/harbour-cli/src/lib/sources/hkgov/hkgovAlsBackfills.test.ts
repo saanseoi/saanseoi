@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -55,11 +56,17 @@ test('reconstructs only dated named parents and preserves unnamed CSU assertions
   expect(() => buildAls2dBackfillFeatures(first, '2024-07-25.0')).toThrow(
     'named source already present',
   )
-  const blank = structuredClone(first[0]!)
-  delete blank.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!
-    .BuildingName
-  delete blank.feature.properties!.Address!.PremisesAddress!.ChiPremisesAddress!
-    .BuildingName
+  const blank = structuredClone(requireDefined(first[0]))
+  delete requireDefined(
+    requireDefined(
+      requireDefined(requireDefined(blank.feature.properties).Address).PremisesAddress,
+    ).EngPremisesAddress,
+  ).BuildingName
+  delete requireDefined(
+    requireDefined(
+      requireDefined(requireDefined(blank.feature.properties).Address).PremisesAddress,
+    ).ChiPremisesAddress,
+  ).BuildingName
   const before = JSON.stringify(blank)
   expect(buildAls2dBackfillFeatures([blank], '2024-07-25.0')).toHaveLength(4)
   expect(JSON.stringify(blank)).toBe(before)
@@ -93,7 +100,10 @@ test('guards full inventory backfills against changed, missing and ambiguous par
       ...f,
       geometry: {
         ...f.geometry,
-        coordinates: [f.geometry.coordinates[0]!, f.geometry.coordinates[1]!],
+        coordinates: [
+          requireDefined(f.geometry.coordinates[0]),
+          requireDefined(f.geometry.coordinates[1]),
+        ],
       },
     })
   })
@@ -122,11 +132,15 @@ test('guards full inventory backfills against changed, missing and ambiguous par
     expect(await collect()).toHaveLength(6)
     expect(await collect(rows, '2025-08-13.0')).toHaveLength(1)
     await expect(collect([])).rejects.toThrow('missing parent')
-    await expect(collect([...rows, rows[0]!])).rejects.toThrow('ambiguous')
+    await expect(collect([...rows, requireDefined(rows[0])])).rejects.toThrow(
+      'ambiguous',
+    )
     const changed = structuredClone(rows)
-    changed[0]!.engPremisesAddressJson = JSON.stringify({ BuildingName: 'CHANGED' })
+    requireDefined(changed[0]).engPremisesAddressJson = JSON.stringify({
+      BuildingName: 'CHANGED',
+    })
     await expect(collect(changed)).rejects.toThrow()
-    await write(chingTin[0]!.feature)
+    await write(requireDefined(chingTin[0]).feature)
     await expect(collect()).rejects.toThrow('no longer absent')
   } finally {
     await rm(path, { recursive: true, force: true })
@@ -143,11 +157,17 @@ test('forward-fills Ching Ho House until revoked and records verification status
         ?.CsuId === '2911623349T20240814',
   )
   expect(chingHo).toBeDefined()
-  const rows = [normalise(chingHo!.feature, chingHo!.sourceFile, '2026-08-19.0')]
+  const rows = [
+    normalise(
+      requireDefined(chingHo).feature,
+      requireDefined(chingHo).sourceFile,
+      '2026-08-19.0',
+    ),
+  ]
   labelAls2dBackfillRows(rows)
-  expect(JSON.parse(rows[0]!.sources).hkgovAlsAddressBackfill.curation).toEqual(
-    expect.objectContaining({ verificationStatus: 'verified' }),
-  )
+  expect(
+    JSON.parse(requireDefined(rows[0]).sources).hkgovAlsAddressBackfill.curation,
+  ).toEqual(expect.objectContaining({ verificationStatus: 'verified' }))
   const unrelated = {
     geometry: { type: 'Point', coordinates: [114, 22] },
     properties: {
@@ -176,26 +196,28 @@ test('forward-fills Ching Ho House until revoked and records verification status
           ?.CsuId === '2911623349T20240814',
     )
     expect(generated).toBeDefined()
-    expect(generated!.backfill).toEqual(
+    expect(requireDefined(generated).backfill).toEqual(
       expect.objectContaining({
         curation: expect.objectContaining({ verificationStatus: 'verified' }),
       }),
     )
-    expect(publisherInventoryHash(generated!.feature)).toBe(
+    expect(publisherInventoryHash(requireDefined(generated).feature)).toBe(
       '8de70677bc80db262828aefa010725389899f90daa5a0c5ef6da1d324b3bc506',
     )
     expect(
-      generated!.feature.properties.Address.PremisesAddress.EngPremisesAddress
-        ?.Eng3dAddress,
+      requireDefined(generated).feature.properties.Address.PremisesAddress
+        .EngPremisesAddress?.Eng3dAddress,
     ).toHaveLength(851)
 
     const unverified = await collect('2026-09-01.0')
     expect(
-      unverified.find(
-        record =>
-          record.feature.properties.Address.PremisesAddress.BuildingCsuInformation
-            ?.CsuId === '2911623349T20240814',
-      )!.backfill,
+      requireDefined(
+        unverified.find(
+          record =>
+            record.feature.properties.Address.PremisesAddress.BuildingCsuInformation
+              ?.CsuId === '2911623349T20240814',
+        ),
+      ).backfill,
     ).toEqual(
       expect.objectContaining({
         curation: expect.objectContaining({ verificationStatus: 'unverified' }),

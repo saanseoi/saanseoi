@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { mkdtemp, readdir, readFile, writeFile, rm } from 'node:fs/promises'
@@ -135,25 +136,32 @@ test.skipIf(!existsSync(root))(
         ] as const) {
           const owners = rows.filter(r => r.enBuildingName === name)
           expect(owners).toHaveLength(1)
-          expect(owners[0]!.hkgovCsuId).toBe(csu)
-          if (!ids.has(name)) ids.set(name, owners[0]!.id)
-          expect(owners[0]!.id).toBe(ids.get(name)!)
+          expect(requireDefined(owners[0]).hkgovCsuId).toBe(csu)
+          if (!ids.has(name)) ids.set(name, requireDefined(owners[0]).id)
+          expect(requireDefined(owners[0]).id).toBe(requireDefined(ids.get(name)))
         }
-        const koon = rows.find(r => r.enBuildingName === 'KOON MA HSE')!
+        const koon = requireDefined(rows.find(r => r.enBuildingName === 'KOON MA HSE'))
         expect(
           collections.filter(c => c.address2dId === koon.id).map(c => c.unitCount),
         ).toEqual([132])
         const hin = rows.filter(r => r.enBuildingName === 'KWAI HIN HOUSE')
         expect(hin).toHaveLength(1)
-        expect(JSON.parse(hin[0]!.geometry!).coordinates).toEqual([114.21565, 22.32173])
-        expect(collections.filter(c => c.address2dId === hin[0]!.id)).toHaveLength(0)
+        expect(
+          JSON.parse(requireDefined(requireDefined(hin[0]).geometry)).coordinates,
+        ).toEqual([114.21565, 22.32173])
+        expect(
+          collections.filter(c => c.address2dId === requireDefined(hin[0]).id),
+        ).toHaveLength(0)
         for (const [name, point] of [
           ['LOK SAM HSE', [114.177, 22.36708]],
           ['ON TAI SHOPPING CENTRE', [114.22913, 22.327]],
         ] as const)
           expect(
-            JSON.parse(rows.find(r => r.enBuildingName === name)!.geometry!)
-              .coordinates,
+            JSON.parse(
+              requireDefined(
+                requireDefined(rows.find(r => r.enBuildingName === name)).geometry,
+              ),
+            ).coordinates,
           ).toEqual(point)
         for (const [prefix, count, sections] of [
           ['MAN HONG HSE', 422, 6],
@@ -167,10 +175,12 @@ test.skipIf(!existsSync(root))(
           expect(house).toHaveLength(1)
           expect(
             collections
-              .filter(c => c.address2dId === house[0]!.id)
+              .filter(c => c.address2dId === requireDefined(house[0]).id)
               .map(c => c.unitCount),
           ).toEqual([count])
-          const children = rows.filter(r => r.parentAddressId === house[0]!.id)
+          const children = rows.filter(
+            r => r.parentAddressId === requireDefined(house[0]).id,
+          )
           expect(children).toHaveLength(sections)
           expect(children.every(c => c.curatedGranularity === 'section')).toBe(true)
           expect(
@@ -184,13 +194,15 @@ test.skipIf(!existsSync(root))(
         const school = rows.filter(r => r.hkgovCsuId === '3639525221T20050430')
         expect(school).toHaveLength(1)
         const mutated = structuredClone(
-          input.find(
-            f =>
-              f.properties?.Address?.PremisesAddress?.EngPremisesAddress
-                ?.BuildingName === 'KOON MA HSE',
-          )!,
+          requireDefined(
+            input.find(
+              f =>
+                f.properties?.Address?.PremisesAddress?.EngPremisesAddress
+                  ?.BuildingName === 'KOON MA HSE',
+            ),
+          ),
         )
-        mutated.geometry!.coordinates = [0, 0]
+        requireDefined(mutated.geometry).coordinates = [0, 0]
         expect(() => resolveApprovedEstateCsu(mutated, version)).toThrow(
           'source evidence changed',
         )
@@ -209,8 +221,11 @@ test('Kwai Hin remains retained beyond verified history without invented flats; 
       '4026420303T20120921',
   )
   expect(result).toHaveLength(1)
-  const p = result[0]!.feature.properties!.Address!.PremisesAddress!
-  expect('Eng3dAddress' in p.EngPremisesAddress!).toBe(false)
+  const p = requireDefined(
+    requireDefined(requireDefined(requireDefined(result[0]).feature.properties).Address)
+      .PremisesAddress,
+  )
+  expect('Eng3dAddress' in requireDefined(p.EngPremisesAddress)).toBe(false)
   expect(() =>
     assertApprovedEmptyInventory(
       {

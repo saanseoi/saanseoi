@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -131,7 +132,7 @@ afterEach(async () => {
 
 describe('C&SD native statistics archives', () => {
   test('normalises a mirrored archive directly without a Parquet hand-off', async () => {
-    const entry = CASES[2]!
+    const entry = requireDefined(CASES[2])
     const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
     const rows = readHkgovCenstatdStatisticArchive({
       datasetCode: entry.datasetCode,
@@ -188,10 +189,10 @@ describe('C&SD native statistics archives', () => {
   }
 
   test('rejects an archive without its profile layer', async () => {
-    const dir = await unpack(CASES[2]!.archive)
+    const dir = await unpack(requireDefined(CASES[2]).archive)
     await expect(
       prepareHkgovCenstatdStatisticUpload({
-        datasetCode: CASES[2]!.datasetCode,
+        datasetCode: requireDefined(CASES[2]).datasetCode,
         inputFiles: {},
         outputFile: join(dir, 'statistics.parquet'),
         sourceArchiveKey: 'by-source/test/missing.zip',
@@ -202,7 +203,7 @@ describe('C&SD native statistics archives', () => {
   })
 
   test('fans native Permanent Living Quarters and HMA polygons into reviewed division contracts', async () => {
-    for (const entry of [CASES[0]!, CASES[3]!]) {
+    for (const entry of [requireDefined(CASES[0]), requireDefined(CASES[3])]) {
       const dir = await unpack(entry.archive)
       const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
       const inputGml = Object.fromEntries(

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 
 import type {
@@ -180,7 +181,7 @@ test('automatically applies a parseable Chinese-name-and-description corrigendum
     },
     method: 'automatic',
   })
-  const context = formatLifecycleReviewContext(result.review[0]!)
+  const context = formatLifecycleReviewContext(requireDefined(result.review[0]))
   expect(context).toContain('Chinese name correction')
   expect(context).toContain('Chinese description correction')
   expect(context).toContain('茘寶路')
@@ -390,7 +391,9 @@ test('describes a multi-street partial-renaming intention without applying it', 
   expect(
     result.review[0]?.baselineCandidates.map(candidate => candidate.names.en),
   ).toEqual(['HAMMER HILL ROAD'])
-  expect(formatLifecycleReviewContext(result.review[0]!)).toContain('Proposed action')
+  expect(formatLifecycleReviewContext(requireDefined(result.review[0]))).toContain(
+    'Proposed action',
+  )
 })
 
 test('recognises a partial-renaming intention that identifies its source in an earlier notice', () => {
@@ -434,10 +437,10 @@ test('recognises a partial-renaming intention that identifies its source in an e
   expect(
     result.review[0]?.baselineCandidates.map(candidate => candidate.names.en),
   ).toEqual(['ANDERSON ROAD'])
-  expect(formatLifecycleReviewContext(result.review[0]!)).toContain(
+  expect(formatLifecycleReviewContext(requireDefined(result.review[0]))).toContain(
     'Rename part of ANDERSON ROAD as ON PIK ROAD',
   )
-  expect(formatLifecycleReviewContext(result.review[0]!)).toContain(
+  expect(formatLifecycleReviewContext(requireDefined(result.review[0]))).toContain(
     'Affected baseline streets',
   )
 })

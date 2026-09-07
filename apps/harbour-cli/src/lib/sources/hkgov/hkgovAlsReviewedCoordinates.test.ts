@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
@@ -25,7 +26,7 @@ function rowFor(d: (typeof rules)[number]) {
         type: 'Point',
         coordinates: d.previousCoordinates as [number, number],
       },
-      properties: { Address: { PremisesAddress: d.expectedPremises! } },
+      properties: { Address: { PremisesAddress: requireDefined(d.expectedPremises) } },
     },
     'source',
     1,
@@ -43,9 +44,11 @@ test('all thirty releases keep reviewed Hing Wai and Fook Wo points with raw ass
   for (const d of rules) {
     const row = rowFor(d),
       raw = row.engPremisesAddressJson,
-      original = JSON.parse(row.geometry!)
+      original = JSON.parse(requireDefined(row.geometry))
     backfillAlsCoordinates([row], d.sourceVersionFrom, true)
-    expect(JSON.parse(row.geometry!).coordinates).toEqual(d.currentCoordinates)
+    expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual(
+      d.currentCoordinates,
+    )
     expect(row.engPremisesAddressJson).toBe(raw)
     expect(
       JSON.parse(row.sources).hkgovAlsCoordinateBackfill.publisherGeometry,
@@ -69,12 +72,14 @@ test('Sun Yee uses the exact earlier review-map point throughout all thirty rele
     const row = rowFor(d)
     const raw = row.engPremisesAddressJson
     backfillAlsCoordinates([row], d.sourceVersionFrom, true)
-    expect(JSON.parse(row.geometry!).coordinates).toEqual([114.18144, 22.36961])
+    expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual([
+      114.18144, 22.36961,
+    ])
     expect(row.engPremisesAddressJson).toBe(raw)
   }
 })
 test('changed bilingual identity or conflicting block cannot inherit the reviewed point', () => {
-  const d = rules.find(d => 'blockNumber' in d && d.blockNumber)!
+  const d = requireDefined(rules.find(d => 'blockNumber' in d && d.blockNumber))
   for (const mutate of [
     (r: ReturnType<typeof rowFor>) => {
       r.engPremisesAddressJson = '{}'

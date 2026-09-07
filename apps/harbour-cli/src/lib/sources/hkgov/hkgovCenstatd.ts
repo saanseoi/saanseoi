@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
@@ -386,7 +387,7 @@ async function withDisplayGeometry(
 
 function normaliseSinglePolygon(geometry: GeoJsonGeometry): GeoJsonGeometry {
   return geometry.type === 'MultiPolygon' && geometry.coordinates.length === 1
-    ? { type: 'Polygon', coordinates: geometry.coordinates[0]! }
+    ? { type: 'Polygon', coordinates: requireDefined(geometry.coordinates[0]) }
     : geometry
 }
 
@@ -435,13 +436,6 @@ function isWgs84Position(position: GeoJsonPosition) {
     Math.abs(position[0]) <= 180 &&
     Math.abs(position[1]) <= 90
   )
-}
-
-function requireString(value: unknown, field: string, index: number) {
-  if (typeof value !== 'string' || !value.trim()) {
-    throw new Error(`C&SD district feature ${index + 1} requires ${field}.`)
-  }
-  return value.trim()
 }
 
 function optionalString(value: unknown) {

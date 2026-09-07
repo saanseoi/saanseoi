@@ -1,11 +1,12 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-reconstructions.json'
 import { reconstructAlsPremises } from './hkgovAlsPremiseReconstructions'
 import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
 
-const d = fixture.reconstructions.find(
-  d => d.id === 'choi-yuen-food-court-corrected-location',
-)!
+const d = requireDefined(
+  fixture.reconstructions.find(d => d.id === 'choi-yuen-food-court-corrected-location'),
+)
 const plaza: HkgovAlsSourceFeature = {
   sourceFile: 'original.geojson',
   featureIndexOneBased: 1,
@@ -25,7 +26,10 @@ function originals(release: (typeof d.releases)[number]): HkgovAlsSourceFeature[
       ...structuredClone(f),
       geometry: {
         ...f.geometry,
-        coordinates: [f.geometry.coordinates[0]!, f.geometry.coordinates[1]!],
+        coordinates: [
+          requireDefined(f.geometry.coordinates[0]),
+          requireDefined(f.geometry.coordinates[1]),
+        ],
       },
     },
   }))
@@ -49,7 +53,7 @@ test('backfills all twenty-eight earlier releases and retains original assertion
     const provenance = reconstructAlsPremises(features, release.version)
     expect(features).toHaveLength(3)
     expect(features).toContain(blank)
-    expect(JSON.stringify(features.at(-1)!.feature)).toBe(
+    expect(JSON.stringify(requireDefined(features.at(-1)).feature)).toBe(
       JSON.stringify(d.evidence.feature),
     )
     expect(old).toEqual(before)
@@ -62,7 +66,7 @@ test('backfills all twenty-eight earlier releases and retains original assertion
   expect(gaps).toBe(2)
 })
 test('rejects altered or missing original records and leaves evidence-era sources alone', () => {
-  const release = d.releases[0]!,
+  const release = requireDefined(d.releases[0]),
     features = [plaza, ...originals(release)]
   const before = structuredClone(features)
   reconstructAlsPremises(features, '2026-07-22.0')
@@ -70,17 +74,22 @@ test('rejects altered or missing original records and leaves evidence-era source
   expect(() => reconstructAlsPremises([plaza], release.version)).toThrow(
     'publisher source changed',
   )
-  features[1]!.feature.properties!.Address!.PremisesAddress!
-    .EngPremisesAddress!.BuildingName = 'CHANGED'
+  requireDefined(
+    requireDefined(
+      requireDefined(
+        requireDefined(requireDefined(features[1]).feature.properties).Address,
+      ).PremisesAddress,
+    ).EngPremisesAddress,
+  ).BuildingName = 'CHANGED'
   expect(() => reconstructAlsPremises(features, release.version)).toThrow(
     'publisher source changed',
   )
 })
 
 test('restores the separate car park only in the seven reviewed omissions', () => {
-  const carPark = fixture.reconstructions.find(
-    d => d.id === 'chun-shek-car-park-publisher-omission',
-  )!
+  const carPark = requireDefined(
+    fixture.reconstructions.find(d => d.id === 'chun-shek-car-park-publisher-omission'),
+  )
   const anchor: HkgovAlsSourceFeature = {
     sourceFile: 'original.geojson',
     featureIndexOneBased: 1,
@@ -100,7 +109,7 @@ test('restores the separate car park only in the seven reviewed omissions', () =
     const result = reconstructAlsPremises(features, release.version)
     expect(features).toHaveLength(2)
     expect(features[0]).toBe(anchor)
-    expect(JSON.stringify(features[1]!.feature)).toBe(
+    expect(JSON.stringify(requireDefined(features[1]).feature)).toBe(
       JSON.stringify(carPark.evidence.feature),
     )
     const record = result.get(carPark.newCsu)

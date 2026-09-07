@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
 import type { Als3dFeature } from './hkgovAls3d'
@@ -104,7 +105,7 @@ export async function* readAls3dWithBackfills(
       !seen.has(backfill.csu) ||
         ('allowReviewedEmptyPremise' in backfill &&
           backfill.allowReviewedEmptyPremise &&
-          seen.get(backfill.csu)!.every(feature => {
+          requireDefined(seen.get(backfill.csu)).every(feature => {
             const p = feature.properties.Address.PremisesAddress
             return (
               !p.EngPremisesAddress?.BuildingName &&
@@ -128,7 +129,7 @@ export async function* readAls3dWithBackfills(
       1,
       `Backfill ${backfill.id}: ambiguous or missing parent`,
     )
-    const parent = parents[0]!
+    const parent = requireDefined(parents[0])
     const feature = materialiseBackfillFeature(backfill)
     const p = feature.properties.Address.PremisesAddress
     const en = { ...p.EngPremisesAddress },

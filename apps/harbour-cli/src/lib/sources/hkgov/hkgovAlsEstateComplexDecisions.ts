@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-complex-decisions.json'
@@ -71,16 +72,16 @@ export function applyReviewedEstateComplexes(
     if (!expected || !rows.some(r => r.enEstateName === rule.estate)) continue
     const candidates = rows.filter(r => r.hkgovCsuId === rule.csu)
     assert.equal(candidates.length, 1, `${rule.id}: unique premise required`)
-    const row = candidates[0]!
-    const en = JSON.parse(row.engPremisesAddressJson!),
-      zh = JSON.parse(row.chiPremisesAddressJson!)
+    const row = requireDefined(candidates[0])
+    const en = JSON.parse(requireDefined(row.engPremisesAddressJson)),
+      zh = JSON.parse(requireDefined(row.chiPremisesAddressJson))
     const evidence = {
       BuildingCsuInformation: { CsuId: row.hkgovCsuId },
       ChiPremisesAddress: zh,
       EngPremisesAddress: en,
       GeoAddress: row.geoAddress,
     }
-    const hash = als3dHash([evidence, JSON.parse(row.geometry!)])
+    const hash = als3dHash([evidence, JSON.parse(requireDefined(row.geometry))])
     const reconstructed = row.sourceFile === curationFile
     assert(
       (reconstructed &&
@@ -93,7 +94,12 @@ export function applyReviewedEstateComplexes(
         expected.hashes.includes(hash),
       `${rule.id}: evidence changed`,
     )
-    const original = { id: row.id, en, zh, geometry: JSON.parse(row.geometry!) }
+    const original = {
+      id: row.id,
+      en,
+      zh,
+      geometry: JSON.parse(requireDefined(row.geometry)),
+    }
     if (rule.action === 'complex') {
       row.enBuildingName = row.zhHantBuildingName = null
       delete en.BuildingName

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { readdir, mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -37,7 +38,10 @@ const normalise = (f: HkgovAlsFeature, v: string, i = 1) =>
   )
 const latest = () =>
   fixture.rules.map(
-    r => structuredClone(r.evidence.at(-1)!.feature) as unknown as HkgovAlsFeature,
+    r =>
+      structuredClone(
+        requireDefined(r.evidence.at(-1)).feature,
+      ) as unknown as HkgovAlsFeature,
   )
 test('estate IDs and marker are independent of publisher house identifiers', () => {
   const rows = latest().map(f => normalise(f, '2026-08-19.0'))
@@ -54,20 +58,22 @@ test('estate IDs and marker are independent of publisher house identifiers', () 
       JSON.parse(row.sources).hkgovAlsStreetEstateComplex.originalAliases,
     ).toHaveLength(1)
   }
-  const tai = rows.find(r => r.enEstateName === 'TAI YUEN ESTATE')!
-  expect(JSON.parse(tai.geometry!).coordinates).toEqual([114.1667207, 22.4555134])
+  const tai = requireDefined(rows.find(r => r.enEstateName === 'TAI YUEN ESTATE'))
+  expect(JSON.parse(requireDefined(tai.geometry)).coordinates).toEqual([
+    114.1667207, 22.4555134,
+  ])
   expect(tai.enStreetName).toBe('TING KOK ROAD')
   expect(tai.enStreetNumberFrom).toBe('10')
-  const tin = rows.find(r => r.enEstateName === 'TIN WAN ESTATE')!
+  const tin = requireDefined(rows.find(r => r.enEstateName === 'TIN WAN ESTATE'))
   expect(tin.enStreetName).toBe('TIN WAN STREET')
   expect(tin.enStreetNumberFrom).toBe('26')
 })
 test('future Tin Wan retention accepts reviewed omission and rejects changed aliases or inventory', () => {
-  const f = latest()[1]!,
+  const f = requireDefined(latest()[1]),
     rows = [normalise(f, '2030-01-01.0')]
   applyReviewedStreetEstateComplexes(rows, '2030-01-01.0')
   expect(
-    JSON.parse(rows[0]!.sources).hkgovAlsStreetEstateComplex.curation
+    JSON.parse(requireDefined(rows[0]).sources).hkgovAlsStreetEstateComplex.curation
       .verificationStatus,
   ).toBe('unverified')
   const changed = normalise(f, '2030-01-01.0')
@@ -78,16 +84,18 @@ test('future Tin Wan retention accepts reviewed omission and rejects changed ali
   const named = normalise(f, '2030-01-01.0')
   named.enBuildingName = 'TEST HOUSE'
   named.engPremisesAddressJson = JSON.stringify({
-    ...JSON.parse(named.engPremisesAddressJson!),
+    ...JSON.parse(requireDefined(named.engPremisesAddressJson)),
     BuildingName: 'TEST HOUSE',
   })
   const noAlias = [named]
   applyReviewedStreetEstateComplexes(noAlias, '2030-01-01.0')
   expect(noAlias).toHaveLength(2)
   expect(noAlias[0]).toBe(named)
-  expect(noAlias[1]!.geoAddress).toBeNull()
+  expect(requireDefined(noAlias[1]).geoAddress).toBeNull()
   const three = f as Als3dFeature
-  three.properties.Address.PremisesAddress.EngPremisesAddress!.Eng3dAddress = [{}]
+  requireDefined(
+    three.properties.Address.PremisesAddress.EngPremisesAddress,
+  ).Eng3dAddress = [{}]
   expect(() => assertStreetEstateAliasInventoryEmpty(three, '2030-01-01.0')).toThrow(
     'inventory requires review',
   )
@@ -128,8 +136,9 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           expect(r.geoAddress).toBeNull()
           expect(r.hkgovCsuId).toBeNull()
           expect(r.enStreetNumberFrom).not.toBeNull()
-          if (ids.has(r.enEstateName!)) expect(r.id).toBe(ids.get(r.enEstateName!)!)
-          else ids.set(r.enEstateName!, r.id!)
+          if (ids.has(requireDefined(r.enEstateName)))
+            expect(r.id).toBe(requireDefined(ids.get(requireDefined(r.enEstateName))))
+          else ids.set(requireDefined(r.enEstateName), requireDefined(r.id))
         }
         const features = []
         let expectedUnits = 0

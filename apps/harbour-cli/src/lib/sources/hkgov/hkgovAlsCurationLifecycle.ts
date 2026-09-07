@@ -50,8 +50,7 @@ export function resolveHkgovAlsCurationVerification(
 ): HkgovAlsCurationVerification | null {
   if (scheduledVersions.includes(sourceVersion)) return 'verified'
   if (
-    !application ||
-    application.state !== 'active' ||
+    application?.state !== 'active' ||
     application.mode !== 'until-revoked' ||
     sourceVersion <= application.sourceVersionFrom
   ) {

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
 import {
@@ -41,7 +42,7 @@ export function restoreAlsEstateGaps(
     if (!candidates) continue
     const en = JSON.parse(row.engPremisesAddressJson ?? '{}'),
       zh = JSON.parse(row.chiPremisesAddressJson ?? '{}')
-    const identity = estateGapIdentity(row.hkgovCsuId!, en, zh)
+    const identity = estateGapIdentity(requireDefined(row.hkgovCsuId), en, zh)
     const match = candidates.find(d => d.decision.identity === identity)
     if (!match) continue // A distinct supplied section or alternative address is not this rule's target.
     const { decision: d, verification } = match

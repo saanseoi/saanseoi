@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
@@ -196,8 +197,8 @@ export async function readHkgovHadDistrictArchive(archiveBytes: Uint8Array) {
   if (dcdLayers.length !== 1) {
     throw new Error('HAD district archive must contain exactly one DCD layer.')
   }
-  const [, layer] = dcdLayers[0]!
-  if (!layer || layer.type !== 'FeatureCollection' || !Array.isArray(layer.features)) {
+  const [, layer] = requireDefined(dcdLayers[0])
+  if (layer?.type !== 'FeatureCollection' || !Array.isArray(layer.features)) {
     throw new Error('HAD district archive DCD layer must be a FeatureCollection.')
   }
   if (layer.features.length !== 18) {

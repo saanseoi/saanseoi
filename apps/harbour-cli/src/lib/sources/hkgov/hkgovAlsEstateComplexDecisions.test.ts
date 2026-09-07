@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { readdir } from 'node:fs/promises'
 import {
@@ -64,16 +65,20 @@ test('all retained releases preserve distinct estate and centre points, raw name
       ),
     )
     applyReviewedEstateComplexes(rows, version)
-    const [estate, centre, sun] = csus.map(csu => rows.find(r => r.hkgovCsuId === csu)!)
-    expect(estate!.curatedGranularity).toBe('complex')
-    expect(estate!.enBuildingName).toBeNull()
-    expect(estate!.enStreetNumberFrom).toBe('15')
-    expect(centre!.enBuildingName).toBe('SHUN LEE COMMERCIAL CENTRE (PHASE II)')
-    expect(centre!.enStreetNumberFrom).toBe('6')
-    expect(centre!.parentAddressId).toBe(estate!.id)
-    expect(centre!.geometry).not.toBe(estate!.geometry)
-    expect(sun!.curatedGranularity).toBe('complex')
-    expect(sun!.enFormattedAddress).toContain('SUN TIN WAI ESTATE')
+    const [estate, centre, sun] = csus.map(csu =>
+      requireDefined(rows.find(r => r.hkgovCsuId === csu)),
+    )
+    expect(requireDefined(estate).curatedGranularity).toBe('complex')
+    expect(requireDefined(estate).enBuildingName).toBeNull()
+    expect(requireDefined(estate).enStreetNumberFrom).toBe('15')
+    expect(requireDefined(centre).enBuildingName).toBe(
+      'SHUN LEE COMMERCIAL CENTRE (PHASE II)',
+    )
+    expect(requireDefined(centre).enStreetNumberFrom).toBe('6')
+    expect(requireDefined(centre).parentAddressId).toBe(requireDefined(estate).id)
+    expect(requireDefined(centre).geometry).not.toBe(requireDefined(estate).geometry)
+    expect(requireDefined(sun).curatedGranularity).toBe('complex')
+    expect(requireDefined(sun).enFormattedAddress).toContain('SUN TIN WAI ESTATE')
     expect(
       rows.filter(
         r =>
@@ -83,9 +88,14 @@ test('all retained releases preserve distinct estate and centre points, raw name
     expect(rows.some(r => r.enBuildingName === 'SUN TIN WAI SHOPPING CENTRE')).toBe(
       true,
     )
-    for (const row of [estate!, centre!, sun!]) {
-      if (ids.has(row.hkgovCsuId!)) expect(row.id).toBe(ids.get(row.hkgovCsuId!)!)
-      ids.set(row.hkgovCsuId!, row.id)
+    for (const row of [
+      requireDefined(estate),
+      requireDefined(centre),
+      requireDefined(sun),
+    ]) {
+      if (ids.has(requireDefined(row.hkgovCsuId)))
+        expect(row.id).toBe(requireDefined(ids.get(requireDefined(row.hkgovCsuId))))
+      ids.set(requireDefined(row.hkgovCsuId), row.id)
       const original = originals.find(
         s =>
           s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
@@ -93,8 +103,11 @@ test('all retained releases preserve distinct estate and centre points, raw name
       )
       if (original) {
         expect(row.geometry).toBe(JSON.stringify(original.feature.geometry))
-        expect(JSON.parse(row.engPremisesAddressJson!)).toEqual(
-          original.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress,
+        expect(JSON.parse(requireDefined(row.engPremisesAddressJson))).toEqual(
+          requireDefined(
+            requireDefined(requireDefined(original.feature.properties).Address)
+              .PremisesAddress,
+          ).EngPremisesAddress,
         )
       }
     }
@@ -103,24 +116,44 @@ test('all retained releases preserve distinct estate and centre points, raw name
 test('rejects another estate identity or changed reviewed source', async () => {
   const source = await load('20260819-1047-ALS-GeoJSON')
   const replacement = structuredClone(
-    source.find(
-      s =>
-        s.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!.EngEstate!
-          .EstateName === 'SUN TIN WAI ESTATE',
-    )!,
+    requireDefined(
+      source.find(
+        s =>
+          requireDefined(
+            requireDefined(
+              requireDefined(
+                requireDefined(requireDefined(s.feature.properties).Address)
+                  .PremisesAddress,
+              ).EngPremisesAddress,
+            ).EngEstate,
+          ).EstateName === 'SUN TIN WAI ESTATE',
+      ),
+    ),
   )
-  delete replacement.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!
-    .BuildingName
+  delete requireDefined(
+    requireDefined(
+      requireDefined(requireDefined(replacement.feature.properties).Address)
+        .PremisesAddress,
+    ).EngPremisesAddress,
+  ).BuildingName
   source.push(replacement)
   expect(() => reconstructReviewedEstateComplexes(source, '2026-08-19.0')).toThrow(
     'another estate identity',
   )
   const clean = await load('20240725-1048-ALS-GeoJSON')
-  clean.find(
-    s =>
-      s.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!.CsuId ===
-      csus[2],
-  )!.feature.geometry!.coordinates = [0, 0]
+  requireDefined(
+    requireDefined(
+      clean.find(
+        s =>
+          requireDefined(
+            requireDefined(
+              requireDefined(requireDefined(s.feature.properties).Address)
+                .PremisesAddress,
+            ).BuildingCsuInformation,
+          ).CsuId === csus[2],
+      ),
+    ).feature.geometry,
+  ).coordinates = [0, 0]
   expect(() => reconstructReviewedEstateComplexes(clean, '2024-07-25.0')).toThrow(
     'source assertion changed',
   )

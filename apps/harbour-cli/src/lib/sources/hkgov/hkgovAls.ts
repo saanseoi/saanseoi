@@ -32,6 +32,8 @@ import {
   buildAls2dBackfillFeatures,
   labelAls2dBackfillRows,
 } from './hkgovAls2dBackfills'
+import { applyReviewedSchoolReconciliations } from './hkgovAlsSchoolReconciliations'
+import { applyReviewedComplexPromotions } from './hkgovAlsComplexPromotions'
 import { fileSha256 } from '../../addressSql/address3dImport'
 import { buildHkgovAlsProvisionalId } from './hkgovAlsIdentity.ts'
 import {
@@ -182,7 +184,9 @@ export async function prepareHkgovAlsAddressParquet(
     ),
   )
   labelAls2dBackfillRows(rows)
+  applyReviewedSchoolReconciliations(rows, options.sourceVersion)
   applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
+  applyReviewedComplexPromotions(rows, options.sourceVersion)
   labelAlsCommercialRetentions(rows, retainedCommercialPremises)
   applyReviewedEstateComplexes(rows, options.sourceVersion)
   labelAlsHouseRetentions(rows, retainedHouses)
