@@ -1,11 +1,27 @@
-import { strict as assert } from 'node:assert'
+import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-suppressions.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
 import { assertKoYeeEmptyInventory } from './hkgovAlsKoYeeDuplicate'
 import { assertApprovedEmptyInventory } from './hkgovAlsApprovedEstateBatch'
+import { approvedIssue3dSuppression } from './hkgovAlsApprovedIssueBatch'
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
+  const approved = approvedIssue3dSuppression(feature, version)
+  if (approved) return approved
+  try {
+    return resolveAls3dSuppression(feature, version, skip)
+  } catch (error) {
+    if (!skip || !(error instanceof AssertionError)) throw error
+    return undefined
+  }
+}
+
+function resolveAls3dSuppression(
+  feature: Als3dFeature,
+  version: string,
+  skip: boolean,
+) {
   if (!skip) {
     assertKoYeeEmptyInventory(feature, version)
     assertApprovedEmptyInventory(feature, version)
@@ -27,8 +43,6 @@ export function als3dSuppression(feature: Als3dFeature, version: string, skip = 
     ...rule,
     sourceVersion: version,
   }
-  // Skipping evidence checks must not reinstate an inventory whose owner is removed.
-  if (skip) return suppression
   const message = `ALS 3D suppression ${rule.id}: source evidence changed`
   assert.equal(en.BuildingName ?? null, null, message)
   assert.equal(zh.BuildingName ?? null, null, message)

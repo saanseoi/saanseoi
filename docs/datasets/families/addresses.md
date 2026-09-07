@@ -237,6 +237,10 @@ gap. It cannot merge sections or alternative addresses just because a CSU coinci
 `--skip-curation-checks` retains bounded Address3D inventory suppression decisions so
 removed address owners cannot acquire orphaned collections.
 
+Approved issue-batch decisions whose evidence does not match emit a warning under
+`--skip-curation-checks` and leave their records unchanged; matching decisions still
+apply.
+
 Named-premise retentions are similarly explicit. Cheung Hong Commercial Centre No. 2
 keeps the reviewed named record and preserves its unnamed cross-reference as provenance,
 but does not backfill beyond the date both publisher records disappear.
@@ -325,6 +329,19 @@ Hoi Tat's Hoi Wah House remains available with 780 units until its retention is 
 Hoi Shing House uses the reviewed current coordinates across its historical omissions.
 Hoi Ying's Ying Fai House includes flat 108 on 1/F from the earliest retained release,
 with the publisher's original inventory preserved.
+
+Queens Hill retains its seven named houses and their reviewed inventories across
+publisher omissions, including the four prolonged omissions, until explicitly revoked.
+Shek Yam's Lai Shek House retains its richer address, 340 flats and original point; Yung
+Shek retains 813 flats at its original point. Complete source assertions guard
+coalescing and remain provenance. Later unverified deliveries are marked explicitly.
+
+Reviewed duplicate inventories at On Yam and Shek Kip Mei do not create additional house
+owners. Ping Tin and Sau King empty aliases are suppressed in their reviewed history,
+and the reviewed Shek Mun estate assertion is suppressed. Pok Hong Community Hall uses
+street number 6H throughout; Sha Kok's school extension retains its specific label
+separately from the main school and campus. Sau King retains its 799 flats with the
+user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidence.
 
 Reviewed estate corrections preserve address granularity and building ownership. Long
 Shin's `11–12 Yau Shin Street` address belongs to the estate, while each named house
