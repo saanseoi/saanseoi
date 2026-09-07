@@ -230,10 +230,24 @@ describe('address API release set readiness display', () => {
     ).toBe(
       [
         'HK / official / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m address  available',
+        '  \u001B[32m✓\u001B[39m \u001B[32maddress\u001B[39m  \u001B[32mavailable\u001B[39m',
         '',
-        'Out of Cohort',
-        '  \u001B[32m✓\u001B[39m division (overture)  2025-12-17.0',
+        '\u001B[38;5;208mOut of Cohort\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision\u001B[39m \u001B[38;5;208m(overture)\u001B[39m  2025-12-17.0',
+      ].join('\n'),
+    )
+  })
+
+  test('marks an unavailable address as a warning', () => {
+    expect(
+      formatAddressApiReleaseSetReadiness(
+        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
+        false,
+      ),
+    ).toBe(
+      [
+        'HK / official / 2025-09-24.0',
+        '  \u001B[33m○\u001B[39m \u001B[32maddress\u001B[39m  \u001B[33munavailable\u001B[39m',
       ].join('\n'),
     )
   })
