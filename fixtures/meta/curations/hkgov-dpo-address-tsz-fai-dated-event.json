@@ -1,0 +1,1791 @@
+{
+  "version": 1,
+  "eventSourceVersion": "2025-08-13.0",
+  "csu": "1888734899T20050430",
+  "estate": "TIN TSZ ESTATE",
+  "enBuildingName": "TSZ FAI HOUSE",
+  "zhBuildingName": "慈輝樓",
+  "authority": "User decision, 2026-09-08: 418A/B/C to 418 is a dated merger; 419 is a newly added flat from its publication date and must not be backfilled.",
+  "assertions": [
+    {
+      "version": "2024-07-25.0",
+      "inventoryHash": "5d4f9271ae61100f32704664382f5802ec9d8f9297edd5ddaf2c2f9ea0efb691",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-07-31.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-08-21.0",
+      "inventoryHash": "5d4f9271ae61100f32704664382f5802ec9d8f9297edd5ddaf2c2f9ea0efb691",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-08-25.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-08-28.0",
+      "inventoryHash": "5d4f9271ae61100f32704664382f5802ec9d8f9297edd5ddaf2c2f9ea0efb691",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-09-01.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-09-02.0",
+      "inventoryHash": "5d4f9271ae61100f32704664382f5802ec9d8f9297edd5ddaf2c2f9ea0efb691",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-09-03.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-10-18.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-11-13.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2024-12-12.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-01-23.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-02-25.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-03-21.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-04-26.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-05-22.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-06-20.0",
+      "inventoryHash": "2b1aaedb0508ae60607b1e2f5a32bd6c5f229b7c920c681de5dff501b61edd59",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418A"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418B"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418C"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418A",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418B",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418C",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-08-13.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-08-28.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-09-03.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-11-04.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2025-12-16.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-02-04.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-04-03.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-04-22.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-04-25.0",
+      "inventoryHash": "d8042075678dc2a7c9e4efd14112c49a0ff3d40166e87fd2b677426d1e0fd86b",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-07-08.0",
+      "inventoryHash": "ec21537c18ff5619fa3ed47548caa4de931f1eeb4e97d446fdf4de66c2399730",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-07-10.0",
+      "inventoryHash": "ec21537c18ff5619fa3ed47548caa4de931f1eeb4e97d446fdf4de66c2399730",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-07-22.0",
+      "inventoryHash": "ec21537c18ff5619fa3ed47548caa4de931f1eeb4e97d446fdf4de66c2399730",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    },
+    {
+      "version": "2026-08-19.0",
+      "inventoryHash": "ec21537c18ff5619fa3ed47548caa4de931f1eeb4e97d446fdf4de66c2399730",
+      "en": [
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "418"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        },
+        {
+          "EngUnit": {
+            "UnitDescriptor": "FLAT",
+            "UnitNo": "419"
+          },
+          "EngFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4/F"
+          }
+        }
+      ],
+      "zh": [
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "418",
+            "UnitDescriptor": "室"
+          }
+        },
+        {
+          "ChiFloor": {
+            "FloorNum": 4,
+            "FloorDescription": "4樓"
+          },
+          "ChiUnit": {
+            "UnitNo": "419",
+            "UnitDescriptor": "室"
+          }
+        }
+      ]
+    }
+  ]
+}

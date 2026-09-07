@@ -1,0 +1,492 @@
+{
+  "version": 1,
+  "retentions": [
+    {
+      "id": "tai-wo-hau-shopping-centre",
+      "name": "TAI WO HAU SHOPPING CENTRE",
+      "csu": "3079225467T20050430",
+      "csus": ["3079225467T20050430", "3076725470P20050722"],
+      "estate": "TAI WO HAU ESTATE",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "20e3801a0940338b8733c99a8f601101e30401e37b4255a3cb07a3a4fb76297d",
+            "c98d405a1dac16abf3baa40fab2866be2a51578e21d1c71c1b0c88753f506228"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0"
+          ]
+        },
+        {
+          "hashes": [
+            "c6588af230082b6f4dd5c142cada5f778a88f1600e3b5d4eb149ebcf2b35cb40"
+          ],
+          "sourceVersions": [
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [
+            "4dde9ee08c65f86852d4e835488039a8f256d1c3c97a2bdba31b513f8037ed30"
+          ],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hashes": [
+            "8e5b3a5f51675915883614db69ba3ab6d1edd54d8f580c1a91100a401ed92ab6"
+          ],
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "20e3801a0940338b8733c99a8f601101e30401e37b4255a3cb07a3a4fb76297d",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12373, 22.36841]
+            },
+            "properties": {
+              "Northing": 825472,
+              "Easting": 830794,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3079225467T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "葵青區",
+                    "ChiStreet": {
+                      "StreetName": "大窩口道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大窩口邨"
+                    },
+                    "BuildingName": "大窩口商場"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TAI WO HAU SHOPPING CENTRE",
+                    "EngEstate": {
+                      "EstateName": "TAI WO HAU ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "TAI WO HAU ROAD"
+                    },
+                    "EngDistrict": "KWAI TSING DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3079225467T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0"
+          ]
+        },
+        {
+          "hash": "c6588af230082b6f4dd5c142cada5f778a88f1600e3b5d4eb149ebcf2b35cb40",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12373, 22.36841]
+            },
+            "properties": {
+              "Northing": 825472,
+              "Easting": 830794,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3076725470P20050722"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "葵青區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "大窩口道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大窩口邨"
+                    },
+                    "BuildingName": "大窩口商場"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TAI WO HAU SHOPPING CENTRE",
+                    "EngEstate": {
+                      "EstateName": "TAI WO HAU ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "TAI WO HAU ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "KWAI TSING DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3079225467T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "4dde9ee08c65f86852d4e835488039a8f256d1c3c97a2bdba31b513f8037ed30",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12371, 22.36836]
+            },
+            "properties": {
+              "Northing": 825467,
+              "Easting": 830792,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3076725470P20050722"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "葵青區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "大窩口道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大窩口邨"
+                    },
+                    "BuildingName": "大窩口商場"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TAI WO HAU SHOPPING CENTRE",
+                    "EngEstate": {
+                      "EstateName": "TAI WO HAU ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "TAI WO HAU ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "KWAI TSING DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3079225467T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hash": "8e5b3a5f51675915883614db69ba3ab6d1edd54d8f580c1a91100a401ed92ab6",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12371, 22.36836]
+            },
+            "properties": {
+              "Northing": 825467,
+              "Easting": 830792,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3079225467T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "葵青區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "大窩口道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大窩口邨"
+                    },
+                    "BuildingName": "大窩口商場"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TAI WO HAU SHOPPING CENTRE",
+                    "EngEstate": {
+                      "EstateName": "TAI WO HAU ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "TAI WO HAU ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "KWAI TSING DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3079225467T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain the two separately named shopping centres with their latest available CSU throughout history until revoked. Preserve their separate points and original source assertions; do not infer inventories."
+    },
+    {
+      "id": "tai-wo-hau-shopping-centre-2",
+      "name": "TAI WO HAU SHOPPING CENTRE (2)",
+      "csu": "3071925270P20050725",
+      "csus": ["3071925270P20050725"],
+      "estate": "TAI WO HAU ESTATE",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "cf7136029cb52a2334cd759741c066c00277178c87ff935d855a51610d39764e"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0"
+          ]
+        },
+        {
+          "hashes": [],
+          "sourceVersions": [
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "cf7136029cb52a2334cd759741c066c00277178c87ff935d855a51610d39764e",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12295, 22.36654]
+            },
+            "properties": {
+              "Northing": 825265,
+              "Easting": 830714,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3071925270P20050725"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "葵青區",
+                    "ChiStreet": {
+                      "StreetName": "大窩口道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大窩口邨"
+                    },
+                    "BuildingName": "大窩口第二商場"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TAI WO HAU SHOPPING CENTRE 2",
+                    "EngEstate": {
+                      "EstateName": "TAI WO HAU ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "TAI WO HAU ROAD"
+                    },
+                    "EngDistrict": "KWAI TSING DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3071925270P20050725"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain the two separately named shopping centres with their latest available CSU throughout history until revoked. Preserve their separate points and original source assertions; do not infer inventories."
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
+import { assertTszFaiDatedEvent } from './hkgovAlsTszFaiDatedEvent'
 
 export function publisherInventoryHash(feature: Als3dFeature) {
   const p = feature.properties.Address.PremisesAddress
@@ -14,6 +15,7 @@ export function applyAls3dCorrections(
   feature: Als3dFeature,
   sourceVersion: string,
 ): { corrections: (typeof fixture.corrections)[number][]; feature: Als3dFeature } {
+  assertTszFaiDatedEvent(feature, sourceVersion)
   const p = feature.properties.Address.PremisesAddress
   const corrections = fixture.corrections.filter(
     c =>
@@ -91,5 +93,6 @@ export function applyAls3dCorrections(
         `ALS 3D correction ${correction.id}: corrected inventory does not match evidence`,
       )
   }
+  assertTszFaiDatedEvent(corrected, sourceVersion)
   return { feature: corrected, corrections }
 }

@@ -271,9 +271,23 @@ mapping does not create names, merge identities or alter historical inventories.
 
 Reviewed unit mergers preserve historical membership: predecessor units remain in
 earlier snapshots and the merged successor has its own unit ID. The ALS review can
-automatically accept the user-approved same-floor A/B- or A/B/C-to-base pattern with
-bilingual agreement; this does not imply permission to backfill, split units or infer
-other transformations.
+automatically accept the user-approved same-floor A/B-, A/B/C- or A/B/C/D-to-base
+pattern with bilingual agreement; this does not imply permission to backfill, split
+units or infer other transformations.
+
+Kui Wo House has an explicit historical correction: flat 213 on 2/F replaces the
+213A/B/C/D family across earlier retained releases, with raw inventories preserved. This
+backfill is separate from automatic acceptance of other dated four-way mergers.
+
+Hing Wai House uses its approved current coordinates throughout retained history. Fook
+Wo House retains its reviewed earlier point and Block 11 identity. Tai Ping's Ping Ching
+and Ping Yee remain separate houses sharing 8 Po Ping Road; their exact empty alias
+epochs are suppressed independently.
+
+Tai Wo Hau Shopping Centre and Tai Wo Hau Shopping Centre (2) retain separate identities
+and locations until revoked. Each uses its latest retained CSU throughout the reviewed
+history; the second centre is reconstructed across its publisher omission. Original
+names, identifiers and address assertions remain provenance.
 
 Lei Fook and Lei Moon Low Blocks are separately identified sections of their respective
 buildings. Their distinct publisher premise IDs must not be merged because one appears
@@ -350,6 +364,18 @@ inventory is restored for the three affected deliveries. Lin Tsui uses one revie
 inventory-bearing identity and named address across historical identifier variants. Lai
 Kok's three affected houses retain separate pre-collapse points until revoked. Discarded
 coordinate and identity assertions remain source provenance.
+
+Shun Lee's estate complex uses 15 Lee On Road and contains the separately located Shun
+Lee Commercial Centre (Phase II) at 6 Shun King Street. Both source points remain
+distinct. Sun Tin Wai's reviewed estate record is reconstructed across retained
+omissions only when no other estate identity exists; its granularity is `complex` and
+the shopping centre remains separate. Raw names and street assertions remain evidence.
+
+So Uk's Camellia House uses one reviewed identity and retains its 374-flat inventory
+until revoked. Sun Fong House uses its approved current point throughout retained
+history. Empty aliases at Sheung Lok, Sheung Tak, Shui Pin Wai and Tai Hang Tung are
+suppressed under exact owner and source guards. Sheung Tak's houses remain separate, and
+Tung Wong retains the discarded 83–88 street-range assertion as provenance.
 
 Ko Yee's reviewed publisher address at 28 Ko Chiu Road is the estate complex parent of
 its four houses, with no unit collection of its own. Hung Hom Phase 2 retains one named

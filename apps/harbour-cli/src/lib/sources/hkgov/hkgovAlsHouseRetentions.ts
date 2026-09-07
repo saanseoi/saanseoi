@@ -35,7 +35,12 @@ function active(version: string) {
   })
 }
 function matches(rule: Rule, feature: Als3dFeature) {
-  return rule.csus.includes(premise(feature).BuildingCsuInformation?.CsuId ?? '')
+  const p = premise(feature)
+  return (
+    rule.csus.includes(p.BuildingCsuInformation?.CsuId ?? '') ||
+    (p.EngPremisesAddress?.EngEstate?.EstateName === rule.estate &&
+      p.EngPremisesAddress?.BuildingName === rule.name)
+  )
 }
 function retain(
   rule: Rule,
@@ -59,6 +64,7 @@ function retain(
   const rich = originals.find(
     f =>
       premise(f).EngPremisesAddress?.BuildingName === rule.name &&
+      premise(f).BuildingCsuInformation?.CsuId === rule.csus[0] &&
       (kind === '2d' || premise(f).EngPremisesAddress?.Eng3dAddress?.length),
   )
   const dated = evidence
@@ -132,7 +138,7 @@ export function labelAlsHouseRetentions(
     }
 }
 
-/** Stream unrelated records unchanged; retain only the nine explicitly reviewed houses. */
+/** Stream unrelated records unchanged; retain only explicitly reviewed houses. */
 export async function* readAls3dWithHouseRetentions(
   file: string,
   version: string,

@@ -93,7 +93,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         labelAlsHouseRetentions(rows, provenance)
         expect(rows.filter(r => csus.has(r.hkgovCsuId!))).toHaveLength(9)
         for (const r of rows) {
-          if (ids.has(r.hkgovCsuId!)) expect(r.id).toBe(ids.get(r.hkgovCsuId!))
+          if (ids.has(r.hkgovCsuId!)) expect(r.id).toBe(ids.get(r.hkgovCsuId!)!)
           else ids.set(r.hkgovCsuId!, r.id!)
         }
         const three = []

@@ -3,6 +3,3996 @@
   "automaticPolicy": "coordinate-only-named-under-50m-backfill",
   "backfills": [
     {
+      "id": "sun-yee-reviewed-earlier-point-2024-07-25.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2024-07-25.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-07-31.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2024-07-31.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-08-21.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceVersionTo": "2024-08-21.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-08-25.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-08-25.0",
+      "sourceVersionTo": "2024-08-25.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-08-28.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-08-28.0",
+      "sourceVersionTo": "2024-08-28.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-09-01.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-09-01.0",
+      "sourceVersionTo": "2024-09-01.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-09-02.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-09-02.0",
+      "sourceVersionTo": "2024-09-02.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-09-03.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-09-03.0",
+      "sourceVersionTo": "2024-09-03.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-10-18.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-10-18.0",
+      "sourceVersionTo": "2024-10-18.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-11-13.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-11-13.0",
+      "sourceVersionTo": "2024-11-13.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2024-12-12.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2024-12-12.0",
+      "sourceVersionTo": "2024-12-12.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-01-23.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-01-23.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-02-25.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2025-02-25.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-03-21.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-03-21.0",
+      "sourceVersionTo": "2025-03-21.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-04-26.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceVersionTo": "2025-04-26.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-05-22.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-05-22.0",
+      "sourceVersionTo": "2025-05-22.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-06-20.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2025-06-20.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-08-13.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2025-08-13.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-08-28.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-08-28.0",
+      "sourceVersionTo": "2025-08-28.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-09-03.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2025-09-03.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-11-04.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-11-04.0",
+      "sourceVersionTo": "2025-11-04.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2025-12-16.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2025-12-16.0",
+      "sourceVersionTo": "2025-12-16.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-02-04.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-02-04.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18144, 22.36961],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-04-03.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-04-22.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-04-22.0",
+      "sourceVersionTo": "2026-04-22.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-04-25.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "2026-04-25.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-07-08.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-07-08.0",
+      "sourceVersionTo": "2026-07-08.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-07-10.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-07-10.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-07-22.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-07-22.0",
+      "sourceVersionTo": "2026-07-22.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "sun-yee-reviewed-earlier-point-2026-08-19.0",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3674925599T20050430",
+      "enBuildingName": "SUN YEE HSE",
+      "sourceVersionFrom": "2026-08-19.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "evidenceSourceVersion": "2026-09-08-review-map",
+      "previousCoordinates": [114.18089, 22.36937],
+      "currentCoordinates": [114.18144, 22.36961],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3674925599T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "沙田區",
+          "ChiStreet": {
+            "LocationName": "沙田",
+            "StreetName": "翠田街",
+            "BuildingNoFrom": "2"
+          },
+          "ChiEstate": {
+            "EstateName": "新翠邨"
+          },
+          "BuildingName": "新儀樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "SUN YEE HSE",
+          "EngEstate": {
+            "EstateName": "SUN CHUI ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "2",
+            "StreetName": "CHUI TIN STREET",
+            "LocationName": "SHA TIN"
+          },
+          "EngDistrict": "SHA TIN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3668225577T20050430"
+      },
+      "authority": "User decision, 2026-09-08: retain the exact earlier review-map point [114.18144,22.36961] throughout retained history."
+    },
+    {
+      "id": "hing-wai-current-point-2024-07-25.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2024-07-25.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-07-25.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2024-07-25.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-07-31.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2024-07-31.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-07-31.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2024-07-31.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-08-21.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceVersionTo": "2024-08-21.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-08-21.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceVersionTo": "2024-08-21.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-08-25.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-08-25.0",
+      "sourceVersionTo": "2024-08-25.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-08-25.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-08-25.0",
+      "sourceVersionTo": "2024-08-25.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-08-28.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-08-28.0",
+      "sourceVersionTo": "2024-08-28.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-08-28.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-08-28.0",
+      "sourceVersionTo": "2024-08-28.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-09-01.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-09-01.0",
+      "sourceVersionTo": "2024-09-01.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-09-01.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-09-01.0",
+      "sourceVersionTo": "2024-09-01.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-09-02.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-09-02.0",
+      "sourceVersionTo": "2024-09-02.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-09-02.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-09-02.0",
+      "sourceVersionTo": "2024-09-02.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-09-03.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-09-03.0",
+      "sourceVersionTo": "2024-09-03.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-09-03.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-09-03.0",
+      "sourceVersionTo": "2024-09-03.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-10-18.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-10-18.0",
+      "sourceVersionTo": "2024-10-18.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-10-18.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-10-18.0",
+      "sourceVersionTo": "2024-10-18.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-11-13.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-11-13.0",
+      "sourceVersionTo": "2024-11-13.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-11-13.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-11-13.0",
+      "sourceVersionTo": "2024-11-13.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2024-12-12.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2024-12-12.0",
+      "sourceVersionTo": "2024-12-12.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2024-12-12.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2024-12-12.0",
+      "sourceVersionTo": "2024-12-12.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-01-23.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-01-23.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-01-23.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-01-23.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-02-25.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2025-02-25.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-02-25.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2025-02-25.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-03-21.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-03-21.0",
+      "sourceVersionTo": "2025-03-21.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-03-21.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-03-21.0",
+      "sourceVersionTo": "2025-03-21.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-04-26.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceVersionTo": "2025-04-26.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-04-26.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceVersionTo": "2025-04-26.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-05-22.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-05-22.0",
+      "sourceVersionTo": "2025-05-22.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-05-22.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-05-22.0",
+      "sourceVersionTo": "2025-05-22.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-06-20.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2025-06-20.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-06-20.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2025-06-20.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-08-13.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2025-08-13.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-08-13.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2025-08-13.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-08-28.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-08-28.0",
+      "sourceVersionTo": "2025-08-28.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-08-28.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-08-28.0",
+      "sourceVersionTo": "2025-08-28.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-09-03.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2025-09-03.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-09-03.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2025-09-03.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-11-04.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-11-04.0",
+      "sourceVersionTo": "2025-11-04.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-11-04.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-11-04.0",
+      "sourceVersionTo": "2025-11-04.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2025-12-16.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2025-12-16.0",
+      "sourceVersionTo": "2025-12-16.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2025-12-16.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2025-12-16.0",
+      "sourceVersionTo": "2025-12-16.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-02-04.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-02-04.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97101, 22.40224],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-02-04.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-02-04.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16088, 22.45243],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-04-03.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97189, 22.40206],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-04-03.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16085, 22.45234],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-04-22.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-04-22.0",
+      "sourceVersionTo": "2026-04-22.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97189, 22.40206],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1516129212T20050430"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-04-22.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-04-22.0",
+      "sourceVersionTo": "2026-04-22.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16085, 22.45234],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3461934765T20050430"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-04-25.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "2026-04-25.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97226, 22.40215],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1519929222T20081217"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-04-25.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-04-25.0",
+      "sourceVersionTo": "2026-04-25.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16304, 22.4516],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3484434683T20120614"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-07-08.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-07-08.0",
+      "sourceVersionTo": "2026-07-08.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97226, 22.40215],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1519929222T20081217"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-07-08.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-07-08.0",
+      "sourceVersionTo": "2026-07-08.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16304, 22.4516],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3484434683T20120614"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-07-10.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-07-10.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97226, 22.40215],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1519929222T20081217"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-07-10.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-07-10.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16304, 22.4516],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3484434683T20120614"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-07-22.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-07-22.0",
+      "sourceVersionTo": "2026-07-22.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97226, 22.40215],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1519929222T20081217"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-07-22.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-07-22.0",
+      "sourceVersionTo": "2026-07-22.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16304, 22.4516],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3484434683T20120614"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "hing-wai-current-point-2026-08-19.0",
+      "estate": "TAI HING ESTATE",
+      "csu": "1516129212T20050430",
+      "enBuildingName": "HING WAI HSE",
+      "sourceVersionFrom": "2026-08-19.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [113.97226, 22.40215],
+      "currentCoordinates": [113.97226, 22.40215],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "1516129212T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "屯門區",
+          "ChiStreet": {
+            "LocationName": "屯門",
+            "StreetName": "大方街",
+            "BuildingNoFrom": "1"
+          },
+          "ChiEstate": {
+            "EstateName": "大興邨"
+          },
+          "BuildingName": "興偉樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "HING WAI HSE",
+          "EngEstate": {
+            "EstateName": "TAI HING ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "1",
+            "StreetName": "TAI FONG STREET",
+            "LocationName": "TUEN MUN"
+          },
+          "EngDistrict": "TUEN MUN DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "1519929222T20081217"
+      },
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
+      "id": "fook-wo-original-point-2026-08-19.0",
+      "estate": "TAI WO ESTATE",
+      "csu": "3461934765T20050430",
+      "enBuildingName": "FOOK WO HOUSE",
+      "sourceVersionFrom": "2026-08-19.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "evidenceSourceVersion": "2026-04-22.0",
+      "previousCoordinates": [114.16304, 22.4516],
+      "currentCoordinates": [114.16085, 22.45234],
+      "expectedPremises": {
+        "BuildingCsuInformation": {
+          "CsuId": "3461934765T20050430"
+        },
+        "ChiPremisesAddress": {
+          "Region": "新界",
+          "ChiDistrict": "大埔區",
+          "ChiStreet": {
+            "LocationName": "大埔",
+            "StreetName": "大埔太和路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": {
+            "EstateName": "太和邨"
+          },
+          "BuildingName": "福和樓"
+        },
+        "EngPremisesAddress": {
+          "BuildingName": "FOOK WO HOUSE",
+          "EngEstate": {
+            "EstateName": "TAI WO ESTATE"
+          },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "TAI PO TAI WO ROAD",
+            "LocationName": "TAI PO"
+          },
+          "EngDistrict": "TAI PO DISTRICT",
+          "Region": "NT"
+        },
+        "GeoAddress": "3484434683T20120614"
+      },
+      "blockNumber": "11",
+      "authority": "User decision, 2026-09-08: backfill the current Hing Wai point and retain the earlier Fook Wo (Block 11) point."
+    },
+    {
       "id": "lung-hang-lok-sam-current-point-baseline",
       "estate": "LUNG HANG ESTATE",
       "csu": "3628125324T20050430",
@@ -10564,32 +14554,6 @@
       "automaticPolicy": "coordinate-only-named-under-50m-backfill"
     },
     {
-      "id": "tai-hing-estate-hing-wai-hse-1516129212T20050430-20260425-coordinate-backfill",
-      "estate": "TAI HING ESTATE",
-      "csu": "1516129212T20050430",
-      "enBuildingName": "HING WAI HSE",
-      "sourceVersionFrom": "2026-04-03.0",
-      "sourceVersionTo": "2026-04-22.0",
-      "evidenceSourceVersion": "2026-04-25.0",
-      "previousCoordinates": [113.97189, 22.40206],
-      "currentCoordinates": [113.97226, 22.40215],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
-    },
-    {
-      "id": "tai-wo-estate-fook-wo-house-3461934765T20050430-20260403-coordinate-backfill",
-      "estate": "TAI WO ESTATE",
-      "csu": "3461934765T20050430",
-      "enBuildingName": "FOOK WO HOUSE",
-      "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-02-04.0",
-      "evidenceSourceVersion": "2026-04-03.0",
-      "previousCoordinates": [114.16088, 22.45243],
-      "currentCoordinates": [114.16085, 22.45234],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
-    },
-    {
       "id": "tai-wo-estate-hang-wo-house-3479534721T20050430-20260403-coordinate-backfill",
       "estate": "TAI WO ESTATE",
       "csu": "3479534721T20050430",
@@ -15580,6 +19544,18 @@
       "currentCoordinates": [114.13683, 22.48175],
       "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
       "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+    },
+    {
+      "id": "sun-chui-sun-fong-current-point",
+      "estate": "SUN CHUI ESTATE",
+      "csu": "3678525828T20050430",
+      "enBuildingName": "SUN FONG HSE",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-02-04.0",
+      "evidenceSourceVersion": "2026-08-19.0",
+      "previousCoordinates": [114.18184, 22.37101],
+      "currentCoordinates": [114.18189, 22.37163],
+      "authority": "User decision, 2026-09-08: backfill the current Sun Fong House point throughout retained history."
     }
   ]
 }

@@ -3,10 +3,19 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import { applyReviewedStreetEstateComplexes } from './hkgovAlsStreetEstateComplexes'
+import {
+  retainAlsCommercialPremises,
+  labelAlsCommercialRetentions,
+} from './hkgovAlsCommercialRetentions'
 import { retainAlsHouses, labelAlsHouseRetentions } from './hkgovAlsHouseRetentions'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
+import {
+  reconstructReviewedEstateComplexes,
+  applyReviewedEstateComplexes,
+} from './hkgovAlsEstateComplexDecisions'
 import { restoreAlsEstateComponents } from './hkgovAlsEstateComponents'
 import { restoreAlsEstateGaps } from './hkgovAlsEstateGapRestorations'
 import { applyAlsNestedPremises } from './hkgovAlsNestedPremises'
@@ -106,6 +115,11 @@ export async function prepareHkgovAlsAddressParquet(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  const retainedCommercialPremises = retainAlsCommercialPremises(
+    sourceFeatures,
+    options.sourceVersion,
+  )
+  reconstructReviewedEstateComplexes(sourceFeatures, options.sourceVersion)
   const retainedHouses = retainAlsHouses(sourceFeatures, options.sourceVersion)
   const reconstructedPremises = reconstructAlsPremises(
     sourceFeatures,
@@ -168,6 +182,9 @@ export async function prepareHkgovAlsAddressParquet(
     ),
   )
   labelAls2dBackfillRows(rows)
+  applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
+  labelAlsCommercialRetentions(rows, retainedCommercialPremises)
+  applyReviewedEstateComplexes(rows, options.sourceVersion)
   labelAlsHouseRetentions(rows, retainedHouses)
   labelAlsPremiseReconstructions(rows, reconstructedPremises)
   applyApprovedIssueBatch(rows, options.sourceVersion, options.skipCurationChecks)
