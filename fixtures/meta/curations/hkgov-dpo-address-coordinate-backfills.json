@@ -3,6 +3,54 @@
   "automaticPolicy": "coordinate-only-named-under-50m-backfill",
   "backfills": [
     {
+      "id": "hing-wah-ii-estate-chin-hing-hse-4205813718T20050430-20260425-coordinate-backfill",
+      "estate": "HING WAH (II) ESTATE",
+      "csu": "4205813718T20050430",
+      "enBuildingName": "CHIN HING HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-04-25.0",
+      "previousCoordinates": [114.23305, 22.26226],
+      "currentCoordinates": [114.23337, 22.26263],
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
+    },
+    {
+      "id": "hing-wah-ii-estate-lok-hing-hse-4209513894T20050430-20260425-coordinate-backfill",
+      "estate": "HING WAH (II) ESTATE",
+      "csu": "4209513894T20050430",
+      "enBuildingName": "LOK HING HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-04-25.0",
+      "previousCoordinates": [114.23341, 22.26385],
+      "currentCoordinates": [114.23343, 22.26368],
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
+    },
+    {
+      "id": "hing-wah-ii-estate-ning-hing-hse-4203613739T20050430-20260425-coordinate-backfill",
+      "estate": "HING WAH (II) ESTATE",
+      "csu": "4203613739T20050430",
+      "enBuildingName": "NING HING HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-04-25.0",
+      "previousCoordinates": [114.23284, 22.26245],
+      "currentCoordinates": [114.23274, 22.26268],
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
+    },
+    {
+      "id": "hing-wah-ii-estate-wo-hing-hse-4204713807T20050430-20260425-coordinate-backfill",
+      "estate": "HING WAH (II) ESTATE",
+      "csu": "4204713807T20050430",
+      "enBuildingName": "WO HING HSE",
+      "sourceVersionFrom": "2026-04-03.0",
+      "sourceVersionTo": "2026-04-03.0",
+      "evidenceSourceVersion": "2026-04-25.0",
+      "previousCoordinates": [114.23294, 22.26307],
+      "currentCoordinates": [114.23293, 22.26295],
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
+    },
+    {
       "id": "ap-lei-chau-lei-chak-april-2026-coordinate-backfill",
       "estate": "AP LEI CHAU ESTATE",
       "csu": "3351511764T20141201",
@@ -3392,9 +3440,9 @@
       "sourceVersionTo": "2026-02-04.0",
       "evidenceSourceVersion": "2026-04-03.0",
       "previousCoordinates": [114.23305, 22.26225],
-      "currentCoordinates": [114.23305, 22.26226],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+      "currentCoordinates": [114.23337, 22.26263],
+      "currentCoordinatesEvidenceSourceVersion": "2026-04-25.0",
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
     },
     {
       "id": "hing-wah-ii-estate-fung-hing-hse-4214713760T20050430-20260403-coordinate-backfill",
@@ -3418,9 +3466,9 @@
       "sourceVersionTo": "2026-02-04.0",
       "evidenceSourceVersion": "2026-04-03.0",
       "previousCoordinates": [114.23342, 22.26386],
-      "currentCoordinates": [114.23341, 22.26385],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+      "currentCoordinates": [114.23343, 22.26368],
+      "currentCoordinatesEvidenceSourceVersion": "2026-04-25.0",
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
     },
     {
       "id": "hing-wah-ii-estate-ning-hing-hse-4203613739T20050430-20260403-coordinate-backfill",
@@ -3431,9 +3479,9 @@
       "sourceVersionTo": "2026-02-04.0",
       "evidenceSourceVersion": "2026-04-03.0",
       "previousCoordinates": [114.23285, 22.26245],
-      "currentCoordinates": [114.23284, 22.26245],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+      "currentCoordinates": [114.23274, 22.26268],
+      "currentCoordinatesEvidenceSourceVersion": "2026-04-25.0",
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
     },
     {
       "id": "hing-wah-ii-estate-on-hing-hse-4215913828T20050430-20260403-coordinate-backfill",
@@ -3457,9 +3505,9 @@
       "sourceVersionTo": "2026-02-04.0",
       "evidenceSourceVersion": "2026-04-03.0",
       "previousCoordinates": [114.23303, 22.26301],
-      "currentCoordinates": [114.23294, 22.26307],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
+      "currentCoordinates": [114.23293, 22.26295],
+      "currentCoordinatesEvidenceSourceVersion": "2026-04-25.0",
+      "authority": "User decision, 2026-09-07: backfill the current April 2026 coordinates until revoked; retain raw source geometry and dated unit inventory."
     },
     {
       "id": "hing-wah-ii-estate-yu-hing-hse-4215813921T20050430-20260403-coordinate-backfill",

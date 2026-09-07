@@ -474,8 +474,6 @@
     {
       "id": "grandeur-terrace-cross-csu-block-aliases",
       "estate": "GRANDEUR TERRACE",
-      "release": "20240725-1048-ALS-GeoJSON",
-      "expectedFingerprint": "e6b382ba03f74a0c4ad926fdf456c8693a0842b2f01e062d35df692e3d35ba25",
       "action": "coalesce_reviewed_cross_csu_block_aliases",
       "fixture": "hkgov-dpo-address-aliased-premise-coalescences.json",
       "decision": "Treat the nine named-versus-structured cross-CSU pairs for Blocks 1 and 4–11 as one physical premise each across every retained release. Keep Blocks 2 and 3 as their independently structured source premises. Normalise all eleven blocks through the existing BLK/座 reference fields, retain every suppressed 2D and 3D source assertion as provenance, and never expose a second address or inventory collection for an alias.",
@@ -484,6 +482,16 @@
         "The MapLibre review places all eleven points in the HA-confirmed Block 1–11 layout at 88 Tin Shui Road.",
         "Nine pairs have matching bilingual estate, BLK/座 reference, point and 370- or 380-unit inventory in every retained source release, differing only by named versus structured source expression and CSU.",
         "Blocks 2 and 3 already carry the source BLK/座 components; no invented house name is required."
+      ],
+      "events": [
+        {
+          "release": "20260403-1056-ALS-GeoJSON",
+          "expectedFingerprint": "16d99fcd9f97e32c31a5656543c0e6b1b2c95f612f0cad6b4c292e06bd1a264f"
+        },
+        {
+          "release": "20260425-1038-ALS-GeoJSON",
+          "expectedFingerprint": "57f26c872bcd5b17620b10b892aed5cca81fd0cfa3d11f8166b60e1f2880f9da"
+        }
       ]
     }
   ]
