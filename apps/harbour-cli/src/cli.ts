@@ -181,10 +181,12 @@ async function main() {
       })
       return
     case 'init:addresses:saanseoi':
+    case 'init:addresses':
     case 'init':
     case 'init:local':
     case 'init:production':
     case 'init:stats:government':
+    case 'init:stats':
     case 'init:divisions':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':
@@ -192,7 +194,9 @@ async function main() {
     case 'init:divisions:geographic':
     case 'init:divisions:hkgov-censtatd-hma':
     case 'init:places:overture':
+    case 'init:places':
     case 'init:streets:saanseoi':
+    case 'init:streets':
       await runInitialisationCommand(args, printUsage)
       return
     case 'tiles:refresh':

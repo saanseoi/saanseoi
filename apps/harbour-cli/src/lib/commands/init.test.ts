@@ -34,6 +34,26 @@ describe('initialisation commands', () => {
       supportsContinue: true,
       supportsTarget: true,
     })
+    expect(resolveInitialisationCommand('init:addresses')).toEqual({
+      script: 'scripts/init/addresses.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
+    expect(resolveInitialisationCommand('init:places')).toEqual({
+      script: 'scripts/init/places.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
+    expect(resolveInitialisationCommand('init:stats')).toEqual({
+      script: 'scripts/init/stats.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
+    expect(resolveInitialisationCommand('init:streets')).toEqual({
+      script: 'scripts/init/streets.fish',
+      supportsContinue: true,
+      supportsTarget: true,
+    })
     expect(resolveInitialisationCommand('init:divisions:geographic')).toEqual({
       script: 'scripts/init/divisions-overture.fish',
       supportsContinue: true,
@@ -101,23 +121,44 @@ describe('initialisation commands', () => {
     }
   })
 
-  test('uses current public domains and includes the HMA domain in aggregate runs', () => {
-    for (const script of [
-      'all.fish',
-      'local.fish',
-      'production.fish',
-      'divisions.fish',
-    ]) {
+  test('uses current public domains and includes the HMA domain in Divisions', () => {
+    for (const script of ['divisions.fish']) {
       const source = readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8')
       expect(source).toContain('init:divisions:hkgov-censtatd-hma')
     }
 
+    for (const script of ['all.fish', 'local.fish', 'production.fish']) {
+      const source = readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8')
+      expect(source).toContain('init:divisions')
+      expect(source).toContain('init:addresses')
+      expect(source).toContain('init:places')
+      expect(source).toContain('init:stats')
+    }
+
     expect(
       readFileSync(resolve(repoRoot, 'scripts/init/addresses-hkgov-dpo.fish'), 'utf8'),
-    ).toContain('--cohort-key 2026-08-19.0')
+    ).toContain('--cohort-key 2024-07-25.0')
     expect(
       readFileSync(resolve(repoRoot, 'scripts/init/stats-hkgov-censtatd.fish'), 'utf8'),
     ).toContain('--include-geography')
+  })
+
+  test('orchestrates every domain through each API-family shorthand', () => {
+    const domainsByFamily = {
+      addresses: ['init:addresses:saanseoi'],
+      places: ['init:places:overture'],
+      stats: ['init:stats:government'],
+      streets: ['init:streets:saanseoi'],
+    }
+
+    for (const [family, domains] of Object.entries(domainsByFamily)) {
+      const source = readFileSync(
+        resolve(repoRoot, 'scripts/init', `${family}.fish`),
+        'utf8',
+      )
+      for (const domain of domains) expect(source).toContain(domain)
+      expect(source).toContain('init_run_step ./bin/saanseoi $command')
+    }
   })
 
   test('retains artefact caches by default and forwards the explicit opt-out', () => {

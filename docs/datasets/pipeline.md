@@ -99,12 +99,11 @@ review:
 
 ```sh
 bun run db:reset:local
-./bin/saanseoi init:divisions:geographic
-./bin/saanseoi init:divisions:hkgov-pland-pu
-./bin/saanseoi init:divisions:hkgov-pland-new-town
-./bin/saanseoi init:divisions:hkgov-landsd
-./bin/saanseoi init:streets:saanseoi
-./bin/saanseoi init:addresses:saanseoi
+./bin/saanseoi init:divisions
+./bin/saanseoi init:streets
+./bin/saanseoi init:addresses
+./bin/saanseoi init:places
+./bin/saanseoi init:stats
 ```
 
 The focused LandsD Streets initialiser publishes the current gazetted register and its

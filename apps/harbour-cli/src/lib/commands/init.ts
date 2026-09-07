@@ -30,6 +30,11 @@ const initialisationCommands = {
     supportsContinue: false,
     supportsTarget: false,
   },
+  'init:addresses': {
+    script: 'scripts/init/addresses.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:addresses:saanseoi': {
     script: 'scripts/init/addresses-hkgov-dpo.fish',
     supportsContinue: true,
@@ -37,6 +42,11 @@ const initialisationCommands = {
   },
   'init:stats:government': {
     script: 'scripts/init/stats-hkgov-censtatd.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
+  'init:stats': {
+    script: 'scripts/init/stats.fish',
     supportsContinue: true,
     supportsTarget: true,
   },
@@ -75,8 +85,18 @@ const initialisationCommands = {
     supportsContinue: true,
     supportsTarget: true,
   },
+  'init:places': {
+    script: 'scripts/init/places.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   'init:streets:saanseoi': {
     script: 'scripts/init/streets-hkgov-landsd.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
+  'init:streets': {
+    script: 'scripts/init/streets.fish',
     supportsContinue: true,
     supportsTarget: true,
   },
