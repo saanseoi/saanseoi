@@ -60,8 +60,8 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
     const dir = await mkdtemp(join(tmpdir(), 'als-house-retentions-'))
     const ids = new Map<string, string>()
     try {
-      for (const release of releases) {
-        const v = version(release)
+      for (const [releaseIndex, release] of [...releases, releases.at(-1)!].entries()) {
+        const v = releaseIndex === releases.length ? '2030-01-01.0' : version(release)
         const source: HkgovAlsSourceFeature[] = []
         for (const district of ['north', 'kwai_tsing']) {
           const sourceFile = `als_addresses_(${district}_district).geojson`
@@ -76,6 +76,17 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
               )
             )
               source.push({ feature, sourceFile, featureIndexOneBased: i + 1 })
+        }
+        if (v === '2030-01-01.0') {
+          const changed = structuredClone(source)
+          changed.find(
+            s =>
+              s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+                ?.CsuId === '3433440473T20210825',
+          )!.feature.geometry!.coordinates = [0, 0]
+          expect(() => retainAlsHouses(changed, v)).toThrow(
+            'publisher assertions changed',
+          )
         }
         const provenance = retainAlsHouses(source, v)
         const rows = source.map(s => normalise(s, v))
@@ -123,17 +134,25 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           const collection = collections.find(c => c.address2dId === row.id)
           expect(collection).toBeDefined()
           expect(collection.sourceRecordIds.length).toBeGreaterThan(0)
+          const rule = rules.find(r => r.csus[0] === row.hkgovCsuId)!
+          expect(collection.unitCount).toBe(
+            rule.evidence3d[0]!.feature.properties.Address.PremisesAddress
+              .EngPremisesAddress.Eng3dAddress.length,
+          )
+          const retained = JSON.parse(row.sources).hkgovAlsHouseRetention
+          expect(retained.curation.verificationStatus).toBe(
+            v === '2030-01-01.0' ? 'unverified' : 'verified',
+          )
+          if (rule.retainOriginalCoordinates)
+            expect(JSON.parse(row.geometry!).coordinates).toEqual(
+              rule.evidence2d[0]!.feature.geometry.coordinates,
+            )
           if (row.hkgovCsuId === '3247025674T20050805')
             expect(collection.unitCount).toBe(340)
           if (row.hkgovCsuId === '3244025863T20050430')
             expect(collection.unitCount).toBe(813)
         }
-        console.log(
-          v,
-          JSON.stringify(
-            collections.map(r => ({ id: r.address2dId, units: r.unitCount })),
-          ),
-        )
+        console.log(v, '9 stable houses; 10018 flats; full source provenance')
       }
     } finally {
       await rm(dir, { recursive: true, force: true })
