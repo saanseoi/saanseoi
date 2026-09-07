@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-named-premise-retentions.json'
@@ -25,7 +26,7 @@ export function retainNamedPremises(rows: PreparedHkgovAlsRow[], version: string
       1,
       `Named premise ${d.id}: source changed; review required`,
     )
-    const owner = named[0]!
+    const owner = requireDefined(named[0])
     const en = JSON.parse(owner.engPremisesAddressJson ?? 'null')
     const zh = JSON.parse(owner.chiPremisesAddressJson ?? 'null')
     const representation = d.namedRepresentations.find(

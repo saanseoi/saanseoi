@@ -17,11 +17,10 @@ export function applyAlsEstateNames(rows: PreparedHkgovAlsRow[], version: string
       )
       assert.equal(row.enEstateName, d.sourceEnName)
       assert.equal(row.zhHantEstateName, d.sourceZhName)
-      assert(row.enFormattedAddress && row.enFormattedAddress.includes(d.sourceEnName))
-      assert(
-        row.zhHantFormattedAddress &&
-          row.zhHantFormattedAddress.includes(d.sourceZhName),
-      )
+      assert(row.enFormattedAddress)
+      assert(row.zhHantFormattedAddress)
+      assert(row.enFormattedAddress.includes(d.sourceEnName))
+      assert(row.zhHantFormattedAddress.includes(d.sourceZhName))
       row.enFormattedAddress = row.enFormattedAddress.replace(
         d.sourceEnName,
         d.preferredEnName,

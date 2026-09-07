@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { readdir } from 'node:fs/promises'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-commercial-retentions.json'
@@ -36,7 +37,7 @@ const normalise = (s: HkgovAlsSourceFeature, v: string) =>
 const latest = () => [
   {
     feature: structuredClone(
-      fixture.retentions[0]!.evidence.at(-1)!.feature,
+      requireDefined(requireDefined(fixture.retentions[0]).evidence.at(-1)).feature,
     ) as unknown as HkgovAlsSourceFeature['feature'],
     sourceFile: 'als_addresses_(kwai_tsing_district).geojson',
     featureIndexOneBased: 1,
@@ -60,9 +61,10 @@ test('future retention restores centre2, keeps separate names and points, and pr
   expect(new Set(rows.map(r => r.id)).size).toBe(2)
   expect(new Set(rows.map(r => r.geometry)).size).toBe(2)
   expect(
-    JSON.parse(rows[0]!.sources).hkgovAlsCommercialRetention.originalAssertions,
+    JSON.parse(requireDefined(rows[0]).sources).hkgovAlsCommercialRetention
+      .originalAssertions,
   ).toEqual(raw)
-  const second = JSON.parse(rows[1]!.sources).hkgovAlsCommercialRetention
+  const second = JSON.parse(requireDefined(rows[1]).sources).hkgovAlsCommercialRetention
   expect(
     second.evidenceAssertion.properties.Address.PremisesAddress.EngPremisesAddress
       .BuildingName,
@@ -72,7 +74,7 @@ test('future retention restores centre2, keeps separate names and points, and pr
 })
 test('changed source coordinates and new English or Chinese inventories require review', () => {
   const source = latest()
-  source[0]!.feature.geometry!.coordinates = [0, 0]
+  requireDefined(requireDefined(source[0]).feature.geometry).coordinates = [0, 0]
   expect(() => retainAlsCommercialPremises(source, '2030-01-01.0')).toThrow(
     'publisher assertions changed',
   )
@@ -80,8 +82,10 @@ test('changed source coordinates and new English or Chinese inventories require 
     ['EngPremisesAddress', 'Eng3dAddress'],
     ['ChiPremisesAddress', 'Chi3dAddress'],
   ] as const) {
-    const feature = latest()[0]!.feature as Als3dFeature
-    Object.assign(feature.properties.Address.PremisesAddress[locale]!, { [key]: [{}] })
+    const feature = requireDefined(latest()[0]).feature as Als3dFeature
+    Object.assign(requireDefined(feature.properties.Address.PremisesAddress[locale]), {
+      [key]: [{}],
+    })
     expect(() => assertAlsCommercialInventoryAbsent(feature, '2030-01-01.0')).toThrow(
       'unexpected',
     )
@@ -97,7 +101,7 @@ test('revocation stops future retention without changing publisher assertions', 
     expect(source).toEqual(original)
   } finally {
     fixture.retentions.forEach((r, i) => {
-      r.application.state = states[i]!
+      r.application.state = requireDefined(states[i])
     })
   }
 })
@@ -132,17 +136,23 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
       labelAlsCommercialRetentions(rows, provenance)
       expect(rows).toHaveLength(2)
       expect(new Set(rows.map(r => r.geometry)).size).toBe(2)
-      for (const [i, rule] of fixture.retentions.entries()) {
-        const row = rows.find(r => r.hkgovCsuId === rule.csu)!
+      for (const rule of fixture.retentions) {
+        const row = requireDefined(rows.find(r => r.hkgovCsuId === rule.csu))
         expect(row.enBuildingName).toBe(rule.name)
-        if (ids.has(rule.csu)) expect(row.id).toBe(ids.get(rule.csu)!)
-        else ids.set(rule.csu, row.id!)
+        if (ids.has(rule.csu)) expect(row.id).toBe(requireDefined(ids.get(rule.csu)))
+        else ids.set(rule.csu, requireDefined(row.id))
         const p = JSON.parse(row.sources).hkgovAlsCommercialRetention
         expect(p.originalAssertions).toEqual(
           raw.filter(s =>
             rule.csus.includes(
-              s.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!
-                .CsuId!,
+              requireDefined(
+                requireDefined(
+                  requireDefined(
+                    requireDefined(requireDefined(s.feature.properties).Address)
+                      .PremisesAddress,
+                  ).BuildingCsuInformation,
+                ).CsuId,
+              ),
             ),
           ),
         )
@@ -150,14 +160,26 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         const original = raw.find(
           s =>
             rule.csus.includes(
-              s.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!
-                .CsuId!,
+              requireDefined(
+                requireDefined(
+                  requireDefined(
+                    requireDefined(requireDefined(s.feature.properties).Address)
+                      .PremisesAddress,
+                  ).BuildingCsuInformation,
+                ).CsuId,
+              ),
             ) &&
-            s.feature.properties!.Address!.PremisesAddress!.EngPremisesAddress!
-              .BuildingName,
+            requireDefined(
+              requireDefined(
+                requireDefined(requireDefined(s.feature.properties).Address)
+                  .PremisesAddress,
+              ).EngPremisesAddress,
+            ).BuildingName,
         )
         if (original)
-          expect(JSON.parse(row.geometry!)).toEqual(original.feature.geometry)
+          expect(JSON.parse(requireDefined(row.geometry))).toEqual(
+            original.feature.geometry,
+          )
       }
     }
     expect(ids.size).toBe(2)

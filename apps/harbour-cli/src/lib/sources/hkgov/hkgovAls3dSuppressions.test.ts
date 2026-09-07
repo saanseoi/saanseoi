@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -58,11 +59,16 @@ test.skipIf(!existsSync(rawPath))(
           copy.geometry.coordinates = [114, 22]
         },
         (copy: Als3dFeature) => {
-          copy.properties.Address.PremisesAddress.ChiPremisesAddress!.Chi3dAddress!.pop()
+          requireDefined(
+            requireDefined(copy.properties.Address.PremisesAddress.ChiPremisesAddress)
+              .Chi3dAddress,
+          ).pop()
         },
         (copy: Als3dFeature) => {
-          copy.properties.Address.PremisesAddress.EngPremisesAddress!
-            .EngStreet!.BuildingNoFrom = '10'
+          requireDefined(
+            requireDefined(copy.properties.Address.PremisesAddress.EngPremisesAddress)
+              .EngStreet,
+          ).BuildingNoFrom = '10'
         },
       ]) {
         const copy = structuredClone(feature)

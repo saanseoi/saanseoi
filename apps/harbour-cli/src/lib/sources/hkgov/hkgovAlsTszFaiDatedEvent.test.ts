@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-tsz-fai-dated-event.json'
 import corrections from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json'
@@ -29,22 +30,27 @@ test('418 merger and new419 begin on13August2025 and never backfill earlier inve
   for (const a of fixture.assertions) {
     const f = feature(a),
       after = applyAls3dCorrections(f, a.version).feature
-    const units =
-      after.properties.Address.PremisesAddress.EngPremisesAddress!.Eng3dAddress!.map(
-        u => u.EngUnit!.UnitNo,
-      )
+    const units = requireDefined(
+      requireDefined(after.properties.Address.PremisesAddress.EngPremisesAddress)
+        .Eng3dAddress,
+    ).map(u => requireDefined(u.EngUnit).UnitNo)
     expect(units).toEqual(
       a.version < fixture.eventSourceVersion
         ? ['418A', '418B', '418C']
         : ['418', '419'],
     )
   }
-  const before = fixture.assertions.find(a => a.version === '2025-06-20.0')!,
-    after = fixture.assertions.find(a => a.version === fixture.eventSourceVersion)!
+  const before = requireDefined(
+      fixture.assertions.find(a => a.version === '2025-06-20.0'),
+    ),
+    after = requireDefined(
+      fixture.assertions.find(a => a.version === fixture.eventSourceVersion),
+    )
   const invalid = feature(before)
-  invalid.properties.Address.PremisesAddress.EngPremisesAddress!.Eng3dAddress!.push(
-    structuredClone(after.en[1]!),
-  )
+  requireDefined(
+    requireDefined(invalid.properties.Address.PremisesAddress.EngPremisesAddress)
+      .Eng3dAddress,
+  ).push(structuredClone(requireDefined(after.en[1])))
   expect(() => applyAls3dCorrections(invalid, before.version)).toThrow(
     'new-flat date changed',
   )

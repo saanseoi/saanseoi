@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -25,7 +26,7 @@ export function applyLongShinHierarchy(rows: PreparedHkgovAlsRow[], version: str
     const matches = rows.filter(r => r.hkgovCsuId === csu)
     const direct = matches.filter(r => !r.enStreetNumberTo)
     assert.equal(direct.length, 1, `Long Shin ${en}: specific owner changed`)
-    const owner = direct[0]!
+    const owner = requireDefined(direct[0])
     for (const r of matches) {
       assert.equal(r.enEstateName, estate)
       assert.equal(r.zhHantEstateName, '朗善邨')
@@ -66,7 +67,7 @@ export function applyLongShinHierarchy(rows: PreparedHkgovAlsRow[], version: str
     })
     return owner
   })
-  const template = owners[0]!
+  const template = requireDefined(owners[0])
   const id = `ss-${buildDeterministicUuidV5(
     'b2da2675-daca-5920-a99e-c4d562a4c950',
     'long-shin-estate',

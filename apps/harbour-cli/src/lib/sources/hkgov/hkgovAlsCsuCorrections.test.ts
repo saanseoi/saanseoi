@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -31,8 +32,11 @@ test('Luen Yan CSU backfill keeps one identity and collection while preserving p
       '3098724838T20110523',
   ) as HkgovAlsFeature
   const corrected = structuredClone(raw)
-  corrected.properties!.Address!.PremisesAddress!.BuildingCsuInformation!.CsuId =
-    '3095624822T20110523'
+  requireDefined(
+    requireDefined(
+      requireDefined(requireDefined(corrected.properties).Address).PremisesAddress,
+    ).BuildingCsuInformation,
+  ).CsuId = '3095624822T20110523'
   const oldRow = normaliseHkgovAlsFeature(
     raw,
     '2d.geojson',
@@ -62,7 +66,7 @@ test('Luen Yan CSU backfill keeps one identity and collection while preserving p
   expect(JSON.parse(oldRow.sources).hkgovAls.hkgovCsuId).toBe('3098724838T20110523')
   expect(resolveAlsCsuCorrection(raw, '2025-02-25.0').decision).toBeNull()
   const drift = structuredClone(raw)
-  drift.geometry!.coordinates = [114, 22]
+  requireDefined(drift.geometry).coordinates = [114, 22]
   expect(() => resolveAlsCsuCorrection(drift, '2024-07-25.0')).toThrow()
   const feature = await (async () => {
     for await (const { feature } of readAls3dFeatures(

@@ -1,6 +1,8 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-street-estate-complexes.json'
+import upperFixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-upper-estate-complexes.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
 import {
   curationProvenance,
@@ -14,8 +16,14 @@ import {
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 const sourceFile = 'hkgov-dpo-address-street-estate-complexes.json'
 const namespace = '71c00c8c-f7ea-562a-8754-2d26a9a2eccd'
+type Rule = (typeof fixture.rules)[number] & {
+  sourceCsu?: string
+  retainSourcePremise?: boolean
+  streetOverride?: { en: string; zh: string; number: string } | null
+}
+const rules: Rule[] = [...fixture.rules, ...upperFixture.rules]
 function active(version: string) {
-  return fixture.rules.flatMap(rule => {
+  return rules.flatMap(rule => {
     const application = rule.application as HkgovAlsCurationApplication | null,
       verification = resolveHkgovAlsCurationVerification(
         version,
@@ -40,8 +48,8 @@ function active(version: string) {
 function raw(row: PreparedHkgovAlsRow) {
   return {
     BuildingCsuInformation: { CsuId: row.hkgovCsuId },
-    ChiPremisesAddress: JSON.parse(row.chiPremisesAddressJson!),
-    EngPremisesAddress: JSON.parse(row.engPremisesAddressJson!),
+    ChiPremisesAddress: JSON.parse(requireDefined(row.chiPremisesAddressJson)),
+    EngPremisesAddress: JSON.parse(requireDefined(row.engPremisesAddressJson)),
     GeoAddress: row.geoAddress,
   }
 }
@@ -53,16 +61,22 @@ export function applyReviewedStreetEstateComplexes(
 ) {
   let count = 0
   for (const { rule, curation } of active(version)) {
+    const curationFile = rule.sourceCsu
+      ? 'hkgov-dpo-address-upper-estate-complexes.json'
+      : sourceFile
     const estateRows = rows.filter(r => r.enEstateName === rule.estate)
     if (!estateRows.length) continue
     const aliases = estateRows.filter(r => {
+      if (rule.sourceCsu) return r.hkgovCsuId === rule.sourceCsu
       const p = raw(r)
       return (
         !p.EngPremisesAddress.BuildingName ||
         p.EngPremisesAddress.BuildingName === rule.estate
       )
     })
-    const hashes = aliases.map(r => als3dHash([raw(r), JSON.parse(r.geometry!)])).sort()
+    const hashes = aliases
+      .map(r => als3dHash([raw(r), JSON.parse(requireDefined(r.geometry))]))
+      .sort()
     const historical = rule.assertions.find(a => a.sourceVersions.includes(version))
     const permitted = historical ? [historical] : rule.assertions
     assert(
@@ -78,18 +92,31 @@ export function applyReviewedStreetEstateComplexes(
       .sort((a, b) => a.version.localeCompare(b.version))
       .at(-1)
     assert(evidence, `Street estate ${rule.id}: missing dated address evidence`)
-    const p = evidence.feature.properties.Address.PremisesAddress,
+    const p = structuredClone(evidence.feature.properties.Address.PremisesAddress),
       en = p.EngPremisesAddress,
       zh = p.ChiPremisesAddress
+    // Component premises remain source evidence, not the derived estate's label.
+    delete (en as { EngBlock?: unknown }).EngBlock
+    delete (zh as { ChiBlock?: unknown }).ChiBlock
+    if (rule.streetOverride) {
+      en.EngStreet = {
+        StreetName: rule.streetOverride.en,
+        BuildingNoFrom: rule.streetOverride.number,
+      }
+      zh.ChiStreet = {
+        StreetName: rule.streetOverride.zh,
+        BuildingNoFrom: rule.streetOverride.number,
+      }
+    }
     const originalAliases = structuredClone(aliases)
-    const template = aliases[0] ?? estateRows[0]!
+    const template = aliases[0] ?? requireDefined(estateRows[0])
     const id = `ss-${buildDeterministicUuidV5(namespace, rule.id)}`
     const derived: PreparedHkgovAlsRow = {
       ...template,
       id,
       canonicalId: id,
-      sourceFile,
-      sourceFeatureIndexOneBased: fixture.rules.indexOf(rule) + 1,
+      sourceFile: curationFile,
+      sourceFeatureIndexOneBased: rules.indexOf(rule) + 1,
       geoAddress: null,
       hkgovCsuId: null,
       easting: null,
@@ -151,7 +178,7 @@ export function applyReviewedStreetEstateComplexes(
       sources: JSON.stringify({
         hkgovAlsStreetEstateComplex: {
           id: rule.id,
-          sourceFile,
+          sourceFile: curationFile,
           curation,
           authority: rule.authority,
           evidenceSourceVersion: evidence.version,
@@ -165,7 +192,7 @@ export function applyReviewedStreetEstateComplexes(
     }
     delete derived.parentAddressId
     delete derived.identityPreviousSummary
-    const discard = new Set(aliases)
+    const discard = new Set(rule.retainSourcePremise ? [] : aliases)
     rows.splice(0, rows.length, ...rows.filter(r => !discard.has(r)), derived)
     count++
   }
@@ -180,7 +207,11 @@ export function assertStreetEstateAliasInventoryEmpty(
   const p = feature.properties.Address.PremisesAddress
   if (p.EngPremisesAddress?.BuildingName) return
   for (const { rule } of active(version))
-    if (p.EngPremisesAddress?.EngEstate?.EstateName === rule.estate) {
+    if (
+      !rule.retainSourcePremise &&
+      (!rule.sourceCsu || p.BuildingCsuInformation?.CsuId === rule.sourceCsu) &&
+      p.EngPremisesAddress?.EngEstate?.EstateName === rule.estate
+    ) {
       assert.equal(
         p.EngPremisesAddress?.Eng3dAddress?.length ?? 0,
         0,

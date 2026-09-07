@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-commercial-retentions.json'
@@ -84,9 +85,11 @@ export function retainAlsCommercialPremises(
     const feature = structuredClone(
       evidence.feature,
     ) as unknown as HkgovAlsSourceFeature['feature']
-    const p = feature.properties!.Address!.PremisesAddress!
-    p.BuildingCsuInformation!.CsuId = rule.csu
-    p.EngPremisesAddress!.BuildingName = rule.name
+    const p = requireDefined(
+      requireDefined(requireDefined(feature.properties).Address).PremisesAddress,
+    )
+    requireDefined(p.BuildingCsuInformation).CsuId = rule.csu
+    requireDefined(p.EngPremisesAddress).BuildingName = rule.name
     const discard = new Set(originals)
     features.splice(0, features.length, ...features.filter(s => !discard.has(s)), {
       feature,

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-issue-batch.json'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
@@ -47,7 +48,7 @@ function rowsFor(version: string) {
 }
 test('all reviewed releases suppress only approved variants and retain corrected addresses and raw assertions', () => {
   const identities = new Map<string, string>()
-  for (const { version } of fixture.decisions[0]!.releases) {
+  for (const { version } of requireDefined(fixture.decisions[0]).releases) {
     const rows = rowsFor(version)
     applyApprovedIssueBatch(rows, version)
     for (const rule of fixture.decisions) {
@@ -57,7 +58,7 @@ test('all reviewed releases suppress only approved variants and retain corrected
             r =>
               rule.csus.includes(r.hkgovCsuId ?? '') &&
               new RegExp(rule.pattern).test(
-                JSON.parse(r.engPremisesAddressJson!).BuildingName ?? '',
+                JSON.parse(requireDefined(r.engPremisesAddressJson)).BuildingName ?? '',
               ),
           ),
         ).toBe(false)
@@ -65,7 +66,7 @@ test('all reviewed releases suppress only approved variants and retain corrected
       }
       const matches = rows.filter(r => rule.csus.includes(r.hkgovCsuId ?? ''))
       expect(matches).toHaveLength(1)
-      const row = matches[0]!
+      const row = requireDefined(matches[0])
       if (rule.action === 'number') {
         expect(row.enStreetNumberFrom).toBe('6H')
         expect(row.zhHantStreetNumberFrom).toBe('6H')
@@ -75,9 +76,9 @@ test('all reviewed releases suppress only approved variants and retain corrected
         expect(row.zhHantFormattedAddress).toContain('6H')
       }
       if (rule.action === 'label') {
-        expect(row.enBuildingName).toBe(rule.enName!)
-        expect(row.zhHantBuildingName).toBe(rule.zhName!)
-        expect(row.identitySummary.buildingName).toBe(rule.enName!)
+        expect(row.enBuildingName).toBe(requireDefined(rule.enName))
+        expect(row.zhHantBuildingName).toBe(requireDefined(rule.zhName))
+        expect(row.identitySummary.buildingName).toBe(requireDefined(rule.enName))
         expect(row.enFormattedAddress).toContain('EXTENSION')
         expect(row.zhHantFormattedAddress).toContain('擴建部分')
       }
@@ -92,12 +93,12 @@ test('all reviewed releases suppress only approved variants and retain corrected
         ])
         expect(row.enFormattedAddress).toContain('SAU MAU PING ROAD')
         expect(row.zhHantFormattedAddress).toContain('秀茂坪道')
-        expect(JSON.parse(row.engPremisesAddressJson!).EngStreet.StreetName).toBe(
-          'SAU MING ROAD',
-        )
+        expect(
+          JSON.parse(requireDefined(row.engPremisesAddressJson)).EngStreet.StreetName,
+        ).toBe('SAU MING ROAD')
       } else {
         identities.set(rule.id, identities.get(rule.id) ?? row.id)
-        expect(row.id).toBe(identities.get(rule.id)!)
+        expect(row.id).toBe(requireDefined(identities.get(rule.id)))
       }
       expect(
         JSON.parse(row.sources).hkgovAlsApprovedIssues.at(-1).sourceEvidence.length,
@@ -106,7 +107,7 @@ test('all reviewed releases suppress only approved variants and retain corrected
   }
 })
 test('separate Sheung Tak owners retain independent identities and Tai Hang Tung retains the raw range', () => {
-  for (const { version } of fixture.decisions[0]!.releases) {
+  for (const { version } of requireDefined(fixture.decisions[0]).releases) {
     const rows = rowsFor(version)
     const ownerCsus = [
       '4443719049T20050430',
@@ -122,12 +123,12 @@ test('separate Sheung Tak owners retain independent identities and Tai Hang Tung
     for (const csu of ownerCsus) {
       const owners = rows.filter(r => r.hkgovCsuId === csu)
       expect(owners).toHaveLength(1)
-      expect(owners[0]!.id).toBe(before.get(csu)!.id)
-      expect(owners[0]!.engPremisesAddressJson).toBe(
-        before.get(csu)!.engPremisesAddressJson,
+      expect(requireDefined(owners[0]).id).toBe(requireDefined(before.get(csu)).id)
+      expect(requireDefined(owners[0]).engPremisesAddressJson).toBe(
+        requireDefined(before.get(csu)).engPremisesAddressJson,
       )
     }
-    const wong = rows.find(r => r.hkgovCsuId === '3575321200T20050430')!
+    const wong = requireDefined(rows.find(r => r.hkgovCsuId === '3575321200T20050430'))
     const decision = JSON.parse(wong.sources).hkgovAlsApprovedIssues?.find(
       (d: { id?: string }) => d.id === 'tai-hang-tung-wong-empty',
     )
@@ -143,7 +144,7 @@ test('changed source evidence, missing owner and incomplete hall assertions fail
   const version = '2025-06-20.0'
   for (const mutate of [
     (rows: ReturnType<typeof rowsFor>) => {
-      rows.find(r => r.hkgovCsuId === '3807526262T20050430')!.geometry =
+      requireDefined(rows.find(r => r.hkgovCsuId === '3807526262T20050430')).geometry =
         '{"type":"Point","coordinates":[0,0]}'
     },
     (rows: ReturnType<typeof rowsFor>) => {
@@ -171,8 +172,12 @@ test('changed source evidence, missing owner and incomplete hall assertions fail
 test('skip mode retains unresolved owner evidence and still applies matching decisions', () => {
   const version = '2025-06-20.0'
   const rows = rowsFor(version)
-  const rule = fixture.decisions.find(rule => rule.id === 'on-yam-combined')!
-  const owner = rows.find(row => row.enBuildingName?.startsWith('TAK YAM'))!
+  const rule = requireDefined(
+    fixture.decisions.find(rule => rule.id === 'on-yam-combined'),
+  )
+  const owner = requireDefined(
+    rows.find(row => row.enBuildingName?.startsWith('TAK YAM')),
+  )
   owner.geometry = '{"type":"Point","coordinates":[0,0]}'
   const before = structuredClone(rows.filter(row => row.enEstateName === rule.estate))
   expect(() => applyApprovedIssueBatch(structuredClone(rows), version)).toThrow(
@@ -200,14 +205,16 @@ test('empty 3D suppression is signature-guarded and rejects a newly populated in
           Address: { PremisesAddress: structuredClone(a.evidence.premises) },
         },
       }
-      expect(approvedIssue3dSuppression(feature, a.versions[0]!)?.id).toBe(rule.id)
+      expect(
+        approvedIssue3dSuppression(feature, requireDefined(a.versions[0]))?.id,
+      ).toBe(rule.id)
       feature.properties.Address.PremisesAddress.EngPremisesAddress = {
         ...feature.properties.Address.PremisesAddress.EngPremisesAddress,
         Eng3dAddress: [{ EngFloor: { FloorNum: '1' } }],
       }
-      expect(() => approvedIssue3dSuppression(feature, a.versions[0]!)).toThrow(
-        'source evidence changed',
-      )
+      expect(() =>
+        approvedIssue3dSuppression(feature, requireDefined(a.versions[0])),
+      ).toThrow('source evidence changed')
     }
   }
 })

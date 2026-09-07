@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -9,9 +10,9 @@ import { applyLongShinHierarchy } from './hkgovAlsLongShin'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 import type { Als3dFeature } from './hkgovAls3d'
 
-const evidence = fixture.backfills.find(
-  b => b.id === 'long-shin-shin-leung-april-omission',
-)!
+const evidence = requireDefined(
+  fixture.backfills.find(b => b.id === 'long-shin-shin-leung-april-omission'),
+)
 const specs = [
   ['2272633682T20151209', 'SHIN LEUNG HOUSE', '善良樓', '11'],
   ['2271133599T20151209', 'SHIN OI HOUSE', '善愛樓', '11'],
@@ -106,7 +107,9 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
       expect(result.unitCount).toBe(939)
       expect(result.sourceCount).toBe(version.startsWith('2024') ? 6 : 3)
       expect(parents).toHaveLength(4)
-      const complex = parents.find(r => r.curatedGranularity === 'complex')!
+      const complex = requireDefined(
+        parents.find(r => r.curatedGranularity === 'complex'),
+      )
       expect(complex.id).toMatch(/^ss-[0-9a-f-]{36}$/)
       expect(complex.canonicalId).toBe(complex.id)
       expect([
@@ -114,7 +117,7 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
         complex.enStreetNumberTo,
         complex.enBuildingName,
       ]).toEqual(['11', '12', null])
-      const records = (await Bun.file(output + '.address3d.jsonl').text())
+      const records = (await Bun.file(`${output}.address3d.jsonl`).text())
         .trim()
         .split('\n')
         .map(s => JSON.parse(s))
@@ -132,7 +135,7 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
 })
 test('Long Shin rejects changed range labels and does not extrapolate beyond reviewed releases', () => {
   const changed = rows(features(true), '2024-07-25.0')
-  changed[1]!.enStreetNumberTo = '13'
+  requireDefined(changed[1]).enStreetNumberTo = '13'
   expect(() => applyLongShinHierarchy(changed, '2024-07-25.0')).toThrow()
   expect(
     applyLongShinHierarchy(rows(features(), '2026-09-01.0'), '2026-09-01.0').size,

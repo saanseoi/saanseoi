@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
 import { als3dHash, readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
@@ -83,7 +84,7 @@ function retain(
     evidenceSourceVersion: !rule.retainOriginalCoordinates
       ? rich
         ? version
-        : dated!.version
+        : requireDefined(dated).version
       : chosen.evidenceSourceVersion,
   }
 }
@@ -113,7 +114,7 @@ export function retainAlsHouses(features: HkgovAlsSourceFeature[], version: stri
       sourceFile: curationFile,
       featureIndexOneBased: fixture.retentions.indexOf(rule) + 1,
     })
-    provenance.set(rule.csus[0]!, {
+    provenance.set(requireDefined(rule.csus[0]), {
       id: rule.id,
       curationFile,
       curation,
@@ -129,10 +130,13 @@ export function labelAlsHouseRetentions(
 ) {
   for (const row of rows)
     if (row.sourceFile === curationFile) {
-      assert(provenance.has(row.hkgovCsuId!), 'Missing house retention provenance')
+      assert(
+        provenance.has(requireDefined(row.hkgovCsuId)),
+        'Missing house retention provenance',
+      )
       row.sources = JSON.stringify({
         ...JSON.parse(row.sources),
-        hkgovAlsHouseRetention: provenance.get(row.hkgovCsuId!),
+        hkgovAlsHouseRetention: provenance.get(requireDefined(row.hkgovCsuId)),
       })
       row.identityMatchMethod = 'reviewed-house-retention'
     }

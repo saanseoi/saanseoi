@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
@@ -69,13 +70,14 @@ test.skipIf(!existsSync(root))(
           ),
         )
         const changed = structuredClone(rows)
-        changed.find(
-          row => row.enEstateName === 'HUNG HOM ESTATE PHASE 2',
-        )!.enStreetNumberFrom = '99'
+        requireDefined(
+          changed.find(row => row.enEstateName === 'HUNG HOM ESTATE PHASE 2'),
+        ).enStreetNumberFrom = '99'
         expect(() => suppressHungHomPhase2Aliases(changed, version)).toThrow()
         const wrongEstate = structuredClone(rows)
-        wrongEstate.find(row => row.geoAddress === '4290617573T20050430')!.geoAddress =
-          'wrong'
+        requireDefined(
+          wrongEstate.find(row => row.geoAddress === '4290617573T20050430'),
+        ).geoAddress = 'wrong'
         expect(() => applyKoYeeEstateOwnership(wrongEstate, version)).toThrow()
         const raw3d = (
           await Bun.file(
@@ -118,22 +120,28 @@ test.skipIf(!existsSync(root))(
               r.enBuildingName?.startsWith(`${name} (BLK `),
           )
           expect(houses).toHaveLength(1)
-          expect(houses[0]!.enStreetNumberFrom).toBe('28')
-          expect(houses[0]!.enStreetName).toBe('TAI WAN ROAD')
-          const inventory = collections.filter(r => r.address2dId === houses[0]!.id)
+          expect(requireDefined(houses[0]).enStreetNumberFrom).toBe('28')
+          expect(requireDefined(houses[0]).enStreetName).toBe('TAI WAN ROAD')
+          const inventory = collections.filter(
+            r => r.address2dId === requireDefined(houses[0]).id,
+          )
           expect(inventory).toHaveLength(1)
           expect(inventory[0].unitCount).toBe(count)
         }
         expect(
           rows.filter(r => r.enEstateName === 'HUNG HOM ESTATE PHASE 2'),
         ).toHaveLength(0)
-        const yat = rows.find(r => r.enBuildingName?.startsWith('HUNG YAT HOUSE'))!
+        const yat = requireDefined(
+          rows.find(r => r.enBuildingName?.startsWith('HUNG YAT HOUSE')),
+        )
         expect(JSON.parse(yat.sources).hkgovAlsHungHomPhase2.aliasCsu).toBe(
           '3752018776T20110715',
         )
         const koYee = rows.filter(r => r.enEstateName === 'KO YEE ESTATE')
         expect(koYee).toHaveLength(5)
-        const estate = koYee.find(r => r.geoAddress === '4290617573T20050430')!
+        const estate = requireDefined(
+          koYee.find(r => r.geoAddress === '4290617573T20050430'),
+        )
         expect(estate.curatedGranularity).toBe('complex')
         expect(estate.enStreetNumberFrom).toBe('28')
         expect(collections.filter(r => r.address2dId === estate.id)).toHaveLength(0)

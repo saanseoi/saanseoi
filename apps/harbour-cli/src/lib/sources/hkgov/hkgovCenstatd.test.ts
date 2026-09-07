@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -138,9 +139,11 @@ describe('C&SD district GML preparation', () => {
         metadata: await parquetMetadataAsync(displayFile),
       })
       const densityGml = strFromU8(
-        readSafeZipArchive(densityArchive, {
-          select: name => name === 'Density_2024.gml',
-        }).entries['Density_2024.gml']!,
+        requireDefined(
+          readSafeZipArchive(densityArchive, {
+            select: name => name === 'Density_2024.gml',
+          }).entries['Density_2024.gml'],
+        ),
       )
       const densityByCode = new Map(
         parseHkgovCenstatdDistrictGml(densityGml, 'Density_2024').map(feature => [

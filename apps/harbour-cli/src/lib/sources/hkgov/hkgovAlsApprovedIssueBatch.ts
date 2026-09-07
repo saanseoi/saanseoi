@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import { isDeepStrictEqual } from 'node:util'
 import { buildDeterministicUuidV5 } from '@repo/db'
@@ -71,7 +72,7 @@ export function applyApprovedIssueBatch(
             r =>
               r.hkgovCsuId === rule.ownerCsu &&
               r.enEstateName === rule.estate &&
-              new RegExp(rule.ownerPattern!).test(
+              new RegExp(requireDefined(rule.ownerPattern)).test(
                 JSON.parse(r.engPremisesAddressJson ?? '{}').BuildingName ?? '',
               ),
           )
@@ -82,7 +83,7 @@ export function applyApprovedIssueBatch(
               a =>
                 a.kind === 'owner2d' &&
                 a.versions.includes(version) &&
-                isDeepStrictEqual(a.evidence, rowEvidence(owner!)),
+                isDeepStrictEqual(a.evidence, rowEvidence(requireDefined(owner))),
             ),
             `Issue ${rule.id}: owner evidence changed`,
           )
@@ -90,7 +91,9 @@ export function applyApprovedIssueBatch(
         const discarded = new Set(candidates)
         rows.splice(0, rows.length, ...rows.filter(r => !discarded.has(r)))
       } else {
-        owner = candidates.find(r => r.enStreetNumberFrom === '6H') ?? candidates[0]!
+        owner =
+          candidates.find(r => r.enStreetNumberFrom === '6H') ??
+          requireDefined(candidates[0])
         const discarded = new Set(candidates.filter(r => r !== owner))
         rows.splice(0, rows.length, ...rows.filter(r => !discarded.has(r)))
         if (rule.action === 'number' || rule.action === 'street') {
@@ -98,14 +101,16 @@ export function applyApprovedIssueBatch(
             const previous = owner[`${language}StreetNumberFrom`]
             if (previous)
               owner[`${language}FormattedAddress`] =
-                owner[`${language}FormattedAddress`]?.replace(previous, rule.number!) ??
-                null
-            owner[`${language}StreetNumberFrom`] = rule.number!
+                owner[`${language}FormattedAddress`]?.replace(
+                  previous,
+                  requireDefined(rule.number),
+                ) ?? null
+            owner[`${language}StreetNumberFrom`] = requireDefined(rule.number)
           }
-          owner.identityNumberFrom = rule.number!
+          owner.identityNumberFrom = requireDefined(rule.number)
           owner.identitySummary = {
             ...owner.identitySummary,
-            numberFrom: rule.number!,
+            numberFrom: requireDefined(rule.number),
           }
         }
         if (rule.action === 'street') {
@@ -116,14 +121,17 @@ export function applyApprovedIssueBatch(
             const previous = owner[`${language}StreetName`]
             if (previous)
               owner[`${language}FormattedAddress`] =
-                owner[`${language}FormattedAddress`]?.replace(previous, street!) ?? null
-            owner[`${language}StreetName`] = street!
+                owner[`${language}FormattedAddress`]?.replace(
+                  previous,
+                  requireDefined(street),
+                ) ?? null
+            owner[`${language}StreetName`] = requireDefined(street)
           }
           owner.identityRouteNames = JSON.stringify([rule.enStreet, rule.zhStreet])
           owner.identitySummary = {
             ...owner.identitySummary,
             routeKind: 'street',
-            routeName: rule.enStreet!,
+            routeName: requireDefined(rule.enStreet),
           }
         }
         if (rule.action === 'label') {
@@ -134,12 +142,15 @@ export function applyApprovedIssueBatch(
             const previous = owner[`${language}BuildingName`]
             if (previous)
               owner[`${language}FormattedAddress`] =
-                owner[`${language}FormattedAddress`]?.replace(previous, name!) ?? null
-            owner[`${language}BuildingName`] = name!
+                owner[`${language}FormattedAddress`]?.replace(
+                  previous,
+                  requireDefined(name),
+                ) ?? null
+            owner[`${language}BuildingName`] = requireDefined(name)
           }
           owner.identitySummary = {
             ...owner.identitySummary,
-            buildingName: rule.enName!,
+            buildingName: requireDefined(rule.enName),
           }
         }
         {

@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import type { Als3dFeature } from './hkgovAls3d'
@@ -35,8 +36,8 @@ export function suppressKoYeeDuplicate(rows: PreparedHkgovAlsRow[], version: str
   const aliases = estateRows.filter(row => row.hkgovCsuId === '4286117561T20050430')
   assert.equal(owner.length, 1, 'Ko Yee duplicate: named owner changed')
   assert.equal(aliases.length, 1, 'Ko Yee duplicate: unnamed alias changed')
-  const retained = owner[0]!
-  const duplicate = aliases[0]!
+  const retained = requireDefined(owner[0])
+  const duplicate = requireDefined(aliases[0])
   assert.equal(retained.zhHantBuildingName, '高盛樓')
   for (const row of [retained, duplicate]) {
     assert.equal(row.zhHantEstateName, '高怡邨')
@@ -52,7 +53,10 @@ export function suppressKoYeeDuplicate(rows: PreparedHkgovAlsRow[], version: str
   assert.equal(duplicate.zhHantBuildingName, null)
   const point = version < '2026-04-03.0' ? [114.24114, 22.29688] : [114.24086, 22.29696]
   for (const row of [retained, duplicate])
-    assert.deepEqual(JSON.parse(row.geometry!), { type: 'Point', coordinates: point })
+    assert.deepEqual(JSON.parse(requireDefined(row.geometry)), {
+      type: 'Point',
+      coordinates: point,
+    })
   retained.sources = JSON.stringify({
     ...JSON.parse(retained.sources),
     hkgovAlsKoYeeDuplicate: {

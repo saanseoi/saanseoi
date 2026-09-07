@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-lin-tsui.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
@@ -92,7 +93,7 @@ export function suppressLinTsuiVariants(rows: PreparedHkgovAlsRow[]) {
   if (!candidates.length) return 0
   const owners = candidates.filter(row => row.enBuildingName === 'LIN TSUI HOUSE')
   assert.equal(owners.length, 1, 'Lin Tsui: exactly one named owner required')
-  const owner = owners[0]!
+  const owner = requireDefined(owners[0])
   const duplicates = candidates.filter(row => row !== owner)
   assert.equal(
     duplicates.length,

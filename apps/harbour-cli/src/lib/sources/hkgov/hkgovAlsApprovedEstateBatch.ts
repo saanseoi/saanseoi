@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-estate-batch.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
@@ -96,19 +97,19 @@ export function suppressApprovedEstateDuplicates(
         r.enEstateName === rule.estate,
     )
     assert.equal(owners.length, 1, `Duplicate ${rule.id}: owner changed`)
-    const alias = aliases[0]!,
-      owner = owners[0]!
-    const rawEn = JSON.parse(alias.engPremisesAddressJson!),
-      rawZh = JSON.parse(alias.chiPremisesAddressJson!)
+    const alias = requireDefined(aliases[0]),
+      owner = requireDefined(owners[0])
+    const rawEn = JSON.parse(requireDefined(alias.engPremisesAddressJson)),
+      rawZh = JSON.parse(requireDefined(alias.chiPremisesAddressJson))
     const signature = estateBatchSignature({
-      geometry: JSON.parse(alias.geometry!),
+      geometry: JSON.parse(requireDefined(alias.geometry)),
       properties: {
         Address: {
           PremisesAddress: {
-            BuildingCsuInformation: { CsuId: alias.hkgovCsuId! },
+            BuildingCsuInformation: { CsuId: requireDefined(alias.hkgovCsuId) },
             ChiPremisesAddress: rawZh,
             EngPremisesAddress: rawEn,
-            GeoAddress: alias.geoAddress!,
+            GeoAddress: requireDefined(alias.geoAddress),
           },
         },
       },
@@ -123,7 +124,7 @@ export function suppressApprovedEstateDuplicates(
       [rawEn, 'engPremisesAddressJson', 'EngBlock'],
       [rawZh, 'chiPremisesAddressJson', 'ChiBlock'],
     ] as const) {
-      const named = JSON.parse(owner[field]!)
+      const named = JSON.parse(requireDefined(owner[field]))
       delete named.BuildingName
       delete named[block]
       assert.deepEqual(named, raw, `Duplicate ${rule.id}: additional address data`)

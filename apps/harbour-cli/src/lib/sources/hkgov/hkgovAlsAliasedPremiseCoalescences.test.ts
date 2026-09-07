@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import { coalesceAlsAliasedPremises } from './hkgovAlsAliasedPremiseCoalescences'
@@ -43,22 +44,24 @@ function row(input: {
 }
 
 test('coalesces the reviewed named and structured aliases without losing provenance', () => {
-  const rows = fixture.coalescences.flatMap(decision => [
-    row({
-      csu: decision.owner.csu,
-      id: `named-${decision.blockRef}`,
-      buildingName: decision.owner.enBuildingName,
-      zhBuildingName: decision.owner.zhHantBuildingName,
-      blockRef: decision.blockRef,
-    }),
-    row({
-      csu: decision.aliasCsu,
-      id: `structured-${decision.blockRef}`,
-      buildingName: null,
-      zhBuildingName: null,
-      blockRef: decision.blockRef,
-    }),
-  ])
+  const rows = fixture.coalescences
+    .filter(decision => !('sharedBuilding' in decision))
+    .flatMap(decision => [
+      row({
+        csu: decision.owner.csu,
+        id: `named-${decision.blockRef}`,
+        buildingName: decision.owner.enBuildingName,
+        zhBuildingName: decision.owner.zhHantBuildingName,
+        blockRef: decision.blockRef,
+      }),
+      row({
+        csu: decision.aliasCsu,
+        id: `structured-${decision.blockRef}`,
+        buildingName: null,
+        zhBuildingName: null,
+        blockRef: decision.blockRef,
+      }),
+    ])
   const skipMappings = coalesceAlsAliasedPremises(
     structuredClone(rows),
     '2026-08-19.0',
@@ -72,6 +75,63 @@ test('coalesces the reviewed named and structured aliases without losing provena
   expect(JSON.parse(owner.sources).hkgovAlsAliasedPremiseCoalescence).toMatchObject({
     id: 'grandeur-terrace-block-1',
     suppressedAddress: { addressId: 'structured-1' },
+  })
+})
+
+function sharedBuildingRow(id: string, withStreet: boolean) {
+  return {
+    id,
+    canonicalId: id,
+    identityKey: id,
+    hkgovCsuId: '3104715804T20050430',
+    enEstateName: 'SAI WAN ESTATE',
+    zhHantEstateName: '西環邨',
+    enStreetName: withStreet ? 'CADOGAN STREET' : null,
+    zhHantStreetName: withStreet ? '加多近街' : null,
+    enStreetNumberFrom: withStreet ? '52' : null,
+    enStreetNumberTo: withStreet ? '60' : null,
+    zhHantStreetNumberFrom: withStreet ? '52' : null,
+    zhHantStreetNumberTo: withStreet ? '60' : null,
+    geometry: JSON.stringify({ type: 'Point', coordinates: [114.12621, 22.28124] }),
+    sources: '{}',
+    engPremisesAddressJson: JSON.stringify({
+      BuildingName: 'EAST TERRACE',
+      EngEstate: { EstateName: 'SAI WAN ESTATE' },
+      ...(withStreet
+        ? {
+            EngStreet: {
+              StreetName: 'CADOGAN STREET',
+              BuildingNoFrom: '52',
+              BuildingNoTo: '60',
+            },
+          }
+        : {}),
+    }),
+    chiPremisesAddressJson: JSON.stringify({
+      BuildingName: '東苑臺',
+      ChiEstate: { EstateName: '西環邨' },
+      ...(withStreet
+        ? {
+            ChiStreet: {
+              StreetName: '加多近街',
+              BuildingNoFrom: '52',
+              BuildingNoTo: '60',
+            },
+          }
+        : {}),
+    }),
+  } as PreparedHkgovAlsRow
+}
+
+test('coalesces equivalent same-CSU shared-building assertions', () => {
+  const rows = [sharedBuildingRow('owner', true), sharedBuildingRow('alias', false)]
+  const mappings = coalesceAlsAliasedPremises(rows, '2026-08-19.0')
+  expect(mappings.get('alias')).toBe('owner')
+  expect(JSON.parse(rows[0]?.sources ?? '{}')).toMatchObject({
+    hkgovAlsAliasedPremiseCoalescence: {
+      id: 'sai-wan-estate-east-terrace-shared-building',
+      suppressedAddress: { addressId: 'alias' },
+    },
   })
 })
 
@@ -106,12 +166,12 @@ test('rejects changed named owners and structured alias identities', () => {
       alias.zhHantBlockDescriptor = null
     },
     (_owner: PreparedHkgovAlsRow, alias: PreparedHkgovAlsRow) => {
-      const raw = JSON.parse(alias.chiPremisesAddressJson!)
+      const raw = JSON.parse(requireDefined(alias.chiPremisesAddressJson))
       raw.ChiBlock.BlockNo = '2'
       alias.chiPremisesAddressJson = JSON.stringify(raw)
     },
   ]) {
-    const decision = fixture.coalescences[0]!
+    const decision = requireDefined(fixture.coalescences[0])
     const owner = row({
       csu: decision.owner.csu,
       id: 'named',

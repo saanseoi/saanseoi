@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -44,7 +45,10 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
     const dir = await mkdtemp(join(tmpdir(), 'als-so-uk-retention-'))
     let stableId: string | undefined
     try {
-      for (const [index, release] of [...releases, releases.at(-1)!].entries()) {
+      for (const [index, release] of [
+        ...releases,
+        requireDefined(releases.at(-1)),
+      ].entries()) {
         const v = index === releases.length ? '2030-01-01.0' : version(release)
         const source: HkgovAlsSourceFeature[] = []
         for (const district of ['sham_shui_po', 'sha_tin']) {
@@ -69,11 +73,15 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         )
         if (v === '2030-01-01.0') {
           const changed = structuredClone(source)
-          changed.find(
-            s =>
-              s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
-                ?.BuildingName === 'CAMELLIA HOUSE',
-          )!.feature.geometry!.coordinates = [0, 0]
+          requireDefined(
+            requireDefined(
+              changed.find(
+                s =>
+                  s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
+                    ?.BuildingName === 'CAMELLIA HOUSE',
+              ),
+            ).feature.geometry,
+          ).coordinates = [0, 0]
           expect(() => retainAlsHouses(changed, v)).toThrow(
             'publisher assertions changed',
           )
@@ -95,12 +103,16 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
             r.hkgovCsuId === '3430722387T20150302',
         )
         expect(camellias).toHaveLength(1)
-        const owner = camellias[0]!
+        const owner = requireDefined(camellias[0])
         if (stableId) expect(owner.id).toBe(stableId)
         else stableId = owner.id
         expect(
-          JSON.parse(rows.find(r => r.hkgovCsuId === '3678525828T20050430')!.geometry!)
-            .coordinates,
+          JSON.parse(
+            requireDefined(
+              requireDefined(rows.find(r => r.hkgovCsuId === '3678525828T20050430'))
+                .geometry,
+            ),
+          ).coordinates,
         ).toEqual([114.18189, 22.37163])
         const features = []
         for await (const { feature } of readAls3dFeatures(

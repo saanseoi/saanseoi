@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-estate-ownership.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -21,7 +22,7 @@ export function suppressHungHomPhase2Aliases(
       [rule.ownerName, `${rule.ownerName} (BLK 1)`].includes(row.enBuildingName ?? ''),
   )
   assert.equal(owners.length, 1, 'Hung Hom: unique Hung Yat owner required')
-  const owner = owners[0]!
+  const owner = requireDefined(owners[0])
   assert.equal(
     owner.zhHantBuildingName,
     owner.enBuildingName === rule.ownerName
@@ -59,8 +60,8 @@ export function suppressHungHomPhase2Aliases(
     assert.equal(row.zhHantStreetName, taiWan ? '大環道' : '戴亞街')
     assert.equal(row.enStreetNumberFrom, taiWan ? '28' : '9')
     assert.equal(row.zhHantStreetNumberFrom, row.enStreetNumberFrom)
-    addresses.push(row.enStreetName!)
-    assert.deepEqual(JSON.parse(row.geometry!), {
+    addresses.push(requireDefined(row.enStreetName))
+    assert.deepEqual(JSON.parse(requireDefined(row.geometry)), {
       type: 'Point',
       coordinates: earlier ? rule.earlierCoordinates : rule.coordinates,
     })
@@ -100,13 +101,13 @@ export function applyKoYeeEstateOwnership(
   const rule = fixture.koYee
   const candidates = estateRows.filter(row => row.geoAddress === rule.geoAddress)
   assert.equal(candidates.length, 1, 'Ko Yee: unique estate address required')
-  const estate = candidates[0]!
+  const estate = requireDefined(candidates[0])
   assert.equal(estate.hkgovCsuId, rule.csu)
   assert.equal(estate.enBuildingName, null)
   assert.equal(estate.zhHantBuildingName, null)
   assert.equal(estate.enDistrict, 'KWUN TONG DISTRICT')
   assert.equal(estate.zhHantDistrict, '觀塘區')
-  assert.deepEqual(JSON.parse(estate.geometry!), {
+  assert.deepEqual(JSON.parse(requireDefined(estate.geometry)), {
     type: 'Point',
     coordinates: version < '2026-04-03.0' ? rule.earlierCoordinates : rule.coordinates,
   })
@@ -115,8 +116,8 @@ export function applyKoYeeEstateOwnership(
       row => row.hkgovCsuId === csu && row.enBuildingName === en,
     )
     assert.equal(matches.length, 1, `Ko Yee: unique ${en} required`)
-    assert.equal(matches[0]!.zhHantBuildingName, zh)
-    return matches[0]!
+    assert.equal(requireDefined(matches[0]).zhHantBuildingName, zh)
+    return requireDefined(matches[0])
   })
   for (const row of [estate, ...children]) {
     assert.equal(row.zhHantEstateName, '高怡邨')

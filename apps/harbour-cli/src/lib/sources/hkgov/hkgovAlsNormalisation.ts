@@ -537,12 +537,3 @@ export function int32Column(name: string, data: Array<number | null>, nullable =
     type: 'INT32' as const,
   }
 }
-
-function booleanColumn(name: string, data: boolean[], nullable = false) {
-  return {
-    name,
-    data,
-    nullable,
-    type: 'BOOLEAN' as const,
-  }
-}

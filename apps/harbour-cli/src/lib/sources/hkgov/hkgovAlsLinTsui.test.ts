@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -42,7 +43,7 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
         '2d.geojson',
         i + 1,
         'test',
-        version!,
+        requireDefined(version),
         maps,
         true,
         new Map(),
@@ -52,11 +53,15 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
     )
     expect(suppressLinTsuiVariants(rows)).toBe(1)
     expect(rows).toHaveLength(1)
-    expect(rows[0]!.hkgovCsuId).toBe('4238313558T20180523')
-    expect(JSON.parse(rows[0]!.geometry!).coordinates).toEqual([114.2362, 22.26082])
-    expect(JSON.parse(rows[0]!.sources).hkgovAlsLinTsuiSuppressed).toHaveLength(1)
-    identity ??= rows[0]!.id
-    expect(rows[0]!.id).toBe(identity)
+    expect(requireDefined(rows[0]).hkgovCsuId).toBe('4238313558T20180523')
+    expect(
+      JSON.parse(requireDefined(requireDefined(rows[0]).geometry)).coordinates,
+    ).toEqual([114.2362, 22.26082])
+    expect(
+      JSON.parse(requireDefined(rows[0]).sources).hkgovAlsLinTsuiSuppressed,
+    ).toHaveLength(1)
+    identity ??= requireDefined(rows[0]).id
+    expect(requireDefined(rows[0]).id).toBe(identity)
     expect(JSON.stringify(features)).toBe(original)
     const raw3d = await Bun.file(
       `${base}/als_addresses_3d_(public_rental_housing).geojson`,
@@ -75,7 +80,7 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
       const result = await prepareAls3dCollections({
         sourceDir: temporary,
         outputFile: join(temporary, 'out'),
-        sourceVersion: version!,
+        sourceVersion: requireDefined(version),
         rows,
       })
       expect(result.collectionCount).toBe(1)
@@ -90,8 +95,8 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
     } finally {
       await rm(temporary, { recursive: true, force: true })
     }
-    const drift = structuredClone(features[0]!)
-    drift.geometry!.coordinates = [114, 22]
-    expect(() => resolveLinTsui(drift, version!)).toThrow()
+    const drift = structuredClone(requireDefined(features[0]))
+    requireDefined(drift.geometry).coordinates = [114, 22]
+    expect(() => resolveLinTsui(drift, requireDefined(version))).toThrow()
   }
 })

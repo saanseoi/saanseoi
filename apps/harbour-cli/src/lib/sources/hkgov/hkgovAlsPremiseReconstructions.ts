@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-reconstructions.json'
 import type { HkgovAlsSourceFeature, PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -52,8 +53,8 @@ export function reconstructAlsPremises(
         geometry: {
           ...evidence.geometry,
           coordinates: [
-            evidence.geometry.coordinates[0]!,
-            evidence.geometry.coordinates[1]!,
+            requireDefined(evidence.geometry.coordinates[0]),
+            requireDefined(evidence.geometry.coordinates[1]),
           ],
         },
       },

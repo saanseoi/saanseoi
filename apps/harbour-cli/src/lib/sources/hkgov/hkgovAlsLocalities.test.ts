@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import { applyAlsLocalities } from './hkgovAlsLocalities'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -34,7 +35,7 @@ test('bounds dates and scope and refuses contradictory or unexpectedly missing s
   applyAlsLocalities([r], '2024-07-24.0')
   expect(JSON.stringify(r)).toBe(before)
   expect(() => applyAlsLocalities([r], '2025-04-26.0')).toThrow()
-  const en = JSON.parse(r.engPremisesAddressJson!)
+  const en = JSON.parse(requireDefined(r.engPremisesAddressJson))
   en.EngStreet.LocationName = 'SHEUNG SHUI'
   r.engPremisesAddressJson = JSON.stringify(en)
   expect(() => applyAlsLocalities([r], '2024-07-25.0')).toThrow()

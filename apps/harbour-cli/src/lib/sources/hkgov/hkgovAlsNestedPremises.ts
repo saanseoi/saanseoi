@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-nested-premises.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -11,7 +12,7 @@ export function applyAlsNestedPremises(rows: PreparedHkgovAlsRow[], version: str
     )
     if (!children.length) continue
     assert.equal(children.length, 1)
-    const child = children[0]!
+    const child = requireDefined(children[0])
     const parents = rows.filter(
       r => r.hkgovCsuId === d.parent.csu && r.enBuildingName === d.parent.enName,
     )
@@ -24,8 +25,8 @@ export function applyAlsNestedPremises(rows: PreparedHkgovAlsRow[], version: str
       1,
       'Nested premise: missing or ambiguous estate source',
     )
-    const parent = parents[0]!,
-      sourceEstate = sourceEstates[0]!
+    const parent = requireDefined(parents[0]),
+      sourceEstate = requireDefined(sourceEstates[0])
     assert.equal(child.zhHantBuildingName, d.child.zhName)
     assert.equal(parent.zhHantBuildingName, d.parent.zhName)
     for (const r of [parent, sourceEstate]) {
@@ -38,7 +39,10 @@ export function applyAlsNestedPremises(rows: PreparedHkgovAlsRow[], version: str
       assert.equal(r.enStreetNumberFrom, d.streetNumber)
       assert.equal(r.zhHantStreetNumberFrom, d.streetNumber)
     }
-    assert.deepEqual(JSON.parse(child.geometry!).coordinates, d.childCoordinates)
+    assert.deepEqual(
+      JSON.parse(requireDefined(child.geometry)).coordinates,
+      d.childCoordinates,
+    )
     const complexes = rows.filter(
       r => r.curatedGranularity === 'complex' && r.enEstateName === d.estate.enName,
     )

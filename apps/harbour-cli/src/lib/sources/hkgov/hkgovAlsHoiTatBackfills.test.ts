@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -24,7 +25,7 @@ function sources(version: string) {
 function parents(version: string) {
   const selected = sources(version)
   if (['2026-04-03.0', '2026-04-22.0', '2026-04-25.0'].includes(version)) {
-    const b = fixture.backfills.find(b => b.csu === shing)!
+    const b = requireDefined(fixture.backfills.find(b => b.csu === shing))
     selected.push({
       feature: structuredClone(
         b.feature,
@@ -34,10 +35,12 @@ function parents(version: string) {
     })
   }
   return selected.map(s => {
-    const p = s.feature.properties!.Address!.PremisesAddress!
+    const p = requireDefined(
+      requireDefined(requireDefined(s.feature.properties).Address).PremisesAddress,
+    )
     return {
       enEstateName: estate,
-      hkgovCsuId: p.BuildingCsuInformation!.CsuId,
+      hkgovCsuId: requireDefined(p.BuildingCsuInformation).CsuId,
       engPremisesAddressJson: JSON.stringify(p.EngPremisesAddress),
       chiPremisesAddressJson: JSON.stringify(p.ChiPremisesAddress),
       sourceFile: s.sourceFile,
@@ -53,14 +56,16 @@ test('Hoi Tat keeps Hoi Wah active and bounds Hoi Shing to the three omissions a
     const restored = sources(v)
     expect(restored).toHaveLength(1)
     expect(
-      fixture.backfills.find(b => b.csu === shing)!.feature.geometry.coordinates,
+      requireDefined(fixture.backfills.find(b => b.csu === shing)).feature.geometry
+        .coordinates,
     ).toEqual([114.15146, 22.32915])
   }
   expect(sources('2026-07-08.0')).toHaveLength(1)
   const future = parents('2026-09-07.0')
   labelAls2dBackfillRows(future)
   expect(
-    JSON.parse(future[0]!.sources).hkgovAlsAddressBackfill.curation.verificationStatus,
+    JSON.parse(requireDefined(future[0]).sources).hkgovAlsAddressBackfill.curation
+      .verificationStatus,
   ).toBe('unverified')
   expect(() =>
     buildAls2dBackfillFeatures(sources('2026-09-07.0'), '2026-09-07.0'),
@@ -104,31 +109,34 @@ test('Hoi Tat materialises hash-exact bilingual inventories with provenance and 
     expect(restored).toHaveLength(2)
     for (const r of restored) {
       const p = r.feature.properties.Address.PremisesAddress
-      const decision = fixture.backfills.find(
-        b => b.csu === p.BuildingCsuInformation!.CsuId,
-      )!
+      const decision = requireDefined(
+        fixture.backfills.find(
+          b => b.csu === requireDefined(p.BuildingCsuInformation).CsuId,
+        ),
+      )
       expect(publisherInventoryHash(r.feature)).toBe(decision.expectedInventoryHash)
       const count = decision.csu === wah ? 780 : 1040
-      expect(p.EngPremisesAddress!.Eng3dAddress).toHaveLength(count)
-      expect(p.ChiPremisesAddress!.Chi3dAddress).toHaveLength(count)
-      expect(r.backfill!.curation.verificationStatus).toBe('verified')
+      expect(requireDefined(p.EngPremisesAddress).Eng3dAddress).toHaveLength(count)
+      expect(requireDefined(p.ChiPremisesAddress).Chi3dAddress).toHaveLength(count)
+      expect(requireDefined(r.backfill).curation.verificationStatus).toBe('verified')
     }
     expect(
-      (await collect('2026-09-07.0'))[0]!.backfill!.curation.verificationStatus,
+      requireDefined(requireDefined((await collect('2026-09-07.0'))[0]).backfill)
+        .curation.verificationStatus,
     ).toBe('unverified')
     await expect(
       collect('2026-04-03.0', [
         ...parents('2026-04-03.0'),
-        parents('2026-04-03.0')[0]!,
+        requireDefined(parents('2026-04-03.0')[0]),
       ]),
     ).rejects.toThrow('ambiguous or missing parent')
     const changed = parents('2026-04-03.0')
-    changed[0]!.engPremisesAddressJson = '{}'
+    requireDefined(changed[0]).engPremisesAddressJson = '{}'
     await expect(collect('2026-04-03.0', changed)).rejects.toThrow()
     await writeFile(
       file,
       JSON.stringify(
-        { type: 'FeatureCollection', features: [restored[0]!.feature] },
+        { type: 'FeatureCollection', features: [requireDefined(restored[0]).feature] },
         null,
         2,
       ),

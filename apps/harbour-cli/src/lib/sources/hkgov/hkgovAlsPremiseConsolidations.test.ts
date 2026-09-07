@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { test, expect } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-consolidations.json'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
@@ -9,7 +10,10 @@ function rowsFor(release: (typeof fixture.decisions)[number]['releases'][number]
       {
         geometry: {
           type: e.geometry.type,
-          coordinates: [e.geometry.coordinates[0]!, e.geometry.coordinates[1]!],
+          coordinates: [
+            requireDefined(e.geometry.coordinates[0]),
+            requireDefined(e.geometry.coordinates[1]),
+          ],
         },
         properties: {
           Address: {
@@ -49,12 +53,12 @@ test('all thirty reviewed releases retain one named centre, stable identity and 
   let id: string | undefined
   let removed = 0,
     renamed = 0
-  for (const release of fixture.decisions[0]!.releases) {
+  for (const release of requireDefined(fixture.decisions[0]).releases) {
     const rows = rowsFor(release),
       before = structuredClone(rows)
     applyAlsPremiseConsolidations(rows, release.version)
     expect(rows).toHaveLength(1)
-    const owner = rows[0]!
+    const owner = requireDefined(rows[0])
     id ??= owner.id
     expect(owner.id).toBe(id)
     expect(owner.id).toMatch(/^ss-[0-9a-f-]{36}$/)
@@ -68,7 +72,7 @@ test('all thirty reviewed releases retain one named centre, stable identity and 
     expect(evidence).toHaveLength(before.length)
     expect(
       evidence.map((e: { chiPremisesAddress: unknown }) => e.chiPremisesAddress),
-    ).toEqual(before.map(r => JSON.parse(r.chiPremisesAddressJson!)))
+    ).toEqual(before.map(r => JSON.parse(requireDefined(r.chiPremisesAddressJson))))
     removed += before.length - rows.length
     renamed += Number(before.some(r => r.zhHantBuildingName === '彩盈商場'))
   }
@@ -76,7 +80,7 @@ test('all thirty reviewed releases retain one named centre, stable identity and 
   expect(renamed).toBe(10)
 })
 test('rejects altered or incomplete assertions and leaves out-of-bounds sources alone', () => {
-  const release = fixture.decisions[0]!.releases[0]!
+  const release = requireDefined(requireDefined(fixture.decisions[0]).releases[0])
   const rows = rowsFor(release),
     before = JSON.stringify(rows)
   applyAlsPremiseConsolidations(rows, '2024-07-24.0')
@@ -84,7 +88,7 @@ test('rejects altered or incomplete assertions and leaves out-of-bounds sources 
   expect(() => applyAlsPremiseConsolidations(rows.slice(1), release.version)).toThrow(
     'source changed',
   )
-  rows[0]!.engPremisesAddressJson = '{}'
+  requireDefined(rows[0]).engPremisesAddressJson = '{}'
   expect(() => applyAlsPremiseConsolidations(rows, release.version)).toThrow(
     'source changed',
   )

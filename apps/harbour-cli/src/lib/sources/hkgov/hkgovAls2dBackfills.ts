@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-2d-backfills.json'
 import {
@@ -48,8 +49,8 @@ export function buildAls2dBackfillFeatures(
         geometry: {
           ...b.feature.geometry,
           coordinates: [
-            b.feature.geometry.coordinates[0]!,
-            b.feature.geometry.coordinates[1]!,
+            requireDefined(b.feature.geometry.coordinates[0]),
+            requireDefined(b.feature.geometry.coordinates[1]),
           ] as [number, number],
         },
       },
