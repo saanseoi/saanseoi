@@ -73,6 +73,10 @@ export async function writeGeometryRowsDurably(
     inputs: { version, normalisedSha256: hash.digest('hex') },
   }
   const directory = sqlDeliveryPhaseDirectory(input)
+  // A retained plan already contains the exact mutations and churn. Keep a retry
+  // silent here: callers use this callback to detect generation, not replay.
+  const retainedPlan = await readDeliveryPlan(directory)
+  if (!retainedPlan) onProgress?.('plan durable local mutations')
   const plan = await prepareNativeSqlDelivery({
     ...input,
     directory,
@@ -84,6 +88,8 @@ export async function writeGeometryRowsDurably(
       captureNativePlanningCopy({
         targets,
         append,
+        onProgress: (completed, total, binding) =>
+          onProgress?.(`copy ${binding} for mutation plan`, completed, total),
         generate: async databases => {
           const result = await writeGeometryRows(
             {
@@ -103,7 +109,15 @@ export async function writeGeometryRowsDurably(
   })
   // Validate continuation output before making any target mutation.
   const churn = decodeChurn(plan.outputs?.churn)
-  await runNativeSqlDelivery(directory, { files })
+  if (!retainedPlan)
+    onProgress?.('replay durable local mutations', 0, plan.batches.length)
+  await runNativeSqlDelivery(directory, {
+    files,
+    onProgress: retainedPlan
+      ? undefined
+      : (completed, total) =>
+          onProgress?.('replay durable local mutations', completed, total),
+  })
   return { churn }
 }
 
