@@ -70,14 +70,45 @@ databases and failed fixture-development attempts are retained separately.
 
 This test invokes the production Division materialisation adapter and real local Harbour
 API, but seeds registry metadata directly and does not exercise upload registration or
-source-object upload. Other families, geometry companions, remote D1 and complete
-registration/upload workflows still require acceptance evidence.
+source-object upload. Other families, geometry companions and complete registration/
+upload workflows still require acceptance evidence.
 
 `scripts/prepare-ingestion-acceptance.ts --prepare` creates a source-only workspace;
 `scripts/configure-ingestion-acceptance-local.ts <run-directory>` creates local-only
 bindings and a separate local API key. Neither script provisions or uploads remote
 resources. The manifest proposes a 32-record-per-family, 5 MiB aggregate fixture budget;
 a remote upload runner must enforce it before any upload.
+
+## Small-fixture preview D1 acceptance evidence
+
+The same retained run provisions an acceptance-owned preview Worker, R2 bucket, queue
+and eight D1 databases with the `ss-accept-yhcqam-preview` prefix. It uses a separate
+snapshot workspace and private Worker API key. The snapshot has no production bindings,
+and the runner allows only the acceptance Worker and those owned D1 database IDs.
+
+The Division Parquet remains 19 rows and 2,648 bytes; it is inspected before remote
+registration. The runner calls the deployed Worker's authenticated registration
+endpoint, prepares SQL from the snapshot-local D1 mirror, and delivers the resulting SQL
+through the Cloudflare D1 API. It does not upload a source archive to R2.
+
+- The release `dr-hk-overture-division-2026-08-19.0` completed its deferred processing
+  workflow in 248,392 ms. This includes the initial empty-schema mirror clone and is an
+  acceptance observation, not a production throughput claim.
+- The sealed delivery plan has four checksum-verified batches: source (25,977 bytes),
+  history (59,446 bytes), current (24,183 bytes) and metadata (18,191 bytes). All four
+  have remote receipts and completion bookmarks.
+- Direct D1 inspection found 23 `divisions`, 69 `divisionsI18n`, 23 historical
+  divisions, 69 historical localisations and 23 `overtureDivisions` records. The source
+  release is still `processing`; `data-hk-divisions-2026-08` is `draft` and has no
+  publication time.
+- During this first run the pre-profile mirror had 127 work units. Remote Address and
+  Division processors now retain their dependency-specific mirror profiles; the Division
+  profile requires 37 work units for the same eight bindings. The new narrower profile
+  needs a fresh remote acceptance run before its elapsed-time benefit is claimed.
+
+`division-preview-report.json` and the sealed plan and progress receipt under
+`workspace/.local/harbour-sql/deliveries/preview` retain the evidence. Remote controlled
+interruption/resume and all remaining family fixtures still require acceptance evidence.
 
 ## End-to-end acceptance procedure
 
@@ -100,7 +131,8 @@ For each in-scope family:
 5. Inspect release and publication state directly. A successful child process or a green
    unit test is not evidence that a release is published or ready to publish.
 
-This acceptance pass has not run those complete local/preview workflows. The broad
-performance goal remains open until that evidence is available. Basemap tests likewise
-do not constitute a live Docker build or R2 publication test; its early interrupted
-uploads can require retransmission, and publishing assumes one workspace.
+This acceptance pass has completed the local and preview Division workflow, but the
+broad performance goal remains open until the remaining family and interruption evidence
+is available. Basemap tests likewise do not constitute a live Docker build or R2
+publication test; its early interrupted uploads can require retransmission, and
+publishing assumes one workspace.

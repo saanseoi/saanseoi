@@ -155,6 +155,12 @@ both adjacent source releases. The generated fixture and verification retain the
 target and bracketing versions. This restores derived fields rather than raw publisher
 JSON, and never generalises from a CSU alone.
 
+Cheung Hong Commercial Centre No. 2 uses a bounded named-premise retention: preserve the
+named premise, suppress the reviewed unnamed cross-reference only while both source
+records occur, and reconstruct the name only for its five-release absence. The later
+removal of both source records remains dated. The rule guards complete components and
+coordinates, not CSU alone.
+
 The Fai Ming Estate locality fixture backfills FANLING / 粉嶺 into the derived locality
 provenance and formatted addresses for both reviewed buildings. Exact bilingual source
 components and dates guard the decision. Raw source JSON, identities, divisions, block

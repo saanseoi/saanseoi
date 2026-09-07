@@ -152,6 +152,10 @@ The automatic estate-gap policy requires same-CSU, full non-estate component equ
 one occurrence in every release and matching bilingual attribution on both sides of the
 gap. It cannot merge sections or alternative addresses just because a CSU coincides.
 
+Named-premise retentions are similarly explicit. Cheung Hong Commercial Centre No. 2
+keeps the reviewed named record and preserves its unnamed cross-reference as provenance,
+but does not backfill beyond the date both publisher records disappear.
+
 Reviewed locality backfills carry later publisher evidence into bounded earlier derived
 addresses while retaining original assertions and evidence dates. Fai Ming Estate's
 Fanling locality detail changes neither address identity nor administrative divisions.
