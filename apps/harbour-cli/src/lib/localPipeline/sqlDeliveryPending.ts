@@ -1,5 +1,6 @@
 import { readFile, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { buildDeterministicReleaseId } from '@repo/core/db/metaRegistry'
 import {
   readDeliveryPlan,
   readDeliveryProgress,
@@ -22,13 +23,16 @@ export async function findPendingSqlDeliveryReleaseId(
   const pending = await readPendingSqlDelivery(cacheDir)
   if (!pending) return undefined
 
+  const expectedReleaseId = buildDeterministicReleaseId(releaseCode)
+
   for (const directory of pending.directories) {
     const plan = await readDeliveryPlan(directory)
     if (
       !plan ||
       plan.context.releaseId !== pending.releaseId ||
       resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
-      !hasReleaseCode(plan.context.inputs, releaseCode)
+      (plan.context.releaseId !== expectedReleaseId &&
+        !hasReleaseCode(plan.context.inputs, releaseCode))
     ) {
       return undefined
     }

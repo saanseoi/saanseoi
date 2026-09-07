@@ -10,6 +10,7 @@ import {
   registerPendingSqlDelivery,
 } from './sqlDeliveryPending.ts'
 import { prepareSqlDelivery, withDeliveryLock } from './sqlDeliveryFiles.ts'
+import { buildDeterministicReleaseId } from '@repo/core/db/metaRegistry'
 
 test('malformed pending markers cannot be mistaken for an unowned cache', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pending-invalid-'))
@@ -84,6 +85,35 @@ test('recognises only a retained plan for the exact source release', async () =>
 
     expect(await findPendingSqlDeliveryReleaseId(root, 'release-code')).toBe('release')
     expect(await findPendingSqlDeliveryReleaseId(root, 'other-code')).toBeUndefined()
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('recognises a retained plan whose exact deterministic release id has no release-code input', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pending-release-id-'))
+  try {
+    const directory = join(root, 'plan')
+    const releaseCode = 'dr-hk-hkgov-pland-division-pu-2016'
+    const releaseId = buildDeterministicReleaseId(releaseCode)
+    await prepareSqlDelivery(
+      directory,
+      {
+        environment: 'local',
+        releaseId,
+        phase: 'planning-division-data',
+        inputs: { preparedSha256: 'fixture' },
+        cacheDir: root,
+        cachePreparedAt: 'fixed',
+      },
+      async () => {},
+    )
+    await registerPendingSqlDelivery(root, releaseId, directory)
+
+    expect(await findPendingSqlDeliveryReleaseId(root, releaseCode)).toBe(releaseId)
+    expect(
+      await findPendingSqlDeliveryReleaseId(root, 'dr-hk-hkgov-pland-division-pu-2021'),
+    ).toBeUndefined()
   } finally {
     await rm(root, { recursive: true, force: true })
   }
