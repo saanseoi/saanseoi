@@ -373,7 +373,7 @@ async function resolveAddressSnapshotId(
   return snapshot.id
 }
 
-async function buildAddressMetaSqlFile(
+export async function buildAddressMetaSqlFile(
   metaDb: MetaDatabase,
   message: DatasetProcessingMessage,
   snapshotIdValue: string,
@@ -381,7 +381,9 @@ async function buildAddressMetaSqlFile(
   const releaseId = message.releaseId ?? message.datasetId
   const {
     metaReleaseShardAssignments,
+    metaSnapshotLineages,
     metaSnapshotAssemblyRuns,
+    metaSnapshotShardAssignments,
     metaSnapshots,
     metaSnapshotSources,
     stats,
@@ -389,9 +391,13 @@ async function buildAddressMetaSqlFile(
   const snapshotRow = await metaDb
     .select({
       id: metaSnapshots.id,
+      snapshotLineageId: metaSnapshots.snapshotLineageId,
+      parentSnapshotId: metaSnapshots.parentSnapshotId,
       resourceType: metaSnapshots.resourceType,
       code: metaSnapshots.code,
       cohortKey: metaSnapshots.cohortKey,
+      geometryStatus: metaSnapshots.geometryStatus,
+      revision: metaSnapshots.revision,
       status: metaSnapshots.status,
       publishedAt: metaSnapshots.publishedAt,
       validFrom: metaSnapshots.validFrom,
@@ -408,6 +414,20 @@ async function buildAddressMetaSqlFile(
   if (!snapshotRow) {
     throw new Error(
       `Address snapshot metadata missing from local meta cache: ${snapshotIdValue}.`,
+    )
+  }
+
+  const snapshotLineageRows = snapshotRow.snapshotLineageId
+    ? await metaDb
+        .select()
+        .from(metaSnapshotLineages)
+        .where(eq(metaSnapshotLineages.id, snapshotRow.snapshotLineageId))
+        .all()
+    : []
+
+  if (snapshotLineageRows.length !== 1) {
+    throw new Error(
+      `Address snapshot lineage metadata missing for snapshot ${snapshotIdValue}.`,
     )
   }
 
@@ -460,6 +480,14 @@ async function buildAddressMetaSqlFile(
     .from(metaReleaseShardAssignments)
     .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
     .all()
+  const snapshotShardAssignmentRows = await metaDb
+    .select({
+      snapshotId: metaSnapshotShardAssignments.snapshotId,
+      dataShardId: metaSnapshotShardAssignments.dataShardId,
+    })
+    .from(metaSnapshotShardAssignments)
+    .where(eq(metaSnapshotShardAssignments.snapshotId, snapshotIdValue))
+    .all()
 
   const [releaseStatsRows, auditSql] = await Promise.all([
     metaDb.select().from(stats).where(eq(stats.releaseId, releaseId)).all(),
@@ -472,14 +500,50 @@ async function buildAddressMetaSqlFile(
     )
   }
 
+  if (snapshotShardAssignmentRows.length === 0) {
+    throw new Error(
+      `Address snapshot shard assignment missing from local meta cache: ${snapshotIdValue}.`,
+    )
+  }
+
   const statements = [
+    buildInsertStatement(
+      'snapshotLineages',
+      [
+        'id',
+        'code',
+        'regionCode',
+        'resourceType',
+        'variant',
+        'identityMode',
+        'primaryDatasetId',
+        'versionHash',
+        'createdAt',
+        'updatedAt',
+      ],
+      snapshotLineageRows,
+      `ON CONFLICT(id) DO UPDATE SET
+  code = excluded.code,
+  regionCode = excluded.regionCode,
+  resourceType = excluded.resourceType,
+  variant = excluded.variant,
+  identityMode = excluded.identityMode,
+  primaryDatasetId = excluded.primaryDatasetId,
+  versionHash = excluded.versionHash,
+  createdAt = excluded.createdAt,
+  updatedAt = excluded.updatedAt`,
+    ),
     buildInsertStatement(
       'snapshots',
       [
         'id',
+        'snapshotLineageId',
+        'parentSnapshotId',
         'resourceType',
         'code',
         'cohortKey',
+        'geometryStatus',
+        'revision',
         'status',
         'publishedAt',
         'validFrom',
@@ -490,9 +554,13 @@ async function buildAddressMetaSqlFile(
       ],
       [snapshotRow],
       `ON CONFLICT(id) DO UPDATE SET
+  snapshotLineageId = excluded.snapshotLineageId,
+  parentSnapshotId = excluded.parentSnapshotId,
   resourceType = excluded.resourceType,
   code = excluded.code,
   cohortKey = excluded.cohortKey,
+  geometryStatus = excluded.geometryStatus,
+  revision = excluded.revision,
   status = excluded.status,
   publishedAt = excluded.publishedAt,
   validFrom = excluded.validFrom,
@@ -557,6 +625,12 @@ async function buildAddressMetaSqlFile(
       ['releaseId', 'dataShardId'],
       releaseShardAssignmentRows,
       'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+    ),
+    buildInsertStatement(
+      'snapshotShardAssignments',
+      ['snapshotId', 'dataShardId'],
+      snapshotShardAssignmentRows,
+      'ON CONFLICT(snapshotId, dataShardId) DO NOTHING',
     ),
     buildInsertStatement(
       'stats',
