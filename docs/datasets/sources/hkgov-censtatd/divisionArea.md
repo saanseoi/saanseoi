@@ -1,9 +1,22 @@
 # Census and Statistics Department District Council district areas
 
+Geometry replay streams current, history and source rows into bounded SQL statements
+when creating a delivery plan. Retained plans bypass replay-table reads and SQL packing;
+normalisation and local materialisation remain separate workflow stages.
+
+Local exact and simplified materialisation uses WAL-safe planning copies and native
+delivery receipts. Each phase retains exact mutations, including source derivative
+updates, and checksummed churn counts. Resume validates normalised inputs and replays
+the retained plan before publication.
+
 Exact and simplified geometry imports use distinct
 [sealed delivery phases](../../sql-delivery.md). Each phase retains source-file and
 snapshot identities and confirms remote imports before replaying the same SQL into the
 mirror.
+
+Remote replay retains historical and source closures as version-qualified updates.
+Simplified phases also deliver source-derivative rows and closures keyed by source
+record, exact input version, transform and derivative version.
 
 ## Source releases
 

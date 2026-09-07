@@ -1,5 +1,18 @@
 # Overture division geometry ingestion
 
+Replay SQL streams from mirror-table iterators during plan preparation. Bounded
+statement packing preserves row order and oversized-geometry append semantics. Retained
+plans reuse payloads without reading the replay tables again.
+
+Replay carries history closures referenced by the snapshot change journal and source
+closures made by the release, including their timestamps. Updates match record and
+version keys and do not retransmit historical geometry.
+
+Local area and boundary materialisation runs on WAL-safe SQLite planning copies and
+retains exact current, history and source mutations with checksummed churn counts.
+Receipt-backed replay resumes interrupted writes without recalculating the mutations or
+losing superseded-row closures. Normalisation remains a separate stage.
+
 Geometry SQL uses [sealed delivery phases](../../sql-delivery.md) with source-file and
 snapshot identities. Remote delivery and exact mirror replay must complete before
 publication.

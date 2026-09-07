@@ -1,5 +1,38 @@
 # Statistics dataset family
 
+Local source and canonical SQL use native receipt-backed delivery plans. Interrupted
+payload replay resumes from retained SQL without repeating committed writes; local
+metadata preparation remains part of the owning workflow. See
+[SQL delivery](../sql-delivery.md).
+
+Both Statistics importers build source and canonical SQL lazily inside plan preparation.
+A retained local or remote plan skips those builders, and source and canonical SQL
+arrays need not coexist in memory. Reviewed canonical values, dictionaries and Division
+bridge resolutions contribute to a row-wise preparation checksum; changed preparation
+cannot silently reuse retained SQL. Source-file checksums, canonical input identities
+and field review are checked before delivery.
+
+General and district imports retain checksummed source-row artefacts scoped to the
+release, prepared-file checksum and processing contract. Retries reuse decoded source
+rows and their original timestamps instead of repeating Parquet decoding and source
+hashing. First-run general source preparation normalises one Parquet batch at a time; it
+does not retain a second full raw-row array or allocate a Promise per row. Canonical
+Division mappings and field curation are not cached with source rows.
+
+Prepared rows stream into independently checksummed binary chunks, normally bounded at 4
+MiB; an oversized row occupies its own chunk. An ordered, checksummed manifest is
+published only after every chunk is durable. Resume verifies chunks individually and
+does not allocate a serialised buffer for the complete cohort. Canonical processing
+still materialises the decoded row collection.
+
+Field-discovery and curated canonical normalisation have separate content-addressed
+caches for cohorts larger than 18 source rows. The fixed district cohort and smaller
+inputs normalise directly, avoiding persistent-cache overhead. Cache identities include
+ordered source inputs, resolved Division mappings, area-companion configuration and
+field/measure metadata. Identical retries reuse the normalised sections; changed inputs
+calculate a new result. Field review and bridge resolution run outside the cache, and
+the SQL plan still rejects changed canonical preparation once sealed.
+
 Source, canonical and release-metadata SQL use
 [sealed delivery phases](../sql-delivery.md). Adjacent batches for the same database are
 combined into bounded uploads. Receipts and separate local checkpoints allow interrupted

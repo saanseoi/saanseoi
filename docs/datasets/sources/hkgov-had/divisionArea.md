@@ -1,5 +1,14 @@
 # Home Affairs Department District Boundary area ingestion
 
+Local geometry materialisation uses WAL-safe SQLite planning copies and receipt-backed
+SQL replay. Sealed plans retain current, history and source mutations, including closed
+assertions, together with checksummed churn outputs. Recovery validates normalised
+inputs and reuses the plan before publication.
+
+Remote replay includes history closures from the snapshot change journal and source
+assertions closed by the release. Updates match exact versions and carry their closure
+timestamps without retransmitting older geometry.
+
 This page records the provider-specific profile. The reusable source contract is in
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md).
 

@@ -1,8 +1,12 @@
 # Addresses dataset family
 
-Grouped Address3D delivery batches independent database targets separately, retaining
-per-database statement order and whole-collection transaction boundaries. See
-[SQL delivery](../sql-delivery.md) for receipts and recovery.
+Local 2D and grouped 3D ingestion retain native SQL plans and transactional receipts.
+Restarting a local 2D workflow reuses its retained generation message; 3D plans preserve
+bound values and collection transaction boundaries. Publication follows both deliveries.
+
+Local and remote grouped Address3D delivery batch independent database targets
+separately, retaining per-database statement order and whole-collection transaction
+boundaries. See [SQL delivery](../sql-delivery.md) for receipts and recovery.
 
 SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
 relationships before remote delivery. History and current stages each generate their own
@@ -136,11 +140,19 @@ does not imply a separate section. Matching block numbers across buildings do no
 establish equivalence. This differs from identified High/Low sections, which retain
 separate section records.
 
+Reviewed locality backfills carry later publisher evidence into bounded earlier derived
+addresses while retaining original assertions and evidence dates. Fai Ming Estate's
+Fanling locality detail changes neither address identity nor administrative divisions.
+
+Reviewed block components can identify a building without a separate building-name
+field. Easeful Court's two towers retain those publisher components; the guarded review
+mapping does not create names, merge identities or alter historical inventories.
+
 Reviewed unit mergers preserve historical membership: predecessor units remain in
 earlier snapshots and the merged successor has its own unit ID. The ALS review can
-automatically accept the user-approved same-floor A/B/C-to-base pattern with bilingual
-agreement; this does not imply permission to backfill, split units or infer other
-transformations.
+automatically accept the user-approved same-floor A/B- or A/B/C-to-base pattern with
+bilingual agreement; this does not imply permission to backfill, split units or infer
+other transformations.
 
 Lei Fook and Lei Moon Low Blocks are separately identified sections of their respective
 buildings. Their distinct publisher premise IDs must not be merged because one appears

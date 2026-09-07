@@ -1,5 +1,28 @@
 # Overture Places
 
+Enriched Place JSONL is published locally only after complete writes and a file sync. An
+enrichment failure cannot replace completed staging, and resolution streams close on
+failure. Supplementary review and same-snapshot Address edits remain inputs to each
+enrichment attempt. A checksummed enrichment cache retains JSONL and release statistics
+only with matching source/resolution digests, Address/Division links, supplementary rows
+and revalidated Address3D lookup contents. Missing collections are dependencies too, so
+adding units within a snapshot invalidates affected enrichment.
+
+Local Place and supplementary Address SQL use native delivery plans. The supplementary
+materialisation is verified after receipt-backed replay, and search is rebuilt after the
+local Place data is reconciled. Review decisions are not skipped by SQL recovery.
+
+Source staging retains normalised JSONL and country/locale review actions together with
+source-file, source-version and processing-contract identities. The output is flushed
+before its checksummed manifest is committed. Retries verify the staged file and reuse
+its counts and actions without decoding Parquet again; mismatched or corrupted staging
+stops processing. Address and supplementary review still run independently.
+
+Address3D enrichment deduplicates concurrent collection reads for Places in the same
+building. A bounded invocation-local cache includes the Address snapshot in each key and
+is discarded between runs. It retains no failed database reads and does not freeze
+Address data across retries.
+
 Search delivery recreates the derived `placesFts` virtual table from the current Place
 projection. It supports recovery after data delivery and before the local search replay;
 the retained search payload runs after the mirror's Place data has been reconciled.

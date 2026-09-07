@@ -1,5 +1,10 @@
 # division type and level
 
+Canonical Division ingestion seals comparison results and completion counts with its SQL
+delivery plan. Local and remote retries reuse those outputs without rereading partially
+updated source versions or repeating record normalisation. See the
+[Divisions family](../../families/divisions.md) for delivery and publication boundaries.
+
 ## v1
 
 ### EN
