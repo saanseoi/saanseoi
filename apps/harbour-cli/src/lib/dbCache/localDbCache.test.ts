@@ -48,9 +48,11 @@ test('includes the Places full-text index in the current cache profile', () => {
   expect(tables).toContain('placesFts')
   expect(tables).toContain('placesDivision')
   expect(tables).toContain('placesCells')
+  expect(tables).toContain('address2dBuildingNumberLookup')
   const historyTables = resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'places')
   expect(historyTables).not.toContain('placesDivision')
   expect(historyTables).not.toContain('placesCells')
+  expect(historyTables).toContain('address2dBuildingNumberLookup')
 })
 
 test('omits the rebuilt Address full-text index from the mirror profile', () => {
@@ -87,7 +89,7 @@ test('uses the bounded family profiles for remote mirrors', () => {
   expect(countRemoteCacheWorkUnits(targets)).toBe(127)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(37)
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(98)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(49)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(53)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(47)
   expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(47)
 })
