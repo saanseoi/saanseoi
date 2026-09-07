@@ -408,7 +408,10 @@ Shing. Name mismatches are not evidence that the ALS name is wrong.
 Grandeur Terrace has a reviewed source-expression repair: nine named/block-only
 cross-CSU pairs are coalesced into their existing `BLK`/`座` references, while Blocks 2
 and 3 retain their directly supplied structured components. Every suppressed assertion
-and its 3D source record stays attached to the canonical block as provenance.
+and its 3D source record stays attached to the canonical block as provenance. The named
+owner's raw bilingual building names identify the block without separate publisher block
+fields. The block-only alias must supply the reviewed `BLK`/`座` descriptor and block
+number in both languages. Both records must match the reviewed estate, street and point.
 
 Missing building identifiers, sometimes combined with profile mismatches, need review
 for High Prosperity Terrace, Hung Hom Phase 2, Kwai Shing West, Lei Muk Shue, Po Tin,

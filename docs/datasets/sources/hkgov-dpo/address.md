@@ -1,5 +1,11 @@
 # HKGov DPO ALS addresses
 
+ALS preflight includes both passes of 3D preparation for each release: source-parent
+ownership resolution followed by corrected bilingual inventory validation. Shared-owner
+ambiguity, conflicting inventories and row-size violations stop preflight before
+ingestion. `writeOutput: false` suppresses artefact writes, while retaining 3D
+validation and its parent block enrichment and duplicate suppression.
+
 `--skip-curation-checks` accepts pending correction verification and identity drift
 checks during ingestion, including with `--yes`. Grouped initialisers broadcast the flag
 to address ingestion; direct `hkgov-dpo:ingest` also accepts it. Corrections retain
