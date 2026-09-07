@@ -29,6 +29,7 @@ import { divisionRoutes } from './routes/divisions/v0/divisions'
 import { addressRoutes } from './routes/addresses/v0/addresses'
 import { placeRoutes } from './routes/places/v0/places'
 import { registryRoutes } from './routes/v0/registry'
+import { identityBridgeRoutes } from './routes/v0/identityBridge'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/streets/v0/streets'
@@ -693,6 +694,7 @@ app.openapiRoutes([
   ...metaRoutes,
   ...probeRoutes,
   ...registryRoutes,
+  ...identityBridgeRoutes,
   ...sourceRoutes,
   ...divisionRoutes,
   ...addressRoutes,
