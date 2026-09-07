@@ -35,6 +35,48 @@ const rawPath = resolve(
   import.meta.dir,
   '../../../../../../data/hkgov/dpo/ALS/20240725-1048-ALS-GeoJSON/als_addresses_3d_(public_rental_housing).geojson',
 )
+test.skipIf(!existsSync(rawPath))(
+  'Tsz Lok drops only the redundant 633 inventory and preserves named inventories',
+  async () => {
+    const input = JSON.parse(await readFile(rawPath, 'utf8'))
+    const features: Als3dFeature[] = input.features.filter((f: Als3dFeature) =>
+      ['TSZ LOK ESTATE', 'TSZ LOK ESTATE PHASE 3'].includes(
+        f.properties.Address.PremisesAddress.EngPremisesAddress?.EngEstate
+          ?.EstateName ?? '',
+      ),
+    )
+    const before = structuredClone(features)
+    const unnamed = requireDefined(
+      features.find(
+        f =>
+          f.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
+          '3864823026T20050430',
+      ),
+    )
+    const named = features.filter(
+      f => f.properties.Address.PremisesAddress.EngPremisesAddress?.BuildingName,
+    )
+    expect(named).toHaveLength(11)
+    const retained = features.filter(f => !als3dSuppression(f, '2024-07-25.0'))
+    expect(retained).toEqual(named)
+    expect(features).toEqual(before)
+    const p = unnamed.properties.Address.PremisesAddress
+    expect(p.EngPremisesAddress?.Eng3dAddress).toHaveLength(633)
+    expect(p.ChiPremisesAddress?.Chi3dAddress).toHaveLength(633)
+    expect(als3dSuppression(unnamed, '2025-01-23.0')?.id).toBe(
+      'tsz-lok-phase-3-unnamed-inventory',
+    )
+    expect(als3dSuppression(unnamed, '2025-02-25.0')).toBeUndefined()
+    const changed = structuredClone(unnamed)
+    requireDefined(
+      changed.properties.Address.PremisesAddress.ChiPremisesAddress?.Chi3dAddress,
+    ).pop()
+    expect(() => als3dSuppression(changed, '2024-07-25.0')).toThrow(
+      'source evidence changed',
+    )
+    expect(als3dSuppression(changed, '2024-07-25.0', true)).toBeUndefined()
+  },
+)
 test('Shek Kip Mei suppression preserves both named houses and rejects changed evidence', async () => {
   const path = resolve(
     import.meta.dir,

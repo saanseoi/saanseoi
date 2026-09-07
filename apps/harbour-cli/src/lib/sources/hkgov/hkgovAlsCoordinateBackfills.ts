@@ -15,13 +15,14 @@ export function backfillAlsCoordinates(
   for (const decision of fixture.backfills) {
     if (version < decision.sourceVersionFrom || version > decision.sourceVersionTo)
       continue
-    const candidates = rows.filter(
-      row =>
+    const candidates = rows.filter(row => {
+      const premises = JSON.parse(row.engPremisesAddressJson ?? '{}')
+      return (
         row.hkgovCsuId === decision.csu &&
-        (JSON.parse(row.engPremisesAddressJson ?? '{}').EngEstate?.EstateName ??
-          row.enEstateName) === decision.estate &&
-        row.enBuildingName === decision.enBuildingName,
-    )
+        (premises.EngEstate?.EstateName ?? row.enEstateName) === decision.estate &&
+        (premises.BuildingName ?? row.enBuildingName) === decision.enBuildingName
+      )
+    })
     try {
       assert.equal(
         candidates.length,

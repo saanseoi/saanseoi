@@ -5,17 +5,28 @@ import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
-const rowFor = (decision: (typeof fixture.backfills)[number]) =>
-  ({
+const rowFor = (decision: (typeof fixture.backfills)[number]) => {
+  const expected =
+    'expectedPremises' in decision ? decision.expectedPremises : undefined
+  return {
     enBuildingName: decision.enBuildingName,
     enEstateName: decision.estate,
     geometry: JSON.stringify({
       type: 'Point',
       coordinates: decision.previousCoordinates,
     }),
+    chiPremisesAddressJson: JSON.stringify(expected?.ChiPremisesAddress ?? {}),
+    engPremisesAddressJson: JSON.stringify(
+      expected?.EngPremisesAddress ?? {
+        EngEstate: { EstateName: decision.estate },
+        BuildingName: decision.enBuildingName,
+      },
+    ),
+    geoAddress: expected?.GeoAddress,
     hkgovCsuId: decision.csu,
     sources: '{}',
-  }) as PreparedHkgovAlsRow
+  } as PreparedHkgovAlsRow
+}
 
 test('skip mode omits missing, ambiguous and changed coordinate targets without mutations', () => {
   const version = '2026-02-04.0'
