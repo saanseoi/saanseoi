@@ -64,12 +64,32 @@ test('all reviewed releases suppress only approved variants and retain corrected
       const matches = rows.filter(r => rule.csus.includes(r.hkgovCsuId ?? ''))
       expect(matches).toHaveLength(1)
       const row = matches[0]!
-      if (rule.action === 'number') expect(row.enStreetNumberFrom).toBe('6H')
-      if (rule.action === 'label') expect(row.enBuildingName).toBe(rule.enName!)
+      if (rule.action === 'number') {
+        expect(row.enStreetNumberFrom).toBe('6H')
+        expect(row.zhHantStreetNumberFrom).toBe('6H')
+        expect(row.identityNumberFrom).toBe('6H')
+        expect(row.identitySummary.numberFrom).toBe('6H')
+        expect(row.enFormattedAddress).toContain('6H')
+        expect(row.zhHantFormattedAddress).toContain('6H')
+      }
+      if (rule.action === 'label') {
+        expect(row.enBuildingName).toBe(rule.enName!)
+        expect(row.zhHantBuildingName).toBe(rule.zhName!)
+        expect(row.identitySummary.buildingName).toBe(rule.enName!)
+        expect(row.enFormattedAddress).toContain('EXTENSION')
+        expect(row.zhHantFormattedAddress).toContain('擴建部分')
+      }
       if (rule.action === 'street') {
         expect(row.enStreetName).toBe('SAU MAU PING ROAD')
         expect(row.zhHantStreetName).toBe('秀茂坪道')
         expect(row.enStreetNumberFrom).toBe('101')
+        expect(row.identitySummary.routeName).toBe('SAU MAU PING ROAD')
+        expect(JSON.parse(row.identityRouteNames)).toEqual([
+          'SAU MAU PING ROAD',
+          '秀茂坪道',
+        ])
+        expect(row.enFormattedAddress).toContain('SAU MAU PING ROAD')
+        expect(row.zhHantFormattedAddress).toContain('秀茂坪道')
         expect(JSON.parse(row.engPremisesAddressJson!).EngStreet.StreetName).toBe(
           'SAU MING ROAD',
         )
