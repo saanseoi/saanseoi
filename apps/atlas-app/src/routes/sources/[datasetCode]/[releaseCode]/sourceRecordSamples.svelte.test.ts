@@ -1,5 +1,4 @@
 import { expect, test, vi } from 'vitest'
-import { page } from 'vitest/browser'
 import { render } from 'vitest-browser-svelte'
 
 import SourceRecordSamples from './sourceRecordSamples.svelte'

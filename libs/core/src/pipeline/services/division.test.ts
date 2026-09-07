@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
+import { createHash } from '../utils'
 import {
   buildCanonicalDivisionApiI18n,
   buildOvertureHongKongDivisionClassificationProcessingActions,
@@ -7,6 +8,7 @@ import {
   buildOvertureDivisionLocaleProcessingActions,
   collectOvertureHongKongDivisionSourceAssumptionViolations,
   type DivisionHierarchyLookup,
+  normaliseDivisionI18nForStorage,
   normaliseDivisionRow,
 } from './division'
 import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
@@ -872,6 +874,41 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
         sourceI18n,
       }),
     ).toEqual([])
+  })
+})
+
+describe('normaliseDivisionI18nForStorage', () => {
+  test('makes an upstream-provided name match its persisted churn input', async () => {
+    const incoming = [
+      {
+        divisionId: 'division-provenance',
+        isLocaleInferred: false,
+        locale: 'en',
+        name: 'Example',
+        nameAlts: null,
+        nameRules: null,
+        nameVariant: null,
+      },
+    ]
+    const persisted = [
+      expect.objectContaining({
+        divisionId: 'division-provenance',
+        locale: 'en',
+        nameProvenance: 'provided',
+      }),
+    ]
+
+    expect(normaliseDivisionI18nForStorage(incoming)).toEqual(persisted)
+    expect(await createHash({ i18n: normaliseDivisionI18nForStorage(incoming) })).toBe(
+      await createHash({
+        i18n: [
+          {
+            ...incoming[0],
+            nameProvenance: 'provided',
+          },
+        ],
+      }),
+    )
   })
 })
 

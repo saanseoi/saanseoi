@@ -25,6 +25,7 @@ import {
   buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
   normaliseDivisionRow,
+  normaliseDivisionI18nForStorage,
   resolveDistrictId,
 } from '@repo/core/pipeline/services/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
@@ -228,10 +229,11 @@ export async function buildDivisionSqlState(
           }),
         )
       }
+      const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalised.base),
-        i18n: canonicalI18n,
+        i18n: storedCanonicalI18n,
       })
       const sourcePayloadHash = await createHash(raw)
       const current = currentRows.get(normalised.base.id)
@@ -241,7 +243,7 @@ export async function buildDivisionSqlState(
         !baseChanged && currentChanged
           ? await createHash({
               baseVersionHash: versionHash,
-              i18n: canonicalI18n.map(localised => ({
+              i18n: storedCanonicalI18n.map(localised => ({
                 isLocaleInferred: localised.isLocaleInferred,
                 nameProvenance: localised.nameProvenance,
                 locale: localised.locale,
@@ -257,11 +259,11 @@ export async function buildDivisionSqlState(
       const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
       processedRows += 1
-      localisedRows += canonicalI18n.length
+      localisedRows += storedCanonicalI18n.length
       seenIds.add(normalised.base.id)
       updateLocaleStatsAccumulator(
         statsAccumulator,
-        canonicalI18n.map(localised => ({
+        storedCanonicalI18n.map(localised => ({
           hasAltName: Boolean(localised.nameAlts),
           hasName: Boolean(localised.name),
           isLocaleInferred: localised.isLocaleInferred,
@@ -277,7 +279,7 @@ export async function buildDivisionSqlState(
         churnHash,
         geometry: normalised.base.geometry,
         id: normalised.base.id,
-        localisedRows: canonicalI18n,
+        localisedRows: storedCanonicalI18n,
         parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchy),
         type: normalised.base.type,
         versionHash,
@@ -289,7 +291,7 @@ export async function buildDivisionSqlState(
         currentExists: Boolean(current),
         event: 'rowSeen',
         historyCurrentLocaleCount: current?.localisedRows.length ?? 0,
-        localeCount: canonicalI18n.length,
+        localeCount: storedCanonicalI18n.length,
         phase: 'buildDivisionSqlState',
         sourceChanged,
         sourceCurrentExists: Boolean(currentSource),
@@ -311,7 +313,7 @@ export async function buildDivisionSqlState(
       records.push({
         base: normalised.base,
         baseChanged,
-        canonicalI18n,
+        canonicalI18n: storedCanonicalI18n,
         currentChanged,
         currentExists: Boolean(current),
         id: normalised.base.id,
