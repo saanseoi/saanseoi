@@ -1780,9 +1780,18 @@
       "expectedUnitCount": 717,
       "removals": [],
       "additions": [
-        { "floor": 2, "unit": "207" },
-        { "floor": 2, "unit": "217" },
-        { "floor": 2, "unit": "219" }
+        {
+          "floor": 2,
+          "unit": "207"
+        },
+        {
+          "floor": 2,
+          "unit": "217"
+        },
+        {
+          "floor": 2,
+          "unit": "219"
+        }
       ],
       "evidenceSourceRelease": "20241113-1041-ALS-GeoJSON",
       "decision": "Backfill the three units into earlier retained inventories as a reviewed publisher omission, rather than treating November 2024 as their first existence.",
@@ -1801,11 +1810,25 @@
       "correctedInventoryHash": "b132de7e661ddfb30203d6aa0611c019f2436667a535f3baebbe1f35dc199e02",
       "expectedUnitCount": 822,
       "removals": [
-        { "floor": 1, "unit": "118A" },
-        { "floor": 1, "unit": "118B" },
-        { "floor": 1, "unit": "118C" }
+        {
+          "floor": 1,
+          "unit": "118A"
+        },
+        {
+          "floor": 1,
+          "unit": "118B"
+        },
+        {
+          "floor": 1,
+          "unit": "118C"
+        }
       ],
-      "additions": [{ "floor": 1, "unit": "118" }],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "118"
+        }
+      ],
       "evidenceSourceRelease": "20240731-1054-ALS-GeoJSON",
       "decision": "Keep the initial 25 July 2024 split inventory. Retain merged flat 118 from 31 July onward and correct only the three later reversions as reviewed stale inventories. Preserve the raw predecessor assertions and distinct merged successor identity.",
       "authority": "User decision, 2026-09-07: yep OK, approving correction of the three reversions after the first merger.",
@@ -1850,7 +1873,16 @@
       "correctedInventoryHash": "9008b650bb3d791be1fc1e3aa51bba73d2878d26715fcea55ec8861abbc7a4e7",
       "expectedUnitCount": 507,
       "removals": [],
-      "additions": [{ "floor": 8, "unit": "817" }, { "floor": 8, "unit": "819" }],
+      "additions": [
+        {
+          "floor": 8,
+          "unit": "817"
+        },
+        {
+          "floor": 8,
+          "unit": "819"
+        }
+      ],
       "evidenceSourceRelease": "20260708-1050-ALS-GeoJSON",
       "decision": "Backfill 8/F flats 817 and 819 into every earlier retained Wing Ka House inventory. The July 2026 publisher repair adds only these two bilingual units, with no component, coordinate or removal change; preserve the raw 507-unit source assertions in provenance.",
       "authority": "User decision, 2026-09-07: this is bad upstream data that they fixed, so backfill it.",
@@ -1880,11 +1912,115 @@
       "correctedInventoryHash": "c55816f24d48941fe70578e13d79e0f44190f225c3983323a266aeaf9805b90e",
       "expectedUnitCount": 559,
       "removals": [],
-      "additions": [{ "floor": 1, "unit": "108" }],
+      "additions": [
+        {
+          "floor": 1,
+          "unit": "108"
+        }
+      ],
       "evidenceSourceRelease": "20250123-1031-ALS-GeoJSON",
       "decision": "Backfill 1/F flat 108 into every earlier retained Ying Fai House inventory, starting on 25 July 2024. Preserve the raw 559-unit source assertions in provenance.",
       "authority": "User decision, 2026-09-07: Hoi Ying Estate / 海盈邨 > yep -- backfill till the start.",
       "evidence": "January 2025 adds only flat 108 on 1/F in both languages, raising 559 units to 560. All subsequent retained releases preserve the identical bilingual 560-unit inventory."
+    },
+    {
+      "id": "tsui-heng-reviewed-mergers-137edaa1",
+      "revision": 1,
+      "estate": "TSUI PING (SOUTH) ESTATE",
+      "csu": "4199119245T20050430",
+      "expectedEnBuildingName": "TSUI HENG HOUSE",
+      "expectedZhBuildingName": "翠杏樓",
+      "expectedUnitCount": 759,
+      "expectedInventoryHash": "137edaa162b0688cc2b1258bc88775d5210e066976878db07fd0ba2a2cb6dbb3",
+      "correctedInventoryHash": "aad9394901c6b3ae068f1d0ae485027702e09063d5b4c989184c7ff37f43c364",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0"
+      ],
+      "additions": [
+        {
+          "floor": 3,
+          "unit": "311"
+        },
+        {
+          "floor": 4,
+          "unit": "408"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 3,
+          "unit": "311A"
+        },
+        {
+          "floor": 3,
+          "unit": "311C"
+        },
+        {
+          "floor": 3,
+          "unit": "311D"
+        },
+        {
+          "floor": 4,
+          "unit": "408A"
+        },
+        {
+          "floor": 4,
+          "unit": "408D"
+        }
+      ],
+      "evidenceSourceRelease": "20260819-1047-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: merge all reviewed Tsui Heng suffix families from the start of the retained dataset.",
+      "decision": "Backfill exact 311A/C/D and 408A/D mergers only; retain publisher history.",
+      "evidence": "Exact bilingual inventory hashes and identity guards."
+    },
+    {
+      "id": "tsui-heng-reviewed-mergers-adbd3f7a",
+      "revision": 1,
+      "estate": "TSUI PING (SOUTH) ESTATE",
+      "csu": "4199119245T20050430",
+      "expectedEnBuildingName": "TSUI HENG HOUSE",
+      "expectedZhBuildingName": "翠杏樓",
+      "expectedUnitCount": 757,
+      "expectedInventoryHash": "adbd3f7aa843442a99f245942d24cbd1a9bb18250de49b2aba9a63946d1db773",
+      "correctedInventoryHash": "aad9394901c6b3ae068f1d0ae485027702e09063d5b4c989184c7ff37f43c364",
+      "sourceVersions": [
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0"
+      ],
+      "additions": [
+        {
+          "floor": 4,
+          "unit": "408"
+        }
+      ],
+      "removals": [
+        {
+          "floor": 4,
+          "unit": "408A"
+        },
+        {
+          "floor": 4,
+          "unit": "408D"
+        }
+      ],
+      "evidenceSourceRelease": "20260819-1047-ALS-GeoJSON",
+      "authority": "User decision, 2026-09-08: merge all reviewed Tsui Heng suffix families from the start of the retained dataset.",
+      "decision": "Backfill exact 311A/C/D and 408A/D mergers only; retain publisher history.",
+      "evidence": "Exact bilingual inventory hashes and identity guards."
     }
   ]
 }

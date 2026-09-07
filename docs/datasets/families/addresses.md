@@ -23,6 +23,8 @@ provenance.
 ALS preflight validates both Address2D parents and Address3D inventories before
 ingestion. Output-free review applies the same ownership, block enrichment, inventory
 and row-size checks as artefact preparation, without writing 3D sidecars.
+Descriptor-only source blocks remain block-bearing parents even when their block number
+is absent; matching Address3D inventories use the existing parent.
 
 For reference and testing imports, `saanseoi init --skip-curation-checks` and
 `saanseoi init:addresses --skip-curation-checks` omit the upfront all-release review.

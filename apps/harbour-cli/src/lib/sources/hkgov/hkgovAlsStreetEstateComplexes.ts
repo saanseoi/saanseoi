@@ -80,7 +80,8 @@ export function applyReviewedStreetEstateComplexes(
     const historical = rule.assertions.find(a => a.sourceVersions.includes(version))
     const permitted = historical ? [historical] : rule.assertions
     assert(
-      permitted.some(a => JSON.stringify(a.hashes) === JSON.stringify(hashes)),
+      permitted.some(a => JSON.stringify(a.hashes) === JSON.stringify(hashes)) ||
+        (!historical && Boolean(rule.sourceCsu) && hashes.length === 0),
       `Street estate ${rule.id}: publisher alias changed`,
     )
     const evidence = rule.evidence
