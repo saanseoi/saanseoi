@@ -53,7 +53,10 @@ import {
   stageEnrichedPlaces,
   stagePlaces,
 } from './processLocalPlaceSqlUploadPreparation.ts'
-import { loadCurrentPlaceHistory } from './processLocalPlaceSqlUploadRows.ts'
+import {
+  loadCurrentPlaceHistory,
+  loadCurrentPlaceSources,
+} from './processLocalPlaceSqlUploadRows.ts'
 import {
   buildPlaceMetadataSql,
   placeTargets,
@@ -252,6 +255,12 @@ export async function processLocalPlaceSqlUpload(
       stagedPlaces.includedRows,
     )
     const sqlInput: BuildPlaceSqlInput = {
+      sourceRows: await runPlaceProgressPhase(
+        progress,
+        'Prepare',
+        'Place source hashes',
+        () => loadCurrentPlaceSources(context.sourceTargets),
+      ),
       activeHistoryBindingName: findTargetBindingName(
         context.historyTargets,
         context.historyDb,
@@ -274,6 +283,7 @@ export async function processLocalPlaceSqlUpload(
       context,
       releaseId,
       inputs: {
+        sourceSqlStrategy: 'changed-payloads-v1',
         message,
         snapshots,
         enrichedSha256: await deliveryFileSha256(stagedEnrichedPlaces.path),
