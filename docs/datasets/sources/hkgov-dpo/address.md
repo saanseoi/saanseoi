@@ -20,6 +20,9 @@ This mode supports pre-curation reference and testing imports; source validation
 database integrity checks still apply. The shared-building ownership curation check is
 skipped: each resolved owner keeps its own inventory and source occurrences. Ambiguous
 parent matches and conflicting inventories for the same owner still stop preparation.
+Skip mode omits parent block enrichment and duplicate suppression, retaining publisher
+2D components and separate assertions. It uses exact parents or unique block-free
+matches and accepts section inventories without a reviewed ownership mapping.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the

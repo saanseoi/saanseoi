@@ -27,6 +27,16 @@
   ],
   "decisions": [
     {
+      "id": "hing-wah-ii-april-2026-current-coordinate-backfill",
+      "estate": "HING WAH (II) ESTATE",
+      "release": "20260425-1038-ALS-GeoJSON",
+      "expectedFingerprint": "11dcc949aa10aa9dd4a0d5eff7eab04b231f8ba2ec68ba9a82a82d26d1ef1bb5",
+      "action": "reviewed_coordinate_backfill",
+      "fixture": "hkgov-dpo-address-coordinate-backfills.json",
+      "decision": "Backfill the current Chin Hing, Lok Hing, Ning Hing and Wo Hing points over both preceding retained publisher-coordinate epochs, including Chin Hing's 52.7-metre correction. Preserve exact prior-point guards, raw geometry and dated inventory history.",
+      "authority": "User decision, 2026-09-07: Hing Wah (II) Estate — backfill the current coordinates."
+    },
+    {
       "id": "ap-lei-chau-lei-moon-unnamed-duplicate-arrival",
       "estate": "AP LEI CHAU ESTATE",
       "release": "20250225-1050-ALS-GeoJSON",

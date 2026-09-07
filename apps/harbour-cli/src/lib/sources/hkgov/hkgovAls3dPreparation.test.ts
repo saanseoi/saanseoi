@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
@@ -59,6 +59,51 @@ async function delivery(duplicate: boolean) {
   )
   return { dir, rows }
 }
+
+test('skip mode retains a block-free parent despite mismatched 3D block references', async () => {
+  const { dir, rows } = await delivery(false)
+  try {
+    const file = join(dir, 'als_addresses_3d_test.geojson')
+    const input = JSON.parse(await readFile(file, 'utf8'))
+    const premises = input.features[0].properties.Address.PremisesAddress
+    premises.EngPremisesAddress.EngBlock = { BlockDescriptor: 'BLK', BlockNo: '6' }
+    premises.ChiPremisesAddress.ChiBlock = { BlockDescriptor: '座', BlockNo: '7' }
+    await writeFile(file, JSON.stringify(input, null, 2))
+    const originalRows = structuredClone(rows)
+    const options = {
+      sourceDir: dir,
+      sourceVersion: '2020-01-01.0',
+      outputFile: join(dir, 'output.parquet'),
+      rows,
+    }
+    await expect(
+      prepareAls3dCollections({ ...options, writeOutput: false }),
+    ).rejects.toThrow('matching BLK/座 references')
+    const review = await prepareAls3dCollections({
+      ...options,
+      writeOutput: false,
+      skipCurationChecks: true,
+    })
+    expect(review).toEqual({ collectionCount: 1, unitCount: 1, sourceCount: 1 })
+    expect(
+      await prepareAls3dCollections({ ...options, skipCurationChecks: true }),
+    ).toEqual(review)
+    expect(rows).toEqual(originalRows)
+    const records = (await readFile(`${options.outputFile}.address3d.jsonl`, 'utf8'))
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    expect(records.find(record => record.kind === 'collection').address2dId).toBe(
+      'parent-0',
+    )
+    expect(
+      records.find(record => record.kind === 'source').rawProperties.properties.Address
+        .PremisesAddress,
+    ).toEqual(premises)
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
 
 test('output-free 3D preparation validates inventories without creating a sidecar', async () => {
   const { dir, rows } = await delivery(false)

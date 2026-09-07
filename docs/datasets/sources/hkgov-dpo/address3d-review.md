@@ -199,6 +199,18 @@ use those names after identity and inventory ownership resolution; ALS raw names
 remain intact. HA's mix of Arabic and Roman numerals is preserved estate by estate, not
 normalised by a blanket conversion rule. Choi Wan (2) Estate remains distinct.
 
+Hing Wah (I) Estate uses the reviewed display names `Hing Wah (I) Estate` / `興華一邨`
+over the retained July 2024–August 2026 releases. HA's profile corroborates the estate
+under `Hing Wah (1) Estate`; the Roman numeral is the explicit review decision. Exact
+ALS bilingual names guard the curation, and raw names, IDs and inventories remain
+intact.
+
+Hing Wah (II)'s Chin Hing, Lok Hing, Ning Hing and Wo Hing houses use their April 2026
+current points over both preceding publisher-coordinate epochs. The explicit approval
+includes Chin Hing's 52.7-metre movement. Exact release, estate, CSU, building name and
+prior point guard each correction. Replaced geometry remains provenance; Wo Hing's April
+2025 inventory increase from 1,102 to 1,104 remains dated source history.
+
 Choi Fook Estate's July 2026 unnamed premise change retains publisher history. CSU
 `4037020934T20090625` is replaced by `4046820907T20090625`; both carry zero units. The
 replacement's point coincides with Choi Foon House, but its supplied components name
@@ -414,9 +426,15 @@ fields. The block-only alias must supply the reviewed `BLK`/`座` descriptor and
 number in both languages. Both records must match the reviewed estate, street and point.
 
 Missing building identifiers, sometimes combined with profile mismatches, need review
-for High Prosperity Terrace, Hung Hom Phase 2, Kwai Shing West, Lei Muk Shue, Po Tin,
-Shek Kip Mei, Shek Kip Mei Phase 2 and Upper Ngau Tau Kok. Sai Wan additionally requires
-the explicit ownership decision above.
+for Hung Hom Phase 2, Kwai Shing West, Lei Muk Shue, Po Tin, Shek Kip Mei, Shek Kip Mei
+Phase 2 and Upper Ngau Tau Kok. Sai Wan additionally requires the explicit ownership
+decision above.
+
+High Prosperity Terrace's `TOWER`/`座` 1 and 2 records identify their separate estate
+parent through the publisher's bilingual estate and street components. A unique matching
+2D structured block and unchanged 3D inventory evidence allow the review audit to clear
+only the missing-building-name flag. Conflicting components, multiple parent candidates
+and other review reasons remain unresolved. No estate curation or backfill is required.
 
 Cheung Wah, Fu Shin, Lai On, Long Ping, Lung Tin and Tsui Lam have current name
 corroboration but still need 2D hierarchy/component review. They have no enabled fixture
