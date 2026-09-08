@@ -3,6 +3,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { auditStatus } from './retainedAuditStatus'
 import Badge from '@iconify-svelte/proicons/badge'
 import type { Json } from '@repo/core/provenance'
+import PatchValue from './retainedAuditPatchValue.svelte'
 let {
   title,
   reason,
@@ -34,6 +35,31 @@ async function copyId() {
 }
 const label = (value: string) =>
   value.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/[_-]/g, ' ')
+const fieldOrder = [
+  'id',
+  'type',
+  'types',
+  'subtype',
+  'names',
+  'hierarchies',
+  'country',
+  'wikidata',
+]
+const hiddenFields = [
+  'identifiers',
+  'parentDivisionId',
+  'parent_division_id',
+  'sources',
+  'geometry',
+]
+const fields = (value: Record<string, Json>) =>
+  Object.entries(value)
+    .filter(([key]) => !hiddenFields.includes(key))
+    .sort(
+      ([a], [b]) =>
+        (fieldOrder.includes(a) ? fieldOrder.indexOf(a) : fieldOrder.length) -
+        (fieldOrder.includes(b) ? fieldOrder.indexOf(b) : fieldOrder.length),
+    )
 const display = (value: Json): string =>
   value === null
     ? m.source_audit_none_value()
@@ -83,10 +109,16 @@ const display = (value: Json): string =>
         </p>
         {#if side.value && typeof side.value === 'object' && !Array.isArray(side.value)}
           <dl class="space-y-2">
-            {#each Object.entries(side.value) as [key, value]}
+            {#each fields(side.value) as [key, value]}
               <div class="flex flex-wrap justify-between gap-x-3 gap-y-1">
                 <dt class="capitalize opacity-55">{label(key)}</dt>
-                <dd class="min-w-0 wrap-break-word font-medium">{display(value)}</dd>
+                <dd
+                  class="min-w-0 wrap-break-word font-medium"
+                  class:w-full={typeof value === 'object' && value !== null}
+                  class:pl-6={typeof value === 'object' && value !== null}
+                >
+                  <PatchValue {value} hierarchy={key === 'hierarchies'} />
+                </dd>
               </div>
             {/each}
           </dl>
