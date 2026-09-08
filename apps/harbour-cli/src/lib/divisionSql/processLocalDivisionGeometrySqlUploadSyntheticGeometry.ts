@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { registerRule } from '@repo/core/provenance'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -135,9 +136,10 @@ export function selectOvertureHongKongAreasWithoutSourceGeometry(
   return areas.filter(area => !sourceAreaDivisionIds.has(area.divisionId))
 }
 
-export function buildSyntheticOvertureHongKongAreaRows(
+function buildSyntheticAreaRows(
   areas: readonly SyntheticOvertureHongKongArea[],
   normalised: readonly NonNullable<NormalisedGeometry>[],
+  exclusion: GeoJsonGeometry,
 ) {
   return areas.map(area => {
     const geometries = normalised.flatMap(row => {
@@ -160,7 +162,7 @@ export function buildSyntheticOvertureHongKongAreaRows(
     const normalisedArea = normaliseDivisionAreaGeometryRow(
       syntheticOvertureHongKongAreaSourceRow(
         area,
-        unionHongKongAreaGeometries(geometries),
+        unionHongKongAreaGeometries(geometries, exclusion),
       ),
       'overture',
       { variant: 'overture' },
@@ -192,7 +194,10 @@ function syntheticOvertureHongKongAreaSourceRow(
   }
 }
 
-function unionHongKongAreaGeometries(geometries: readonly GeoJsonGeometry[]) {
+function unionHongKongAreaGeometries(
+  geometries: readonly GeoJsonGeometry[],
+  exclusion: GeoJsonGeometry,
+) {
   const reader = new GeoJSONReader(new GeometryFactory())
   const writer = new GeoJSONWriter()
   const unioned = unionBalanced(
@@ -204,13 +209,46 @@ function unionHongKongAreaGeometries(geometries: readonly GeoJsonGeometry[]) {
   )
   const corrected = OverlayOp.difference(
     unioned,
-    reader.read(JSON.stringify(SHENZHEN_BAY_PORT_EXCLUSION)),
+    reader.read(JSON.stringify(exclusion)),
   )
   const geometry = writer.write(corrected) as GeoJsonGeometry
   if (!isGeoJsonPolygon(geometry)) {
     throw new Error('Synthetic Overture Hong Kong area union is not polygonal.')
   }
   return geometry
+}
+
+export const syntheticHongKongAreaRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'overture_hong_kong_area_synthesised',
+    scope: 'bulk',
+    basis: 'code',
+    summary:
+      'Derive missing Hong Kong area geometry by unioning its district land geometries, including Lok Ma Chau Loop, then subtract the Shenzhen Bay Port exclusion polygon.',
+    inputs: ['district-land-geometries'],
+    outputs: ['divisionAreas'],
+    parameters: { exclusion: SHENZHEN_BAY_PORT_EXCLUSION },
+    implementation: {
+      path: 'apps/harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts',
+      symbol: 'syntheticHongKongAreaRule',
+    },
+  },
+  (
+    input: {
+      areas: readonly SyntheticOvertureHongKongArea[]
+      normalised: readonly NonNullable<NormalisedGeometry>[]
+    },
+    parameters,
+  ) => buildSyntheticAreaRows(input.areas, input.normalised, parameters.exclusion),
+)
+
+export function buildSyntheticOvertureHongKongAreaRows(
+  areas: readonly SyntheticOvertureHongKongArea[],
+  normalised: readonly NonNullable<NormalisedGeometry>[],
+) {
+  return syntheticHongKongAreaRule.execute({ areas, normalised })
 }
 
 function unionBalanced(geometries: Geometry[]) {
@@ -250,7 +288,7 @@ export function buildSyntheticOvertureHongKongAreaProcessingActions(
 ): ReleaseProcessingAction[] {
   if (plan.source !== 'overture' || areas.length === 0) return []
   return areas.map(area => ({
-    action: 'overture_hong_kong_area_synthesised',
+    action: syntheticHongKongAreaRule.declaration.id,
     affectedRecordCount: 1,
     evidence: {
       area: area.code,

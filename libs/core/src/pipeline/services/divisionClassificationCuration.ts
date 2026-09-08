@@ -1,5 +1,6 @@
 import fixture from '../../../../../fixtures/meta/curations/overture-division-classification.json'
 import { ProcessingGuardError } from '../../provenance/guards'
+import { registerRule } from '../../provenance/auditTypes'
 
 export function validateDivisionClassificationFixture(value: unknown) {
   const f = value as typeof fixture
@@ -36,7 +37,7 @@ export function validateDivisionClassificationFixture(value: unknown) {
 export const divisionClassificationFixture =
   validateDivisionClassificationFixture(fixture)
 
-export function applyDivisionClassificationCuration(row: Record<string, unknown>) {
+function applyClassification(row: Record<string, unknown>) {
   const entry = divisionClassificationFixture.entries.find(e => e.divisionId === row.id)
   if (!entry) return null
   const adminLevel = Number(row.admin_level ?? row.adminLevel)
@@ -63,3 +64,25 @@ export function applyDivisionClassificationCuration(row: Record<string, unknown>
     )
   return { level: entry.replacement.level, type: entry.replacement.type as 'macrohood' }
 }
+
+export const divisionClassificationRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'apply-division-classification-curation',
+    scope: 'individual',
+    basis: 'fixture',
+    summary:
+      'Apply a reviewed division classification only when its source identity and expected classification match.',
+    inputs: ['source-divisions', 'division-classification-curations'],
+    outputs: ['divisions.type', 'divisions.level'],
+    parameters: {},
+    implementation: {
+      path: 'libs/core/src/pipeline/services/divisionClassificationCuration.ts',
+      symbol: 'divisionClassificationRule',
+    },
+  },
+  applyClassification,
+)
+
+export const applyDivisionClassificationCuration = divisionClassificationRule.execute

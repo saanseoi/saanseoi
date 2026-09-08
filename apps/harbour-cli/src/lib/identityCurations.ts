@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { registerRule } from '@repo/core/provenance'
 import { captureCurationDocuments } from './curationDocuments'
 import { readFileSync, readdirSync } from 'node:fs'
 import { computeVersionHash } from '@repo/db'
@@ -39,7 +40,7 @@ export function readIdentityCurations() {
     })
 }
 
-export function resolveIdentityCuration(
+function resolveIdentityCurationInternal(
   authority: string,
   cohortKey: string,
   domain: string,
@@ -69,4 +70,33 @@ export function resolveIdentityCuration(
     rows.map(row => ({ ...row, externalCode: row.externalCode ?? null })),
     [{ type: 'identity-mappings', document: requireDefined(fixtures[0]) }],
   )
+}
+
+export const identityCurationRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'resolve-geography-identities',
+    scope: 'bulk',
+    basis: 'fixture',
+    summary:
+      'Select one reviewed geography identity map by authority, cohort and domain; require non-empty unique source identities and canonical targets.',
+    inputs: ['identity-mappings'],
+    outputs: ['canonical-geography-identities'],
+    parameters: {},
+    implementation: {
+      path: 'apps/harbour-cli/src/lib/identityCurations.ts',
+      symbol: 'identityCurationRule',
+    },
+  },
+  (input: { authority: string; cohortKey: string; domain: string }) =>
+    resolveIdentityCurationInternal(input.authority, input.cohortKey, input.domain),
+)
+
+export function resolveIdentityCuration(
+  authority: string,
+  cohortKey: string,
+  domain: string,
+) {
+  return identityCurationRule.execute({ authority, cohortKey, domain })
 }
