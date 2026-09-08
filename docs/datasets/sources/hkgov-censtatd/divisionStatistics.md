@@ -1,5 +1,10 @@
 # Census and Statistics Department division statistics
 
+Population scaling and field/localisation declarations are selected from
+`fixtures/meta/processing-rules/` and registered by their executors. Scaling derives its
+decimal exponent from the fixture's factor, without a separately maintained exponent.
+The `v1` canonical preparation identity includes these registered definitions.
+
 Both SQL upload paths retain and register
 [processing provenance](../../processing-provenance.md) before publication. Registered
 declarations explain population scaling, literal interpretation and dimension-grouped

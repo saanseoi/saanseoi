@@ -1,5 +1,9 @@
 # Divisions dataset family
 
+Area and boundary normalisers register explicit JSON declarations from
+`fixtures/meta/processing-rules/division-area-geometry.json` and
+`division-boundary-geometry.json`; Audit retains those same definitions.
+
 Source-row `sources` is `null` when Overture division or division geometry ingestion has
 no supplied provenance. Ingestion does not manufacture source references from internal
 record or canonical division IDs. Publisher identifiers and archive evidence remain
@@ -278,6 +282,11 @@ rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalise
 `zh-hant`.
 
 ## Reviewable API name translations
+
+Overture division hierarchy columns follow the accepted schema for the declared source
+release. From `2026-02-18.0`, the Parquet file must contain `admin_level`; earlier
+cohorts use subtype, class, parent and name fields. Missing required columns block
+processing.
 
 Division imports complete the API's `en`, `zh-hant`, and `zh-hans` name locales only
 when a publisher has supplied at least one name. A missing Simplified Chinese value is
