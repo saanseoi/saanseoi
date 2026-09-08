@@ -15,6 +15,12 @@ import {
   withRemoteCachedMetaDb,
 } from '../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../cli/options.ts'
+import { dirname } from 'node:path'
+import {
+  mapLocalTargetPaths,
+  resolveD1Targets,
+} from '../dbCache/localDbCacheTargets.ts'
+import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
 
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
   const cohortYear = cohortKey.slice(0, 4)
@@ -314,11 +320,15 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
   plan: DivisionGeometryPlan,
 ) {
   const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const metaPath = mapLocalTargetPaths(await resolveD1Targets('local')).DB_META
+  const resumeSqlDeliveryReleaseId = metaPath
+    ? await findPendingSqlDeliveryReleaseId(dirname(metaPath), plan.releaseCode)
+    : undefined
   const dbContext = await resolveLocalAddressDbContext(
     target,
     plan.regionCode,
     shardYear,
-    { cacheTableProfile: 'division' },
+    { cacheTableProfile: 'division', resumeSqlDeliveryReleaseId },
   )
   try {
     const db = dbContext.metaDb

@@ -513,7 +513,11 @@ export async function processLocalAddressSqlUpload(
           byMatchKey: buildHistoricalAddressMatchKeyLookup(historicalParentVersions),
           snapshotId: versionInsertContext.parentSnapshotId as string,
         }
-      : await loadAddressCurrentLookupCache(resolvedTargetName, previewPlan.regionCode)
+      : await loadAddressCurrentLookupCache(
+          resolvedTargetName,
+          previewPlan.regionCode,
+          versionInsertContext.parentSnapshotId,
+        )
     const finalMessageWithMeta = retainedDelivery
       ? (retainedDelivery.context.inputs.message as AddressPipelineMessage)
       : await (async () => {
@@ -885,6 +889,7 @@ export async function processLocalAddressSqlUpload(
         previewPlan.regionCode,
         releaseCode,
         dbContext.historyDb,
+        versionInsertContext.snapshotId,
       ),
     )
     if (!target.remote)

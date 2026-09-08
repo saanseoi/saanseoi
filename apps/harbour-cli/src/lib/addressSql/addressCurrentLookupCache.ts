@@ -25,7 +25,8 @@ type AddressCurrentLookupCacheFile = {
     id: string
     matchKey: string | null
   }>
-  kind: 'address.current-lookup.v2'
+  kind: 'address.current-lookup.v3'
+  snapshotId: string
   releaseCode: string
   target: 'local' | 'preview' | 'production'
 }
@@ -33,7 +34,9 @@ type AddressCurrentLookupCacheFile = {
 export async function loadAddressCurrentLookupCache(
   target: 'local' | 'preview' | 'production',
   regionCode: string,
+  expectedParentSnapshotId: string | null,
 ) {
+  if (!expectedParentSnapshotId) return null
   const cachePath = resolveCachePath(target, regionCode)
   const raw = await readFile(cachePath, 'utf8').catch(error => {
     if (isMissingFileError(error)) {
@@ -49,7 +52,11 @@ export async function loadAddressCurrentLookupCache(
 
   const parsed = JSON.parse(raw) as AddressCurrentLookupCacheFile
 
-  if (parsed.kind !== 'address.current-lookup.v2') {
+  if (
+    parsed.kind !== 'address.current-lookup.v3' ||
+    parsed.snapshotId !== expectedParentSnapshotId ||
+    parsed.target !== target
+  ) {
     return null
   }
 
@@ -72,6 +79,7 @@ export async function loadAddressCurrentLookupCache(
   return {
     byId,
     byMatchKey,
+    snapshotId: parsed.snapshotId,
   } satisfies AddressCurrentLookupCache
 }
 
@@ -80,6 +88,7 @@ export async function writeAddressCurrentLookupCache(
   regionCode: string,
   releaseCode: string,
   historyDb: HistoryDatabase,
+  snapshotId: string,
 ) {
   const snapshots = await getCurrentAddressVersionMap(
     historyDb as unknown as HarbourReadableDb,
@@ -97,7 +106,8 @@ export async function writeAddressCurrentLookupCache(
   const cacheFile: AddressCurrentLookupCacheFile = {
     builtAt: new Date().toISOString(),
     entries,
-    kind: 'address.current-lookup.v2',
+    kind: 'address.current-lookup.v3',
+    snapshotId,
     releaseCode,
     target,
   }
