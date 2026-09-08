@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { mkdir, readdir, rename, rm, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { loadDivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDivisions.ts'
+import type { DivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsTypes.ts'
 import type { prepareHkgovAlsRelease } from '../commands/hkgovAls.ts'
 
 type Input = Parameters<typeof prepareHkgovAlsRelease>[0]
@@ -35,22 +37,48 @@ export async function fingerprintTree(path: string): Promise<string> {
   return hash.digest('hex')
 }
 
-// Database files may be large. Include WAL and inode/mtime/ctime/size so any local
-// writer or reset invalidates reuse. Remote targets deliberately do not reuse.
-async function databaseStamp(path: string): Promise<unknown> {
-  const info = await stat(path, { bigint: true }).catch(error => {
-    if (error.code === 'ENOENT') return null
-    throw error
-  })
-  if (!info) return null
-  if (info.isDirectory())
-    return Promise.all(
-      (await readdir(path))
-        .filter(name => !name.endsWith('-shm'))
-        .sort()
-        .map(async name => [name, await databaseStamp(join(path, name))]),
-    )
-  return [info.ino, info.size, info.mtimeNs, info.ctimeNs].map(String)
+function sortedMapEntries(values: ReadonlyMap<string, string>) {
+  return [...values.entries()].sort(([left], [right]) => left.localeCompare(right))
+}
+
+function sortedSetValues(values: ReadonlySet<string>) {
+  return [...values].sort((left, right) => left.localeCompare(right))
+}
+
+/**
+ * ALS review only reads the selected Overture division lookup. Address uploads
+ * write several local D1 databases, none of which alter that lookup; keying the
+ * checkpoint from the whole persistence root therefore defeated --continue.
+ */
+export function divisionLookupFingerprint(lookup: DivisionLookupMaps) {
+  return {
+    ambiguousAreaEn: sortedSetValues(lookup.ambiguousAreaEn),
+    ambiguousAreaZh: sortedSetValues(lookup.ambiguousAreaZh),
+    ambiguousDistrictEn: sortedSetValues(lookup.ambiguousDistrictEn),
+    ambiguousDistrictZh: sortedSetValues(lookup.ambiguousDistrictZh),
+    areaByEn: sortedMapEntries(lookup.areaByEn),
+    areaByZh: sortedMapEntries(lookup.areaByZh),
+    districtByEn: sortedMapEntries(lookup.districtByEn),
+    districtByZh: sortedMapEntries(lookup.districtByZh),
+    snapshotId: lookup.snapshotId,
+  }
+}
+
+async function divisionLookupDependency(input: Input) {
+  // Remote targets do not reuse preflight checkpoints, so never make an extra
+  // remote lookup merely to construct a cache key.
+  if (input.target.remote) return null
+
+  return divisionLookupFingerprint(
+    await loadDivisionLookupMaps({
+      cohortKey: input.divisionCohortKey,
+      dbPath:
+        typeof input.args.options.db === 'string'
+          ? resolve(input.args.options.db)
+          : undefined,
+      environment: input.target.environment,
+    }),
+  )
 }
 
 export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
@@ -64,16 +92,10 @@ export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
       'bun.lock',
     ].map(path => fingerprintTree(join(root, path))),
     fingerprintTree(input.sourceDir),
-    databaseStamp(join(root, '.local/d1')),
-    ...(typeof input.args.options.db === 'string'
-      ? [
-          databaseStamp(resolve(input.args.options.db)),
-          databaseStamp(`${resolve(input.args.options.db)}-wal`),
-        ]
-      : []),
+    divisionLookupDependency(input),
   ])
   const key = createHash('sha256')
-    .update(JSON.stringify({ version: 1, runtime: Bun.version, input, dependencies }))
+    .update(JSON.stringify({ version: 2, runtime: Bun.version, input, dependencies }))
     .digest('hex')
   const directory = join(root, '.local/hkgov-dpo/preflight-cache')
   await mkdir(directory, { recursive: true })
