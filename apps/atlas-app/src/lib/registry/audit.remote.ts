@@ -1,6 +1,6 @@
 import { query, getRequestEvent } from '$app/server'
 import { z } from 'zod'
-import { and, eq, metaSchema } from '@repo/db'
+import { and, eq, sql, metaSchema } from '@repo/db'
 import {
   readObject,
   readAuditPage,

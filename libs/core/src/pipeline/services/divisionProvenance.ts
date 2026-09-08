@@ -135,14 +135,16 @@ export async function retainDivisionProvenance(
               ...strings(translation.name),
             ]),
           ],
-          parents: context.parentDivisionId
-            ? [
-                {
-                  id: String(context.parentDivisionId),
-                  names: strings(context.parentName),
-                },
-              ]
-            : [],
+          parents: Array.isArray(evidence.parents)
+            ? (evidence.parents as Array<{ id: string; names: string[] }>)
+            : context.parentDivisionId
+              ? [
+                  {
+                    id: String(context.parentDivisionId),
+                    names: strings(context.parentName),
+                  },
+                ]
+              : [],
         },
         context: (classification
           ? {

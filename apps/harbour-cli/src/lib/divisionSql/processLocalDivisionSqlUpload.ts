@@ -1,3 +1,4 @@
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { mkdir } from 'node:fs/promises'
 import {
   buildDivisionBaseHashInput,
@@ -825,6 +826,13 @@ export async function processLocalDivisionSqlUpload(
       releaseCode,
     )
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      store: bucket,
+      target,
+      releaseId,
+      datasetCode,
+    })
     progress.fail()
     await harbourClient.stageFailed(
       releaseId,

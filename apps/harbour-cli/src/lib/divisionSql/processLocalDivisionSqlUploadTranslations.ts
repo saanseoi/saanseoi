@@ -108,6 +108,7 @@ export function buildOvertureDivisionTranslationProcessingActions(input: {
   division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
   rawNames: unknown
   translations: DatasetTranslationApplication[]
+  parents?: Array<{ id: string; names: string[] }>
 }): ReleaseProcessingAction[] {
   return input.translations.map(translation => ({
     action:
@@ -123,6 +124,7 @@ export function buildOvertureDivisionTranslationProcessingActions(input: {
       },
       sourceNames: input.rawNames ?? null,
       translation,
+      parents: input.parents ?? [],
     },
     mode: translation.provenance === 'human-translated' ? 'manual' : 'automatic',
     summary:

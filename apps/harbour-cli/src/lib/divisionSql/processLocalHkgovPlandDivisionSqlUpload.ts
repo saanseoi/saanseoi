@@ -1,3 +1,4 @@
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { eq } from 'drizzle-orm'
 import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
@@ -638,6 +639,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       snapshotId: snapshot.id,
     }
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      store: bucket,
+      target,
+      releaseId,
+      datasetCode,
+    })
     progress.fail()
     if (!published) {
       await client
