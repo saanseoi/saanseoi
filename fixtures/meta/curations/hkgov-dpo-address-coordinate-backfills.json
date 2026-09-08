@@ -12032,19 +12032,6 @@
       "automaticPolicy": "coordinate-only-named-under-50m-backfill"
     },
     {
-      "id": "on-yam-estate-yiu-yam-hse-blk-4-tak-yam-hse-3271925774T20050430-20260403-coordinate-backfill",
-      "estate": "ON YAM ESTATE",
-      "csu": "3271925774T20050430",
-      "enBuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
-      "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-02-04.0",
-      "evidenceSourceVersion": "2026-04-03.0",
-      "previousCoordinates": [114.1423, 22.37087],
-      "currentCoordinates": [114.14226, 22.37089],
-      "authority": "Automatic policy, 2026-09-07: coordinate-only named source event; every shift is strictly under 50m.",
-      "automaticPolicy": "coordinate-only-named-under-50m-backfill"
-    },
-    {
       "id": "pak-tin-estate-chak-tin-house-3537321995T20050430-20260403-coordinate-backfill",
       "estate": "PAK TIN ESTATE",
       "csu": "3537321995T20050430",

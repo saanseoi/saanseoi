@@ -1,5 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
-import { expect, test } from 'bun:test'
+import { expect, test, spyOn } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
 import { applyAlsEstateNames } from './hkgovAlsEstateNames'
@@ -11,6 +11,8 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) => {
   return {
     enBuildingName: decision.enBuildingName,
     enEstateName: decision.estate,
+    enBlockNumber: null,
+    zhHantBlockNumber: null,
     geometry: JSON.stringify({
       type: 'Point',
       coordinates: decision.previousCoordinates,
@@ -28,27 +30,46 @@ const rowFor = (decision: (typeof fixture.backfills)[number]) => {
   } as PreparedHkgovAlsRow
 }
 
+test('On Yam coordinate backfills target retained houses, not the suppressed combined assertion', () => {
+  const rules = fixture.backfills.filter(rule => rule.estate === 'ON YAM ESTATE')
+  expect(rules.some(rule => rule.enBuildingName === 'YIU YAM HOUSE')).toBe(true)
+  expect(rules.some(rule => rule.enBuildingName.startsWith('TAK YAM'))).toBe(true)
+  expect(rules.some(rule => rule.enBuildingName.includes('&'))).toBe(false)
+})
+
 test('skip mode omits missing, ambiguous and changed coordinate targets without mutations', () => {
-  const version = '2026-02-04.0'
-  const decision = requireDefined(
-    fixture.backfills.find(
-      d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
-    ),
-  )
-  const changed = rowFor(decision)
-  changed.geometry = JSON.stringify({ type: 'Point', coordinates: [0, 0] })
-  for (const rows of [[], [rowFor(decision), rowFor(decision)], [changed]]) {
-    const original = structuredClone(rows)
-    expect(backfillAlsCoordinates(rows, version, true)).toEqual({ backfilled: 0 })
-    expect(rows).toEqual(original)
-    expect(() => backfillAlsCoordinates(rows, version)).toThrow()
+  const warnings = spyOn(console, 'warn').mockImplementation(() => {})
+  try {
+    const version = '2026-02-04.0'
+    const decision = requireDefined(
+      fixture.backfills.find(
+        d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
+      ),
+    )
+    const changed = rowFor(decision)
+    changed.geometry = JSON.stringify({ type: 'Point', coordinates: [0, 0] })
+    for (const rows of [[], [rowFor(decision), rowFor(decision)], [changed]]) {
+      const original = structuredClone(rows)
+      expect(backfillAlsCoordinates(rows, version, true)).toEqual({ backfilled: 0 })
+      expect(rows).toEqual(original)
+      expect(() => backfillAlsCoordinates(rows, version)).toThrow()
+    }
+    const rows = fixture.backfills
+      .filter(d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version)
+      .map(rowFor)
+    expect(backfillAlsCoordinates(rows, version, true)).toEqual({
+      backfilled: rows.length,
+    })
+    expect(
+      warnings.mock.calls.some(
+        ([line]) =>
+          JSON.parse(String(line).replace('ALS_MANUAL_REVIEW ', '')).code ===
+          'curation-guard-mismatch',
+      ),
+    ).toBe(true)
+  } finally {
+    warnings.mockRestore()
   }
-  const rows = fixture.backfills
-    .filter(d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version)
-    .map(rowFor)
-  expect(backfillAlsCoordinates(rows, version, true)).toEqual({
-    backfilled: rows.length,
-  })
 })
 
 test('backfills only reviewed historic points and retains provenance', () => {
@@ -113,7 +134,7 @@ test('coordinate guards retain publisher estate names after HA display curation'
   row.zhHantEstateName = '彩雲(一)邨'
   row.enFormattedAddress = 'BOON YUET HOUSE, CHOI WAN (1) ESTATE'
   row.zhHantFormattedAddress = '彩雲(一)邨伴月樓'
-  applyAlsEstateNames(rows, version)
+  applyAlsEstateNames([row], version)
   expect(row.enEstateName).toBe('Choi Wan (I) Estate')
   expect(backfillAlsCoordinates(rows, version).backfilled).toBe(rows.length)
   expect(JSON.parse(requireDefined(row.geometry)).coordinates).toEqual([

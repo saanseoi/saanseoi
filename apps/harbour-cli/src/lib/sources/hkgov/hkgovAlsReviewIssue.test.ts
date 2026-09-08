@@ -25,3 +25,24 @@ test('manual review records are single-line JSON with exact source and candidate
     estate: 'Estate\nname',
   })
 })
+
+test('skipped curation guards retain the exact decision and assertion failure', () => {
+  const lines: string[] = []
+  reportAlsReviewIssue(
+    {
+      code: 'curation-guard-mismatch',
+      sourceVersion: '2024-07-25.0',
+      curationFile: 'curation.json',
+      decisionId: 'reviewed-point',
+      message: 'source point changed\nactual differs from expected',
+    },
+    line => lines.push(line),
+  )
+  expect(lines).toHaveLength(1)
+  expect(lines[0]!.split('\n')).toHaveLength(1)
+  expect(JSON.parse(lines[0]!.replace('ALS_MANUAL_REVIEW ', ''))).toMatchObject({
+    status: 'unresolved',
+    decisionId: 'reviewed-point',
+    curationFile: 'curation.json',
+  })
+})

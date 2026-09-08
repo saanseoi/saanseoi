@@ -2,6 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 
 const curationFile = 'hkgov-dpo-address-coordinate-backfills.json'
 
@@ -67,6 +68,7 @@ export function backfillAlsCoordinates(
       )
     } catch (error) {
       if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+      reportAlsCurationGuard(version, curationFile, decision.id, error)
       continue
     }
     const row = requireDefined(candidates[0])
