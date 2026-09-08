@@ -31,6 +31,13 @@ export async function listCurrentHistoryRows(
   const rows = await db
     .select({
       id: historySchema.divisions.id,
+      divisionCode: historySchema.divisions.divisionCode,
+      identifiers: historySchema.divisions.identifiers,
+      level: historySchema.divisions.level,
+      type: historySchema.divisions.type,
+      wikidata: historySchema.divisions.wikidata,
+      hierarchy: historySchema.divisions.hierarchy,
+      cartography: historySchema.divisions.cartography,
       sources: historySchema.divisions.sources,
       versionHash: historySchema.divisions.versionHash,
     })

@@ -3,6 +3,11 @@ import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { AlsCurationReviewError, reportAlsCurationGuard } from './hkgovAlsReviewIssue'
+import {
+  curationProvenance,
+  resolveHkgovAlsCurationVerification,
+  type HkgovAlsCurationApplication,
+} from './hkgovAlsCurationLifecycle'
 
 const curationFile = 'hkgov-dpo-address-aliased-premise-coalescences.json'
 
@@ -17,8 +22,26 @@ export function coalesceAlsAliasedPremises(
 ) {
   const ownerIdByAliasId = new Map<string, string>()
   for (const decision of fixture.coalescences) {
-    if (version < decision.sourceVersionFrom || version > decision.sourceVersionTo)
+    if (
+      (decision.sourceVersionFrom && version < decision.sourceVersionFrom) ||
+      (decision.sourceVersionTo && version > decision.sourceVersionTo)
+    )
       continue
+    const fixedDecision =
+      'fixedCoordinates' in decision ? decision.fixedCoordinates : null
+    const application =
+      fixedDecision && 'application' in fixedDecision
+        ? (fixedDecision.application as HkgovAlsCurationApplication)
+        : undefined
+    const verification =
+      application && fixedDecision && 'sourceVersions' in fixedDecision
+        ? resolveHkgovAlsCurationVerification(
+            version,
+            fixedDecision.sourceVersions,
+            application,
+          )
+        : null
+    const fixedCoordinates = !application || verification ? fixedDecision : null
     const owners = rows.filter(row => row.hkgovCsuId === decision.owner.csu)
     const aliases = rows.filter(row => row.hkgovCsuId === decision.aliasCsu)
     const reviewError = (error: AssertionError) =>
@@ -164,7 +187,7 @@ export function coalesceAlsAliasedPremises(
           { type: 'Point', coordinates: coordinateSelection.aliasCoordinates },
           `ALS alias ${decision.id}: alias point changed`,
         )
-      } else {
+      } else if (!fixedCoordinates) {
         assert.equal(
           owner.geometry,
           alias.geometry,
@@ -186,15 +209,30 @@ export function coalesceAlsAliasedPremises(
 
     const publisherOwnerGeometry = JSON.parse(owner.geometry ?? 'null')
     if (coordinateSelection) owner.geometry = alias.geometry
+    if (fixedCoordinates)
+      owner.geometry = JSON.stringify({
+        type: 'Point',
+        coordinates: fixedCoordinates.coordinates,
+      })
     owner.sources = JSON.stringify({
       ...JSON.parse(owner.sources ?? '{}'),
       hkgovAlsAliasedPremiseCoalescence: {
         ...decision,
         curationFile,
         sourceVersion: version,
-        ...(coordinateSelection
+        ...(coordinateSelection || fixedCoordinates
           ? {
               coordinateReview: {
+                ...(application && verification
+                  ? {
+                      curation: curationProvenance({
+                        application,
+                        id: decision.id,
+                        sourceVersion: version,
+                        verification,
+                      }),
+                    }
+                  : {}),
                 publisherOwnerGeometry,
                 publisherAliasGeometry: JSON.parse(alias.geometry ?? 'null'),
                 derivedGeometry: JSON.parse(owner.geometry ?? 'null'),
