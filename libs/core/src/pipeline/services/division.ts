@@ -33,6 +33,7 @@ import {
   type GeoJsonPosition,
 } from '../geojson'
 import type { AsyncBuffer } from 'hyparquet'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../parquetR2'
 import {
@@ -161,6 +162,7 @@ export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLooku
 
 type DivisionNormaliseOptions = {
   hierarchyLookup?: DivisionHierarchyLookup
+  source?: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>
 }
 
 const DIVISION_BATCH_SIZE = 128
@@ -486,7 +488,7 @@ export async function processDivisionDataset(
   }
 
   const hierarchyLookup = await timings.measure('buildHierarchyLookupMs', () =>
-    buildDivisionHierarchyLookup(file),
+    buildDivisionHierarchyLookup(file, message),
   )
 
   for await (const { isSupplemental, rows: batch } of readDivisionRowsWithFixtures(
@@ -527,7 +529,7 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
-      const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      const normalised = normaliseDivisionRow(row, { hierarchyLookup, source: message })
       if (normalised.overtureHongKongDivisionClassificationCorrection) {
         overtureHongKongDivisionClassificationCorrectionCount += 1
       }
@@ -1189,7 +1191,7 @@ function normaliseDivisionRowInternal(
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
   const overtureHongKongDivisionClassificationCorrection =
-    applyDivisionClassificationCuration(row)
+    applyDivisionClassificationCuration(row, options.source)
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const type = landsdPlaceName
     ? 'settlement'
@@ -1938,13 +1940,24 @@ function collectLocalisedRuleValues(
 }
 
 /**
- * Unwraps singleton nested list wrappers produced by parquet decoding.
+ * Builds canonical ancestor classifications from the source division schema.
  */
-export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
+export async function buildDivisionHierarchyLookup(
+  file: AsyncBuffer,
+  source: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>,
+) {
   const lookup = new Map<string, DivisionHierarchyLookupEntry>()
+  const schema = resolveSourceRecordSchema({ ...source, resourceType: 'division' })
+  if (source.source === 'overture' && !schema) {
+    throw new Error(`No accepted Overture division schema for ${source.sourceVersion}.`)
+  }
+  const columns = ['id', 'subtype', 'class', 'parent_division_id', 'names']
+  if (schema?.fields.some(field => field.name === 'admin_level')) {
+    columns.push('admin_level')
+  }
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
-    columns: ['id', 'admin_level', 'subtype', 'class', 'parent_division_id', 'names'],
+    columns,
   })) {
     for (const row of batch) {
       const id = asNonEmptyString(row.id)
@@ -1982,7 +1995,7 @@ export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
           .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
-      const classification = applyDivisionClassificationCuration(row)
+      const classification = applyDivisionClassificationCuration(row, source)
       lookup.set(id, {
         i18n,
         level:
