@@ -13,6 +13,6 @@
   },
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
-    "symbol": "normaliseDivisionAreaGeometryRow"
+    "symbol": "divisionAreaGeometryRule"
   }
 }
