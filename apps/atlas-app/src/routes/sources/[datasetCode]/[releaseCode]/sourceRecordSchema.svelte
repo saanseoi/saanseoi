@@ -218,7 +218,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     )
   }
 
-  return rawProperties
+  return Object.keys(rawProperties.properties ?? {}).length ? rawProperties : null
 })
 
 function setExpandedNodeState(path: string, expanded: boolean) {
@@ -262,7 +262,7 @@ function setExpandedNodeState(path: string, expanded: boolean) {
       <Node
         {expandAllToken}
         {expandedNodeStates}
-        name=""
+        name={m.source_record_schema_aria_label()}
         onExpandAll={() => (expandAllToken += 1)}
         onExpandedNodeStateChange={setExpandedNodeState}
         referencePath={[]}

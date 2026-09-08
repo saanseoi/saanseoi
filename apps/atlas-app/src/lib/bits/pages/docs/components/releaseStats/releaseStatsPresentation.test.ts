@@ -65,6 +65,27 @@ const present = (
 ) => createReleaseStatsPresentation({ stats, locale: 'en', copy })
 
 describe('createReleaseStatsPresentation', () => {
+  test('renders retained zero locale coverage as chart rows instead of a generic metric grid', () => {
+    const model = present(
+      ['en', 'zh-hant', 'zh-hans'].flatMap(groupValue =>
+        ['locale_count', 'locale_coverage', 'locale_alt_coverage'].map(dimension => ({
+          dimension,
+          metric: 'completeness',
+          groupBy: 'locale',
+          groupValue,
+          value: 0,
+        })),
+      ),
+    )
+    expect(model.localeCoverage).toHaveLength(3)
+    expect(
+      model.localeCoverage?.every(row => row.coverage === 0 && row.count === '0'),
+    ).toBe(true)
+    expect(model.headings.some(heading => heading.id === 'stats-names-by-locale')).toBe(
+      true,
+    )
+    expect(model.headings.some(heading => heading.id === 'stats-locale')).toBe(false)
+  })
   test('shows all statistical records as added only for a first-release baseline', () => {
     const input = {
       resourceType: 'divisionStatistic',

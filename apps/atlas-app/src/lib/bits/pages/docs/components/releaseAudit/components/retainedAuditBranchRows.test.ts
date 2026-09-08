@@ -2,6 +2,30 @@ import { expect, test } from 'bun:test'
 import type { Json } from '@repo/core/provenance'
 import { retainedBranchGroups } from './retainedAuditBranchRows'
 
+test('omits inactive classification groups but preserves applied and unrecorded groups', () => {
+  const declaration: Json = {
+    branches: [
+      'Level Classification',
+      'Type Classification',
+      'Locale Normalisation: en',
+    ].map((group, index) => ({
+      id: String(index),
+      group,
+      precedence: 1,
+      condition: { all: [] },
+      result: 'value',
+    })),
+  }
+  expect(
+    retainedBranchGroups(declaration, {
+      '0': { matched: 0, changed: 0 },
+      '1': { matched: 0, changed: 0 },
+      '2': { matched: 1613, changed: 0 },
+    }).map(group => group.locale),
+  ).toEqual(['en'])
+  expect(retainedBranchGroups(declaration)).toHaveLength(3)
+})
+
 test('locale tables omit shadowed checks but preserve recorded activity', () => {
   const declaration: Json = {
     branches: [

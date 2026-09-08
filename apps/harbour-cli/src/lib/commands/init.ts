@@ -145,6 +145,8 @@ export async function runInitialisationCommand(
       ...process.env,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
       SAANSEOI_INIT_COMMAND: args.command ?? '',
+      SAANSEOI_INIT_RELEASE_COLUMN_WIDTH:
+        process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH ?? '100',
       SAANSEOI_INIT_GUIDES: [
         process.env.SAANSEOI_INIT_GUIDES,
         String(

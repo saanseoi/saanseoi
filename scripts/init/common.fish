@@ -107,6 +107,10 @@ function init_prepare_completed_releases
             exit 1
         end
         set -g saanseoi_init_completed_releases_loaded 1
+        if set -q SAANSEOI_INIT_RELEASE_COLUMN_WIDTH
+            set -g saanseoi_init_release_column_width $SAANSEOI_INIT_RELEASE_COLUMN_WIDTH
+            return
+        end
         for release_code in $saanseoi_init_completed_release_codes
             set -l width (string length -- "$release_code")
             if test "$width" -gt "$saanseoi_init_release_column_width"
