@@ -322,7 +322,6 @@ export function createReleaseStatsPresentation({
               }),
             }
           })
-          .filter(row => row.coverage > 0 || row.count !== formatReleaseStat(locale, 0))
           .sort((a, b) => b.coverage - a.coverage)
         if (!result.length) return undefined
         claim(localeRows)
