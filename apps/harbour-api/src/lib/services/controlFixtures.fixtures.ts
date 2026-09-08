@@ -49,7 +49,14 @@ export function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   seedFixtureCatalog(db)
+  seedCompletedAudits(db)
   return db
+}
+
+export function seedCompletedAudits(db: Database) {
+  db.exec(`INSERT OR IGNORE INTO releaseProvenance
+    (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+    SELECT id, 'sha256:${'0'.repeat(64)}', 1, 0, 'completed' FROM releases`)
 }
 
 export function seedSnapshot(
@@ -75,6 +82,7 @@ export function seedSnapshot(
   },
 ) {
   const publishedAt = status === 'published' ? timestamp : 'null'
+  seedCompletedAudits(sqlite)
 
   sqlite.exec(`
     INSERT INTO snapshots (

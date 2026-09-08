@@ -144,17 +144,10 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         'Publication is blocked by the failed processing audit attempt.',
       )
-    if (
-      (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') ||
-      (datasetType === 'address' &&
-        ['hkgov-dpo', 'overture'].includes(dataset.source)) ||
-      (datasetType === 'place' && dataset.source === 'overture')
-    ) {
-      if (!failedAudit)
-        throw new ControlRequestError(
-          `${datasetType === 'divisionStatistic' ? 'Statistics' : datasetType === 'address' ? 'Addresses' : 'Places'} publication requires a verified retained processing result.`,
-        )
-    }
+    if (!failedAudit || failedAudit.status !== 'completed')
+      throw new ControlRequestError(
+        'Release publication requires a verified retained processing result with a completed audit attempt.',
+      )
     const materialisedSnapshots = await listSnapshotsForRelease(
       db,
       dataset.releaseId,
