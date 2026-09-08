@@ -33,6 +33,7 @@ export function requirePublishedTargetVersion(
 export async function fetchTargetVersions(
   target: UploadTarget,
   dataset: DatasetFixture,
+  includeGeography = false,
 ) {
   const report = await fetchReleaseReport(target, {
     datasetCode: dataset.code,
@@ -43,7 +44,7 @@ export async function fetchTargetVersions(
       `Target release report for ${dataset.code} may be truncated at ${TARGET_RELEASE_REPORT_LIMIT} rows.`,
     )
   }
-  return targetVersionsFromReport(dataset, report.rows)
+  return targetVersionsFromReport(dataset, report.rows, includeGeography)
 }
 
 export function targetVersionsFromReport(
@@ -52,7 +53,26 @@ export function targetVersionsFromReport(
     Pick<ReleaseReportRow, 'sourceVersion' | 'status'> &
       Partial<Pick<ReleaseReportRow, 'type' | 'hasStatisticsSnapshot'>>
   >,
+  includeGeography = false,
 ) {
+  if (dataset.theme === 'stats' && includeGeography) {
+    const requiredTypes = dataset.resourceTypes ?? ['divisionStatistic']
+    const completeVersions = new Set(
+      rows
+        .filter(row =>
+          requiredTypes.every(type =>
+            rows.some(
+              candidate =>
+                candidate.sourceVersion === row.sourceVersion &&
+                isPublishedTargetRelease(candidate.status) &&
+                candidate.type === type,
+            ),
+          ),
+        )
+        .map(row => row.sourceVersion),
+    )
+    rows = rows.filter(row => completeVersions.has(row.sourceVersion))
+  }
   // Geometry from the same publisher cohort does not establish stats readiness.
   if (dataset.theme === 'stats')
     rows = rows.filter(

@@ -842,6 +842,52 @@ test('geometry publication cannot hide a missing statistics release', () => {
   ).toBe('2021')
 })
 
+test('statistics with requested geography requires every declared resource in the same cohort', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+  const stats = {
+    sourceVersion: '2021',
+    status: 'published',
+    type: 'divisionStatistic',
+  }
+  const division = { ...stats, type: 'division' }
+  const area = { ...stats, type: 'divisionArea' }
+  expect(targetVersionsFromReport(dataset, [stats], true).get('2021')).toBeNull()
+  expect(targetVersionsFromReport(dataset, [stats, area], true).get('2021')).toBeNull()
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, sourceVersion: '2024' }],
+      true,
+    ).get('2021'),
+  ).toBeNull()
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, status: 'failed' }],
+      true,
+    ).get('2021'),
+  ).toBeNull()
+  expect(
+    targetVersionsFromReport(dataset, [stats, division, area], true).get('2021'),
+  ).toBe('2021')
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, status: 'superseded' }],
+      true,
+    ).get('2021'),
+  ).toBe('2021')
+  expect(targetVersionsFromReport(dataset, [stats], false).get('2021')).toBe('2021')
+})
+
 test('wraps update errors to the guided output width, including long URLs', () => {
   const lines = wrapUpdateMessage(
     'Download failed',
