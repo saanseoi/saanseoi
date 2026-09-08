@@ -3,6 +3,38 @@ import type { ProvenanceStore } from '@repo/core/provenance'
 import { retainDivisionProvenance } from './divisionProvenance'
 import { syntheticHongKongAreaRule } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
+test('unknown operations cannot silently disappear into normalisation counters', async () => {
+  let writes = 0
+  const store: ProvenanceStore = {
+    async get() {
+      return null
+    },
+    async put() {
+      writes++
+    },
+  }
+  for (const action of ['new_operation', 'unknown_name_human_translated']) {
+    await expect(
+      retainDivisionProvenance(store, {
+        releaseId: 'release',
+        datasetCode: 'division',
+        inputCount: 1,
+        outputCount: 1,
+        actions: [
+          {
+            action,
+            affectedRecordCount: 1,
+            mode: 'automatic',
+            summary: 'Unknown',
+            evidence: null,
+          },
+        ],
+      }),
+    ).rejects.toThrow('Unregistered Division audit operation')
+  }
+  expect(writes).toBe(0)
+})
+
 test('retains synthetic Hong Kong area inputs and outputs independently', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {

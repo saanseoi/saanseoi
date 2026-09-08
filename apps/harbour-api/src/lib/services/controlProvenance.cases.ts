@@ -17,6 +17,35 @@ import {
   seedSnapshot,
 } from './controlFixtures.fixtures.ts'
 
+test('every resource release requires an audit, including deferred publication', async () => {
+  const sqlite = initDb(join(createTempDir(), 'mandatory-audits.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const release = sqlite.query('SELECT id FROM releases LIMIT 1').get() as {
+    id: string
+  }
+  sqlite.query('DELETE FROM releaseProvenance WHERE releaseId = ?').run(release.id)
+  for (const type of [
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+    'divisionStatistic',
+    'address',
+    'place',
+    'street',
+  ]) {
+    sqlite
+      .query("UPDATE releases SET resourceType = ?, status = 'staged' WHERE id = ?")
+      .run(type, release.id)
+    await expect(
+      handlePublishDataset(db, { releaseId: release.id, deferApiReleaseSet: true }),
+    ).rejects.toThrow('requires a verified retained processing result')
+    expect(
+      sqlite.query('SELECT status FROM releases WHERE id = ?').get(release.id),
+    ).toEqual({ status: 'staged' })
+  }
+  sqlite.close()
+})
+
 test('requires retained processing audits for Addresses and Places before publishing their API provenance', async () => {
   for (const datasetType of ['address', 'place'] as const) {
     const tempDir = createTempDir()

@@ -10,6 +10,7 @@ import {
   initDb,
   seedCompleteDivisionSourceSignature,
   seedSnapshot,
+  seedCompletedAudits,
   sortProvenanceRows,
 } from './controlFixtures.fixtures.ts'
 
@@ -205,6 +206,7 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
     updatedAt: '2026-06-05T00:01:00.000Z',
   })
 
+  seedCompletedAudits(sqlite)
   setTimeout(() => {
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.0',
