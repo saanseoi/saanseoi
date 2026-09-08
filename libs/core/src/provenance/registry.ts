@@ -19,7 +19,7 @@ export async function registerProcessingResult(
   const table = metaSchema.releaseProvenance
   const releases = metaSchema.metaReleases
   const release = await db
-    .select({ status: releases.status, type: releases.type })
+    .select({ status: releases.status, type: releases.resourceType })
     .from(releases)
     .where(eq(releases.id, releaseId))
     .get()
