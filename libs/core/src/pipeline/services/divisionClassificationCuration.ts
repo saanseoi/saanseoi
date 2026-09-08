@@ -1,4 +1,5 @@
 import fixture from '../../../../../fixtures/meta/curations/overture-division-classification.json'
+import { ProcessingGuardError } from '../../provenance/guards'
 
 export function validateDivisionClassificationFixture(value: unknown) {
   const f = value as typeof fixture
@@ -45,6 +46,20 @@ export function applyDivisionClassificationCuration(row: Record<string, unknown>
     (row.class ?? null) !== entry.expected.class ||
     row.subtype !== entry.expected.subtype
   )
-    throw new Error(`Division classification guard mismatch: ${entry.id}.`)
+    throw new ProcessingGuardError(
+      `Division classification guard mismatch: ${entry.id}.`,
+      [
+        {
+          id: 'division-classification-expectations',
+          summary:
+            'The reviewed classification correction must match the current source identity and classification.',
+          consequence: 'block-ingestion',
+          status: 'failed',
+          checked: 1,
+          failed: 1,
+          reason: `Source classification does not match fixture ${entry.id}.`,
+        },
+      ],
+    )
   return { level: entry.replacement.level, type: entry.replacement.type as 'macrohood' }
 }
