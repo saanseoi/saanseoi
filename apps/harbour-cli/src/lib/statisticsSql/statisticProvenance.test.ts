@@ -1,18 +1,9 @@
-import { expect, test } from 'bun:test'
-import {
-  apiFieldView,
-  readApplications,
-  readValue,
-  reapplyApplications,
-  recordKey,
-  type JsonRecord,
-  type ProvenanceStore,
-} from '@repo/core/provenance'
+import { readObject, type ProvenanceStore } from '@repo/core/provenance'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics'
 import { retainStatisticProvenance } from './statisticProvenance'
 import type { CenstatdFieldMetadata } from './censtatdMeasureCurationTypes'
 
-test('Statistics retains literal evidence, reviewed definitions and replayable dimension splits', async () => {
+test('Statistics retains bulk counts and reviewed definitions without source or canonical row values', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -75,50 +66,30 @@ test('Statistics retains literal evidence, reviewed definitions and replayable d
     canonical,
     fieldMetadata,
   })
-  const applications = await Array.fromAsync(readApplications(store, result.manifest))
-  const application = applications[0]
-  if (!application) throw new Error('Expected retained application.')
-  const sourceRow = source[0]
-  if (!sourceRow) throw new Error('Expected source row.')
-  expect(application.effects).toHaveLength(2)
-  expect(applications.filter(a => a.decision.origin === 'human')).toHaveLength(2)
+  expect(result.manifest.kind).toBe('processing-audit')
+  expect(result.manifest.applicationCount).toBe(0)
+  expect(result.manifest.chunks).toEqual([])
   expect(
-    apiFieldView(applications).some(f => f.apiField === 'statistic.attributes.values'),
-  ).toBe(true)
-  const evidence = application.evidence.find(e => e.role.startsWith('guarded-input:'))
-  if (!evidence) throw new Error('Expected guarded input evidence.')
-  expect(
-    await readValue(store, { ...evidence.object, pointer: evidence.pointer }),
-  ).toEqual(sourceRow.properties)
-  const state = new Map<string, JsonRecord>([
-    [
-      recordKey({
-        collection: 'publisher-properties',
-        id: sourceRow.sourceFeatureRef,
-      }),
-      sourceRow.properties,
-    ],
-  ])
-  // No normaliser or metadata registry is consulted after capture.
-  fieldMetadata.clear()
-  const replayed = await reapplyApplications(
-    store,
-    result.manifest.collections,
-    state,
-    readApplications(store, result.manifest),
+    result.manifest.bulk.find(b => b.id === 'normalise-censtatd-statistics')?.counts,
+  ).toMatchObject({
+    inputs: { 'publisher-properties': 1 },
+    outputs: { statsRecords: 2 },
+    recordsAffected: 1,
+  })
+  const retained = [...objects.values()].map(bytes =>
+    JSON.parse(new TextDecoder().decode(bytes)),
   )
-  for (const row of canonical.records)
-    expect(replayed.get(recordKey({ collection: 'statsRecords', id: row.id }))).toEqual(
-      row,
-    )
+  expect(retained.some(value => value.kind === 'processing-values')).toBe(false)
+  const serialised = JSON.stringify(retained)
+  expect(serialised).not.toContain('243.3')
+  expect(serialised).not.toContain('243300')
+  expect(serialised).not.toContain('DC_GHS:11-2016')
+  const fieldRule = result.manifest.bulk.find(b => b.basis === 'fixture')!
+  const fixture = await readObject(store, fieldRule.fixtures[0]!.object)
+  expect(fixture).toMatchObject({
+    kind: 'statistic-field-curations',
+    fields: expect.any(Array),
+  })
   expect(canonical.records.some(row => row.values.population === '243300')).toBe(true)
-  expect(canonical.records.some(row => row.values.withheld === 'suppressed')).toBe(true)
   expect(source).toEqual(before)
-  state.set(
-    recordKey({ collection: 'publisher-properties', id: sourceRow.sourceFeatureRef }),
-    { dc: '12' },
-  )
-  await expect(
-    reapplyApplications(store, result.manifest.collections, state, applications),
-  ).rejects.toThrow('Input guard failed')
 })
