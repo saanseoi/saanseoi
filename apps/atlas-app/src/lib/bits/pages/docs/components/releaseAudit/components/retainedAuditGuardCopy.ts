@@ -3,6 +3,10 @@ import type { AuditGuard } from '@repo/core/provenance'
 
 export function guardCopy(guard: AuditGuard) {
   const copy: Record<string, { summary: string; reason: string }> = {
+    'hong-kong-sar-area-district-hierarchy': {
+      summary: m.source_audit_guard_hk_hierarchy_summary(),
+      reason: m.source_audit_guard_hk_hierarchy_reason(),
+    },
     'statistic-reference-period': {
       summary: m.source_audit_guard_period_summary(),
       reason: m.source_audit_guard_period_reason(),

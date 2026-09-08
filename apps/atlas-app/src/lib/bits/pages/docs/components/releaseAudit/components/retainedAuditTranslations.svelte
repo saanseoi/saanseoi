@@ -107,10 +107,7 @@ async function toggle(side: 'source' | 'target', value: string) {
         </h3>
         <div class="flex flex-wrap gap-x-6 gap-y-3">
           {#each [{ side: 'source' as const, title: m.source_audit_translation_source(), locales: sourceLocales, excluded: excludedSource }, { side: 'target' as const, title: m.source_audit_target(), locales: targetLocales, excluded: excludedTarget }] as control}
-            <fieldset
-              aria-label={control.side === 'source' ? m.source_audit_source_locales() : m.source_audit_target_locales()}
-              class="flex flex-wrap items-center gap-2"
-            >
+            <fieldset class="flex flex-wrap items-center gap-2">
               <legend
                 class="mr-1 text-xs font-medium uppercase tracking-wide opacity-50"
               >

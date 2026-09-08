@@ -15,8 +15,7 @@ type Entry = {
 export function createHongKongHierarchyGuard(): AuditGuard {
   return {
     id: 'hong-kong-sar-area-district-hierarchy',
-    summary:
-      'Hong Kong districts and district descendants must follow SAR → recognised Area → District ancestry.',
+    summary: 'Hong Kong divisions must follow SAR → Area → District ancestry.',
     consequence: 'block-ingestion',
     status: 'not-applicable',
     checked: 0,
@@ -61,15 +60,16 @@ export function checkHongKongHierarchy(
     },
   ]
   const districts = path.filter(entry => entry.type === 'district')
-  if (districts.length !== 1)
+  const [district] = districts
+  if (districts.length !== 1 || !district)
     fail('Expected exactly one district in the canonical ancestry.')
-  const district = districts[0]!
   const areas = overtureHongKongAreas.filter(area =>
     (area.districtNames as readonly string[]).includes(district.i18n.en?.name ?? ''),
   )
-  if (areas.length !== 1)
+  const [area] = areas
+  if (areas.length !== 1 || !area)
     fail('The district has no unambiguous recognised Hong Kong Area.')
-  const areaId = overtureHongKongAreaDivisionId(areas[0]!.code)
+  const areaId = overtureHongKongAreaDivisionId(area.code)
   const sarIndex = path.findIndex(
     entry => entry.division_id === OVERTURE_HONG_KONG_SAR_DIVISION_ID,
   )
@@ -89,6 +89,5 @@ export function checkHongKongHierarchy(
     )
   }
   guard.status = 'passed'
-  guard.reason =
-    'All checked Hong Kong district ancestries follow SAR → recognised Area → District.'
+  guard.reason = 'Every division adheres to the top-level hierarchy.'
 }

@@ -97,6 +97,9 @@ export function retainedBranchGroups(
     groups.set(branch.group, rows)
   }
   return [...groups].map(([title, rows]) => ({
+    locale: title.startsWith('Locale Normalisation: ')
+      ? title.slice('Locale Normalisation: '.length)
+      : undefined,
     title: branchGroupTitle(title),
     explanation: branchGroupExplanation(title),
     rows: rows.sort((a, b) => a.precedence - b.precedence),

@@ -74,8 +74,8 @@ $effect(() => {
     {@const comparison = auditApplicationComparison(row)}
     {#if category === 'patches' || comparison}
       <PatchCard
-        title={row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_title() : row.record.names[0] || row.record.id}
-        reason={row.reason}
+        title={row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_title() : row.operation === 'overture_hong_kong_kowloon_restored' ? m.source_audit_patch_kowloon_title() : row.record.names[0] || row.record.id}
+        reason={row.outcome === 'applied' && row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_reason() : row.outcome === 'applied' && row.operation === 'overture_hong_kong_kowloon_restored' ? m.source_audit_patch_kowloon_reason() : row.reason}
         id={row.record.id}
         status={row.outcome}
         input={comparison?.input ?? null}

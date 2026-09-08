@@ -3,7 +3,6 @@ import { m } from '#lib/bits/internal/i18n.js'
 import type { BulkAudit, Json } from '@repo/core/provenance'
 import { getRetainedRuleDeclaration } from '#lib/registry/audit.remote.js'
 import Mappings from './retainedAuditRuleMappings.svelte'
-import Parameters from './retainedAuditRuleParameters.svelte'
 import { retainedBranchGroups } from './retainedAuditBranchRows'
 import { matchesAudit } from './retainedAuditSearch'
 let {
@@ -21,19 +20,30 @@ let {
 } = $props()
 let declaration = $state<Json>()
 let failure = $state('')
-let groups = $derived(retainedBranchGroups(declaration, bulk.counts.branches))
-let parameters = $derived(
-  declaration && typeof declaration === 'object' && !Array.isArray(declaration)
-    ? declaration.parameters
-    : undefined,
-)
+let groups = $derived.by(() => {
+  const retained = retainedBranchGroups(declaration, bulk.counts.branches)
+  const locales = retained.filter(group => group.locale)
+  return retained.flatMap(group => {
+    if (!group.locale) return [group]
+    if (group !== locales[0]) return []
+    return [
+      {
+        title: m.reference_locale_normalisation(),
+        explanation: m.source_audit_locales_explanation(),
+        locale: undefined,
+        rows: locales.flatMap(item =>
+          item.rows.map(row => ({ ...row, locale: item.locale })),
+        ),
+      },
+    ]
+  })
+})
 $effect(() => {
   matching =
     !query ||
     groups.some(group =>
       matchesAudit(query, m.source_audit_rules(), group.title, group.rows),
-    ) ||
-    matchesAudit(query, parameters)
+    )
 })
 let request = 0
 async function load() {
@@ -67,14 +77,6 @@ $effect(() => {
     {/each}
   {:else}
     <p class="text-sm opacity-65">{m.source_audit_branches_unrecorded()}</p>
-  {/if}
-  {#if parameters && typeof parameters === 'object' && !Array.isArray(parameters) && matchesAudit(query, parameters)}
-    <details class="rounded-xl border border-current/15 p-4 text-sm">
-      <summary class="cursor-pointer">
-        {m.source_audit_parameters_counting_units()}
-      </summary>
-      <div class="pt-4"><Parameters {parameters} /></div>
-    </details>
   {/if}
 {:else}
   <p class="text-sm opacity-60">{failure || m.source_audit_loading_rule_mappings()}</p>

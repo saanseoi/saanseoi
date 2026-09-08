@@ -87,9 +87,9 @@
       "新界"
     ],
     "apiLocaleFallbacks": {
-      "en": ["en"],
-      "zh-hant": ["zh-hk", "zh-hant", "zh-mo", "zh-tw"],
-      "zh-hans": ["zh-hans", "zh-cn", "zh-sg"]
+      "en": [],
+      "zh-hant": ["zh-hk", "zh-mo", "zh-tw"],
+      "zh-hans": ["zh-cn", "zh-sg"]
     },
     "hongKongArea": {
       "level": 1,

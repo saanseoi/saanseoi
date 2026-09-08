@@ -48,8 +48,10 @@ English, another retained name in locale order, and the parent ID.
   - `zh-hant`
   - `zh-hans`
 - Those canonical rows are filled from preferred source variants when present:
-  - `zh-hant` prefers `zh-hk`, then `zh-hant`, then `zh-mo`, then `zh-tw`
-  - `zh-hans` prefers `zh-hans`, then `zh-cn`, then `zh-sg`
+  - Existing target locale rows are kept; fallback lists exclude the target locale.
+  - `en` has no fallback variants.
+  - Missing `zh-hant` uses `zh-hk`, then `zh-mo`, then `zh-tw`.
+  - Missing `zh-hans` uses `zh-cn`, then `zh-sg`.
 - Atlas request-time locale filters are matched case-insensitively after lowercasing
   input
 

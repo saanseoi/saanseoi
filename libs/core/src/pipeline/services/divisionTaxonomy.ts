@@ -162,8 +162,9 @@ export function validateDivisionPolicy(policy: DivisionPolicy): void {
   for (const locale of ['en', 'zh-hant', 'zh-hans'] as const) {
     const priorities = policy.apiLocaleFallbacks[locale]
     if (
-      !priorities?.length ||
+      !Array.isArray(priorities) ||
       !priorities.every(text) ||
+      priorities.some(source => source === locale) ||
       new Set(priorities).size !== priorities.length
     ) {
       throw new Error(`Invalid division locale priorities for ${locale}.`)
