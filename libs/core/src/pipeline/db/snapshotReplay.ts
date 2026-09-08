@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { historySchema } from '@repo/db'
 
 import type { HarbourReadableDb } from '../../lib/db/types'
@@ -27,11 +27,13 @@ export async function resolveSnapshotVersionState(
   plan: SnapshotReplayStep[],
   shards: ReadonlyMap<string, ReplayShard>,
   recordTypes: readonly string[],
+  recordIds?: readonly string[],
 ): Promise<Map<string, ResolvedSnapshotVersion>> {
   const state = new Map<string, ResolvedSnapshotVersion>()
+  if (recordIds?.length === 0) return state
   const typeBatches = chunkArray(
     [...recordTypes],
-    Math.max(1, getMaxItemsPerInClause(1)),
+    Math.max(1, getMaxItemsPerInClause(recordIds ? 2 : 1)),
   )
 
   for (const step of plan) {
@@ -57,6 +59,9 @@ export async function resolveSnapshotVersionState(
             and(
               eq(historySchema.snapshotVersionChanges.snapshotId, step.snapshotId),
               inArray(historySchema.snapshotVersionChanges.recordType, types),
+              recordIds
+                ? sql`${historySchema.snapshotVersionChanges.recordId} in (select value from json_each(${JSON.stringify(recordIds)}))`
+                : undefined,
             ),
           )
           .all()

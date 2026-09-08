@@ -86,6 +86,25 @@ describe('resolveSnapshotVersionState', () => {
       'district-a-v2',
     )
 
+    const selected = await resolveSnapshotVersionState(
+      [
+        {
+          snapshotId: 'parent-snapshot',
+          parentSnapshotId: null,
+          shards: [{ dataShardId: 'history', bindingName: 'history' }],
+        },
+        {
+          snapshotId: 'target-snapshot',
+          parentSnapshotId: 'parent-snapshot',
+          shards: [{ dataShardId: 'history', bindingName: 'history' }],
+        },
+      ],
+      new Map([['history', { bindingName: 'history', db: db as never }]]),
+      ['division'],
+      ['kowloon'],
+    )
+    expect([...selected.values()].map(row => row.versionHash)).toEqual(['kowloon-v1'])
+
     sqlite.close()
   })
 })
