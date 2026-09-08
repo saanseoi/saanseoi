@@ -1,4 +1,10 @@
-import { MAX_OBJECT_BYTES, readObject, retainObject, serialise } from './objects'
+import {
+  MAX_OBJECT_BYTES,
+  readObject,
+  readValue,
+  retainObject,
+  serialise,
+} from './objects'
 import { validateApplication, validateManifest } from './validation'
 import type {
   Application,
@@ -9,7 +15,7 @@ import type {
   ProvenanceStore,
 } from './types'
 
-function references(a: Application): ObjectRef[] {
+export function applicationReferences(a: Application): ObjectRef[] {
   return [
     a.decision.definition,
     ...a.evidence.map(e => e.object),
@@ -33,10 +39,8 @@ export async function retainProcessingResult(
     collections: input.collections,
     chunks: [],
     applicationCount: 0,
-    objects: [],
     summaries: [],
   }
-  const dependencies = new Map<string, ObjectRef>()
   const summaries = new Map<string, ProcessingManifest['summaries'][number]>()
   const ids = new Set<string>()
   let pending: Application[] = []
@@ -60,12 +64,6 @@ export async function retainProcessingResult(
     validateApplication(a)
     if (ids.has(a.id)) throw new Error(`Duplicate application: ${a.id}`)
     ids.add(a.id)
-    for (const ref of references(a)) {
-      const previous = dependencies.get(ref.hash)
-      if (previous && previous.byteLength !== ref.byteLength)
-        throw new Error('Conflicting dependency lengths.')
-      dependencies.set(ref.hash, ref)
-    }
     const key = JSON.stringify([a.operation, a.outcome])
     const summary = summaries.get(key) ?? {
       operation: a.operation,
@@ -86,9 +84,6 @@ export async function retainProcessingResult(
     pending.push(a)
   }
   await flush()
-  manifest.objects = [...dependencies.values()].sort((a, b) =>
-    a.hash.localeCompare(b.hash),
-  )
   manifest.summaries = [...summaries.values()].sort((a, b) =>
     `${a.operation}:${a.outcome}`.localeCompare(`${b.operation}:${b.outcome}`),
   )
@@ -129,17 +124,31 @@ export async function verifyProcessingResult(
   manifest: ProcessingManifest,
 ) {
   validateManifest(manifest)
-  const dependencies = new Map(manifest.objects.map(o => [o.hash, o]))
-  for (const ref of manifest.objects) await readObject(store, ref)
+  // Dependencies live beside the applications, not in a per-record root index.
+  const verified = new Map<string, number>()
   const collections = new Map(manifest.collections.map(c => [c.id, c.layer]))
   const ids = new Set<string>()
   const totals = new Map<string, { applicationCount: number; effectCount: number }>()
   for await (const a of readApplications(store, manifest)) {
     if (ids.has(a.id)) throw new Error('Duplicate application identity.')
     ids.add(a.id)
-    for (const ref of references(a))
-      if (dependencies.get(ref.hash)?.byteLength !== ref.byteLength)
-        throw new Error('Unlisted provenance dependency.')
+    for (const ref of applicationReferences(a)) {
+      const previous = verified.get(ref.hash)
+      if (previous !== undefined && previous !== ref.byteLength)
+        throw new Error('Conflicting dependency lengths.')
+      if (previous === undefined) {
+        await readObject(store, ref)
+        verified.set(ref.hash, ref.byteLength)
+      }
+    }
+    for (const evidence of a.evidence)
+      await readValue(store, { ...evidence.object, pointer: evidence.pointer })
+    for (const effect of a.effects) {
+      if (!effect.after) continue
+      const output = await readValue(store, effect.after)
+      if (!output || typeof output !== 'object' || Array.isArray(output))
+        throw new Error('Retained output must be a JSON record.')
+    }
     for (const i of a.inputs)
       if (!collections.has(i.collection)) throw new Error('Unknown input collection.')
     for (const e of a.effects)

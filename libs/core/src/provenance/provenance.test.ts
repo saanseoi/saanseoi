@@ -246,9 +246,10 @@ describe('retained processing effects', () => {
     await expect(
       verifyProcessingResult(f.store, { ...manifest, summaries: [] }),
     ).rejects.toThrow('summaries')
-    await expect(
-      verifyProcessingResult(f.store, { ...manifest, objects: [] }),
-    ).rejects.toThrow('Unlisted')
+    f.objects.delete(objectKey(f.a.decision.definition.hash))
+    await expect(verifyProcessingResult(f.store, manifest)).rejects.toThrow(
+      'Missing provenance',
+    )
   })
   test('canonical JSON retains null, sorts keys and rejects lossy values', async () => {
     expect(await hashValue({ b: 1, a: null })).toBe(await hashValue({ a: null, b: 1 }))

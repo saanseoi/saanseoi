@@ -59,7 +59,10 @@ export function validateApplication(value: unknown): asserts value is Applicatio
       throw new Error('Duplicate effect target within an application.')
     targets.add(key)
     if (effect.before !== null) objectKey(effect.before)
-    if (effect.after !== null) validateRef(effect.after)
+    if (effect.after !== null) {
+      validateRef(effect.after)
+      if (effect.after.pointer !== undefined) pointer(effect.after.pointer)
+    }
     if (effect.before === null && effect.after === null)
       throw new Error('Empty effect.')
   }
@@ -85,7 +88,7 @@ export function validateManifest(value: unknown): asserts value is ProcessingMan
     throw new Error('Unsupported processing manifest schema.')
   text(m.releaseId)
   integer(m.applicationCount)
-  if (![m.collections, m.chunks, m.objects, m.summaries].every(Array.isArray))
+  if (![m.collections, m.chunks, m.summaries].every(Array.isArray))
     throw new Error('Missing manifest arrays.')
   const ids = new Set<string>()
   for (const c of m.collections) {
@@ -109,12 +112,6 @@ export function validateManifest(value: unknown): asserts value is ProcessingMan
   }
   if (count !== m.applicationCount)
     throw new Error('Manifest application count mismatch.')
-  const objects = new Set<string>()
-  for (const o of m.objects) {
-    validateRef(o)
-    if (objects.has(o.hash)) throw new Error('Duplicate manifest dependency.')
-    objects.add(o.hash)
-  }
   for (const s of m.summaries) {
     text(s.operation)
     integer(s.applicationCount, 1)

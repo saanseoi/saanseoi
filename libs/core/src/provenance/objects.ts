@@ -1,4 +1,4 @@
-import type { Digest, Json, ObjectRef, ProvenanceStore } from './types'
+import type { Digest, Json, ObjectRef, ProvenanceStore, ValueRef } from './types'
 
 export const MAX_OBJECT_BYTES = 1024 * 1024
 const encoder = new TextEncoder()
@@ -8,7 +8,7 @@ export function serialise(value: unknown): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'string')
     return JSON.stringify(value)
   if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value)
-  if (Array.isArray(value)) return `[${value.map(serialise).join(',')}]`
+  if (Array.isArray(value)) return `[${Array.from(value, serialise).join(',')}]`
   if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
     return `{${Object.keys(value as object)
       .sort()
@@ -58,7 +58,7 @@ export async function readObject(
   const bytes = new Uint8Array(await object.arrayBuffer())
   if (bytes.length !== ref.byteLength || (await hashBytes(bytes)) !== ref.hash)
     throw new Error(`Provenance checksum/length mismatch: ${ref.hash}`)
-  const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes)
   const value = JSON.parse(text) as Json
   if (serialise(value) !== text)
     throw new Error('Provenance object is not canonical JSON.')
@@ -77,4 +77,24 @@ export async function retainObject(
     await store.put(objectKey(ref.hash), Uint8Array.from(bytes).buffer)
   await readObject(store, ref)
   return ref
+}
+
+/** Resolve only own JSON members; absent and explicit null remain distinct. */
+export async function readValue(store: ProvenanceStore, ref: ValueRef): Promise<Json> {
+  let value = await readObject(store, ref)
+  const pointer = ref.pointer ?? ''
+  if (pointer !== '' && !/^(\/(?:[^~]|~[01])*)+$/.test(pointer))
+    throw new Error('Invalid provenance JSON Pointer.')
+  for (const part of pointer === '' ? [] : pointer.slice(1).split('/')) {
+    const key = part.replace(/~1/g, '/').replace(/~0/g, '~')
+    if (
+      value === null ||
+      typeof value !== 'object' ||
+      (Array.isArray(value) && !/^(0|[1-9][0-9]*)$/.test(key)) ||
+      !Object.hasOwn(value, key)
+    )
+      throw new Error(`Missing retained value: ${pointer}`)
+    value = (value as Record<string, Json>)[key]!
+  }
+  return value
 }
