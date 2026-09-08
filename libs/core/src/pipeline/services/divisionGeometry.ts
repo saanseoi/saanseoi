@@ -2,6 +2,7 @@ import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/curren
 import { registerRule, ProcessingGuardError } from '../../provenance'
 import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import areaDeclaration from '../../../../../fixtures/meta/processing-rules/division-area-geometry.json'
+import exclusionDeclaration from '../../../../../fixtures/meta/processing-rules/division-geometry-exclusions.json'
 import boundaryDeclaration from '../../../../../fixtures/meta/processing-rules/division-boundary-geometry.json'
 import type {
   NewSourceDivisionAreaRow,
@@ -17,6 +18,37 @@ import { parseWkbGeometry } from './division'
 import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
 
 export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
+
+export function createGeometryExclusionRule(fixture: typeof exclusionDeclaration) {
+  for (const values of Object.values(fixture.parameters)) {
+    if (
+      !Array.isArray(values) ||
+      values.some(value => typeof value !== 'string' || !value.trim()) ||
+      new Set(values).size !== values.length
+    )
+      throw new Error('Invalid geometry exclusion policy.')
+  }
+  return registerRule(
+    ruleDeclarationFromFixture(fixture),
+    (
+      input: {
+        kind: 'area' | 'boundary'
+        region?: unknown
+        divisionId?: string | null
+      },
+      parameters,
+    ) =>
+      parameters.excludedRegions.some(region => region === input.region) ||
+      (input.kind === 'area' &&
+        Boolean(
+          input.divisionId &&
+            parameters.excludedAreaDivisionIds.includes(input.divisionId),
+        )),
+  )
+}
+
+export const divisionGeometryExclusionRule =
+  createGeometryExclusionRule(exclusionDeclaration)
 
 export type GeometryNormalisationOptions = {
   validateGeometry?: boolean
@@ -69,11 +101,7 @@ function normaliseDivisionAreaGeometry(
   source = 'overture',
   options: GeometryNormalisationOptions = {},
 ): NormalisedDivisionArea | null {
-  if (
-    divisionAreaGeometryRule.declaration.parameters.excludedRegions.some(
-      region => region === row.region,
-    )
-  ) {
+  if (divisionGeometryExclusionRule.execute({ kind: 'boundary', region: row.region })) {
     return null
   }
 
@@ -82,12 +110,7 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
-  if (
-    divisionId &&
-    divisionAreaGeometryRule.declaration.parameters.excludedDivisionIds.includes(
-      divisionId,
-    )
-  ) {
+  if (divisionGeometryExclusionRule.execute({ kind: 'area', divisionId })) {
     return null
   }
   const geometry = requireGeometry(
@@ -151,11 +174,7 @@ function normaliseDivisionBoundaryGeometry(
   source = 'overture',
   options: GeometryNormalisationOptions = {},
 ): NormalisedDivisionBoundary | null {
-  if (
-    divisionBoundaryGeometryRule.declaration.parameters.excludedRegions.some(
-      region => region === row.region,
-    )
-  ) {
+  if (divisionGeometryExclusionRule.execute({ kind: 'boundary', region: row.region })) {
     return null
   }
 
@@ -208,12 +227,16 @@ function normaliseDivisionBoundaryGeometry(
 }
 
 export const divisionAreaGeometryRule = registerRule(
-  ruleDeclarationFromFixture(areaDeclaration),
+  ruleDeclarationFromFixture(areaDeclaration, [
+    divisionGeometryExclusionRule.declaration,
+  ]),
   (args: Parameters<typeof normaliseDivisionAreaGeometry>) =>
     normaliseDivisionAreaGeometry(...args),
 )
 export const divisionBoundaryGeometryRule = registerRule(
-  ruleDeclarationFromFixture(boundaryDeclaration),
+  ruleDeclarationFromFixture(boundaryDeclaration, [
+    divisionGeometryExclusionRule.declaration,
+  ]),
   (args: Parameters<typeof normaliseDivisionBoundaryGeometry>) =>
     normaliseDivisionBoundaryGeometry(...args),
 )

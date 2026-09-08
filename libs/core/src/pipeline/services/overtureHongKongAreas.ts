@@ -1,6 +1,7 @@
 import { buildDeterministicUuidV5 } from '@repo/db'
 
 import type { DatasetProcessingMessage } from '../../types'
+import { kowloonRestorationFixture } from './kowloonRestoration'
 
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 export const OVERTURE_HONG_KONG_SAR_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
@@ -15,7 +16,7 @@ const HISTORIC_OVERTURE_HONG_KONG_AREA_DIVISION_IDS: Readonly<Record<string, str
   {
     // Keep Overture's established Kowloon identity when a later scoped extract
     // needs us to synthesise the row from its district members.
-    kowloon: '17009785-57fd-4e5b-af86-2d27352e4718',
+    kowloon: kowloonRestorationFixture.divisionId,
   }
 
 export const overtureHongKongAreas = [

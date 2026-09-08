@@ -1,6 +1,13 @@
 import type fixture from '../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import {
+  selectBranch,
+  type BranchCondition,
+  type BranchCounts,
+  type RuleBranch,
+} from '../../provenance/branches'
 
 export type DivisionPolicy = typeof fixture.parameters
+const branchCache = new WeakMap<DivisionPolicy, RuleBranch[]>()
 type Hints = {
   subtype: string
   class: string
@@ -10,37 +17,95 @@ type Hints = {
 }
 
 /** Policy order is significant, including the source's substring level matching. */
-export function divisionLevel(policy: DivisionPolicy, hints: Hints): number {
-  if (hints.isHongKongArea) return policy.hongKongArea.level
-  const subtype = policy.subtypeLevels.find(entry => entry.token === hints.subtype)
-  if (subtype) return subtype.level
-  if (hints.subtype === 'locality') {
-    const locality = policy.localityClasses.find(entry => entry.token === hints.class)
-    if (locality) return locality.level
-  }
-  for (const candidate of [hints.subtype, hints.class, hints.adminLevel]) {
-    if (!candidate) continue
-    const match = policy.levelTokens.find(entry => candidate.includes(entry.token))
-    if (match) return match.level
-  }
-  return hints.hasParent ? policy.fallback.parentLevel : policy.fallback.rootLevel
+export function divisionLevel(
+  policy: DivisionPolicy,
+  hints: Hints,
+  counts?: BranchCounts,
+  before?: unknown,
+): number {
+  return selectBranch(
+    divisionTaxonomyBranches(policy).filter(b => b.group === 'Level Classification'),
+    hints,
+    before,
+    counts,
+  ) as number
 }
 
-export function divisionType(policy: DivisionPolicy, hints: Hints): string {
-  if (hints.isHongKongArea) return policy.hongKongArea.type
-  const subtype = policy.subtypeTypes.find(entry => entry.token === hints.subtype)
-  if (subtype) return subtype.type
-  if (hints.subtype === 'locality') {
-    const locality = policy.localityClasses.find(entry => entry.token === hints.class)
-    if (locality) return locality.type
+export function divisionType(
+  policy: DivisionPolicy,
+  hints: Hints,
+  counts?: BranchCounts,
+  before?: unknown,
+): string {
+  return selectBranch(
+    divisionTaxonomyBranches(policy).filter(b => b.group === 'Type Classification'),
+    { ...hints, level: divisionLevel(policy, hints) },
+    before,
+    counts,
+  ) as string
+}
+
+/** The executor and retained declaration consume this same ordered condition tree. */
+export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
+  const cached = branchCache.get(policy)
+  if (cached) return cached
+  const branches: RuleBranch[] = []
+  const eq = (field: string, equals: string | number | boolean): BranchCondition => ({
+    field,
+    equals,
+  })
+  for (const kind of ['level', 'type'] as const) {
+    let precedence = 0
+    const add = (id: string, condition: BranchCondition, result: string | number) =>
+      branches.push({
+        id: `${kind}.${id}`,
+        group: kind === 'level' ? 'Level Classification' : 'Type Classification',
+        precedence: ++precedence,
+        condition,
+        result,
+      })
+    add('hong-kong-area', eq('isHongKongArea', true), policy.hongKongArea[kind])
+    for (const entry of kind === 'level' ? policy.subtypeLevels : policy.subtypeTypes)
+      add(
+        `subtype.${entry.token}`,
+        eq('subtype', entry.token),
+        'level' in entry ? entry.level : entry.type,
+      )
+    for (const entry of policy.localityClasses)
+      add(
+        `locality.${entry.token}`,
+        { all: [eq('subtype', 'locality'), eq('class', entry.token)] },
+        entry[kind],
+      )
+    if (kind === 'level') {
+      for (const field of ['subtype', 'class', 'adminLevel'])
+        for (const entry of policy.levelTokens)
+          add(
+            `contains.${field}.${entry.token}`,
+            { field, contains: entry.token },
+            entry.level,
+          )
+      add('fallback.parent', eq('hasParent', true), policy.fallback.parentLevel)
+      add('fallback.root', { all: [] }, policy.fallback.rootLevel)
+    } else {
+      for (const entry of policy.neighbourhoodTypes)
+        add(
+          `neighbourhood.${entry.type}`,
+          {
+            any: entry.tokens.flatMap(token => [
+              eq('subtype', token),
+              eq('class', token),
+            ]),
+          },
+          entry.type,
+        )
+      for (const [level, type] of policy.fallback.typesByLevel.entries())
+        add(`fallback.level.${level}`, eq('level', level), type)
+      add('fallback.other', { all: [] }, policy.fallback.type)
+    }
   }
-  const neighbourhood = policy.neighbourhoodTypes.find(
-    entry => entry.tokens.includes(hints.subtype) || entry.tokens.includes(hints.class),
-  )
-  if (neighbourhood) return neighbourhood.type
-  return (
-    policy.fallback.typesByLevel[divisionLevel(policy, hints)] ?? policy.fallback.type
-  )
+  if (Object.isFrozen(policy)) branchCache.set(policy, branches)
+  return branches
 }
 
 export function hierarchyClassification(policy: DivisionPolicy, subtype: string) {

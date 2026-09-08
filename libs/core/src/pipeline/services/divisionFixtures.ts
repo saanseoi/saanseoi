@@ -4,12 +4,16 @@ import type { DatasetProcessingMessage } from '../../types'
 import { readParquetObjectsInBatches } from '../parquetR2'
 import prcCountryAnchor from '../../../../../fixtures/divisions/overture/hk-prc-country-anchor.json'
 import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
+import { kowloonRestorationActions } from './kowloonRestoration'
+import type { ReleaseProcessingAction } from '../db/processingActions'
 
 type DivisionFixtureRow = Record<string, unknown>
 
 type DivisionRowBatch = {
   isSupplemental: boolean
+  replacedDivisionIds: ReadonlySet<string>
   rows: DivisionFixtureRow[]
+  processingActions: ReleaseProcessingAction[]
 }
 
 /**
@@ -39,15 +43,28 @@ export async function* readDivisionRowsWithFixtures(
   const sourceRows: DivisionFixtureRow[] = []
   for await (const rows of readParquetObjectsInBatches(file, batchSize)) {
     sourceRows.push(...rows)
-    yield { isSupplemental: false, rows }
   }
 
   const rows = [
     ...getSupplementalDivisionFixtureRows(message),
     ...missingOvertureHongKongAreaRows(message, sourceRows),
   ]
+  const replacedDivisionIds = new Set(rows.map(row => String(row.id)))
+  for (let offset = 0; offset < sourceRows.length; offset += batchSize) {
+    yield {
+      isSupplemental: false,
+      replacedDivisionIds,
+      rows: sourceRows.slice(offset, offset + batchSize),
+      processingActions: [],
+    }
+  }
 
   if (rows.length > 0) {
-    yield { isSupplemental: true, rows }
+    yield {
+      isSupplemental: true,
+      replacedDivisionIds: new Set(),
+      rows,
+      processingActions: kowloonRestorationActions(sourceRows, rows),
+    }
   }
 }

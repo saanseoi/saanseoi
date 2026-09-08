@@ -12,12 +12,16 @@ import {
 import {
   divisionClassificationFixture,
   divisionClassificationRule,
-} from './divisionClassificationCuration'
+} from './divisionClassificationPatch'
 import { divisionTranslationRule } from './divisionTranslationRule'
 import { divisionNormalisationRule } from './division'
 import { requireDefined } from '../../requireDefined'
 import type { ReleaseProcessingAction } from '../db/processingActions'
 import { retainFixturePartitions } from '../../provenance/fixtures'
+import {
+  kowloonRestorationDeclaration,
+  kowloonRestorationFixture,
+} from './kowloonRestoration'
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -39,6 +43,7 @@ export async function retainDivisionProvenance(
     actions: ReleaseProcessingAction[]
     inputCount: number
     outputCount: number
+    branchCounts?: import('../../provenance').BranchCounts
     curationDocuments?: Array<{ type: string; document: unknown }>
     normalisation?: RuleDeclaration
     retainDeclaration?: (declaration: RuleDeclaration) => Promise<ObjectRef>
@@ -49,6 +54,11 @@ export async function retainDivisionProvenance(
 ) {
   const bulk: BulkAudit[] = []
   const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
+  if (input.branchCounts) {
+    const ids = new Set(normalisation.branches?.map(branch => branch.id))
+    if (Object.keys(input.branchCounts).some(id => !ids.has(id)))
+      throw new Error('Branch counts require matching retained branch definitions.')
+  }
   const retainDeclaration =
     input.retainDeclaration ??
     ((declaration: RuleDeclaration) => retainObject(store, declaration))
@@ -91,8 +101,33 @@ export async function retainDivisionProvenance(
     return { object: part.object, pointer: `/entries/${index - part.firstOrdinal}` }
   }
   const grouped = new Map<string, ReleaseProcessingAction[]>()
-  for (const action of input.actions)
+  for (const action of input.actions) {
+    if (action.action === kowloonRestorationFixture.id) {
+      const evidence = record(action.evidence)
+      individuals.push({
+        id: `${action.action}:${kowloonRestorationFixture.divisionId}`,
+        operation: action.action,
+        review: { kind: 'patch' },
+        basis: 'fixture',
+        outcome: 'applied',
+        summary: action.summary,
+        reason: kowloonRestorationFixture.reason,
+        definition: await retainDeclaration(kowloonRestorationDeclaration),
+        fixture: {
+          object: await retainObject(store, kowloonRestorationFixture),
+          pointer: '',
+        },
+        record: {
+          id: kowloonRestorationFixture.divisionId,
+          names: kowloonRestorationFixture.names,
+          parents: [],
+        },
+        context: evidence as JsonRecord,
+      })
+      continue
+    }
     grouped.set(action.action, [...(grouped.get(action.action) ?? []), action])
+  }
   grouped.set(normalisation.id, [
     {
       action: normalisation.id,
@@ -126,6 +161,9 @@ export async function retainDivisionProvenance(
         summary,
         outcome: affected ? 'applied' : 'not-applicable',
         counts: {
+          ...(id === normalisation.id && input.branchCounts
+            ? { branches: input.branchCounts }
+            : {}),
           inputs: { [requireDefined(normalisation.inputs[0])]: input.inputCount },
           outputs:
             id === normalisation.id
@@ -204,6 +242,7 @@ export async function retainDivisionProvenance(
       individuals.push({
         id: `${id}:${recordId}:${ordinal}`,
         operation: id,
+        ...(declaration.review ? { review: declaration.review } : {}),
         basis: 'fixture',
         outcome: 'applied',
         summary: a.summary,
@@ -255,6 +294,9 @@ export async function retainDivisionProvenance(
       individuals.push({
         id: `unused-translation:${documentIndex}:${index}`,
         operation: divisionTranslationRule.declaration.id,
+        ...(divisionTranslationRule.declaration.review
+          ? { review: divisionTranslationRule.declaration.review }
+          : {}),
         basis: 'fixture',
         outcome: 'skipped',
         summary: 'Retained translation instruction was not applied in this attempt.',

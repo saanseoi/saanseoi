@@ -1,10 +1,23 @@
 import {
+  createBranchCounts,
+  selectBranch,
+  type BranchCounts,
+} from '../../provenance/branches'
+import { divisionTaxonomyBranches } from './divisionTaxonomy'
+import { divisionLocaleBranches } from './divisionLocaleBranches'
+import { localeDetection, localeInferenceBranches } from '../localeInference'
+import {
   divisionLevel,
   divisionType,
   hierarchyClassification,
   validateDivisionPolicy,
 } from './divisionTaxonomy'
 import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import {
+  checkHongKongHierarchy,
+  createHongKongHierarchyGuard,
+} from './hongKongHierarchyGuard'
+import wkbFixture from '../../../../../fixtures/meta/processing-rules/wkb-geometry.json'
 import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import type { DatasetProcessingMessage } from '../../types'
 import {
@@ -15,9 +28,9 @@ import {
 } from '../../provenance'
 import { retainDivisionProvenance } from './divisionProvenance'
 import {
-  applyDivisionClassificationCuration,
+  applyDivisionClassificationPatch,
   divisionClassificationFixture,
-} from './divisionClassificationCuration'
+} from './divisionClassificationPatch'
 import type { ApiLocale } from '../../lib/apiLocales'
 import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
@@ -169,8 +182,13 @@ type DivisionHierarchyLookupEntry = {
 export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
 
 type DivisionNormaliseOptions = {
+  hierarchyGuard?: import('../../provenance').AuditGuard
+  /** A reviewed replacement will validate this identity's final hierarchy. */
+  deferHierarchyGuard?: boolean
+  branchCounts?: BranchCounts
   hierarchyLookup?: DivisionHierarchyLookup
-  source?: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>
+  source?: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
+    Partial<Pick<DatasetProcessingMessage, 'regionCode'>>
 }
 
 const DIVISION_BATCH_SIZE = 128
@@ -419,6 +437,8 @@ export async function processDivisionDataset(
   const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
   let overtureHongKongDivisionClassificationCorrectionCount = 0
   const processingActions: ReleaseProcessingAction[] = []
+  const branchCounts = createDivisionBranchCounts()
+  const hierarchyGuard = createHongKongHierarchyGuard()
   const sourceBaselineSources =
     sourceDb && message.source === 'overture'
       ? [
@@ -468,11 +488,13 @@ export async function processDivisionDataset(
     buildDivisionHierarchyLookup(file, message),
   )
 
-  for await (const { isSupplemental, rows: batch } of readDivisionRowsWithFixtures(
-    file,
-    message,
-    DIVISION_BATCH_SIZE,
-  )) {
+  for await (const {
+    isSupplemental,
+    replacedDivisionIds,
+    rows: batch,
+    processingActions: fixtureActions,
+  } of readDivisionRowsWithFixtures(file, message, DIVISION_BATCH_SIZE)) {
+    processingActions.push(...fixtureActions)
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
@@ -506,7 +528,13 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
-      const normalised = normaliseDivisionRow(row, { hierarchyLookup, source: message })
+      const normalised = normaliseDivisionRow(row, {
+        deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
+        hierarchyLookup,
+        source: message,
+        branchCounts,
+        hierarchyGuard,
+      })
       if (normalised.overtureHongKongDivisionClassificationCorrection) {
         overtureHongKongDivisionClassificationCorrectionCount += 1
       }
@@ -526,7 +554,7 @@ export async function processDivisionDataset(
             ) ?? null,
         })
       }
-      const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n)
+      const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
       if (message.source === 'overture' && message.type === 'division') {
         processingActions.push(
           ...buildOvertureDivisionLocaleProcessingActions({
@@ -897,7 +925,9 @@ export async function processDivisionDataset(
     releaseId: message.releaseId ?? message.datasetId,
     datasetCode: message.datasetCode ?? message.datasetId,
     actions: processingActions,
+    branchCounts,
     inputCount: processedRows,
+    guards: [hierarchyGuard],
     outputCount: processedRowsById.size,
   })
   await registerProcessingResult(
@@ -1155,7 +1185,7 @@ function normaliseDivisionRowInternal(
   options: DivisionNormaliseOptions = {},
 ) {
   if (row.source === 'hkgov-censtatd') {
-    return normaliseHkgovCenstatdStatisticDivisionRow(row)
+    return normaliseHkgovCenstatdStatisticDivisionRow(row, options.branchCounts)
   }
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
@@ -1168,7 +1198,7 @@ function normaliseDivisionRowInternal(
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
   const overtureHongKongDivisionClassificationCorrection =
-    applyDivisionClassificationCuration(row, options.source)
+    applyDivisionClassificationPatch(row, options.source)
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const type = landsdPlaceName
     ? 'settlement'
@@ -1178,6 +1208,7 @@ function normaliseDivisionRowInternal(
         otClass,
         otSubtype,
         parentDivisionId,
+        branchCounts: options.branchCounts,
       }))
   const level = landsdPlaceName
     ? 5
@@ -1187,8 +1218,9 @@ function normaliseDivisionRowInternal(
         otClass,
         otSubtype,
         parentDivisionId,
+        branchCounts: options.branchCounts,
       }))
-  const i18n = normaliseDivisionI18n(id, row.names)
+  const i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
     id,
@@ -1200,6 +1232,19 @@ function normaliseDivisionRowInternal(
     i18n,
   })
   const normalisedGeometry = parseWkbGeometry(row.geometry)
+  if (!options.deferHierarchyGuard)
+    checkHongKongHierarchy(
+      {
+        country:
+          row.country ?? (options.source?.regionCode === 'hk' ? 'HK' : undefined),
+        id,
+        type,
+        level,
+        name: i18n.find(entry => entry.locale === 'en')?.name ?? undefined,
+        hierarchy: hierarchyWithHongKongArea.hierarchy,
+      },
+      options.hierarchyGuard,
+    )
 
   return {
     base: {
@@ -1306,7 +1351,20 @@ function resolveDistrictNameForHongKongArea(
 validateDivisionPolicy(ruleFixture.parameters)
 
 export const divisionNormalisationRule = registerRule(
-  ruleDeclarationFromFixture(ruleFixture),
+  {
+    ...ruleDeclarationFromFixture(ruleFixture),
+    parameters: {
+      ...ruleFixture.parameters,
+      localeDetection,
+      branchCountSemantics:
+        'Selected branches after precedence. Classification: one decision per source division; changed compares the result to raw level/type. Locale normalisation: one decision per target locale; changed means a copied row. Inference: one decision per evaluated primary/unlabelled text value; changed means locale-bearing output. Preparatory hierarchy lookups are excluded.',
+    },
+    branches: [
+      ...divisionTaxonomyBranches(ruleFixture.parameters),
+      ...divisionLocaleBranches(ruleFixture.parameters),
+      ...localeInferenceBranches,
+    ],
+  },
   ({
     row,
     options,
@@ -1338,6 +1396,10 @@ export function normaliseDivisionRow(
       },
     ])
   }
+}
+
+export function createDivisionBranchCounts() {
+  return createBranchCounts(divisionNormalisationRule.declaration.branches!)
 }
 
 export function buildOvertureHongKongAreaHierarchyProcessingActions(
@@ -1389,7 +1451,10 @@ export function buildOvertureHongKongDivisionClassificationProcessingActions(
   ]
 }
 
-function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>) {
+function normaliseHkgovCenstatdStatisticDivisionRow(
+  row: Record<string, unknown>,
+  branchCounts?: BranchCounts,
+) {
   const id = asNonEmptyString(row.id)
   const type = asNonEmptyString(row.canonical_type)
   const level = asOptionalInteger(row.canonical_level)
@@ -1420,7 +1485,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(row: Record<string, unknown>
       updatedAt: now,
       wikidata: null,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
-    i18n: normaliseDivisionI18n(id, names),
+    i18n: normaliseDivisionI18n(id, names, branchCounts),
     overtureHongKongDivisionClassificationCorrection: null,
     overtureHongKongAreaHierarchyAssignment: null,
   }
@@ -1527,24 +1592,27 @@ export function normaliseDivisionI18nForStorage(rows: DivisionI18nPayload[]) {
   return rows.map(normaliseDivisionI18nSnapshotRow)
 }
 
-export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
+export function buildCanonicalDivisionApiI18n(
+  rows: DivisionI18nPayload[],
+  branchCounts?: BranchCounts,
+) {
   const byLocale = new Map(rows.map(row => [row.locale, row] as const))
   const canonicalRows = [...rows]
 
-  for (const [locale, candidates] of Object.entries(
+  for (const [locale] of Object.entries(
     divisionNormalisationRule.declaration.parameters.apiLocaleFallbacks,
   ) as Array<[ApiLocale, string[]]>) {
-    if (byLocale.has(locale)) {
-      continue
-    }
-
-    const sourceRow = candidates
-      .map(candidate => byLocale.get(candidate))
-      .find((row): row is DivisionI18nPayload => row !== undefined)
-
-    if (!sourceRow) {
-      continue
-    }
+    const source = selectBranch(
+      divisionLocaleBranches(divisionNormalisationRule.declaration.parameters).filter(
+        branch => branch.group === `Locale Normalisation: ${locale}`,
+      ),
+      Object.fromEntries([...byLocale.keys()].map(key => [key, true])),
+      byLocale.has(locale) ? locale : 'none',
+      branchCounts,
+    )
+    if (byLocale.has(locale) || source === 'none') continue
+    const sourceRow = byLocale.get(String(source))
+    if (!sourceRow) throw new Error('Selected locale branch has no source row.')
 
     canonicalRows.push({
       ...sourceRow,
@@ -1669,7 +1737,11 @@ function hasOvertureSourceReference(value: unknown): boolean {
 /**
  * Builds localised division name/type rows from mixed source fields.
  */
-function normaliseDivisionI18n(divisionId: string, names: unknown) {
+function normaliseDivisionI18n(
+  divisionId: string,
+  names: unknown,
+  branchCounts?: BranchCounts,
+) {
   const localisedNames = new Map<string, Set<string>>()
   const localisedRuleEntries = new Map<string, DivisionNameRuleRecord[]>()
   const localisedInferredFlags = new Map<string, boolean>()
@@ -1702,10 +1774,10 @@ function normaliseDivisionI18n(divisionId: string, names: unknown) {
     localisedInferredFlags.set(locale, false)
   }
 
-  collectLocalisedValues(namesRecord?.common, addNameValue)
-  collectLocalisedRuleValues(namesRecord?.rules, addNameValue)
+  collectLocalisedValues(namesRecord?.common, addNameValue, undefined, branchCounts)
+  collectLocalisedRuleValues(namesRecord?.rules, addNameValue, undefined, branchCounts)
 
-  for (const inferredValue of inferLocale(namesRecord?.primary)) {
+  for (const inferredValue of inferLocale(namesRecord?.primary, branchCounts)) {
     addNameValue(inferredValue.locale, inferredValue.value, {
       inferred: true,
     })
@@ -1744,6 +1816,7 @@ function collectLocalisedValues(
     },
   ) => void,
   localeHint?: string | null,
+  branchCounts?: BranchCounts,
 ) {
   if (value === null || value === undefined) {
     return
@@ -1757,7 +1830,7 @@ function collectLocalisedValues(
       return
     }
 
-    for (const inferredValue of inferLocale(value)) {
+    for (const inferredValue of inferLocale(value, branchCounts)) {
       appendValue(inferredValue.locale, inferredValue.value, {
         inferred: true,
       })
@@ -1767,7 +1840,7 @@ function collectLocalisedValues(
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      collectLocalisedValues(item, appendValue, localeHint)
+      collectLocalisedValues(item, appendValue, localeHint, branchCounts)
     }
     return
   }
@@ -1794,7 +1867,7 @@ function collectLocalisedValues(
 
   for (const [key, nestedValue] of Object.entries(record)) {
     const nestedLocale = normaliseLocale(key) ?? explicitLocale
-    collectLocalisedValues(nestedValue, appendValue, nestedLocale)
+    collectLocalisedValues(nestedValue, appendValue, nestedLocale, branchCounts)
   }
 }
 
@@ -1812,6 +1885,7 @@ function collectLocalisedRuleValues(
     },
   ) => void,
   localeHint?: string | null,
+  branchCounts?: BranchCounts,
 ) {
   if (value === null || value === undefined) {
     return
@@ -1819,7 +1893,7 @@ function collectLocalisedRuleValues(
 
   if (Array.isArray(value)) {
     for (const item of value) {
-      collectLocalisedRuleValues(item, appendValue, localeHint)
+      collectLocalisedRuleValues(item, appendValue, localeHint, branchCounts)
     }
     return
   }
@@ -1837,7 +1911,7 @@ function collectLocalisedRuleValues(
       return
     }
 
-    for (const inferredValue of inferLocale(value)) {
+    for (const inferredValue of inferLocale(value, branchCounts)) {
       appendValue(inferredValue.locale, inferredValue.value, {
         inferred: true,
         rule: {
@@ -1879,7 +1953,7 @@ function collectLocalisedRuleValues(
 
   if (!explicitLocale && (directValue || directVariant)) {
     const inferredValues = directValue
-      ? inferLocale(directValue).map(inferredValue => ({
+      ? inferLocale(directValue, branchCounts).map(inferredValue => ({
           locale: inferredValue.locale,
           value: inferredValue.value,
         }))
@@ -1899,7 +1973,7 @@ function collectLocalisedRuleValues(
 
   for (const [key, nestedValue] of Object.entries(record)) {
     const nestedLocale = normaliseLocale(key) ?? explicitLocale
-    collectLocalisedRuleValues(nestedValue, appendValue, nestedLocale)
+    collectLocalisedRuleValues(nestedValue, appendValue, nestedLocale, branchCounts)
   }
 }
 
@@ -1959,7 +2033,7 @@ export async function buildDivisionHierarchyLookup(
           .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
-      const classification = applyDivisionClassificationCuration(row, source)
+      const classification = applyDivisionClassificationPatch(row, source)
       lookup.set(id, {
         i18n,
         level:
@@ -2083,6 +2157,7 @@ type DivisionTaxonomyInput = {
   otClass: string | null
   parentDivisionId: string | null
   row: Record<string, unknown>
+  branchCounts?: BranchCounts
 }
 
 function divisionTaxonomyHints(input: DivisionTaxonomyInput) {
@@ -2099,6 +2174,8 @@ function resolveDivisionLevel(input: DivisionTaxonomyInput): number {
   return divisionLevel(
     divisionNormalisationRule.declaration.parameters,
     divisionTaxonomyHints(input),
+    input.branchCounts,
+    input.row.level,
   )
 }
 
@@ -2106,6 +2183,8 @@ function resolveDivisionType(input: DivisionTaxonomyInput): string {
   return divisionType(
     divisionNormalisationRule.declaration.parameters,
     divisionTaxonomyHints(input),
+    input.branchCounts,
+    input.row.type,
   )
 }
 
@@ -2210,8 +2289,15 @@ function dedupeNameRules(rules: DivisionNameRuleRecord[]) {
 }
 
 export function parseWkbGeometry(value: unknown): GeoJsonGeometry | null {
-  // See `decode_wkb_geometry_to_geojson` in the division merge ruleset selected
-  // by this dataset fixture.
+  return wkbGeometryRule.execute(value)
+}
+
+export const wkbGeometryRule = registerRule(
+  ruleDeclarationFromFixture(wkbFixture),
+  decodeWkbGeometry,
+)
+
+function decodeWkbGeometry(value: unknown): GeoJsonGeometry | null {
   const decodedGeometry = asGeoJsonGeometry(value)
 
   if (decodedGeometry) {
