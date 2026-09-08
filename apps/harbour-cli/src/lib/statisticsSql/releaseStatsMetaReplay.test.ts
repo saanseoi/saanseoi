@@ -187,7 +187,7 @@ describe('release statistics metadata replay', () => {
           selectionMode: 'exact_ref',
           snapshotId: 'snapshot',
           sourceCohortKey: '2021',
-          sourceReleaseId: releaseId,
+          resourceReleaseId: releaseId,
         },
       ],
     }).join('\n')

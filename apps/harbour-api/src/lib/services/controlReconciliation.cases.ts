@@ -10,6 +10,63 @@ import {
   seedSnapshot,
 } from './controlFixtures.fixtures.ts'
 
+test('restores missing Overture draft sets from retained geography without stats prerequisites', async () => {
+  const sqlite = initDb(join(createTempDir(), 'restore-division-sets.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const cohortKey = '2025-09-24.0'
+  sqlite.exec(`INSERT INTO apiCompositionMembers (
+    apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+    cohortMatchingMode, priority
+  ) VALUES ('api-composition-divisions-v1', 'geographic', 'divisionArea',
+    'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', 15);`)
+  const release = insertFixtureRelease(sqlite, {
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey,
+    type: 'division',
+    sourceVersion: cohortKey,
+    rawObjectKey: 'hk/overture/division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'published',
+    ingestedAt: '2026-06-05T00:00:00.000Z',
+    createdAt: '2026-06-05T00:00:00.000Z',
+    updatedAt: '2026-06-05T00:00:00.000Z',
+  })
+  const snapshotId = seedSnapshot(sqlite, {
+    code: `ss-hk-division-${cohortKey}`,
+    cohortKey,
+    datasetId: 'overture-hk-division',
+    resourceType: 'division',
+    releaseId: release.releaseId,
+    status: 'published',
+  })
+  sqlite.exec(`INSERT INTO snapshotLineages (
+    id, code, regionCode, resourceType, variant, identityMode,
+    primaryDatasetId, versionHash, createdAt, updatedAt
+  ) VALUES ('restore-overture', 'restore-overture', 'hk', 'division', 'overture',
+    'persistent', 'overture-hk-division', 'restore', 1, 1);`)
+  sqlite
+    .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
+    .run('restore-overture', snapshotId)
+  const result = await handleReconcileDraftReleaseSets(db, {
+    apiFamily: 'divisions',
+    regionCode: 'hk',
+  })
+  expect(result.inspected).toBe(1)
+  expect(result.publishedReleaseSetCodes).toEqual([])
+  expect(result.pendingReleaseSetCodes).toHaveLength(1)
+  const setCount = sqlite.query('SELECT count(*) AS n FROM apiReleaseSets').get()
+  const repeated = await handleReconcileDraftReleaseSets(db, {
+    apiFamily: 'divisions',
+    regionCode: 'hk',
+  })
+  expect(repeated.pendingReleaseSetCodes).toEqual(result.pendingReleaseSetCodes)
+  expect(sqlite.query('SELECT count(*) AS n FROM apiReleaseSets').get()).toEqual(
+    setCount,
+  )
+  sqlite.close()
+})
+
 test('reconciles a draft division release set once its required C&SD areas are available', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-publish-had-draft-release-set.sqlite')
@@ -409,7 +466,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .run('lineage-censtatd-area-type', areaTypeSnapshotId)
   sqlite
     .query(
-      'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
     )
     .run(
       areaTypeSnapshotId,
