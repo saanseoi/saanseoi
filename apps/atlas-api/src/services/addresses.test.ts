@@ -326,7 +326,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         'page[limit]': 2,
         'page[offset]': 1,
       }
-      const result = await searchAddresses({ ...args, query })
+      const result = await searchAddresses({ ...deployedArgs, query })
       expect(result.status).toBe(200)
       expect(result.status === 200 && result.body.data.map(row => row.id)).toEqual([
         'b',

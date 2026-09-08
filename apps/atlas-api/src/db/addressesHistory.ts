@@ -1,6 +1,9 @@
 import type { HistoryDatabase } from '@repo/db'
+import { and, asc, eq, historySchema, sql } from '@repo/db'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 import { getReplayedAddressVersionMap } from '@repo/core/pipeline/db/address.ts'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addressPipeline/normalisation.ts'
 
 import type {
   AddressLocaleValue,
@@ -64,6 +67,8 @@ export async function listReplayedAddressRecords(args: {
   localeSelection: RequestedApiLocaleSelection
   metaDb: unknown
   snapshotIds: string[]
+  recordIds?: string[]
+  replayPlans?: Map<string, Awaited<ReturnType<typeof resolveSnapshotReplayPlan>>>
 }): Promise<AddressRecord[]> {
   const shards = new Map<string, HistoryShard>(
     Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
@@ -73,11 +78,21 @@ export async function listReplayedAddressRecords(args: {
   )
   const versionsBySnapshot = await Promise.all(
     args.snapshotIds.map(snapshotId =>
-      getReplayedAddressVersionMap(args.metaDb as never, snapshotId, shards as never, {
-        buildAddressBaseHashInput: value => value,
-        buildMatchKey: () => null,
-        normaliseAddressI18nSnapshotRow: value => value,
-      }),
+      getReplayedAddressVersionMap(
+        args.metaDb as never,
+        snapshotId,
+        shards as never,
+        {
+          buildAddressBaseHashInput: value => value,
+          buildMatchKey: () => null,
+          normaliseAddressI18nSnapshotRow: value => value,
+        },
+        {
+          recordIds: args.recordIds,
+          includeLocales: args.localeSelection.mode !== 'none',
+          plan: args.replayPlans?.get(snapshotId),
+        },
+      ),
     ),
   )
 
@@ -117,6 +132,107 @@ export async function listReplayedAddressRecords(args: {
       ),
     }))
   })
+}
+
+/** Walk compact ID windows, stopping after one matching record beyond the page. */
+export async function listReplayedAddressPage(
+  args: Parameters<typeof listReplayedAddressRecords>[0] & {
+    limit: number
+    offset: number
+    countryId?: string
+    areaId?: string
+    districtId?: string
+    search?: Parameters<typeof searchReplayedAddressRecords>[1]
+  },
+) {
+  const plans = await Promise.all(
+    args.snapshotIds.map(id => resolveSnapshotReplayPlan(args.metaDb as never, id)),
+  )
+  const replayPlans = new Map(args.snapshotIds.map((id, index) => [id, plans[index]!]))
+  const snapshotIdsByBinding = new Map<string, Set<string>>()
+  for (const plan of plans)
+    for (const step of plan)
+      for (const shard of step.shards) {
+        const ids = snapshotIdsByBinding.get(shard.bindingName) ?? new Set<string>()
+        ids.add(step.snapshotId)
+        snapshotIdsByBinding.set(shard.bindingName, ids)
+      }
+  const selected: Array<{ id: string; snapshotId: string }> = []
+  let skipped = 0
+  let after: string | undefined
+  let hasMore = false
+  outer: for (;;) {
+    let candidates: string[] = []
+    for (const [binding, snapshots] of snapshotIdsByBinding) {
+      const db = args.historyDbsByBinding[binding]
+      if (!db) throw new Error(`Unavailable history binding ${binding}.`)
+      const journal = historySchema.snapshotVersionChanges
+      const rows = await db
+        .selectDistinct({ id: journal.recordId })
+        .from(journal)
+        .where(
+          and(
+            sql`${journal.snapshotId} in (select value from json_each(${JSON.stringify([...snapshots])}))`,
+            eq(journal.recordType, 'address2d'),
+            after === undefined ? undefined : sql`${journal.recordId} > ${after}`,
+          ),
+        )
+        .orderBy(asc(journal.recordId))
+        .limit(100)
+        .all()
+      candidates = [...new Set([...candidates, ...rows.map(row => row.id)])]
+        .sort()
+        .slice(0, 100)
+    }
+    if (!candidates.length) break
+    const records = await listReplayedAddressRecords({
+      ...args,
+      recordIds: candidates,
+      replayPlans,
+      localeSelection: args.search
+        ? { mode: 'all', locales: ['*'] }
+        : { mode: 'none', locales: [] },
+    })
+    records.sort((a, b) =>
+      a.address.id < b.address.id ? -1 : a.address.id > b.address.id ? 1 : 0,
+    )
+    for (const { address } of args.search
+      ? searchReplayedAddressRecords(records, args.search)
+      : records) {
+      if (
+        (args.countryId && address.countryId !== args.countryId) ||
+        (args.areaId && address.areaId !== args.areaId) ||
+        (args.districtId && address.districtId !== args.districtId)
+      )
+        continue
+      if (skipped < args.offset) {
+        skipped++
+        continue
+      }
+      if (selected.length === args.limit) {
+        hasMore = true
+        break outer
+      }
+      selected.push({ id: address.id, snapshotId: address.snapshotId })
+    }
+    after = candidates.at(-1)
+  }
+  const records = selected.length
+    ? await listReplayedAddressRecords({
+        ...args,
+        recordIds: [...new Set(selected.map(row => row.id))],
+        replayPlans,
+      })
+    : []
+  const byKey = new Map(
+    records.map(row => [`${row.address.snapshotId}\u0000${row.address.id}`, row]),
+  )
+  return {
+    records: selected.flatMap(
+      row => byKey.get(`${row.snapshotId}\u0000${row.id}`) ?? [],
+    ),
+    hasMore,
+  }
 }
 
 export function selectReplayedAddressLocales(
@@ -210,17 +326,16 @@ export function searchReplayedAddressRecords(
     const number = lookup.query.normalize('NFKC').trim().toLocaleUpperCase('en')
     if (!/^\d+[A-Z]?$/.test(number)) return []
     return records.filter(record =>
-      Object.values(record.i18n).some(value => {
-        const from = value.buildingNumberFrom
-          ?.normalize('NFKC')
-          .trim()
-          .toLocaleUpperCase('en')
-        const to = value.buildingNumberTo
-          ?.normalize('NFKC')
-          .trim()
-          .toLocaleUpperCase('en')
-        return from === number || (lookup.mode === 'range' && to === number)
-      }),
+      buildAddressBuildingNumberLookupRows(
+        Object.values(record.i18n).map(value => ({
+          ...value,
+          addressId: record.address.id,
+        })),
+      ).some(
+        row =>
+          row.buildingNumber === number &&
+          (lookup.mode === 'range' || row.evidence !== 'derived_member'),
+      ),
     )
   }
 

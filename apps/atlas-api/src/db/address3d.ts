@@ -2,6 +2,7 @@ import {
   and,
   eq,
   inArray,
+  sql,
   currentSchema,
   historySchema,
   type CurrentDatabase,
@@ -23,6 +24,16 @@ export async function attachAddress3dCoverage(args: {
 }) {
   const snapshots = new Set(args.records.map(record => record.address.snapshotId))
   for (const snapshotId of snapshots) {
+    const ownerIds = [
+      ...new Set(
+        args.records
+          .filter(record => record.address.snapshotId === snapshotId)
+          .flatMap(record => [
+            record.address.id,
+            ...(record.address.parentAddressId ? [record.address.parentAddressId] : []),
+          ]),
+      ),
+    ]
     const collections: Address3dCollectionMetadata[] = []
     if (args.historyDbsByBinding) {
       const shards = new Map(
@@ -31,10 +42,27 @@ export async function attachAddress3dCoverage(args: {
           { bindingName, db },
         ]),
       )
+      const plan = await resolveSnapshotReplayPlan(args.metaDb as never, snapshotId)
+      const collectionIds = new Set<string>()
+      for (const binding of new Set(
+        plan.flatMap(step => step.shards.map(shard => shard.bindingName)),
+      )) {
+        const db = args.historyDbsByBinding[binding]
+        if (!db) throw new Error(`Missing Address3D history shard ${binding}`)
+        const rows = await db
+          .selectDistinct({ id: historySchema.address3d.id })
+          .from(historySchema.address3d)
+          .where(
+            sql`${historySchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
+          )
+          .all()
+        for (const row of rows) collectionIds.add(row.id)
+      }
       const state = await resolveSnapshotVersionState(
-        await resolveSnapshotReplayPlan(args.metaDb as never, snapshotId),
+        plan,
         shards as never,
         ['address3d'],
+        [...collectionIds],
       )
       const byShard = new Map<string, Array<{ id: string; hash: string }>>()
       for (const row of state.values())
@@ -77,7 +105,12 @@ export async function attachAddress3dCoverage(args: {
             unresolvedSectionIds: currentSchema.address3d.unresolvedSectionIds,
           })
           .from(currentSchema.address3d)
-          .where(eq(currentSchema.address3d.snapshotId, snapshotId))
+          .where(
+            and(
+              eq(currentSchema.address3d.snapshotId, snapshotId),
+              sql`${currentSchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
+            ),
+          )
           .all()),
       )
     }
@@ -130,6 +163,7 @@ export async function getAddress3dCollection(args: {
     await resolveSnapshotReplayPlan(args.metaDb as never, args.snapshotId),
     shards as never,
     ['address3d', 'address3dI18n'],
+    [args.collectionId],
   )
   const version = [...state.values()].find(
     row => row.recordType === 'address3d' && row.recordId === args.collectionId,
