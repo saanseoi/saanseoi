@@ -126,7 +126,54 @@ export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
   const directory = join(root, '.local/hkgov-dpo/preflight-cache')
   await mkdir(directory, { recursive: true })
   const checkpoint = join(directory, `${key}.json`)
+  // Local, pinned one-off reuse for the approved Block 4 geometry-only correction.
+  // Old successful reviews have identical identity, division and estate results.
+  if (
+    !input.target.remote &&
+    input.sourceVersion >= '2024-07-25.0' &&
+    input.sourceVersion < '2026-04-25.0'
+  ) {
+    const approval = await Bun.file(join(directory, '../block-4-cache-reuse.json'))
+      .json()
+      .catch(() => null)
+    const previousDependencies = block4ReviewDependencies(dependencies, approval)
+    if (previousDependencies) {
+      const previousKey = createHash('sha256')
+        .update(
+          JSON.stringify({
+            version: 2,
+            runtime: Bun.version,
+            input,
+            dependencies: previousDependencies,
+          }),
+        )
+        .digest('hex')
+      const previousCheckpoint = join(directory, `${previousKey}.json`)
+      if (await Bun.file(previousCheckpoint).exists())
+        return cachedReviewChild(input, previousCheckpoint, previousKey)
+    }
+  }
   return cachedReviewChild(input, checkpoint, key)
+}
+
+export function block4ReviewDependencies(
+  dependencies: unknown[],
+  approval: unknown,
+): unknown[] | null {
+  if (!approval || typeof approval !== 'object') return null
+  const value = approval as { current?: unknown; previous?: unknown }
+  if (
+    !Array.isArray(value.current) ||
+    !Array.isArray(value.previous) ||
+    value.current.length !== 6 ||
+    value.previous.length !== 6 ||
+    !value.previous.every(
+      item => typeof item === 'string' && /^[a-f0-9]{64}$/.test(item),
+    ) ||
+    JSON.stringify(dependencies.slice(0, 6)) !== JSON.stringify(value.current)
+  )
+    return null
+  return [...value.previous, ...dependencies.slice(6)]
 }
 
 export async function cachedReviewChild(

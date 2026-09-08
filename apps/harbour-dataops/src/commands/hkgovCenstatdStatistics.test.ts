@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  formatCompletedCenstatdStatisticReleases,
   isCenstatdDistrictGeometryDataset,
   pendingCenstatdStatisticResourceTypes,
 } from './hkgovCenstatdStatistics.ts'
@@ -59,5 +60,25 @@ describe('C&SD statistics ingestion idempotency', () => {
         ['divisionArea'],
       ),
     ).toEqual(['divisionArea'])
+  })
+
+  test('identifies every completed requested resource in skip output', () => {
+    const output = formatCompletedCenstatdStatisticReleases(
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      '2023-H2',
+      ['divisionStatistic', 'division', 'divisionArea'],
+    )
+
+    expect(output).toContain(
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::divisionStatistic',
+    )
+    expect(output).toContain(
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::division',
+    )
+    expect(output).toContain(
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::divisionArea',
+    )
+    expect(output.split('\n')).toHaveLength(3)
+    expect(output).not.toContain('every requested resource')
   })
 })
