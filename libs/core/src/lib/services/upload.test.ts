@@ -483,6 +483,24 @@ describe('upload', () => {
     expect(planned.plan.releaseCode).toBe(
       'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionStatistic',
     )
+    const geometry = await prepareUpload({
+      cohortKey: '2022',
+      datasetCode: planned.plan.datasetCode,
+      filePath: fixtureFile,
+      inspection: {
+        ...fixtureInspection,
+        distinctThemeValues: ['divisions'],
+        distinctTypeValues: ['divisionArea'],
+      },
+      source: 'hkgov-censtatd',
+      sourceVersion: '2022',
+      theme: 'divisions',
+      type: 'divisionArea',
+    })
+    expect(geometry.plan.releaseCode).toBe(
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionArea',
+    )
+    expect(geometry.plan.datasetCode).toBe(planned.plan.datasetCode)
   })
 
   test('keeps the resource type in a Planning Department companion release code', async () => {
