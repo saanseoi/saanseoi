@@ -163,6 +163,7 @@
     "url": "https://github.com/saanseoi/saanseoi/issues"
   },
   "patchedDependencies": {
-    "runed@0.35.1": "patches/runed@0.35.1.patch"
+    "runed@0.35.1": "patches/runed@0.35.1.patch",
+    "@clack/prompts@1.8.0": "patches/@clack%2Fprompts@1.8.0.patch"
   }
 }
