@@ -734,7 +734,7 @@ function resolveUploadPlan(
   const datasetCode = explicitDatasetCode || canonicalDatasetCode
   const releaseCode =
     explicitDatasetCode && explicitDatasetCode !== canonicalDatasetCode
-      ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
+      ? `${buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)}::${type}`
       : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
@@ -836,6 +836,9 @@ export async function planUpload(
   const existingDataset = await getDatasetById(db, releaseCode)
 
   if (existingDataset) {
+    if (existingDataset.type !== type) {
+      throw new Error(`Resource release ${releaseCode} cannot change resource type.`)
+    }
     await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
   }
 

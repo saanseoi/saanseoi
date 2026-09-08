@@ -481,7 +481,7 @@ describe('upload', () => {
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
     )
     expect(planned.plan.releaseCode).toBe(
-      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionStatistic',
     )
   })
 
@@ -1215,7 +1215,7 @@ describe('upload', () => {
       plan: {
         datasetCode,
         releaseCode:
-          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024',
+          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024::divisionStatistic',
       },
     })
 

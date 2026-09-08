@@ -160,7 +160,7 @@ function createRegistryReleasesDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT,
+      resourceReleaseId TEXT,
       role TEXT NOT NULL
     );
 
@@ -175,6 +175,7 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL
@@ -332,7 +333,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
         ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
         ('snapshot-a', 'dataset-c', 'source-release-c', 'primary'),
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
@@ -600,7 +601,7 @@ function createDraftSnapshotDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL
+      resourceReleaseId TEXT NOT NULL
     );
   `)
 
@@ -733,7 +734,7 @@ function createSnapshotAssemblyRunDb() {
     );
     CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT, cohortKey TEXT);
     INSERT INTO snapshots VALUES ('snapshot-division', 'division', 'draft', '2025-09-24.0');
-    CREATE TABLE snapshotSources (snapshotId TEXT, datasetId TEXT, sourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
+    CREATE TABLE snapshotSources (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
     INSERT INTO snapshotSources VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'snapshot-assembly-division-v1', 'exact_ref', 'release-division', '2025-09-24.0');
     CREATE TABLE snapshotAssemblySources (snapshotAssemblyId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, selectorType TEXT, anchorDatasetId TEXT, maxLagDays INTEGER, priority INTEGER, configJson TEXT, PRIMARY KEY(snapshotAssemblyId, datasetId, role));
   `)
@@ -774,7 +775,7 @@ function createRegionalSnapshotLookupDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
 
@@ -838,6 +839,7 @@ function createLatestDatasetLookupDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -963,7 +965,7 @@ function createActiveSnapshotLookupDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
   `)
@@ -1090,6 +1092,7 @@ function createPublishReleaseArtefactsDb() {
       sourceSchemaVersion TEXT,
       releaseNotesUrl TEXT,
       notes TEXT,
+      resourceType TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
@@ -1098,6 +1101,7 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -1108,7 +1112,7 @@ function createPublishReleaseArtefactsDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'primary'
     );
 
@@ -1190,7 +1194,7 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-censtatd-annual', '2024', '1.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
 
-    INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+    INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
       ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
@@ -1629,7 +1633,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
     sqlite
       .query(
-        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
       )
       .run(exact.id, base.datasetId, base.sourceReleaseId)
     const simplified = await ensureDraftSnapshotForRelease(
@@ -1642,7 +1646,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     )
     sqlite
       .query(
-        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
       )
       .run(simplified.id, base.datasetId, base.sourceReleaseId)
 
@@ -1666,7 +1670,7 @@ describe('ensureDraftSnapshotForRelease', () => {
             FROM snapshots s
             INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-            WHERE ss.sourceReleaseId = ?
+            WHERE ss.resourceReleaseId = ?
             ORDER BY sl.variant
           `,
         )
@@ -1933,7 +1937,7 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () =>
         ('snapshot-hk-new', 'division', 'hk-new', 'published', 1760002000000, 1760002000000),
         ('snapshot-mo-newer', 'division', 'mo-newer', 'published', 1760004000000, 1760004000000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-hk-draft', 'dataset-hk', 'release-hk-draft', 'primary'),
         ('snapshot-hk-old', 'dataset-hk', 'release-hk-old', 'primary'),
         ('snapshot-hk-new', 'dataset-hk', 'release-hk-new', 'primary'),
@@ -2441,7 +2445,7 @@ describe('resolveActiveSnapshotForType', () => {
         ('dataset-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk'),
         ('dataset-mo-place', 'publisher-overture', 'ds-mo-overture-place', 'mo');
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-hk-place', 'dataset-hk-place', 'release-hk-place', 'primary'),
         ('snapshot-mo-place', 'dataset-mo-place', 'release-mo-place', 'primary');
     `)
@@ -2483,7 +2487,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
         ('overture-division-2025', NULL, 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-division-2025', 'dataset-overture-division', 'release-overture-division-2025', 'primary');
     `)
 
@@ -2519,7 +2523,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
         ('overture-division-area-2025', NULL, 'divisionArea', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-division-area-2025', 'dataset-overture-division-area', 'release-overture-division-area-2025', 'primary');
     `)
 
@@ -2563,7 +2567,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         ('pland-pu-2006', 'lineage-pland-pu', 'division', 'ss-hk-division-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
         ('pland-new-town-2006', 'lineage-pland-new-town', 'division', 'ss-hk-division-hkgov-pland-new-town-2006', '2006', 'published', 1136073600001, 1136073600001);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('pland-pu-2006', 'dataset-pland-pu', 'release-pland-pu-2006', 'primary'),
         ('pland-new-town-2006', 'dataset-pland-new-town', 'release-pland-new-town-2006', 'primary');
     `)
@@ -2603,7 +2607,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       ) VALUES
         ('censtatd-authoritative-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.0', '2024', 'authoritative', 'published', 1735689600000, 1735689600000),
         ('censtatd-fallback-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.1', '2024', 'fallback', 'published', 1767225600000, 1767225600000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('censtatd-authoritative-2024', 'dataset-censtatd', 'release-censtatd-2024', 'primary'),
         ('censtatd-fallback-2024', 'dataset-censtatd', 'release-censtatd-2026-q2', 'primary');
     `)
@@ -2649,7 +2653,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('had-area-2022', 'lineage-had-area', 'divisionArea', 'ss-hk-division-area-2022', '2022', 'published', 1654041600000, 1654041600000),
         ('had-area-future', 'lineage-had-area', 'divisionArea', 'ss-hk-division-area-2026', '2026', 'published', 1767225600000, 1767225600000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-area-older', 'dataset-overture-area', 'release-overture-area-older', 'primary'),
         ('overture-area-current', 'dataset-overture-area', 'release-overture-area-current', 'primary'),
         ('had-area-2022', 'dataset-had-area', 'release-had-area-2022', 'primary'),
@@ -2697,7 +2701,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('censtatd-area-2016', 'lineage-censtatd-2016', 'divisionArea', 'ss-hk-division-area-censtatd-2016', '2016', 'published', 1451606400000, 1451606400000),
         ('censtatd-area-2021', 'lineage-censtatd-2021', 'divisionArea', 'ss-hk-division-area-censtatd-2021', '2021', 'published', 1609459200000, 1609459200000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('censtatd-area-2016', 'dataset-censtatd-area', 'release-censtatd-area-2016', 'primary'),
         ('censtatd-area-2021', 'dataset-censtatd-area', 'release-censtatd-area-2021', 'primary');
     `)
@@ -2758,7 +2762,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('pland-pu-area-2006', 'lineage-pland-pu-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
         ('pland-new-town-area-2006', 'lineage-pland-new-town-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-new-town-2006', '2006', 'published', 1136073600000, 1136073600000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('pland-pu-area-2006', 'dataset-pland-pu-area', 'release-pland-pu-area-2006', 'primary'),
         ('pland-new-town-area-2006', 'dataset-pland-new-town-area', 'release-pland-new-town-area-2006', 'primary');
     `)
@@ -2810,7 +2814,7 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
         ('overture-later', 'division', 'ss-hk-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
         ('other-earlier', 'division', 'ss-hk-division-2024-01', '2024-01', 'published', 1704067200000, 1704067200000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
         ('overture-later', 'dataset-overture-division', 'release-overture-later', 'primary'),
         ('other-earlier', 'dataset-other-division', 'release-other-earlier', 'primary');
@@ -2851,7 +2855,7 @@ describe('listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey', () => 
       ) VALUES
         ('overture-first', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
         ('overture-second', 'division', 'ss-hk-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
         ('overture-second', 'dataset-overture-division', 'release-overture-second', 'primary');
     `)
@@ -2888,7 +2892,7 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey
       ) VALUES
         ('overture-earlier', 'division', 'ss-hk-division-2023-06-01.0', '2023-06-01.0', 'published', 1685577600000, 1685577600000),
         ('overture-future', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-earlier', 'dataset-overture-division', 'release-overture-earlier', 'primary'),
         ('overture-future', 'dataset-overture-division', 'release-overture-future', 'primary');
     `)
@@ -2953,7 +2957,7 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
         ('snapshot-overture-2026', 'division', 'ss-hk-division-2026', 'published', 1),
         ('snapshot-had', 'division', 'ss-hk-division-had', 'published', 1);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-overture-2025-r0', 'dataset-overture', 'release-overture-2025-r0', 'primary'),
         ('snapshot-overture-2025-r1', 'dataset-overture', 'release-overture-2025-r1', 'primary'),
         ('snapshot-overture-2026', 'dataset-overture', 'release-overture-2026', 'primary'),
@@ -3056,7 +3060,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-curated', 'dataset-overture-division', 'release-1'),
         ('snapshot-new', 'dataset-overture-division', 'release-1');
 
@@ -3249,7 +3253,7 @@ describe('publishReleaseArtefacts', () => {
         ('release-overture-2026', '2026-07-22.0', '1.18.0', 'published', null, null, null, 1760000000000),
         ('release-censtatd', '2016', '1.0', 'staged', null, null, null, 1760000000000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-overture', 'dataset-overture-division', 'release-overture-2025', 'primary'),
         ('snapshot-censtatd', 'dataset-hkgov-censtatd-district', 'release-censtatd', 'primary'),
         ('snapshot-censtatd', 'dataset-overture-division', 'release-overture-2026', 'lookup');
@@ -3295,7 +3299,7 @@ describe('publishReleaseArtefacts', () => {
       sqlite
         .query(
           `SELECT role FROM snapshotSources
-           WHERE snapshotId = ? AND sourceReleaseId = ?`,
+           WHERE snapshotId = ? AND resourceReleaseId = ?`,
         )
         .get('snapshot-censtatd', 'release-overture-2026'),
     ).toEqual({ role: 'lookup' })
@@ -3345,7 +3349,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
@@ -3432,7 +3436,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
@@ -3508,7 +3512,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 

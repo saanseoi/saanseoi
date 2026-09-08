@@ -1,3 +1,4 @@
+import { sourceReleasePublicationCondition } from './sourceReleasePublication'
 import {
   and,
   buildApiCatalogRevisionCode,
@@ -343,7 +344,7 @@ export async function listRegistryReleases(
       .all(),
   )
   const sourceReleaseIds = [
-    ...new Set(snapshotSources.map(source => source.sourceReleaseId)),
+    ...new Set(snapshotSources.map(source => source.resourceReleaseId)),
   ]
   const datasetIds = [...new Set(snapshotSources.map(source => source.datasetId))]
   const [sourceReleases, processingActions, processingActionCounts, datasetI18n] =
@@ -422,7 +423,7 @@ export async function listRegistryReleases(
       snapshots.flatMap(snapshot =>
         snapshotSources
           .filter(source => source.snapshotId === snapshot.snapshotId)
-          .map(source => source.sourceReleaseId),
+          .map(source => source.resourceReleaseId),
       ),
     )
     const ingestedAt = sourceReleases
@@ -491,7 +492,7 @@ export async function listRegistryReleases(
           )
           .flatMap(source => {
             const release = sourceReleases.find(
-              candidate => candidate.id === source.sourceReleaseId,
+              candidate => candidate.id === source.resourceReleaseId,
             )
             return release
               ? [
@@ -848,7 +849,7 @@ const processingActionBelongsToApiRelease = (
         on ${metaApiVersions.id} = ${metaApiReleaseSets.apiVersionId}
       where ${metaApiVersions.familyType} = ${input.familyType}
         and ${metaApiReleaseSets.code} = ${input.releaseCode}
-        and ${metaSnapshotSources.sourceReleaseId} = ${releaseProcessingActions.releaseId}
+        and ${metaSnapshotSources.resourceReleaseId} = ${releaseProcessingActions.releaseId}
     )`
 
 export async function listRegistryApiReleaseProcessingActionSections(
@@ -1257,7 +1258,7 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
             .from(metaSnapshotSources)
             .innerJoin(
               metaReleases,
-              eq(metaSnapshotSources.sourceReleaseId, metaReleases.id),
+              eq(metaSnapshotSources.resourceReleaseId, metaReleases.id),
             )
             .innerJoin(
               metaSnapshots,
@@ -1277,7 +1278,7 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
             )
             .where(
               and(
-                inArray(metaSnapshotSources.sourceReleaseId, ids),
+                inArray(metaSnapshotSources.resourceReleaseId, ids),
                 ne(metaSnapshotSources.role, 'lookup'),
               ),
             )
@@ -1555,6 +1556,8 @@ async function queryRegistrySourceVersions(
             .select({
               id: metaReleases.id,
               sourceReleaseId: metaReleases.sourceReleaseId,
+              resourceType: metaReleases.resourceType,
+              status: metaReleases.status,
             })
             .from(metaReleases)
             .where(inArray(metaReleases.sourceReleaseId, ids))
@@ -1603,7 +1606,7 @@ async function queryRegistrySourceVersions(
             compositionRole: metaApiCompositionMembers.role,
             domainCode: metaApiReleaseSets.domainCode,
             resourceType: metaSnapshots.resourceType,
-            sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+            sourceReleaseId: metaSnapshotSources.resourceReleaseId,
             sourceRole: metaSnapshotSources.role,
             snapshotCode: metaSnapshots.code,
             variant: metaApiReleaseSetSnapshots.variant,
@@ -1656,7 +1659,7 @@ async function queryRegistrySourceVersions(
           // not appear as API releases on that source release's page.
           .where(
             and(
-              inArray(metaSnapshotSources.sourceReleaseId, ids),
+              inArray(metaSnapshotSources.resourceReleaseId, ids),
               ne(metaSnapshotSources.role, 'lookup'),
             ),
           )
@@ -1693,7 +1696,7 @@ async function queryRegistrySourceVersions(
           )
           .innerJoin(
             metaReleases,
-            eq(metaSnapshotSources.sourceReleaseId, metaReleases.id),
+            eq(metaSnapshotSources.resourceReleaseId, metaReleases.id),
           )
           .innerJoin(
             metaSourceReleases,
@@ -1769,6 +1772,14 @@ async function queryRegistrySourceVersions(
     return {
       ...release,
       assembledWith,
+      resources: resourceReleases
+        .filter(resource => resource.sourceReleaseId === release.id)
+        .map(resource => ({
+          id: resource.id,
+          resourceType: resource.resourceType,
+          status: resource.status,
+          stats: releaseStats.filter(stat => stat.releaseId === resource.id),
+        })),
       releaseAs: releaseAs
         .filter(item => resourceIds.includes(item.sourceReleaseId))
         .map(item => ({
@@ -1864,6 +1875,7 @@ type LatestDatasetLookup = {
 }
 
 type DatasetIdentityRecord = {
+  type: ResourceType
   source: string
   datasetId: string
   datasetCode: string
@@ -2096,6 +2108,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   return (
     ((await db
       .select({
+        type: metaReleases.resourceType,
         source: metaPublishers.code,
         datasetId: metaDatasets.id,
         datasetCode: metaDatasets.code,
@@ -2285,6 +2298,7 @@ export async function insertDataset(
       datasetId: dataset.id,
       code: sourceReleaseCode,
       sourceVersion: plan.sourceVersion,
+      expectedResourceTypes: dataset.resourceTypes,
       sourceSchemaVersion,
       publicationDate: plan.sourceVersion.split('.')[0] ?? null,
       cohortKey: plan.cohortKey,
@@ -2508,7 +2522,7 @@ export async function updateDatasetStatus(
   if (sourceReleaseId) {
     const sourceReleaseStatusCondition =
       status === 'published'
-        ? eq(metaSourceReleases.id, sourceReleaseId)
+        ? sourceReleasePublicationCondition(sourceReleaseId)
         : and(
             eq(metaSourceReleases.id, sourceReleaseId),
             ne(metaSourceReleases.status, 'published'),
@@ -2551,7 +2565,7 @@ export async function markDatasetCurrent(
         revocationReason: null,
         updatedAt: now,
       })
-      .where(eq(metaSourceReleases.id, sourceReleaseId))
+      .where(sourceReleasePublicationCondition(sourceReleaseId))
       .run()
   }
 }
@@ -3240,7 +3254,7 @@ export async function ensureDraftSnapshotForRelease(
     )
     .where(
       and(
-        eq(metaSnapshotSources.sourceReleaseId, args.sourceReleaseId),
+        eq(metaSnapshotSources.resourceReleaseId, args.sourceReleaseId),
         eq(metaSnapshots.resourceType, resourceType),
         eq(metaSnapshots.cohortKey, args.cohortKey),
         eq(metaSnapshotLineages.variant, variant),
@@ -3530,7 +3544,7 @@ export async function resolveSnapshotForRelease(
       )
       .where(
         and(
-          eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
+          eq(metaSnapshotSources.resourceReleaseId, sourceReleaseId),
           eq(metaSnapshots.resourceType, resourceType),
           eq(metaSnapshotLineages.variant, options.variant),
         ),
@@ -3555,7 +3569,7 @@ export async function resolveSnapshotForRelease(
       .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
       .where(
         and(
-          eq(metaSnapshotSources.sourceReleaseId, sourceReleaseId),
+          eq(metaSnapshotSources.resourceReleaseId, sourceReleaseId),
           eq(metaSnapshots.resourceType, resourceType),
           options.variant ? isNull(metaSnapshots.snapshotLineageId) : undefined,
         ),
@@ -3590,7 +3604,7 @@ export async function listSnapshotsForRelease(
     )
     .where(
       and(
-        eq(metaSnapshotSources.sourceReleaseId, releaseId),
+        eq(metaSnapshotSources.resourceReleaseId, releaseId),
         eq(metaSnapshots.resourceType, resourceType),
         options.variant ? eq(metaSnapshotLineages.variant, options.variant) : undefined,
       ),
@@ -3833,7 +3847,7 @@ export async function listDraftReleaseSetPrimaryReleases(
       metaSnapshotSources,
       eq(metaSnapshotSources.snapshotId, metaApiReleaseSetSnapshots.snapshotId),
     )
-    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .innerJoin(metaReleases, eq(metaSnapshotSources.resourceReleaseId, metaReleases.id))
     .where(
       and(
         eq(metaApiReleaseSets.status, 'draft'),
@@ -4135,7 +4149,7 @@ export async function resolveReleaseSetForRelease(
       )
       .where(
         and(
-          eq(metaSnapshotSources.sourceReleaseId, releaseId),
+          eq(metaSnapshotSources.resourceReleaseId, releaseId),
           eq(metaApiVersions.code, apiVersionCode),
           eq(metaApiReleaseSets.domainCode, resolvedDomainCode),
         ),
@@ -4667,7 +4681,7 @@ export async function publishReleaseArtefacts(
         .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
         .innerJoin(
           metaReleases,
-          eq(metaSnapshotSources.sourceReleaseId, metaReleases.id),
+          eq(metaSnapshotSources.resourceReleaseId, metaReleases.id),
         )
         .where(
           and(
@@ -4693,7 +4707,7 @@ export async function publishReleaseArtefacts(
           )
           .where(
             and(
-              eq(metaSnapshotSources.sourceReleaseId, args.dataset.releaseId),
+              eq(metaSnapshotSources.resourceReleaseId, args.dataset.releaseId),
               eq(metaSnapshots.resourceType, args.type),
             ),
           )
@@ -4861,7 +4875,7 @@ export async function publishReleaseArtefacts(
                       revocationReason: null,
                       updatedAt: publishedAt,
                     })
-                    .where(eq(metaSourceReleases.id, sourceReleaseId)),
+                    .where(sourceReleasePublicationCondition(sourceReleaseId)),
                 ]
               : []),
           ]
@@ -5290,7 +5304,7 @@ export async function upsertSnapshotSource(
   db: HarbourWritableDb,
   snapshotId: string,
   datasetId: string,
-  sourceReleaseId: string,
+  resourceReleaseId: string,
   role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
   options: {
     anchorReleaseId?: string | null
@@ -5304,7 +5318,7 @@ export async function upsertSnapshotSource(
     .values({
       snapshotId,
       datasetId,
-      sourceReleaseId,
+      resourceReleaseId,
       role,
       anchorReleaseId: options.anchorReleaseId ?? null,
       selectedByRule: options.selectedByRule ?? null,
@@ -5313,7 +5327,7 @@ export async function upsertSnapshotSource(
       createdAt: toIsoTimestamp(),
     })
     .onConflictDoUpdate({
-      target: [metaSnapshotSources.snapshotId, metaSnapshotSources.sourceReleaseId],
+      target: [metaSnapshotSources.snapshotId, metaSnapshotSources.resourceReleaseId],
       set: {
         datasetId,
         role,
@@ -5345,7 +5359,7 @@ export async function recordSnapshotLookupDependency(
     .select({
       datasetId: metaSnapshotSources.datasetId,
       sourceCohortKey: metaSnapshots.cohortKey,
-      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
     })
     .from(metaSnapshotSources)
     .innerJoin(metaSnapshots, eq(metaSnapshotSources.snapshotId, metaSnapshots.id))
@@ -5485,7 +5499,7 @@ export async function listSnapshotSourceReleases(
         .select({
           datasetCode: metaDatasets.code,
           snapshotId: metaSnapshotSources.snapshotId,
-          sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+          sourceReleaseId: metaSnapshotSources.resourceReleaseId,
         })
         .from(metaSnapshotSources)
         .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
@@ -6266,6 +6280,7 @@ async function requireDatasetDefinition(
       .select({
         id: metaDatasets.id,
         processingRules: metaDatasets.processingRules,
+        resourceTypes: metaDatasets.resourceTypes,
       })
       .from(metaDatasets)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
@@ -6277,7 +6292,9 @@ async function requireDatasetDefinition(
         ),
       )
       .limit(1)
-      .get()) as { id: string; processingRules: unknown } | undefined) ?? null
+      .get()) as
+      | { id: string; processingRules: unknown; resourceTypes: string[] }
+      | undefined) ?? null
 
   if (!dataset) {
     throw new Error(
