@@ -5,7 +5,7 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Derive missing Hong Kong area geometry by unioning its district land geometries, including Lok Ma Chau Loop, then subtract the Shenzhen Bay Port exclusion polygon.",
-  "inputs": ["district-land-geometries"],
+  "inputs": ["district-land-geometries", "exclusion-area"],
   "outputs": ["divisionAreas"],
   "parameters": {
     "exclusion": {
