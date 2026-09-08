@@ -16,6 +16,7 @@ import {
   ensureIngestRunStarted,
   upsertIngestRunStatus,
   upsertSnapshotSource,
+  listRegistrySourceVersions,
 } from './metaRegistry'
 import type { UploadPlan } from '../../types'
 
@@ -166,6 +167,19 @@ for (const order of [types, [...types].reverse()]) {
       expect(sqlite.query('SELECT count(*) AS n FROM ingestRuns').get()).toEqual({
         n: 2,
       })
+      const versions = await listRegistrySourceVersions(db as never)
+      expect(versions[0]?.stats).toEqual([])
+      expect(
+        versions[0]?.resources
+          .map(resource => ({
+            type: resource.resourceType,
+            count: resource.stats[0]?.value,
+          }))
+          .sort((a, b) => a.type.localeCompare(b.type)),
+      ).toEqual([
+        { type: 'divisionArea', count: 18 },
+        { type: 'divisionStatistic', count: 241155 },
+      ])
       for (const type of types) {
         const id = ids.get(type)!
         expect(
