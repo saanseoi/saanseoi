@@ -110,10 +110,16 @@ async function loadDeclaration() {
   {#if parameters && typeof parameters === 'object' && !Array.isArray(parameters) && Object.keys(parameters).length}
     <details
       class="border-t border-current/10 px-4 py-3 text-sm"
+      open={parameters.exclusion !== null && typeof parameters.exclusion === 'object' && !Array.isArray(parameters.exclusion) && (parameters.exclusion.type === 'Polygon' || parameters.exclusion.type === 'MultiPolygon') && Array.isArray(parameters.exclusion.coordinates)}
       ontoggle={event => { if (event.currentTarget.open && declaration === undefined) void loadDeclaration() }}
     >
       <summary class="cursor-pointer text-xs opacity-50">
-        {m.source_audit_rule_parameters()}
+        <span>{m.source_audit_rule_parameters()}</span>
+        {#if 'exclusion' in parameters}
+          <span class="float-right uppercase tracking-wide">
+            {m.source_audit_exclusion_area()}
+          </span>
+        {/if}
       </summary>
       <div class="pt-3">
         {#if declaration !== undefined}

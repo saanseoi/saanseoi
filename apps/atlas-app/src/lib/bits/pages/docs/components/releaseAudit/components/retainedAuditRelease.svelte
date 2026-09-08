@@ -27,7 +27,13 @@ let {
   manifest,
   hash,
   resourceType,
-}: { manifest: AuditManifest; hash: string; resourceType: string } = $props()
+  showResourceHeading = true,
+}: {
+  manifest: AuditManifest
+  hash: string
+  resourceType: string
+  showResourceHeading?: boolean
+} = $props()
 let input = $state('')
 let query = $state('')
 let matchingActions = $state(0)
@@ -158,7 +164,9 @@ let filteredGuards = $derived(
 )
 </script>
 
-<h2 class="mb-4 text-xl font-medium">{resourceLabel(resourceType)}</h2>
+{#if showResourceHeading}
+  <h2 class="mb-4 text-xl font-medium">{resourceLabel(resourceType)}</h2>
+{/if}
 
 <section
   class="space-y-8"

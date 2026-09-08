@@ -192,6 +192,7 @@ export type GenericStatGroupPresentation = {
   }>
 }
 export type ReleaseStatsPresentation = {
+  statisticsProfile?: StatisticsProfilePresentation
   headings: ReleaseContentHeading[]
   overview?: OverviewPresentation
   districtDistribution?: DistrictDistributionPresentation
@@ -206,4 +207,29 @@ export type ReleaseStatsPresentation = {
   quality?: QualityPresentation
   divisionLinkage?: DivisionLinkagePresentation
   genericGroups: GenericStatGroupPresentation[]
+}
+
+export type StatisticsProfilePresentation = {
+  metrics: Array<{ label: string; value: string }>
+  distributions: Array<{
+    id: string
+    title: string
+    unit: string
+    rows: Array<{ label: string; value: string; percentage: number }>
+  }>
+  coverage?: {
+    fieldCount: string
+    standardCount: string
+    observations: string
+    uniform: boolean
+    exceptions: Array<{ label: string; value: string }>
+  }
+  availability: Array<{
+    label: string
+    value: string
+    percentage: number
+    percentageLabel: string
+    description: string
+    tone: 'published' | 'suppressed' | 'unavailable' | 'other'
+  }>
 }

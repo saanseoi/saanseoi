@@ -12,11 +12,13 @@ let rows = $derived(
 )
 </script>
 
-<div class="overflow-x-auto">
+<div class="contents">
   <table
     class="w-full table-fixed text-left text-sm [&_td]:wrap-break-word [&_code]:wrap-anywhere"
   >
-    <thead class="border-b border-current/20 text-xs uppercase opacity-60">
+    <thead
+      class="sticky top-0 z-10 border-b border-current/20 bg-background text-xs uppercase [&_th]:text-foreground/60"
+    >
       <tr>
         <th class="w-[18%] p-2">{m.source_audit_source_field()}</th>
         <th class="w-[32%] p-2">{m.source_audit_canonical_field()}</th>

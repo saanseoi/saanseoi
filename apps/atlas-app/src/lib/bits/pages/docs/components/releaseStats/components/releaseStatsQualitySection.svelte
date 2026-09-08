@@ -5,9 +5,7 @@ import QualityMetric from './releaseStatsQualityMetric.svelte'
 import Section from './releaseStatsSection.svelte'
 let { quality, labels }: { quality: QualityPresentation; labels: ReleaseStatsLabels } =
   $props()
-let placeholderCount = $derived(
-  quality.issues.length ? (4 - (quality.issues.length % 4)) % 4 : 0,
-)
+let placeholderCount = $derived(quality.issues.length % 2)
 </script>
 <Section
   ><div
@@ -27,7 +25,7 @@ let placeholderCount = $derived(
     >
   </div>
   {#if quality.issues.length}
-    <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2">
       {#each quality.issues as metric}
         <QualityMetric {metric} />
       {/each}
