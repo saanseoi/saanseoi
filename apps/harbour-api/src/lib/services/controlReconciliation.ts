@@ -43,6 +43,9 @@ export async function handleReconcileDraftReleaseSets(
   request: ReconcileDraftReleaseSetsRequest = {},
 ): Promise<ReconcileDraftReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
+    if (request.apiFamily === 'divisions') {
+      await restoreMissingDivisionReleaseSets(db, request.regionCode)
+    }
     const [draftReleaseSets, primaryReleases, recoverableCurrentStatsTargets] =
       await Promise.all([
         listDraftReleaseSets(db, request),
@@ -145,6 +148,68 @@ export async function handleReconcileDraftReleaseSets(
   })
 }
 
+/** A stats reset retracts compositions but retains independent primary geography. */
+async function restoreMissingDivisionReleaseSets(
+  db: HarbourReadableDb & HarbourWritableDb,
+  regionCode?: 'hk' | 'mo',
+) {
+  const members = (
+    await listCurrentApiCompositionMembersForType(db, 'division')
+  ).filter(member => member.role === 'primary')
+  const releases = await db
+    .select({ id: metaReleases.id })
+    .from(metaReleases)
+    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .where(
+      and(
+        eq(metaReleases.resourceType, 'division'),
+        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+        regionCode ? eq(metaDatasets.regionCode, regionCode) : undefined,
+      ),
+    )
+    .orderBy(metaReleases.cohortKey)
+    .all()
+  for (const release of releases) {
+    const dataset = await getDatasetRecordByReleaseId(db, release.id)
+    if (!dataset) continue
+    const snapshots = await listSnapshotsForRelease(db, release.id, 'division')
+    const member = members.find(member =>
+      snapshots.some(
+        snapshot =>
+          snapshot.variant === member.variant && snapshot.status !== 'archived',
+      ),
+    )
+    if (!member) continue
+    const existing = await db
+      .select({ id: metaApiReleaseSets.id })
+      .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersions,
+        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+      )
+      .where(
+        and(
+          eq(metaApiVersions.familyType, 'divisions'),
+          eq(metaApiReleaseSets.regionCode, dataset.regionCode),
+          eq(metaApiReleaseSets.domainCode, member.domainCode),
+          eq(metaApiReleaseSets.cohortKey, dataset.cohortKey),
+        ),
+      )
+      .get()
+    if (existing) continue
+    await handlePublishDataset(
+      db,
+      {
+        releaseId: release.id,
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+      },
+      undefined,
+      { reconcileDraftReleaseSet: true },
+    )
+  }
+}
+
 async function listCurrentReleaseSetStatsTargets(
   db: HarbourReadableDb,
   request: ReconcileDraftReleaseSetsRequest,
@@ -181,7 +246,7 @@ async function listCurrentReleaseSetStatsTargets(
         eq(metaSnapshotSources.role, 'primary'),
       ),
     )
-    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
+    .innerJoin(metaReleases, eq(metaSnapshotSources.resourceReleaseId, metaReleases.id))
     .where(
       and(
         eq(metaApiReleaseSets.status, 'current'),
@@ -325,7 +390,7 @@ export async function handleBootstrapStatsReleaseSets(
       }
 
       const existingDraft = await db
-        .select({ code: metaApiReleaseSets.code })
+        .select({ revision: metaApiReleaseSets.revision })
         .from(metaApiReleaseSets)
         .innerJoin(
           metaApiVersions,
@@ -342,7 +407,7 @@ export async function handleBootstrapStatsReleaseSets(
         )
         .limit(1)
         .get()
-      if (existingDraft && !existingDraft.code.endsWith('-r0')) {
+      if (existingDraft && existingDraft.revision !== 0) {
         skippedCohortKeys.push(cohortKey)
         continue
       }

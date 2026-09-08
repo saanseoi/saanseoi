@@ -17,7 +17,7 @@ import {
   seedSnapshot,
 } from './controlFixtures.fixtures.ts'
 
-test('publishes addresses with provenance and places without bundled provenance', async () => {
+test('requires retained processing audits for Addresses and Places before publishing their API provenance', async () => {
   for (const datasetType of ['address', 'place'] as const) {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, `harbour-publish-${datasetType}-fixture-gap.sqlite`)
@@ -86,6 +86,25 @@ test('publishes addresses with provenance and places without bundled provenance'
     sqlite
       .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
       .run('1.17.0', releaseId)
+    await expect(handlePublishDataset(db, { releaseId })).rejects.toThrow(
+      'requires a verified retained processing result',
+    )
+    sqlite
+      .query(
+        'INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?, ?, 1, 0, ?)',
+      )
+      .run(releaseId, `sha256:${'0'.repeat(64)}`, 'failed')
+    await expect(handlePublishDataset(db, { releaseId })).rejects.toThrow(
+      'failed processing audit attempt',
+    )
+    expect(
+      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+    ).toEqual({ status: 'staged' })
+    sqlite
+      .query(
+        "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE releaseId = ?",
+      )
+      .run(releaseId)
     if (datasetType === 'address') {
       sqlite
         .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
