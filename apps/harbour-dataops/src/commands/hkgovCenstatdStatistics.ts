@@ -47,6 +47,23 @@ export function pendingCenstatdStatisticResourceTypes(
   return expectedTypes.filter(type => !publishedTypes.has(type))
 }
 
+export function formatCompletedCenstatdStatisticReleases(
+  datasetCode: string,
+  sourceVersion: string,
+  resourceTypes: readonly StatisticResourceType[],
+) {
+  const releaseBase = `dr-${datasetCode.slice('ds-'.length)}-${sourceVersion}`
+  const releaseCodes = resourceTypes.map(type => `${releaseBase}::${type}`)
+  const releaseColumnWidth = Math.max(...releaseCodes.map(code => code.length))
+
+  return releaseCodes
+    .map(
+      releaseCode =>
+        `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: already published or superseded`,
+    )
+    .join('\n')
+}
+
 export async function runHkgovCenstatdStatisticsIngestCommand(
   args: ParsedArgs,
   target: UploadTarget,
@@ -246,7 +263,11 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
 
     if (pendingTypes.length === 0) {
       console.log(
-        `Skipping ${datasetCode} ${sourceVersion}: every requested resource is already published. Use --force-upload for a deliberate reprocess.`,
+        formatCompletedCenstatdStatisticReleases(
+          datasetCode,
+          sourceVersion,
+          requestedTypes,
+        ),
       )
       return
     }

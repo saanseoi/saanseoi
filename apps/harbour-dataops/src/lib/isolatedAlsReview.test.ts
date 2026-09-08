@@ -6,7 +6,28 @@ import {
   cachedReviewChild,
   divisionLookupFingerprint,
   fingerprintTree,
+  block4ReviewDependencies,
 } from './isolatedAlsReview.ts'
+
+test('one-off Block 4 reuse pins all code and fixtures and retains live source and division dependencies', () => {
+  const current = Array(6).fill('a'.repeat(64))
+  const previous = Array(6).fill('b'.repeat(64))
+  const dependencies = [...current, 'source digest', { snapshotId: 'live' }]
+  expect(block4ReviewDependencies(dependencies, { current, previous })).toEqual([
+    ...previous,
+    ...dependencies.slice(6),
+  ])
+  expect(
+    block4ReviewDependencies(['changed', ...dependencies.slice(1)], {
+      current,
+      previous,
+    }),
+  ).toBeNull()
+  expect(block4ReviewDependencies(dependencies, null)).toBeNull()
+  expect(
+    block4ReviewDependencies(dependencies, { current, previous: ['bad'] }),
+  ).toBeNull()
+})
 
 test('successful child checkpoints replay findings; failed children cannot replace them', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'als-child-'))
