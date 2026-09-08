@@ -4,6 +4,7 @@ import {
   apiFieldView,
   auditView,
   curationView,
+  hashBytes,
   hashValue,
   objectKey,
   readApplications,
@@ -265,9 +266,26 @@ describe('retained processing effects', () => {
       'Missing provenance',
     )
   })
-  test('canonical JSON retains null, sorts keys and rejects lossy values', async () => {
+  test('canonical JSON leads with record identity, retains null and rejects lossy values', async () => {
     expect(await hashValue({ b: 1, a: null })).toBe(await hashValue({ a: null, b: 1 }))
     expect(await hashValue({ a: null })).not.toBe(await hashValue({}))
+    expect(
+      serialise({
+        z: true,
+        sourceField: 'MYPOPN_LAND',
+        summary: 'Review a field.',
+        operationVersion: 1,
+        operation: 'curate-statistic-field',
+        datasetCode: 'stats',
+        releaseId: 'release',
+        id: 'field:MYPOPN_LAND',
+        schemaVersion: 1,
+        kind: 'curation-definition',
+        a: null,
+      }),
+    ).toBe(
+      '{"kind":"curation-definition","schemaVersion":1,"id":"field:MYPOPN_LAND","releaseId":"release","datasetCode":"stats","operation":"curate-statistic-field","operationVersion":1,"summary":"Review a field.","sourceField":"MYPOPN_LAND","a":null,"z":true}',
+    )
     for (const value of [
       undefined,
       NaN,
@@ -277,6 +295,32 @@ describe('retained processing effects', () => {
       new Array(1),
     ])
       expect(() => serialise(value)).toThrow()
+  })
+  test('reads previously retained lexicographic canonical JSON', async () => {
+    const objects = new Map<string, ArrayBuffer>()
+    const text = '{"a":null,"kind":"processing-result","schemaVersion":1,"z":true}'
+    const bytes = new TextEncoder().encode(text)
+    const ref = {
+      hash: await hashBytes(bytes),
+      byteLength: bytes.byteLength,
+    }
+    objects.set(objectKey(ref.hash), bytes.buffer)
+    const store: ProvenanceStore = {
+      async get(key) {
+        const value = objects.get(key)
+        return value ? { arrayBuffer: async () => value } : null
+      },
+      async put() {
+        throw new Error('Unexpected provenance write.')
+      },
+    }
+
+    await expect(readObject(store, ref)).resolves.toEqual({
+      a: null,
+      kind: 'processing-result',
+      schemaVersion: 1,
+      z: true,
+    })
   })
   test('packs guarded inputs, evidence and outputs with a small root and bounded storage reads', async () => {
     const f = await fixture()
