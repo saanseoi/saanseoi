@@ -77,11 +77,15 @@ for year in 2016 2021
 
     # A standard C&SD upload also publishes its simplified display-geometry
     # companion. Do not explicitly upload --transform simplified again.
+    set -l historical_cohort_args
+    if test "$year" = 2016
+        set historical_cohort_args --allow-historical-cohort
+    end
     init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year" "$file" \
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
-        --yes $defer_release_set_args
+        --yes $historical_cohort_args $defer_release_set_args
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 

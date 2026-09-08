@@ -65,6 +65,8 @@ type DispatchUploadOptions = {
   resumeStagedRelease?: boolean
   /** Add another resource to the source release created by this intake. */
   reuseExistingRelease?: boolean
+  /** Allow an explicitly identified independent historical cohort. */
+  allowHistoricalCohort?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
 }
 
@@ -238,6 +240,7 @@ async function requestRemoteRegistration(
       body: JSON.stringify({
         fileName: previewResult.plan.fileName,
         force: Boolean(options.force),
+        allowHistoricalCohort: Boolean(options.allowHistoricalCohort),
         resumeStagedRelease: Boolean(options.resumeStagedRelease),
         reuseExistingRelease: Boolean(options.reuseExistingRelease),
         inspection: previewResult.inspection,

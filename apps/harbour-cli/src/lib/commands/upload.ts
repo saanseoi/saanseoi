@@ -347,6 +347,7 @@ ${mutedBar}  `)
         schemaVersionId,
         {
           force: options.forceUpload,
+          allowHistoricalCohort: options.allowHistoricalCohort,
           resumeStagedRelease,
           allowReprocessPublished:
             options.forceUpload || options.allowReprocessPublished,

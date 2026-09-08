@@ -68,6 +68,7 @@ async function main() {
   const dryRun = Boolean(args.options['dry-run'])
   const deferApiReleaseSet = Boolean(args.options['defer-api-release-set'])
   const forceUpload = Boolean(args.options.force)
+  const allowHistoricalCohort = Boolean(args.options['allow-historical-cohort'])
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
   const validateGeometry = Boolean(args.options['validate-geometry'])
@@ -186,6 +187,7 @@ async function main() {
         dryRun,
         deferApiReleaseSet,
         forceUpload,
+        allowHistoricalCohort,
         invocationCwd,
         printUsage,
         skipConfirm,
