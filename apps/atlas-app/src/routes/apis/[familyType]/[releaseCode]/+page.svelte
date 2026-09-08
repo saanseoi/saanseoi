@@ -1,4 +1,5 @@
 <script lang="ts">
+import { Retained as RetainedAudit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import { afterNavigate, goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
@@ -525,7 +526,8 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'schema', label: m.api_release_schema() },
   { id: 'samples', label: m.api_release_samples() },
   { id: 'stats', label: m.api_release_stats() },
-  ...((release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
+  ...(['divisions', 'statistics'].includes(api.familyType) ||
+  (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
   release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
@@ -650,7 +652,8 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(
-      (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
+      ['divisions', 'statistics'].includes(api.familyType) ||
+        (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
         release.bulkActions?.length,
     )
   }
@@ -860,31 +863,33 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {/await}
           {/if}
         {:else if activeTab === 'audit'}
-          {#if auditRoot}
-            {#await auditRoot then module}
-              {@const ReleaseAuditRoot = module.default}
-              {#if auditData || !auditDataQuery}
-                {#key release.code}
-                  <ReleaseAuditRoot
-                    analyticsSurface="api_release"
-                    actions={release.processingActions}
-                    actionSections={auditData?.sections}
-                    bulkActions={release.bulkActions}
-                    {locale}
-                    {showBulkActions}
-                    onLoadMoreSection={loadMoreAuditSection}
-                    bind:headings={auditHeadings}
-                    bind:activeHeadingId={activeAuditHeadingId}
-                  />
-                {/key}
-              {:else if auditSkeleton}
-                {#await auditSkeleton then skeletonModule}
-                  {@const ReleaseAuditSkeleton = skeletonModule.default}
-                  <ReleaseAuditSkeleton />
-                {/await}
-              {/if}
-            {/await}
-          {/if}
+          <RetainedAudit familyType={api.familyType} releaseCode={release.code}>
+            {#if auditRoot}
+              {#await auditRoot then module}
+                {@const ReleaseAuditRoot = module.default}
+                {#if auditData || !auditDataQuery}
+                  {#key release.code}
+                    <ReleaseAuditRoot
+                      analyticsSurface="api_release"
+                      actions={release.processingActions}
+                      actionSections={auditData?.sections}
+                      bulkActions={release.bulkActions}
+                      {locale}
+                      {showBulkActions}
+                      onLoadMoreSection={loadMoreAuditSection}
+                      bind:headings={auditHeadings}
+                      bind:activeHeadingId={activeAuditHeadingId}
+                    />
+                  {/key}
+                {:else if auditSkeleton}
+                  {#await auditSkeleton then skeletonModule}
+                    {@const ReleaseAuditSkeleton = skeletonModule.default}
+                    <ReleaseAuditSkeleton />
+                  {/await}
+                {/if}
+              {/await}
+            {/if}
+          </RetainedAudit>
         {:else}
           {#if linksComponents}
             {#await linksComponents then modules}

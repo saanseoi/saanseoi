@@ -77,6 +77,57 @@ export const getRetainedSourceAudit = query(
   },
 )
 
+export const getRetainedApiAudit = query(
+  z.object({ familyType: z.string(), releaseCode: z.string() }),
+  async input => {
+    const {
+      releaseProvenance: p,
+      metaReleases: r,
+      metaSnapshotSources: sources,
+      metaApiReleaseSetSnapshots: members,
+      metaApiReleaseSets: sets,
+      metaApiVersions: versions,
+    } = metaSchema
+    const rows = await getMetaDb()
+      .select({
+        releaseId: r.id,
+        code: r.code,
+        resourceType: r.resourceType,
+        hash: p.manifestHash,
+        byteLength: p.byteLength,
+      })
+      .from(p)
+      .innerJoin(r, eq(p.releaseId, r.id))
+      .where(sql`exists (
+    select 1 from ${sources}
+    inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
+    inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId}
+    inner join ${versions} on ${versions.id} = ${sets.apiVersionId}
+    where ${sources.sourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
+  )`)
+      .all()
+    return (
+      await Promise.all(
+        rows.map(async row => {
+          const manifest = await readObject(store(), {
+            hash: row.hash as Digest,
+            byteLength: row.byteLength,
+          })
+          if (
+            !manifest ||
+            typeof manifest !== 'object' ||
+            Array.isArray(manifest) ||
+            manifest.kind !== 'processing-audit'
+          )
+            return null
+          validateAuditManifest(manifest)
+          return { ...row, manifest }
+        }),
+      )
+    ).filter(row => row !== null)
+  },
+)
+
 export const getRetainedAuditPage = query(
   z.object({
     releaseId: z.string(),

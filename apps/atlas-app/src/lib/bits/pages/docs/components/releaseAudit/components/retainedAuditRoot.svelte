@@ -1,13 +1,26 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import { getRetainedSourceAudit } from '#lib/registry/audit.remote.js'
+import {
+  getRetainedSourceAudit,
+  getRetainedApiAudit,
+} from '#lib/registry/audit.remote.js'
 import RetainedAuditRelease from './retainedAuditRelease.svelte'
 let {
   datasetCode,
+  familyType,
   releaseCode,
   children,
-}: { datasetCode: string; releaseCode: string; children?: Snippet } = $props()
-let audit = $derived(getRetainedSourceAudit({ datasetCode, releaseCode }))
+}: {
+  datasetCode?: string
+  familyType?: string
+  releaseCode: string
+  children?: Snippet
+} = $props()
+let audit = $derived(
+  familyType
+    ? getRetainedApiAudit({ familyType, releaseCode })
+    : getRetainedSourceAudit({ datasetCode: datasetCode ?? '', releaseCode }),
+)
 </script>
 
 {#if audit.error}
