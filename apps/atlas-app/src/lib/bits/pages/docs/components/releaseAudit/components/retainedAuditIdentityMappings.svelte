@@ -6,9 +6,11 @@ let { mappings }: { mappings: Json[] } = $props()
 const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {})
 </script>
 
-<div class="overflow-x-auto">
+<div class="contents">
   <table class="w-full table-fixed text-left text-sm [&_code]:wrap-anywhere">
-    <thead class="border-b border-current/20 text-xs uppercase opacity-60">
+    <thead
+      class="sticky top-0 z-10 border-b border-current/20 bg-background text-xs uppercase [&_th]:text-foreground/60"
+    >
       <tr>
         <th class="p-2">{m.source_audit_source_identity()}</th>
         <th class="p-2">{m.source_audit_source_code()}</th>

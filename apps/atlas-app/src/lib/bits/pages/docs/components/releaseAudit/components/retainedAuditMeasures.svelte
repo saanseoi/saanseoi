@@ -6,7 +6,9 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
 const locales = ['en', 'zh-hant', 'zh-hans']
 </script>
 <table class="w-full table-fixed text-left text-sm">
-  <thead class="border-b border-current/20 text-xs uppercase opacity-60">
+  <thead
+    class="sticky top-0 z-10 border-b border-current/20 bg-background text-xs uppercase [&_th]:text-foreground/60"
+  >
     <tr>
       <th class="w-[19%] p-2">{m.source_audit_code()}</th>
       {#each locales as locale}

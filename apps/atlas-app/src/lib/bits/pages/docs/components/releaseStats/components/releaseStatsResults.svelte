@@ -16,6 +16,7 @@ import Overview from './releaseStatsOverviewSection.svelte'
 import Processing from './releaseStatsProcessingSection.svelte'
 import Quality from './releaseStatsQualitySection.svelte'
 import TypeDistribution from './releaseStatsTypeDistributionSection.svelte'
+import StatisticsProfile from './releaseStatsStatisticsProfile.svelte'
 let {
   presentation,
   labels,
@@ -31,6 +32,9 @@ let {
 <div class="grid gap-6">
   {#if presentation.overview}
     <Overview overview={presentation.overview} {labels} />
+  {/if}
+  {#if presentation.statisticsProfile}
+    <StatisticsProfile profile={presentation.statisticsProfile} />
   {/if}
   {#if presentation.districtDistribution}
     <District districtDistribution={presentation.districtDistribution} {labels} />

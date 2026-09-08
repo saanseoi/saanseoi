@@ -12,6 +12,8 @@ let {
   familyType,
   releaseCode,
   children,
+  selectedResourceType,
+  onResourceTypesChange,
   headings = $bindable<MarkdownHeading[]>([]),
   activeHeadingId = $bindable<string | null>(null),
 }: {
@@ -19,6 +21,8 @@ let {
   familyType?: string
   releaseCode: string
   children?: Snippet
+  selectedResourceType?: string
+  onResourceTypesChange?: (resourceTypes: string[]) => void
   headings?: MarkdownHeading[]
   activeHeadingId?: string | null
 } = $props()
@@ -80,6 +84,22 @@ let audit = $derived(
     ? getRetainedApiAudit({ familyType, releaseCode })
     : getRetainedSourceAudit({ datasetCode: datasetCode ?? '', releaseCode }),
 )
+$effect(() => {
+  const resourceTypes = audit.ready
+    ? [...new Set(audit.current.map(resource => resource.resourceType))]
+    : []
+  untrack(() => onResourceTypesChange?.(resourceTypes))
+})
+let visibleResources = $derived(
+  audit.ready
+    ? audit.current.filter(
+        resource =>
+          selectedResourceType === undefined ||
+          resource.resourceType ===
+            (selectedResourceType || audit.current[0]?.resourceType),
+      )
+    : [],
+)
 </script>
 
 {#if audit.error}
@@ -93,11 +113,12 @@ let audit = $derived(
   <p class="py-4 text-sm opacity-60">{m.source_audit_loading_summaries()}</p>
 {:else if audit.current.length}
   <div class="space-y-8" bind:this={panel}>
-    {#each audit.current as resource (resource.releaseId)}
+    {#each visibleResources as resource (resource.releaseId)}
       <RetainedAuditRelease
         manifest={resource.manifest}
         hash={resource.hash}
         resourceType={resource.resourceType}
+        showResourceHeading={selectedResourceType === undefined}
       />
     {/each}
   </div>

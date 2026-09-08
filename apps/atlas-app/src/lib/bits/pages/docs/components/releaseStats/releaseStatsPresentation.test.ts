@@ -65,6 +65,147 @@ const present = (
 ) => createReleaseStatsPresentation({ stats, locale: 'en', copy })
 
 describe('createReleaseStatsPresentation', () => {
+  test('shows all statistical records as added only for a first-release baseline', () => {
+    const input = {
+      resourceType: 'divisionStatistic',
+      locale: 'en',
+      copy,
+      stats: [{ dimension: 'records', metric: 'count', value: 3495 }],
+    }
+    const baseline = createReleaseStatsPresentation({ ...input, isFirstRelease: true })
+    expect(baseline.overview?.churn?.metrics.map(metric => metric.value)).toEqual([
+      3495, 0, 0, 0,
+    ])
+    expect(baseline.overview?.churn?.baseline).toBe(true)
+    expect(createReleaseStatsPresentation(input).overview?.churn).toBeUndefined()
+  })
+  test('keeps statistical release churn ahead of the profile', () => {
+    const model = createReleaseStatsPresentation({
+      resourceType: 'divisionStatistic',
+      locale: 'en',
+      copy,
+      stats: [
+        { dimension: 'records', metric: 'count', value: 10 },
+        { dimension: 'count', metric: 'churn', value: 10 },
+        { dimension: 'added_count', metric: 'churn', value: 3 },
+        { dimension: 'unchanged_count', metric: 'churn', value: 7 },
+      ],
+    })
+    expect(model.overview?.recordCount).toBe('10')
+    expect(model.overview?.churn?.metrics.map(metric => metric.value)).toEqual([
+      3, 0, 0, 7,
+    ])
+    expect(model.headings[0]?.id).toBe('stats-overview')
+    expect(model.statisticsProfile).toBeDefined()
+  })
+  test('summarises statistical fields without hiding uneven coverage or unknown statistics', () => {
+    const model = createReleaseStatsPresentation({
+      locale: 'en',
+      copy,
+      resourceType: 'divisionStatistic',
+      stats: [
+        { dimension: 'records', metric: 'count', value: 10 },
+        { dimension: 'fields', metric: 'count', value: 3 },
+        { dimension: 'observations', metric: 'count', value: 25 },
+        ...['population', 'income'].map(groupValue => ({
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'field',
+          groupValue,
+          value: 10,
+        })),
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'field',
+          groupValue: 'rent',
+          value: 5,
+        },
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'observationStatus',
+          groupValue: 'published',
+          value: 20,
+        },
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'observationStatus',
+          groupValue: 'suppressed',
+          value: 3,
+        },
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'observationStatus',
+          groupValue: 'unavailable',
+          value: 2,
+        },
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'referencePeriod',
+          groupValue: '2021',
+          value: 25,
+        },
+        { dimension: 'custom', metric: 'count', value: 7 },
+      ],
+    })
+    expect(model.statisticsProfile?.coverage).toEqual({
+      fieldCount: '3',
+      standardCount: '2',
+      observations: '10',
+      uniform: false,
+      exceptions: [{ label: 'rent', value: '5' }],
+    })
+    expect(model.statisticsProfile?.availability.map(row => row.percentage)).toEqual([
+      80, 12, 8,
+    ])
+    expect(model.statisticsProfile?.metrics).toContainEqual({
+      label: 'Reference period',
+      value: '2021',
+    })
+    expect(model.headings.map(row => row.id)).not.toContain('stats-field')
+    expect(model.overview?.churn).toBeUndefined()
+    expect(model.overview).toBeDefined()
+    expect(model.measures).toBeUndefined()
+    expect(model.genericGroups[0]?.rows).toContainEqual(
+      expect.objectContaining({ dimension: 'custom', value: '7' }),
+    )
+  })
+
+  test('keeps multiple statistical periods and handles zero observations without invalid percentages', () => {
+    const model = createReleaseStatsPresentation({
+      locale: 'en',
+      copy,
+      resourceType: 'divisionStatistic',
+      stats: [
+        { dimension: 'observations', metric: 'count', value: 0 },
+        {
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'observationStatus',
+          groupValue: 'published',
+          value: 0,
+        },
+        ...['2016', '2021'].map(groupValue => ({
+          dimension: 'observations',
+          metric: 'count',
+          groupBy: 'referencePeriod',
+          groupValue,
+          value: 0,
+        })),
+      ],
+    })
+    expect(model.statisticsProfile?.availability[0]?.percentage).toBe(0)
+    expect(model.statisticsProfile?.distributions[0]?.rows).toEqual([
+      { label: '2016', value: '0', percentage: 0 },
+      { label: '2021', value: '0', percentage: 0 },
+    ])
+    expect(model.statisticsProfile?.coverage).toBeUndefined()
+  })
+
   test('presents geometry facts in a name-sorted district table and claims the rows', () => {
     const model = createReleaseStatsPresentation({
       locale: 'en',
