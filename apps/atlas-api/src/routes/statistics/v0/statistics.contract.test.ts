@@ -189,7 +189,7 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO snapshotSources (
-      snapshotId, datasetId, sourceReleaseId, role, createdAt
+      snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (?, ?, ?, ?, ?)`,
     ['snapshot-statistics', 'dataset-statistics', RELEASE_ID, 'primary', PUBLISHED_AT],
   )
@@ -350,7 +350,7 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO snapshotSources (
-      snapshotId, datasetId, sourceReleaseId, role, createdAt
+      snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (?, ?, ?, ?, ?)`,
     [
       'snapshot-statistics-historical',
