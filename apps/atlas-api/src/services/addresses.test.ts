@@ -213,6 +213,38 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(all.status).toBe(200)
     if (all.status !== 200) throw new Error(JSON.stringify(all.body))
     expect(all.body.data.map(row => row.id)).toEqual(['a', 'b', 'c', 'd'])
+    // Middleware always supplies history bindings. Materialised reads must not
+    // touch these databases, even when only one result is requested.
+    const deployedArgs = {
+      ...args,
+      historyDbsByBinding: {
+        UNUSED: new Proxy(
+          {},
+          {
+            get() {
+              throw new Error('Unexpected history read for a materialised snapshot')
+            },
+          },
+        ),
+      } as never,
+    }
+    const boundedPage = await listAddresses({
+      ...deployedArgs,
+      query: { 'page[limit]': 1, 'page[offset]': 1 },
+    })
+    expect(
+      boundedPage.status === 200 && boundedPage.body.data.map(row => row.id),
+    ).toEqual(['b'])
+    expect(boundedPage.status === 200 && boundedPage.body.meta.page?.total).toBe(4)
+    const boundedDetail = await getAddressDetail({
+      ...deployedArgs,
+      id: 'c',
+      query: {},
+    })
+    expect(boundedDetail.status === 200 && boundedDetail.body.data.id).toBe('c')
+    expect(
+      (await getAddressDetail({ ...deployedArgs, id: 'absent', query: {} })).status,
+    ).toBe(404)
     for (const region of ['hk', 'gba'] as const) {
       const regional = await listAddresses({ ...args, query: { region } })
       expect(regional.status).toBe(200)
