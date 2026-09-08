@@ -201,9 +201,12 @@ export function formatUpdateGridRow(
   const resourceWidth = 16
   const statusWidth = 24
   const versionsWidth = 29
+  const initColumnWidth = Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH)
   const datasetWidth = Math.max(
     8,
-    width - publisherWidth - resourceWidth - statusWidth - versionsWidth - 8,
+    initColumnWidth > 0
+      ? initColumnWidth - publisherWidth - resourceWidth - 4
+      : width - publisherWidth - resourceWidth - statusWidth - versionsWidth - 8,
   )
   const versions = version
     ? `v${ownVersion(version)}${targetVersion && releasesDiffer(version, targetVersion) ? ` ← v${ownVersion(targetVersion)}` : ''}`

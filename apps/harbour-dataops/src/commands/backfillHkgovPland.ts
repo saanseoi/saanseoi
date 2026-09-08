@@ -141,6 +141,7 @@ export async function runHkgovPlandBackfillCommand(
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
   const releaseColumnWidth = Math.max(
+    Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH) || 0,
     ...releases.flatMap(release =>
       (['division', 'divisionArea'] as const).map(
         type => buildDatasetReleaseCode('hk', source, release.year, type).length,
