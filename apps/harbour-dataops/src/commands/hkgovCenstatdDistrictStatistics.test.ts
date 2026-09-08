@@ -85,11 +85,11 @@ describe('C&SD district-density archive identity', () => {
     }
 
     expect(uploadOptions).toEqual([
-      { deferSourcePublish: true, deferStatsReleaseSet: true },
+      { deferSourcePublish: false, deferStatsReleaseSet: true },
       {
         deferApiReleaseSet: true,
         deferSourcePublish: false,
-        reuseExistingRelease: true,
+        reuseExistingRelease: false,
       },
     ])
   })

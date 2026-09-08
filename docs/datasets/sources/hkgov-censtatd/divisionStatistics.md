@@ -23,10 +23,15 @@ Permanent Living Quarters area-type geometry, and publishes the complete Divisio
 compositions before ingesting the remaining statistics datasets. Missing Divisions
 drafts are reconstructed from retained primary snapshots during reconciliation.
 
-Update readiness requires a published source release and Statistics evidence. A shared
-geometry release qualifies when it retains a draft or published `divisionStatistic`
-snapshot through a non-lookup contribution. Draft snapshots remain eligible while
-Statistics API composition is deferred; geometry alone does not establish readiness.
+Update readiness requires Statistics evidence from the `divisionStatistic` resource
+child. Its companion `division` and `divisionArea` children retain their own identities,
+phase records, audits and stats under the same source release. Resource codes append
+`::divisionStatistic`, `::division` or `::divisionArea` to the public source-release
+code. Each resource completes independently, in either order. The parent freezes the
+dataset's expected resource types when registered and publishes only after all expected
+children complete. Retrying a missing or failed child preserves completed siblings.
+Statistics API composition can remain deferred independently of Divisions API
+activation.
 
 Normalisation, population scaling, identity and field/localisation declarations are
 selected from `fixtures/meta/processing-rules/` and registered by their executors.

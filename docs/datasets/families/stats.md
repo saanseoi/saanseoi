@@ -1,5 +1,18 @@
 # Statistics dataset family
 
+Each publisher version has one source release and independently processed resource
+children. A multi-resource product uses resource-qualified child codes such as
+`dr-…-2024::divisionStatistic` and `dr-…-2024::divisionArea`. The public source code,
+release notes and source schema belong to their shared parent.
+
+Each child owns its processing phases, audit, statistics and snapshot associations.
+`snapshotSources.resourceReleaseId` references the resource child in `releases`. Retries
+replace only that child's results. The source release freezes its expected resource
+types at registration and becomes published only when every expected child is published;
+a missing or failed child blocks parent publication. Statistics and Divisions API
+release sets activate separately. Source pages label each resource and present its
+counts independently; observations, divisions and areas are not summed.
+
 Publisher [schemas and samples](../source-record-access.md) use the Statistics source
 catalogue and the exact source release. Every shard holding retained assertions must
 have a source-shard assignment for that release. A missing assignment can be restored
