@@ -13,7 +13,16 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 1",
         "zhHantBuildingName": "俊宏軒第一座"
       },
-      "aliasCsu": "1812336606P20120105"
+      "aliasCsu": "1812336606P20120105",
+      "coordinateSelection": {
+        "sourceVersionFrom": "2026-04-25.0",
+        "sourceVersionTo": "2026-08-19.0",
+        "ownerCoordinates": [114.00057, 22.46877],
+        "aliasCoordinates": [114.00057, 22.46887],
+        "selected": "alias",
+        "reviewedAt": "2026-09-09",
+        "reason": "Curator selected point B, the northern structured block-alias point, on the local Grandeur Terrace Block 1 review map. The exact source-point pair is present in all five retained releases from 2026-04-25.0 through 2026-08-19.0."
+      }
     },
     {
       "id": "grandeur-terrace-block-4",
