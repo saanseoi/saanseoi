@@ -60,6 +60,7 @@ export type ProcessingActionReportRow = {
 }
 
 export type ReleaseReportRow = {
+  hasStatisticsSnapshot?: boolean
   createdAt: string
   datasetCode: string
   datasetId: string
