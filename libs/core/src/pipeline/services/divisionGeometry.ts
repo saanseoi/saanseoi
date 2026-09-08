@@ -15,7 +15,6 @@ import {
 } from '../geojson'
 import { parseWkbGeometry } from './division'
 import { asNonEmptyString, createHash, stableJsonStringify } from '../utils'
-import { isReferentOnlyDivisionId } from './divisionFixtures'
 
 export type DivisionGeometryKind = 'divisionArea' | 'divisionBoundary'
 
@@ -70,7 +69,11 @@ function normaliseDivisionAreaGeometry(
   source = 'overture',
   options: GeometryNormalisationOptions = {},
 ): NormalisedDivisionArea | null {
-  if (row.region === 'CN-GD') {
+  if (
+    divisionAreaGeometryRule.declaration.parameters.excludedRegions.some(
+      region => region === row.region,
+    )
+  ) {
     return null
   }
 
@@ -79,7 +82,12 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
-  if (isReferentOnlyDivisionId(divisionId)) {
+  if (
+    divisionId &&
+    divisionAreaGeometryRule.declaration.parameters.excludedDivisionIds.includes(
+      divisionId,
+    )
+  ) {
     return null
   }
   const geometry = requireGeometry(
@@ -143,7 +151,11 @@ function normaliseDivisionBoundaryGeometry(
   source = 'overture',
   options: GeometryNormalisationOptions = {},
 ): NormalisedDivisionBoundary | null {
-  if (row.region === 'CN-GD') {
+  if (
+    divisionBoundaryGeometryRule.declaration.parameters.excludedRegions.some(
+      region => region === row.region,
+    )
+  ) {
     return null
   }
 
