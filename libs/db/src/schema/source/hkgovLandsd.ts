@@ -149,7 +149,6 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',
   {
     ...sourceReleaseRevisionAssertionColumns(),
-    rawProperties: jsonText('rawProperties'),
     /** Native EPSG:2326 geometry from the FileGDB. */
     sourceGeometry: jsonText('sourceGeometry').notNull(),
   },
