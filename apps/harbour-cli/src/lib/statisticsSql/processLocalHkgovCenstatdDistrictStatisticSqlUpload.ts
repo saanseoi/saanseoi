@@ -1,3 +1,4 @@
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import {
   buildCenstatdGeographyLinkAuditActions,
@@ -489,6 +490,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      target,
+      releaseId,
+      datasetCode,
+      store: new LocalPipelineBucket(
+        sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
+      ),
+    })
     progress.fail()
     if (
       target.remote &&

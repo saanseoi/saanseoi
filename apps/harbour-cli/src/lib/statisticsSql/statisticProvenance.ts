@@ -6,6 +6,8 @@ import {
   type ProvenanceStore,
 } from '@repo/core/provenance'
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import { statisticNormalisationRule } from './normaliseHkgovCenstatdStatistics'
+import { retainRegisteredRule } from '../api/retainedRule'
 import type {
   CanonicalStatsRows,
   HkgovCenstatdStatisticSourceRow,
@@ -79,6 +81,11 @@ export async function retainStatisticProvenance(
     source.length,
   )
   bulk[0]!.counts.outputs = { statsRecords: canonical.records.length }
+  bulk[0]!.definition = await retainRegisteredRule(
+    store,
+    statisticNormalisationRule.declaration,
+  )
+  bulk[0]!.summary = statisticNormalisationRule.declaration.summary
   await add(
     'curate-statistic-fields',
     'Apply reviewed field names, dimensions, units, aggregations and localisations.',
@@ -114,7 +121,7 @@ export async function retainStatisticProvenance(
     basis: scaling.basis,
     summary: scaling.summary,
     outcome: scaled ? 'applied' : 'not-applicable',
-    definition: await retainObject(store, scaling),
+    definition: await retainRegisteredRule(store, scaling),
     counts: {
       inputs: { observations: canonical.observations.length },
       outputs: { observations: scaled },
@@ -145,6 +152,7 @@ export async function retainStatisticProvenance(
       : 'All checked records satisfy the requirement.',
   })
   const guards = [
+    ...(canonical.auditGuards ?? []),
     guard(
       'unique-statistic-source-identities',
       'Publisher feature references must be unique within the release.',

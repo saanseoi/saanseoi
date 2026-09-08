@@ -27,7 +27,7 @@ export async function normaliseCachedStatistics(
   })
   const entries = await prepareCachedArtefact<[string, unknown]>({
     directory: join(directory, identity),
-    inputs: { contract: 'censtatd-canonical-normalisation-v1', identity },
+    inputs: { contract: 'censtatd-canonical-normalisation-v2', identity },
     generate: async function* () {
       const canonical = normalise(input, options)
       for (const [section, rows] of Object.entries(canonical))
@@ -44,6 +44,7 @@ export async function normaliseCachedStatistics(
     records: [],
     values: [],
     valuesI18n: [],
+    auditGuards: [],
   }
   for (const entry of entries) {
     if (

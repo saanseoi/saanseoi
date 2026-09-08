@@ -1,5 +1,11 @@
 import { createHash } from 'node:crypto'
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import {
+  guardSession,
+  registerRule,
+  statisticGuardDefinitions,
+  type AuditGuard,
+} from '@repo/core/provenance'
 import type {
   CenstatdCanonicalDimension,
   CenstatdCanonicalDimensionValue,
@@ -75,6 +81,7 @@ type CanonicalDimensionValue = CenstatdCanonicalDimensionValue & {
 }
 
 export type CanonicalStatsRows = {
+  auditGuards?: AuditGuard[]
   dimensions: CanonicalDimension[]
   fields: CanonicalField[]
   fieldsI18n: Row[]
@@ -107,13 +114,14 @@ export type HkgovCenstatdStatisticSourceRow = {
  * deliberately excluded: it remains a source record until it is reviewed
  * into the Divisions family.
  */
-export function normaliseHkgovCenstatdStatistics(
+function normaliseStatistics(
   input: HkgovCenstatdStatisticSourceRow[],
   options: {
     fieldMetadata?: ReadonlyMap<string, CenstatdFieldMetadata>
     measureMetadata?: ReadonlyMap<string, CenstatdMeasureMetadata>
   } = {},
 ): CanonicalStatsRows {
+  const guards = guardSession(statisticGuardDefinitions)
   const observations: CanonicalObservation[] = []
   const fields = new Map<string, CanonicalField>()
   const fieldsI18n = new Map<string, Row>()
@@ -123,17 +131,27 @@ export function normaliseHkgovCenstatdStatistics(
   const observationsBySeries = new Map<string, CanonicalObservation[]>()
 
   for (const row of input) {
-    const profile = profileFor(row.datasetCode, row.properties, row.sourceVersion)
-    const referencePeriod = parseStatisticsReferencePeriod(profile.referencePeriodCode)
+    const { profile, referencePeriod } = guards.check(
+      'statistic-reference-period',
+      () => {
+        const profile = profileFor(row.datasetCode, row.properties, row.sourceVersion)
+        return {
+          profile,
+          referencePeriod: parseStatisticsReferencePeriod(profile.referencePeriodCode),
+        }
+      },
+    )
     const seriesId = seriesIdentifier({
       datasetCode: row.datasetCode,
       referencePeriodCode: profile.referencePeriodCode,
       sourceFeatureRef: row.sourceFeatureRef,
     })
-    const geography = withAreaCompanion(
-      row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
-      row.areaCompanionByReferencePeriod,
-      referencePeriod.endYear,
+    const geography = guards.check('statistic-area-companion', () =>
+      withAreaCompanion(
+        row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
+        row.areaCompanionByReferencePeriod,
+        referencePeriod.endYear,
+      ),
     )
     series.set(seriesId, {
       datasetCode: row.datasetCode,
@@ -217,11 +235,14 @@ export function normaliseHkgovCenstatdStatistics(
       const measureKey = `${row.datasetCode}\u0000${measureCode}`
       measures.set(measureKey, { datasetCode: row.datasetCode, measureCode })
       const reviewedMeasure = options.measureMetadata?.get(measureKey)
-      if (metadata && options.measureMetadata && !reviewedMeasure) {
-        throw new Error(
-          `C&SD ${row.datasetCode} field ${fieldName} references unregistered measure ${measureCode}.`,
-        )
-      }
+      if (metadata && options.measureMetadata)
+        guards.check('statistic-measure-registration', () => {
+          if (!reviewedMeasure) {
+            throw new Error(
+              `C&SD ${row.datasetCode} field ${fieldName} references unregistered measure ${measureCode}.`,
+            )
+          }
+        })
       const measureLocalisations = reviewedMeasure?.localisations ?? fieldLocalisations
       for (const localisation of measureLocalisations) {
         const key = `${measureKey}\u0000${localisation.locale}`
@@ -234,11 +255,13 @@ export function normaliseHkgovCenstatdStatistics(
           isTranslationVerified: localisation.isTranslationVerified,
         }
         const existing = measuresI18n.get(key)
-        if (existing && JSON.stringify(existing) !== JSON.stringify(next)) {
-          throw new Error(
-            `C&SD ${row.datasetCode} measure ${measureCode} has conflicting localisations.`,
-          )
-        }
+        guards.check('statistic-measure-localisations', () => {
+          if (existing && JSON.stringify(existing) !== JSON.stringify(next)) {
+            throw new Error(
+              `C&SD ${row.datasetCode} measure ${measureCode} has conflicting localisations.`,
+            )
+          }
+        })
         measuresI18n.set(key, next)
       }
     }
@@ -261,7 +284,10 @@ export function normaliseHkgovCenstatdStatistics(
     const key = `${observation.sourceField}\u0000${observation.fieldName}`
     const decimalCount = scaledPrecisionByMeasure.get(key)
     if (decimalCount !== undefined)
-      observation.valuePrecision = precisionAfterScaling(3, decimalCount)
+      observation.valuePrecision = precisionAfterScaling(
+        Math.log10(populationThousandsRule.declaration.parameters.factor),
+        decimalCount,
+      )
   }
 
   return {
@@ -289,11 +315,13 @@ export function normaliseHkgovCenstatdStatistics(
           id,
           values: {},
         }
-        if (record.values[observation.fieldName]) {
-          throw new Error(
-            `C&SD ${seriesRow.datasetCode} record ${record.id} has duplicate field ${observation.fieldName}.`,
-          )
-        }
+        guards.check('statistic-dimension-field-uniqueness', () => {
+          if (Object.hasOwn(record.values, observation.fieldName)) {
+            throw new Error(
+              `C&SD ${seriesRow.datasetCode} record ${record.id} has duplicate field ${observation.fieldName}.`,
+            )
+          }
+        })
         record.values[observation.fieldName] =
           observation.numericValue ?? observation.valueCode ?? observation.sourceValue
         recordsByDimensions.set(id, record)
@@ -302,7 +330,41 @@ export function normaliseHkgovCenstatdStatistics(
     }),
     values: [],
     valuesI18n: [],
+    auditGuards: guards.snapshot(),
   }
+}
+
+export const statisticNormalisationRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'normalise-censtatd-statistics',
+    scope: 'bulk',
+    basis: 'code',
+    summary:
+      'Select observation fields, interpret publisher literals and derive reference periods; group values by source feature, period and reviewed dimensions.',
+    inputs: ['publisher-properties', 'statistic-field-curations'],
+    outputs: ['statsRecords'],
+    parameters: {},
+    implementation: {
+      path: 'apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts',
+      symbol: 'statisticNormalisationRule',
+    },
+  },
+  ({
+    input,
+    options,
+  }: {
+    input: HkgovCenstatdStatisticSourceRow[]
+    options: Parameters<typeof normaliseStatistics>[1]
+  }) => normaliseStatistics(input, options),
+)
+
+export function normaliseHkgovCenstatdStatistics(
+  input: HkgovCenstatdStatisticSourceRow[],
+  options: Parameters<typeof normaliseStatistics>[1] = {},
+) {
+  return statisticNormalisationRule.execute({ input, options })
 }
 
 function withAreaCompanion(
