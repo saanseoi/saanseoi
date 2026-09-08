@@ -45,6 +45,7 @@ export type BulkAudit = {
   outcome: 'applied' | 'not-applicable' | 'not-run'
   counts: AuditCounts
   fixtures: Array<{ type: string; object: ObjectRef }>
+  search?: ObjectRef
 }
 export type AuditGuard = {
   id: string

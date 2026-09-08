@@ -118,6 +118,42 @@ export async function retainDivisionProvenance(
       const division = record(evidence.canonicalDivision)
       const translation = record(evidence.translation)
       const context = record(translation.context)
+      let selectedFixture = classification
+        ? {
+            object: classifications,
+            pointer: `/entries/${divisionClassificationFixture.entries.indexOf(classification)}`,
+          }
+        : {
+            object: requireDefined(translationFixture),
+            pointer: `/entries/${translations.indexOf(a)}`,
+          }
+      if (translated) {
+        const documentIndex =
+          input.curationDocuments?.findIndex(f => f.type === 'division-translations') ??
+          -1
+        if (documentIndex >= 0) {
+          const document = record(input.curationDocuments?.[documentIndex]?.document)
+          const entries = Array.isArray(document.entries) ? document.entries : []
+          const index = entries.findIndex(value => {
+            const e = record(value)
+            return (
+              e.contextHash === translation.contextHash &&
+              e.sourceLocale === translation.sourceLocale &&
+              e.sourceTextHash === translation.sourceTextHash &&
+              e.targetLocale === translation.locale &&
+              e.text === translation.name
+            )
+          })
+          if (index < 0)
+            throw new Error(
+              'Applied division translation does not match its retained fixture.',
+            )
+          selectedFixture = {
+            object: requireDefined(individualFixtures[documentIndex]).object,
+            pointer: `/entries/${index}`,
+          }
+        }
+      }
       const recordId = String(division.id ?? evidence.divisionId ?? '')
       individuals.push({
         id: `${id}:${recordId}:${ordinal}`,
@@ -127,15 +163,7 @@ export async function retainDivisionProvenance(
         summary: a.summary,
         reason: classification?.reason ?? a.summary,
         definition,
-        fixture: classification
-          ? {
-              object: classifications,
-              pointer: `/entries/${divisionClassificationFixture.entries.indexOf(classification)}`,
-            }
-          : {
-              object: requireDefined(translationFixture),
-              pointer: `/entries/${translations.indexOf(a)}`,
-            },
+        fixture: selectedFixture,
         record: {
           id: recordId,
           names: classification?.names ?? [

@@ -8,6 +8,8 @@ import {
 } from './objects'
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
+import { cachedProvenanceStore } from './cache'
+import type { BulkAudit } from './auditTypes'
 
 const text = (v: unknown) => typeof v === 'string' && v.length > 0
 const count = (v: unknown) => Number.isSafeInteger(v) && Number(v) >= 0
@@ -54,7 +56,16 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
     validateRef(fixture.object)
   }
   for (const b of m.bulk) {
-    exact(b, ['id', 'definition', 'basis', 'summary', 'outcome', 'counts', 'fixtures'])
+    exact(b, [
+      'id',
+      'definition',
+      'basis',
+      'summary',
+      'outcome',
+      'counts',
+      'fixtures',
+      'search',
+    ])
     if (
       !text(b.id) ||
       ids.has(b.id) ||
@@ -66,6 +77,7 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
       throw new Error('Invalid bulk audit.')
     ids.add(b.id)
     validateRef(b.definition)
+    if (b.search) validateRef(b.search)
     exact(b.counts, ['inputs', 'outputs', 'recordsAffected', 'decisions'])
     if (
       !count(b.counts.recordsAffected) ||
@@ -160,6 +172,26 @@ const searchText = (a: IndividualAudit) =>
     .toLowerCase()
 type SearchEntry = { id: string; text: string }
 
+async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
+  const values = [
+    bulk.id,
+    bulk.summary,
+    serialise(await readObject(store, bulk.definition)),
+  ]
+  for (const fixture of bulk.fixtures)
+    values.push(serialise(await readObject(store, fixture.object)))
+  return [
+    ...new Set(
+      values
+        .join(' ')
+        .normalize('NFKC')
+        .toLowerCase()
+        .split(/[\s"{},:[\]]+/)
+        .filter(Boolean),
+    ),
+  ].join(' ')
+}
+
 export async function retainAuditResult(
   store: ProvenanceStore,
   input: Omit<
@@ -176,6 +208,12 @@ export async function retainAuditResult(
     applicationCount: 0,
   }
   let pending: IndividualAudit[] = []
+  for (const bulk of manifest.bulk)
+    bulk.search = await retainObject(store, {
+      kind: 'bulk-search',
+      schemaVersion: 1,
+      text: await bulkSearchText(store, bulk),
+    })
   const ids = new Set<string>()
   const envelope = (actions: IndividualAudit[]) => ({
     kind: 'individual-actions',
@@ -232,6 +270,15 @@ export async function readAuditPage(
     .split(/\s+/)
     .filter(Boolean)
   const rows: IndividualAudit[] = []
+  const bulkIds: string[] = []
+  if (terms.length)
+    for (const bulk of manifest.bulk) {
+      const search = bulk.search
+        ? ((await readObject(store, bulk.search)) as unknown as { text: string })
+        : { text: `${bulk.id} ${bulk.summary}`.toLowerCase() }
+      if (terms.every(term => search.text.includes(term))) bulkIds.push(bulk.id)
+    }
+  else bulkIds.push(...manifest.bulk.map(b => b.id))
   let matched = 0
   for (const ref of manifest.chunks) {
     let matches: Set<string> | null = null
@@ -259,6 +306,7 @@ export async function readAuditPage(
   }
   return {
     rows,
+    bulkIds,
     total: matched,
     nextOffset: offset + rows.length < matched ? offset + rows.length : null,
   }
@@ -268,6 +316,7 @@ export async function verifyAuditResult(
   store: ProvenanceStore,
   manifest: AuditManifest,
 ) {
+  store = cachedProvenanceStore(store)
   validateAuditManifest(manifest)
   const refs: ObjectRef[] = (manifest.individualFixtures ?? []).map(f => f.object)
   for (const b of manifest.bulk) {
@@ -283,6 +332,19 @@ export async function verifyAuditResult(
     )
       throw new Error('Bulk rule declaration mismatch.')
     refs.push(...b.fixtures.map(f => f.object))
+    if (b.search) {
+      const search = (await readObject(store, b.search)) as unknown as {
+        kind: string
+        schemaVersion: number
+        text: string
+      }
+      if (
+        search.kind !== 'bulk-search' ||
+        search.schemaVersion !== 1 ||
+        search.text !== (await bulkSearchText(store, b))
+      )
+        throw new Error('Bulk search index mismatch.')
+    }
   }
   const ids = new Set<string>()
   for (const ref of manifest.chunks) {
@@ -341,6 +403,7 @@ export async function transferAuditResult(
   }
   for (const b of manifest.bulk) {
     await copy(b.definition)
+    if (b.search) await copy(b.search)
     for (const f of b.fixtures) await copy(f.object)
   }
   for (const fixture of manifest.individualFixtures ?? []) await copy(fixture.object)

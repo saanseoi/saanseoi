@@ -14,6 +14,7 @@ let nextOffset = $state<number | null>(0)
 let loading = $state(false)
 let failure = $state('')
 let requested = $state(false)
+let matchingBulkIds = $state<string[] | null>(null)
 let generation = 0
 async function load(reset = false) {
   const request = ++generation
@@ -28,6 +29,7 @@ async function load(reset = false) {
     })
     if (request !== generation) return
     rows = reset ? page.rows : [...rows, ...page.rows]
+    matchingBulkIds = page.bulkIds
     nextOffset = page.nextOffset
     failure = ''
   } catch (e) {
@@ -37,9 +39,7 @@ async function load(reset = false) {
   }
 }
 let bulk = $derived(
-  manifest.bulk.filter(
-    b => !query || `${b.id} ${b.summary}`.toLowerCase().includes(query.toLowerCase()),
-  ),
+  manifest.bulk.filter(b => matchingBulkIds === null || matchingBulkIds.includes(b.id)),
 )
 </script>
 
