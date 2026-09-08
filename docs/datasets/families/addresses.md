@@ -421,6 +421,11 @@ Grandeur Terrace Block 1 retains the reviewed northern alias coordinate for the 
 retained releases from `2026-04-25.0` to `2026-08-19.0`. The exact source-point pair
 guards the selection, and coalescence provenance preserves both original geometries.
 
+Grandeur Terrace Block 4 uses fixed point B `[114.00141, 22.46971]` for all historical
+and future releases. Its named address absorbs the separate alias, preserving both
+publisher points in provenance. Identity guards remain mandatory; this coordinate
+decision has no release bounds and does not depend on publisher point equality.
+
 Reviewed duplicate inventories at On Yam and Shek Kip Mei do not create additional house
 owners. Ping Tin and Sau King empty aliases are suppressed in their reviewed history,
 and the reviewed Shek Mun estate assertion is suppressed. Pok Hong Community Hall uses
