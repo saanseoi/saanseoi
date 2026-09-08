@@ -54,6 +54,7 @@ import {
 } from './canonicalStatsSql.ts'
 import {
   resolveCenstatdDistrictBridgeCohort,
+  censtatdDistrictIdentityRule,
   resolveCenstatdNewTownBridgeCohort,
   resolveHkgovCenstatdDistrictBridge,
   resolveHkgovCenstatdNewTownBridge,
@@ -433,6 +434,14 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           canonical,
           fieldMetadata,
           measureMetadata,
+          additionalRules: districtsBySourceCode
+            ? [
+                {
+                  declaration: censtatdDistrictIdentityRule.declaration,
+                  count: districtsBySourceCode.size,
+                },
+              ]
+            : [],
           geographyFixtures: curationDocumentsFor(
             districtsBySourceCode,
             newTownsBySourceCode,
