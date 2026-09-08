@@ -1,3 +1,9 @@
+import {
+  divisionLevel,
+  divisionType,
+  hierarchyClassification,
+  validateDivisionPolicy,
+} from './divisionTaxonomy'
 import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-normalisation.json'
 import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import type { DatasetProcessingMessage } from '../../types'
@@ -1297,6 +1303,8 @@ function resolveDistrictNameForHongKongArea(
   return hierarchy.find(entry => entry.type === 'district')?.i18n.en?.name ?? null
 }
 
+validateDivisionPolicy(ruleFixture.parameters)
+
 export const divisionNormalisationRule = registerRule(
   ruleDeclarationFromFixture(ruleFixture),
   ({
@@ -2056,218 +2064,49 @@ function buildHierarchyI18nFromName(divisionId: string, name: unknown) {
   ) as DivisionHierarchyI18n
 }
 
-function resolveHierarchyDivisionLevel(rawSubtype: string | null) {
-  const subtype = normaliseDivisionLevelToken(rawSubtype)
-
-  if (subtype === 'dependency') {
-    return 0
-  }
-
-  if (subtype === 'region') {
-    return 2
-  }
-
-  if (subtype === 'macrohood') {
-    return 4
-  }
-
-  if (subtype === 'neighborhood' || subtype === 'neighbourhood') {
-    return 5
-  }
-
-  if (subtype === 'microhood') {
-    return 6
-  }
-
-  if (subtype === 'locality') {
-    throw new Error(
-      'Cannot normalise hierarchy subtype `locality` without a class value.',
-    )
-  }
-
-  throw new Error(`Unsupported hierarchy subtype: ${rawSubtype ?? 'null'}.`)
+function resolveHierarchyDivisionLevel(rawSubtype: string | null): number {
+  return hierarchyClassification(
+    divisionNormalisationRule.declaration.parameters,
+    normaliseDivisionLevelToken(rawSubtype),
+  ).level
 }
 
-function resolveHierarchyDivisionType(rawSubtype: string | null) {
-  const subtype = normaliseDivisionLevelToken(rawSubtype)
-
-  if (subtype === 'dependency') {
-    return 'sar'
-  }
-
-  if (subtype === 'region') {
-    return 'district'
-  }
-
-  if (subtype === 'macrohood') {
-    return 'macrohood'
-  }
-
-  if (subtype === 'neighborhood' || subtype === 'neighbourhood') {
-    return 'neighbourhood'
-  }
-
-  if (subtype === 'microhood') {
-    return 'microhood'
-  }
-
-  if (subtype === 'locality') {
-    throw new Error(
-      'Cannot normalise hierarchy subtype `locality` without a class value.',
-    )
-  }
-
-  throw new Error(`Unsupported hierarchy subtype: ${rawSubtype ?? 'null'}.`)
+function resolveHierarchyDivisionType(rawSubtype: string | null): string {
+  return hierarchyClassification(
+    divisionNormalisationRule.declaration.parameters,
+    normaliseDivisionLevelToken(rawSubtype),
+  ).type
 }
 
-/**
- * Maps source hints to a coarse numeric division level.
- */
-function resolveDivisionLevel(input: {
+type DivisionTaxonomyInput = {
   otSubtype: string | null
   otClass: string | null
   parentDivisionId: string | null
   row: Record<string, unknown>
-}): number {
-  const normalisedSubtype = normaliseDivisionLevelToken(input.otSubtype)
-  const normalisedClass = normaliseDivisionLevelToken(input.otClass)
-  const normalisedAdminLevel = normaliseDivisionLevelToken(
-    resolveAdminLevelToken(input.row),
-  )
-
-  if (isHongKongArea(input.row)) {
-    return 1
-  }
-
-  if (normalisedSubtype === 'dependency') {
-    return 0
-  }
-
-  if (normalisedSubtype === 'region') {
-    return 2
-  }
-
-  if (normalisedSubtype === 'locality') {
-    if (normalisedClass === 'city') {
-      return 1
-    }
-
-    if (normalisedClass === 'town') {
-      return 3
-    }
-
-    if (normalisedClass === 'village') {
-      return 5
-    }
-
-    if (normalisedClass === 'hamlet') {
-      return 6
-    }
-  }
-
-  const candidates = [normalisedSubtype, normalisedClass, normalisedAdminLevel].filter(
-    Boolean,
-  )
-
-  for (const candidate of candidates) {
-    for (const { token, level } of divisionNormalisationRule.declaration.parameters
-      .levelTokens) {
-      if (candidate.includes(token)) {
-        return level
-      }
-    }
-  }
-
-  return input.parentDivisionId ? 1 : 0
 }
 
-function resolveDivisionType(input: {
-  otSubtype: string | null
-  otClass: string | null
-  parentDivisionId: string | null
-  row: Record<string, unknown>
-}) {
-  const normalisedSubtype = normaliseDivisionLevelToken(input.otSubtype)
-  const normalisedClass = normaliseDivisionLevelToken(input.otClass)
-
-  if (isHongKongArea(input.row)) {
-    return 'area'
+function divisionTaxonomyHints(input: DivisionTaxonomyInput) {
+  return {
+    subtype: normaliseDivisionLevelToken(input.otSubtype),
+    class: normaliseDivisionLevelToken(input.otClass),
+    adminLevel: normaliseDivisionLevelToken(resolveAdminLevelToken(input.row)),
+    hasParent: Boolean(input.parentDivisionId),
+    isHongKongArea: isHongKongArea(input.row),
   }
+}
 
-  if (normalisedSubtype === 'country') {
-    return 'country'
-  }
+function resolveDivisionLevel(input: DivisionTaxonomyInput): number {
+  return divisionLevel(
+    divisionNormalisationRule.declaration.parameters,
+    divisionTaxonomyHints(input),
+  )
+}
 
-  if (normalisedSubtype === 'dependency') {
-    return 'sar'
-  }
-
-  if (normalisedSubtype === 'region') {
-    return 'district'
-  }
-
-  if (normalisedSubtype === 'locality') {
-    if (normalisedClass === 'city') {
-      return 'area'
-    }
-
-    if (normalisedClass === 'town') {
-      return 'town'
-    }
-
-    if (normalisedClass === 'village') {
-      return 'village'
-    }
-
-    if (normalisedClass === 'hamlet') {
-      return 'hamlet'
-    }
-  }
-
-  if (normalisedSubtype === 'macrohood' || normalisedClass === 'macrohood') {
-    return 'macrohood'
-  }
-
-  if (
-    normalisedSubtype === 'neighborhood' ||
-    normalisedSubtype === 'neighbourhood' ||
-    normalisedClass === 'neighborhood' ||
-    normalisedClass === 'neighbourhood'
-  ) {
-    return 'neighbourhood'
-  }
-
-  if (normalisedSubtype === 'microhood' || normalisedClass === 'microhood') {
-    return 'microhood'
-  }
-
-  const level = resolveDivisionLevel(input)
-
-  if (level === 0) {
-    return 'sar'
-  }
-
-  if (level === 1) {
-    return 'area'
-  }
-
-  if (level === 2) {
-    return 'district'
-  }
-
-  if (level === 3) {
-    return 'town'
-  }
-
-  if (level === 4) {
-    return 'macrohood'
-  }
-
-  if (level === 5) {
-    return 'neighbourhood'
-  }
-
-  return 'microhood'
+function resolveDivisionType(input: DivisionTaxonomyInput): string {
+  return divisionType(
+    divisionNormalisationRule.declaration.parameters,
+    divisionTaxonomyHints(input),
+  )
 }
 
 /**
