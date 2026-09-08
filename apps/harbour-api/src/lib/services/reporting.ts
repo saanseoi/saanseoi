@@ -1,4 +1,4 @@
-import { and, desc, eq } from '@repo/db'
+import { and, desc, eq, metaSnapshots, metaSnapshotSources } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
@@ -214,6 +214,14 @@ export async function listReleases(
       originalFileName: metaReleases.originalFileName,
       publicationDate: metaReleases.publicationDate,
       rawObjectKey: metaReleases.rawObjectKey,
+      hasStatisticsSnapshot: sql<boolean>`EXISTS (
+        SELECT 1 FROM ${metaSnapshotSources}
+        JOIN ${metaSnapshots} ON ${metaSnapshots.id} = ${metaSnapshotSources.snapshotId}
+        WHERE ${metaSnapshotSources.resourceReleaseId} = ${metaReleases.id}
+          AND ${metaSnapshotSources.role} <> 'lookup'
+          AND ${metaSnapshots.resourceType} = 'divisionStatistic'
+          AND ${metaSnapshots.status} IN ('draft', 'published')
+      )`.mapWith(Boolean),
       regionCode: metaDatasets.regionCode,
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
@@ -262,6 +270,7 @@ export async function listReleases(
     revocationReason: row.revocationReason,
     revokedAt: toIsoString(row.revokedAt),
     rowCounts: rowCountsByReleaseId.get(row.releaseId) ?? [],
+    hasStatisticsSnapshot: row.hasStatisticsSnapshot,
     cohortKey: row.cohortKey,
     source: row.source,
     sourceVersion: row.sourceVersion,
