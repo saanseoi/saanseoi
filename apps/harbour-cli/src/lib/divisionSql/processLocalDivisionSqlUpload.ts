@@ -546,7 +546,14 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
         )
 
-        progress.beginPhase('Retain processing provenance', {})
+        const provenanceRetainStartedAt = Date.now()
+        progress.beginPhase(
+          formatRunningPhaseLabel(
+            colorTeal('Retain'),
+            colorRed('processing provenance'),
+          ),
+          {},
+        )
         const audit = await retainDivisionProvenance(bucket, {
           releaseId,
           datasetCode,
@@ -556,10 +563,33 @@ export async function processLocalDivisionSqlUpload(
           inputCount: previewPlan.rowCount,
           outputCount: divisionState.processedRows,
         })
-        progress.complete('Retain processing provenance')
-        progress.beginPhase('Deliver processing provenance', {})
+        progress.complete(
+          appendPhaseDetails(
+            formatCompletedPhaseLabel(
+              colorTeal('Retain'),
+              colorRed('processing provenance'),
+            ),
+            [formatDurationMs(Date.now() - provenanceRetainStartedAt)],
+          ),
+        )
+        const provenanceDeliverStartedAt = Date.now()
+        progress.beginPhase(
+          formatRunningPhaseLabel(
+            colorTeal('Deliver'),
+            colorRed('processing provenance'),
+          ),
+          {},
+        )
         await deliverProcessingResult(target, bucket, audit.ref)
-        progress.complete('Deliver processing provenance')
+        progress.complete(
+          appendPhaseDetails(
+            formatCompletedPhaseLabel(
+              colorTeal('Deliver'),
+              colorRed('processing provenance'),
+            ),
+            [formatDurationMs(Date.now() - provenanceDeliverStartedAt)],
+          ),
+        )
 
         const metaFile = await runLocalStreamingPhase(
           progress,

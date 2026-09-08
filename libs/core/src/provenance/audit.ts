@@ -8,7 +8,7 @@ import {
 } from './objects'
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
-import { cachedProvenanceStore, createProvenanceReader } from './cache'
+import { createProvenanceReader } from './cache'
 import type { BulkAudit } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
 import { validateShape } from './schema'

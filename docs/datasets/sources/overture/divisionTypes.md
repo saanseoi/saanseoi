@@ -5,6 +5,10 @@ hierarchy classifications, ordered level tokens, Hong Kong area-name recognition
 fallbacks. The normaliser consumes these parameters directly. Level-token order and
 substring matching are significant; review both when editing taxonomy policy.
 
+Local division ingestion reports provenance retention and delivery after SQL generation.
+Shared audit fixtures use a bounded cache of verified JSON objects during verification;
+each individual curation pointer is checked before the audit manifest is retained.
+
 ## v1
 
 ### EN

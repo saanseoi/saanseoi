@@ -55,7 +55,9 @@ Canonical, Planning Department and geometry processing retain
 [processing audits](../processing-provenance.md) in content-addressed R2 objects. D1
 registers the compact manifest and attempt status. Bulk rules expose registered
 declarations and counts; bulk curations expose selected fixtures. Individual curations
-are paginated and searchable. Failed blocking guards prevent publication.
+are paginated and searchable. Failed blocking guards prevent publication. Audit
+verification uses a bounded cache of verified JSON objects for shared fixture
+references, checking every individual pointer without repeatedly parsing its fixture.
 
 Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
 Metadata registry synchronisation assigns each code to its canonical Division and
