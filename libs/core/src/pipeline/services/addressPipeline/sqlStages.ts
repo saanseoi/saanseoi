@@ -362,7 +362,7 @@ async function resolveAddressSnapshotId(
       metaSchema.metaSnapshotSources,
       eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
     )
-    .where(eq(metaSchema.metaSnapshotSources.sourceReleaseId, releaseId))
+    .where(eq(metaSchema.metaSnapshotSources.resourceReleaseId, releaseId))
     .limit(1)
     .get()
 
@@ -435,7 +435,7 @@ export async function buildAddressMetaSqlFile(
     .select({
       snapshotId: metaSnapshotSources.snapshotId,
       datasetId: metaSnapshotSources.datasetId,
-      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      resourceReleaseId: metaSnapshotSources.resourceReleaseId,
       role: metaSnapshotSources.role,
       selectedByRule: metaSnapshotSources.selectedByRule,
       selectionMode: metaSnapshotSources.selectionMode,
@@ -447,7 +447,7 @@ export async function buildAddressMetaSqlFile(
     .where(eq(metaSnapshotSources.snapshotId, snapshotIdValue))
     .all()
 
-  if (!snapshotSourceRows.some(row => row.sourceReleaseId === releaseId)) {
+  if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
     throw new Error(
       `Address snapshot source metadata missing for release ${releaseId} and snapshot ${snapshotIdValue}.`,
     )
@@ -489,10 +489,11 @@ export async function buildAddressMetaSqlFile(
     .where(eq(metaSnapshotShardAssignments.snapshotId, snapshotIdValue))
     .all()
 
-  const [releaseStatsRows, auditSql] = await Promise.all([
-    metaDb.select().from(stats).where(eq(stats.releaseId, releaseId)).all(),
-    readAuditReplaySql(metaDb, releaseId),
-  ])
+  const releaseStatsRows = await metaDb
+    .select()
+    .from(stats)
+    .where(eq(stats.releaseId, releaseId))
+    .all()
 
   if (releaseShardAssignmentRows.length === 0) {
     throw new Error(
@@ -574,7 +575,7 @@ export async function buildAddressMetaSqlFile(
       [
         'snapshotId',
         'datasetId',
-        'sourceReleaseId',
+        'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
@@ -583,7 +584,7 @@ export async function buildAddressMetaSqlFile(
         'createdAt',
       ],
       snapshotSourceRows,
-      `ON CONFLICT(snapshotId, sourceReleaseId) DO UPDATE SET
+      `ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
   datasetId = excluded.datasetId,
   role = excluded.role,
   selectedByRule = excluded.selectedByRule,
@@ -663,7 +664,6 @@ export async function buildAddressMetaSqlFile(
   groupValue = excluded.groupValue,
   updatedAt = excluded.updatedAt`,
     ),
-    ...auditSql,
   ].filter(Boolean)
   const sql = `${statements.join('\n\n')}\n`
 
@@ -878,4 +878,3 @@ function sqlLiteral(value: unknown): string {
 
   return `'${String(value).replaceAll("'", "''")}'`
 }
-import { readAuditReplaySql } from '../../db/processingActionReplay'

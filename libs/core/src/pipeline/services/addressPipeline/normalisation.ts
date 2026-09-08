@@ -1,11 +1,47 @@
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/address-normalisation.json'
+import {
+  registerRule,
+  ruleDeclarationFromFixture,
+  ProcessingGuardError,
+} from '../../../provenance'
 
 import { asNonEmptyString, asString, createHash } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
 import { correctHkgovAddressComponents } from './componentCorrections'
 import { establishAddressGranularity } from './granularity'
 
+export const addressNormalisationRule = registerRule(
+  ruleDeclarationFromFixture(ruleFixture),
+  ({ row, sourceVersion }: { row: Record<string, unknown>; sourceVersion: unknown }) =>
+    normaliseAddressRowForPipelineInternal(row, sourceVersion),
+)
+
 export function normaliseAddressRowForPipeline(
+  row: Record<string, unknown>,
+  sourceVersion: unknown = row.sourceVersion,
+) {
+  try {
+    return addressNormalisationRule.execute({ row, sourceVersion })
+  } catch (error) {
+    if (error instanceof ProcessingGuardError) throw error
+    const reason = error instanceof Error ? error.message : String(error)
+    throw new ProcessingGuardError(reason, [
+      {
+        id: 'address-normalisation',
+        summary:
+          'Require valid prepared Address components and matching curation guards.',
+        consequence: 'block-ingestion',
+        status: 'failed',
+        checked: 1,
+        failed: 1,
+        reason,
+      },
+    ])
+  }
+}
+
+function normaliseAddressRowForPipelineInternal(
   row: Record<string, unknown>,
   sourceVersion: unknown = row.sourceVersion,
 ) {
