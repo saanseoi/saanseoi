@@ -3,7 +3,8 @@
 Source Place records retain the complete publisher payload in `rawProperties`, alongside
 identity, provenance and release history. Normalised coordinates, names, taxonomy,
 contact details and addresses belong to canonical history/current tables; source tables
-do not duplicate those fields.
+do not duplicate those fields. Publisher record versions remain in
+`rawProperties.version`; source history uses content hashes and release validity.
 
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged

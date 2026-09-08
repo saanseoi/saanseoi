@@ -5,10 +5,11 @@ plans prove ownership by the exact release being resumed. Other releases remain 
 until that owner completes publication and releases the database.
 
 Source records retain publisher payloads in `rawProperties`, with identity, provenance
-and release history alongside them. Extracted names, classifications, hierarchy,
-cartography and geometry flags belong to canonical history/current tables, not duplicate
-source columns. Native geometry may be retained separately when the publisher delivers
-it outside the attribute payload.
+and release history alongside them. Publisher record versions remain in
+`rawProperties.version`; content hashes and release validity track source history.
+Extracted names, classifications, hierarchy, cartography and geometry flags belong to
+canonical history/current tables, not duplicate source columns. Native geometry may be
+retained separately when the publisher delivers it outside the attribute payload.
 
 Canonical and geometry ingestion retain recipes, source rules and exact selections under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).

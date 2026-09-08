@@ -130,7 +130,6 @@ export function normaliseDivisionAreaGeometryRow(
       sourceRecordId: id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
-      version: asOptionalInteger(row.version),
     },
   }
 }
@@ -188,7 +187,6 @@ export function normaliseDivisionBoundaryGeometryRow(
       rawProperties: sourceRawProperties(row, source),
       sources: normaliseSourceReferences(row.sources, source, id),
       sourceRecordId: id,
-      version: asOptionalInteger(row.version),
     },
   }
 }

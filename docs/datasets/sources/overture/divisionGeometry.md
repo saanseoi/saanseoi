@@ -143,12 +143,13 @@ actions.
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
-source rows include `rawProperties`, the original source array, Overture version, and
-source-only fields. Canonical rows expose normalised left/right or division references,
-`type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
-`mixed` is derived when both source flags are true, including the known upstream
-Overture records where the source class alone would otherwise suggest `land` or
-`maritime`.
+source rows retain the original source array, Overture version and source-only fields
+inside `rawProperties`, with provenance and release tracking alongside it. The publisher
+version is accessible as `rawProperties.version`. Canonical rows expose normalised
+left/right or division references, `type` (`land`, `maritime`, or `mixed`), geometry,
+bbox, and land/territorial flags. `mixed` is derived when both source flags are true,
+including the known upstream Overture records where the source class alone would
+otherwise suggest `land` or `maritime`.
 
 Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
 include nullable integer `admin_level`. It is accepted by preflight and retained in
