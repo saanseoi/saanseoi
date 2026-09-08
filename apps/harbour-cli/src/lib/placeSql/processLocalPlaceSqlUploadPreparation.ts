@@ -1,4 +1,10 @@
 import { rename, open } from 'node:fs/promises'
+import countryFixture from '../../../../../fixtures/meta/processing-rules/place-country-selection.json'
+import {
+  registerRule,
+  ruleDeclarationFromFixture,
+  guardSession,
+} from '@repo/core/provenance'
 import { reuseStagedPlaces } from './stagedPlaceCache.ts'
 import { reuseEnrichedPlaces } from './enrichedPlaceCache.ts'
 import { deliveryFileSha256, sha256 } from '../localPipeline/sqlDeliveryFiles.ts'
@@ -59,7 +65,7 @@ export function buildPlaceCountryReviewProcessingActions(
 ): ReleaseProcessingAction[] {
   return places.flatMap(place => {
     const country = getPlaceAddressCountry(place.raw.addresses)?.toUpperCase() ?? ''
-    const excluded = country === 'CN' || country === 'MO'
+    const excluded = isExcludedOverturePlace(place)
     const missing = !country
     if (!excluded && !missing) return []
 
@@ -112,9 +118,19 @@ export function buildPlaceLocaleConflictProcessingActions(
   )
 }
 
+export const placeCountryRule = registerRule(
+  {
+    ...ruleDeclarationFromFixture(countryFixture),
+    parameters: countryFixture.parameters,
+  },
+  (place: NormalisedPlace, parameters) =>
+    parameters.excludedCountries.includes(
+      getPlaceAddressCountry(place.raw.addresses)?.toUpperCase() ?? '',
+    ),
+)
+
 export function isExcludedOverturePlace(place: NormalisedPlace) {
-  const country = getPlaceAddressCountry(place.raw.addresses)?.toUpperCase()
-  return country === 'CN' || country === 'MO'
+  return placeCountryRule.execute(place)
 }
 
 export async function resolvePlaceSnapshots(
@@ -264,6 +280,13 @@ export async function stagePlaces(
   const tempPath = `${path}.tmp`
   const output = await open(tempPath, 'w')
   const actions: ReleaseProcessingAction[] = []
+  const guards = guardSession([
+    {
+      id: 'place-address-cardinality',
+      summary: 'A Place has at most one publisher Address.',
+      consequence: 'block-ingestion',
+    },
+  ])
   let includedRows = 0
   let processedRows = 0
   try {
@@ -271,7 +294,9 @@ export async function stagePlaces(
       for (const row of batch) {
         const place = normaliseOverturePlace(row, sourceVersion)
         if (place) {
-          assertPlaceAddressCardinality([place])
+          guards.check('place-address-cardinality', () =>
+            assertPlaceAddressCardinality([place]),
+          )
           actions.push(
             ...buildPlaceCountryReviewProcessingActions([place]),
             ...buildPlaceLocaleConflictProcessingActions([place]),

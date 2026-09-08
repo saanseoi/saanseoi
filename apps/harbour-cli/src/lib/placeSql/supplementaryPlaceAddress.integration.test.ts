@@ -147,7 +147,15 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       '2026-08-19.0',
     )
     if (!place) throw new Error('Expected the Place fixture to normalise.')
+    const auditHashes: Array<string | undefined> = []
     const input = {
+      retainAudit: async (
+        _releaseId: string,
+        _datasetCode: string,
+        audit: import('./placeProvenance').PlaceAddressAuditInput,
+      ) => {
+        auditHashes.push(audit.materialisationHash)
+      },
       curationPath,
       entryLedgerPath,
       context: {
@@ -210,6 +218,24 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         .get(),
     ).toEqual({ n: 0 })
     history.exec('DROP TRIGGER fail_import;')
+    await expect(
+      prepareSupplementaryAddresses({
+        ...input,
+        retainAudit: async auditReleaseId => {
+          expect(
+            meta.query('SELECT status FROM releases WHERE id = ?').get(auditReleaseId),
+          ).toEqual({ status: 'processing' })
+          throw new Error('simulated provenance registration failure')
+        },
+      }),
+    ).rejects.toThrow('simulated provenance registration failure')
+    expect(
+      meta
+        .query(
+          "SELECT count(*) AS n FROM snapshots s JOIN snapshotLineages l ON l.id = s.snapshotLineageId WHERE l.variant = 'overture-places' AND s.status = 'published'",
+        )
+        .get(),
+    ).toEqual({ n: 0 })
     const progressEvents: string[] = []
     const first = await prepareSupplementaryAddresses({
       ...input,
@@ -264,6 +290,9 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     ).toEqual({ n: 2 })
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     const retry = await prepareSupplementaryAddresses(input)
+    expect(auditHashes).toHaveLength(2)
+    expect(auditHashes[0]).toBeDefined()
+    expect(auditHashes[1]).toBe(auditHashes[0])
     expect(retry.snapshotId).toBe(first.snapshotId)
     const dataset = meta
       .query("SELECT resourceTypes FROM datasets WHERE id = 'overture-hk-place'")

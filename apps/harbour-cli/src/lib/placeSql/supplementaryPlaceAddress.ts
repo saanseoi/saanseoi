@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto'
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/place-address-analysis.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import {
   createPlaceAddressMatcher,
   normaliseAddressText,
@@ -367,7 +369,37 @@ export function parseSupplementaryCuration(
   return fixture
 }
 
+export const placeAddressAnalysisRule = registerRule(
+  ruleDeclarationFromFixture(ruleFixture),
+  (input: {
+    definitions: PlaceAddressDefinition[]
+    officialIds: Set<string>
+    geometry: Map<string, { lng: number; lat: number }>
+    fixture: SupplementaryCuration
+  }) =>
+    createSupplementaryAddressAnalyserInternal(
+      input.definitions,
+      input.officialIds,
+      input.geometry,
+      input.fixture,
+    ),
+)
+
 export function createSupplementaryAddressAnalyser(
+  definitions: PlaceAddressDefinition[],
+  officialIds: Set<string>,
+  geometry: Map<string, { lng: number; lat: number }>,
+  fixture: SupplementaryCuration,
+) {
+  return placeAddressAnalysisRule.execute({
+    definitions,
+    officialIds,
+    geometry,
+    fixture,
+  })
+}
+
+function createSupplementaryAddressAnalyserInternal(
   definitions: PlaceAddressDefinition[],
   officialIds: Set<string>,
   geometry: Map<string, { lng: number; lat: number }>,
