@@ -12,6 +12,7 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./provenance": "./src/provenance/index.ts",
     ".": "./src/index.ts",
     "./requireDefined": "./src/requireDefined.ts",
     "./codes": "./src/codes.ts",
