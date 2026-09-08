@@ -1,8 +1,13 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { createLocalHarbourDb } from '../testing/localDb'
-import { registerProcessingResult, retainProcessingResult, retainObject } from './index'
-import type { ProvenanceStore } from './types'
+import {
+  objectKey,
+  registerProcessingResult,
+  retainProcessingResult,
+  retainObject,
+} from './index'
+import type { Application, ProvenanceStore } from './types'
 
 async function fixture() {
   const sqlite = new Database(':memory:')
@@ -58,6 +63,56 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
     expect(f.sqlite.query('SELECT manifestHash FROM releaseProvenance').get()).toEqual({
       manifestHash: f.ref.hash,
     })
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('identical registration does not re-read an already verified closure', async () => {
+  const f = await fixture()
+  try {
+    const definition = await retainObject(f.store, { rule: 'fixture' })
+    const application: Application = {
+      schemaVersion: 1,
+      kind: 'processing-application',
+      id: 'fixture-application',
+      operation: 'fixture-operation',
+      operationVersion: 1,
+      outcome: 'no-change',
+      summary: 'Kept the fixture unchanged.',
+      reason: 'The fixture already matched.',
+      decision: {
+        id: 'fixture-decision',
+        revision: 1,
+        origin: 'rule',
+        review: 'unreviewed',
+        definition,
+      },
+      inputs: [],
+      effects: [],
+      evidence: [],
+      fields: [],
+    }
+    const result = await retainProcessingResult(f.store, {
+      releaseId: 'r',
+      collections: [],
+      applications: [application],
+    })
+    await registerProcessingResult(f.db, f.store, 'r', result.ref)
+
+    const manifestKey = objectKey(result.ref.hash)
+    const retryStore: ProvenanceStore = {
+      async get(key) {
+        return key === manifestKey ? f.store.get(key) : null
+      },
+      async put(key, bytes) {
+        return f.store.put(key, bytes)
+      },
+    }
+
+    await expect(
+      registerProcessingResult(f.db, retryStore, 'r', result.ref),
+    ).resolves.toMatchObject({ manifestHash: result.ref.hash })
   } finally {
     f.sqlite.close()
   }

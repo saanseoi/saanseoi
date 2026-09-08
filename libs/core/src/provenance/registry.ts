@@ -5,7 +5,7 @@ import { verifyProcessingResult } from './bundle'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
 
-/** Verify R2 first; the D1 statement guards release status at commit time. */
+/** Verify new R2 closures first; identical registered manifests are idempotent. */
 export async function registerProcessingResult(
   db: HarbourReadableDb & HarbourWritableDb,
   store: ProvenanceStore,
@@ -29,7 +29,6 @@ export async function registerProcessingResult(
     manifest.collections.some(c => c.layer === 'canonical' && c.releaseId !== releaseId)
   )
     throw new Error('Canonical collection belongs to a different release.')
-  await verifyProcessingResult(store, manifest)
   const existing = await db
     .select()
     .from(table)
@@ -37,6 +36,7 @@ export async function registerProcessingResult(
     .get()
   if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength)
     return existing
+  await verifyProcessingResult(store, manifest)
   if (!['staged', 'processing'].includes(release.status))
     throw new Error('Published provenance is immutable.')
   // A release has one processing result. Multiple outputs are declared in its collections.
