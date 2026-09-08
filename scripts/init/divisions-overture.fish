@@ -124,6 +124,10 @@ if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic
         --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
         --defer-stats-release-set --include-geography --defer-api-release-set --yes
     set -g saanseoi_init_docs_pending 1
+else
+    for resource_type in divisionStatistic division divisionArea
+        init_skip_completed_release "$censtatd_area_release_code::$resource_type"
+    end
 end
 
 # A resumed initialiser may skip C&SD releases that are already published.
