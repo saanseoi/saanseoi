@@ -431,7 +431,7 @@ async function resolveExactSnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSources.sourceReleaseId, release.id),
+        eq(metaSchema.metaSnapshotSources.resourceReleaseId, release.id),
         eq(metaSchema.metaSnapshots.resourceType, release.resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         // Exact canonical variants are the only source of release facts.
