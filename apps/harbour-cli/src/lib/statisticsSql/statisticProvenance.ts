@@ -1,22 +1,17 @@
 import {
-  hashValue,
-  recordApplications,
+  retainAuditResult,
   retainObject,
-  retainProcessingResult,
-  type Collection,
-  type JsonRecord,
-  type ObservedApplication,
+  type AuditGuard,
+  type BulkAudit,
   type ProvenanceStore,
 } from '@repo/core/provenance'
-import apiFields from '../../../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import type {
   CanonicalStatsRows,
   HkgovCenstatdStatisticSourceRow,
 } from './normaliseHkgovCenstatdStatistics'
 
-const pointer = (value: string) => value.replaceAll('~', '~0').replaceAll('/', '~1')
-
-/** Capture the actual canonical payload; timestamps and SCD bookkeeping are not data effects. */
+/** Bulk normalisation retains declarations and execution counts, never publisher rows or outputs. */
 export async function retainStatisticProvenance(
   store: ProvenanceStore,
   input: {
@@ -27,206 +22,149 @@ export async function retainStatisticProvenance(
     fieldMetadata: ReadonlyMap<string, unknown>
   },
 ) {
-  const { releaseId, datasetCode, canonical } = input
-  const declarations = apiFields.fields.filter(
-    field => field.sourceDatasetCode === datasetCode,
-  )
-  const projection = await retainObject(store, {
+  const { releaseId, datasetCode, source, canonical } = input
+  const fields = [...input.fieldMetadata]
+    .filter(([key]) => key.startsWith(datasetCode + '\u0000'))
+    .map(([key, metadata]) => ({ sourceField: key.split('\u0000')[1], metadata }))
+  const fixture = await retainObject(store, {
+    kind: 'statistic-field-curations',
     schemaVersion: 1,
-    kind: 'api-field-declarations',
-    fields: declarations,
+    datasetCode,
+    fields,
   })
-  const normalisation = await retainObject(store, {
-    schemaVersion: 1,
-    kind: 'processing-definition',
-    operation: 'normalise-censtatd-statistics',
-    operationVersion: 1,
-    summary:
-      'Convert publisher literals into dimension-grouped canonical statistic records.',
-    rules: [
-      'Keep identifier properties as geography and reference-period inputs, not observations.',
-      'Ignore null publisher values. Retain source literals in input evidence.',
-      'Preserve decimal numeric strings; multiply MYPOPN_LAND numeric literals by 1000.',
-      'Map ** to suppressed; map -, N.A. and NA to unavailable; preserve other categorical literals.',
-      'Use the retained reviewed field names, dimensions, units, aggregations and localisations.',
-      'Group values by source feature, reference period and reviewed dimensions; reject duplicate fields.',
-      'Use the retained geography resolution and area companion; do not query a current bridge on replay.',
-      'Record IDs are retained effects, not instructions to invoke an identity generator.',
-    ],
-  })
-  const dictionaries = [
-    ['statsFields', canonical.fields],
-    ['statsFieldsI18n', canonical.fieldsI18n],
-    ['statsMeasures', canonical.measures],
-    ['statsMeasuresI18n', canonical.measuresI18n],
-    ['statsValuesI18n', canonical.valuesI18n],
-  ] as const
-  const collections: Collection[] = [
-    {
-      id: 'publisher-properties',
-      layer: 'source',
-      datasetCode,
-      releaseId,
-      snapshotId: null,
-      schema: 'censtatd-publisher-properties/1',
-    },
-    ...['statsRecords', ...dictionaries.map(([name]) => name)].map(id => ({
+  const bulk: BulkAudit[] = []
+  const add = async (
+    id: string,
+    summary: string,
+    inputs: string[],
+    outputs: string[],
+    affected: number,
+    basis: 'code' | 'fixture' = 'code',
+  ) => {
+    bulk.push({
       id,
-      layer: 'canonical' as const,
-      datasetCode,
-      releaseId,
-      snapshotId: null,
-      schema: `${id}-payload/1`,
-    })),
-  ]
-  const bySource = new Map<string, CanonicalStatsRows['records']>()
-  for (const record of canonical.records) {
-    const records = bySource.get(record.sourceFeatureRef) ?? []
-    records.push(record)
-    bySource.set(record.sourceFeatureRef, records)
-  }
-  const seen = new Set<string>()
-  async function* observations(): AsyncGenerator<ObservedApplication> {
-    for (const source of input.source) {
-      if (seen.has(source.sourceFeatureRef))
-        throw new Error('Duplicate statistic provenance source reference.')
-      seen.add(source.sourceFeatureRef)
-      const records = bySource.get(source.sourceFeatureRef) ?? []
-      bySource.delete(source.sourceFeatureRef)
-      const fields = canonical.fields.filter(
-        field =>
-          field.datasetCode === source.datasetCode &&
-          Object.hasOwn(source.properties, field.sourceField),
-      )
-      yield {
-        id: `normalise:${source.sourceFeatureRef}`,
-        operation: 'normalise-censtatd-statistics',
-        operationVersion: 1,
-        outcome: 'applied',
-        summary: records.length
-          ? `Materialised ${records.length} dimension-grouped statistic records from ${source.sourceFeatureRef}.`
-          : `No observation records from ${source.sourceFeatureRef}.`,
-        reason:
-          'Applied the retained field definitions, publisher-literal conversion rules and geography resolution.',
-        decision: {
-          id: 'normalise-censtatd-statistics',
-          revision: 1,
-          origin: 'rule',
-          review: 'unreviewed',
-          definition: normalisation,
+      basis,
+      summary,
+      outcome: source.length ? 'applied' : 'not-applicable',
+      definition: await retainObject(store, {
+        kind: 'processing-rule',
+        schemaVersion: 1,
+        id,
+        scope: 'bulk',
+        basis,
+        summary,
+        inputs,
+        outputs,
+        parameters: {},
+        implementation: {
+          path: 'apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts',
+          symbol: 'normaliseHkgovCenstatdStatistics',
         },
-        inputs: [
-          {
-            collection: 'publisher-properties',
-            id: source.sourceFeatureRef,
-            value: source.properties as JsonRecord,
-          },
-        ],
-        effects: records.map(record => ({
-          target: { collection: 'statsRecords', id: record.id },
-          before: null,
-          after: record as unknown as JsonRecord,
-        })),
-        evidence: [{ object: projection, role: 'api-field-declarations', pointer: '' }],
-        evidenceValues: [
-          {
-            role: 'applied-field-and-geography-resolution',
-            value: {
-              fields: fields as unknown as JsonRecord[],
-              sourceVersion: source.sourceVersion,
-              divisionId: source.divisionId ?? null,
-              geography: (source.geography as unknown as JsonRecord) ?? null,
-              areaCompanionByReferencePeriod:
-                source.areaCompanionByReferencePeriod ?? null,
-              excludedProperties: Object.keys(source.properties).filter(
-                key => !fields.some(field => field.sourceField === key),
-              ),
-            },
-          },
-        ],
-        fields: records.length
-          ? [
-              ...fields.map(field => ({
-                output: {
-                  collection: 'statsRecords',
-                  path: `/values/${pointer(field.fieldName)}`,
-                },
-                inputs: [
-                  {
-                    collection: 'publisher-properties',
-                    path: `/${pointer(field.sourceField)}`,
-                  },
-                ],
-                apiFields: declarations.some(
-                  d => d.apiField === 'statistic.attributes.values',
-                )
-                  ? ['statistic.attributes.values']
-                  : [],
-              })),
-              ...['geography', 'dimensions', 'referencePeriodCode', 'divisionId'].map(
-                path => ({
-                  output: { collection: 'statsRecords', path: `/${path}` },
-                  inputs: [{ collection: 'publisher-properties', path: '' }],
-                  apiFields: [],
-                }),
-              ),
-            ]
-          : [],
-      }
-    }
-    if (bySource.size)
-      throw new Error('Canonical statistic has no guarded publisher source.')
-    for (const [collection, rows] of dictionaries) {
-      for (const row of rows) {
-        const value = row as unknown as JsonRecord
-        const id = await hashValue(value)
-        const sourceField =
-          typeof value.sourceField === 'string' ? value.sourceField : null
-        const reviewed =
-          collection === 'statsFields' && sourceField !== null
-            ? input.fieldMetadata.get(`${datasetCode}\u0000${sourceField}`)
-            : undefined
-        const definition =
-          reviewed === undefined
-            ? normalisation
-            : await retainObject(store, {
-                schemaVersion: 1,
-                kind: 'curation-definition',
-                operation: 'curate-statistic-field',
-                datasetCode,
-                sourceField,
-                metadata: reviewed,
-              })
-        yield {
-          id: `${collection}:${id}`,
-          operation:
-            reviewed === undefined
-              ? 'materialise-statistic-dictionary'
-              : 'curate-statistic-field',
-          operationVersion: 1,
-          outcome: 'applied',
-          summary: `Materialised ${collection} dictionary entry.`,
-          reason: 'Retained the resolved dictionary payload used by this release.',
-          decision: {
-            id: `dictionary:${id}`,
-            revision: 1,
-            origin: reviewed === undefined ? 'rule' : 'human',
-            review: reviewed === undefined ? 'unreviewed' : 'approved',
-            definition,
-          },
-          inputs: [],
-          effects: [{ target: { collection, id }, before: null, after: value }],
-          evidence: [
-            { object: projection, role: 'api-field-declarations', pointer: '' },
-          ],
-          fields: [],
-        }
-      }
-    }
+      }),
+      counts: {
+        inputs: { 'publisher-properties': source.length },
+        outputs: {},
+        recordsAffected: affected,
+        decisions: { applied: affected },
+      },
+      fixtures:
+        basis === 'fixture' ? [{ type: 'statistic-fields', object: fixture }] : [],
+    })
   }
-  return retainProcessingResult(store, {
+  await add(
+    'normalise-censtatd-statistics',
+    'Select observation fields, interpret publisher literals and derive reference periods; group values by source feature, period and reviewed dimensions.',
+    ['publisher-properties'],
+    ['statsRecords'],
+    source.length,
+  )
+  bulk[0]!.counts.outputs = { statsRecords: canonical.records.length }
+  await add(
+    'curate-statistic-fields',
+    'Apply reviewed field names, dimensions, units, aggregations and localisations.',
+    ['publisher-properties'],
+    ['statsFields'],
+    canonical.fields.length,
+    'fixture',
+  )
+  bulk[1]!.counts.outputs = { statsFields: canonical.fields.length }
+  const dictionaries = [
+    'fields',
+    'fieldsI18n',
+    'measures',
+    'measuresI18n',
+    'valuesI18n',
+  ] as const
+  await add(
+    'materialise-statistic-dictionaries',
+    'Materialise the field, measure and localisation dictionaries selected by the reviewed definitions.',
+    ['statistic-field-curations'],
+    ['statsFields', 'statsMeasures', 'statsValuesI18n'],
+    canonical.fields.length,
+  )
+  bulk[2]!.counts.outputs = Object.fromEntries(
+    dictionaries.map(key => [key, canonical[key].length]),
+  )
+  const scaling = populationThousandsRule.declaration
+  const scaled = canonical.observations.filter(
+    o => o.sourceField === scaling.parameters.sourceField && o.numericValue !== null,
+  ).length
+  bulk.push({
+    id: scaling.id,
+    basis: scaling.basis,
+    summary: scaling.summary,
+    outcome: scaled ? 'applied' : 'not-applicable',
+    definition: await retainObject(store, scaling),
+    counts: {
+      inputs: { observations: canonical.observations.length },
+      outputs: { observations: scaled },
+      recordsAffected: scaled,
+      decisions: { scaled },
+    },
+    fixtures: [],
+  })
+  const sourceRefs = new Set(source.map(s => s.sourceFeatureRef))
+  const duplicateSources = source.length - sourceRefs.size
+  const orphanOutputs = canonical.records.filter(
+    r => !sourceRefs.has(r.sourceFeatureRef),
+  ).length
+  const guard = (
+    id: string,
+    summary: string,
+    checked: number,
+    failed: number,
+  ): AuditGuard => ({
+    id,
+    summary,
+    consequence: 'block-ingestion',
+    status: failed ? 'failed' : 'passed',
+    checked,
+    failed,
+    reason: failed
+      ? failed + ' checks failed.'
+      : 'All checked records satisfy the requirement.',
+  })
+  const guards = [
+    guard(
+      'unique-statistic-source-identities',
+      'Publisher feature references must be unique within the release.',
+      source.length,
+      duplicateSources,
+    ),
+    guard(
+      'statistic-output-source-link',
+      'Every canonical statistic must resolve to an input publisher feature.',
+      canonical.records.length,
+      orphanOutputs,
+    ),
+  ]
+  const failed = guards.some(g => g.status === 'failed')
+  return retainAuditResult(store, {
     releaseId,
-    collections,
-    applications: recordApplications(store, observations()),
+    datasetCode,
+    attempt: { id: releaseId, status: failed ? 'failed' : 'completed' },
+    bulk,
+    guards,
+    individuals: [],
   })
 }
