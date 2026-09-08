@@ -85,7 +85,7 @@ for (const order of [types, [...types].reverse()]) {
             db,
             releaseId,
             'process',
-            'failed',
+            'error',
             '2026-09-09T00:00:00Z',
             '2026-09-09T00:00:30Z',
             null,

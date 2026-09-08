@@ -81,6 +81,36 @@ test('district descendants require a single correctly ordered recognised Area', 
   }
 })
 
+test('district descendants may contain legitimate nested areas after the district', () => {
+  const guard = createHongKongHierarchyGuard()
+  checkHongKongHierarchy(
+    {
+      ...child,
+      type: 'area',
+      level: 1,
+      hierarchy: [sar, area, district],
+    },
+    guard,
+  )
+  expect(guard.status).toBe('passed')
+
+  checkHongKongHierarchy(
+    {
+      ...child,
+      type: 'hamlet',
+      level: 6,
+      hierarchy: [
+        sar,
+        area,
+        district,
+        { division_id: 'lantau', level: 1, type: 'area', i18n: {} },
+      ],
+    },
+    guard,
+  )
+  expect(guard.status).toBe('passed')
+})
+
 test('reviewed replacements defer only the intermediate hierarchy guard', () => {
   const hierarchyGuard = createHongKongHierarchyGuard()
   const row = {

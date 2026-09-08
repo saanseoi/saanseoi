@@ -82,7 +82,6 @@ export function checkHongKongHierarchy(
     path[sarIndex + 1]?.level !== 1 ||
     path[sarIndex + 2] !== district ||
     district.level !== 2 ||
-    path.filter(entry => entry.type === 'area').length !== 1 ||
     new Set(path.map(entry => entry.division_id)).size !== path.length
   ) {
     fail(
