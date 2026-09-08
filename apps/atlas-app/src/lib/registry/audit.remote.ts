@@ -135,10 +135,27 @@ export const getRetainedAuditPage = query(
     hash: z.string(),
     q: z.string().max(300).default(''),
     offset: z.number().int().min(0).default(0),
+    category: z.enum(['translations', 'patches', 'curations', 'rules']).optional(),
+    fixtureIndex: z.number().int().min(0).optional(),
+    entryIndex: z.number().int().min(0).optional(),
   }),
   async input => {
     const { manifest } = await manifestFor(input.releaseId, input.hash)
-    return readAuditPage(store(), manifest, input.q, input.offset, 50)
+    const fixture =
+      input.fixtureIndex === undefined
+        ? undefined
+        : manifest.individualFixtures?.[input.fixtureIndex]
+    if (
+      input.fixtureIndex !== undefined &&
+      (!fixture || input.entryIndex === undefined)
+    )
+      throw new Error('Translation fixture is not declared by this release.')
+    return readAuditPage(store(), manifest, input.q, input.offset, 50, {
+      category: input.category,
+      fixture: fixture
+        ? { hash: fixture.object.hash, pointer: `/entries/${input.entryIndex}` }
+        : undefined,
+    })
   },
 )
 

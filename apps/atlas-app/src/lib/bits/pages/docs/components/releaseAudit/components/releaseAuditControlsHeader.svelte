@@ -21,15 +21,12 @@ let {
 }: Props = $props()
 </script>
 
-<div class="flex flex-wrap items-start justify-between gap-4">
+<div class="flex flex-wrap items-center justify-between gap-4">
   <div>
-    <p
-      class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
+    <h2
+      class="font-display text-headline-sm font-bold text-primary md:text-headline-md"
     >
-      {m.source_processing_actions()}
-    </p>
-    <h2 class="mt-1 font-display text-title-lg font-bold text-primary">
-      {m.source_release_decisions()}
+      {m.source_audit_title()}
     </h2>
   </div>
   <div class="ml-auto flex items-center gap-4">
@@ -61,9 +58,9 @@ let {
         class="h-4 w-14 rounded-full bg-data-surface-container-high motion-safe:animate-pulse"
         aria-hidden="true"
       ></span>
-      <span class="sr-only">Loading processing action count</span>
+      <span class="sr-only">{m.source_audit_loading_count()}</span>
     {:else}
-      <p class="font-mono text-label-md font-bold tabular-nums text-primary">
+      <p class="font-mono text-label-md tabular-nums text-foreground-alt">
         {filteredCount}
         / {totalCount}
       </p>

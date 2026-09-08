@@ -1,29 +1,43 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
 import type { Json } from '@repo/core/provenance'
 let { measures }: { measures: Json[] } = $props()
 const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {})
+const locales = ['en', 'zh-hant', 'zh-hans']
 </script>
-
-<div class="space-y-4">
-  {#each measures as measure}
-    {@const row = object(measure)}
-    <article class="rounded-lg border border-current/10 p-3">
-      <h4 class="font-medium">{String(row.measureCode ?? 'Measure')}</h4>
-      {#if Array.isArray(row.localisations)}
-        <dl class="mt-2 grid grid-cols-[5rem_1fr] gap-2 text-sm">
-          {#each row.localisations as item}
-            {@const label = object(item)}
-            <dt class="opacity-60">{String(label.locale ?? '')}</dt>
-            <dd>
-              {String(label.name ?? '')}
-              <p class="opacity-60">{String(label.description ?? '')}</p>
-              <p class="text-xs opacity-50">
-                {String(label.origin ?? 'Origin unrecorded')}
+<table class="w-full table-fixed text-left text-sm">
+  <thead class="border-b border-current/20 text-xs uppercase opacity-60">
+    <tr>
+      <th class="w-[19%] p-2">{m.source_audit_code()}</th>
+      {#each locales as locale}
+        <th class="w-[27%] p-2">{locale}</th>
+      {/each}
+    </tr>
+  </thead>
+  <tbody>
+    {#each measures as measure}
+      {@const row = object(measure)}
+      <tr class="border-b border-current/10 align-top">
+        <td class="p-2">
+          <code
+            class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500 [overflow-wrap:anywhere]"
+            >{String(row.measureCode ?? '—')}</code
+          >
+        </td>
+        {#each locales as locale}
+          {@const entry = (Array.isArray(row.localisations) ? row.localisations : []).map(object).find(item => String(item.locale).toLowerCase() === locale)}
+          <td class="break-words p-2">
+            {#if entry}
+              <p class="font-medium">{String(entry.name ?? '')}</p>
+              <p class="mt-1 text-xs leading-relaxed opacity-60">
+                {String(entry.description ?? '')}
               </p>
-            </dd>
-          {/each}
-        </dl>
-      {/if}
-    </article>
-  {/each}
-</div>
+            {:else}
+              <span class="opacity-40">—</span>
+            {/if}
+          </td>
+        {/each}
+      </tr>
+    {/each}
+  </tbody>
+</table>
