@@ -6,6 +6,7 @@ import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
   resolveSnapshotReplayPlan,
+  type SnapshotReplayStep,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
@@ -564,9 +565,13 @@ export async function getReplayedAddressVersionMap(
   snapshotId: string,
   historyShards: ReadonlyMap<string, ReplayShard>,
   options: AddressVersionLookupOptions,
-  selection?: { recordIds?: string[]; includeLocales?: boolean },
+  selection?: {
+    recordIds?: string[]
+    includeLocales?: boolean
+    plan?: SnapshotReplayStep[]
+  },
 ): Promise<Map<string, ReplayedAddressVersionSnapshot>> {
-  const plan = await resolveSnapshotReplayPlan(metaDb, snapshotId)
+  const plan = selection?.plan ?? (await resolveSnapshotReplayPlan(metaDb, snapshotId))
   const resolvedVersions = await resolveSnapshotVersionState(
     plan,
     historyShards,
