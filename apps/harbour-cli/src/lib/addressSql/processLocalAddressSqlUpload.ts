@@ -21,10 +21,13 @@ import {
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
+import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
-  replaceReleaseProcessingActions,
-  type ReleaseProcessingAction,
-} from '@repo/core/pipeline/db/processingActions'
+  readAddressPreparationAudit,
+  retainAddressProvenance,
+} from './addressProvenance'
+import { deliverProducerAudit } from '../api/producerAuditDelivery'
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
 import {
   importAddressSqlArtefacts,
@@ -171,6 +174,11 @@ export async function processLocalAddressSqlUpload(
   const deliveryDirectory = resolve(releaseRoot, 'sql-delivery-address')
   const retainedDelivery = await readDeliveryPlan(deliveryDirectory)
   const preparedSha256 = await fileSha256(preparedUpload.filePath)
+  const preparationAudit = await readAddressPreparationAudit(
+    preparedUpload.filePath,
+    preparedSha256,
+    previewPlan.sourceVersion,
+  )
   if (
     retainedDelivery &&
     (retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
@@ -330,12 +338,6 @@ export async function processLocalAddressSqlUpload(
   })
 
   try {
-    if (!retainedDelivery || options.processingActions !== undefined)
-      await replaceReleaseProcessingActions(
-        dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-        releaseId,
-        options.processingActions ?? [],
-      )
     await harbourClient.stageRunning(
       releaseId,
       'processDataset',
@@ -724,6 +726,24 @@ export async function processLocalAddressSqlUpload(
           )
           return writeAddressReleaseMetaSqlFile(dbContext.metaDb, bucket, finalMessage)
         })()
+    const retainAudit = () =>
+      timed('Retain', 'Address processing provenance', () =>
+        deliverProducerAudit({
+          target,
+          directory: resolve(releaseRoot, 'provenance-address'),
+          identity: JSON.stringify({ preparedSha256, preparationAudit }),
+          retain: store =>
+            retainAddressProvenance(store, {
+              releaseId,
+              datasetCode,
+              preparation: preparationAudit,
+              address3d: prepared3d,
+              outputCount:
+                finalMessageWithMeta.addressStats?.processedRows ??
+                previewPlan.rowCount,
+            }),
+        }),
+      )
     const importProgressClient = createLocalImportProgressClient(
       harbourClient,
       progress,
@@ -787,6 +807,7 @@ export async function processLocalAddressSqlUpload(
       )
       if (prepared3d)
         await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
+      await retainAudit()
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
         finalMessageWithMeta,
@@ -835,6 +856,7 @@ export async function processLocalAddressSqlUpload(
       )
       if (prepared3d)
         await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
+      await retainAudit()
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
         finalMessageWithMeta,
@@ -895,6 +917,13 @@ export async function processLocalAddressSqlUpload(
     if (!target.remote)
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      target,
+      releaseId,
+      datasetCode,
+      store: new LocalPipelineBucket(resolve(releaseRoot, 'provenance-address')),
+    })
     progress.fail()
     await harbourClient.stageFailed(
       releaseId,
