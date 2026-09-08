@@ -1,5 +1,5 @@
 import { existsSync, globSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
@@ -8,7 +8,7 @@ import * as schema from '@repo/db/metaSchema'
 import type { HarbourReadableDb, HarbourWritableDb } from '../lib/db/types'
 
 const DEFAULT_LOCAL_D1_GLOB = resolve(
-  dirname(import.meta.dir),
+  import.meta.dir,
   '../../../../.local/d1/dev/v3/d1/miniflare-D1DatabaseObject/*.sqlite',
 )
 

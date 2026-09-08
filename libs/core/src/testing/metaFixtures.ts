@@ -387,14 +387,14 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         CREATE TABLE snapshotSources (
           snapshotId TEXT NOT NULL,
           datasetId TEXT NOT NULL,
-          sourceReleaseId TEXT NOT NULL,
+          resourceReleaseId TEXT NOT NULL,
           role TEXT NOT NULL,
           selectedByRule TEXT,
           selectionMode TEXT,
           anchorReleaseId TEXT,
           sourceCohortKey TEXT,
           createdAt INTEGER NOT NULL,
-          PRIMARY KEY (snapshotId, sourceReleaseId),
+          PRIMARY KEY (snapshotId, resourceReleaseId),
           FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
           FOREIGN KEY (datasetId) REFERENCES datasets(id) ON DELETE RESTRICT,
           FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES releases(id, datasetId) ON DELETE RESTRICT
@@ -402,7 +402,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `,
       `
         INSERT INTO snapshotSources (
-          snapshotId, datasetId, sourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
+          snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
         )
         SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
         FROM __LEGACY_TABLE__;
