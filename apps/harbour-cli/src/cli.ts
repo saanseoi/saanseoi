@@ -22,6 +22,7 @@ import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runInitialisationCommand } from './lib/commands/init.ts'
+import { runResetDivisionsCommand } from './lib/commands/resetDivisions.ts'
 import {
   beginOfficialAddressInitialisation,
   completeOfficialAddressInitialisation,
@@ -132,6 +133,9 @@ async function main() {
         printUsage,
         skipConfirm,
       })
+      return
+    case 'reset:divisions':
+      await runResetDivisionsCommand(args, target, { printUsage })
       return
     case 'reset:addresses:official':
       await runResetOfficialAddressesCommand(args, target, { printUsage })
