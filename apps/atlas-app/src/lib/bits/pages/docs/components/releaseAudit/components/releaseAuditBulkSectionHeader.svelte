@@ -99,7 +99,7 @@ const formatFieldPath = (value: string) =>
       <p
         class="mt-4 font-mono text-caption font-semibold uppercase tracking-[0.08em] text-foreground-alt"
       >
-        Description
+        {m.source_audit_description()}
       </p>
     {/if}
     <p class="mt-2 font-body text-label-md leading-6 text-primary">{description}</p>

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { Tooltip } from 'bits-ui'
 import ReleaseAuditControlsHeader from './releaseAuditControlsHeader.svelte'
 import ReleaseAuditControlsSearch from './releaseAuditControlsSearch.svelte'
 
@@ -11,6 +12,7 @@ type Props = {
   onRetry?: () => void
   query?: string
   totalCount: string
+  placeholder?: string
 }
 
 let {
@@ -22,18 +24,19 @@ let {
   onRetry,
   query = $bindable(''),
   totalCount,
+  placeholder,
 }: Props = $props()
 </script>
 
-<section
-  class="rounded-lg border border-data-outline-variant/60 bg-data-surface-container-lowest p-5"
->
-  <ReleaseAuditControlsHeader
-    {filteredCount}
-    {infoDescription}
-    {infoLabel}
-    {loading}
-    {totalCount}
-  />
-  <ReleaseAuditControlsSearch {loadError} {onRetry} bind:query />
+<section class="py-2">
+  <Tooltip.Provider>
+    <ReleaseAuditControlsHeader
+      {filteredCount}
+      {infoDescription}
+      {infoLabel}
+      {loading}
+      {totalCount}
+    />
+  </Tooltip.Provider>
+  <ReleaseAuditControlsSearch {loadError} {onRetry} {placeholder} bind:query />
 </section>

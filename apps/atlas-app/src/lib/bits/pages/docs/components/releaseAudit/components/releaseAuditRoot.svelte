@@ -1,4 +1,5 @@
 <script lang="ts">
+import { translationParentName } from './translationParentName'
 import { Tooltip } from 'bits-ui'
 import { tick } from 'svelte'
 
@@ -420,7 +421,7 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
     const targetLocale = asText(translation?.locale) ?? '—'
     const translatedText = asText(translation?.name) ?? '—'
     const context = asRecord(translation?.context)
-    const parentName = asText(context?.parentName)
+    const parentName = translationParentName(context, locale)
     return {
       leftLabel: `${m.source_audit_translation_source()} (${sourceLocale})`,
       leftValue: sourceText,
@@ -450,23 +451,30 @@ const rowPresentation = (action: string, evidence: unknown, summary: string) => 
     const comparisonCaution =
       comparability?.status === 'caution' &&
       comparability.reason === 'economic-activity-status-classification-changed'
-        ? `Economic-activity-status classification changed; compare with ${affectedReferencePeriods.join(' and ')} with caution.`
+        ? m.source_audit_economic_caution({
+            periods: new Intl.ListFormat(locale, { type: 'conjunction' }).format(
+              affectedReferencePeriods,
+            ),
+          })
         : null
     const rawMetadata: ReadonlyArray<readonly [string, string | null]> = [
-      ['Statistic kind', asText(record?.statisticKind)],
-      ['Aggregation', asText(record?.aggregation)],
-      ['Unit', asText(record?.unitCode)],
-      ['Denominator', asText(record?.denominatorFieldName)],
-      ['Null option', asText(record?.sourceNullOption)],
-      ['Comparison caution', comparisonCaution],
+      [m.source_audit_statistic_kind(), asText(record?.statisticKind)],
+      [m.source_audit_aggregation(), asText(record?.aggregation)],
+      [m.source_audit_unit(), asText(record?.unitCode)],
+      [m.source_audit_denominator(), asText(record?.denominatorFieldName)],
+      [m.source_audit_null_option(), asText(record?.sourceNullOption)],
+      [m.source_audit_comparison_caution(), comparisonCaution],
     ]
     const metadata = rawMetadata.flatMap(([label, value]) =>
       value ? [{ label, value }] : [],
     )
     return {
-      leftLabel: 'Publisher field',
+      leftLabel: m.source_audit_publisher_field(),
       leftValue: sourceField,
-      rightItems: [{ label: 'Canonical field', value: fieldName }, ...metadata],
+      rightItems: [
+        { label: m.source_audit_canonical_field(), value: fieldName },
+        ...metadata,
+      ],
     }
   }
 

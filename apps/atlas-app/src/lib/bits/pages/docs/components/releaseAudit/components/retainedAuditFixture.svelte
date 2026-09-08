@@ -1,5 +1,7 @@
 <script lang="ts">
+import { m } from '#lib/bits/internal/i18n.js'
 import type { Json } from '@repo/core/provenance'
+import { rowKeys } from './retainedAuditFixtureRows'
 import FieldMappings from './retainedAuditFieldMappings.svelte'
 import IdentityMappings from './retainedAuditIdentityMappings.svelte'
 import Measures from './retainedAuditMeasures.svelte'
@@ -23,35 +25,31 @@ const label = (key: string) =>
         <dd class="min-w-0 break-words">{@render render(child)}</dd>
       {/each}
       {#if 'isTranslationVerified' in item && 'locale' in item && !('origin' in item)}
-        <dt class="font-medium opacity-65">Origin</dt>
-        <dd>Origin unrecorded</dd>
+        <dt class="font-medium opacity-65">{m.source_audit_origin()}</dt>
+        <dd>{m.source_audit_origin_unrecorded()}</dd>
       {/if}
     </dl>
   {:else}
-    <span>{item === null ? '—' : String(item)}</span>
+    <code class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500"
+      >{item === null ? '—' : String(item)}</code
+    >
   {/if}
 {/snippet}
 
 {#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.fields)}
   <FieldMappings fields={value.fields} />
-  <details class="mt-3">
-    <summary class="cursor-pointer text-sm">
-      Complete fixture properties and localisations
-    </summary>
-    <div class="pt-3">{@render render(value)}</div>
-  </details>
-{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.mappings)}
+{/if}
+{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.mappings)}
   <IdentityMappings mappings={value.mappings} />
-{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.measures)}
+{/if}
+{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.measures)}
   <Measures measures={value.measures} />
-  <details class="mt-3">
-    <summary class="cursor-pointer text-sm">
-      Complete fixture properties and localisations
-    </summary>
-    <div class="pt-3">{@render render(value)}</div>
-  </details>
-{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries) && value.entries.some(e => e && typeof e === 'object' && !Array.isArray(e) && ('targetLocale' in e || 'sourceLocale' in e))}
+{/if}
+{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries) && value.entries.some(e => e && typeof e === 'object' && !Array.isArray(e) && ('targetLocale' in e || 'sourceLocale' in e))}
   <Translations entries={value.entries} />
-{:else}
+{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries)}
+  {@render render(value.entries)}
+{/if}
+{#if !value || typeof value !== 'object' || Array.isArray(value) || !rowKeys.some(key => Array.isArray(value[key]))}
   {@render render(value)}
 {/if}
