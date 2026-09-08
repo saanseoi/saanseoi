@@ -12,6 +12,11 @@ catalogue dates, identify upstream source releases.
 
 ## Divisions projection
 
+The projection retains registered normalisation declarations and counts in the
+[processing audit](../../processing-provenance.md). Translation fixtures and individual
+translation context are retained separately from bulk rules, with available parent
+division names for search. D1 registers the R2 manifest and attempt status.
+
 The divisions API uses the source as the primary collection in the `hkgov-landsd`
 domain. Only `PLACE_CLASS=Settlement` is eligible for that projection. Each eligible
 source row is a point division identified by `GEO_NAME_ID`, with `PLACE_TYPE` as the

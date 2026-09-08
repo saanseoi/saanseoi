@@ -1,6 +1,44 @@
 # Retained processing provenance
 
-Processing provenance supports two capabilities:
+Divisions and Statistics retain a `processing-audit` manifest. Other consumers can use
+the separate `processing-result` effects contract described below.
+
+## Divisions and Statistics audit
+
+Bulk code rules retain immutable declarations and execution counts, without affected
+record lists, publisher values or canonical output copies. A declaration explains the
+transformation and references its implementation; it is not an executable application
+copy. The processor and audit producer use the same registered definition and frozen
+parameters. CLI retention also records the referenced source file's SHA-256 revision.
+Processor substeps can contribute named aggregate counters to that declaration.
+
+Bulk fixture curations retain the selected reviewed documents in R2. Individual
+curations, including translations and guarded classification corrections, retain their
+decision, record context and a pointer to the selected fixture entry. Translation
+context includes available parent division names. Unused translation instructions are
+marked skipped without inventing a matching record. Statistics localisations with no
+recorded origin remain origin-unrecorded; verification alone does not prove translation.
+
+Guards expose passed, failed, not-applicable and not-run states, counts, reasons and
+their blocking or reporting consequence. A failed blocking guard is retained before the
+ingestion phase is marked failed and prevents publication. A failed delivery keeps the
+audit locally and reports that registration is still required.
+
+The source and API release Audit views initially load manifests and summaries.
+Individual pages, declarations and readable fixtures load on demand. Free-text search
+examines individual indexes and bulk fixture indexes; only matching individual chunks
+are read. Individual pages are limited to 50 entries. Retained chunks contain at most
+256 actions; objects are limited to 1 MiB. Large translation fixtures use ordered
+partitions which preserve every entry and the document's root metadata.
+
+`releaseProvenance` records the manifest hash, byte length, individual action count and
+`attemptStatus` (`completed` or `failed`). It identifies the registered attempt for the
+resource release; published registrations are immutable. These producers do not write
+the D1 processing-action summary or evidence-chunk tables.
+
+## Recorded effects contract
+
+The `processing-result` contract supports two capabilities:
 
 1. Explain a recorded result using retained decisions, effects and evidence.
 2. Reapply recorded effects to the exact guarded inputs.
@@ -66,15 +104,14 @@ returned manifest hash on subsequent pages to reject a changed staged generation
 
 ## Producer integration
 
-The general and district C&SD Statistics SQL upload paths capture and register a result
-before publication. Their manifests retain publisher properties, canonical record
-splits, reviewed field definitions, dictionary payloads, resolved geography inputs and
-selected API-field declarations. Statistics publication requires a registered result.
-Delivery retries upload the retained graph rather than regenerating decisions.
+The canonical Division, geometry, Planning, general C&SD Statistics and district C&SD
+Statistics SQL upload paths capture and register audits before publication. Statistics
+audits retain normalisation and population-scaling declarations, dictionary counts,
+reviewed field/measure/identity fixtures and selected API-field declarations. They do
+not retain publisher or canonical value packs. Statistics publication requires a
+registered result. Delivery retries transfer the retained graph.
 
-The existing audit report/UI and release-set API-field materialisation are separate
-consumers that still require conversion to these projections. ALS, Places, Divisions,
-geometry and planning producer capture are not yet integrated. In particular, ALS source
+ALS and Places producer capture are not integrated with this audit contract. ALS source
 preservation requires a publisher-occurrence boundary before reconstruction, suppression
 and deduplication; removing three derived properties is not sufficient. Streets is
 outside this implementation's scope.

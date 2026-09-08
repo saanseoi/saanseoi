@@ -1,5 +1,17 @@
 # Measure curation manifest
 
+## Localisation origin
+
+Field and measure localisations may include `origin`. Its `kind` is `publisher`,
+`authored`, `machine-translated` or `human-translated`. Translations also record
+`sourceLocale`, `sourceName` and `sourceDescription`. Newly generated proposals and
+reviewed edits retain this origin independently of `isTranslationVerified`. Missing
+origin means origin unrecorded; it must not be inferred from verification.
+
+Audit retains selected field and measure fixtures as bulk curations. Explicitly recorded
+translations also produce individual actions, including unmatched instructions whose
+dictionary entries are not materialised in the release.
+
 ## v1
 
 ### EN

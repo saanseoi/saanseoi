@@ -1,5 +1,11 @@
 # Overture division geometry ingestion
 
+The [processing audit](../../processing-provenance.md) retains registered geometry
+normalisation and synthetic-area declarations with counts, including Guangdong spillover
+exclusions. The synthetic union rule executes the same exclusion polygon parameters
+retained in its declaration. Bulk rules do not copy affected IDs or geometry values.
+Selected identity fixtures remain readable in Audit.
+
 Overture division, area and boundary source rows preserve supplied publisher `sources`.
 When references are absent or empty, source storage uses `null` without generating a
 self-reference from the ingested record ID.

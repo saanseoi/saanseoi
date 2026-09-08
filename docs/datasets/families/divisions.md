@@ -21,10 +21,11 @@ the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 Verified reuse preserves the published assembly evidence; draft companion inputs refresh
 it.
 
-Processing audits store action/mode summaries and compressed evidence chunks in D1.
-Canonical, Planning Department and geometry metadata replay retain both, including BLOB
-payloads. Audit reports expose the individual decisions through the
-[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+Canonical, Planning Department and geometry processing retain
+[processing audits](../processing-provenance.md) in content-addressed R2 objects. D1
+registers the compact manifest and attempt status. Bulk rules expose registered
+declarations and counts; bulk curations expose selected fixtures. Individual curations
+are paginated and searchable. Failed blocking guards prevent publication.
 
 Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
 Metadata registry synchronisation assigns each code to its canonical Division and
@@ -262,17 +263,15 @@ the other cohort is published. Geometry churn is calculated only against a snaps
 declared parent; an initial C&SD cohort therefore reports all 18 district areas as
 additions and never as removals from another cohort.
 
-For Overture, release audit entries record investigable source-policy exceptions:
-division locale inference or API-locale fallback rows, every AI or human name
-translation applied to that release, and `CN-GD` spillover geometry excluded from area
-or boundary releases. Translation evidence retains the source text, resulting text,
-target locale, and parent-division context. It is written into the immutable release
-action, so an updated translation fixture never changes the historical audit of an
-earlier release. The dataset fixture selects the deterministic bulk operations that
-apply to every matching row from a versioned merge ruleset, such as taxonomy-derived
-division type/level and hierarchy normalisation. The Sources Audit tab keeps those bulk
-rules hidden until requested, so they remain discoverable without obscuring record-level
-decisions.
+For Overture, locale inference, API-locale fallbacks and `CN-GD` geometry exclusions
+contribute aggregate counters to registered processor declarations, without affected
+record lists. Synthetic area geometry retains its registered union/exclusion rule and
+parameters. AI and human name translations are individual fixture curations with source
+text, resulting text, target locale and available parent names. The retained fixture
+preserves unused entries as well as applied instructions. Lok Ma Chau Loop uses a
+guarded classification fixture in both direct normalisation and hierarchy lookup; source
+drift blocks ingestion. Audit shows bulk summaries first and loads declarations,
+fixtures and individual pages on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
