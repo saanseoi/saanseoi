@@ -18,6 +18,19 @@ const ref = object({
 const fixtures = array(object({ type: text, object: ref }))
 const counts: Shape = { type: 'object', additionalProperties: count }
 const basis: Shape = { enum: ['code', 'fixture'] }
+const review: Shape = {
+  anyOf: [
+    object({ kind: { const: 'patch' } }),
+    object({
+      kind: { const: 'curation' },
+      guard: object({
+        id: text,
+        summary: text,
+        consequence: { enum: ['block-ingestion', 'report'] },
+      }),
+    }),
+  ],
+}
 export const auditGuardSchema = object({
   id: text,
   summary: text,
@@ -27,42 +40,63 @@ export const auditGuardSchema = object({
   failed: count,
   reason: string,
 })
-export const ruleDeclarationSchema = object({
-  kind: { const: 'processing-rule' },
-  schemaVersion: { const: 1 },
-  id: text,
-  scope: { enum: ['bulk', 'individual'] },
-  basis,
-  summary: text,
-  inputs: array(text),
-  outputs: array(text),
-  parameters: { type: 'object' },
-  implementation: object({ path: text, symbol: text, revision: text }, ['revision']),
-})
-export const individualAuditSchema = object({
-  id: text,
-  operation: text,
-  basis,
-  outcome: { enum: ['applied', 'no-change', 'unmatched', 'skipped', 'guard-mismatch'] },
-  summary: text,
-  reason: text,
-  definition: ref,
-  fixture: {
-    anyOf: [
-      object({
-        object: ref,
-        pointer: { type: 'string', pattern: '^(|(/([^~]|~[01])*)+)$' },
-      }),
-      { type: 'null' },
-    ],
-  },
-  record: object({
+export const ruleDeclarationSchema = object(
+  {
+    review,
+    kind: { const: 'processing-rule' },
+    schemaVersion: { const: 1 },
     id: text,
-    names: array(text),
-    parents: array(object({ id: text, names: array(text) })),
-  }),
-  context: { type: 'object' },
-})
+    scope: { enum: ['bulk', 'individual'] },
+    basis,
+    summary: text,
+    inputs: array(text),
+    outputs: array(text),
+    parameters: { type: 'object' },
+    dependencyIds: array(text),
+    dependencies: array({ type: 'object' }),
+    branches: array(
+      object({
+        id: text,
+        group: text,
+        precedence: { type: 'integer', minimum: 1 },
+        condition: { type: 'object' },
+        result: { anyOf: [{ type: 'string' }, { type: 'integer' }] },
+      }),
+    ),
+    implementation: object({ path: text, symbol: text, revision: text }, ['revision']),
+  },
+  ['branches', 'dependencyIds', 'dependencies', 'review'],
+)
+export const individualAuditSchema = object(
+  {
+    review,
+    id: text,
+    operation: text,
+    basis,
+    outcome: {
+      enum: ['applied', 'no-change', 'unmatched', 'skipped', 'guard-mismatch'],
+    },
+    summary: text,
+    reason: text,
+    definition: ref,
+    fixture: {
+      anyOf: [
+        object({
+          object: ref,
+          pointer: { type: 'string', pattern: '^(|(/([^~]|~[01])*)+)$' },
+        }),
+        { type: 'null' },
+      ],
+    },
+    record: object({
+      id: text,
+      names: array(text),
+      parents: array(object({ id: text, names: array(text) })),
+    }),
+    context: { type: 'object' },
+  },
+  ['review'],
+)
 export const auditManifestSchema = object(
   {
     kind: { const: 'processing-audit' },
@@ -78,12 +112,19 @@ export const auditManifestSchema = object(
           basis,
           summary: text,
           outcome: { enum: ['applied', 'not-applicable', 'not-run'] },
-          counts: object({
-            inputs: counts,
-            outputs: counts,
-            recordsAffected: count,
-            decisions: counts,
-          }),
+          counts: object(
+            {
+              inputs: counts,
+              outputs: counts,
+              recordsAffected: count,
+              decisions: counts,
+              branches: {
+                type: 'object',
+                additionalProperties: object({ matched: count, changed: count }),
+              },
+            },
+            ['branches'],
+          ),
           fixtures,
           search: ref,
         },
