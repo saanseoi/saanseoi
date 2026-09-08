@@ -36,7 +36,6 @@ test('source statistic persistence retains raw evidence without canonical prepar
     'updatedAt',
     'validFromRelease',
     'validToRelease',
-    'version',
     'versionHash',
   ])
 })

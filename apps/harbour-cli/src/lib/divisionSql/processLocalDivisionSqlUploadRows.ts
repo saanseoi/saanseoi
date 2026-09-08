@@ -11,7 +11,6 @@ import {
   groupIdsByOwnerShard,
 } from './processLocalDivisionSqlUploadImport.ts'
 import {
-  asOptionalInteger,
   jsonText,
   processDivisionRecordBatches,
 } from './processLocalDivisionSqlUploadPreparation.ts'
@@ -47,7 +46,6 @@ export async function buildDivisionSourceSqlFile(
           sourceRecordId: record.id,
           sources: jsonText(record.base.sources),
           rawProperties: jsonText(record.raw),
-          version: asOptionalInteger(record.raw.version),
           versionHash: record.sourcePayloadHash,
           releaseId,
           validFromRelease: message.sourceVersion,
@@ -100,7 +98,6 @@ export async function buildDivisionSourceSqlFile(
         'sourceRecordId',
         'sources',
         'rawProperties',
-        'version',
         'versionHash',
         'releaseId',
         'validFromRelease',

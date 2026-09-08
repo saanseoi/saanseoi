@@ -42,7 +42,7 @@ export function sourceVersionedAssertionColumns() {
 /**
  * Columns shared by an immutable publisher-source record. Use this for
  * tabular publisher records; source geometry is deliberately optional.
- * Publisher attributes belong in rawProperties, without parallel extracted or
+ * Publisher attributes, including publisher record versions, belong in rawProperties, without parallel extracted or
  * canonical columns. Additional columns represent source identity, provenance,
  * native relationships or separately retained evidence, not canonical projections.
  */
@@ -51,7 +51,6 @@ export function sourceAssertionColumns() {
     sourceRecordId: text('sourceRecordId').notNull(),
     sources: sourceReferences(),
     rawProperties: jsonText('rawProperties'),
-    version: integer('version'),
     ...sourceVersioning,
   }
 }

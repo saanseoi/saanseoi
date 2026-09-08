@@ -3,7 +3,8 @@
 The source table stores the complete publisher record only in `rawProperties`, plus
 source identity, provenance and version/release tracking. Names, coordinates,
 categories, brand, contacts and addresses are projected only into canonical
-history/current tables.
+history/current tables. The publisher's integer record version is retained only in
+`rawProperties.version`; `versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records already in the active shard update release

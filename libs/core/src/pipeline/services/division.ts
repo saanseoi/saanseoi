@@ -597,7 +597,6 @@ export async function processDivisionDataset(
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
-            version: asOptionalInteger(row.version),
             sources: normaliseOvertureSourceReferences(row.sources, normalised.base.id),
             rawProperties: row,
           })

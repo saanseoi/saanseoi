@@ -5,7 +5,6 @@ export function sourceStatisticAssertion<
     rawProperties: unknown
     sourceGeometry: unknown
     sources: unknown
-    version: number
     versionHash: string
     releaseId: string
     validFromRelease: string
@@ -20,7 +19,6 @@ export function sourceStatisticAssertion<
     rawProperties: row.rawProperties,
     sourceGeometry: row.sourceGeometry,
     sources: row.sources,
-    version: row.version,
     versionHash: row.versionHash,
     releaseId: row.releaseId,
     validFromRelease: row.validFromRelease,

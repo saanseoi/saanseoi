@@ -12,7 +12,7 @@ import type {
   PlaceHistoryState,
   PlaceSqlProgressEvent,
 } from './processLocalPlaceSqlUploadTypes.ts'
-import { insertSql, lit, numberOrNull } from './processLocalPlaceSqlUploadImport.ts'
+import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
 import {
   PLACE_H3_LEVELS,
   PLACE_SQL_BATCH_SIZE,
@@ -147,7 +147,6 @@ export async function buildPlaceSql(
           sourceRecordId: place.id,
           sources: place.sources,
           rawProperties: place.raw,
-          version: numberOrNull(place.raw.version),
           versionHash: row.sourcePayloadHash,
           releaseId: input.message.releaseId,
           validFromRelease: input.message.sourceVersion,

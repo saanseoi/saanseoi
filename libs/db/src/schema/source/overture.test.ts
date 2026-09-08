@@ -21,7 +21,6 @@ describe('Overture source payload boundary', () => {
           'sourceRecordId',
           'sources',
           'rawProperties',
-          'version',
           'versionHash',
           'releaseId',
           'validFromRelease',
