@@ -263,7 +263,9 @@ describe('initialisation commands', () => {
         `
         source scripts/init/common.fish
         function init_load_completed_release_codes
-          set -g saanseoi_init_completed_release_codes dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
+          for resource_type in divisionStatistic division divisionArea
+            set -ga saanseoi_init_completed_release_codes "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::$resource_type"
+          end
         end
         function init_run_step
           echo "Unexpected preparation or upload" >&2
@@ -281,7 +283,7 @@ describe('initialisation commands', () => {
     expect(result.stdout.toString()).toContain(
       'SKIPPED: already published or superseded',
     )
-    expect(result.stdout.toString().trimEnd().split('\n')).toHaveLength(1)
+    expect(result.stdout.toString().trimEnd().split('\n')).toHaveLength(3)
     expect(result.stderr.toString()).toBe('')
   })
 
