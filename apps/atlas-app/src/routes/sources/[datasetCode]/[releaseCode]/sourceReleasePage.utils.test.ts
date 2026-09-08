@@ -30,7 +30,10 @@ describe('source release page utilities', () => {
   test('limits raw source-record tabs to their public API family', () => {
     expect(getSourceRecordFamily(['division'])).toBe('divisions')
     expect(getSourceRecordFamily(['divisionArea'])).toBe('divisions')
-    expect(getSourceRecordFamily(['address'])).toBeNull()
+    expect(getSourceRecordFamily(['address'])).toBe('addresses')
+    expect(getSourceRecordFamily(['place', 'address'])).toBe('places')
+    expect(getSourceRecordFamily(['divisionStatistic', 'divisionArea'])).toBe('stats')
+    expect(getSourceRecordFamily(['street'])).toBe('streets')
   })
 
   test('keeps note diff state on every older release link', () => {
