@@ -130,6 +130,10 @@ export const metaSourceReleases = sqliteTable(
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
     sourceVersion: text('sourceVersion').notNull(),
+    expectedResourceTypes: text('expectedResourceTypes', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),

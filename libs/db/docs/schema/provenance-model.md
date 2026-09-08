@@ -10,7 +10,19 @@ The versioned provenance path is:
 
 SaanSeoi tracks provenance at two levels.
 
-## Release Processing Actions
+## Retained Processing Audits
+
+Table: `releaseProvenance`
+
+Divisions, Statistics, Addresses and Places retain content-addressed `processing-audit`
+manifests in R2. D1 stores the manifest hash, byte length, individual action count and
+attempt status. Bulk transformations retain declarations and aggregate counts; reviewed
+decisions retain fixture references and selected context. Addresses and Places require
+registered provenance before publication, including the supplementary Address release
+produced by Places. See the
+[processing provenance contract](../../../../docs/datasets/processing-provenance.md).
+
+## Processing Action Storage
 
 Tables: `releaseProcessingActions`, `releaseProcessingActionChunks`
 
