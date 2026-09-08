@@ -22,6 +22,10 @@ const label = (key: string) =>
         <dt class="font-medium capitalize opacity-65">{label(key)}</dt>
         <dd class="min-w-0 break-words">{@render render(child)}</dd>
       {/each}
+      {#if 'isTranslationVerified' in item && 'locale' in item && !('origin' in item)}
+        <dt class="font-medium opacity-65">Origin</dt>
+        <dd>Origin unrecorded</dd>
+      {/if}
     </dl>
   {:else}
     <span>{item === null ? '—' : String(item)}</span>

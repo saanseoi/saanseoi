@@ -4,6 +4,7 @@ import { getRetainedAuditPage } from '#lib/registry/audit.remote.js'
 import RetainedAuditBulk from './retainedAuditBulk.svelte'
 import RetainedAuditFixture from './retainedAuditFixture.svelte'
 import RetainedAuditIndividualFixtures from './retainedAuditIndividualFixtures.svelte'
+import RetainedAuditDecision from './retainedAuditDecision.svelte'
 let {
   manifest,
   hash,
@@ -20,7 +21,7 @@ let generation = 0
 let loadedQuery = ''
 async function load(reset = false) {
   reset ||= loadedQuery !== query
-  loadedQuery = query
+  const requestQuery = query
   const request = ++generation
   loading = true
   requested = true
@@ -32,6 +33,7 @@ async function load(reset = false) {
       offset: reset ? 0 : (nextOffset ?? 0),
     })
     if (request !== generation) return
+    loadedQuery = requestQuery
     rows = reset ? page.rows : [...rows, ...page.rows]
     matchingBulkIds = page.bulkIds
     nextOffset = page.nextOffset
@@ -108,6 +110,11 @@ let bulk = $derived(
           <summary class="cursor-pointer">Decision context</summary>
           <div class="pt-3"><RetainedAuditFixture value={row.context} /></div>
         </details>
+        <RetainedAuditDecision
+          releaseId={manifest.releaseId}
+          {hash}
+          actionId={row.id}
+        />
       </article>
     {/each}
     {#if failure}

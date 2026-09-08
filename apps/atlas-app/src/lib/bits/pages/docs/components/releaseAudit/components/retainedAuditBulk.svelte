@@ -51,6 +51,11 @@ async function load(index: number) {
         <RetainedAuditFixture value={declaration} />
       {:else}
         <p>{failure || 'Loading declaration…'}</p>
+        {#if failure}
+          <button type="button" class="underline" onclick={loadDeclaration}>
+            Retry declaration
+          </button>
+        {/if}
       {/if}
     </div>
   </details>
@@ -91,6 +96,11 @@ async function load(index: number) {
           <RetainedAuditFixture value={fixtures[index]} />
         {:else}
           <p class="text-sm">{failure || 'Loading fixture…'}</p>
+          {#if failure}
+            <button type="button" class="text-sm underline" onclick={() => load(index)}>
+              Retry fixture
+            </button>
+          {/if}
         {/if}
       </div>
     </details>

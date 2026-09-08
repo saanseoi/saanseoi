@@ -296,7 +296,7 @@ export function buildSyntheticOvertureHongKongAreaProcessingActions(
       geometryRule: {
         include: 'Lok Ma Chau Loop',
         exclude: 'Shenzhen Bay Port border-crossing enclave',
-        exclusionBbox: [113.935, 22.485, 113.96, 22.51],
+        exclusion: syntheticHongKongAreaRule.declaration.parameters.exclusion,
         method: 'union-district-land-geometries-then-difference-exclusion-bbox',
       },
       resourceType: plan.type,
