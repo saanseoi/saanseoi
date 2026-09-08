@@ -564,12 +564,15 @@ export async function getReplayedAddressVersionMap(
   snapshotId: string,
   historyShards: ReadonlyMap<string, ReplayShard>,
   options: AddressVersionLookupOptions,
+  selection?: { recordIds?: string[]; includeLocales?: boolean },
 ): Promise<Map<string, ReplayedAddressVersionSnapshot>> {
   const plan = await resolveSnapshotReplayPlan(metaDb, snapshotId)
-  const resolvedVersions = await resolveSnapshotVersionState(plan, historyShards, [
-    'address2d',
-    'address2dI18n',
-  ])
+  const resolvedVersions = await resolveSnapshotVersionState(
+    plan,
+    historyShards,
+    ['address2d', ...(selection?.includeLocales === false ? [] : ['address2dI18n'])],
+    selection?.recordIds,
+  )
   const baseVersions = [...resolvedVersions.values()].filter(
     version => version.recordType === 'address2d',
   )
