@@ -1,5 +1,9 @@
 # Divisions dataset family
 
+Local geometry prerequisite checks may read a pending delivery only when its sealed
+plans prove ownership by the exact release being resumed. Other releases remain blocked
+until that owner completes publication and releases the database.
+
 Source records retain publisher payloads in `rawProperties`, with identity, provenance
 and release history alongside them. Extracted names, classifications, hierarchy,
 cartography and geometry flags belong to canonical history/current tables, not duplicate

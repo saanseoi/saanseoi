@@ -1,5 +1,10 @@
 # Overture division geometry ingestion
 
+After `sql:resume` recovers retained local batches, resume the owning upload with
+`--continue` to complete release publication. The prerequisite lookup recognises only
+the exact pending release's sealed plans; it does not clear ownership or allow another
+release to bypass unfinished work.
+
 Source areas and boundaries retain the complete publisher record, including geometry, in
 `rawProperties`. Source columns track identity, provenance and release validity;
 classification and land/territorial flags are projected only into canonical tables.

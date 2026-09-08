@@ -1,9 +1,21 @@
 # Addresses dataset family
 
+Address lookup caches are scoped to the exact parent snapshot. A baseline without a
+parent never uses a retained lookup; cached unchanged-row decisions cannot substitute
+for materialising its complete 2D address set.
+
 Non-blocking ALS 3D preparation emits `ALS_MANUAL_REVIEW` JSON log lines for unreviewed
 section inventories, ambiguous block parents and shared-building owner conflicts. These
 preserve source locations and candidate address IDs without approving an identity or
 implying that the issue list is complete.
+
+Skipped alias, coordinate, approved-batch and inventory-suppression assertion guards
+also emit structured issues with the release, curation fixture, decision or source
+assertion hash, and failure message. These log entries do not approve a correction.
+
+On Yam coordinate backfills apply to the retained individual houses. The suppressed
+combined Yiu Yam / Tak Yam assertion retains its raw point as provenance and is not a
+separate coordinate-backfill target.
 
 Tsz Lok Phase 3's redundant unnamed 633-expression inventory is suppressed from 3D
 collections with exact source guards. Raw provenance and every named building inventory

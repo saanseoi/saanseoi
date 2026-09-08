@@ -1,5 +1,15 @@
 # HKGov DPO ALS addresses
 
+Non-blocking curation logs use `ALS_MANUAL_REVIEW` JSON records. Skipped assertion
+guards record their source version, fixture, decision or source assertion hash, and
+failure message; the failed correction remains unapplied. Issue logs require
+reconciliation across every retained release before they constitute a complete review
+inventory.
+
+The guarded `on-yam-combined` suppression takes precedence over coordinate backfills:
+only retained individual house addresses receive canonical point corrections. The
+combined source assertion and its publisher point remain preserved as provenance.
+
 The reviewed Tsui Lam complex promotion routes the blockless Pik Lam House 3D assertion
 to retained Block 1. Both publisher assertions contribute source references to one
 430-unit inventory; conflicting inventories stop preparation. The promoted estate
@@ -185,6 +195,10 @@ decision.
 guards match. An unresolved guard mismatch does not fail preparation or apply the
 suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
 emit collections referencing removed address owners.
+
+Local ALS baseline ingestion ignores retained address lookup caches without an exact
+parent snapshot. Later releases reuse only the matching parent cache, preventing stale
+unchanged-row decisions from omitting 2D inventory owners.
 
 Skipped 3D section-ownership, ambiguous block-parent and shared-building-owner checks
 emit single-line `ALS_MANUAL_REVIEW` JSON records to the ingestion log. Each carries the
