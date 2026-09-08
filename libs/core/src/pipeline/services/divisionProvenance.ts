@@ -50,6 +50,10 @@ export async function retainDivisionProvenance(
     guards?: AuditGuard[]
     identityCurationDefinition?: RuleDeclaration
     actionDeclarations?: Record<string, RuleDeclaration>
+    actionCounts?: Record<
+      string,
+      Pick<import('../../provenance').AuditCounts, 'inputs' | 'outputs'>
+    >
   },
 ) {
   const bulk: BulkAudit[] = []
@@ -164,11 +168,17 @@ export async function retainDivisionProvenance(
           ...(id === normalisation.id && input.branchCounts
             ? { branches: input.branchCounts }
             : {}),
-          inputs: { [requireDefined(normalisation.inputs[0])]: input.inputCount },
+          inputs:
+            input.actionCounts?.[id]?.inputs ??
+            ({ [requireDefined(normalisation.inputs[0])]: input.inputCount } as Record<
+              string,
+              number
+            >),
           outputs:
-            id === normalisation.id
+            input.actionCounts?.[id]?.outputs ??
+            (id === normalisation.id
               ? { [requireDefined(normalisation.outputs[0])]: input.outputCount }
-              : {},
+              : {}),
           recordsAffected: affected,
           decisions:
             id === normalisation.id
