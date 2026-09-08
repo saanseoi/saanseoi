@@ -149,8 +149,13 @@ async function prepareHkgovAlsAddressParquetInternal(
     sourceFeatures,
     options.sourceVersion,
   )
+  const backfillOriginalAssertions = new Map<string, HkgovAlsSourceFeature[]>()
   sourceFeatures.push(
-    ...buildAls2dBackfillFeatures(sourceFeatures, options.sourceVersion),
+    ...buildAls2dBackfillFeatures(
+      sourceFeatures,
+      options.sourceVersion,
+      backfillOriginalAssertions,
+    ),
   )
   const {
     duplicateGroups: sourceDuplicateFeatureGroups,
@@ -205,7 +210,7 @@ async function prepareHkgovAlsAddressParquetInternal(
       numericPhaseFamilies,
     ),
   )
-  labelAls2dBackfillRows(rows)
+  labelAls2dBackfillRows(rows, backfillOriginalAssertions)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
   applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
   suppressReviewedYueWanPremise(rows, options.sourceVersion)

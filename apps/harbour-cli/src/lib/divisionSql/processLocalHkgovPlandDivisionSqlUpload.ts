@@ -1,4 +1,8 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
+import {
+  planningDivisionChurn,
+  planningDivisionContentHash,
+} from './planningDivisionChurn'
 import { eq } from 'drizzle-orm'
 import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
@@ -546,6 +550,35 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               })
               await deliverProcessingResult(target, bucket, audit.ref)
               await replaceDatasetStats(metaDb, releaseId, [
+                ...(previewPlan.source === 'hkgov-pland-new-town'
+                  ? []
+                  : [3, 4, 5, 6]
+                ).map(level => ({
+                  ...statRow(
+                    'units',
+                    'count',
+                    records.filter(record => record.base.level === level).length,
+                    (
+                      {
+                        3: 'primary',
+                        4: 'secondary',
+                        5: 'tertiary',
+                        6: 'subunits',
+                      } as Record<number, string>
+                    )[level]!,
+                  ),
+                  groupBy: 'unit_distribution',
+                })),
+                ...planningDivisionChurn(
+                  currentHistoryRows.map(row => ({
+                    id: row.id,
+                    versionHash: planningDivisionContentHash(row),
+                  })),
+                  records.map(record => ({
+                    id: record.base.id,
+                    versionHash: planningDivisionContentHash(record.base),
+                  })),
+                ),
                 statRow('records', 'count', records.length, 'canonical_divisions'),
                 statRow(
                   'source_features',

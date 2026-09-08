@@ -156,6 +156,120 @@ test('selects B with exact source guards and preserves original points', () => {
   expect(future).toEqual(original)
 })
 
+test('fixes Block 4 at B without time bounds while preserving evidence and identity guards', () => {
+  for (const version of [
+    '2000-01-01.0',
+    '2024-07-25.0',
+    '2026-04-25.0',
+    '2099-01-01.0',
+  ]) {
+    const owner = row({
+      csu: '1820936688T20120105',
+      id: 'owner-4',
+      buildingName: 'GRANDEUR TERRACE BLOCK 4',
+      zhBuildingName: '俊宏軒第四座',
+      blockRef: '4',
+    })
+    const alias = row({
+      csu: '1820936699P20120105',
+      id: 'alias-4',
+      buildingName: null,
+      zhBuildingName: null,
+      blockRef: '4',
+    })
+    const originalOwner = JSON.parse(owner.geometry!)
+    alias.geometry = JSON.stringify({
+      type: 'Point',
+      coordinates: [114.00141, 22.46971],
+    })
+    const originalAlias = JSON.parse(alias.geometry)
+    expect(coalesceAlsAliasedPremises([owner, alias], version).get(alias.id)).toBe(
+      owner.id,
+    )
+    expect(JSON.parse(owner.geometry!)).toEqual(originalAlias)
+    expect(
+      JSON.parse(owner.sources).hkgovAlsAliasedPremiseCoalescence.coordinateReview,
+    ).toEqual({
+      publisherOwnerGeometry: originalOwner,
+      publisherAliasGeometry: originalAlias,
+      derivedGeometry: originalAlias,
+    })
+    alias.geometry = JSON.stringify({ type: 'Point', coordinates: [114, 22] })
+    coalesceAlsAliasedPremises([owner, alias], version)
+    expect(JSON.parse(owner.geometry!)).toEqual(originalAlias)
+    alias.enStreetNumberFrom = '99'
+    expect(() => coalesceAlsAliasedPremises([owner, alias], version)).toThrow()
+  }
+})
+
+test('retains Blocks 5–11 at B from April 25 until revoked with publisher provenance', () => {
+  const expected = [
+    [114.00169, 22.46999],
+    [114.00203, 22.46947],
+    [114.00214, 22.46911],
+    [114.00224, 22.46874],
+    [114.00235, 22.46837],
+    [114.00155, 22.46891],
+    [114.0012, 22.46866],
+  ]
+  for (let block = 5; block <= 11; block++) {
+    const decision = fixture.coalescences.find(
+      d => d.id === `grandeur-terrace-block-${block}`,
+    )!
+    if (
+      !('fixedCoordinates' in decision) ||
+      !('application' in decision.fixedCoordinates)
+    )
+      throw new Error('Missing until-revoked decision')
+    const makeRows = () => [
+      row({
+        csu: decision.owner.csu,
+        id: `owner-${block}`,
+        buildingName: decision.owner.enBuildingName,
+        zhBuildingName: decision.owner.zhHantBuildingName,
+        blockRef: String(block),
+      }),
+      row({
+        csu: decision.aliasCsu,
+        id: `alias-${block}`,
+        buildingName: null,
+        zhBuildingName: null,
+        blockRef: String(block),
+      }),
+    ]
+    const earlier = makeRows()
+    const original = earlier[0]!.geometry
+    coalesceAlsAliasedPremises(earlier, '2026-04-22.0')
+    expect(earlier[0]!.geometry).toBe(original)
+    for (const version of ['2026-04-25.0', '2026-08-19.0', '2030-01-01.0']) {
+      const rows = makeRows()
+      rows[1]!.geometry = JSON.stringify({ type: 'Point', coordinates: [114, 22] })
+      const rawAlias = rows[1]!.geometry
+      expect(coalesceAlsAliasedPremises(rows, version).size).toBe(1)
+      expect(JSON.parse(rows[0]!.geometry!).coordinates).toEqual(expected[block - 5])
+      const review = JSON.parse(rows[0]!.sources).hkgovAlsAliasedPremiseCoalescence
+        .coordinateReview
+      expect(review.publisherOwnerGeometry).toEqual(JSON.parse(original!))
+      expect(review.publisherAliasGeometry).toEqual(JSON.parse(rawAlias))
+      expect(review.curation.verificationStatus).toBe(
+        version.startsWith('2030') ? 'unverified' : 'verified',
+      )
+      rows[1]!.enStreetNumberFrom = '99'
+      expect(() => coalesceAlsAliasedPremises(rows, version)).toThrow()
+    }
+    const application = decision.fixedCoordinates.application
+    const state = application.state
+    try {
+      application.state = 'revoked'
+      const rows = makeRows()
+      coalesceAlsAliasedPremises(rows, '2030-01-01.0')
+      expect(rows[0]!.geometry).toBe(original)
+    } finally {
+      application.state = state
+    }
+  }
+})
+
 function sharedBuildingRow(id: string, withStreet: boolean) {
   return {
     id,
