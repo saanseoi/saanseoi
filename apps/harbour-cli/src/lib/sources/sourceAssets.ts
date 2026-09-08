@@ -273,7 +273,12 @@ export function buildSourceReleaseAssetObjectKey(input: {
   if (!/^[a-f0-9]{64}$/.test(input.sha256)) {
     throw new Error('Expected a SHA-256 digest.')
   }
-  for (const value of [input.publisherCode, input.datasetCode, input.releaseCode]) {
+  const releaseCodePathComponent = input.releaseCode.replaceAll('::', '__')
+  for (const value of [
+    input.publisherCode,
+    input.datasetCode,
+    releaseCodePathComponent,
+  ]) {
     if (!/^[A-Za-z0-9._-]+$/.test(value)) {
       throw new Error(`Invalid source asset path component: ${value}`)
     }
@@ -283,7 +288,7 @@ export function buildSourceReleaseAssetObjectKey(input: {
     'hk',
     input.publisherCode,
     input.datasetCode,
-    input.releaseCode,
+    releaseCodePathComponent,
     `${input.sha256}-${safeFileName(input.fileName)}`,
   ].join('/')
 }
