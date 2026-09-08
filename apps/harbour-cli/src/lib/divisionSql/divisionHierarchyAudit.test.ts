@@ -6,6 +6,59 @@ import { parquetWriteFile } from 'hyparquet-writer'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/division'
 import { resolveDivisionNameTranslations } from './processLocalDivisionSqlUploadTranslations'
+import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
+import { overtureHongKongAreas } from '@repo/core/pipeline/services/overtureHongKongAreas'
+
+test('Parquet batches resolve replacement identities before emitting source rows', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'division-replacement-order-'))
+  const filename = join(directory, 'division.parquet')
+  const kowloonId = '17009785-57fd-4e5b-af86-2d27352e4718'
+  const names = [
+    'Kowloon',
+    ...overtureHongKongAreas.flatMap(area => [...area.districtNames]),
+  ]
+  try {
+    parquetWriteFile({
+      filename,
+      columnData: [
+        {
+          name: 'id',
+          type: 'STRING',
+          data: names.map((name, index) => (index ? name : kowloonId)),
+        },
+        { name: 'names', type: 'JSON', data: names.map(name => ({ primary: name })) },
+      ],
+    })
+    let originalSeen = false
+    let replacementSeen = false
+    for await (const batch of readDivisionRowsWithFixtures(
+      await asyncBufferFromFile(filename),
+      {
+        source: 'overture',
+        type: 'division',
+        regionCode: 'hk',
+      },
+      2,
+    )) {
+      if (!batch.rows.some(row => row.id === kowloonId)) continue
+      if (batch.isSupplemental) {
+        expect(originalSeen).toBe(true)
+        expect(batch.replacedDivisionIds.size).toBe(0)
+        expect(batch.processingActions[0]?.evidence).toMatchObject({
+          decision: 'replace-non-polygonal-source-row',
+        })
+        replacementSeen = true
+      } else {
+        expect(batch.replacedDivisionIds.has(kowloonId)).toBe(true)
+        expect(batch.replacedDivisionIds.has('North District')).toBe(false)
+        originalSeen = true
+      }
+    }
+    expect(replacementSeen).toBe(true)
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
 
 test('actual Parquet hierarchy lookup accepts division schemas without admin_level', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'division-hierarchy-schema-'))

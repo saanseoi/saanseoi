@@ -47,6 +47,7 @@ export type DivisionSqlImportFile = {
 }
 
 export type DivisionSqlState = {
+  branchCounts?: import('@repo/core/provenance').BranchCounts
   auditGuards?: import('@repo/core/provenance').AuditGuard[]
   curationDocuments?: Array<{ type: string; document: unknown }>
   currentRows: Map<string, OwnedDivisionVersionSnapshot>

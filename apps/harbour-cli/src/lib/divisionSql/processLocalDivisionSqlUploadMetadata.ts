@@ -77,7 +77,7 @@ export async function buildDivisionMetaSqlFile(
     .select({
       snapshotId: metaSnapshotSources.snapshotId,
       datasetId: metaSnapshotSources.datasetId,
-      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      resourceReleaseId: metaSnapshotSources.resourceReleaseId,
       role: metaSnapshotSources.role,
       selectedByRule: metaSnapshotSources.selectedByRule,
       selectionMode: metaSnapshotSources.selectionMode,
@@ -89,7 +89,7 @@ export async function buildDivisionMetaSqlFile(
     .where(eq(metaSnapshotSources.snapshotId, state.snapshotId))
     .all()
 
-  if (!snapshotSourceRows.some(row => row.sourceReleaseId === releaseId)) {
+  if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
     throw new Error(
       `Division snapshot source metadata missing for release ${releaseId} and snapshot ${state.snapshotId}.`,
     )
@@ -244,7 +244,7 @@ ON CONFLICT(id) DO UPDATE SET
       [
         'snapshotId',
         'datasetId',
-        'sourceReleaseId',
+        'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
@@ -255,7 +255,7 @@ ON CONFLICT(id) DO UPDATE SET
       snapshotSourceRows,
       {
         suffix: `
-ON CONFLICT(snapshotId, sourceReleaseId) DO UPDATE SET
+ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
   datasetId = excluded.datasetId,
   role = excluded.role,
   selectedByRule = excluded.selectedByRule,

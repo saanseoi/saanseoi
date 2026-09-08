@@ -559,7 +559,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           .select({
             datasetId: metaSchema.metaSnapshotSources.datasetId,
             role: metaSchema.metaSnapshotSources.role,
-            sourceReleaseId: metaSchema.metaSnapshotSources.sourceReleaseId,
+            sourceReleaseId: metaSchema.metaSnapshotSources.resourceReleaseId,
           })
           .from(metaSchema.metaSnapshotSources)
           .where(

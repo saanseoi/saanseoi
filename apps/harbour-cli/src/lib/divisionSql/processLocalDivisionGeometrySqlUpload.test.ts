@@ -264,6 +264,22 @@ describe('createGeometryChurnCounts', () => {
       removed: 0,
       unchanged: 0,
     })
+
+    const parent = new Map([
+      [
+        row.canonical.id,
+        { id: row.canonical.id, type: row.canonical.type, versionHash: 'old-hash' },
+      ],
+      ...['HK', 'KLN', 'NT'].map(code => {
+        const id = `CENSTATD:area:${code}`
+        return [id, { id, type: 'mixed', versionHash: code }] as const
+      }),
+    ])
+    const hashes = new Map([[row.canonical.id, 'current-hash']])
+    const merged = createGeometryChurnCounts([row], hashes, parent, { merge: true })
+    expect(merged).toMatchObject({ count: 1, changed: 1, removed: 0, unchanged: 0 })
+    expect([...merged.byType.values()].every(counts => counts.removed === 0)).toBeTrue()
+    expect(createGeometryChurnCounts([row], hashes, parent).removed).toBe(3)
   })
 })
 
