@@ -2,7 +2,11 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm, rename } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { cachedReviewChild, fingerprintTree } from './isolatedAlsReview.ts'
+import {
+  cachedReviewChild,
+  divisionLookupFingerprint,
+  fingerprintTree,
+} from './isolatedAlsReview.ts'
 
 test('successful child checkpoints replay findings; failed children cannot replace them', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'als-child-'))
@@ -51,4 +55,43 @@ test('preflight fingerprint is stable and detects same-length source edits, addi
   } finally {
     await rm(dir, { recursive: true, force: true })
   }
+})
+
+test('division lookup fingerprints ignore map insertion order but retain lookup changes', () => {
+  const lookup = {
+    ambiguousAreaEn: new Set(['a']),
+    ambiguousAreaZh: new Set(['甲']),
+    ambiguousDistrictEn: new Set(['d']),
+    ambiguousDistrictZh: new Set(['丁']),
+    areaByEn: new Map([
+      ['beta', 'b'],
+      ['alpha', 'a'],
+    ]),
+    areaByZh: new Map([
+      ['乙', 'b'],
+      ['甲', 'a'],
+    ]),
+    districtByEn: new Map([
+      ['delta', 'd'],
+      ['charlie', 'c'],
+    ]),
+    districtByZh: new Map([
+      ['丁', 'd'],
+      ['丙', 'c'],
+    ]),
+    snapshotId: 'snapshot-1',
+  }
+  const reordered = {
+    ...lookup,
+    areaByEn: new Map([...lookup.areaByEn].reverse()),
+    areaByZh: new Map([...lookup.areaByZh].reverse()),
+  }
+
+  expect(divisionLookupFingerprint(reordered)).toEqual(
+    divisionLookupFingerprint(lookup),
+  )
+  lookup.areaByEn.set('gamma', 'g')
+  expect(divisionLookupFingerprint(lookup)).not.toEqual(
+    divisionLookupFingerprint(reordered),
+  )
 })

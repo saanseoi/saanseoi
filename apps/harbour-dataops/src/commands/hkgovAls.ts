@@ -224,19 +224,25 @@ export async function runHkgovAlsIngestCommand(
         }),
       ),
   )
+  const pendingSourceReleases = sourceReleases.filter(
+    release =>
+      !completedSourceVersions.has(release.sourceVersion) || args.options.force,
+  )
   if (args.options['skip-curation-checks'] === true) {
     log.info(
       'Skipping all-release curation preflight; source and integrity checks run during each release preparation.',
     )
+  } else if (pendingSourceReleases.length === 0) {
+    log.info('Skipping all-release curation preflight; every ALS release is complete.')
   } else {
     log.info(
-      `Check identities, curations and division linkage across ${sourceReleases.length} ALS releases before ingestion`,
+      `Check identities, curations and division linkage across ${pendingSourceReleases.length} pending ALS releases before ingestion`,
     )
     const review = await reviewHkgovAlsIngest({
       args,
       decisions,
       history,
-      sourceReleases,
+      sourceReleases: pendingSourceReleases,
       target,
     })
     await reviewHkgovAlsCurationApplications(
