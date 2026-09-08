@@ -1,5 +1,13 @@
 # Census and Statistics Department division statistics
 
+Native-source updates with geography require all declared resource children to be
+published or superseded for the same source version. This includes the Division and
+Division Area children of Housing Market Areas and Permanent Living Quarters, and the
+Division Area companions declared by district statistics sources. Missing children
+trigger intake from the cached publisher archive even when its content is unchanged. The
+Permanent Living Quarters initialisation guard checks all three qualified child codes.
+Statistics-only updates require only the Statistics child.
+
 The public source-record reader selects the dedicated district-density table, the
 retained district-area table for Subdivided Units, or the shared native statistics table
 for the other measure collections. It scopes shared-table records by source dataset and

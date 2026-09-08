@@ -5,6 +5,10 @@ children. A multi-resource product uses resource-qualified child codes such as
 `dr-…-2024::divisionStatistic` and `dr-…-2024::divisionArea`. The public source code,
 release notes and source schema belong to their shared parent.
 
+Update readiness checks every declared resource type in the same source version when
+geography is requested. Statistics-only intake checks the Statistics resource alone. An
+unchanged publisher archive does not make a missing companion resource current.
+
 Each child owns its processing phases, audit, statistics and snapshot associations.
 `snapshotSources.resourceReleaseId` references the resource child in `releases`. Retries
 replace only that child's results. The source release freezes its expected resource
