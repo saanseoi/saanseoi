@@ -1,4 +1,5 @@
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
+import { registerRule, ProcessingGuardError } from '../../provenance'
 import type {
   NewSourceDivisionAreaRow,
   NewSourceDivisionBoundaryRow,
@@ -61,7 +62,7 @@ type StagedSourceRow<T> = Omit<
 
 type SourceReferences = NonNullable<NewSourceDivisionAreaRow['sources']>
 
-export function normaliseDivisionAreaGeometryRow(
+function normaliseDivisionAreaGeometry(
   row: Record<string, unknown>,
   source = 'overture',
   options: GeometryNormalisationOptions = {},
@@ -134,7 +135,7 @@ export function normaliseDivisionAreaGeometryRow(
   }
 }
 
-export function normaliseDivisionBoundaryGeometryRow(
+function normaliseDivisionBoundaryGeometry(
   row: Record<string, unknown>,
   source = 'overture',
   options: GeometryNormalisationOptions = {},
@@ -189,6 +190,66 @@ export function normaliseDivisionBoundaryGeometryRow(
       sourceRecordId: id,
     },
   }
+}
+
+const geometryDeclaration = (kind: 'Area' | 'Boundary') => ({
+  kind: 'processing-rule' as const,
+  schemaVersion: 1 as const,
+  id: `normalise-division-${kind.toLowerCase()}-geometry`,
+  scope: 'bulk' as const,
+  basis: 'code' as const,
+  summary: `Normalise division ${kind.toLowerCase()} geometry, identities and source references; exclude Guangdong spillover and referent-only geometry.`,
+  inputs: ['source-geometry'],
+  outputs: [`division${kind === 'Area' ? 'Areas' : 'Boundaries'}`],
+  parameters: {},
+  implementation: {
+    path: 'libs/core/src/pipeline/services/divisionGeometry.ts',
+    symbol: `normaliseDivision${kind}GeometryRow`,
+  },
+})
+export const divisionAreaGeometryRule = registerRule(
+  geometryDeclaration('Area'),
+  (args: Parameters<typeof normaliseDivisionAreaGeometry>) =>
+    normaliseDivisionAreaGeometry(...args),
+)
+export const divisionBoundaryGeometryRule = registerRule(
+  geometryDeclaration('Boundary'),
+  (args: Parameters<typeof normaliseDivisionBoundaryGeometry>) =>
+    normaliseDivisionBoundaryGeometry(...args),
+)
+
+function guardGeometry<T>(id: string, run: () => T): T {
+  try {
+    return run()
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error)
+    throw new ProcessingGuardError(reason, [
+      {
+        id,
+        summary:
+          'Require geometry identities, supported geometry types and configured geometry validity checks.',
+        consequence: 'block-ingestion',
+        status: 'failed',
+        checked: 1,
+        failed: 1,
+        reason,
+      },
+    ])
+  }
+}
+export function normaliseDivisionAreaGeometryRow(
+  ...args: Parameters<typeof normaliseDivisionAreaGeometry>
+) {
+  return guardGeometry('division-area-geometry', () =>
+    divisionAreaGeometryRule.execute(args),
+  )
+}
+export function normaliseDivisionBoundaryGeometryRow(
+  ...args: Parameters<typeof normaliseDivisionBoundaryGeometry>
+) {
+  return guardGeometry('division-boundary-geometry', () =>
+    divisionBoundaryGeometryRule.execute(args),
+  )
 }
 
 function normaliseSourceReferences(value: unknown): SourceReferences | null {

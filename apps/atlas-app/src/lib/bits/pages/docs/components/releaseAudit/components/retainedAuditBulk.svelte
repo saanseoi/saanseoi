@@ -1,11 +1,23 @@
 <script lang="ts">
 import type { BulkAudit, Json } from '@repo/core/provenance'
-import { getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
+import {
+  getRetainedBulkFixture,
+  getRetainedRuleDeclaration,
+} from '#lib/registry/audit.remote.js'
 import RetainedAuditFixture from './retainedAuditFixture.svelte'
 let { bulk, releaseId, hash }: { bulk: BulkAudit; releaseId: string; hash: string } =
   $props()
 let fixtures = $state<Record<number, Json>>({})
 let failure = $state('')
+let declaration = $state<Json>()
+async function loadDeclaration() {
+  try {
+    declaration = await getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })
+    failure = ''
+  } catch (e) {
+    failure = e instanceof Error ? e.message : String(e)
+  }
+}
 async function load(index: number) {
   try {
     fixtures[index] = await getRetainedBulkFixture({
@@ -29,6 +41,19 @@ async function load(index: number) {
     ><span>{bulk.outcome}</span>
   </div>
   <h3 class="font-medium">{bulk.summary}</h3>
+  <details
+    class="text-sm"
+    ontoggle={event => { if (event.currentTarget.open && declaration === undefined) void loadDeclaration() }}
+  >
+    <summary class="cursor-pointer opacity-65">Rule declaration</summary>
+    <div class="pt-3">
+      {#if declaration !== undefined}
+        <RetainedAuditFixture value={declaration} />
+      {:else}
+        <p>{failure || 'Loading declaration…'}</p>
+      {/if}
+    </div>
+  </details>
   <dl class="flex flex-wrap gap-x-6 gap-y-2 text-sm">
     <div>
       <dt class="opacity-60">Records affected</dt>

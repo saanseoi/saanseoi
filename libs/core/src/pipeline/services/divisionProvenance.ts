@@ -5,6 +5,9 @@ import {
   type IndividualAudit,
   type JsonRecord,
   type ProvenanceStore,
+  type RuleDeclaration,
+  type ObjectRef,
+  type AuditGuard,
 } from '../../provenance'
 import { divisionClassificationFixture } from './divisionClassificationCuration'
 import { divisionNormalisationRule } from './division'
@@ -32,12 +35,22 @@ export async function retainDivisionProvenance(
     inputCount: number
     outputCount: number
     curationDocuments?: Array<{ type: string; document: unknown }>
+    normalisation?: RuleDeclaration
+    retainDeclaration?: (declaration: RuleDeclaration) => Promise<ObjectRef>
+    guards?: AuditGuard[]
   },
 ) {
   const bulk: BulkAudit[] = []
+  const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
+  const retainDeclaration =
+    input.retainDeclaration ??
+    ((declaration: RuleDeclaration) => retainObject(store, declaration))
   const individuals: IndividualAudit[] = []
+  const individualDocuments = (input.curationDocuments ?? []).filter(
+    f => f.type === 'division-translations',
+  )
   const individualFixtures = await Promise.all(
-    (input.curationDocuments ?? []).map(async f => ({
+    individualDocuments.map(async f => ({
       type: f.type,
       object: await retainObject(store, f.document),
     })),
@@ -57,14 +70,13 @@ export async function retainDivisionProvenance(
   const grouped = new Map<string, ReleaseProcessingAction[]>()
   for (const action of input.actions)
     grouped.set(action.action, [...(grouped.get(action.action) ?? []), action])
-  grouped.set('normalise-divisions', [
+  grouped.set(normalisation.id, [
     {
-      action: 'normalise-divisions',
+      action: normalisation.id,
       affectedRecordCount: input.inputCount,
       evidence: null,
       mode: 'automatic',
-      summary:
-        'Normalise source division identities, classification, names and hierarchy for the selected dataset.',
+      summary: normalisation.summary,
     },
   ])
   for (const [id, actions] of grouped) {
@@ -73,18 +85,18 @@ export async function retainDivisionProvenance(
     const individual = translated || !!classification
     const basis = individual ? ('fixture' as const) : ('code' as const)
     const summary =
-      id === 'normalise-divisions'
+      id === normalisation.id
         ? requireDefined(actions[0]).summary
         : id.replaceAll('_', ' ')
-    const definition = await retainObject(store, {
+    const definition = await retainDeclaration({
       kind: 'processing-rule',
       schemaVersion: 1,
       id,
       scope: individual ? 'individual' : 'bulk',
       basis,
       summary,
-      inputs: ['source-divisions'],
-      outputs: ['divisions'],
+      inputs: normalisation.inputs,
+      outputs: normalisation.outputs,
       parameters: {},
       implementation: {
         path: 'libs/core/src/pipeline/services/division.ts',
@@ -92,9 +104,7 @@ export async function retainDivisionProvenance(
       },
     })
     const retainedDefinition =
-      id === 'normalise-divisions'
-        ? await retainObject(store, divisionNormalisationRule.declaration)
-        : definition
+      id === normalisation.id ? await retainDeclaration(normalisation) : definition
     if (!individual) {
       const affected = actions.reduce((n, a) => n + a.affectedRecordCount, 0)
       bulk.push({
@@ -104,8 +114,11 @@ export async function retainDivisionProvenance(
         summary,
         outcome: affected ? 'applied' : 'not-applicable',
         counts: {
-          inputs: { 'source-divisions': input.inputCount },
-          outputs: id === 'normalise-divisions' ? { divisions: input.outputCount } : {},
+          inputs: { [requireDefined(normalisation.inputs[0])]: input.inputCount },
+          outputs:
+            id === normalisation.id
+              ? { [requireDefined(normalisation.outputs[0])]: input.outputCount }
+              : {},
           recordsAffected: affected,
           decisions: { applied: actions.length },
         },
@@ -129,10 +142,9 @@ export async function retainDivisionProvenance(
           }
       if (translated) {
         const documentIndex =
-          input.curationDocuments?.findIndex(f => f.type === 'division-translations') ??
-          -1
+          individualDocuments.findIndex(f => f.type === 'division-translations') ?? -1
         if (documentIndex >= 0) {
-          const document = record(input.curationDocuments?.[documentIndex]?.document)
+          const document = record(individualDocuments[documentIndex]?.document)
           const entries = Array.isArray(document.entries) ? document.entries : []
           const index = entries.findIndex(value => {
             const e = record(value)
@@ -193,6 +205,47 @@ export async function retainDivisionProvenance(
       })
     }
   }
+  const identityDocuments = (input.curationDocuments ?? []).filter(
+    f => f.type === 'identity-mappings',
+  )
+  if (identityDocuments.length) {
+    const id = 'curate-division-identities'
+    const summary =
+      'Apply the reviewed source-to-canonical identity mappings for this geography cohort.'
+    bulk.push({
+      id,
+      summary,
+      basis: 'fixture',
+      outcome: input.outputCount ? 'applied' : 'not-applicable',
+      definition: await retainDeclaration({
+        kind: 'processing-rule',
+        schemaVersion: 1,
+        id,
+        summary,
+        scope: 'bulk',
+        basis: 'fixture',
+        inputs: normalisation.inputs,
+        outputs: normalisation.outputs,
+        parameters: {},
+        implementation: {
+          path: 'apps/harbour-cli/src/lib/identityCurations.ts',
+          symbol: 'resolveIdentityCuration',
+        },
+      }),
+      counts: {
+        inputs: { 'source-geometry': input.inputCount },
+        outputs: { 'canonical-geometries': input.outputCount },
+        recordsAffected: input.outputCount,
+        decisions: { mapped: input.outputCount },
+      },
+      fixtures: await Promise.all(
+        identityDocuments.map(async f => ({
+          type: f.type,
+          object: await retainObject(store, f.document),
+        })),
+      ),
+    })
+  }
   return retainAuditResult(store, {
     releaseId: input.releaseId,
     datasetCode: input.datasetCode,
@@ -201,10 +254,22 @@ export async function retainDivisionProvenance(
     individuals,
     individualFixtures,
     guards: [
+      ...(input.guards ?? []),
       {
-        id: 'division-source-normalisation',
+        id:
+          normalisation.id === 'normalise-planning-divisions'
+            ? 'planning-prepared-divisions'
+            : normalisation.id === 'normalise-division-area-geometry'
+              ? 'division-area-geometry'
+              : normalisation.id === 'normalise-division-boundary-geometry'
+                ? 'division-boundary-geometry'
+                : 'division-source-normalisation',
         summary:
-          'Require a source identity, supported classification, resolvable hierarchy and decodable geometry.',
+          normalisation.id === 'normalise-planning-divisions'
+            ? 'Require expected Planning record coverage, unique identities and parent-before-child hierarchy.'
+            : normalisation.id.includes('geometry')
+              ? 'Require geometry identities, supported geometry types and configured geometry validity checks.'
+              : 'Require a source identity, supported classification, resolvable hierarchy and decodable geometry.',
         consequence: 'block-ingestion',
         status: input.inputCount ? 'passed' : 'not-applicable',
         checked: input.inputCount,

@@ -70,6 +70,7 @@ import {
   loadPlandNewTownDivisionCodes,
   readPreparedDivisions,
   validatePreparedDivisions,
+  planningDivisionRule,
   wasPlanningGeometryRepaired,
 } from './processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
 import { writePlandSqlArtefacts } from './processLocalHkgovPlandDivisionSqlUploadSql.ts'
@@ -510,6 +511,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 datasetCode,
                 inputCount: nativeRecords.length,
                 outputCount: records.length,
+                normalisation: planningDivisionRule.declaration,
                 actions:
                   repairedGeometryRecords.length > 0
                     ? [
