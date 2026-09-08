@@ -280,9 +280,7 @@ describe('initialisation commands', () => {
       cwd: repoRoot,
     })
     expect(result.exitCode).toBe(0)
-    expect(result.stdout.toString()).toContain(
-      'SKIPPED: already published or superseded',
-    )
+    expect(result.stdout.toString()).toContain('SKIPPED: published or superseded')
     expect(result.stdout.toString().trimEnd().split('\n')).toHaveLength(3)
     expect(result.stderr.toString()).toBe('')
   })

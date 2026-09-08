@@ -54,12 +54,16 @@ export function formatCompletedCenstatdStatisticReleases(
 ) {
   const releaseBase = `dr-${datasetCode.slice('ds-'.length)}-${sourceVersion}`
   const releaseCodes = resourceTypes.map(type => `${releaseBase}::${type}`)
-  const releaseColumnWidth = Math.max(...releaseCodes.map(code => code.length))
+  const initColumnWidth = Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH)
+  const releaseColumnWidth = Math.max(
+    Number.isSafeInteger(initColumnWidth) && initColumnWidth > 0 ? initColumnWidth : 0,
+    ...releaseCodes.map(code => code.length),
+  )
 
   return releaseCodes
     .map(
       releaseCode =>
-        `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: already published or superseded`,
+        `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`,
     )
     .join('\n')
 }

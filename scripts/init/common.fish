@@ -113,6 +113,7 @@ function init_prepare_completed_releases
                 set -g saanseoi_init_release_column_width $width
             end
         end
+        set -gx SAANSEOI_INIT_RELEASE_COLUMN_WIDTH $saanseoi_init_release_column_width
     end
 end
 
@@ -175,7 +176,7 @@ function init_skip_completed_release
                 printf '\033[90m│   \033[39m'
             end
         end
-        printf '\033[36m◆\033[39m  %-*s  SKIPPED: already published or superseded\n' $saanseoi_init_release_column_width "$release_code"
+        printf '\033[36m◆\033[39m  %-*s  SKIPPED: published or superseded\n' $saanseoi_init_release_column_width "$release_code"
         return 0
     end
     return 1

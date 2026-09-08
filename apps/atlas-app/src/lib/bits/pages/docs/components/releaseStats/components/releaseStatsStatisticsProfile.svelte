@@ -43,7 +43,7 @@ let { profile }: { profile: StatisticsProfilePresentation } = $props()
         <dl class="mt-3 divide-y divide-data-outline-variant/60">
           {#each profile.coverage.exceptions as row}
             <div class="flex items-start justify-between gap-4 py-2">
-              <dt class="min-w-0 break-words text-label-md text-foreground-alt">
+              <dt class="min-w-0 wrap-break-word text-label-md text-foreground-alt">
                 {row.label}
               </dt>
               <dd class="shrink-0 font-mono text-label-md tabular-nums text-primary">
