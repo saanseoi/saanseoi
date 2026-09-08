@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { mkdir, readdir, rename, rm, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
+import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { loadDivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDivisions.ts'
 import type { DivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsTypes.ts'
 import type { prepareHkgovAlsRelease } from '../commands/hkgovAls.ts'
@@ -65,21 +66,37 @@ export function divisionLookupFingerprint(lookup: DivisionLookupMaps) {
   }
 }
 
-async function divisionLookupDependency(input: Input) {
+export async function divisionLookupDependency(input: Input) {
   // Remote targets do not reuse preflight checkpoints, so never make an extra
   // remote lookup merely to construct a cache key.
   if (input.target.remote) return null
 
-  return divisionLookupFingerprint(
-    await loadDivisionLookupMaps({
-      cohortKey: input.divisionCohortKey,
-      dbPath:
-        typeof input.args.options.db === 'string'
-          ? resolve(input.args.options.db)
-          : undefined,
-      environment: input.target.environment,
-    }),
-  )
+  const dbPath =
+    typeof input.args.options.db === 'string'
+      ? resolve(input.args.options.db)
+      : undefined
+  const context = dbPath
+    ? null
+    : await resolveLocalAddressDbContext(
+        input.target,
+        'hk',
+        input.addressCohortKey.slice(0, 4),
+        { cacheTableProfile: 'address' },
+      )
+  try {
+    return divisionLookupFingerprint(
+      await loadDivisionLookupMaps({
+        cohortKey: input.divisionCohortKey,
+        dbPath,
+        currentDb: context?.currentDb,
+        historyDb: context?.historyDb,
+        metaDb: context?.metaDb,
+        environment: input.target.environment,
+      }),
+    )
+  } finally {
+    await context?.cleanup()
+  }
 }
 
 export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
@@ -139,10 +156,14 @@ export async function cachedReviewChild(
       stdin: 'ignore',
     })
     const code = await child.exited
-    if (code !== 0)
+    if (code !== 0) {
+      const failure = await Bun.file(`${temporary}.failure.json`)
+        .json()
+        .catch(() => null)
       throw new Error(
-        `ALS preflight ${input.sourceVersion} child exited with ${code}${child.signalCode ? ` (${child.signalCode})` : ''}; completed release checkpoints are retained.`,
+        `${failure?.message ? `${failure.message}\n` : ''}ALS preflight ${input.sourceVersion} child exited with ${code}${child.signalCode ? ` (${child.signalCode})` : ''}; completed release checkpoints are retained.`,
       )
+    }
     const result: ReviewResult = await Bun.file(temporary).json()
     await Bun.write(temporary, JSON.stringify({ key, result }))
     await rename(temporary, checkpoint)
@@ -150,5 +171,6 @@ export async function cachedReviewChild(
   } finally {
     await rm(request, { force: true })
     await rm(temporary, { force: true })
+    await rm(`${temporary}.failure.json`, { force: true })
   }
 }
