@@ -506,6 +506,7 @@ export async function prepareHkgovAlsRelease(args: {
         args.addressCohortKey.slice(0, 4),
         {
           cacheTableProfile: 'address',
+          includeAllHistoryShardYears: true,
         },
       )
   try {
@@ -513,6 +514,14 @@ export async function prepareHkgovAlsRelease(args: {
       dbPath: explicitDbPath,
       currentDb: dbContext?.currentDb,
       historyDb: dbContext?.historyDb,
+      historyShards: dbContext
+        ? new Map(
+            dbContext.historyTargets.map(target => [
+              target.bindingName,
+              { bindingName: target.bindingName, db: target.db as never },
+            ]),
+          )
+        : undefined,
       environment: args.target.environment,
       identityDecisions: args.decisions,
       identityHistory: args.history,

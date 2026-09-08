@@ -14,6 +14,10 @@ uses configured metadata, current and history database bindings. Failed children
 create checkpoints. Cache hits still participate in chronological identity and curation
 review; they do not represent completed ingestion.
 
+ALS preparation and preflight fingerprints replay the selected division snapshot's
+immutable history across its assigned shards. Parent membership, changed translations
+and deletions determine the lookup, independently of current-snapshot cleanup.
+
 Source-row `sources` is nullable. ALS ingestion retains supplied publisher or ingestion
 references and stores `null` when none are supplied; it does not manufacture a reference
 to the row's own synthetic identifier.

@@ -81,7 +81,7 @@ export async function divisionLookupDependency(input: Input) {
         input.target,
         'hk',
         input.addressCohortKey.slice(0, 4),
-        { cacheTableProfile: 'address' },
+        { cacheTableProfile: 'address', includeAllHistoryShardYears: true },
       )
   try {
     return divisionLookupFingerprint(
@@ -90,6 +90,14 @@ export async function divisionLookupDependency(input: Input) {
         dbPath,
         currentDb: context?.currentDb,
         historyDb: context?.historyDb,
+        historyShards: context
+          ? new Map(
+              context.historyTargets.map(target => [
+                target.bindingName,
+                { bindingName: target.bindingName, db: target.db as never },
+              ]),
+            )
+          : undefined,
         metaDb: context?.metaDb,
         environment: input.target.environment,
       }),

@@ -114,6 +114,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   const divisionMaps = await loadDivisionLookupMaps({
     currentDb: options.currentDb,
     historyDb: options.historyDb,
+    historyShards: options.historyShards,
     dbPath: options.dbPath,
     environment: options.environment,
     metaDb: options.metaDb,
