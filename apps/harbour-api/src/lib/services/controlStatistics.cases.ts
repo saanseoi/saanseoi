@@ -114,6 +114,11 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     sourceReleaseId: releaseId,
     variant: datasetCode,
   })
+  sqlite
+    .query(
+      'INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount) VALUES (?, ?, ?, ?)',
+    )
+    .run(releaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
   await upsertSnapshotSource(db, snapshot.id, dataset.id, releaseId, 'primary')
 
   const result = await handlePublishDataset(db, {
@@ -215,6 +220,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
       );
+      INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount)
+      VALUES ('${releaseId}', 'sha256:${'0'.repeat(64)}', 1, 1);
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: '2026-Q2',

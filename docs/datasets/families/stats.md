@@ -1,5 +1,12 @@
 # Statistics dataset family
 
+General and district C&SD uploads retain a versioned
+[processing provenance result](../processing-provenance.md) before publication. It
+captures guarded publisher properties, complete canonical payloads, dimension splits,
+reviewed field definitions and resolved geography evidence. Shared application views
+expose audit, curation and applied API-field lineage. Reapplication consumes retained
+effects without invoking the normaliser; it excludes SQL timestamps and SCD bookkeeping.
+
 Publisher attributes are retained in `rawProperties` with source identity, release
 history, provenance and native geometry. Extracted measures, period labels and
 geographic codes are materialised in canonical history/current records rather than

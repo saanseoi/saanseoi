@@ -1,5 +1,13 @@
 # Census and Statistics Department division statistics
 
+Both SQL upload paths retain and register
+[processing provenance](../../processing-provenance.md) before publication. Publisher
+property literals are retained with input hashes; complete canonical outputs and
+resolved field/geography evidence share bounded value packs. The result explains
+population scaling, suppression/unavailability literals and dimension-grouped record
+splits. Reviewed field metadata and selected API-field declarations are frozen with the
+result, so later fixture edits do not change its explanation or recorded effects.
+
 Every materialised reference period retains an assembly run pinned to its source
 release. Recipes and source rules accompany remote metadata replay under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
