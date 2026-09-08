@@ -549,6 +549,83 @@
           }
         }
       }
+    },
+    {
+      "id": "tsui-lam-pik-lam-block-1-until-revoked",
+      "estate": "TSUI LAM ESTATE",
+      "csu": "4364320280T20050430",
+      "blockRef": "1",
+      "sourceRename": {
+        "sourceVersionFrom": "2026-08-19.0",
+        "enBuildingName": "PIK LAM HOUSE (BLK 1)",
+        "zhBuildingName": "碧林樓(1座)"
+      },
+      "sourceVersions": ["2026-08-19.0"],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2026-07-22.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "evidenceSourceVersion": "2026-07-22.0",
+      "sourceFile": "als_addresses_(sai_kung_district).geojson",
+      "featureIndexOneBased": 6174,
+      "authority": "User decision, 2026-09-09: forward-fill the missing Pik Lam House numbered parent and maintain until revoked.",
+      "decision": "Retain the numbered Block 1 parent from 22 July 2026 at its publisher point, independently of the blockless estate-complex assertion sharing its CSU. Preserve the exact reviewed August bilingual rename as source provenance and carry the parent forward through future omissions. Keep the supplied 3D inventory attached to this building. An identical returning publisher assertion takes precedence; other changed or duplicate numbered assertions require review.",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.24846, 22.32152]
+        },
+        "properties": {
+          "Northing": 820280,
+          "Easting": 843643,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "4364320280T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "LocationName": "將軍澳",
+                  "StreetName": "翠琳路",
+                  "BuildingNoFrom": "11"
+                },
+                "ChiEstate": {
+                  "EstateName": "翠林邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "1",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "碧林樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "1",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "PIK LAM HOUSE",
+                "EngEstate": {
+                  "EstateName": "TSUI LAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "11",
+                  "StreetName": "TSUI LAM ROAD",
+                  "LocationName": "TSEUNG KWAN O"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4364320280T20050430"
+            }
+          }
+        }
+      }
     }
   ]
 }

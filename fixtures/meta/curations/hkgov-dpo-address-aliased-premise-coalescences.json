@@ -26,8 +26,13 @@
     },
     {
       "id": "grandeur-terrace-block-4",
-      "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionFrom": null,
+      "sourceVersionTo": null,
+      "fixedCoordinates": {
+        "coordinates": [114.00141, 22.46971],
+        "reviewedAt": "2026-09-09",
+        "reason": "Curator selected point B for Block 4 throughout historical and future releases, irrespective of publisher coordinate changes. Preserve both publisher points as provenance."
+      },
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "4",
@@ -41,7 +46,7 @@
     {
       "id": "grandeur-terrace-block-5",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "5",
@@ -50,12 +55,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 5",
         "zhHantBuildingName": "俊宏軒第五座"
       },
-      "aliasCsu": "1823836730P20120105"
+      "aliasCsu": "1823836730P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00169, 22.46999],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-6",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "6",
@@ -64,12 +87,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 6",
         "zhHantBuildingName": "俊宏軒第六座"
       },
-      "aliasCsu": "1827336673P20120105"
+      "aliasCsu": "1827336673P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00203, 22.46947],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-7",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "7",
@@ -78,12 +119,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 7",
         "zhHantBuildingName": "俊宏軒第七座"
       },
-      "aliasCsu": "1828436633P20120105"
+      "aliasCsu": "1828436633P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00214, 22.46911],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-8",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "8",
@@ -92,12 +151,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 8",
         "zhHantBuildingName": "俊宏軒第八座"
       },
-      "aliasCsu": "1829536592P20120105"
+      "aliasCsu": "1829536592P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00224, 22.46874],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-9",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "9",
@@ -106,12 +183,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 9",
         "zhHantBuildingName": "俊宏軒第九座"
       },
-      "aliasCsu": "1830636551P20120105"
+      "aliasCsu": "1830636551P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00235, 22.46837],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-10",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "10",
@@ -120,12 +215,30 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 10",
         "zhHantBuildingName": "俊宏軒第十座"
       },
-      "aliasCsu": "1822436611P20120105"
+      "aliasCsu": "1822436611P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.00155, 22.46891],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "grandeur-terrace-block-11",
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": null,
       "estate": "GRANDEUR TERRACE",
       "zhEstate": "俊宏軒",
       "blockRef": "11",
@@ -134,7 +247,25 @@
         "enBuildingName": "GRANDEUR TERRACE BLOCK 11",
         "zhHantBuildingName": "俊宏軒第十一座"
       },
-      "aliasCsu": "1818836583P20120105"
+      "aliasCsu": "1818836583P20120105",
+      "fixedCoordinates": {
+        "coordinates": [114.0012, 22.46866],
+        "reviewedAt": "2026-09-09",
+        "sourceVersions": [
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ],
+        "application": {
+          "mode": "until-revoked",
+          "state": "active",
+          "sourceVersionFrom": "2026-04-25.0",
+          "lastVerifiedSourceVersion": "2026-08-19.0"
+        },
+        "reason": "Curator selected B on the Blocks 5–11 local review map and directed forward-fill and retention until revoked. Retain this exact coordinate from 25 April 2026 onward, preserving both publisher points and all building identity guards."
+      }
     },
     {
       "id": "sai-wan-estate-east-terrace-shared-building",
