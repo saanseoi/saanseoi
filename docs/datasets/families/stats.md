@@ -7,6 +7,11 @@ field/measure/geography fixtures and API-field declarations. It contains no publ
 canonical value packs. Recorded translations are individual curations; publisher labels
 and origin-unrecorded labels remain reviewed bulk metadata.
 
+Population scaling and field/localisation rule declarations live in
+`fixtures/meta/processing-rules/`. The canonical normalisation cache uses the `v1`
+contract and includes registered rule definitions in its identity alongside source
+inputs and reviewed metadata.
+
 Publisher attributes are retained in `rawProperties` with source identity, release
 history, provenance and native geometry. Extracted measures, period labels and
 geographic codes are materialised in canonical history/current records rather than

@@ -12,6 +12,13 @@ copy. The processor and audit producer use the same registered definition and fr
 parameters. CLI retention also records the referenced source file's SHA-256 revision.
 Processor substeps can contribute named aggregate counters to that declaration.
 
+The population scaling, area/boundary geometry and Statistics field/localisation
+declarations are readable JSON under `fixtures/meta/processing-rules/`. Executors
+validate and register these fixtures directly; the retained declaration is the same
+frozen definition. Storing a declaration in a fixture does not change its operation
+basis: algorithmic transformations remain code rules, while reviewed value selections
+remain fixture-backed decisions.
+
 Bulk fixture curations retain the selected reviewed documents in R2. Individual
 curations, including translations and guarded classification corrections, retain their
 decision, record context and a pointer to the selected fixture entry. Translation

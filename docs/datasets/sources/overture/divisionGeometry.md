@@ -1,5 +1,8 @@
 # Overture division geometry ingestion
 
+Area and boundary rule declarations are explicit JSON fixtures in
+`fixtures/meta/processing-rules/`, shared by their normalisers and retained audit.
+
 The [processing audit](../../processing-provenance.md) retains registered geometry
 normalisation and synthetic-area declarations with counts, including Guangdong spillover
 exclusions. The synthetic union rule executes the same exclusion polygon parameters
