@@ -3,6 +3,7 @@ import {
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
 import { resolveIdentityCuration } from '../identityCurations'
+import { captureCurationDocuments, curationDocumentsFor } from '../curationDocuments'
 
 type DistrictBridgeCohortKey = '2016' | '2021'
 
@@ -71,7 +72,10 @@ export async function resolveHkgovCenstatdDistrictBridge(
   )
   const hadRows = resolveIdentityCuration('hkgov-had', '2022', 'administrative')
 
-  return createHkgovCenstatdDistrictResolution(censtatdRows, hadRows)
+  return captureCurationDocuments(
+    createHkgovCenstatdDistrictResolution(censtatdRows, hadRows),
+    curationDocumentsFor(censtatdRows, hadRows),
+  )
 }
 
 /**
@@ -84,7 +88,10 @@ export async function resolveHkgovCenstatdNewTownBridge(
 ): Promise<ReadonlyMap<string, ResolvedHkgovCenstatdNewTown>> {
   const rows = resolveIdentityCuration('hkgov-censtatd', cohortKey, 'new-town')
 
-  return createHkgovCenstatdNewTownResolution(rows as IdentifierBridgeRow[], cohortKey)
+  return captureCurationDocuments(
+    createHkgovCenstatdNewTownResolution(rows as IdentifierBridgeRow[], cohortKey),
+    curationDocumentsFor(rows),
+  )
 }
 
 export function createHkgovCenstatdNewTownResolution(

@@ -1,4 +1,5 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
+import { curationDocumentsFor } from '../curationDocuments'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import {
   buildCenstatdGeographyLinkAuditActions,
@@ -456,6 +457,8 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           source: canonicalInput,
           canonical,
           fieldMetadata,
+          measureMetadata,
+          geographyFixtures: curationDocumentsFor(resolutionBySourceDistrictCode),
         })
         await deliverProcessingResult(target, store, result.ref)
       },

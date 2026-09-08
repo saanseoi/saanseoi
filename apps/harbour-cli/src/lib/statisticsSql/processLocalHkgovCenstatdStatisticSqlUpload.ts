@@ -1,4 +1,5 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
+import { curationDocumentsFor } from '../curationDocuments'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
 import {
@@ -431,6 +432,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           source: canonicalInput,
           canonical,
           fieldMetadata,
+          measureMetadata,
+          geographyFixtures: curationDocumentsFor(
+            districtsBySourceCode,
+            newTownsBySourceCode,
+          ),
         })
         await deliverProcessingResult(target, store, result.ref)
       },
