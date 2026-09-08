@@ -82,7 +82,20 @@ export type NormalisedPlace = {
 
 export type PlaceAddressTexts = string[]
 
+export const placeNormalisationRule = registerRule(
+  ruleDeclarationFromFixture(placeRuleFixture),
+  ({ row, sourceVersion }: { row: Record<string, unknown>; sourceVersion: string }) =>
+    normaliseOverturePlaceInternal(row, sourceVersion),
+)
+
 export function normaliseOverturePlace(
+  row: Record<string, unknown>,
+  sourceVersion: string,
+) {
+  return placeNormalisationRule.execute({ row, sourceVersion })
+}
+
+function normaliseOverturePlaceInternal(
   row: Record<string, unknown>,
   sourceVersion: string,
 ): NormalisedPlace | null {
@@ -703,3 +716,5 @@ function asNumber(value: unknown) {
   const number = Number(value)
   return Number.isFinite(number) ? number : null
 }
+import placeRuleFixture from '../../../../../fixtures/meta/processing-rules/place-normalisation.json'
+import { registerRule, ruleDeclarationFromFixture } from '../../provenance'

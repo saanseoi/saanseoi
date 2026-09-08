@@ -1,13 +1,18 @@
 import { expect, test } from 'bun:test'
+import { divisionClassificationRule } from './divisionClassificationPatch'
+
+test('QA patches do not depend on a failed curation guard', () => {
+  expect(divisionClassificationRule.declaration.review).toEqual({ kind: 'patch' })
+})
 import {
-  applyDivisionClassificationCuration,
+  applyDivisionClassificationPatch,
   divisionClassificationFixture,
   validateDivisionClassificationFixture,
-} from './divisionClassificationCuration'
+} from './divisionClassificationPatch'
 import { populationThousandsRule } from './statisticRules'
 import { normaliseDivisionRow } from './division'
 
-test('classification curation checks admin level against the declared source schema', () => {
+test('classification patch checks admin level against the declared source schema', () => {
   const row = {
     id: divisionClassificationFixture.entries[0]!.divisionId,
     class: null,
@@ -24,38 +29,38 @@ test('classification curation checks admin level against the declared source sch
     { ...row, class: 'city' },
     { ...row, subtype: 'locality' },
   ]) {
-    expect(() => applyDivisionClassificationCuration(invalidRow, source)).toThrow(
+    expect(() => applyDivisionClassificationPatch(invalidRow, source)).toThrow(
       'guard mismatch',
     )
   }
   for (const sourceVersion of ['2026-02-18.0', '2020-01-01.0']) {
     expect(() =>
-      applyDivisionClassificationCuration(row, { ...source, sourceVersion }),
+      applyDivisionClassificationPatch(row, { ...source, sourceVersion }),
     ).toThrow('guard mismatch')
   }
-  expect(() => applyDivisionClassificationCuration(row)).toThrow('guard mismatch')
+  expect(() => applyDivisionClassificationPatch(row)).toThrow('guard mismatch')
 })
 
-test('classification curation blocks source drift and leaves unrelated identities alone', () => {
+test('classification patch blocks source drift and leaves unrelated identities alone', () => {
   const entry = divisionClassificationFixture.entries[0]!
   const row = { id: entry.divisionId, admin_level: 2, subtype: 'region' }
-  expect(applyDivisionClassificationCuration(row)).toEqual({
+  expect(applyDivisionClassificationPatch(row)).toEqual({
     level: 4,
     type: 'macrohood',
   })
-  expect(() => applyDivisionClassificationCuration({ ...row, admin_level: 3 })).toThrow(
+  expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 3 })).toThrow(
     'guard mismatch',
   )
   expect(() =>
-    applyDivisionClassificationCuration({ ...row, source: 'hkgov-landsd' }),
+    applyDivisionClassificationPatch({ ...row, source: 'hkgov-landsd' }),
   ).toThrow('guard mismatch')
-  expect(applyDivisionClassificationCuration({ id: 'unrelated' })).toBeNull()
+  expect(applyDivisionClassificationPatch({ id: 'unrelated' })).toBeNull()
   expect(() =>
     validateDivisionClassificationFixture({
       ...divisionClassificationFixture,
       entries: [entry, entry],
     }),
-  ).toThrow('curation entry')
+  ).toThrow('patch entry')
 })
 
 test('the registered scaling operation preserves precision beyond thousandths', () => {

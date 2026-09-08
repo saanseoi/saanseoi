@@ -1,6 +1,6 @@
 import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-classification.json'
 import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
-import fixture from '../../../../../fixtures/meta/curations/overture-division-classification.json'
+import fixture from '../../../../../fixtures/meta/patches/overture-division-classification.json'
 import { ProcessingGuardError } from '../../provenance/guards'
 import { registerRule } from '../../provenance/auditTypes'
 import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
@@ -13,7 +13,7 @@ export function validateDivisionClassificationFixture(value: unknown) {
   if (
     !f ||
     f.schemaVersion !== 1 ||
-    f.kind !== 'division-classification-curations' ||
+    f.kind !== 'division-classification-patches' ||
     !Array.isArray(f.entries)
   )
     throw new Error('Invalid division classification fixture.')
@@ -34,7 +34,7 @@ export function validateDivisionClassificationFixture(value: unknown) {
       e.replacement?.type !== 'macrohood' ||
       e.replacement.level !== 4
     )
-      throw new Error('Invalid division classification curation entry.')
+      throw new Error('Invalid division classification patch entry.')
     ids.add(e.divisionId)
   }
   return f
@@ -92,7 +92,7 @@ export const divisionClassificationRule = registerRule(
   applyClassification,
 )
 
-export function applyDivisionClassificationCuration(
+export function applyDivisionClassificationPatch(
   row: Record<string, unknown>,
   source?: ClassificationSource,
 ) {
