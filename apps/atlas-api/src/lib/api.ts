@@ -39,7 +39,8 @@ export function buildPaginationLinks(args: {
   url: URL
   limit: number
   offset: number
-  total: number
+  total?: number
+  hasMore?: boolean
 }) {
   const links: Record<string, string> = {
     self: buildPaginationLink({
@@ -62,7 +63,10 @@ export function buildPaginationLinks(args: {
     })
   }
 
-  if (args.offset + args.limit < args.total) {
+  if (
+    args.hasMore ??
+    (args.total !== undefined && args.offset + args.limit < args.total)
+  ) {
     links.next = buildPaginationLink({
       url: args.url,
       limit: args.limit,
@@ -117,7 +121,8 @@ export function buildJsonApiListDocument<
   included?: TIncludedResource[]
   limit: number
   offset: number
-  total: number
+  total?: number
+  hasMore?: boolean
   meta: TMeta
   permalink?: string
 }) {
@@ -126,6 +131,7 @@ export function buildJsonApiListDocument<
     limit: args.limit,
     offset: args.offset,
     total: args.total,
+    hasMore: args.hasMore,
   })
   if (args.permalink) {
     links.permalink = sanitiseResponseUrl(args.permalink).toString()

@@ -126,6 +126,17 @@ type PlaceListLookup = {
   localeSelection: RequestedApiLocaleSelection
 }
 
+export async function hasCurrentPlaceSnapshot(db: CurrentDatabase, snapshotId: string) {
+  return Boolean(
+    await db
+      .select({ id: places.id })
+      .from(places)
+      .where(eq(places.snapshotId, snapshotId))
+      .limit(1)
+      .get(),
+  )
+}
+
 export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
   const row = await db
     .select()
