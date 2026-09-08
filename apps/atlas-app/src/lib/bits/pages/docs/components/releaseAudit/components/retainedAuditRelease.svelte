@@ -3,6 +3,7 @@ import type { AuditManifest, IndividualAudit } from '@repo/core/provenance'
 import { getRetainedAuditPage } from '#lib/registry/audit.remote.js'
 import RetainedAuditBulk from './retainedAuditBulk.svelte'
 import RetainedAuditFixture from './retainedAuditFixture.svelte'
+import RetainedAuditIndividualFixtures from './retainedAuditIndividualFixtures.svelte'
 let {
   manifest,
   hash,
@@ -83,6 +84,7 @@ let bulk = $derived(
       {/each}
     </section>
   {/if}
+  <RetainedAuditIndividualFixtures {manifest} {hash} />
   <section class="space-y-3" aria-label="Individual actions">
     <h3 class="font-medium">
       Individual actions · {manifest.applicationCount.toLocaleString()}
