@@ -94,7 +94,7 @@ end
 # release-set reconciliation so the first initialisation run can publish them.
 set -l censtatd_area_release_code \
     dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
-if not init_skip_completed_release "$censtatd_area_release_code"
+if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic"; or not init_is_completed_release "$censtatd_area_release_code::division"; or not init_is_completed_release "$censtatd_area_release_code::divisionArea"
     set -l censtatd_area_archive \
         "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip"
     set -l censtatd_area_manifest "$censtatd_area_archive.manifest.json"
