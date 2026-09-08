@@ -1,4 +1,4 @@
-import { expect, test } from 'bun:test'
+import { expect, spyOn, test } from 'bun:test'
 import {
   retainAuditResult,
   readAuditPage,
@@ -81,7 +81,21 @@ test('individual search reads indexes and only matching action chunks; transfer 
   )
   const destination = memoryStore()
   await transferProcessingResult(store, destination.store, result.ref)
-  await verifyAuditResult(destination.store, result.manifest)
+  const fixtureText = new TextDecoder().decode(
+    destination.objects.get(objectKey(fixture.hash)),
+  )
+  const parse = JSON.parse
+  let fixtureParses = 0
+  const parseSpy = spyOn(JSON, 'parse').mockImplementation((text, reviver) => {
+    if (text === fixtureText) fixtureParses += 1
+    return parse(text, reviver)
+  })
+  try {
+    await verifyAuditResult(destination.store, result.manifest)
+    expect(fixtureParses).toBe(1)
+  } finally {
+    parseSpy.mockRestore()
+  }
   expect(
     (await readAuditPage(destination.store, result.manifest, '', 250, 50)).rows,
   ).toHaveLength(50)
