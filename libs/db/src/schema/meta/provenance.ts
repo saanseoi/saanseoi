@@ -9,4 +9,7 @@ export const releaseProvenance = sqliteTable('releaseProvenance', {
   manifestHash: text('manifestHash').notNull(),
   byteLength: integer('byteLength').notNull(),
   applicationCount: integer('applicationCount').notNull(),
+  attemptStatus: text('attemptStatus', { enum: ['completed', 'failed'] })
+    .notNull()
+    .default('completed'),
 })
