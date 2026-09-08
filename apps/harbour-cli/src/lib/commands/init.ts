@@ -80,7 +80,8 @@ export async function runInitialisationCommand(
     (args.options['skip-curation-checks'] !== undefined &&
       args.options['skip-curation-checks'] !== true) ||
     (args.options.continue !== undefined && args.options.continue !== true) ||
-    (args.options['no-cache-artefacts'] !== undefined && !cacheArtefacts) ||
+    (args.options['no-cache-artefacts'] !== undefined &&
+      args.options['no-cache-artefacts'] !== true) ||
     (target !== undefined &&
       (typeof target !== 'string' ||
         !['local', 'preview', 'production'].includes(target)))

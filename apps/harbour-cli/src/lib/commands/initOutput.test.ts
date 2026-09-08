@@ -69,3 +69,25 @@ test('parent failures retain one child error and still record unreported failure
     }
   }
 })
+
+test('accepts the boolean artefact-cache opt-out', () => {
+  const source = `
+    import { runInitialisationCommand } from ${JSON.stringify(`${import.meta.dir}/init.ts`)};
+    Bun.spawn = options => {
+      if (!options.cmd.includes('--no-cache-artefacts')) process.exit(2);
+      if (options.env.SAANSEOI_CACHE_ARTEFACTS !== '0') process.exit(3);
+      return { pid: 0, kill() {}, exited: Promise.resolve(0) };
+    };
+    await runInitialisationCommand({
+      command: 'init',
+      options: { 'no-cache-artefacts': true },
+      positionals: [],
+    }, () => {});
+  `
+  const result = Bun.spawnSync([process.execPath, '--eval', source], {
+    env: { ...process.env, NO_COLOR: '1' },
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+  expect(result.exitCode).toBe(0)
+})

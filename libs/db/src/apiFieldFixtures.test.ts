@@ -445,6 +445,7 @@ describe('api field fixtures', () => {
         'ss-hk-division-2026-05-20.0',
         'ss-hk-division-2026-06-17.0',
         'ss-hk-division-2026-07-22.0',
+        'ss-hk-division-2026-08-19.0',
       ],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -461,7 +462,7 @@ describe('api field fixtures', () => {
 
     expect(fixture?.lineageAnchors).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-division-2026-07-22.0',
+        snapshotVersion: 'ss-hk-division-2026-08-19.0',
       }),
     )
   })
