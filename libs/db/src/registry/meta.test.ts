@@ -367,7 +367,7 @@ describe('fixture version hashes', () => {
               expect.objectContaining({
                 operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
                 definition: expect.objectContaining({
-                  id: 'apply-division-classification-curation',
+                  id: 'apply-division-classification-patch',
                 }),
                 type: 'record',
               }),
@@ -389,12 +389,10 @@ describe('fixture version hashes', () => {
               expect.objectContaining({
                 operationCode: 'map_censtatd_district_code_to_canonical_division',
                 type: 'bulk',
-                mappings: expect.arrayContaining([
-                  expect.objectContaining({
-                    from: 'matching C&SD bridge canonicalId',
-                    to: 'divisionId',
-                  }),
-                ]),
+                definition: expect.objectContaining({
+                  id: 'map_censtatd_district_code_to_canonical_division',
+                  parameters: expect.objectContaining({ targetCohort: '2022' }),
+                }),
               }),
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_population_thousands_to_persons',

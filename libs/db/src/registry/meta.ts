@@ -2,7 +2,10 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
-import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
+import {
+  type ruleDeclarationFromFixture,
+  resolveRuleFixtureCatalog,
+} from '@repo/core/provenance/ruleFixture'
 import { profileNames, resolverCodes } from '../constants/schema'
 import type {
   ApiFamilyType,
@@ -463,17 +466,17 @@ function sqlTimestampMs(value: string) {
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
-const processingRuleDefinitions = new Map(
-  readdirSync(join(fixturesDir.pathname, 'processing-rules'))
-    .filter(name => name.endsWith('.json'))
-    .map(name => [
-      name.slice(0, -5),
-      ruleDeclarationFromFixture(
+const processingRuleDefinitions = resolveRuleFixtureCatalog(
+  Object.fromEntries(
+    readdirSync(join(fixturesDir.pathname, 'processing-rules'))
+      .filter(name => name.endsWith('.json'))
+      .map(name => [
+        name.slice(0, -5),
         JSON.parse(
           readFileSync(join(fixturesDir.pathname, 'processing-rules', name), 'utf8'),
         ),
-      ),
-    ]),
+      ]),
+  ),
 )
 
 /** Resolve references before hashing so policy edits change the consumed ruleset identity. */

@@ -159,7 +159,7 @@ export const metaSnapshotSources = sqliteTable(
   {
     snapshotId: snapshotIdColumn('cascade'),
     datasetId: datasetIdColumn(),
-    sourceReleaseId: text('sourceReleaseId').notNull(),
+    resourceReleaseId: text('resourceReleaseId').notNull(),
     role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
     selectedByRule: text('selectedByRule'),
     selectionMode: text('selectionMode'),
@@ -169,15 +169,15 @@ export const metaSnapshotSources = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.sourceReleaseId],
+      columns: [table.snapshotId, table.resourceReleaseId],
     }),
     foreignKey({
-      columns: [table.sourceReleaseId, table.datasetId],
+      columns: [table.resourceReleaseId, table.datasetId],
       foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'snapshotSources_sourceReleaseId_datasetId_releases_id_datasetId_fk',
+      name: 'snapshotSources_resourceReleaseId_datasetId_releases_id_datasetId_fk',
     }).onDelete('restrict'),
     index('snapshotSources_datasetId_idx').on(table.datasetId),
-    index('snapshotSources_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('snapshotSources_resourceReleaseId_idx').on(table.resourceReleaseId),
   ],
 )
 
