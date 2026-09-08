@@ -14,6 +14,10 @@
 
 ## Source storage and publication
 
+Road Centreline source rows use `(sourceRecordId, versionHash)` with release-validity
+columns. Native feature hashes exclude archive provenance, so a replacement archive does
+not create new versions of unchanged publisher properties and geometry.
+
 Street ingestion records its selected release, source rule and effective recipe under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 

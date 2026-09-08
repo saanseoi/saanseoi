@@ -226,32 +226,28 @@ function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: Rollbac
   const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
 
   return joinStatements(
-    plan.sourceTables.flatMap(table =>
-      table === 'hkgovAlsAddresses3d'
-        ? [`DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)};`]
-        : [
+    plan.sourceTables.flatMap(table => [
+      [
+        `UPDATE ${table}`,
+        'SET isCurrent = 1,',
+        '  validToRelease = NULL,',
+        `  updatedAt = ${now}`,
+        'WHERE isCurrent = 0',
+        `  AND validToRelease = ${literal(input.sourceVersion)};`,
+      ].join('\n'),
+      ...(input.previousReleaseId
+        ? [
             [
               `UPDATE ${table}`,
-              'SET isCurrent = 1,',
-              '  validToRelease = NULL,',
+              `SET releaseId = ${literal(input.previousReleaseId)},`,
               `  updatedAt = ${now}`,
-              'WHERE isCurrent = 0',
-              `  AND validToRelease = ${literal(input.sourceVersion)};`,
+              `WHERE releaseId = ${literal(input.releaseId)}`,
+              `  AND validFromRelease <> ${literal(input.sourceVersion)};`,
             ].join('\n'),
-            ...(input.previousReleaseId
-              ? [
-                  [
-                    `UPDATE ${table}`,
-                    `SET releaseId = ${literal(input.previousReleaseId)},`,
-                    `  updatedAt = ${now}`,
-                    `WHERE releaseId = ${literal(input.releaseId)}`,
-                    `  AND validFromRelease <> ${literal(input.sourceVersion)};`,
-                  ].join('\n'),
-                ]
-              : []),
-            `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)} AND validFromRelease = ${literal(input.sourceVersion)};`,
-          ],
-    ),
+          ]
+        : []),
+      `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)} AND validFromRelease = ${literal(input.sourceVersion)};`,
+    ]),
   )
 }
 
