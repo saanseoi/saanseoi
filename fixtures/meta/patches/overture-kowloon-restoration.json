@@ -1,0 +1,9 @@
+{
+  "kind": "division-area-restoration-patch",
+  "schemaVersion": 1,
+  "id": "overture_hong_kong_kowloon_restored",
+  "divisionId": "17009785-57fd-4e5b-af86-2d27352e4718",
+  "names": ["Kowloon", "九龍", "九龙"],
+  "reason": "Restore the Kowloon area identity when the scoped source has no polygonal row for its established Overture identity.",
+  "method": "union-overture-district-areas"
+}
