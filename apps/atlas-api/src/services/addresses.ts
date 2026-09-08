@@ -15,6 +15,8 @@ import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
   listAddressRecordsCurrent,
+  countAddressRecordsCurrent,
+  hasCurrentAddressSnapshot,
   listAddressRecordsCurrentByIds,
   searchAddressIdsCurrent,
   type AddressSearchComponent,
@@ -24,8 +26,7 @@ import {
 } from '../db/addresses'
 import {
   listReplayedAddressRecords,
-  selectReplayedAddressLocales,
-  searchReplayedAddressRecords,
+  listReplayedAddressPage,
 } from '../db/addressesHistory'
 import { attachAddress3dCoverage, getAddress3dCollection } from '../db/address3d'
 import type { Address3dCoverage } from '@repo/db/address3d'
@@ -219,10 +220,12 @@ async function loadIncludedAddressHierarchy(args: {
           { bindingName, db },
         ]),
       )
-      const versions = await resolveSnapshotVersionState(plan, shards as never, [
-        'division',
-        'divisionI18n',
-      ])
+      const versions = await resolveSnapshotVersionState(
+        plan,
+        shards as never,
+        ['division', 'divisionI18n'],
+        [...divisionIds],
+      )
       const records = await listReplayedDivisionRecords(
         versions.values() as never,
         snapshotId,
@@ -321,44 +324,19 @@ type AddressSearchUnavailableResponse = {
   message: 'FTS index is not initialised. Rebuild addressesFts before using search.'
 }
 
-function addressMatchesFilters(record: AddressRecord, filters: AddressFilters) {
-  const { address } = record
-  return (
-    (!filters.country || address.countryId === filters.country) &&
-    (!filters.area || address.areaId === filters.area) &&
-    (!filters.district || address.districtId === filters.district)
-  )
-}
-
-async function loadSelectedAddressRecords(args: {
+async function canReadCurrentAddresses(args: {
   activeSnapshot: ActiveAddressSnapshot
   currentDb: AppEnv['Variables']['currentDb']
-  filters: AddressFilters
   historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
-  localeSelection: RequestedApiLocaleSelection
-  metaDb: AppEnv['Variables']['metaDb']
 }) {
-  if (args.historyDbsByBinding) {
-    const records = await listReplayedAddressRecords({
-      divisionSnapshotId: args.activeSnapshot.divisionSnapshotId,
-      historyDbsByBinding: args.historyDbsByBinding,
-      localeSelection: args.localeSelection,
-      metaDb: args.metaDb,
-      snapshotIds: args.activeSnapshot.snapshotIds,
-    })
-    return records
-      .filter(record => addressMatchesFilters(record, args.filters))
-      .sort((left, right) => left.address.id.localeCompare(right.address.id))
-  }
-
-  return listAddressRecordsCurrent(args.currentDb, {
-    snapshotIds: args.activeSnapshot.snapshotIds,
-    countryId: args.filters.country,
-    areaId: args.filters.area,
-    districtId: args.filters.district,
-    limit: Number.MAX_SAFE_INTEGER,
-    localeSelection: args.localeSelection,
-  })
+  if (!args.historyDbsByBinding) return true
+  return (
+    await Promise.all(
+      args.activeSnapshot.snapshotIds.map(id =>
+        hasCurrentAddressSnapshot(args.currentDb, id),
+      ),
+    )
+  ).every(Boolean)
 }
 
 export type AddressSearchResult =
@@ -666,19 +644,44 @@ export async function listAddresses(args: {
       ? { district: args.query['filter[district]'] }
       : {}),
   }
-  const selectedRecords = await runWithD1ReadRetry(() =>
-    loadSelectedAddressRecords({
-      activeSnapshot,
-      currentDb: args.currentDb,
-      filters,
-      historyDbsByBinding: args.historyDbsByBinding,
-      localeSelection: routeState.localeSelection,
-      metaDb: args.metaDb,
-    }),
+  const useCurrent = await runWithD1ReadRetry(() =>
+    canReadCurrentAddresses({ ...args, activeSnapshot }),
   )
-  const total = selectedRecords.length
-  const records = selectedRecords.slice(offset, offset + limit)
-  await attachAddress3dCoverage({ ...args, records })
+  const lookup = {
+    snapshotIds: activeSnapshot.snapshotIds,
+    countryId: filters.country,
+    areaId: filters.area,
+    districtId: filters.district,
+    localeSelection: routeState.localeSelection,
+    limit,
+    offset,
+  }
+  const { records, total, hasMore } = await runWithD1ReadRetry(
+    async (): Promise<{
+      records: AddressRecord[]
+      total?: number
+      hasMore?: boolean
+    }> => {
+      if (useCurrent) {
+        const [records, total] = await Promise.all([
+          listAddressRecordsCurrent(args.currentDb, lookup),
+          countAddressRecordsCurrent(args.currentDb, lookup),
+        ])
+        return { records, total }
+      }
+      return listReplayedAddressPage({
+        ...lookup,
+        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+        historyDbsByBinding: args.historyDbsByBinding!,
+        metaDb: args.metaDb,
+      })
+    },
+  )
+  await attachAddress3dCoverage({
+    ...args,
+    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+    records,
+  })
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
@@ -706,6 +709,7 @@ export async function listAddresses(args: {
     limit,
     offset,
     total,
+    hasMore,
     included: included.length > 0 ? included : undefined,
     meta: buildMetadata({
       routeState,
@@ -767,30 +771,34 @@ export async function searchAddresses(args: {
   }
 
   let records: AddressRecord[]
-  let total: number
+  let total: number | undefined
+  let hasMore: boolean | undefined
   const historyDbsByBinding = args.historyDbsByBinding
-  if (historyDbsByBinding) {
+  const useCurrent = await runWithD1ReadRetry(() =>
+    canReadCurrentAddresses({ ...args, activeSnapshot }),
+  )
+  if (historyDbsByBinding && !useCurrent) {
     const selected = await runWithD1ReadRetry(() =>
-      listReplayedAddressRecords({
+      listReplayedAddressPage({
         divisionSnapshotId: activeSnapshot.divisionSnapshotId,
         historyDbsByBinding,
-        // Current FTS searches every locale; project the requested locales only
-        // after matching so a locale parameter cannot hide historical records.
-        localeSelection: { mode: 'all', locales: ['*'] },
+        localeSelection: routeState.localeSelection,
         metaDb: args.metaDb,
         snapshotIds: activeSnapshot.snapshotIds,
+        limit,
+        offset,
+        countryId: filters.country,
+        areaId: filters.area,
+        districtId: filters.district,
+        search: {
+          component: args.query.component,
+          mode: args.query.match,
+          query: args.query.q,
+        },
       }),
     )
-    const matched = searchReplayedAddressRecords(selected, {
-      component: args.query.component,
-      mode: args.query.match,
-      query: args.query.q,
-    }).filter(record => addressMatchesFilters(record, filters))
-    total = matched.length
-    records = selectReplayedAddressLocales(
-      matched.slice(offset, offset + limit),
-      routeState.localeSelection,
-    )
+    records = selected.records
+    hasMore = selected.hasMore
   } else {
     let search: { addressIds: string[]; total: number }
     try {
@@ -836,7 +844,11 @@ export async function searchAddresses(args: {
     )
     total = search.total
   }
-  await attachAddress3dCoverage({ ...args, records })
+  await attachAddress3dCoverage({
+    ...args,
+    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+    records,
+  })
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>
     loadIncludedAddressHierarchy({
@@ -864,6 +876,7 @@ export async function searchAddresses(args: {
     offset,
     total,
     included: included.length > 0 ? included : undefined,
+    hasMore,
     meta: buildMetadata({
       routeState,
       activeSnapshot,
@@ -913,18 +926,27 @@ export async function getAddressDetail(args: {
     if (accessAttribution) args.onResolved(accessAttribution)
   }
 
+  const useCurrent = await runWithD1ReadRetry(() =>
+    canReadCurrentAddresses({ ...args, activeSnapshot }),
+  )
   const record = (
     await runWithD1ReadRetry(() =>
-      loadSelectedAddressRecords({
-        activeSnapshot,
-        currentDb: args.currentDb,
-        filters: {},
-        historyDbsByBinding: args.historyDbsByBinding,
-        localeSelection: routeState.localeSelection,
-        metaDb: args.metaDb,
-      }),
+      useCurrent
+        ? listAddressRecordsCurrentByIds(args.currentDb, {
+            snapshotIds: activeSnapshot.snapshotIds,
+            addressIds: [args.id],
+            localeSelection: routeState.localeSelection,
+          })
+        : listReplayedAddressRecords({
+            snapshotIds: activeSnapshot.snapshotIds,
+            divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+            historyDbsByBinding: args.historyDbsByBinding!,
+            localeSelection: routeState.localeSelection,
+            metaDb: args.metaDb,
+            recordIds: [args.id],
+          }),
     )
-  ).find(candidate => candidate.address.id === args.id)
+  )[0]
   if (!record) {
     return {
       status: 404,
@@ -936,7 +958,11 @@ export async function getAddressDetail(args: {
     }
   }
 
-  await attachAddress3dCoverage({ ...args, records: [record] })
+  await attachAddress3dCoverage({
+    ...args,
+    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+    records: [record],
+  })
 
   const url = new URL(args.requestUrl)
   const included = await runWithD1ReadRetry(() =>

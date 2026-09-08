@@ -12,6 +12,7 @@ import {
 
 import {
   countPlaceRecordsCurrent,
+  hasCurrentPlaceSnapshot,
   listPlaceRecordsCurrent,
   type PlaceLocaleValue,
   type PlaceRecord,
@@ -20,7 +21,7 @@ import {
   listDivisionRecordsCurrentByIds,
   listReplayedDivisionRecords,
 } from '../db/divisions'
-import { listReplayedPlaceRecords } from '../db/placesHistory'
+import { listReplayedPlacePage } from '../db/placesHistory'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import {
   buildApiVersionMetadata,
@@ -363,7 +364,12 @@ async function loadIncludedDivisions(args: {
   const divisionIds = [...new Set(args.records.flatMap(record => record.divisionIds))]
   if (divisionIds.length === 0) return []
 
-  if (args.historyDbsByBinding) {
+  const currentRecords = await listDivisionRecordsCurrentByIds(args.currentDb, {
+    snapshotId: args.activeSnapshot.divisionSnapshotId,
+    divisionIds,
+    localeSelection: args.routeState.localeSelection,
+  })
+  if (args.historyDbsByBinding && currentRecords.length === 0) {
     const plan = await resolveSnapshotReplayPlan(
       args.metaDb as never,
       args.activeSnapshot.divisionSnapshotId,
@@ -374,10 +380,12 @@ async function loadIncludedDivisions(args: {
         { bindingName, db },
       ]),
     )
-    const versions = await resolveSnapshotVersionState(plan, shards as never, [
-      'division',
-      'divisionI18n',
-    ])
+    const versions = await resolveSnapshotVersionState(
+      plan,
+      shards as never,
+      ['division', 'divisionI18n'],
+      divisionIds,
+    )
     const records = await listReplayedDivisionRecords(
       versions.values() as never,
       args.activeSnapshot.divisionSnapshotId,
@@ -396,12 +404,7 @@ async function loadIncludedDivisions(args: {
       )
   }
 
-  const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
-    snapshotId: args.activeSnapshot.divisionSnapshotId,
-    divisionIds,
-    localeSelection: args.routeState.localeSelection,
-  })
-  return records.map(record =>
+  return currentRecords.map(record =>
     createIncludedDivisionResource({
       baseUrl: args.baseUrl,
       requestedVersionPath: 'divisions/v0.1',
@@ -477,10 +480,16 @@ export async function listPlaces(args: {
   }
   let records: PlaceRecord[]
   let total: number
-  if (args.historyDbsByBinding) {
+  const useHistory =
+    args.historyDbsByBinding &&
+    !(await runWithD1ReadRetry(() =>
+      hasCurrentPlaceSnapshot(args.currentDb, activeSnapshot.snapshotId),
+    ))
+  if (useHistory && args.historyDbsByBinding) {
     const historyDbsByBinding = args.historyDbsByBinding
     const selected = await runWithD1ReadRetry(() =>
-      listReplayedPlaceRecords({
+      listReplayedPlacePage({
+        ...lookup,
         divisionSnapshotId: activeSnapshot.divisionSnapshotId,
         historyDbsByBinding,
         localeSelection: routeState.localeSelection,
@@ -488,21 +497,8 @@ export async function listPlaces(args: {
         snapshotId: activeSnapshot.snapshotId,
       }),
     )
-    const matching = selected
-      .filter(record => {
-        const { place } = record
-        return (
-          (!filters.basicCategory || place.basicCategory === filters.basicCategory) &&
-          (!filters.taxonomyPrimary ||
-            place.taxonomyPrimary === filters.taxonomyPrimary) &&
-          (!filters.operatingStatus ||
-            place.operatingStatus === filters.operatingStatus) &&
-          (!filters.division || record.divisionIds.includes(filters.division))
-        )
-      })
-      .sort((left, right) => left.place.id.localeCompare(right.place.id))
-    total = matching.length
-    records = matching.slice(offset, offset + limit)
+    total = selected.total
+    records = selected.records
   } else {
     ;[records, total] = await runWithD1ReadRetry(() =>
       Promise.all([
