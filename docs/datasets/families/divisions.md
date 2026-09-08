@@ -379,6 +379,12 @@ context is the parent division ID and English parent name. This avoids re-transl
 the same name every month without incorrectly sharing a name whose meaning changes under
 a different parent.
 
+Version 2 fixtures use three maps: `contexts` stores each parent context once,
+`translations` stores each distinct translation and its provenance once, and `usages`
+links a contextual lookup key to a translation, record IDs and release bounds. Identical
+translations can share a value across contexts; differing contextual choices retain
+separate values. Release audit documents retain expanded application evidence.
+
 Translation context retains multilingual parent display names as `parentName.<locale>`
 alongside `parentDivisionId`. Display names are excluded from the context hash. Audit
 selects the UI locale, then English, another retained name in locale order, and the

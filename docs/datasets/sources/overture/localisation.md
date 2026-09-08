@@ -88,6 +88,11 @@ without inference or fallback.
 
 #### Dataset translation memory
 
+Division fixtures use version 2 `contexts`, `translations` and `usages` maps. Contexts
+and identical translation values are stored once; usage links retain record IDs and
+first/last source releases independently. Different translations for different parent
+contexts remain separate choices. The Place fixture has its own schema.
+
 Overture uses dataset-scoped fixtures, including
 `fixtures/i18n/datasets/ds-hk-overture-division.json` and
 `fixtures/i18n/datasets/ds-hk-overture-place.json`, rather than one translation file per
