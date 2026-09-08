@@ -81,7 +81,7 @@ for year in 2016 2021
     if test "$year" = 2016
         set historical_cohort_args --allow-historical-cohort
     end
-    init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year" "$file" \
+    init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year::divisionArea" "$file" \
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
