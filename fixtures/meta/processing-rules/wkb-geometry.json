@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "decode_wkb_geometry_to_geojson",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Decode source WKB geometry into GeoJSON; accept already decoded GeoJSON and return null for absent geometry.",
+  "inputs": ["source-geometry"],
+  "outputs": ["GeoJSON"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/division.ts",
+    "symbol": "wkbGeometryRule"
+  }
+}

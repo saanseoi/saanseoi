@@ -11,5 +11,13 @@
   "implementation": {
     "path": "apps/harbour-cli/src/lib/statisticsSql/statisticLocalisationRule.ts",
     "symbol": "statisticLocalisationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "statistic-measure-localisations",
+      "summary": "A statistic measure requires a consistent reviewed localisation for each locale.",
+      "consequence": "block-ingestion"
+    }
   }
 }

@@ -11,5 +11,13 @@
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisionTranslationRule.ts",
     "symbol": "divisionTranslationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "division-required-locales",
+      "summary": "Required division name locales are missing from the source.",
+      "consequence": "block-ingestion"
+    }
   }
 }

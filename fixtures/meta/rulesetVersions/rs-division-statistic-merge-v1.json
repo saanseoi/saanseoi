@@ -7,59 +7,11 @@
   "mergeRules": [
     {
       "operationCode": "normalise_censtatd_statistic_source_assertion",
-      "type": "bulk",
-      "sourceFieldPath": "feature_id, layer_name, reference_year, raw_properties, source_geometry",
-      "targetFieldPath": "source record: sourceRecordId, datasetCode, featureId, layerName, referenceYear, rawProperties, sourceGeometry, sources",
-      "condition": "Applies to every C&SD division-statistic feature read from a publisher-native CSDI GML archive.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Normalises each C&SD statistic feature into a versioned source record while preserving its native properties and geometry."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將每個政府統計處統計要素正規化為具版本的來源聲明，並保留其原生屬性及幾何資料。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将每个政府统计处统计要素规范化为带版本的来源断言，并保留其原生属性和几何数据。"
-        }
-      ]
+      "ruleFixture": "censtatd-source-assertion"
     },
     {
       "operationCode": "map_censtatd_district_code_to_canonical_division",
-      "type": "bulk",
-      "sourceFieldPath": "district_code",
-      "targetFieldPath": "divisionId, districtCode",
-      "condition": "Resolves through the C&SD and HAD district identifier bridge for the release's canonical division snapshot.",
-      "mappings": [
-        {
-          "from": "district_code",
-          "to": "identifierBridges.externalCode where authority = hkgov-censtatd, domain = administrative, resourceType = division, cohortKey = 2021"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "divisionId"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "identifierBridges.externalCode where authority = hkgov-had, domain = administrative, resourceType = division, cohortKey = 2022 → districtCode"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Maps each C&SD district code to the canonical district code and division ID used by the history observation."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將每個政府統計處地區代碼對應至歷史觀測資料使用的標準地區代碼及區劃 ID。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
-        }
-      ]
+      "ruleFixture": "censtatd-district-identity"
     },
     {
       "operationCode": "normalise_censtatd_population_thousands_to_persons",
@@ -70,5 +22,5 @@
       "ruleFixture": "statistic-field-curation"
     }
   ],
-  "versionHash": "sha256:defab2c7f5a4c3974f94285eabfdb2acd23c0e9b6b6c2abc5f6d1f424e2500f9"
+  "versionHash": "sha256:63e661d1086e3bd6bb37a1fd9d82073aedc2cd6941c143ae6dd709288981d0d5"
 }

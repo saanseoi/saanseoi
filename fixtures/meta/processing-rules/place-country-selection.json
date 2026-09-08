@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "select-place-countries",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Exclude Places whose publisher Address country is CN or MO; include missing country codes for review.",
+  "inputs": ["normalised-places"],
+  "outputs": ["included-places"],
+  "parameters": { "excludedCountries": ["CN", "MO"] },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/placeSql/processLocalPlaceSqlUploadPreparation.ts",
+    "symbol": "placeCountryRule"
+  }
+}
