@@ -12,7 +12,8 @@ export type SourceReference = {
   [key: string]: unknown
 }
 
-export const sourceReferences = () => jsonText<SourceReference[]>('sources').notNull()
+/** Null when no publisher or ingestion evidence is supplied; never a self-reference. */
+export const sourceReferences = () => jsonText<SourceReference[]>('sources')
 
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
@@ -31,7 +32,7 @@ export function sourceVersionedRecordColumns() {
   }
 }
 
-/** A versioned publisher source record with required source provenance. */
+/** A versioned publisher source record with optional source provenance. */
 export function sourceVersionedAssertionColumns() {
   return {
     ...sourceVersionedRecordColumns(),
@@ -82,7 +83,7 @@ export function sourceReleaseRevisionRecordColumns() {
   }
 }
 
-/** A release-revision source record with required source provenance. */
+/** A release-revision source record with optional source provenance. */
 export function sourceReleaseRevisionAssertionColumns() {
   return {
     ...sourceReleaseRevisionRecordColumns(),

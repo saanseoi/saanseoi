@@ -211,6 +211,49 @@ describe('address SQL import staging cleanup', () => {
 })
 
 describe('HKGov ALS source SQL', () => {
+  test('persists SQL NULL for missing evidence and retains publisher references', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(
+        loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
+          'source',
+        ]),
+      )
+      const evidence = [{ dataset: 'hkgov-dpo', sourceFile: 'addresses.geojson' }]
+      const inputs = [null, [], {}, { hkgovAls: [] }, evidence, { hkgovAls: evidence }]
+      const files = buildAddressSourceSqlImportFiles(message, {
+        kind: 'address.normalised.v1',
+        processingRunStartedAt: '2026-09-08T00:00:00.000Z',
+        releaseId: 'release-address',
+        rowStart: 0,
+        rowEnd: inputs.length,
+        totalRows: inputs.length,
+        rows: inputs.map((sources, index) => ({
+          base: { sources, granularity: 'building' },
+          canonicalId: `address-${index}`,
+          sourceId: `source-${index}`,
+          sourcePayloadHash: `hash-${index}`,
+          i18n: [],
+          matchKey: null,
+          raw: { publisherField: index },
+          source: {},
+        })) as unknown as NormalisedAddressChunkArtefact['rows'],
+      })
+      for (const file of files) db.exec(file.sql)
+      expect(
+        db
+          .query('SELECT sources FROM hkgovAlsAddresses2d ORDER BY sourceRecordId')
+          .all(),
+      ).toEqual(
+        inputs.map((_, index) => ({
+          sources: index < 4 ? null : JSON.stringify(evidence),
+        })),
+      )
+    } finally {
+      db.close()
+    }
+  })
+
   test('stores source payload and provenance without derived address projections', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(message, {
       kind: 'address.normalised.v1',

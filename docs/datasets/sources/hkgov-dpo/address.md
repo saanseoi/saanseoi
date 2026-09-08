@@ -1,5 +1,9 @@
 # HKGov DPO ALS addresses
 
+ALS 2D source rows retain supplied `sources` references, including the `hkgovAls`
+wrapper. Missing or empty references are stored as SQL `NULL` in both worker ingestion
+and bulk SQL import; synthetic source-record IDs are not provenance.
+
 Non-blocking curation logs use `ALS_MANUAL_REVIEW` JSON records. Skipped assertion
 guards record their source version, fixture, decision or source assertion hash, and
 failure message; the failed correction remains unapplied. Issue logs require

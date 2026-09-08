@@ -867,6 +867,9 @@ async function reviewHkgovAlsIngest(args: {
       curationApplications.set(key, group)
     }
     history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
+    // The output-free all-release preflight holds large parsed ALS objects briefly;
+    // release them before reviewing the next 600 MB+ 3D payload.
+    if (typeof Bun.gc === 'function') Bun.gc(true)
   }
   return {
     curationApplications: [...curationApplications.values()].map(group => ({

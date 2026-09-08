@@ -59,7 +59,7 @@ type StagedSourceRow<T> = Omit<
   derivation?: Record<string, unknown>
 }
 
-type SourceReferences = NewSourceDivisionAreaRow['sources']
+type SourceReferences = NonNullable<NewSourceDivisionAreaRow['sources']>
 
 export function normaliseDivisionAreaGeometryRow(
   row: Record<string, unknown>,
@@ -126,7 +126,7 @@ export function normaliseDivisionAreaGeometryRow(
     },
     source: {
       rawProperties: sourceRawProperties(row, source),
-      sources: normaliseSourceReferences(row.sources, source, id),
+      sources: normaliseSourceReferences(row.sources),
       sourceRecordId: id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
@@ -185,21 +185,17 @@ export function normaliseDivisionBoundaryGeometryRow(
     },
     source: {
       rawProperties: sourceRawProperties(row, source),
-      sources: normaliseSourceReferences(row.sources, source, id),
+      sources: normaliseSourceReferences(row.sources),
       sourceRecordId: id,
     },
   }
 }
 
-function normaliseSourceReferences(
-  value: unknown,
-  dataset: string,
-  sourceRecordId: string,
-): SourceReferences {
+function normaliseSourceReferences(value: unknown): SourceReferences | null {
   if (Array.isArray(value) && value.length > 0 && value.every(hasSourceReference)) {
     return value
   }
-  return [{ dataset, sourceRecordId }]
+  return null
 }
 
 function hasSourceReference(value: unknown): value is SourceReferences[number] {

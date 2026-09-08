@@ -812,9 +812,9 @@ INSERT INTO hkgovAlsAddresses2d (
 SELECT
   r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
   CASE
-    WHEN json_type(r.sources) = 'array' THEN r.sources
-    WHEN json_type(r.sources, '$.hkgovAls') = 'array' THEN json_extract(r.sources, '$.hkgovAls')
-    ELSE json_array(json_object('dataset', 'hkgov-dpo', 'sourceRecordId', r.sourceRecordId))
+    WHEN json_type(r.sources) = 'array' AND json_array_length(r.sources) > 0 THEN r.sources
+    WHEN json_type(r.sources, '$.hkgovAls') = 'array' AND json_array_length(r.sources, '$.hkgovAls') > 0 THEN json_extract(r.sources, '$.hkgovAls')
+    ELSE NULL
   END,
   r.rawProperties
 FROM ${NORMALIZED_ROWS_TABLE} r

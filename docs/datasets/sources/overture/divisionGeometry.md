@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Overture division, area and boundary source rows preserve supplied publisher `sources`.
+When references are absent or empty, source storage uses `null` without generating a
+self-reference from the ingested record ID.
+
 After `sql:resume` recovers retained local batches, resume the owning upload with
 `--continue` to complete release publication. The prerequisite lookup recognises only
 the exact pending release's sealed plans; it does not clear ownership or allow another

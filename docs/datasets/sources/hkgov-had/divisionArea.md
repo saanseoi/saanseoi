@@ -1,5 +1,9 @@
 # Home Affairs Department District Boundary area ingestion
 
+Source storage uses `null` when no provenance references are supplied. Publisher area
+identifiers and archive references are retained when available; internal source-record
+IDs are not manufactured as provenance.
+
 Local geometry materialisation uses WAL-safe SQLite planning copies and receipt-backed
 SQL replay. Sealed plans retain current, history and source mutations, including closed
 assertions, together with checksummed churn outputs. Recovery validates normalised

@@ -54,9 +54,7 @@ export function normaliseHkgovCenstatdInputRow(
           : `CENSTATD:${suppliedDivisionId}`,
       source_geometry: parseJsonGeometryValue(row.source_geometry, 'source_geometry'),
       source_properties: parseJsonValue(row.source_properties, 'source_properties'),
-      sources: normaliseJsonArray(row.sources) ?? [
-        { dataset: 'hkgov-censtatd', sourceRecordId: suppliedDivisionId },
-      ],
+      sources: normaliseJsonArray(row.sources),
       division_id: suppliedDivisionId,
     }
   }
