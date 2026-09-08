@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import { coalesceAlsAliasedPremises } from './hkgovAlsAliasedPremiseCoalescences'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { AlsCurationReviewError } from './hkgovAlsReviewIssue'
 
 function row(input: {
   csu: string
@@ -62,6 +63,14 @@ test('coalesces the reviewed named and structured aliases without losing provena
         blockRef: decision.blockRef,
       }),
     ])
+  rows[0]!.geometry = JSON.stringify({
+    type: 'Point',
+    coordinates: [114.00057, 22.46877],
+  })
+  rows[1]!.geometry = JSON.stringify({
+    type: 'Point',
+    coordinates: [114.00057, 22.46887],
+  })
   const skipMappings = coalesceAlsAliasedPremises(
     structuredClone(rows),
     '2026-08-19.0',
@@ -76,6 +85,75 @@ test('coalesces the reviewed named and structured aliases without losing provena
     id: 'grandeur-terrace-block-1',
     suppressedAddress: { addressId: 'structured-1' },
   })
+})
+
+test('selects B with exact source guards and preserves original points', () => {
+  const pair = () => {
+    const owner = row({
+      csu: '1812336595T20120105',
+      id: 'owner',
+      buildingName: 'GRANDEUR TERRACE BLOCK 1',
+      zhBuildingName: '俊宏軒第一座',
+    })
+    const alias = row({
+      csu: '1812336606P20120105',
+      id: 'alias',
+      buildingName: null,
+      zhBuildingName: null,
+    })
+    owner.geometry = JSON.stringify({
+      type: 'Point',
+      coordinates: [114.00057, 22.46877],
+    })
+    alias.geometry = JSON.stringify({
+      type: 'Point',
+      coordinates: [114.00057, 22.46887],
+    })
+    return [owner, alias] as const
+  }
+  for (const version of [
+    '2026-04-25.0',
+    '2026-07-08.0',
+    '2026-07-10.0',
+    '2026-07-22.0',
+    '2026-08-19.0',
+  ]) {
+    const [owner, alias] = pair()
+    const original = structuredClone([owner, alias])
+    expect(coalesceAlsAliasedPremises([owner, alias], version).get('alias')).toBe(
+      'owner',
+    )
+    expect(owner.geometry).toBe(alias.geometry)
+    expect(alias).toEqual(original[1])
+    expect(
+      JSON.parse(owner.sources).hkgovAlsAliasedPremiseCoalescence.coordinateReview,
+    ).toEqual({
+      publisherOwnerGeometry: JSON.parse(original[0]!.geometry!),
+      publisherAliasGeometry: JSON.parse(alias.geometry!),
+      derivedGeometry: JSON.parse(alias.geometry!),
+    })
+  }
+  const [owner, alias] = pair()
+  expect(() => coalesceAlsAliasedPremises([owner, alias], '2026-04-22.0')).toThrow(
+    'point changed',
+  )
+  alias.geometry = owner.geometry
+  expect(coalesceAlsAliasedPremises([owner, alias], '2026-04-22.0').size).toBe(1)
+  expect(owner.geometry).toContain('22.46877')
+  for (const role of [0, 1]) {
+    const rows = [...pair()]
+    rows[role]!.geometry = JSON.stringify({ type: 'Point', coordinates: [114, 22] })
+    const original = structuredClone(rows)
+    expect(() => coalesceAlsAliasedPremises(rows, '2026-04-25.0')).toThrow(
+      'point changed',
+    )
+    expect(coalesceAlsAliasedPremises(rows, '2026-04-25.0', true).size).toBe(0)
+    expect(rows).toEqual(original)
+  }
+  const future = [...pair()]
+  const original = structuredClone(future)
+  expect(coalesceAlsAliasedPremises(future, '2026-08-20.0').size).toBe(0)
+  expect(future).toEqual(original)
 })
 
 function sharedBuildingRow(id: string, withStreet: boolean) {
@@ -149,6 +227,23 @@ test('requires the paired publisher points to remain identical', () => {
     zhBuildingName: null,
   })
   alias.geometry = JSON.stringify({ type: 'Point', coordinates: [114, 22] })
+  try {
+    coalesceAlsAliasedPremises([owner, alias], '2026-04-22.0')
+    throw new Error('Expected a review error')
+  } catch (error) {
+    expect(error).toBeInstanceOf(AlsCurationReviewError)
+    const review = error as AlsCurationReviewError
+    expect(review.issue).toMatchObject({
+      status: 'unresolved',
+      sourceVersion: '2026-04-22.0',
+      decisionId: 'grandeur-terrace-block-1',
+      assertion: { actual: owner.geometry, expected: alias.geometry },
+      records: [
+        { role: 'owner', row: owner },
+        { role: 'alias', row: alias },
+      ],
+    })
+  }
   expect(() => coalesceAlsAliasedPremises([owner, alias], '2026-08-19.0')).toThrow(
     'point changed',
   )
