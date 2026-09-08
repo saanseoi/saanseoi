@@ -90,6 +90,108 @@
       "en": ["en"],
       "zh-hant": ["zh-hk", "zh-hant", "zh-mo", "zh-tw"],
       "zh-hans": ["zh-hans", "zh-cn", "zh-sg"]
+    },
+    "hongKongArea": {
+      "level": 1,
+      "type": "area"
+    },
+    "subtypeLevels": [
+      {
+        "token": "dependency",
+        "level": 0
+      },
+      {
+        "token": "region",
+        "level": 2
+      }
+    ],
+    "subtypeTypes": [
+      {
+        "token": "country",
+        "type": "country"
+      },
+      {
+        "token": "dependency",
+        "type": "sar"
+      },
+      {
+        "token": "region",
+        "type": "district"
+      }
+    ],
+    "localityClasses": [
+      {
+        "token": "city",
+        "level": 1,
+        "type": "area"
+      },
+      {
+        "token": "town",
+        "level": 3,
+        "type": "town"
+      },
+      {
+        "token": "village",
+        "level": 5,
+        "type": "village"
+      },
+      {
+        "token": "hamlet",
+        "level": 6,
+        "type": "hamlet"
+      }
+    ],
+    "neighbourhoodTypes": [
+      {
+        "tokens": ["macrohood"],
+        "type": "macrohood"
+      },
+      {
+        "tokens": ["neighborhood", "neighbourhood"],
+        "type": "neighbourhood"
+      },
+      {
+        "tokens": ["microhood"],
+        "type": "microhood"
+      }
+    ],
+    "hierarchySubtypes": [
+      {
+        "token": "dependency",
+        "level": 0,
+        "type": "sar"
+      },
+      {
+        "token": "region",
+        "level": 2,
+        "type": "district"
+      },
+      {
+        "token": "macrohood",
+        "level": 4,
+        "type": "macrohood"
+      },
+      {
+        "token": "neighborhood",
+        "level": 5,
+        "type": "neighbourhood"
+      },
+      {
+        "token": "neighbourhood",
+        "level": 5,
+        "type": "neighbourhood"
+      },
+      {
+        "token": "microhood",
+        "level": 6,
+        "type": "microhood"
+      }
+    ],
+    "fallback": {
+      "parentLevel": 1,
+      "rootLevel": 0,
+      "typesByLevel": ["sar", "area", "district", "town", "macrohood", "neighbourhood"],
+      "type": "microhood"
     }
   },
   "implementation": {
