@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-overture-places",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Normalise Overture Place coordinates, names, locale scripts, categories, brands, contacts and publisher addresses; omit records without an identity or point geometry.",
+  "inputs": ["publisher-places"],
+  "outputs": ["places", "placesI18n"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/place.ts",
+    "symbol": "placeNormalisationRule"
+  }
+}

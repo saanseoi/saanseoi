@@ -11,5 +11,13 @@
   "implementation": {
     "path": "apps/harbour-cli/src/lib/identityCurations.ts",
     "symbol": "identityCurationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "geography-identity-review",
+      "summary": "A source geography requires one reviewed canonical identity mapping.",
+      "consequence": "block-ingestion"
+    }
   }
 }

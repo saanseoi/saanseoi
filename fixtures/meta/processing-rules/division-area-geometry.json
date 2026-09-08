@@ -7,12 +7,10 @@
   "summary": "Normalise division area geometry, identities and source references; exclude Guangdong spillover and referent-only geometry.",
   "inputs": ["source-geometry"],
   "outputs": ["divisionAreas"],
-  "parameters": {
-    "excludedRegions": ["CN-GD"],
-    "excludedDivisionIds": ["fb68fc73-3ac6-41c9-a692-22fcf20cb5be"]
-  },
+  "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
     "symbol": "divisionAreaGeometryRule"
-  }
+  },
+  "dependencyIds": ["exclude-division-geometry"]
 }

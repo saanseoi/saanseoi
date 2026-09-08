@@ -1,0 +1,20 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "map_censtatd_district_code_to_canonical_division",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Resolve the selected reviewed C&SD district cohort through canonical HAD division identities and district codes.",
+  "inputs": ["identity-mappings", "district-cohort"],
+  "outputs": ["canonical-district-identities"],
+  "parameters": {
+    "sourceAuthority": "hkgov-censtatd",
+    "targetAuthority": "hkgov-had",
+    "targetCohort": "2022",
+    "domain": "administrative"
+  },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/statisticsSql/censtatdDistrictBridge.ts",
+    "symbol": "censtatdDistrictIdentityRule"
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:077dd057b8b0e50e3b83c0a16ff9b1bd72b5deb2206d563fe4326b2ef219d2dc",
+  "versionHash": "sha256:92f07dff838629658d1176772f721cde63857d0f3cb7119924eb8dcc6c03b207",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -28,58 +28,11 @@
     },
     {
       "operationCode": "decode_wkb_geometry_to_geojson",
-      "type": "bulk",
-      "sourceFieldPath": "geometry",
-      "targetFieldPath": "geometry, bbox",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Decodes source WKB geometry to GeoJSON and calculates its canonical bounding box."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將來源 WKB 幾何解碼為 GeoJSON，並計算標準邊界框。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将来源 WKB 几何解码为 GeoJSON，并计算标准边界框。"
-        }
-      ]
+      "ruleFixture": "wkb-geometry"
     },
     {
       "operationCode": "map_censtatd_district_code_to_canonical_division",
-      "type": "bulk",
-      "sourceFieldPath": "district_code",
-      "targetFieldPath": "divisionId, districtCode",
-      "condition": "Resolves through the C&SD and HAD district identifier bridge for the release's canonical division snapshot.",
-      "mappings": [
-        {
-          "from": "district_code",
-          "to": "identifierBridges.externalCode where authority = hkgov-censtatd, domain = administrative, resourceType = division, cohortKey = 2021"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "divisionId"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "identifierBridges.externalCode where authority = hkgov-had, domain = administrative, resourceType = division, cohortKey = 2022 → districtCode"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Maps each C&SD district code to the canonical district code and division ID used by the history observation."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將每個政府統計處地區代碼對應至歷史觀測資料使用的標準地區代碼及區劃 ID。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
-        }
-      ]
+      "ruleFixture": "censtatd-district-identity"
     },
     {
       "operationCode": "overture_division_locale_inferred",

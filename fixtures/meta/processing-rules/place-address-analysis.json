@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "resolve-place-addresses",
+  "scope": "bulk",
+  "basis": "fixture",
+  "summary": "Resolve Place Address identity using the selected matching policy, accepted supplementary entries and explicitly reviewed decisions.",
+  "inputs": ["places", "official-addresses", "place-address-curations"],
+  "outputs": ["place-address-links", "supplementary-addresses"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/placeSql/supplementaryPlaceAddress.ts",
+    "symbol": "placeAddressAnalysisRule"
+  }
+}

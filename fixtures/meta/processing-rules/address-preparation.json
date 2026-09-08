@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "prepare-als-addresses",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Prepare bilingual ALS premises, consolidate duplicate identities, resolve identity continuity and division context, and construct reviewed 2D and 3D Address collections.",
+  "inputs": ["publisher-occurrences", "als-curations"],
+  "outputs": ["prepared-addresses"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/sources/hkgov/hkgovAls.ts",
+    "symbol": "alsPreparationRule"
+  }
+}

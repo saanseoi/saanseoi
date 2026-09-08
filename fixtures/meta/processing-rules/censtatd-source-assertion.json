@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise_censtatd_statistic_source_assertion",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Validate the prepared C&SD district statistic assertion and reference period; retain publisher properties, native geometry, source references and release ownership.",
+  "inputs": ["prepared-censtatd-district-statistics"],
+  "outputs": ["source-statistic-assertions"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/statisticsSql/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts",
+    "symbol": "censtatdSourceAssertionRule"
+  }
+}

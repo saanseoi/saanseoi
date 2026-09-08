@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-als-addresses",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Normalise prepared ALS premise components and bilingual localisations, apply guarded component corrections and establish Address granularity.",
+  "inputs": ["prepared-addresses"],
+  "outputs": ["address2d", "address2dI18n"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/addressPipeline/normalisation.ts",
+    "symbol": "addressNormalisationRule"
+  }
+}
