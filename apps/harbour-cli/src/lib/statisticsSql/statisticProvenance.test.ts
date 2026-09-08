@@ -1,3 +1,5 @@
+import { expect, test } from 'bun:test'
+import { requireDefined } from '@repo/core/requireDefined'
 import { readObject, type ProvenanceStore } from '@repo/core/provenance'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics'
 import { retainStatisticProvenance } from './statisticProvenance'
@@ -84,8 +86,10 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
   expect(serialised).not.toContain('243.3')
   expect(serialised).not.toContain('243300')
   expect(serialised).not.toContain('DC_GHS:11-2016')
-  const fieldRule = result.manifest.bulk.find(b => b.basis === 'fixture')!
-  const fixture = await readObject(store, fieldRule.fixtures[0]!.object)
+  const fieldRule = requireDefined(
+    result.manifest.bulk.find(b => b.basis === 'fixture'),
+  )
+  const fixture = await readObject(store, requireDefined(fieldRule.fixtures[0]).object)
   expect(fixture).toMatchObject({
     kind: 'statistic-field-curations',
     fields: expect.any(Array),

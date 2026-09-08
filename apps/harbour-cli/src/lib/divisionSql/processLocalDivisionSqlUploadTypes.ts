@@ -47,6 +47,7 @@ export type DivisionSqlImportFile = {
 }
 
 export type DivisionSqlState = {
+  curationDocuments?: Array<{ type: string; document: unknown }>
   currentRows: Map<string, OwnedDivisionVersionSnapshot>
   currentSourceRows: Map<string, OwnedCurrentSourceRecord>
   deletedRows: number

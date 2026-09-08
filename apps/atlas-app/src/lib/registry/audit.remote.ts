@@ -150,9 +150,10 @@ export const getRetainedBulkFixture = query(
   }),
   async input => {
     const { manifest } = await manifestFor(input.releaseId, input.hash)
-    const fixture = manifest.bulk.find(b => b.id === input.bulkId)?.fixtures[
-      input.index
-    ]
+    const fixture =
+      input.bulkId === 'individual-fixtures'
+        ? manifest.individualFixtures?.[input.index]
+        : manifest.bulk.find(b => b.id === input.bulkId)?.fixtures[input.index]
     if (!fixture) throw new Error('Fixture is not declared by this release.')
     return readObject(store(), fixture.object)
   },

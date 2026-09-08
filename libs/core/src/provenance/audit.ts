@@ -1,6 +1,7 @@
 import {
   MAX_OBJECT_BYTES,
   readObject,
+  readValue,
   retainObject,
   serialise,
   validateRef,
@@ -20,8 +21,7 @@ function exact(value: object, keys: string[]) {
 export function validateAuditManifest(value: unknown): asserts value is AuditManifest {
   const m = value as AuditManifest
   if (
-    !m ||
-    m.kind !== 'processing-audit' ||
+    m?.kind !== 'processing-audit' ||
     m.schemaVersion !== 1 ||
     !text(m.releaseId) ||
     !text(m.datasetCode) ||
@@ -42,10 +42,17 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
     'attempt',
     'bulk',
     'guards',
+    'individualFixtures',
     'chunks',
     'applicationCount',
   ])
   const ids = new Set<string>()
+  if (m.individualFixtures !== undefined && !Array.isArray(m.individualFixtures))
+    throw new Error('Invalid individual fixture list.')
+  for (const fixture of m.individualFixtures ?? []) {
+    if (!text(fixture.type)) throw new Error('Invalid individual fixture type.')
+    validateRef(fixture.object)
+  }
   for (const b of m.bulk) {
     exact(b, ['id', 'definition', 'basis', 'summary', 'outcome', 'counts', 'fixtures'])
     if (
@@ -262,7 +269,7 @@ export async function verifyAuditResult(
   manifest: AuditManifest,
 ) {
   validateAuditManifest(manifest)
-  const refs: ObjectRef[] = []
+  const refs: ObjectRef[] = (manifest.individualFixtures ?? []).map(f => f.object)
   for (const b of manifest.bulk) {
     const definition = (await readObject(store, b.definition)) as unknown as {
       id: string
@@ -303,7 +310,10 @@ export async function verifyAuditResult(
       if (ids.has(a.id)) throw new Error('Duplicate individual action.')
       ids.add(a.id)
       refs.push(a.definition)
-      if (a.fixture) refs.push(a.fixture.object)
+      if (a.fixture) {
+        refs.push(a.fixture.object)
+        await readValue(store, { ...a.fixture.object, pointer: a.fixture.pointer })
+      }
     }
     if (
       serialise(index.entries) !==
@@ -333,6 +343,7 @@ export async function transferAuditResult(
     await copy(b.definition)
     for (const f of b.fixtures) await copy(f.object)
   }
+  for (const fixture of manifest.individualFixtures ?? []) await copy(fixture.object)
   for (const c of manifest.chunks) {
     const chunk = (await readObject(source, c)) as unknown as {
       actions: IndividualAudit[]

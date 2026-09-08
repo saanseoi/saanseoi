@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { captureCurationDocuments } from '../curationDocuments'
 import { dirname, resolve } from 'node:path'
 
 import {
@@ -284,17 +285,20 @@ export async function resolveDatasetNameTranslationsBatch(input: {
     await writeFixture(fixturePath, fixture)
   }
 
-  return new Map(
-    input.records.map(record => {
-      const applications = additionsByRecordId.get(record.recordId) ?? []
-      return [
-        record.recordId,
-        {
-          applications,
-          localisations: applications.map(({ locale, name }) => ({ locale, name })),
-        },
-      ] as const
-    }),
+  return captureCurationDocuments(
+    new Map(
+      input.records.map(record => {
+        const applications = additionsByRecordId.get(record.recordId) ?? []
+        return [
+          record.recordId,
+          {
+            applications,
+            localisations: applications.map(({ locale, name }) => ({ locale, name })),
+          },
+        ] as const
+      }),
+    ),
+    [{ type: 'division-translations', document: fixture }],
   )
 }
 
