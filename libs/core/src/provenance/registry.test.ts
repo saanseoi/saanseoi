@@ -6,8 +6,48 @@ import {
   registerProcessingResult,
   retainProcessingResult,
   retainObject,
+  retainAuditResult,
 } from './index'
 import type { Application, ProvenanceStore } from './types'
+
+test('failed guard attempts remain registered and cannot masquerade as completed audits', async () => {
+  const f = await fixture()
+  try {
+    const result = await retainAuditResult(f.store, {
+      releaseId: 'r',
+      datasetCode: 'divisions',
+      attempt: { id: 'failed-attempt', status: 'failed' },
+      bulk: [],
+      individuals: [],
+      guards: [
+        {
+          id: 'source-guard',
+          summary: 'Require reviewed source classification.',
+          consequence: 'block-ingestion',
+          status: 'failed',
+          checked: 1,
+          failed: 1,
+          reason: 'Source drift requires review.',
+        },
+      ],
+    })
+    const saved = await registerProcessingResult(f.db, f.store, 'r', result.ref)
+    expect(saved.attemptStatus).toBe('failed')
+    expect(saved.manifestHash).toBe(result.ref.hash)
+    await expect(
+      retainAuditResult(f.store, {
+        ...result.manifest,
+        individuals: [],
+        attempt: { id: 'invalid', status: 'completed' },
+      }),
+    ).rejects.toThrow()
+    expect(f.sqlite.query('SELECT attemptStatus FROM releaseProvenance').get()).toEqual(
+      { attemptStatus: 'failed' },
+    )
+  } finally {
+    f.sqlite.close()
+  }
+})
 
 async function fixture() {
   const sqlite = new Database(':memory:')

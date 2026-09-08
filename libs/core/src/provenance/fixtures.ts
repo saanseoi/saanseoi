@@ -19,6 +19,7 @@ export async function retainFixturePartitions(
       },
     ]
   const { [arrayKey]: _, ...root } = document
+  const totalEntries = entries.length
   const parts: Array<{ object: ObjectRef; firstOrdinal: number; count: number }> = []
   let firstOrdinal = 0
   let pending: unknown[] = []
@@ -34,7 +35,7 @@ export async function retainFixturePartitions(
     const object = await retainObject(store, {
       ...root,
       [arrayKey]: pending,
-      auditPartition: { firstOrdinal, totalEntries: entries.length },
+      auditPartition: { firstOrdinal, totalEntries },
     })
     parts.push({ object, firstOrdinal, count: pending.length })
     firstOrdinal += pending.length
