@@ -1,11 +1,15 @@
-import { hashValue, readValue } from './objects'
-import { validateApplication } from './validation'
+import { hashValue, readObject } from './objects'
+import { validateApplication, validateManifest } from './validation'
+import { readApplications, verifyProcessingResult } from './bundle'
+import { collectionSchema, validateShape } from './schema'
+import { createProvenanceReader } from './cache'
 import type {
   Application,
   Collection,
   JsonRecord,
   ProvenanceStore,
   RecordKey,
+  ObjectRef,
 } from './types'
 
 export function recordKey(key: RecordKey) {
@@ -19,6 +23,13 @@ export async function reapplyApplications(
   state: ReadonlyMap<string, JsonRecord>,
   applications: Iterable<Application> | AsyncIterable<Application>,
 ): Promise<Map<string, JsonRecord>> {
+  const reader = createProvenanceReader(store)
+  const collectionIds = new Set<string>()
+  for (const collection of collections) {
+    validateShape(collection, collectionSchema)
+    if (collectionIds.has(collection.id)) throw new Error('Duplicate collection.')
+    collectionIds.add(collection.id)
+  }
   const next = new Map([...state].map(([key, value]) => [key, structuredClone(value)]))
   const layers = new Map(collections.map(c => [c.id, c.layer]))
   const ids = new Set<string>()
@@ -46,13 +57,13 @@ export async function reapplyApplications(
       const actual = current === undefined ? null : await hashValue(current)
       if (actual !== effect.before)
         throw new Error(`Effect guard failed: ${application.id}/${key}`)
-      const value = effect.after ? await readValue(store, effect.after) : null
+      const value = effect.after ? await reader.value(effect.after) : null
       if (
         effect.after &&
         (value === null || typeof value !== 'object' || Array.isArray(value))
       )
         throw new Error('Retained output must be a JSON record.')
-      updates.push([key, value])
+      updates.push([key, structuredClone(value) as JsonRecord | null])
     }
     for (const [key, value] of updates) {
       if (value === null) next.delete(key)
@@ -60,4 +71,21 @@ export async function reapplyApplications(
     }
   }
   return next
+}
+
+/** Verify retained definitions/evidence before applying any recorded effects. */
+export async function reapplyProcessingResult(
+  store: ProvenanceStore,
+  ref: ObjectRef,
+  state: ReadonlyMap<string, JsonRecord>,
+) {
+  const manifest = await readObject(store, ref)
+  validateManifest(manifest)
+  await verifyProcessingResult(store, manifest)
+  return reapplyApplications(
+    store,
+    manifest.collections,
+    state,
+    readApplications(store, manifest),
+  )
 }

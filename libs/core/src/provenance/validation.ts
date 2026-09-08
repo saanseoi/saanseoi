@@ -1,5 +1,6 @@
 import { objectKey, validateRef } from './objects'
 import type { Application, ProcessingManifest } from './types'
+import { applicationSchema, manifestSchema, validateShape } from './schema'
 
 function text(value: unknown) {
   if (typeof value !== 'string' || !value.trim())
@@ -17,8 +18,9 @@ export function pointer(value: string) {
     throw new Error('Invalid provenance JSON Pointer.')
 }
 export function validateApplication(value: unknown): asserts value is Application {
+  validateShape(value, applicationSchema)
   const a = value as Application
-  if (!a || a.schemaVersion !== 1 || a.kind !== 'processing-application')
+  if (a?.schemaVersion !== 1 || a.kind !== 'processing-application')
     throw new Error('Unsupported processing application schema.')
   text(a.id)
   text(a.operation)
@@ -83,8 +85,9 @@ export function validateApplication(value: unknown): asserts value is Applicatio
 }
 
 export function validateManifest(value: unknown): asserts value is ProcessingManifest {
+  validateShape(value, manifestSchema)
   const m = value as ProcessingManifest
-  if (!m || m.schemaVersion !== 1 || m.kind !== 'processing-result')
+  if (m?.schemaVersion !== 1 || m.kind !== 'processing-result')
     throw new Error('Unsupported processing manifest schema.')
   text(m.releaseId)
   integer(m.applicationCount)

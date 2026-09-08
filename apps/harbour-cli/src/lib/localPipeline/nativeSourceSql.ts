@@ -202,6 +202,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   rows: T[],
   releaseId: string,
   releaseCode: string,
+  hashPublisherContentOnly = false,
 ) {
   const now = new Date().toISOString()
   return Promise.all(
@@ -215,7 +216,14 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         updatedAt: now,
         validFromRelease: releaseCode,
         validToRelease: null,
-        versionHash: await createHash(payload),
+        // Archive provenance changes between releases even for identical features.
+        versionHash: await createHash(
+          hashPublisherContentOnly
+            ? Object.fromEntries(
+                Object.entries(payload).filter(([key]) => key !== 'sources'),
+              )
+            : payload,
+        ),
       }
     }),
   )
@@ -229,7 +237,12 @@ export async function buildNativeSourceSql(
   const statements: string[] = []
   for (const table of tables) {
     assertIdentifier(table.name, 'table')
-    const rows = await versionNativeSourceRows(table.rows, releaseId, releaseCode)
+    const rows = await versionNativeSourceRows(
+      table.rows,
+      releaseId,
+      releaseCode,
+      table.name === 'hkgovLandsdRoadCentrelines',
+    )
     const ids = [...new Set(rows.map(row => row.sourceRecordId))]
     const currentRowScopes = table.replaceCurrentRows ? [[]] : chunk(ids, 250)
     for (const idsChunk of currentRowScopes) {

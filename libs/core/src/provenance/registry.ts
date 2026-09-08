@@ -15,7 +15,6 @@ export async function registerProcessingResult(
   const manifest = await readObject(store, ref)
   validateManifest(manifest)
   if (manifest.releaseId !== releaseId) throw new Error('Provenance release mismatch.')
-  await verifyProcessingResult(store, manifest)
   const table = metaSchema.releaseProvenance
   const releases = metaSchema.metaReleases
   const release = await db
@@ -26,6 +25,11 @@ export async function registerProcessingResult(
   if (!release) throw new Error('Unknown provenance release.')
   if (release.type === 'street')
     throw new Error('Streets provenance is outside this implementation.')
+  if (
+    manifest.collections.some(c => c.layer === 'canonical' && c.releaseId !== releaseId)
+  )
+    throw new Error('Canonical collection belongs to a different release.')
+  await verifyProcessingResult(store, manifest)
   const existing = await db
     .select()
     .from(table)
@@ -68,7 +72,7 @@ export async function registerProcessingResult(
     .from(table)
     .where(eq(table.releaseId, releaseId))
     .get()
-  if (saved?.manifestHash !== ref.hash)
+  if (saved?.manifestHash !== ref.hash || saved.byteLength !== ref.byteLength)
     throw new Error('Release changed while registering provenance.')
   return saved
 }

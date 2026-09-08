@@ -1,11 +1,6 @@
-import {
-  MAX_OBJECT_BYTES,
-  readObject,
-  readValue,
-  retainObject,
-  serialise,
-} from './objects'
+import { MAX_OBJECT_BYTES, readObject, retainObject, serialise } from './objects'
 import { validateApplication, validateManifest } from './validation'
+import { cachedProvenanceStore, createProvenanceReader } from './cache'
 import type {
   Application,
   ApplicationChunk,
@@ -49,6 +44,9 @@ export async function retainProcessingResult(
     kind: 'processing-applications',
     applications,
   })
+  const encoder = new TextEncoder()
+  const envelopeBytes = encoder.encode(serialise(envelope([]))).length
+  let pendingBytes = envelopeBytes
   async function flush() {
     if (!pending.length) return
     const ref = await retainObject(store, envelope(pending))
@@ -59,6 +57,7 @@ export async function retainProcessingResult(
     })
     manifest.applicationCount += pending.length
     pending = []
+    pendingBytes = envelopeBytes
   }
   for await (const a of input.applications) {
     validateApplication(a)
@@ -74,13 +73,15 @@ export async function retainProcessingResult(
     summary.applicationCount++
     summary.effectCount += a.effects.length
     summaries.set(key, summary)
+    const applicationBytes = encoder.encode(serialise(a)).length
+    if (applicationBytes + envelopeBytes > MAX_OBJECT_BYTES)
+      throw new Error('Application exceeds chunk byte limit; partition the operation.')
     if (
       pending.length &&
-      (pending.length === 256 ||
-        new TextEncoder().encode(serialise(envelope([...pending, a]))).length >
-          MAX_OBJECT_BYTES)
+      (pending.length === 256 || pendingBytes + applicationBytes + 1 > MAX_OBJECT_BYTES)
     )
       await flush()
+    pendingBytes += applicationBytes + (pending.length ? 1 : 0)
     pending.push(a)
   }
   await flush()
@@ -123,6 +124,8 @@ export async function verifyProcessingResult(
   store: ProvenanceStore,
   manifest: ProcessingManifest,
 ) {
+  store = cachedProvenanceStore(store)
+  const reader = createProvenanceReader(store)
   validateManifest(manifest)
   // Dependencies live beside the applications, not in a per-record root index.
   const verified = new Map<string, number>()
@@ -137,15 +140,15 @@ export async function verifyProcessingResult(
       if (previous !== undefined && previous !== ref.byteLength)
         throw new Error('Conflicting dependency lengths.')
       if (previous === undefined) {
-        await readObject(store, ref)
+        await reader.read(ref)
         verified.set(ref.hash, ref.byteLength)
       }
     }
     for (const evidence of a.evidence)
-      await readValue(store, { ...evidence.object, pointer: evidence.pointer })
+      await reader.value({ ...evidence.object, pointer: evidence.pointer })
     for (const effect of a.effects) {
       if (!effect.after) continue
-      const output = await readValue(store, effect.after)
+      const output = await reader.value(effect.after)
       if (!output || typeof output !== 'object' || Array.isArray(output))
         throw new Error('Retained output must be a JSON record.')
     }

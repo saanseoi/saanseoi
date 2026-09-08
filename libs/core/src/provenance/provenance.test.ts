@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { requireDefined } from '../requireDefined'
 import {
   apiFieldView,
   auditView,
@@ -13,6 +14,11 @@ import {
   retainProcessingResult,
   serialise,
   verifyProcessingResult,
+  recordApplications,
+  readValue,
+  reapplyProcessingResult,
+  transferProcessingResult,
+  validateApplication,
 } from './index'
 import type { Application, Collection, JsonRecord, ProvenanceStore } from './types'
 
@@ -118,8 +124,9 @@ describe('retained processing effects', () => {
     })
     expect(await readObject(f.store, ref)).toEqual(manifest)
     const applications = await Array.fromAsync(readApplications(f.store, manifest))
-    expect(auditView(applications[0]!).summary).toBe(f.a.summary)
-    expect(curationView(applications[0]!).id).toBe('name-decision')
+    const application = requireDefined(applications[0])
+    expect(auditView(application).summary).toBe(f.a.summary)
+    expect(curationView(application).id).toBe('name-decision')
     expect(apiFieldView(applications)[0]?.apiField).toBe('address.attributes.name')
     const result = await reapplyApplications(
       f.store,
@@ -143,20 +150,22 @@ describe('retained processing effects', () => {
   test('rejects changed inputs and targets without partial effects', async () => {
     const f = await fixture()
     const state = new Map(f.state)
-    state.set(recordKey(f.a.inputs[0]!), { name: 'Changed publisher' })
+    const input = requireDefined(f.a.inputs[0])
+    const effect = requireDefined(f.a.effects[0])
+    state.set(recordKey(input), { name: 'Changed publisher' })
     await expect(
       reapplyApplications(f.store, collections, state, [f.a]),
     ).rejects.toThrow('Input guard failed')
     expect(state.size).toBe(1)
-    state.set(recordKey(f.a.inputs[0]!), f.raw)
-    state.set(recordKey(f.a.effects[0]!.target), { name: 'Existing' })
+    state.set(recordKey(input), f.raw)
+    state.set(recordKey(effect.target), { name: 'Existing' })
     await expect(
       reapplyApplications(f.store, collections, state, [f.a]),
     ).rejects.toThrow('Effect guard failed')
   })
   test('records a merge and subsequent exclusion in order', async () => {
     const f = await fixture()
-    const second = { ...f.a.inputs[0]!, id: '2' }
+    const second = { ...requireDefined(f.a.inputs[0]), id: '2' }
     f.state.set(recordKey(second), f.raw)
     const merge = {
       ...f.a,
@@ -171,7 +180,7 @@ describe('retained processing effects', () => {
       inputs: [],
       effects: [
         {
-          target: f.a.effects[0]!.target,
+          target: requireDefined(f.a.effects[0]).target,
           before: await hashValue(f.output),
           after: null,
         },
@@ -190,7 +199,12 @@ describe('retained processing effects', () => {
       reapplyApplications(f.store, collections, f.state, [
         {
           ...f.a,
-          effects: [{ ...f.a.effects[0]!, target: { collection: 'raw', id: '1' } }],
+          effects: [
+            {
+              ...requireDefined(f.a.effects[0]),
+              target: { collection: 'raw', id: '1' },
+            },
+          ],
         },
       ]),
     ).rejects.toThrow('canonical')
@@ -210,7 +224,7 @@ describe('retained processing effects', () => {
   })
   test('missing evidence and corrupted output prevent retention/replay', async () => {
     const f = await fixture()
-    f.objects.delete(objectKey(f.a.evidence[0]!.object.hash))
+    f.objects.delete(objectKey(requireDefined(f.a.evidence[0]).object.hash))
     await expect(
       retainProcessingResult(f.store, {
         releaseId: 'release',
@@ -219,7 +233,7 @@ describe('retained processing effects', () => {
       }),
     ).rejects.toThrow('Missing provenance')
     f.objects.set(
-      objectKey(f.a.effects[0]!.after!.hash),
+      objectKey(requireDefined(requireDefined(f.a.effects[0]).after).hash),
       new TextEncoder().encode('{}').buffer,
     )
     await expect(
@@ -254,7 +268,118 @@ describe('retained processing effects', () => {
   test('canonical JSON retains null, sorts keys and rejects lossy values', async () => {
     expect(await hashValue({ b: 1, a: null })).toBe(await hashValue({ a: null, b: 1 }))
     expect(await hashValue({ a: null })).not.toBe(await hashValue({}))
-    for (const value of [undefined, NaN, Infinity, { a: undefined }, new Date()])
+    for (const value of [
+      undefined,
+      NaN,
+      Infinity,
+      { a: undefined },
+      new Date(),
+      new Array(1),
+    ])
       expect(() => serialise(value)).toThrow()
+  })
+  test('packs guarded inputs, evidence and outputs with a small root and bounded storage reads', async () => {
+    const f = await fixture()
+    let reads = 0
+    const store: ProvenanceStore = {
+      ...f.store,
+      async get(key) {
+        reads++
+        return f.store.get(key)
+      },
+    }
+    const observed = Array.from({ length: 4097 }, (_, index) => ({
+      ...f.a,
+      id: String(index),
+      evidence: [],
+      inputs: [{ collection: 'raw', id: String(index), value: { index } }],
+      evidenceValues: [
+        { role: 'decision-context', value: { index, method: 'reviewed' } },
+      ],
+      effects: [
+        {
+          target: { collection: 'addresses', id: String(index) },
+          before: null,
+          after: { index, name: 'Retained' },
+        },
+      ],
+    }))
+    const result = await retainProcessingResult(store, {
+      releaseId: 'release',
+      collections,
+      applications: recordApplications(store, observed),
+    })
+    expect(result.ref.byteLength).toBeLessThan(10000)
+    expect(f.objects.size).toBeLessThan(45)
+    expect(reads).toBeLessThan(300)
+    const last = requireDefined(
+      (await Array.fromAsync(readApplications(store, result.manifest, 4096, 1)))[0],
+    )
+    expect(
+      await readValue(store, requireDefined(requireDefined(last.effects[0]).after)),
+    ).toEqual({
+      index: 4096,
+      name: 'Retained',
+    })
+    const evidence = requireDefined(
+      last.evidence.find(e => e.role === 'decision-context'),
+    )
+    expect(
+      await readValue(store, { ...evidence.object, pointer: evidence.pointer }),
+    ).toEqual({ index: 4096, method: 'reviewed' })
+  })
+  test('transfers a closed graph and reapplies it after the producer store is removed', async () => {
+    const f = await fixture()
+    const result = await retainProcessingResult(f.store, {
+      releaseId: 'release',
+      collections,
+      applications: [f.a],
+    })
+    const destination = memoryStore()
+    await transferProcessingResult(f.store, destination.store, result.ref)
+    f.objects.clear()
+    const replayed = await reapplyProcessingResult(
+      destination.store,
+      result.ref,
+      f.state,
+    )
+    expect(replayed.get(recordKey(requireDefined(f.a.effects[0]).target))).toEqual(
+      f.output,
+    )
+    requireDefined(replayed.get(recordKey(requireDefined(f.a.inputs[0])))).name =
+      'Caller edit'
+    expect(f.raw.name).toBe('PUBLISHER NAME')
+    destination.objects.delete(objectKey(requireDefined(f.a.evidence[0]).object.hash))
+    await expect(
+      reapplyProcessingResult(destination.store, result.ref, f.state),
+    ).rejects.toThrow('Missing provenance')
+  })
+  test('rejects malformed schema members, nonexistent evidence pointers and null outputs', async () => {
+    const f = await fixture()
+    for (const value of [
+      { ...f.a, unrecognised: true },
+      { ...f.a, schemaVersion: 2 },
+      { ...f.a, fields: [{ ...f.a.fields[0], apiFields: 'not-an-array' }] },
+    ])
+      expect(() => validateApplication(value)).toThrow()
+    await expect(
+      retainProcessingResult(f.store, {
+        releaseId: 'release',
+        collections,
+        applications: [
+          {
+            ...f.a,
+            evidence: [{ ...requireDefined(f.a.evidence[0]), pointer: '/missing' }],
+          },
+        ],
+      }),
+    ).rejects.toThrow('Missing retained value')
+    const after = await retainObject(f.store, null)
+    await expect(
+      reapplyApplications(f.store, collections, f.state, [
+        { ...f.a, effects: [{ ...requireDefined(f.a.effects[0]), after }] },
+      ]),
+    ).rejects.toThrow('JSON record')
+    expect(f.state.size).toBe(1)
   })
 })
