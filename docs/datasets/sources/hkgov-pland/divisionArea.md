@@ -1,5 +1,15 @@
 # Planning Department TPU and subunit areas
 
+Division release churn compares canonical IDs and version hashes with the preceding
+Planning inventory. Source feature counts count importer input cells; division totals
+include the primary, secondary, tertiary and subunit hierarchy. Geometry repair counts
+count affected output divisions and appear under Quality Checks.
+
+Local retained inventories can backfill aggregate churn with
+`apps/harbour-cli/scripts/backfillPlanningChurn.ts META.sqlite HISTORY.sqlite`. The
+script validates complete inventories and defaults to a dry run; `--apply` replaces only
+aggregate churn statistics in one transaction.
+
 The processor registers `planning-division-normalisation.json` from
 `fixtures/meta/processing-rules/`. Its frozen declaration is shared with the retained
 processing audit; selected reviewed fixtures remain separate inputs.
