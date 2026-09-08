@@ -10,21 +10,26 @@ import {
 import { getAuthHeaders, resolveHarbourApiUrl } from './api'
 import type { UploadTarget } from '../cli/options'
 
-/** Upload retained results, never regenerate decisions during delivery/retry. */
-export async function deliverProcessingResult(
-  target: UploadTarget,
-  source: ProvenanceStore,
-  ref: ObjectRef,
+const PROVENANCE_UPLOAD_RETRY_LIMIT = 3
+const PROVENANCE_UPLOAD_RETRY_DELAY_MS = 250
+
+function isRetryableProvenanceUploadError(error: unknown) {
+  return (
+    error instanceof Error &&
+    /database is locked|sqlite_busy|internal error/i.test(error.message)
+  )
+}
+
+async function uploadProvenanceObject(
+  baseUrl: string,
+  headers: Record<string, string>,
+  hash: string,
+  bytes: ArrayBuffer,
 ) {
-  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
-  const headers = getAuthHeaders()
-  const destination: ProvenanceStore = {
-    // Uploads are idempotent at the content-addressed endpoint. No remote HEAD required.
-    async get() {
-      return null
-    },
-    async put(_key, bytes) {
-      const hash = await hashBytes(new Uint8Array(bytes))
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= PROVENANCE_UPLOAD_RETRY_LIMIT; attempt += 1) {
+    try {
       const response = await fetch(`${baseUrl}/v1/provenance/objects/${hash}`, {
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
@@ -43,6 +48,82 @@ export async function deliverProcessingResult(
         throw new Error(
           result.error ?? `Provenance upload failed (${response.status}).`,
         )
+      return
+    } catch (error) {
+      lastError = error
+      if (
+        attempt === PROVENANCE_UPLOAD_RETRY_LIMIT ||
+        !isRetryableProvenanceUploadError(error)
+      )
+        throw error
+      await new Promise(resolve =>
+        setTimeout(resolve, PROVENANCE_UPLOAD_RETRY_DELAY_MS * 2 ** attempt),
+      )
+    }
+  }
+
+  throw lastError
+}
+
+async function registerProvenanceResult(
+  baseUrl: string,
+  headers: Record<string, string>,
+  releaseId: string,
+  ref: ObjectRef,
+) {
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= PROVENANCE_UPLOAD_RETRY_LIMIT; attempt += 1) {
+    try {
+      const response = await fetch(
+        `${baseUrl}/v1/provenance/releases/${encodeURIComponent(releaseId)}`,
+        {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: serialise(ref),
+        },
+      )
+      const result = (await response.json()) as {
+        manifestHash?: string
+        error?: string
+      }
+      if (!response.ok || result.manifestHash !== ref.hash)
+        throw new Error(
+          result.error ?? `Provenance registration failed (${response.status}).`,
+        )
+      return
+    } catch (error) {
+      lastError = error
+      if (
+        attempt === PROVENANCE_UPLOAD_RETRY_LIMIT ||
+        !isRetryableProvenanceUploadError(error)
+      )
+        throw error
+      await new Promise(resolve =>
+        setTimeout(resolve, PROVENANCE_UPLOAD_RETRY_DELAY_MS * 2 ** attempt),
+      )
+    }
+  }
+
+  throw lastError
+}
+
+/** Upload retained results, never regenerate decisions during delivery/retry. */
+export async function deliverProcessingResult(
+  target: UploadTarget,
+  source: ProvenanceStore,
+  ref: ObjectRef,
+) {
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
+  const headers = getAuthHeaders()
+  const destination: ProvenanceStore = {
+    // Uploads are idempotent at the content-addressed endpoint. No remote HEAD required.
+    async get() {
+      return null
+    },
+    async put(_key, bytes) {
+      const hash = await hashBytes(new Uint8Array(bytes))
+      await uploadProvenanceObject(baseUrl, headers, hash, bytes)
     },
   }
   // retainObject verifies readback, so provide a bounded cache of acknowledged uploads.
@@ -61,17 +142,5 @@ export async function deliverProcessingResult(
     },
   }
   const manifest = await transferProcessingResult(source, remote, ref)
-  const response = await fetch(
-    `${baseUrl}/v1/provenance/releases/${encodeURIComponent(manifest.releaseId)}`,
-    {
-      method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: serialise(ref),
-    },
-  )
-  const result = (await response.json()) as { manifestHash?: string; error?: string }
-  if (!response.ok || result.manifestHash !== ref.hash)
-    throw new Error(
-      result.error ?? `Provenance registration failed (${response.status}).`,
-    )
+  await registerProvenanceResult(baseUrl, headers, manifest.releaseId, ref)
 }
