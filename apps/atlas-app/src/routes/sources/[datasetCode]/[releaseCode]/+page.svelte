@@ -591,17 +591,22 @@ $effect(() => {
               />
             {/key}
           {:else if activeTab === 'audit'}
-            <ReleaseAudit.Root
-              analyticsSurface="source_release"
-              actions={version.processingActions}
-              actionSections={auditData?.sections}
-              {bulkActions}
-              {locale}
-              {showBulkActions}
-              onLoadMoreSection={loadMoreAuditSection}
-              bind:headings={auditHeadings}
-              bind:activeHeadingId={activeAuditHeadingId}
-            />
+            <ReleaseAudit.Retained
+              datasetCode={params.datasetCode}
+              releaseCode={params.releaseCode}
+            >
+              <ReleaseAudit.Root
+                analyticsSurface="source_release"
+                actions={version.processingActions}
+                actionSections={auditData?.sections}
+                {bulkActions}
+                {locale}
+                {showBulkActions}
+                onLoadMoreSection={loadMoreAuditSection}
+                bind:headings={auditHeadings}
+                bind:activeHeadingId={activeAuditHeadingId}
+              />
+            </ReleaseAudit.Retained>
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
