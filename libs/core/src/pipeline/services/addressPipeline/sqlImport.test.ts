@@ -78,7 +78,7 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
         'authoritative', 0, 'draft', NULL, NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotSources (
-        snapshotId, datasetId, sourceReleaseId, role, selectedByRule, selectionMode,
+        snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode,
         anchorReleaseId, sourceCohortKey, createdAt
       ) VALUES (
         'address-snapshot', 'dataset-address', 'release-address', 'primary', 'snapshot-assembly-address-v1',

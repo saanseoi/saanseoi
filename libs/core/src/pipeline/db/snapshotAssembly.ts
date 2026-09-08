@@ -59,7 +59,7 @@ export async function recordEffectiveSnapshotAssembly(
   const sources = await db
     .select({
       datasetId: metaSnapshotSources.datasetId,
-      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
       role: metaSnapshotSources.role,
       selectedByRule: metaSnapshotSources.selectedByRule,
       selectionMode: metaSnapshotSources.selectionMode,
