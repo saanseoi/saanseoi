@@ -3,9 +3,9 @@ import type { RuleDeclaration } from './auditTypes'
 import type { JsonRecord } from './types'
 
 /** Validate JSON declarations while preserving the executor's inferred parameter types. */
-export function ruleDeclarationFromFixture<P extends JsonRecord>(fixture: {
-  parameters: P
-}): RuleDeclaration & { parameters: P } {
+export function ruleDeclarationFromFixture<F extends { parameters: JsonRecord }>(
+  fixture: F,
+): RuleDeclaration & { parameters: F['parameters'] } {
   if (!fixture || typeof fixture !== 'object' || Array.isArray(fixture))
     throw new Error('Invalid processing rule declaration fixture.')
   const value = fixture as unknown as Record<string, unknown>
@@ -30,5 +30,5 @@ export function ruleDeclarationFromFixture<P extends JsonRecord>(fixture: {
   )
     throw new Error('Invalid processing rule declaration fixture.')
   serialise(value)
-  return fixture as RuleDeclaration & { parameters: P }
+  return fixture as F & RuleDeclaration
 }

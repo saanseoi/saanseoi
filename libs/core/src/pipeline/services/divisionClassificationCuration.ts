@@ -1,6 +1,10 @@
 import fixture from '../../../../../fixtures/meta/curations/overture-division-classification.json'
 import { ProcessingGuardError } from '../../provenance/guards'
 import { registerRule } from '../../provenance/auditTypes'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
+import type { DatasetProcessingMessage } from '../../types'
+
+type ClassificationSource = Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>
 
 export function validateDivisionClassificationFixture(value: unknown) {
   const f = value as typeof fixture
@@ -37,13 +41,29 @@ export function validateDivisionClassificationFixture(value: unknown) {
 export const divisionClassificationFixture =
   validateDivisionClassificationFixture(fixture)
 
-function applyClassification(row: Record<string, unknown>) {
+function applyClassification({
+  row,
+  source,
+}: {
+  row: Record<string, unknown>
+  source?: ClassificationSource
+}) {
   const entry = divisionClassificationFixture.entries.find(e => e.divisionId === row.id)
   if (!entry) return null
   const adminLevel = Number(row.admin_level ?? row.adminLevel)
+  const schema =
+    source && resolveSourceRecordSchema({ ...source, resourceType: 'division' })
+  const adminLevelAbsentFromSchema =
+    source?.source === 'overture' &&
+    schema &&
+    !schema.fields.some(field => field.name === 'admin_level')
+  const adminLevelOmitted =
+    !Object.hasOwn(row, 'admin_level') && !Object.hasOwn(row, 'adminLevel')
   if (
+    (source && source.source !== 'overture') ||
     (row.source && row.source !== 'overture') ||
-    adminLevel !== entry.expected.adminLevel ||
+    (!(adminLevelAbsentFromSchema && adminLevelOmitted) &&
+      adminLevel !== entry.expected.adminLevel) ||
     (row.class ?? null) !== entry.expected.class ||
     row.subtype !== entry.expected.subtype
   )
@@ -85,4 +105,9 @@ export const divisionClassificationRule = registerRule(
   applyClassification,
 )
 
-export const applyDivisionClassificationCuration = divisionClassificationRule.execute
+export function applyDivisionClassificationCuration(
+  row: Record<string, unknown>,
+  source?: ClassificationSource,
+) {
+  return divisionClassificationRule.execute({ row, source })
+}

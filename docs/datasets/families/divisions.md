@@ -281,12 +281,12 @@ For Hong Kong Overture divisions, locale-less Chinese names—including alternat
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
 `zh-hant`.
 
-## Reviewable API name translations
-
 Overture division hierarchy columns follow the accepted schema for the declared source
 release. From `2026-02-18.0`, the Parquet file must contain `admin_level`; earlier
 cohorts use subtype, class, parent and name fields. Missing required columns block
 processing.
+
+## Reviewable API name translations
 
 Division imports complete the API's `en`, `zh-hant`, and `zh-hans` name locales only
 when a publisher has supplied at least one name. A missing Simplified Chinese value is
