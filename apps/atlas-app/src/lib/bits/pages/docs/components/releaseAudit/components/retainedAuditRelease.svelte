@@ -17,7 +17,10 @@ let failure = $state('')
 let requested = $state(false)
 let matchingBulkIds = $state<string[] | null>(null)
 let generation = 0
+let loadedQuery = ''
 async function load(reset = false) {
+  reset ||= loadedQuery !== query
+  loadedQuery = query
   const request = ++generation
   loading = true
   requested = true

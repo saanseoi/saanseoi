@@ -69,6 +69,15 @@ export type CenstatdMeasureMetadata = {
 }
 
 export type CenstatdFieldLocalisation = {
+  /** Missing metadata means origin unrecorded, not publisher text or translation. */
+  origin?:
+    | { kind: 'publisher' | 'authored' }
+    | {
+        kind: 'machine-translated' | 'human-translated'
+        sourceLocale: string
+        sourceName: string
+        sourceDescription: string
+      }
   description: string
   isTranslationVerified: boolean
   locale: 'en' | 'zh-Hans' | 'zh-Hant'

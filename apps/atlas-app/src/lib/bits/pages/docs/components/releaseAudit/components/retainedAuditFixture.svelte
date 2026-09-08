@@ -30,10 +30,22 @@ const label = (key: string) =>
 
 {#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.fields)}
   <FieldMappings fields={value.fields} />
+  <details class="mt-3">
+    <summary class="cursor-pointer text-sm">
+      Complete fixture properties and localisations
+    </summary>
+    <div class="pt-3">{@render render(value)}</div>
+  </details>
 {:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.mappings)}
   <IdentityMappings mappings={value.mappings} />
 {:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.measures)}
   <Measures measures={value.measures} />
+  <details class="mt-3">
+    <summary class="cursor-pointer text-sm">
+      Complete fixture properties and localisations
+    </summary>
+    <div class="pt-3">{@render render(value)}</div>
+  </details>
 {:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries) && value.entries.some(e => e && typeof e === 'object' && !Array.isArray(e) && ('targetLocale' in e || 'sourceLocale' in e))}
   <Translations entries={value.entries} />
 {:else}

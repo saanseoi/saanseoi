@@ -23,6 +23,7 @@ import { requiredFieldName, requiredText } from './censtatdMeasureCurationValida
 import { suggestMeasureName } from './censtatdMeasureCurationSchema.ts'
 import {
   isLocalisationVerified,
+  reviewedLocalisationOrigin,
   resolveChineseLocalisationProposals,
   schemaCandidateLocalisation,
 } from './censtatdMeasureCurationLocalisation.ts'
@@ -156,6 +157,11 @@ export async function promptForCenstatdFieldCuration(input: {
           isTranslationVerified: true,
           locale: 'en',
           name: englishName,
+          origin: reviewedLocalisationOrigin(
+            schemaCandidateLocalisation(schemaCandidate, 'en'),
+            englishName,
+            englishDescription,
+          ),
         },
         {
           description: traditionalChineseDescription,
@@ -166,6 +172,12 @@ export async function promptForCenstatdFieldCuration(input: {
           ),
           locale: 'zh-Hant',
           name: traditionalChineseName,
+          origin: reviewedLocalisationOrigin(
+            chineseProposals.zhHant,
+            traditionalChineseName,
+            traditionalChineseDescription,
+            { name: englishName, description: englishDescription },
+          ),
         },
         {
           description: simplifiedChineseDescription,
@@ -176,6 +188,12 @@ export async function promptForCenstatdFieldCuration(input: {
           ),
           locale: 'zh-Hans',
           name: simplifiedChineseName,
+          origin: reviewedLocalisationOrigin(
+            chineseProposals.zhHans,
+            simplifiedChineseName,
+            simplifiedChineseDescription,
+            { name: englishName, description: englishDescription },
+          ),
         },
       ]
     }

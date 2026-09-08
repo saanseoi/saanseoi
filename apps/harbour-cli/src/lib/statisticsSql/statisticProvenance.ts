@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { retainStatisticTranslations } from './statisticTranslationAudit'
 import apiFieldDeclarations from '../../../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
 import {
   retainAuditResult,
@@ -247,6 +248,10 @@ export async function retainStatisticProvenance(
     attempt: { id: releaseId, status: failed ? 'failed' : 'completed' },
     bulk,
     guards,
-    individuals: [],
+    individuals: await retainStatisticTranslations(store, {
+      ...input,
+      appliedFields: new Set(canonical.fields.map(field => field.fieldName)),
+      appliedMeasures: new Set(canonical.measures.map(measure => measure.measureCode)),
+    }),
   })
 }

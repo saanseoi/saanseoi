@@ -1,4 +1,5 @@
 import { note } from '@clack/prompts'
+import { validLocalisationOrigin } from './censtatdMeasureCurationLocalisation'
 import { captureCurationDocuments, type CurationDocument } from '../curationDocuments'
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -156,7 +157,8 @@ export async function loadCenstatdMeasureMetadata(
           typeof localisation.description !== 'string' ||
           !localisation.description.trim() ||
           typeof localisation.isTranslationVerified !== 'boolean' ||
-          locales.has(localisation.locale)
+          locales.has(localisation.locale) ||
+          !validLocalisationOrigin(localisation.origin)
         ) {
           throw new Error(`Invalid C&SD measure localisation: ${path}.`)
         }
@@ -386,7 +388,8 @@ export function parseCenstatdFieldCuration(value: unknown, path: string) {
         typeof localisation.description !== 'string' ||
         !localisation.description.trim() ||
         typeof localisation.isTranslationVerified !== 'boolean' ||
-        locales.has(localisation.locale)
+        locales.has(localisation.locale) ||
+        !validLocalisationOrigin(localisation.origin)
       ) {
         throw new Error(`Invalid C&SD field localisation: ${path}.`)
       }
