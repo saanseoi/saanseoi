@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "kind": "division-classification-patches",
+  "entries": [
+    {
+      "id": "overture_hong_kong_lok_ma_chau_loop_reclassified",
+      "source": "overture",
+      "divisionId": "222b7818-970a-491d-98b6-b88d8c6f0161",
+      "names": ["Lok Ma Chau Loop", "落馬洲河套地區"],
+      "expected": { "adminLevel": 2, "class": null, "subtype": "region" },
+      "replacement": { "level": 4, "type": "macrohood" },
+      "reason": "Lok Ma Chau Loop is a local area within Hong Kong, not a peer of the district-level regions. Retain the publisher classification in source storage and use the reviewed local-area classification in canonical records and hierarchy lookup."
+    }
+  ]
+}
