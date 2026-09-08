@@ -4,6 +4,7 @@ import { isDeepStrictEqual } from 'node:util'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-issue-batch.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
+import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 import type {
   HkgovLocalisedPremisesAddress,
   PreparedHkgovAlsRow,
@@ -178,9 +179,7 @@ export function applyApprovedIssueBatch(
         })
     } catch (error) {
       if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
-      console.warn(
-        `Unresolved curation retained without applying ${rule.id}: ${error.message}`,
-      )
+      reportAlsCurationGuard(version, curationFile, rule.id, error)
     }
   }
 }

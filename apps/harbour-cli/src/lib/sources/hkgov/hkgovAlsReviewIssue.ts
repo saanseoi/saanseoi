@@ -14,8 +14,32 @@ export type AlsReviewIssue = {
 
 /** Machine-readable line retained by the ingestion log without approving an identity. */
 export function reportAlsReviewIssue(
-  issue: AlsReviewIssue,
+  issue: AlsReviewIssue | AlsCurationGuardIssue,
   warn: (line: string) => void = console.warn,
 ) {
   warn(`ALS_MANUAL_REVIEW ${JSON.stringify({ ...issue, status: 'unresolved' })}`)
+}
+
+export type AlsCurationGuardIssue = {
+  code: 'curation-guard-mismatch'
+  sourceVersion: string
+  curationFile: string
+  decisionId: string
+  message: string
+}
+
+/** A skipped guard is an unresolved correction, not a verified source change. */
+export function reportAlsCurationGuard(
+  sourceVersion: string,
+  curationFile: string,
+  decisionId: string,
+  error: Error,
+) {
+  reportAlsReviewIssue({
+    code: 'curation-guard-mismatch',
+    sourceVersion,
+    curationFile,
+    decisionId,
+    message: error.message,
+  })
 }

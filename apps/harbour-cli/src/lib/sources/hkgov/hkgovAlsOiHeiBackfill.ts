@@ -1,6 +1,7 @@
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-oi-hei-backfill.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 
 export function backfillOiHei(
   rows: PreparedHkgovAlsRow[],
@@ -49,5 +50,11 @@ export function backfillOiHei(
     })
   } catch (error) {
     if (!skip || !(error instanceof AssertionError)) throw error
+    reportAlsCurationGuard(
+      version,
+      'hkgov-dpo-address-oi-hei-backfill.json',
+      'oi-hei-backfill',
+      error,
+    )
   }
 }

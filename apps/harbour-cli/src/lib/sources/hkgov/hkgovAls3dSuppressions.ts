@@ -5,6 +5,7 @@ import { assertKoYeeEmptyInventory } from './hkgovAlsKoYeeDuplicate'
 import { assertApprovedEmptyInventory } from './hkgovAlsApprovedEstateBatch'
 import { approvedIssue3dSuppression } from './hkgovAlsApprovedIssueBatch'
 import { reviewedYueWan3dSuppression } from './hkgovAlsYueWanSuppression'
+import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
@@ -16,6 +17,12 @@ export function als3dSuppression(feature: Als3dFeature, version: string, skip = 
     return resolveAls3dSuppression(feature, version, skip)
   } catch (error) {
     if (!skip || !(error instanceof AssertionError)) throw error
+    reportAlsCurationGuard(
+      version,
+      'hkgov-dpo-address-3d-suppressions.json',
+      `source-assertion:${als3dHash(feature)}`,
+      error,
+    )
     return undefined
   }
 }

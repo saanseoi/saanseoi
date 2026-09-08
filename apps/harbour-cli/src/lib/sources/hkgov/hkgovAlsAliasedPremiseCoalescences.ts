@@ -2,6 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 
 const curationFile = 'hkgov-dpo-address-aliased-premise-coalescences.json'
 
@@ -61,6 +62,7 @@ export function coalesceAlsAliasedPremises(
         )
       } catch (error) {
         if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+        reportAlsCurationGuard(version, curationFile, decision.id, error)
         continue
       }
       const owner = requireDefined(
@@ -130,6 +132,7 @@ export function coalesceAlsAliasedPremises(
       )
     } catch (error) {
       if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+      reportAlsCurationGuard(version, curationFile, decision.id, error)
       // A stale curation must not merge or rewrite the publisher assertions.
       continue
     }
