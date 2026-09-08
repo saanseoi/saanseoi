@@ -39,24 +39,27 @@ test('individual search reads indexes and only matching action chunks; transfer 
   const fixture = await retainObject(store, {
     entries: [{ sourceText: 'River', translation: '河' }],
   })
-  const individuals: IndividualAudit[] = Array.from({ length: 300 }, (_, i) => ({
-    id: `action-${i}`,
-    operation: 'translate',
-    basis: 'fixture',
-    outcome: 'applied',
-    summary: 'Translate a name.',
-    reason: 'Reviewed translation.',
-    definition,
-    fixture: { object: fixture, pointer: '/entries/0' },
-    record: {
-      id: `division-${i}`,
-      names: [i === 280 ? '河' : 'River'],
-      parents: [
-        { id: 'parent', names: [i === 280 ? 'North district' : 'South district'] },
-      ],
-    },
-    context: {},
-  }))
+  const individuals: IndividualAudit[] = Array.from(
+    { length: 300 },
+    (_, i): IndividualAudit => ({
+      id: `action-${i}`,
+      operation: 'translate',
+      basis: 'fixture',
+      outcome: 'applied',
+      summary: 'Translate a name.',
+      reason: 'Reviewed translation.',
+      definition,
+      fixture: { object: fixture, pointer: '/entries/0' },
+      record: {
+        id: `division-${i}`,
+        names: [i === 280 ? '河' : 'River'],
+        parents: [
+          { id: 'parent', names: [i === 280 ? 'North district' : 'South district'] },
+        ],
+      },
+      context: i === 281 ? { replacement: { type: 'macrohood' } } : {},
+    }),
+  )
   const result = await retainAuditResult(store, {
     releaseId: 'release',
     datasetCode: 'divisions',
@@ -66,6 +69,44 @@ test('individual search reads indexes and only matching action chunks; transfer 
     individuals,
   })
   expect(result.manifest.chunks).toHaveLength(2)
+  expect(
+    (
+      await readAuditPage(store, result.manifest, 'macrohood', 0, 50, {
+        category: 'translations',
+      })
+    ).rows.map(row => row.id),
+  ).toEqual(['action-281'])
+  const fixturePage = await readAuditPage(store, result.manifest, '', 250, 50, {
+    fixture: { hash: fixture.hash, pointer: '/entries/0' },
+  })
+  expect(fixturePage.rows).toHaveLength(50)
+  expect(fixturePage.rows[0]?.id).toBe('action-250')
+  expect(fixturePage.nextOffset).toBeNull()
+  expect(
+    (
+      await readAuditPage(store, result.manifest, '', 0, 50, {
+        fixture: { hash: fixture.hash, pointer: '/entries/1' },
+      })
+    ).total,
+  ).toBe(0)
+  expect(
+    (
+      await readAuditPage(store, result.manifest, '', 0, 50, {
+        fixture: { hash: definition.hash, pointer: '/entries/0' },
+      })
+    ).total,
+  ).toBe(0)
+  expect(
+    (
+      await readAuditPage(store, result.manifest, '', 0, 50, {
+        category: 'translations',
+      })
+    ).total,
+  ).toBe(300)
+  expect(
+    (await readAuditPage(store, result.manifest, '', 0, 50, { category: 'curations' }))
+      .total,
+  ).toBe(0)
   reads.length = 0
   const page = await readAuditPage(store, result.manifest, 'north 河')
   expect(page.rows.map(r => r.id)).toEqual(['action-280'])

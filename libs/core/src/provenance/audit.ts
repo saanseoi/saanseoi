@@ -10,6 +10,7 @@ import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { createProvenanceReader } from './cache'
 import type { BulkAudit } from './auditTypes'
+import { auditActionCategory } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
 import { validateShape } from './schema'
 
@@ -83,7 +84,21 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
     ids.add(b.id)
     validateRef(b.definition)
     if (b.search) validateRef(b.search)
-    exact(b.counts, ['inputs', 'outputs', 'recordsAffected', 'decisions'])
+    exact(b.counts, ['inputs', 'outputs', 'recordsAffected', 'decisions', 'branches'])
+    if (b.counts.branches !== undefined) {
+      if (!isObject(b.counts.branches)) throw new Error('Invalid branch counts.')
+      for (const [id, branch] of Object.entries(b.counts.branches)) {
+        if (
+          !text(id) ||
+          !isObject(branch) ||
+          !count(branch.matched) ||
+          !count(branch.changed) ||
+          branch.changed > branch.matched
+        )
+          throw new Error('Invalid branch counts.')
+        exact(branch, ['matched', 'changed'])
+      }
+    }
     if (
       !count(b.counts.recordsAffected) ||
       ![b.counts.inputs, b.counts.outputs, b.counts.decisions].every(
@@ -155,6 +170,8 @@ function validateIndividual(a: IndividualAudit) {
   )
     throw new Error('Invalid individual audit.')
   validateRef(a.definition)
+  if (a.review && a.basis !== 'fixture')
+    throw new Error('Review origins require a reviewed fixture.')
   if (a.basis === 'fixture' && !a.fixture)
     throw new Error('Individual curation requires a retained fixture.')
   if (a.fixture) {
@@ -265,6 +282,10 @@ export async function readAuditPage(
   query = '',
   offset = 0,
   limit = 50,
+  filter?: {
+    category?: ReturnType<typeof auditActionCategory>
+    fixture?: { hash: string; pointer: string }
+  },
 ) {
   validateAuditManifest(manifest)
   if (!count(offset) || !Number.isSafeInteger(limit) || limit < 1 || limit > 256)
@@ -288,7 +309,7 @@ export async function readAuditPage(
   let matched = 0
   for (const ref of manifest.chunks) {
     let matches: Set<string> | null = null
-    if (terms.length) {
+    if (terms.length && !filter?.category && !filter?.fixture) {
       const index = (await readObject(store, ref.index)) as unknown as {
         entries: SearchEntry[]
       }
@@ -297,6 +318,30 @@ export async function readAuditPage(
       )
     }
     const size = matches?.size ?? ref.count
+    if (filter?.category || filter?.fixture) {
+      if (matches?.size === 0) continue
+      const chunk = (await readObject(store, ref)) as unknown as {
+        actions: IndividualAudit[]
+      }
+      for (const action of chunk.actions) {
+        if (matches && !matches.has(action.id)) continue
+        if (filter.category && auditActionCategory(action) !== filter.category) continue
+        const searchable =
+          `${searchText(action)} ${action.reason} ${serialise(action.context)} ${auditActionCategory(action)}`
+            .normalize('NFKC')
+            .toLowerCase()
+        if (!terms.every(term => searchable.includes(term))) continue
+        if (
+          filter.fixture &&
+          (action.fixture?.object.hash !== filter.fixture.hash ||
+            action.fixture.pointer !== filter.fixture.pointer)
+        )
+          continue
+        if (matched >= offset && rows.length < limit) rows.push(action)
+        matched++
+      }
+      continue
+    }
     if (matched + size <= offset || matched >= offset + limit) {
       matched += size
       continue
@@ -407,6 +452,11 @@ export async function verifyAuditResult(
       throw new Error('Invalid individual chunk.')
     for (const a of chunk.actions) {
       validateIndividual(a)
+      const definition = (await reader.read(a.definition)) as unknown as {
+        review?: unknown
+      }
+      if (serialise(definition.review ?? null) !== serialise(a.review ?? null))
+        throw new Error('Individual review origin does not match its retained rule.')
       if (ids.has(a.id)) throw new Error('Duplicate individual action.')
       ids.add(a.id)
       refs.push(a.definition)

@@ -1,4 +1,16 @@
 import type { JsonRecord, ObjectRef } from './types'
+import type { BranchCounts, RuleBranch } from './branches'
+import classificationPatches from '../../../../fixtures/meta/patches/overture-division-classification.json'
+import kowloonPatch from '../../../../fixtures/meta/patches/overture-kowloon-restoration.json'
+
+const registeredPatchOperations = new Set([
+  ...classificationPatches.entries.map(entry => entry.id),
+  kowloonPatch.id,
+])
+
+export type ReviewOrigin =
+  | { kind: 'patch' }
+  | { kind: 'curation'; guard: Pick<AuditGuard, 'id' | 'summary' | 'consequence'> }
 
 export type RuleDeclaration = {
   kind: 'processing-rule'
@@ -6,10 +18,14 @@ export type RuleDeclaration = {
   id: string
   scope: 'bulk' | 'individual'
   basis: 'code' | 'fixture'
+  review?: ReviewOrigin
   summary: string
   inputs: string[]
   outputs: string[]
   parameters: JsonRecord
+  dependencyIds?: string[]
+  dependencies?: RuleDeclaration[]
+  branches?: RuleBranch[]
   implementation: { path: string; symbol: string }
 }
 
@@ -36,6 +52,7 @@ export type AuditCounts = {
   outputs: Record<string, number>
   recordsAffected: number
   decisions: Record<string, number>
+  branches?: BranchCounts
 }
 export type BulkAudit = {
   id: string
@@ -57,6 +74,7 @@ export type AuditGuard = {
   reason: string
 }
 export type IndividualAudit = {
+  review?: ReviewOrigin
   id: string
   operation: string
   basis: 'code' | 'fixture'
@@ -71,6 +89,17 @@ export type IndividualAudit = {
     parents: Array<{ id: string; names: string[] }>
   }
   context: JsonRecord
+}
+
+/** Presentation categories are independent of whether an instruction uses a fixture. */
+export function auditActionCategory(action: IndividualAudit) {
+  if (
+    action.review?.kind === 'patch' ||
+    (!action.review && registeredPatchOperations.has(action.operation))
+  )
+    return 'patches' as const
+  if (/translat/.test(action.operation)) return 'translations' as const
+  return action.basis === 'fixture' ? ('curations' as const) : ('rules' as const)
 }
 export type AuditManifest = {
   kind: 'processing-audit'
