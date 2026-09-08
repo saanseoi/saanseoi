@@ -23,6 +23,7 @@ import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import { runInitialisationCommand } from './lib/commands/init.ts'
 import { runResetDivisionsCommand } from './lib/commands/resetDivisions.ts'
+import { runResetStatsCommand } from './lib/commands/resetStats.ts'
 import {
   beginOfficialAddressInitialisation,
   completeOfficialAddressInitialisation,
@@ -136,6 +137,9 @@ async function main() {
       return
     case 'reset:divisions':
       await runResetDivisionsCommand(args, target, { printUsage })
+      return
+    case 'reset:stats':
+      await runResetStatsCommand(args, target, { printUsage })
       return
     case 'reset:addresses:official':
       await runResetOfficialAddressesCommand(args, target, { printUsage })

@@ -446,7 +446,7 @@ async function collectOwnedRecords(
   const snapshotRows = await context.metaDb
     .select({ id: metaSchema.metaSnapshotSources.snapshotId })
     .from(metaSchema.metaSnapshotSources)
-    .where(inArray(metaSchema.metaSnapshotSources.sourceReleaseId, releaseIds))
+    .where(inArray(metaSchema.metaSnapshotSources.resourceReleaseId, releaseIds))
     .all()
   const snapshotIds = [...new Set(snapshotRows.map(row => row.id))]
   const apiRows =
@@ -651,7 +651,7 @@ async function absorbAbandonedStagedAddressReleases(
           metaSchema.metaSnapshots,
           eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
         )
-        .where(eq(metaSchema.metaSnapshotSources.sourceReleaseId, release.id))
+        .where(eq(metaSchema.metaSnapshotSources.resourceReleaseId, release.id))
         .limit(1)
         .get(),
       context.metaDb
