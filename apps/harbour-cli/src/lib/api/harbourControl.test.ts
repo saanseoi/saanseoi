@@ -71,7 +71,10 @@ describe('harbour control client', () => {
     const calls: Array<{ body?: unknown; url: string }> = []
 
     process.env.HARBOUR_API_KEY = 'test-api-key'
-    globalThis.fetch = (async (input, init) => {
+    globalThis.fetch = (async (
+      input: Parameters<typeof fetch>[0],
+      init?: Parameters<typeof fetch>[1],
+    ) => {
       calls.push({
         body: init?.body,
         url: String(input),
@@ -80,7 +83,7 @@ describe('harbour control client', () => {
       return calls.length === 1
         ? Response.json({ error: 'Network connection lost.' }, { status: 500 })
         : Response.json({ releaseId: 'release-id', status: 'published' })
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     const client = createHarbourControlClient({
       environment: 'dev',
@@ -107,7 +110,7 @@ describe('harbour control client', () => {
     globalThis.fetch = (async () => {
       calls += 1
       return Response.json({ error: 'Network connection lost.' }, { status: 500 })
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     const client = createHarbourControlClient({
       environment: 'preview',
@@ -127,7 +130,7 @@ describe('harbour control client', () => {
     globalThis.fetch = (async () => {
       calls += 1
       return Response.json({ error: 'Network connection lost.' }, { status: 500 })
-    }) as typeof fetch
+    }) as unknown as typeof fetch
 
     const client = createHarbourControlClient({
       environment: 'dev',
