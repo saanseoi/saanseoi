@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "1e101896-ac87-4f89-8955-8ec1301aa0a0",
-  "prevIds": ["1bce1ab0-c623-4165-9c01-4ca6aa74fe6b"],
+  "id": "1d5c05df-3b4b-4eb5-a0a2-db7a48c22301",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "overtureDivisionAreas",
@@ -104,7 +104,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -204,7 +204,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -304,7 +304,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -404,7 +404,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -504,7 +504,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -604,6 +604,26 @@
     },
     {
       "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -626,6 +646,36 @@
       "type": "text",
       "notNull": true,
       "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "createdAt",
@@ -639,26 +689,6 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
-      "entityType": "columns",
-      "table": "hkgovAlsAddresses3d"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovAlsAddresses3d"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovAlsAddresses3d"
     },
@@ -674,7 +704,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -794,6 +824,26 @@
     },
     {
       "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rawProperties",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -809,6 +859,36 @@
       "default": null,
       "generated": null,
       "name": "releaseId",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validFromRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "validToRelease",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isCurrent",
       "entityType": "columns",
       "table": "hkgovLandsdRoadCentrelines"
     },
@@ -838,26 +918,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovLandsdRoadCentrelines"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "rawProperties",
-      "entityType": "columns",
-      "table": "hkgovLandsdRoadCentrelines"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "sourceGeometry",
       "entityType": "columns",
       "table": "hkgovLandsdRoadCentrelines"
@@ -869,6 +929,16 @@
       "default": null,
       "generated": null,
       "name": "sourceRecordId",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetBaselineRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovLandsdStreetBaselineRecords"
     },
@@ -939,16 +1009,6 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
-      "entityType": "columns",
-      "table": "hkgovLandsdStreetBaselineRecords"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sources",
       "entityType": "columns",
       "table": "hkgovLandsdStreetBaselineRecords"
     },
@@ -1124,6 +1184,16 @@
     },
     {
       "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "hkgovLandsdStreetNotices"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -1189,16 +1259,6 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
-      "entityType": "columns",
-      "table": "hkgovLandsdStreetNotices"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sources",
       "entityType": "columns",
       "table": "hkgovLandsdStreetNotices"
     },
@@ -1344,7 +1404,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -1454,7 +1514,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -1564,7 +1624,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -1674,7 +1734,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -1794,7 +1854,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -1904,7 +1964,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2144,7 +2204,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2264,7 +2324,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2374,7 +2434,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2504,7 +2564,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2658,7 +2718,7 @@
       "table": "hkgovAlsAddresses2d"
     },
     {
-      "columns": ["releaseId", "sourceRecordId"],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovAlsAddresses3d_pk",
       "entityType": "pks",
@@ -2672,7 +2732,7 @@
       "table": "hkgovLandsdPlaceNames"
     },
     {
-      "columns": ["sourceRecordId", "releaseId", "versionHash"],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdRoadCentrelines_pk",
       "entityType": "pks",
@@ -3127,6 +3187,42 @@
     {
       "columns": [
         {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses3d_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovAlsAddresses3d_release_validity_idx",
+      "entityType": "indexes",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "columns": [
+        {
           "value": "releaseId",
           "isExpression": false
         }
@@ -3213,6 +3309,42 @@
       "where": null,
       "origin": "manual",
       "name": "hkgovLandsdRoadCentrelines_sourceRecordId_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceRecordId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdRoadCentrelines_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "columns": [
+        {
+          "value": "validFromRelease",
+          "isExpression": false
+        },
+        {
+          "value": "validToRelease",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "hkgovLandsdRoadCentrelines_release_validity_idx",
       "entityType": "indexes",
       "table": "hkgovLandsdRoadCentrelines"
     },

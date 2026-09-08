@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "bed07aa2-37ab-41b7-8e36-401e196cb3c3",
-  "prevIds": ["d46981a8-d8a3-40f9-ad9e-a65bac0af96d"],
+  "id": "45b764e8-f7fc-4ffe-8b18-c61620360d4e",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "publisherI18n",
@@ -190,6 +190,10 @@
     },
     {
       "name": "assets",
+      "entityType": "tables"
+    },
+    {
+      "name": "releaseProvenance",
       "entityType": "tables"
     },
     {
@@ -3792,7 +3796,7 @@
     },
     {
       "type": "text",
-      "notNull": true,
+      "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -4832,6 +4836,46 @@
     },
     {
       "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "releaseId",
+      "entityType": "columns",
+      "table": "releaseProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "manifestHash",
+      "entityType": "columns",
+      "table": "releaseProvenance"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "byteLength",
+      "entityType": "columns",
+      "table": "releaseProvenance"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "applicationCount",
+      "entityType": "columns",
+      "table": "releaseProvenance"
+    },
+    {
+      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -5517,7 +5561,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
-      "name": "fk_api_key_user_id_user_id_fk",
+      "name": "fk_apiKey_user_id_user_id_fk",
       "entityType": "fks",
       "table": "apiKey"
     },
@@ -5528,7 +5572,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
-      "name": "fk_api_key_origin_policy_api_key_id_api_key_id_fk",
+      "name": "fk_apiKeyOriginPolicy_api_key_id_apiKey_id_fk",
       "entityType": "fks",
       "table": "apiKeyOriginPolicy"
     },
@@ -5539,7 +5583,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
-      "name": "fk_api_key_usage_api_key_id_api_key_id_fk",
+      "name": "fk_apiKeyUsage_api_key_id_apiKey_id_fk",
       "entityType": "fks",
       "table": "apiKeyUsage"
     },
@@ -5586,6 +5630,17 @@
       "name": "fk_assets_releaseId_releases_id_fk",
       "entityType": "fks",
       "table": "assets"
+    },
+    {
+      "columns": ["releaseId"],
+      "tableTo": "releases",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
+      "name": "fk_releaseProvenance_releaseId_releases_id_fk",
+      "entityType": "fks",
+      "table": "releaseProvenance"
     },
     {
       "columns": ["publisherId", "locale"],
@@ -5667,14 +5722,14 @@
     {
       "columns": ["api_key_id", "hostname"],
       "nameExplicit": false,
-      "name": "api_key_origin_policy_pk",
+      "name": "apiKeyOriginPolicy_pk",
       "entityType": "pks",
       "table": "apiKeyOriginPolicy"
     },
     {
       "columns": ["api_key_id", "window", "window_started_at"],
       "nameExplicit": false,
-      "name": "api_key_usage_pk",
+      "name": "apiKeyUsage_pk",
       "entityType": "pks",
       "table": "apiKeyUsage"
     },
@@ -5870,14 +5925,14 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "api_key_pk",
+      "name": "apiKey_pk",
       "table": "apiKey",
       "entityType": "pks"
     },
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "api_key_usage_rollup_pk",
+      "name": "apiKeyUsageRollup_pk",
       "table": "apiKeyUsageRollup",
       "entityType": "pks"
     },
@@ -5928,6 +5983,13 @@
       "nameExplicit": false,
       "name": "assets_pk",
       "table": "assets",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["releaseId"],
+      "nameExplicit": false,
+      "name": "releaseProvenance_pk",
+      "table": "releaseProvenance",
       "entityType": "pks"
     },
     {
@@ -7003,7 +7065,7 @@
     {
       "columns": [
         {
-          "value": "issuer",
+          "value": "provider_id",
           "isExpression": false
         },
         {
@@ -7014,7 +7076,7 @@
       "isUnique": true,
       "where": null,
       "origin": "manual",
-      "name": "account_issuer_accountId_uidx",
+      "name": "account_providerId_accountId_uidx",
       "entityType": "indexes",
       "table": "account"
     },
@@ -7337,7 +7399,7 @@
     {
       "columns": ["key_digest"],
       "nameExplicit": false,
-      "name": "api_key_key_digest_unique",
+      "name": "apiKey_key_digest_unique",
       "entityType": "uniques",
       "table": "apiKey"
     },
@@ -7368,10 +7430,5 @@
       "table": "stats"
     }
   ],
-  "renames": [
-    "api_key->apiKey",
-    "api_key_origin_policy->apiKeyOriginPolicy",
-    "api_key_usage->apiKeyUsage",
-    "api_key_usage_rollup->apiKeyUsageRollup"
-  ]
+  "renames": []
 }

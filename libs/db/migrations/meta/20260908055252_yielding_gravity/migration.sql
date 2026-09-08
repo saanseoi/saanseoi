@@ -522,7 +522,7 @@ CREATE TABLE `stats` (
 --> statement-breakpoint
 CREATE TABLE `account` (
 	`id` text PRIMARY KEY,
-	`issuer` text NOT NULL,
+	`issuer` text,
 	`account_id` text NOT NULL,
 	`provider_id` text NOT NULL,
 	`user_id` text NOT NULL,
@@ -538,7 +538,7 @@ CREATE TABLE `account` (
 	CONSTRAINT `fk_account_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
-CREATE TABLE `api_key` (
+CREATE TABLE `apiKey` (
 	`id` text PRIMARY KEY,
 	`user_id` text NOT NULL,
 	`name` text NOT NULL,
@@ -551,30 +551,30 @@ CREATE TABLE `api_key` (
 	`revoked_at` integer,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	CONSTRAINT `fk_api_key_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+	CONSTRAINT `fk_apiKey_user_id_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
-CREATE TABLE `api_key_origin_policy` (
+CREATE TABLE `apiKeyOriginPolicy` (
 	`api_key_id` text NOT NULL,
 	`hostname` text NOT NULL,
 	`action` text NOT NULL,
 	`created_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
 	`updated_at` integer DEFAULT (cast(unixepoch('subsecond') * 1000 as integer)) NOT NULL,
-	CONSTRAINT `api_key_origin_policy_pk` PRIMARY KEY(`api_key_id`, `hostname`),
-	CONSTRAINT `fk_api_key_origin_policy_api_key_id_api_key_id_fk` FOREIGN KEY (`api_key_id`) REFERENCES `api_key`(`id`) ON DELETE CASCADE
+	CONSTRAINT `apiKeyOriginPolicy_pk` PRIMARY KEY(`api_key_id`, `hostname`),
+	CONSTRAINT `fk_apiKeyOriginPolicy_api_key_id_apiKey_id_fk` FOREIGN KEY (`api_key_id`) REFERENCES `apiKey`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
-CREATE TABLE `api_key_usage` (
+CREATE TABLE `apiKeyUsage` (
 	`api_key_id` text NOT NULL,
 	`window` text NOT NULL,
 	`window_started_at` integer NOT NULL,
 	`request_count` integer DEFAULT 0 NOT NULL,
 	`soft_limit_notified_at` integer,
-	CONSTRAINT `api_key_usage_pk` PRIMARY KEY(`api_key_id`, `window`, `window_started_at`),
-	CONSTRAINT `fk_api_key_usage_api_key_id_api_key_id_fk` FOREIGN KEY (`api_key_id`) REFERENCES `api_key`(`id`) ON DELETE CASCADE
+	CONSTRAINT `apiKeyUsage_pk` PRIMARY KEY(`api_key_id`, `window`, `window_started_at`),
+	CONSTRAINT `fk_apiKeyUsage_api_key_id_apiKey_id_fk` FOREIGN KEY (`api_key_id`) REFERENCES `apiKey`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
-CREATE TABLE `api_key_usage_rollup` (
+CREATE TABLE `apiKeyUsageRollup` (
 	`id` text PRIMARY KEY,
 	`datasets` text NOT NULL,
 	`revision` text NOT NULL,
@@ -675,6 +675,14 @@ CREATE TABLE `assets` (
 	CONSTRAINT `fk_assets_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`) ON DELETE SET NULL
 );
 --> statement-breakpoint
+CREATE TABLE `releaseProvenance` (
+	`releaseId` text PRIMARY KEY,
+	`manifestHash` text NOT NULL,
+	`byteLength` integer NOT NULL,
+	`applicationCount` integer NOT NULL,
+	CONSTRAINT `fk_releaseProvenance_releaseId_releases_id_fk` FOREIGN KEY (`releaseId`) REFERENCES `releases`(`id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
 CREATE TABLE `accessAnalyticsDaily` (
 	`day` text NOT NULL,
 	`scope` text NOT NULL,
@@ -755,10 +763,10 @@ CREATE INDEX `stats_releaseId_idx` ON `stats` (`releaseId`);--> statement-breakp
 CREATE INDEX `stats_snapshotId_idx` ON `stats` (`snapshotId`);--> statement-breakpoint
 CREATE INDEX `stats_apiReleaseSetId_idx` ON `stats` (`apiReleaseSetId`);--> statement-breakpoint
 CREATE INDEX `stats_dimension_idx` ON `stats` (`type`,`dimension`,`metric`,`groupBy`,`groupValue`);--> statement-breakpoint
-CREATE UNIQUE INDEX `account_issuer_accountId_uidx` ON `account` (`issuer`,`account_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `account_providerId_accountId_uidx` ON `account` (`provider_id`,`account_id`);--> statement-breakpoint
 CREATE INDEX `account_userId_idx` ON `account` (`user_id`);--> statement-breakpoint
-CREATE INDEX `api_key_userId_idx` ON `api_key` (`user_id`);--> statement-breakpoint
-CREATE INDEX `api_key_userId_revokedAt_idx` ON `api_key` (`user_id`,`revoked_at`);--> statement-breakpoint
+CREATE INDEX `api_key_userId_idx` ON `apiKey` (`user_id`);--> statement-breakpoint
+CREATE INDEX `api_key_userId_revokedAt_idx` ON `apiKey` (`user_id`,`revoked_at`);--> statement-breakpoint
 CREATE INDEX `newsletterSubscription_status_idx` ON `newsletterSubscription` (`status`);--> statement-breakpoint
 CREATE INDEX `passkey_userId_idx` ON `passkey` (`userId`);--> statement-breakpoint
 CREATE INDEX `passkey_credentialID_idx` ON `passkey` (`credentialID`);--> statement-breakpoint
