@@ -7,10 +7,13 @@ field/measure/geography fixtures and API-field declarations. It contains no publ
 canonical value packs. Recorded translations are individual curations; publisher labels
 and origin-unrecorded labels remain reviewed bulk metadata.
 
-Population scaling and field/localisation rule declarations live in
-`fixtures/meta/processing-rules/`. The canonical normalisation cache uses the `v1`
-contract and includes registered rule definitions in its identity alongside source
-inputs and reviewed metadata.
+Normalisation, population scaling, geography-identity and field/localisation
+declarations live in `fixtures/meta/processing-rules/`. The canonical normalisation
+cache uses the `v1` contract and includes registered rule definitions in its identity
+alongside source inputs and reviewed metadata.
+
+Merge ruleset entries for scaling and field curation reference these same definitions;
+their resolved hashes include the declarations rather than only the reference names.
 
 Publisher attributes are retained in `rawProperties` with source identity, release
 history, provenance and native geometry. Extracted measures, period labels and

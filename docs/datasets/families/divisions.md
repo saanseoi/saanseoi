@@ -24,9 +24,11 @@ divisions.
 
 ## Processing
 
-Area and boundary normalisers register explicit JSON declarations from
-`fixtures/meta/processing-rules/division-area-geometry.json` and
-`division-boundary-geometry.json`; Audit retains those same definitions.
+Division, area, boundary, classification, translation, Planning and synthetic-area
+normalisers register JSON declarations from `fixtures/meta/processing-rules/`; Audit
+retains those same frozen definitions. Taxonomy mappings, locale priorities and geometry
+exclusions are consumed from their parameters. Merge ruleset references resolve these
+definitions and include their content in the resolved ruleset hash.
 
 Source-row `sources` is `null` when Overture division or division geometry ingestion has
 no supplied provenance. Ingestion does not manufacture source references from internal
