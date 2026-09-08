@@ -269,9 +269,15 @@ export async function runResetDivisionsCommand(
     'dry-run',
     'yes',
     'keep-cache',
+    'discard-abandoned-sql-delivery',
   ])
   const dryRun = args.options['dry-run'] === true
   const keepCache = args.options['keep-cache'] === true
+  const discardAbandonedSqlDelivery =
+    args.options['discard-abandoned-sql-delivery'] === true
+  if (discardAbandonedSqlDelivery && target.remote) {
+    throw new Error('--discard-abandoned-sql-delivery only supports the local target.')
+  }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     includeAllHistoryShardYears: true,
     includeAllSourceShardYears: true,
@@ -326,6 +332,7 @@ export async function runResetDivisionsCommand(
       cacheRoot: resolve(import.meta.dir, '../../../../../.local/harbour-sql/releases'),
       context,
       keepCache,
+      discardAbandonedSqlDelivery,
       target,
       remoteCacheErrorMessage:
         'Remote division reset succeeded but its local cache could not be updated',

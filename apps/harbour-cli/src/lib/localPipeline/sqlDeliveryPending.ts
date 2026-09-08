@@ -78,6 +78,27 @@ export async function assertSqlDeliveryPlanningAllowed(
   }
 }
 
+/**
+ * Clear an ownership marker only when every referenced sealed plan is gone.
+ * Callers must hold the cache-wide delivery lock and are responsible for the
+ * destructive operation that makes abandoning the marker appropriate.
+ */
+export async function discardAbandonedSqlDelivery(cacheDir: string) {
+  const pending = await readPendingSqlDelivery(cacheDir)
+  if (!pending) return null
+
+  for (const directory of pending.directories) {
+    if (await readDeliveryPlan(directory)) {
+      throw new Error(
+        `A sealed SQL delivery plan still exists at ${directory}; resume it before discarding ownership.`,
+      )
+    }
+  }
+
+  await rm(join(cacheDir, NAME))
+  return pending
+}
+
 /** Caller holds the cache-wide delivery lock. */
 export async function registerPendingSqlDelivery(
   cacheDir: string,

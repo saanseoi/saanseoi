@@ -1,7 +1,10 @@
 import { rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
-import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
+import {
+  assertSqlDeliveryPlanningAllowed,
+  discardAbandonedSqlDelivery,
+} from '../localPipeline/sqlDeliveryPending.ts'
 import { invalidateSqlDeliveryReleases } from '../localPipeline/sqlDeliveryGeneration.ts'
 
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -47,6 +50,7 @@ export async function executeResetSqlArtefacts(options: {
   context: LocalAddressDbContext
   extraCachePaths?: readonly string[]
   keepCache: boolean
+  discardAbandonedSqlDelivery?: boolean
   target: UploadTarget
   remoteCacheErrorMessage: string
   validateUnderLock?: () => Promise<void>
@@ -58,7 +62,11 @@ export async function executeResetSqlArtefacts(options: {
     async () => {
       // Context acquisition and user confirmation can precede this by minutes.
       // Recheck ownership under the writer lock immediately before destructive SQL.
-      await assertSqlDeliveryPlanningAllowed(options.context.state.dbCacheDir)
+      if (options.discardAbandonedSqlDelivery) {
+        await discardAbandonedSqlDelivery(options.context.state.dbCacheDir)
+      } else {
+        await assertSqlDeliveryPlanningAllowed(options.context.state.dbCacheDir)
+      }
       await options.validateUnderLock?.()
       await invalidateSqlDeliveryReleases(
         options.context.state.dbCacheDir,
