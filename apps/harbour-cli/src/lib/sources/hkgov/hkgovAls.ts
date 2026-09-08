@@ -1,4 +1,9 @@
 import { globSync } from 'node:fs'
+import preparationFixture from '../../../../../../fixtures/meta/processing-rules/address-preparation.json'
+import curationFixture from '../../../../../../fixtures/meta/processing-rules/address-curation.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
+import { alsAuditFixtures } from './hkgovAlsAuditFixtures'
+import { freezeRegisteredRule } from '../../api/retainedRule'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
@@ -73,7 +78,21 @@ import {
   stringColumn,
 } from './hkgovAlsNormalisation.ts'
 
-export async function prepareHkgovAlsAddressParquet(
+export const alsPreparationRule = registerRule(
+  ruleDeclarationFromFixture(preparationFixture),
+  (options: PrepareHkgovAlsOptions) => alsCurationRule.execute(options),
+)
+
+export const alsCurationRule = registerRule(
+  ruleDeclarationFromFixture(curationFixture),
+  (options: PrepareHkgovAlsOptions) => prepareHkgovAlsAddressParquetInternal(options),
+)
+
+export function prepareHkgovAlsAddressParquet(options: PrepareHkgovAlsOptions) {
+  return alsPreparationRule.execute(options)
+}
+
+async function prepareHkgovAlsAddressParquetInternal(
   options: PrepareHkgovAlsOptions,
 ): Promise<PreparedHkgovAlsResult> {
   const sourceDir = resolve(options.sourceDir)
@@ -552,6 +571,30 @@ export async function prepareHkgovAlsAddressParquet(
     )
   }
 
+  const processingActions = buildHkgovAlsProcessingActions({
+    decisions: options.identityDecisions ?? emptyHkgovAlsIdentityDecisions(),
+    identityEquivalentFeatureGroups,
+    resolvedRows: rows,
+    sourceDuplicateFeatureGroups,
+  })
+  if (options.writeOutput !== false) {
+    await writeFile(
+      `${outputFile}.audit.json`,
+      JSON.stringify({
+        schemaVersion: 1,
+        sourceVersion: options.sourceVersion,
+        preparedSha256: await fileSha256(outputFile),
+        sourceFeatureCount,
+        outputCount: rows.length,
+        declarations: {
+          preparation: await freezeRegisteredRule(alsPreparationRule.declaration),
+          curation: await freezeRegisteredRule(alsCurationRule.declaration),
+        },
+        fixtures: alsAuditFixtures,
+        processingActions,
+      }),
+    )
+  }
   return {
     curationApplications: [
       ...estateComponents.applications,
@@ -567,12 +610,7 @@ export async function prepareHkgovAlsAddressParquet(
       identityDistinctRows.length - resolvedIdDistinctRows.length,
     identityRecords: resolvedIdentityRecords,
     outputFile,
-    processingActions: buildHkgovAlsProcessingActions({
-      decisions: options.identityDecisions ?? emptyHkgovAlsIdentityDecisions(),
-      identityEquivalentFeatureGroups,
-      resolvedRows: rows,
-      sourceDuplicateFeatureGroups,
-    }),
+    processingActions,
     sourceDuplicateFeatureGroups,
     sourceFileCount: inputFiles.length,
     divisionQuality,

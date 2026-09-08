@@ -28,6 +28,23 @@ export type AlsCurationGuardIssue = {
   message: string
 }
 
+/** Retains source evidence for review without authorising a merge or correction. */
+export class AlsCurationReviewError extends Error {
+  constructor(
+    readonly issue: AlsCurationGuardIssue & {
+      status: 'unresolved'
+      decision: unknown
+      assertion: { actual: unknown; expected: unknown; operator: string }
+      records: unknown[]
+    },
+  ) {
+    super(
+      `ALS curation needs review: ${issue.decisionId} (${issue.sourceVersion})\nFixture: fixtures/meta/curations/${issue.curationFile}\nGuard: ${issue.message}\nCompare the retained source records before updating this decision. No coordinate choice has been approved.`,
+    )
+    this.name = 'AlsCurationReviewError'
+  }
+}
+
 /** A skipped guard is an unresolved correction, not a verified source change. */
 export function reportAlsCurationGuard(
   sourceVersion: string,

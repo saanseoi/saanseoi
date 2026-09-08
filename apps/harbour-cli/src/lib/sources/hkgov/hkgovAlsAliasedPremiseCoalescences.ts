@@ -2,7 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-aliased-premise-coalescences.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
-import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
+import { AlsCurationReviewError, reportAlsCurationGuard } from './hkgovAlsReviewIssue'
 
 const curationFile = 'hkgov-dpo-address-aliased-premise-coalescences.json'
 
@@ -21,6 +21,25 @@ export function coalesceAlsAliasedPremises(
       continue
     const owners = rows.filter(row => row.hkgovCsuId === decision.owner.csu)
     const aliases = rows.filter(row => row.hkgovCsuId === decision.aliasCsu)
+    const reviewError = (error: AssertionError) =>
+      new AlsCurationReviewError({
+        code: 'curation-guard-mismatch',
+        status: 'unresolved',
+        sourceVersion: version,
+        curationFile,
+        decisionId: decision.id,
+        message: error.message,
+        decision,
+        assertion: {
+          actual: error.actual,
+          expected: error.expected,
+          operator: error.operator,
+        },
+        records: [
+          ...owners.map(row => ({ role: 'owner', row })),
+          ...aliases.map(row => ({ role: 'alias', row })),
+        ],
+      })
     if (owners.length === 0 && aliases.length === 0) continue
     if ('sharedBuilding' in decision) {
       const ownerStreet = requireDefined(decision.ownerStreet)
@@ -61,7 +80,8 @@ export function coalesceAlsAliasedPremises(
           `ALS alias ${decision.id}: point changed`,
         )
       } catch (error) {
-        if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+        if (!(error instanceof AssertionError)) throw error
+        if (!skipCurationChecks) throw reviewError(error)
         reportAlsCurationGuard(version, curationFile, decision.id, error)
         continue
       }
@@ -91,6 +111,13 @@ export function coalesceAlsAliasedPremises(
       ownerIdByAliasId.set(alias.id, owner.id)
       continue
     }
+    const coordinateSelection =
+      'coordinateSelection' in decision &&
+      decision.coordinateSelection &&
+      version >= decision.coordinateSelection.sourceVersionFrom &&
+      version <= decision.coordinateSelection.sourceVersionTo
+        ? decision.coordinateSelection
+        : null
     try {
       assert.equal(owners.length, 1, `ALS alias ${decision.id}: owner changed`)
       assert.equal(aliases.length, 1, `ALS alias ${decision.id}: alias changed`)
@@ -125,13 +152,28 @@ export function coalesceAlsAliasedPremises(
         assert.equal(row.enStreetNumberFrom, '88')
         assert.equal(row.zhHantStreetNumberFrom, '88')
       }
-      assert.equal(
-        owner.geometry,
-        alias.geometry,
-        `ALS alias ${decision.id}: point changed`,
-      )
+      if (coordinateSelection) {
+        assert.equal(coordinateSelection.selected, 'alias')
+        assert.deepEqual(
+          JSON.parse(owner.geometry ?? 'null'),
+          { type: 'Point', coordinates: coordinateSelection.ownerCoordinates },
+          `ALS alias ${decision.id}: owner point changed`,
+        )
+        assert.deepEqual(
+          JSON.parse(alias.geometry ?? 'null'),
+          { type: 'Point', coordinates: coordinateSelection.aliasCoordinates },
+          `ALS alias ${decision.id}: alias point changed`,
+        )
+      } else {
+        assert.equal(
+          owner.geometry,
+          alias.geometry,
+          `ALS alias ${decision.id}: point changed`,
+        )
+      }
     } catch (error) {
-      if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
+      if (!(error instanceof AssertionError)) throw error
+      if (!skipCurationChecks) throw reviewError(error)
       reportAlsCurationGuard(version, curationFile, decision.id, error)
       // A stale curation must not merge or rewrite the publisher assertions.
       continue
@@ -142,12 +184,23 @@ export function coalesceAlsAliasedPremises(
     const aliasEn = JSON.parse(alias.engPremisesAddressJson ?? 'null')
     const aliasZh = JSON.parse(alias.chiPremisesAddressJson ?? 'null')
 
+    const publisherOwnerGeometry = JSON.parse(owner.geometry ?? 'null')
+    if (coordinateSelection) owner.geometry = alias.geometry
     owner.sources = JSON.stringify({
       ...JSON.parse(owner.sources ?? '{}'),
       hkgovAlsAliasedPremiseCoalescence: {
         ...decision,
         curationFile,
         sourceVersion: version,
+        ...(coordinateSelection
+          ? {
+              coordinateReview: {
+                publisherOwnerGeometry,
+                publisherAliasGeometry: JSON.parse(alias.geometry ?? 'null'),
+                derivedGeometry: JSON.parse(owner.geometry ?? 'null'),
+              },
+            }
+          : {}),
         suppressedAddress: {
           addressId: alias.id,
           canonicalId: alias.canonicalId,
