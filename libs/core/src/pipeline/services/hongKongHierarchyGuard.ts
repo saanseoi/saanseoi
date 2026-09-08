@@ -62,13 +62,13 @@ export function checkHongKongHierarchy(
   const districts = path.filter(entry => entry.type === 'district')
   const [district] = districts
   if (districts.length !== 1 || !district)
-    fail('Expected exactly one district in the canonical ancestry.')
+    return fail('Expected exactly one district in the canonical ancestry.')
   const areas = overtureHongKongAreas.filter(area =>
     (area.districtNames as readonly string[]).includes(district.i18n.en?.name ?? ''),
   )
   const [area] = areas
   if (areas.length !== 1 || !area)
-    fail('The district has no unambiguous recognised Hong Kong Area.')
+    return fail('The district has no unambiguous recognised Hong Kong Area.')
   const areaId = overtureHongKongAreaDivisionId(area.code)
   const sarIndex = path.findIndex(
     entry => entry.division_id === OVERTURE_HONG_KONG_SAR_DIVISION_ID,

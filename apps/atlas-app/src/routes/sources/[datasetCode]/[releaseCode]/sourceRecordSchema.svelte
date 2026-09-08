@@ -36,7 +36,9 @@ let {
   sourceSchemaVersion,
   sourceVersion,
 }: Props = $props()
-let expandedNodeStates = $state<Record<string, boolean>>({})
+let expandedNodeStates = $state<Record<string, boolean>>({
+  'SourceRecord.rawProperties': true,
+})
 let expandAllToken = $state(0)
 let retainedSchema = $state<OpenApiSchema | null>(null)
 let loading = $state(false)
@@ -218,7 +220,36 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     )
   }
 
-  return Object.keys(rawProperties.properties ?? {}).length ? rawProperties : null
+  return {
+    description: m.source_record_schema_record_description(),
+    properties: {
+      sourceRecordId: {
+        description: m.source_record_schema_source_record_id_description(),
+        type: 'string',
+      },
+      resourceType: {
+        description: m.source_record_schema_resource_type_description(),
+        type: 'string',
+      },
+      variant: {
+        description: m.source_record_schema_variant_description(),
+        type: 'string',
+      },
+      rawProperties: {
+        ...rawProperties,
+        nullable: true,
+        description: Object.keys(rawProperties.properties ?? {}).length
+          ? rawProperties.description
+          : m.source_record_schema_unavailable(),
+      },
+      geometry: {
+        description: m.source_record_schema_geometry_description(),
+        type: 'object',
+      },
+    },
+    required: ['sourceRecordId', 'resourceType', 'variant', 'rawProperties'],
+    type: 'object',
+  }
 })
 
 function setExpandedNodeState(path: string, expanded: boolean) {
@@ -262,10 +293,10 @@ function setExpandedNodeState(path: string, expanded: boolean) {
       <Node
         {expandAllToken}
         {expandedNodeStates}
-        name={m.source_record_schema_aria_label()}
+        name="SourceRecord"
         onExpandAll={() => (expandAllToken += 1)}
         onExpandedNodeStateChange={setExpandedNodeState}
-        referencePath={[]}
+        referencePath={['SourceRecord']}
         schema={recordSchema}
         schemas={{}}
       />

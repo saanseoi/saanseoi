@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
-import { isCancel, note, select, text } from '@clack/prompts'
+import { note, select, text } from '@clack/prompts'
 import type { RoadCentrelineStreet } from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
 import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
 import { terminalSafeText } from './terminal.ts'
@@ -212,13 +212,13 @@ export async function promptRoadReview(
           { value: 'stop', label: 'Save and exit review' },
         ],
       })
-      if (isCancel(answer) || answer === 'stop') return
+      if (typeof answer !== 'string' || answer === 'stop') return
       if (answer === 'search') {
         const query = await text({
           message: 'Street name or canonical ID',
           validate: value => (!value?.trim() ? 'Enter a name or ID.' : undefined),
         })
-        if (isCancel(query)) return
+        if (typeof query !== 'string') return
         candidates = findRoadCandidates(group, streets, query.trim())
         if (!candidates.length)
           note(
