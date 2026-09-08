@@ -597,7 +597,7 @@ export async function processDivisionDataset(
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
-            sources: normaliseOvertureSourceReferences(row.sources, normalised.base.id),
+            sources: normaliseOvertureSourceReferences(row.sources),
             rawProperties: row,
           })
         } else if (currentSource) {
@@ -1606,7 +1606,7 @@ function normaliseOvertureSources(sources: unknown) {
   return { overture: sources }
 }
 
-function normaliseOvertureSourceReferences(sources: unknown, sourceRecordId: string) {
+export function normaliseOvertureSourceReferences(sources: unknown) {
   if (
     Array.isArray(sources) &&
     sources.length > 0 &&
@@ -1614,7 +1614,7 @@ function normaliseOvertureSourceReferences(sources: unknown, sourceRecordId: str
   ) {
     return sources
   }
-  return [{ dataset: 'overture', sourceRecordId }]
+  return null
 }
 
 function hasOvertureSourceReference(value: unknown): boolean {

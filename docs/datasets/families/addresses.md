@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Source-row `sources` is nullable. ALS ingestion retains supplied publisher or ingestion
+references and stores `null` when none are supplied; it does not manufacture a reference
+to the row's own synthetic identifier.
+
 Address lookup caches are scoped to the exact parent snapshot. A baseline without a
 parent never uses a retained lookup; cached unchanged-row decisions cannot substitute
 for materialising its complete 2D address set.

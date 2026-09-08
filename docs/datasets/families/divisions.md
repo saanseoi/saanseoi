@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Source-row `sources` is `null` when Overture division or division geometry ingestion has
+no supplied provenance. Ingestion does not manufacture source references from internal
+record or canonical division IDs. Publisher identifiers and archive evidence remain
+valid references.
+
 Local geometry prerequisite checks may read a pending delivery only when its sealed
 plans prove ownership by the exact release being resumed. Other releases remain blocked
 until that owner completes publication and releases the database.

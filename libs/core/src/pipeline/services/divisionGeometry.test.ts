@@ -219,9 +219,7 @@ describe('division geometry normalisation', () => {
     )
     expect(normalised.source.rawProperties).not.toHaveProperty('theme')
     expect(normalised.source.rawProperties).not.toHaveProperty('source_feature')
-    expect(normalised.source.sources).toEqual([
-      { dataset: 'hkgov-had', sourceRecordId: 'HAD:A' },
-    ])
+    expect(normalised.source.sources).toBeNull()
     expect(normalised.source.sourceGeometry).toMatchObject(polygon)
   })
 

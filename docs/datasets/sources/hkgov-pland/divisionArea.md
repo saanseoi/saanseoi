@@ -1,5 +1,9 @@
 # Planning Department TPU and subunit areas
 
+Division geometry source storage uses `null` when no provenance references are supplied;
+it does not generate a self-reference from the source-record ID. Supplied publisher and
+ingestion references are retained.
+
 PLAND metadata delivery includes assembly recipes, input rules and selected-release runs
 under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).

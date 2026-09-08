@@ -116,7 +116,7 @@ async function writeHkgovSourceRows(
       validFromRelease: message.sourceVersion,
       validToRelease: null,
       isCurrent: true,
-      sources: normaliseSourceReferences(row.base.sources, row.sourceId),
+      sources: normaliseSourceReferences(row.base.sources),
       rawProperties: row.raw,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 
@@ -134,10 +134,7 @@ async function writeHkgovSourceRows(
   await insertSourceHkgovAlsAddresses2dVersions(sourceDb, versionRows)
 }
 
-function normaliseSourceReferences(
-  value: unknown,
-  sourceRecordId: string,
-): SourceReferences {
+export function normaliseSourceReferences(value: unknown): SourceReferences | null {
   const hkgovAlsReferences =
     value && typeof value === 'object'
       ? (value as Record<string, unknown>).hkgovAls
@@ -148,7 +145,7 @@ function normaliseSourceReferences(
       ? hkgovAlsReferences
       : null
   if (references?.length && references.every(hasSourceReference)) return references
-  return [{ dataset: 'hkgov-dpo', sourceRecordId }]
+  return null
 }
 
 type SourceReferences = NonNullable<

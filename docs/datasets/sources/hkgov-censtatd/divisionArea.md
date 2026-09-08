@@ -1,5 +1,9 @@
 # Census and Statistics Department District Council district areas
 
+Source storage uses `null` when no provenance references are supplied. A supplied
+canonical division ID is not a publisher source reference. Publisher district codes,
+classes and archive evidence remain valid provenance.
+
 Geometry assembly records retain contributed and inherited source rules and selected
 releases under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance). Verified
