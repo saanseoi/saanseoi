@@ -4,23 +4,74 @@ import { requireDefined } from '../requireDefined'
 export const MAX_OBJECT_BYTES = 1024 * 1024
 const encoder = new TextEncoder()
 
-/** Version 1: sorted object keys; array order, missing values and explicit null matter. */
-export function serialise(value: unknown): string {
+/**
+ * Keep the discriminator and enough context to identify a retained record at
+ * the front. The remaining keys stay lexicographic, preserving deterministic
+ * bytes regardless of producer property insertion order.
+ */
+const identifyingKeys = [
+  'kind',
+  'schemaVersion',
+  'id',
+  'releaseId',
+  'datasetCode',
+  'sourceVersion',
+  'operation',
+  'operationVersion',
+  'outcome',
+  'summary',
+  'reason',
+  'sourceField',
+  'sourceDatasetCode',
+  'apiField',
+  'hash',
+  'byteLength',
+  'collection',
+  'snapshotId',
+  'layer',
+] as const
+const identifyingKeyOrder = new Map<string, number>(
+  identifyingKeys.map((key, index) => [key, index]),
+)
+
+function orderedKeys(value: object) {
+  return Object.keys(value).sort((left, right) => {
+    const leftOrder = identifyingKeyOrder.get(left) ?? identifyingKeys.length
+    const rightOrder = identifyingKeyOrder.get(right) ?? identifyingKeys.length
+    if (leftOrder !== rightOrder) return leftOrder - rightOrder
+    return left < right ? -1 : left > right ? 1 : 0
+  })
+}
+
+function serialiseWithObjectKeys(
+  value: unknown,
+  keysFor: (value: object) => string[],
+): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'string')
     return JSON.stringify(value)
   if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value)
-  if (Array.isArray(value)) return `[${Array.from(value, serialise).join(',')}]`
+  if (Array.isArray(value))
+    return `[${Array.from(value, item => serialiseWithObjectKeys(item, keysFor)).join(',')}]`
   if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
-    return `{${Object.keys(value as object)
-      .sort()
+    return `{${keysFor(value)
       .map(
         key =>
-          `${JSON.stringify(key)}:${serialise((value as Record<string, unknown>)[key])}`,
+          `${JSON.stringify(key)}:${serialiseWithObjectKeys((value as Record<string, unknown>)[key], keysFor)}`,
       )
       .join(',')}}`
   throw new Error(
     'Provenance values must be finite JSON, without undefined or class instances.',
   )
+}
+
+/** Canonical JSON leads with record type and identifying context. */
+export function serialise(value: unknown): string {
+  return serialiseWithObjectKeys(value, orderedKeys)
+}
+
+/** Accept immutable objects created before record-identifying key order. */
+function serialiseLegacy(value: unknown): string {
+  return serialiseWithObjectKeys(value, Object.keys)
 }
 
 export async function hashBytes(bytes: Uint8Array): Promise<Digest> {
@@ -61,7 +112,7 @@ export async function readObject(
     throw new Error(`Provenance checksum/length mismatch: ${ref.hash}`)
   const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes)
   const value = JSON.parse(text) as Json
-  if (serialise(value) !== text)
+  if (serialise(value) !== text && serialiseLegacy(value) !== text)
     throw new Error('Provenance object is not canonical JSON.')
   return value
 }

@@ -28,8 +28,11 @@ with no output. An unapplied or deferred decision cannot carry effects.
 ## Storage and verification
 
 R2 stores canonical JSON under `provenance/v1/sha256/<digest>.json`. Object identity
-includes exact canonical bytes: sorted object keys, ordered arrays and explicit nulls.
-Undefined, sparse arrays, class instances and non-finite numbers are rejected.
+includes exact canonical bytes: ordered arrays, explicit nulls and deterministic object
+keys. New provenance records start with `kind`, `schemaVersion`, and identifying context
+such as an ID, release, dataset, operation and source field; remaining keys are sorted.
+Previously retained lexicographic objects remain readable. Undefined, sparse arrays,
+class instances and non-finite numbers are rejected.
 
 The implementation bounds each object at 1 MiB and each application chunk at 256
 applications. Value packs share an object across guarded inputs, pre-change values,

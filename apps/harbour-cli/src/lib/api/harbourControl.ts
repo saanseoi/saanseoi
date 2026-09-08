@@ -27,6 +27,26 @@ type PublishPayload = {
   skipSnapshotCleanup?: boolean
 }
 
+const LOCAL_PROXY_RETRY_DELAY_MS = 250
+
+function controlErrorMessage(body: Record<string, unknown> | null, status: number) {
+  if (typeof body?.message === 'string') return body.message
+  if (typeof body?.error === 'string') return body.error
+  return `Harbour control request failed with status ${status}.`
+}
+
+function isLocalProxyConnectionLoss(
+  body: Record<string, unknown> | null,
+  status: number,
+) {
+  return (
+    status === 500 &&
+    [body?.message, body?.error].some(
+      value => typeof value === 'string' && /network connection lost/i.test(value),
+    )
+  )
+}
+
 export function createHarbourControlClient(target: UploadTarget) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const authHeaders = getAuthHeaders()
@@ -63,6 +83,14 @@ export function createHarbourControlClient(target: UploadTarget) {
             : {}),
           ...(publishOptions.deferSourcePublish ? { deferSourcePublish: true } : {}),
           ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
+        },
+        {
+          // Deferred Statistics publication only flips the source release to
+          // published, so repeating it after Wrangler loses its proxy
+          // connection is idempotent. Other publication paths may create API
+          // release-set revisions and must retain the normal no-retry policy.
+          retryLocalProxyConnectionLoss:
+            !target.remote && publishOptions.deferStatsReleaseSet === true,
         },
       )
     },
@@ -115,31 +143,36 @@ async function postControl<TResponse = Record<string, unknown>>(
   authHeaders: Record<string, string>,
   path: string,
   payload: StagePayload | PublishPayload,
+  options: { retryLocalProxyConnectionLoss?: boolean } = {},
 ): Promise<TResponse | null> {
-  let response: Response
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        ...authHeaders,
+      },
+      body: JSON.stringify(payload),
+    })
 
-  response = await fetch(`${baseUrl}${path}`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      ...authHeaders,
-    },
-    body: JSON.stringify(payload),
-  })
+    const body = (await response.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null
 
-  const body = (await response.json().catch(() => null)) as Record<
-    string,
-    unknown
-  > | null
+    if (response.ok) return body as TResponse | null
 
-  if (!response.ok) {
-    const message =
-      typeof body?.message === 'string'
-        ? body.message
-        : `Harbour control request failed with status ${response.status}.`
+    if (
+      attempt === 0 &&
+      options.retryLocalProxyConnectionLoss &&
+      isLocalProxyConnectionLoss(body, response.status)
+    ) {
+      await Bun.sleep(LOCAL_PROXY_RETRY_DELAY_MS)
+      continue
+    }
 
-    throw new Error(message)
+    throw new Error(controlErrorMessage(body, response.status))
   }
 
-  return body as TResponse | null
+  throw new Error('Harbour control request failed after proxy recovery.')
 }
