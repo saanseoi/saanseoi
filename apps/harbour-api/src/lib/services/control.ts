@@ -150,6 +150,15 @@ export async function handlePublishDataset(
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
+    const failedAudit = await db
+      .select({ status: metaSchema.releaseProvenance.attemptStatus })
+      .from(metaSchema.releaseProvenance)
+      .where(eq(metaSchema.releaseProvenance.releaseId, dataset.releaseId))
+      .get()
+    if (failedAudit?.status === 'failed')
+      throw new ControlRequestError(
+        'Publication is blocked by the failed processing audit attempt.',
+      )
     if (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') {
       const provenance = await db
         .select({ releaseId: metaSchema.releaseProvenance.releaseId })

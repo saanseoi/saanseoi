@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { AuditManifest, IndividualAudit } from '@repo/core/provenance'
-import { getRetainedAuditPage } from '#lib/registry/audit.remote'
+import { getRetainedAuditPage } from '#lib/registry/audit.remote.js'
 import RetainedAuditBulk from './retainedAuditBulk.svelte'
 import RetainedAuditFixture from './retainedAuditFixture.svelte'
 let {

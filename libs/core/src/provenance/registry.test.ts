@@ -12,7 +12,7 @@ import type { Application, ProvenanceStore } from './types'
 async function fixture() {
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE releases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL);
-    CREATE TABLE releaseProvenance (releaseId TEXT PRIMARY KEY REFERENCES releases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL);
+    CREATE TABLE releaseProvenance (releaseId TEXT PRIMARY KEY REFERENCES releases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
     INSERT INTO releases VALUES ('r', 'processing', 'address');`)
   const db = createLocalHarbourDb(sqlite)
   const objects = new Map<string, ArrayBuffer>()

@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
-import { getRetainedSourceAudit } from '#lib/registry/audit.remote'
+import { getRetainedSourceAudit } from '#lib/registry/audit.remote.js'
 import RetainedAuditRelease from './retainedAuditRelease.svelte'
 let {
   datasetCode,

@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { BulkAudit, Json } from '@repo/core/provenance'
-import { getRetainedBulkFixture } from '#lib/registry/audit.remote'
+import { getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
 import RetainedAuditFixture from './retainedAuditFixture.svelte'
 let { bulk, releaseId, hash }: { bulk: BulkAudit; releaseId: string; hash: string } =
   $props()
