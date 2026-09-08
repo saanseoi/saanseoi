@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 import {
   retainAuditResult,
   readAuditPage,
+  readAuditDecision,
   verifyAuditResult,
   validateAuditManifest,
 } from './audit'
@@ -70,12 +71,60 @@ test('individual search reads indexes and only matching action chunks; transfer 
   expect(page.rows.map(r => r.id)).toEqual(['action-280'])
   expect(reads).not.toContain(objectKey(result.manifest.chunks[0]!.hash))
   expect(reads).toContain(objectKey(result.manifest.chunks[1]!.hash))
+  reads.length = 0
+  expect(
+    (await readAuditDecision(store, result.manifest, 'action-280')).fixture,
+  ).toEqual({ sourceText: 'River', translation: '河' })
+  expect(reads).not.toContain(objectKey(result.manifest.chunks[0]!.hash))
+  await expect(readAuditDecision(store, result.manifest, 'undeclared')).rejects.toThrow(
+    'not declared',
+  )
   const destination = memoryStore()
   await transferProcessingResult(store, destination.store, result.ref)
   await verifyAuditResult(destination.store, result.manifest)
   expect(
     (await readAuditPage(destination.store, result.manifest, '', 250, 50)).rows,
   ).toHaveLength(50)
+})
+
+test('bulk search indexes retained fixture contents without reading fixtures during search', async () => {
+  const { store, reads } = memoryStore()
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'fields',
+    scope: 'bulk',
+    basis: 'fixture',
+  })
+  const fixture = await retainObject(store, {
+    fields: [{ sourceField: 'QTR_PRH_HS', name: 'Housing Society rental flats' }],
+  })
+  const result = await retainAuditResult(store, {
+    releaseId: 'r',
+    datasetCode: 'stats',
+    attempt: { id: 'a', status: 'completed' },
+    guards: [],
+    individuals: [],
+    bulk: [
+      {
+        id: 'fields',
+        definition,
+        basis: 'fixture',
+        summary: 'Apply reviewed field metadata.',
+        outcome: 'applied',
+        counts: { inputs: {}, outputs: {}, recordsAffected: 1, decisions: {} },
+        fixtures: [{ type: 'statistic-fields', object: fixture }],
+      },
+    ],
+  })
+  reads.length = 0
+  expect(
+    (await readAuditPage(store, result.manifest, 'QTR_PRH_HS society')).bulkIds,
+  ).toEqual(['fields'])
+  expect(reads).not.toContain(objectKey(fixture.hash))
+  expect(
+    (await readAuditPage(store, result.manifest, 'unmatched-text')).bulkIds,
+  ).toEqual([])
 })
 
 test('bulk payloads and completed failed guards cannot pass audit validation', async () => {

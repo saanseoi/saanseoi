@@ -318,6 +318,37 @@ export async function readAuditPage(
   }
 }
 
+/** Resolve an individual through its registered index, never an arbitrary object hash. */
+export async function readAuditDecision(
+  store: ProvenanceStore,
+  manifest: AuditManifest,
+  id: string,
+) {
+  validateAuditManifest(manifest)
+  for (const ref of manifest.chunks) {
+    const index = (await readObject(store, ref.index)) as unknown as {
+      entries: SearchEntry[]
+    }
+    if (!index.entries.some(entry => entry.id === id)) continue
+    const chunk = (await readObject(store, ref)) as unknown as {
+      actions: IndividualAudit[]
+    }
+    const action = chunk.actions.find(action => action.id === id)
+    if (!action)
+      throw new Error('Individual audit index does not resolve to its action.')
+    return {
+      declaration: await readObject(store, action.definition),
+      fixture: action.fixture
+        ? await readValue(store, {
+            ...action.fixture.object,
+            pointer: action.fixture.pointer,
+          })
+        : null,
+    }
+  }
+  throw new Error('Individual action is not declared by this release.')
+}
+
 export async function verifyAuditResult(
   store: ProvenanceStore,
   manifest: AuditManifest,
