@@ -426,6 +426,11 @@ and future releases. Its named address absorbs the separate alias, preserving bo
 publisher points in provenance. Identity guards remain mandatory; this coordinate
 decision has no release bounds and does not depend on publisher point equality.
 
+Grandeur Terrace Blocks 5–11 retain the fixed B points approved on the coordinate review
+map from `2026-04-25.0` until revoked. Later publisher movement does not replace these
+points. Bilingual identity guards still apply, both original geometries remain in
+provenance, and future releases beyond verified history are marked unverified.
+
 Reviewed duplicate inventories at On Yam and Shek Kip Mei do not create additional house
 owners. Ping Tin and Sau King empty aliases are suppressed in their reviewed history,
 and the reviewed Shek Mun estate assertion is suppressed. Pok Hong Community Hall uses
@@ -464,7 +469,11 @@ uses its reviewed earlier point throughout retained history.
 
 The same guarded estate-level promotion applies to Tsui Lam's blockless Pik Lam House
 assertion: it is a complex at 11 Tsui Lam Road using the latest reviewed point across
-retained history. Pik Lam Block 1 remains a separate building assertion. Exact Ho Chak
+retained history. Pik Lam Block 1 remains a separate building assertion. Its numbered
+Address2D parent is retained from 22 July 2026 until revoked across the reviewed August
+rename and future omissions, preserving the publisher point and bilingual evidence so
+the supplied 3D inventory retains its building owner. A returning identical source
+prevents duplicate insertion; changed numbered assertions require review. Exact Ho Chak
 Wan Primary School assertions at 3 Tsing Luk Street are instead reconciled as one
 bilingual school identity; the estate-only source assertion remains provenance and is
 not interpreted as a closure.

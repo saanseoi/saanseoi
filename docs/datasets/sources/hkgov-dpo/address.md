@@ -33,6 +33,16 @@ to retained Block 1. Both publisher assertions contribute source references to o
 430-unit inventory; conflicting inventories stop preparation. The promoted estate
 complex does not own those residential units.
 
+Pik Lam House's numbered Block 1 parent is forward-filled from the exact 22 July 2026
+Address2D assertion after its August rename to `PIK LAM HOUSE (BLK 1)` / `碧林樓(1座)`,
+under an active until-revoked decision in `hkgov-dpo-address-2d-backfills.json`. Its
+original point, bilingual premises and CSU remain intact, with the evidence release and
+exact renamed source recorded in provenance. A future omission also retains this parent.
+The blockless assertion sharing that CSU remains separate. An identical returning
+numbered source prevents duplicate insertion; changed or duplicate numbered sources
+require review. Future releases beyond 19 August 2026 carry unverified curation
+provenance.
+
 ALS Address2D and Address3D source tables retain their complete `rawProperties` payload
 with source identity, release tracking and provenance. Source identifiers, coordinates
 and bilingual components remain in that payload; canonical history/current tables own
@@ -104,6 +114,15 @@ across all historical and future releases, with no release bounds. Publisher coo
 differences do not block this decision; bilingual building identity guards still apply.
 The named record retains its identity, the separate alias is suppressed, and provenance
 retains both publisher geometries and the derived geometry.
+
+Grandeur Terrace Blocks 5–11 retain their curator-selected B coordinates from
+`2026-04-25.0` until revoked: respectively `[114.00169, 22.46999]`,
+`[114.00203, 22.46947]`, `[114.00214, 22.46911]`, `[114.00224, 22.46874]`,
+`[114.00235, 22.46837]`, `[114.00155, 22.46891]` and `[114.0012, 22.46866]`. The fixed
+coordinates remain independent of subsequent publisher point changes; bilingual identity
+guards remain mandatory and both publisher geometries remain in provenance. Releases
+after `2026-08-19.0` carry unverified curation provenance. Earlier releases retain their
+matching publisher coordinates.
 
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
