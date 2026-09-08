@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import type {
   CenstatdCanonicalDimension,
   CenstatdCanonicalDimensionValue,
@@ -489,7 +490,7 @@ function parseObservationValue(sourceField: string, sourceValue: string) {
     const isScaledPopulation = isPopulationThousands(sourceField, sourceValue)
     return {
       numericValue: isScaledPopulation
-        ? decimalTimesOneThousand(sourceValue)
+        ? populationThousandsRule.execute(sourceValue)
         : sourceValue,
       observationStatus: 'published',
       valueCode: null,
@@ -532,14 +533,10 @@ function precisionAfterScaling(scaleExponent: number, decimalCount: number) {
 }
 
 function isPopulationThousands(sourceField: string, sourceValue: string) {
-  return sourceField === 'MYPOPN_LAND' && /^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)
-}
-
-function decimalTimesOneThousand(value: string) {
-  const [whole, fraction = ''] = value.split('.')
-  const padded = `${fraction}000`.slice(0, 3)
-  const combined = `${whole}${padded}`.replace(/^(-?)0+(?=\d)/, '$1')
-  return combined || '0'
+  return (
+    sourceField === populationThousandsRule.declaration.parameters.sourceField &&
+    /^[+-]?\d+(?:\.\d+)?$/.test(sourceValue)
+  )
 }
 
 function unitFor(datasetCode: string, sourceField: string) {

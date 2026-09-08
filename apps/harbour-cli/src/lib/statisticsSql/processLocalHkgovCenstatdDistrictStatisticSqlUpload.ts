@@ -1,5 +1,4 @@
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
-import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
 import {
   buildCenstatdGeographyLinkAuditActions,
   buildCenstatdFieldCurationAuditActions,
@@ -64,7 +63,6 @@ import {
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import {
-  replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
   replayStatisticSnapshotMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
@@ -397,45 +395,28 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       metaDb,
       releaseId,
     )
-    const { materialisedProcessingActions, materialisedStats } =
-      await runStatisticProgressStep(
-        progress,
-        { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
-        async () => {
-          const materialisedStats = await replaceDatasetStatsAndReturnRows(
-            metaDb,
-            releaseId,
-            [
-              ...structuralStats,
-              ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
-            ],
-          )
-          const materialisedProcessingActions =
-            await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
-              ...buildCenstatdGeographyLinkAuditActions(
-                statsProfile,
-                sourceRows.length,
-              ),
-              ...buildCenstatdFieldCurationAuditActions(canonical),
-              ...buildCenstatdNormalisationAuditActions(canonical),
-            ])
-          await replayReleaseStatsMetaToRemote(
-            target,
-            context,
-            releaseId,
-            materialisedStats,
-            { delivery: delivery('statistics-meta-stats') },
-          )
-          await replayReleaseProcessingActionsMetaToRemote(
-            target,
-            context,
-            releaseId,
-            materialisedProcessingActions,
-            { delivery: delivery('statistics-meta-actions') },
-          )
-          return { materialisedProcessingActions, materialisedStats }
-        },
-      )
+    const { materialisedStats } = await runStatisticProgressStep(
+      progress,
+      { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
+      async () => {
+        const materialisedStats = await replaceDatasetStatsAndReturnRows(
+          metaDb,
+          releaseId,
+          [
+            ...structuralStats,
+            ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+          ],
+        )
+        await replayReleaseStatsMetaToRemote(
+          target,
+          context,
+          releaseId,
+          materialisedStats,
+          { delivery: delivery('statistics-meta-stats') },
+        )
+        return { materialisedStats }
+      },
+    )
     await client.stageCompleted(
       releaseId,
       'processDataset',
@@ -443,7 +424,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         historyRows: historyRows.length,
         importedRows: sourceRows.length,
         statsRows: materialisedStats.length,
-        auditActions: materialisedProcessingActions.actions.length,
       },
       releaseCode,
     )

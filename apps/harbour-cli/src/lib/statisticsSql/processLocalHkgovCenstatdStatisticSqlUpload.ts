@@ -16,7 +16,6 @@ import {
 } from '../localPipeline/sqlDeliveryPending.ts'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
-import { replaceReleaseProcessingActionsAndReturnRows } from '@repo/core/pipeline/db/processingActions'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
 import {
   buildCenstatdGeographyLinkAuditActions,
@@ -67,7 +66,6 @@ import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
 import {
-  replayReleaseProcessingActionsMetaToRemote,
   replayReleaseStatsMetaToRemote,
   replayStatisticSnapshotMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
@@ -373,50 +371,32 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       metaDb,
       releaseId,
     )
-    const { materialisedProcessingActions, materialisedStats } =
-      await runStatisticProgressStep(
-        progress,
-        { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
-        async () => {
-          const materialisedStats = await replaceDatasetStatsAndReturnRows(
-            metaDb,
-            releaseId,
-            [
-              ...structuralStats,
-              ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
-            ],
-          )
-          const materialisedProcessingActions =
-            await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, [
-              ...buildCenstatdGeographyLinkAuditActions(
-                statsProfile,
-                sourceFeatures.length,
-              ),
-              ...buildCenstatdFieldCurationAuditActions(canonical),
-              ...buildCenstatdNormalisationAuditActions(canonical),
-            ])
-          await replayReleaseStatsMetaToRemote(
-            target,
-            context,
-            releaseId,
-            materialisedStats,
-            { delivery: delivery('statistics-meta-stats') },
-          )
-          await replayReleaseProcessingActionsMetaToRemote(
-            target,
-            context,
-            releaseId,
-            materialisedProcessingActions,
-            { delivery: delivery('statistics-meta-actions') },
-          )
-          return { materialisedProcessingActions, materialisedStats }
-        },
-      )
+    const { materialisedStats } = await runStatisticProgressStep(
+      progress,
+      { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
+      async () => {
+        const materialisedStats = await replaceDatasetStatsAndReturnRows(
+          metaDb,
+          releaseId,
+          [
+            ...structuralStats,
+            ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+          ],
+        )
+        await replayReleaseStatsMetaToRemote(
+          target,
+          context,
+          releaseId,
+          materialisedStats,
+          { delivery: delivery('statistics-meta-stats') },
+        )
+        return { materialisedStats }
+      },
+    )
     await client.stageCompleted(
       releaseId,
       'processDataset',
       {
-        auditActions: materialisedProcessingActions.actions.length,
         importedRows: rows.length,
         statsRows: materialisedStats.length,
       },
