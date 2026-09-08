@@ -171,6 +171,7 @@ describe('api field fixtures', () => {
       { snapshotVersion: 'ss-hk-division-2026-06-17.0', version: '1.17.0' },
       { snapshotVersion: 'ss-hk-division-2026-06-24.0', version: '1.17.0' },
       { snapshotVersion: 'ss-hk-division-2026-07-22.0', version: '1.18.0' },
+      { snapshotVersion: 'ss-hk-division-2026-08-19.0', version: '1.18.0' },
     ]
 
     for (const cohort of cohorts) {
