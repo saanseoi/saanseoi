@@ -6,6 +6,8 @@ import { join } from 'node:path'
 import { describe, expect, test } from 'bun:test'
 
 import { resolveDatasetNameTranslationsBatch } from './datasetNameTranslations.ts'
+import { translationMap, translationEntries } from './datasetTranslationFixture'
+import type { FixtureEntry } from './datasetNameTranslations'
 
 const DATASET = 'ds-hk-overture-division'
 const RELEASE_1 = 'dr-hk-overture-division-2025-09-24.0'
@@ -29,7 +31,7 @@ describe('dataset name translations', () => {
         allowGeneration: true,
         datasetCode: DATASET,
         fixturePath,
-        records: [record('division-1')],
+        records: [record('division-1'), record('division-3')],
         sourceRelease: RELEASE_1,
         translate: async (_, { to }) =>
           new Map([['中環', to === 'en' ? 'Central' : '中环']]),
@@ -64,7 +66,8 @@ describe('dataset name translations', () => {
         second.get('division-2')?.applications[0]?.context['parentName.zh-hant'],
       ).toBe('香港島')
 
-      const fixture = JSON.parse(await readFile(fixturePath, 'utf8')) as {
+      const stored = JSON.parse(await readFile(fixturePath, 'utf8'))
+      const fixture = { entries: translationEntries(stored) } as {
         entries: Array<{
           firstSeenRelease: string
           lastSeenRelease: string
@@ -78,7 +81,7 @@ describe('dataset name translations', () => {
           expect.objectContaining({
             firstSeenRelease: RELEASE_1,
             lastSeenRelease: RELEASE_2,
-            recordIds: ['division-1', 'division-2'],
+            recordIds: ['division-1', 'division-2', 'division-3'],
             sourceText: '中環',
           }),
         ]),
@@ -105,7 +108,11 @@ describe('dataset name translations', () => {
           new Map([['中環', to === 'en' ? 'Central' : '中环']]),
       })
 
-      const fixture = JSON.parse(await readFile(fixturePath, 'utf8')) as {
+      const stored = JSON.parse(await readFile(fixturePath, 'utf8'))
+      expect(Object.keys(stored.translations)).toHaveLength(2)
+      expect(Object.keys(stored.contexts)).toHaveLength(2)
+      expect(Object.keys(stored.usages)).toHaveLength(4)
+      const fixture = { entries: translationEntries(stored) } as {
         entries: Array<{ contextHash: string }>
       }
       expect(fixture.entries).toHaveLength(4)
@@ -170,9 +177,8 @@ describe('dataset name translations', () => {
     try {
       await writeFile(
         fixturePath,
-        JSON.stringify({
-          datasetCode: DATASET,
-          entries: [
+        JSON.stringify(
+          translationMap(DATASET, [
             {
               context,
               contextHash: hash(JSON.stringify(context)),
@@ -187,9 +193,8 @@ describe('dataset name translations', () => {
               targetLocale: 'zh-hans',
               text: '中环',
             },
-          ],
-          version: 1,
-        }),
+          ]),
+        ),
       )
       const result = await resolveDatasetNameTranslationsBatch({
         datasetCode: DATASET,
@@ -236,25 +241,12 @@ describe('dataset name translations', () => {
       targetLocale: 'en',
     }
     try {
-      await writeFile(
-        fixturePath,
-        JSON.stringify({
-          datasetCode: DATASET,
-          entries: [
-            { ...shared, text: 'Central' },
-            { ...shared, text: 'Central District' },
-          ],
-          version: 1,
-        }),
-      )
-      await expect(
-        resolveDatasetNameTranslationsBatch({
-          datasetCode: DATASET,
-          fixturePath,
-          records: [record('division-1')],
-          sourceRelease: RELEASE_1,
-        }),
-      ).rejects.toThrow('Conflicting dataset i18n fixture entries')
+      expect(() =>
+        translationMap(DATASET, [
+          { ...shared, text: 'Central' },
+          { ...shared, text: 'Central District' },
+        ] as FixtureEntry[]),
+      ).toThrow('Conflicting dataset i18n fixture entries')
     } finally {
       await rm(root, { force: true, recursive: true })
     }
