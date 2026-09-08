@@ -16,10 +16,11 @@ Overture division, area and boundary source rows preserve supplied publisher `so
 When references are absent or empty, source storage uses `null` without generating a
 self-reference from the ingested record ID.
 
-After `sql:resume` recovers retained local batches, resume the owning upload with
-`--continue` to complete release publication. The prerequisite lookup recognises only
-the exact pending release's sealed plans; it does not clear ownership or allow another
-release to bypass unfinished work.
+The upload command automatically resumes retained local batches before it opens the
+planning mirror. If an interrupted owning release needs to be re-entered directly,
+`sql:resume` can recover its batches and `--continue` completes release publication. The
+prerequisite lookup recognises only sealed plans owned by the pending release; it does
+not clear ownership or allow another release to bypass unfinished work.
 
 Source areas and boundaries retain the complete publisher record, including geometry, in
 `rawProperties`. Source columns track identity, provenance and release validity;

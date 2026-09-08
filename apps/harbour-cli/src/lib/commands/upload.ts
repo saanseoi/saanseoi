@@ -16,6 +16,7 @@ import {
   type UploadTarget,
 } from '../cli/options.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
+import { resumePendingSqlDeliveryForUpload } from '../upload/upload.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import {
   assertRetainableSourceReleaseInput,
@@ -267,6 +268,10 @@ ${mutedBar}  `)
 
     const schemaVersionId = resolveSchemaVersionId(previewResult)
     const processingStrategy = resolveUploadProcessingStrategy(previewResult)
+
+    if (!options.dryRun) {
+      await resumePendingSqlDeliveryForUpload(target, options.invocationCwd)
+    }
 
     if (
       processingStrategy.mode === 'local-address-sql' ||

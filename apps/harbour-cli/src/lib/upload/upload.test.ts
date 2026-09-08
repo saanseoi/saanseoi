@@ -1,7 +1,14 @@
 import { isReleaseId } from '@repo/core'
 import { afterEach, describe, expect, test } from 'bun:test'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-import { dispatchUpload, scheduleSnapshotCleanup } from './upload.ts'
+import {
+  dispatchUpload,
+  resumePendingSqlDeliveryForUpload,
+  scheduleSnapshotCleanup,
+} from './upload.ts'
 import type { UploadTarget } from '../cli/options.ts'
 
 const target: UploadTarget = {
@@ -19,6 +26,55 @@ afterEach(() => {
 })
 
 describe('upload helpers', () => {
+  test('automatically resumes every retained SQL plan before upload planning', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-'))
+    const calls: string[] = []
+    try {
+      await writeFile(
+        join(root, 'pending-sql-delivery.json'),
+        JSON.stringify({
+          releaseId: 'retained-release',
+          directories: [join(root, 'first'), join(root, 'second')],
+        }),
+      )
+
+      await expect(
+        resumePendingSqlDeliveryForUpload(
+          { remote: true, environment: 'preview' },
+          root,
+          {
+            resolveCacheDir: async () => root,
+            runSqlDeliveryCommand: async (args, target, invocationCwd) => {
+              calls.push(`${args.options.plan}:${target.environment}:${invocationCwd}`)
+            },
+          },
+        ),
+      ).resolves.toBe(true)
+
+      expect(calls).toEqual([
+        `${join(root, 'first')}:preview:${root}`,
+        `${join(root, 'second')}:preview:${root}`,
+      ])
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  test('returns without recovery when the cache has no pending delivery', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-empty-'))
+    try {
+      await expect(
+        resumePendingSqlDeliveryForUpload(
+          { remote: true, environment: 'preview' },
+          root,
+          { resolveCacheDir: async () => root },
+        ),
+      ).resolves.toBe(false)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
   test('detects UUID release identifiers', () => {
     expect(isReleaseId('1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70')).toBe(true)
     expect(isReleaseId('dr-hk-overture-division-2025-09-24.0')).toBe(false)

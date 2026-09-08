@@ -14,10 +14,15 @@ import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
   mapLocalTargetPaths,
   resolveD1Targets,
+  resolveSharedRemoteDbCacheDir,
 } from '../dbCache/localDbCacheTargets.ts'
 import type { CliUploadOptions, UploadTarget } from '../cli/options.ts'
 import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
-import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
+import {
+  findPendingSqlDeliveryReleaseId,
+  readPendingSqlDelivery,
+} from '../localPipeline/sqlDeliveryPending.ts'
+import { runSqlDeliveryCommand } from '../commands/sqlDelivery.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -70,6 +75,12 @@ type DispatchUploadOptions = {
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
 }
 
+type UploadSqlRecoveryDependencies = {
+  resolveCacheDir: (target: UploadTarget) => Promise<string>
+  readPendingSqlDelivery: typeof readPendingSqlDelivery
+  runSqlDeliveryCommand: typeof runSqlDeliveryCommand
+}
+
 type ScheduleSnapshotCleanupOptions = {
   delaySeconds?: number
   dryRun?: boolean
@@ -110,6 +121,45 @@ export function buildReconcileDraftReleaseSetsEndpoint(apiBaseUrl: string) {
 
 export function buildBootstrapStatsReleaseSetsEndpoint(apiBaseUrl: string) {
   return `${apiBaseUrl}/v1/control/bootstrapStatsReleaseSets`
+}
+
+/**
+ * Reconcile a retained delivery before the upload opens the planning mirror.
+ * The pending marker owns the cache for its release, so every retained plan is
+ * replayed through the normal checksum and receipt checks before a new release
+ * is allowed to continue.
+ */
+export async function resumePendingSqlDeliveryForUpload(
+  target: UploadTarget,
+  invocationCwd: string,
+  dependencies: Partial<UploadSqlRecoveryDependencies> = {},
+) {
+  const cacheDir = await (dependencies.resolveCacheDir ?? resolveUploadSqlCacheDir)(
+    target,
+  )
+  const pending = await (dependencies.readPendingSqlDelivery ?? readPendingSqlDelivery)(
+    cacheDir,
+  )
+  if (!pending) return false
+
+  console.log(`Resuming retained SQL delivery for ${pending.releaseId}.`)
+  for (const directory of pending.directories) {
+    await (dependencies.runSqlDeliveryCommand ?? runSqlDeliveryCommand)(
+      { command: 'sql:resume', positionals: [], options: { plan: directory } },
+      target,
+      invocationCwd,
+    )
+  }
+  return true
+}
+
+async function resolveUploadSqlCacheDir(target: UploadTarget) {
+  if (target.remote) return resolveSharedRemoteDbCacheDir(target)
+
+  const localTargets = await resolveD1Targets('local')
+  const metaPath = mapLocalTargetPaths(localTargets).DB_META
+  if (!metaPath) throw new Error('Local SQL recovery requires the DB_META binding.')
+  return dirname(metaPath)
 }
 
 /**
