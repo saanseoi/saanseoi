@@ -80,9 +80,9 @@ unrelated drift.
 The normaliser requires a Point geometry and preserves the raw publisher payload in
 `overturePlaces`. It converts the multilingual `names`, `brand.names`, and address
 `freeform` values into PlaceI18n rows using script-aware locale resolution. Locale-less
-values are marked as inferred, and conflicting explicit labels are recorded with their
-source values in release audit actions. Source values and variants are not replaced with
-AI translations.
+values are marked as inferred. Retained normalisation audits count conflicting explicit
+labels; their original values remain in publisher source storage. Source values and
+variants are not replaced with AI translations.
 
 Overture `id` values are validated against the Overture GERS Registry rather than being
 classified from their UUID shape. Harbour caches the registry evidence for the Division
@@ -185,9 +185,16 @@ source provenance and, where justified, division IDs.
   every candidate, score breakdown, residual text, geometry distance, and the reason it
   was not accepted. Its shape and stop/retry behaviour follow the ALS identity-drift
   review workflow.
-- Emit release processing actions with separate counts for direct ALS links, accepted
-  supplementary candidates, review-required candidates, and candidates with no useful
-  partial match.
+- Retain Address-analysis audit declarations with separate counts for direct ALS links,
+  accepted supplementary candidates, review-required candidates, and candidates with no
+  useful partial match.
+
+Places and supplementary Address releases register separate `processing-audit` manifests
+before publication. The manifests retain matching policies, selected accepted entries
+and individual reviewed decisions with fixture pointers. Unresolved identities retain a
+failed blocking guard before the review stop. SQL metadata delivery does not write
+processing-action evidence tables. Failed registration leaves a local retained graph for
+exact delivery retry.
 
 ### Matching and carry-forward order
 

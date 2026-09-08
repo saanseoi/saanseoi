@@ -5,6 +5,14 @@ hierarchy classifications, ordered level tokens, Hong Kong area-name recognition
 fallbacks. The normaliser consumes these parameters directly. Level-token order and
 substring matching are significant; review both when editing taxonomy policy.
 
+The retained declaration includes the executor's ordered condition trees and stable
+branch IDs. Level-token branches distinguish subtype, class and administrative-level
+matches. Locality mappings are counted separately for level and type; type fallback does
+not count its supporting level lookup a second time. Bulk matched counts count only
+selected branches, and changed counts compare canonical results with raw source `level`
+and `type` values. Unselected branches retain zeroes. Missing historical conditions or
+counts remain **not recorded**.
+
 Local division ingestion reports provenance retention and delivery after SQL generation.
 Shared audit fixtures use a bounded cache of verified JSON objects during verification;
 each individual curation pointer is checked before the audit manifest is retained.

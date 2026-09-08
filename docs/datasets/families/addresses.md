@@ -9,9 +9,10 @@ ALS chronological preflight prepares each release in a separate child process.
 Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
 including identity records, drift candidates, curation applications and division
 quality. Reuse requires matching source contents, processing code, curation fixtures,
-arguments, incoming identity history and local database file state. Failed children do
-not create checkpoints. Cache hits still participate in chronological identity and
-curation review; they do not represent completed ingestion.
+arguments, incoming identity history and the selected division lookup. The local lookup
+uses configured metadata, current and history database bindings. Failed children do not
+create checkpoints. Cache hits still participate in chronological identity and curation
+review; they do not represent completed ingestion.
 
 Source-row `sources` is nullable. ALS ingestion retains supplied publisher or ingestion
 references and stores `null` when none are supplied; it does not manufacture a reference
@@ -104,11 +105,12 @@ lookup dependencies under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Draft
 enrichment refreshes the run; SQL replay includes recipe, input and run records.
 
-Processing audits retain action/mode summaries and lossless, compressed evidence chunks
-in D1. Address SQL metadata replay includes both; reports decode individual decisions,
-including canonical ALS records and reviewed source variants. Chunk limits and
-generation replacement follow the
-[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+Processing uses retained `processing-audit` manifests in R2. Bulk preparation and
+normalisation retain registered declarations and counts; reviewed ALS fixtures and
+individual identity decisions retain their selected evidence. Preparation seals these
+inputs to the Parquet digest in an `.audit.json` sidecar. Publication requires
+registered provenance, and delivery retries transfer the completed retained graph. See
+the [processing provenance contract](../processing-provenance.md).
 
 Local 2D and grouped 3D ingestion retain native SQL plans and transactional receipts.
 Restarting a local 2D workflow reuses its retained generation message; 3D plans preserve
@@ -405,6 +407,15 @@ publisher omissions, including the four prolonged omissions, until explicitly re
 Shek Yam's Lai Shek House retains its richer address, 340 flats and original point; Yung
 Shek retains 813 flats at its original point. Complete source assertions guard
 coalescing and remain provenance. Later unverified deliveries are marked explicitly.
+
+ALS alias-coalescence guard failures in strict preflight produce unresolved JSON items
+in `.local/hkgov-dpo/review-queue/`. Each item identifies the release, curation
+decision, failed assertion and both sets of source rows so a curator can investigate
+before approving a coordinate or identity correction.
+
+Grandeur Terrace Block 1 retains the reviewed northern alias coordinate for the five
+retained releases from `2026-04-25.0` to `2026-08-19.0`. The exact source-point pair
+guards the selection, and coalescence provenance preserves both original geometries.
 
 Reviewed duplicate inventories at On Yam and Shek Kip Mei do not create additional house
 owners. Ping Tin and Sau King empty aliases are suppressed in their reviewed history,

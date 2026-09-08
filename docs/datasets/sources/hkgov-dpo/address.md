@@ -3,9 +3,11 @@
 Each release's preflight runs in an isolated Bun process so parsed 2D and 3D payload
 memory is reclaimed when the process exits. Successful preflight checkpoints survive
 interruption and are reused when their inputs match. Source or curation edits,
-processing code changes, incoming identity history changes and local database changes
-invalidate reuse. Remote preflight results are always recomputed. Uploads and final
-verification remain separate from the preflight cache.
+processing code changes, incoming identity history changes and selected division lookup
+changes invalidate reuse. Local lookup fingerprints read the configured metadata,
+current and history databases, including historical division fallback. Remote preflight
+results are always recomputed. Uploads and final verification remain separate from the
+preflight cache.
 
 ALS 2D source rows retain supplied `sources` references, including the `hkgovAls`
 wrapper. Missing or empty references are stored as SQL `NULL` in both worker ingestion
@@ -76,14 +78,33 @@ match. In skip mode, a guard mismatch omits that coalescence and retains both pu
 records unchanged. Coordinate backfills whose source targets are missing, ambiguous or
 changed are omitted in skip mode; matching backfills still apply with their provenance.
 
+Strict ALS preflight stops on an alias-coalescence guard mismatch with the release,
+curation fixture and decision ID. It writes an unresolved JSON review item under
+`.local/hkgov-dpo/review-queue/`, retaining the decision, failed assertion and
+owner/alias prepared rows, including their source provenance and coordinates. The error
+includes the JSON path for curator or LLM investigation. Identical evidence reuses the
+same item; different evidence creates a separate item. Review items do not approve
+corrections or alter source coordinates. Completed checkpoints remain on disk; reuse
+still requires matching preparation dependencies.
+
+Grandeur Terrace Block 1 uses the curator-selected northern block-alias point
+`[114.00057, 22.46887]` for retained releases from `2026-04-25.0` through
+`2026-08-19.0`. Coalescence requires the exact named-premise point
+`[114.00057, 22.46877]`, alias point and bilingual identity guards. Its provenance
+retains both publisher geometries and the derived geometry. Earlier matching points
+remain unchanged; any different source pair requires review.
+
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 
-ALS processing evidence retains every canonical selection and reviewed source variant in
-compressed D1 audit chunks. Action/mode summaries provide counts; reports decode
-individual decisions. Metadata replay carries both under the
-[pipeline contract](../../pipeline.md#release-presentation-metadata).
+ALS preparation seals its audit inputs to the prepared Parquet digest in an
+`.audit.json` sidecar. The retained R2 audit contains preparation and normalisation
+declarations, automatic substep counts, reviewed fixture documents and individual
+identity-continuity decisions. Publisher payloads remain source evidence; bulk audit
+rules do not copy publisher rows or canonical outputs. Publication requires registered
+provenance and completed delivery retries reuse the same retained graph. See the
+[processing provenance contract](../../processing-provenance.md).
 
 Local ALS delivery retains separate 2D SQL and grouped 3D bound plans. Owner validation
 precedes initial 3D mutation capture, and replay uses the sealed parameters without

@@ -4,6 +4,21 @@ The `division-normalisation.json` processing rule supplies ordered API locale
 priorities. The processor reads the same frozen parameters retained in Audit. The
 `division-translation.json` rule declares how selected translation fixtures apply.
 
+Division locale inference retains the executor's Han, ASCII Latin, permitted English
+name and whitespace-split regular expressions, including flags. Ordered branches select
+Han-only text, permitted English text, a Han-only prefix followed by Latin text, or no
+inferred locale. Each branch has a stable ID, precedence, matched count and changed
+count. Counts measure evaluated primary or unlabelled text values before name
+deduplication; labelled common/rule text bypasses inference. A changed inference
+produces locale-bearing output; an unsuccessful inference is matched but unchanged.
+
+API locale normalisation retains a branch for an existing target row, each preferred
+source locale and an absent result. Only the first selected branch is counted. A copied
+locale row is changed; an existing or absent target is unchanged. These are bulk
+counters and do not require individual normalisation actions. Missing retained
+conditions or counters are displayed as **not recorded**, independently of recorded
+zeroes; historical audits do not use current code as policy evidence.
+
 Locale inference and API fallback contribute aggregate processing counters. Applied name
 translations are individual fixture curations in the
 [retained audit](../../processing-provenance.md), with source and translated text,
@@ -12,6 +27,10 @@ are retained in bounded partitions; unapplied entries are explicitly skipped. Au
 loads individual pages and fixture contents on demand and supports free-text search.
 
 ## v1
+
+Translation context retains parent identity and multilingual `parentName.<locale>`
+display names without changing the identity hash. Audit selects the UI locale, then
+English, another retained name in locale order, and the parent ID.
 
 ### EN
 

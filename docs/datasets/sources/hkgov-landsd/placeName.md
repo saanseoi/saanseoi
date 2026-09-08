@@ -33,6 +33,13 @@ the Places API family, rather than in the administrative division hierarchy.
 
 ## Native archive intake
 
+Source-ledger recovery verifies the registered `sourceArchive` asset's SHA-256 before
+restoring any records. It preserves every feature's publisher attributes and geometry,
+including Hydrographic and Topographic features. A retained GeoJSON archive supplies
+only its recorded properties and geometry; an absent relationship table contributes no
+`placeNames` entries. Recovery retains the archive hash as provenance and does not
+recalculate canonical divisions or replace the registered source asset.
+
 The parent feature attributes are retained only in `rawProperties`, alongside native
 geometry and the source identity, provenance and release history. `placeNames` retains
 the separate `PLACE_NAME` relationship, which is absent from the parent properties.
