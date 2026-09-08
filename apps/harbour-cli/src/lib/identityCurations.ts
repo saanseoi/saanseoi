@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { captureCurationDocuments } from './curationDocuments'
 import { readFileSync, readdirSync } from 'node:fs'
 import { computeVersionHash } from '@repo/db'
 
@@ -64,5 +65,8 @@ export function resolveIdentityCuration(
       `Incomplete or duplicate identity curation for ${authority}/${domain}/${cohortKey}.`,
     )
   }
-  return rows.map(row => ({ ...row, externalCode: row.externalCode ?? null }))
+  return captureCurationDocuments(
+    rows.map(row => ({ ...row, externalCode: row.externalCode ?? null })),
+    [{ type: 'identity-mappings', document: requireDefined(fixtures[0]) }],
+  )
 }

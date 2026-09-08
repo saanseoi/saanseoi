@@ -1,4 +1,5 @@
 import { note } from '@clack/prompts'
+import { captureCurationDocuments, type CurationDocument } from '../curationDocuments'
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import {
@@ -58,7 +59,19 @@ export async function resolveCenstatdFieldMetadata(input: {
       `C&SD field metadata requires curation for ${resolved.unresolved.map(field => `${field.datasetCode}/${field.sourceField}`).join(', ')}. Rerun without --yes to review the fields.`,
     )
   }
-  return resolved.metadata
+  return captureCurationDocuments(
+    resolved.metadata,
+    [...new Set(input.fields.map(f => f.datasetCode))].map(datasetCode => ({
+      type: 'statistic-fields',
+      document: {
+        schemaVersion: 8,
+        datasetCode,
+        fields: registry.fields
+          .filter(f => f.datasetCode === datasetCode)
+          .map(({ datasetCode: _dataset, ...field }) => field),
+      },
+    })),
+  )
 }
 
 export async function loadCenstatdFieldCuration(
@@ -104,6 +117,7 @@ export async function loadCenstatdMeasureMetadata(
     .map(entry => resolve(directory, entry.name))
     .sort((left, right) => left.localeCompare(right))
   const metadata = new Map<string, CenstatdMeasureMetadata>()
+  const documents: CurationDocument[] = []
   for (const path of paths) {
     const value = JSON.parse(await readFile(path, 'utf8')) as {
       datasetCode?: unknown
@@ -118,6 +132,7 @@ export async function loadCenstatdMeasureMetadata(
     ) {
       throw new Error(`Invalid C&SD measure curation manifest: ${path}.`)
     }
+    documents.push({ type: 'statistic-measures', document: value })
     for (const measure of value.measures) {
       if (!measure || typeof measure !== 'object' || Array.isArray(measure))
         throw new Error(`Invalid C&SD measure curation entry: ${path}.`)
@@ -158,7 +173,7 @@ export async function loadCenstatdMeasureMetadata(
       })
     }
   }
-  return metadata
+  return captureCurationDocuments(metadata, documents)
 }
 
 export async function saveCenstatdFieldCuration(

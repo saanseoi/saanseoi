@@ -8,6 +8,7 @@ import {
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import { statisticNormalisationRule } from './normaliseHkgovCenstatdStatistics'
 import { retainRegisteredRule } from '../api/retainedRule'
+import { curationDocumentsFor, type CurationDocument } from '../curationDocuments'
 import type {
   CanonicalStatsRows,
   HkgovCenstatdStatisticSourceRow,
@@ -22,6 +23,8 @@ export async function retainStatisticProvenance(
     source: HkgovCenstatdStatisticSourceRow[]
     canonical: CanonicalStatsRows
     fieldMetadata: ReadonlyMap<string, unknown>
+    measureMetadata?: ReadonlyMap<string, unknown>
+    geographyFixtures?: CurationDocument[]
   },
 ) {
   const { releaseId, datasetCode, source, canonical } = input
@@ -34,6 +37,12 @@ export async function retainStatisticProvenance(
     datasetCode,
     fields,
   })
+  const documents = [
+    ...curationDocumentsFor(input.fieldMetadata, input.measureMetadata).filter(
+      f => (f.document as { datasetCode?: string }).datasetCode === datasetCode,
+    ),
+    ...(input.geographyFixtures ?? []),
+  ]
   const bulk: BulkAudit[] = []
   const add = async (
     id: string,
@@ -95,6 +104,11 @@ export async function retainStatisticProvenance(
     'fixture',
   )
   bulk[1]!.counts.outputs = { statsFields: canonical.fields.length }
+  for (const document of documents)
+    bulk[1]!.fixtures.push({
+      type: document.type,
+      object: await retainObject(store, document.document),
+    })
   const dictionaries = [
     'fields',
     'fieldsI18n',
