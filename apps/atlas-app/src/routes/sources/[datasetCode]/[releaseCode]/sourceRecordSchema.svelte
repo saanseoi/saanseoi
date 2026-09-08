@@ -218,30 +218,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     )
   }
 
-  return {
-    description: m.source_record_schema_record_description(),
-    properties: {
-      sourceRecordId: {
-        description: m.source_record_schema_source_record_id_description(),
-        type: 'string',
-      },
-      resourceType: {
-        description: m.source_record_schema_resource_type_description(),
-        type: 'string',
-      },
-      variant: {
-        description: m.source_record_schema_variant_description(),
-        type: 'string',
-      },
-      rawProperties: { ...rawProperties, nullable: true },
-      geometry: {
-        description: m.source_record_schema_geometry_description(),
-        type: 'object',
-      },
-    },
-    required: ['sourceRecordId', 'resourceType', 'variant', 'rawProperties'],
-    type: 'object',
-  }
+  return rawProperties
 })
 
 function setExpandedNodeState(path: string, expanded: boolean) {
@@ -285,10 +262,10 @@ function setExpandedNodeState(path: string, expanded: boolean) {
       <Node
         {expandAllToken}
         {expandedNodeStates}
-        name="SourceRecord"
+        name=""
         onExpandAll={() => (expandAllToken += 1)}
         onExpandedNodeStateChange={setExpandedNodeState}
-        referencePath={['SourceRecord']}
+        referencePath={[]}
         schema={recordSchema}
         schemas={{}}
       />

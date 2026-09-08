@@ -96,14 +96,19 @@ export function retainedBranchGroups(
     })
     groups.set(branch.group, rows)
   }
-  return [...groups].map(([title, rows]) => ({
-    locale: title.startsWith('Locale Normalisation: ')
-      ? title.slice('Locale Normalisation: '.length)
-      : undefined,
-    title: branchGroupTitle(title),
-    explanation: branchGroupExplanation(title),
-    rows: rows.sort((a, b) => a.precedence - b.precedence),
-  }))
+  return [...groups]
+    .filter(([, rows]) =>
+      // Unknown historical counters are not evidence that a rule was unused.
+      rows.some(row => row.matched !== 0 || row.changed !== 0),
+    )
+    .map(([title, rows]) => ({
+      locale: title.startsWith('Locale Normalisation: ')
+        ? title.slice('Locale Normalisation: '.length)
+        : undefined,
+      title: branchGroupTitle(title),
+      explanation: branchGroupExplanation(title),
+      rows: rows.sort((a, b) => a.precedence - b.precedence),
+    }))
 }
 
 function branchGroupExplanation(title: string): string {
