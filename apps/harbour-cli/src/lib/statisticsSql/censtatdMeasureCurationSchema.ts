@@ -50,18 +50,37 @@ export async function resolveCenstatdSchemaMeasureCandidates(
               isTranslationVerified: true,
               locale: 'en',
               name: schema.descriptionEn,
+              origin: { kind: 'publisher' },
             },
             {
               description: zhHant,
               isTranslationVerified: schema.descriptionZhHant !== null,
               locale: 'zh-Hant',
               name: zhHant,
+              origin:
+                schema.descriptionZhHant !== null
+                  ? { kind: 'publisher' }
+                  : {
+                      kind: 'machine-translated',
+                      sourceLocale: 'en',
+                      sourceName: schema.descriptionEn,
+                      sourceDescription: schema.descriptionEn,
+                    },
             },
             {
               description: zhHans,
               isTranslationVerified: schema.descriptionZhHans !== null,
               locale: 'zh-Hans',
               name: zhHans,
+              origin:
+                schema.descriptionZhHans !== null
+                  ? { kind: 'publisher' }
+                  : {
+                      kind: 'machine-translated',
+                      sourceLocale: 'en',
+                      sourceName: schema.descriptionEn,
+                      sourceDescription: schema.descriptionEn,
+                    },
             },
           ],
           fieldName: suggestMeasureName(schema.descriptionEn),

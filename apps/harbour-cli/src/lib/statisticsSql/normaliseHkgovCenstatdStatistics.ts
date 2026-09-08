@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { statisticLocalisationRule } from './statisticLocalisationRule'
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import {
   guardSession,
@@ -226,10 +227,7 @@ function normaliseStatistics(
         fieldsI18n.set(`${fieldKey}\u0000${localisation.locale}`, {
           datasetCode: row.datasetCode,
           fieldName,
-          locale: localisation.locale,
-          name: localisation.name,
-          description: localisation.description,
-          isTranslationVerified: localisation.isTranslationVerified,
+          ...statisticLocalisationRule.execute(localisation),
         })
       }
       const measureKey = `${row.datasetCode}\u0000${measureCode}`
@@ -249,10 +247,7 @@ function normaliseStatistics(
         const next = {
           datasetCode: row.datasetCode,
           measureCode,
-          locale: localisation.locale,
-          name: localisation.name,
-          description: localisation.description,
-          isTranslationVerified: localisation.isTranslationVerified,
+          ...statisticLocalisationRule.execute(localisation),
         }
         const existing = measuresI18n.get(key)
         guards.check('statistic-measure-localisations', () => {
