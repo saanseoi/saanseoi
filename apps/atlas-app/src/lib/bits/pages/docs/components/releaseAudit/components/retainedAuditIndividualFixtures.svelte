@@ -33,6 +33,11 @@ async function load(index: number) {
         <RetainedAuditFixture value={documents[index]} />
       {:else}
         <p class="text-sm">{failure || 'Loading fixture…'}</p>
+        {#if failure}
+          <button type="button" class="text-sm underline" onclick={() => load(index)}>
+            Retry fixture
+          </button>
+        {/if}
       {/if}
     </div>
   </details>
