@@ -1,5 +1,9 @@
 <script lang="ts">
 import type { Json } from '@repo/core/provenance'
+import FieldMappings from './retainedAuditFieldMappings.svelte'
+import IdentityMappings from './retainedAuditIdentityMappings.svelte'
+import Measures from './retainedAuditMeasures.svelte'
+import Translations from './retainedAuditTranslations.svelte'
 let { value }: { value: Json } = $props()
 const label = (key: string) =>
   key.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/[_-]/g, ' ')
@@ -24,4 +28,14 @@ const label = (key: string) =>
   {/if}
 {/snippet}
 
-{@render render(value)}
+{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.fields)}
+  <FieldMappings fields={value.fields} />
+{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.mappings)}
+  <IdentityMappings mappings={value.mappings} />
+{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.measures)}
+  <Measures measures={value.measures} />
+{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries) && value.entries.some(e => e && typeof e === 'object' && !Array.isArray(e) && ('targetLocale' in e || 'sourceLocale' in e))}
+  <Translations entries={value.entries} />
+{:else}
+  {@render render(value)}
+{/if}
