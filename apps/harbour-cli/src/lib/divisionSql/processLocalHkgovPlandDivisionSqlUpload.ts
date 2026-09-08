@@ -17,7 +17,8 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import { retainDivisionProvenance } from './divisionProvenance'
+import { deliverProcessingResult } from '../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { createHash } from '@repo/core/pipeline/utils'
@@ -503,40 +504,44 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               const repairedGeometryRecords = records.filter(
                 wasPlanningGeometryRepaired,
               )
-              await replaceReleaseProcessingActions(
-                metaDb,
+              const audit = await retainDivisionProvenance(bucket, {
                 releaseId,
-                repairedGeometryRecords.length > 0
-                  ? [
-                      {
-                        action: 'planning_geometry_self_intersection_repaired',
-                        affectedRecordCount: repairedGeometryRecords.length,
-                        evidence: repairedGeometryRecords.map(record => ({
-                          canonicalDivision: {
-                            id: record.base.id,
-                            identifiers: record.base.identifiers,
-                            level: record.base.level,
-                          },
-                          sourceEvidence:
-                            record.cells.length > 0
-                              ? record.cells.map(cell => ({
-                                  rawProperties: cell.rawProperties,
-                                  sourceRecordId: cell.sourceRecordId,
-                                }))
-                              : record.newTown
-                                ? {
-                                    rawProperties: record.newTown.rawProperties,
-                                    sourceRecordId: record.newTown.sourceRecordId,
-                                  }
-                                : null,
-                        })),
-                        mode: 'automatic',
-                        summary:
-                          'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
-                      },
-                    ]
-                  : [],
-              )
+                datasetCode,
+                inputCount: nativeRecords.length,
+                outputCount: records.length,
+                actions:
+                  repairedGeometryRecords.length > 0
+                    ? [
+                        {
+                          action: 'planning_geometry_self_intersection_repaired',
+                          affectedRecordCount: repairedGeometryRecords.length,
+                          evidence: repairedGeometryRecords.map(record => ({
+                            canonicalDivision: {
+                              id: record.base.id,
+                              identifiers: record.base.identifiers,
+                              level: record.base.level,
+                            },
+                            sourceEvidence:
+                              record.cells.length > 0
+                                ? record.cells.map(cell => ({
+                                    rawProperties: cell.rawProperties,
+                                    sourceRecordId: cell.sourceRecordId,
+                                  }))
+                                : record.newTown
+                                  ? {
+                                      rawProperties: record.newTown.rawProperties,
+                                      sourceRecordId: record.newTown.sourceRecordId,
+                                    }
+                                  : null,
+                          })),
+                          mode: 'automatic',
+                          summary:
+                            'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
+                        },
+                      ]
+                    : [],
+              })
+              await deliverProcessingResult(target, bucket, audit.ref)
               await replaceDatasetStats(metaDb, releaseId, [
                 statRow('records', 'count', records.length, 'canonical_divisions'),
                 statRow(

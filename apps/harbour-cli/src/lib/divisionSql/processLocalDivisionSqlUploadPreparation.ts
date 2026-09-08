@@ -23,6 +23,7 @@ import {
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
   buildOvertureHongKongAreaHierarchyProcessingActions,
+  buildOvertureHongKongDivisionClassificationProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
   normaliseDivisionRow,
   normaliseDivisionI18nForStorage,
@@ -187,6 +188,10 @@ export async function buildDivisionSqlState(
     for (const row of batch) {
       const raw = row as Record<string, unknown>
       const normalised = normaliseDivisionRow(raw, { hierarchyLookup })
+      if (normalised.overtureHongKongDivisionClassificationCorrection)
+        processingActions.push(
+          ...buildOvertureHongKongDivisionClassificationProcessingActions(1),
+        )
       if (normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
