@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/division'
+import { resolveDivisionNameTranslations } from './processLocalDivisionSqlUploadTranslations'
 
 test('actual Parquet hierarchy lookup accepts division schemas without admin_level', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'division-hierarchy-schema-'))
@@ -91,6 +92,37 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
       { source: 'overture', sourceVersion: '2025-09-24.0' },
     )
     expect(earlierLookup.get(id)).toMatchObject({ level: 4, type: 'macrohood' })
+    // Reach fixture resolution without writing translations: the missing dataset
+    // code is checked only after every source row has been normalised.
+    const message = {
+      datasetId: 'classification-test',
+      rawObjectKey: 'division.parquet',
+      // Disable Hong Kong area synthesis for this single-record fixture.
+      regionCode: 'mo' as const,
+      cohortKey: '2026-01-21.0',
+      source: 'overture',
+      sourceVersion: '2026-01-21.0',
+      theme: 'divisions' as const,
+      type: 'division' as const,
+    }
+    await expect(
+      resolveDivisionNameTranslations(
+        await asyncBufferFromFile(filename),
+        message,
+        earlierLookup,
+        'classification-test',
+        false,
+      ),
+    ).rejects.toThrow('Division i18n fixtures require a dataset code.')
+    await expect(
+      resolveDivisionNameTranslations(
+        await asyncBufferFromFile(filename),
+        { ...message, sourceVersion: '2026-02-18.0' },
+        earlierLookup,
+        'classification-test',
+        false,
+      ),
+    ).rejects.toThrow('guard mismatch')
     write(2)
     const lookup = await buildDivisionHierarchyLookup(
       await asyncBufferFromFile(filename),

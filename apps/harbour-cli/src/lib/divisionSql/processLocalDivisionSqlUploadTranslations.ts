@@ -40,7 +40,7 @@ export async function resolveDivisionNameTranslations(
     DIVISION_BATCH_SIZE,
   )) {
     for (const row of rows) {
-      const normalised = normaliseDivisionRow(row, { hierarchyLookup })
+      const normalised = normaliseDivisionRow(row, { hierarchyLookup, source: message })
       const parentDivisionId = resolveParentDivisionIdFromHierarchy(
         normalised.base.hierarchy,
       )
