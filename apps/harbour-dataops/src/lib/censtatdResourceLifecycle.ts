@@ -5,11 +5,12 @@ export type CenstatdCombinedResourceType =
 
 export function planCenstatdResourceLifecycle(
   resourceTypes: readonly CenstatdCombinedResourceType[],
-  options: { releaseAlreadyExists?: boolean } = {},
 ) {
-  return resourceTypes.map((type, index) => ({
-    deferSourcePublish: index < resourceTypes.length - 1,
-    reuseExistingRelease: options.releaseAlreadyExists === true || index > 0,
+  return resourceTypes.map(type => ({
+    // Each child completes independently. The parent publication gate waits
+    // for the expected resource types, including children absent from this run.
+    deferSourcePublish: false,
+    reuseExistingRelease: false,
     type,
   }))
 }

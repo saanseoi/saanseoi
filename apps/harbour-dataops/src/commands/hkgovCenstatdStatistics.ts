@@ -228,15 +228,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         ? (['divisionArea'] as const)
         : []),
     ])
-    const resourceLifecycle = planCenstatdResourceLifecycle(
-      [
-        ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
-          ? (['divisionStatistic'] as const)
-          : []),
-        ...pendingGeographyResources,
-      ],
-      { releaseAlreadyExists: pendingTypes.length < requestedTypes.length },
-    )
+    const resourceLifecycle = planCenstatdResourceLifecycle([
+      ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
+        ? (['divisionStatistic'] as const)
+        : []),
+      ...pendingGeographyResources,
+    ])
     let resourceLifecycleIndex = 0
     const nextResourceLifecycle = (type: CenstatdCombinedResourceType) => {
       const step = resourceLifecycle[resourceLifecycleIndex]

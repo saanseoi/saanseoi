@@ -1139,7 +1139,7 @@ async function resolveAlsSourceReleases(
         and(
           eq(
             metaSchema.metaReleases.id,
-            metaSchema.metaSnapshotSources.sourceReleaseId,
+            metaSchema.metaSnapshotSources.resourceReleaseId,
           ),
           eq(
             metaSchema.metaReleases.datasetId,

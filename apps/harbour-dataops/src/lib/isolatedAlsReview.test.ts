@@ -27,6 +27,15 @@ test('successful child checkpoints replay findings; failed children cannot repla
       cachedReviewChild(input, checkpoint, 'changed', worker),
     ).rejects.toThrow('137')
     expect((await Bun.file(checkpoint).json()).key).toBe('first')
+    await Bun.write(
+      worker,
+      `await Bun.write(process.argv[3] + '.failure.json', JSON.stringify({message: 'Curation block-1 requires review. Review JSON: /tmp/review.json'})); process.exit(1)`,
+    )
+    await expect(
+      cachedReviewChild(input, checkpoint, 'changed', worker),
+    ).rejects.toThrow('Review JSON: /tmp/review.json')
+    expect((await Bun.file(checkpoint).json()).key).toBe('first')
+    await Bun.write(worker, 'process.exit(137)')
     await Bun.write(checkpoint, 'broken json')
     await expect(cachedReviewChild(input, checkpoint, 'first', worker)).rejects.toThrow(
       '137',
