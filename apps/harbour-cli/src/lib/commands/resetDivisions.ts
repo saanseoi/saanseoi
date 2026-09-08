@@ -5,13 +5,50 @@ import { describeTarget, formatField } from '../cli/display.ts'
 import {
   resolveLocalAddressDbContext,
   type LocalAddressDbContext,
-  type LocalD1ExecBinding,
 } from '../dbCache/localDbCache.ts'
 import {
   executeResetSqlArtefacts,
   validateResetArguments,
   type ResetSqlArtefact,
 } from '../pipeline/resetLifecycle.ts'
+import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
+
+type ReadBinding = {
+  prepare(sql: string): { all(): Promise<{ results: Record<string, unknown>[] }> }
+}
+type ResetReadContext = {
+  metaBinding?: ReadBinding
+  currentBinding?: ReadBinding
+  historyTargets: Array<{ bindingName: string; binding?: ReadBinding }>
+}
+
+function resetReadContext(
+  context: LocalAddressDbContext,
+  target: UploadTarget,
+): ResetReadContext {
+  if (!target.remote) return context
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
+  const apiToken = process.env.CLOUDFLARE_D1_TOKEN
+  if (!accountId || !apiToken)
+    throw new Error(
+      'Remote division reset requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_D1_TOKEN for live dependency checks.',
+    )
+  const binding = (databaseId: string | null | undefined): ReadBinding => {
+    if (!databaseId) throw new Error('Remote division reset is missing a database ID.')
+    const client = createCloudflareD1QueryClient({ accountId, apiToken, databaseId })
+    return {
+      prepare: sql => ({ all: async () => ({ results: await client.query(sql) }) }),
+    }
+  }
+  return {
+    metaBinding: binding(context.state.bindings.DB_META?.databaseId),
+    currentBinding: binding(context.state.bindings.DB_CURRENT?.databaseId),
+    historyTargets: context.historyTargets.map(t => ({
+      bindingName: t.bindingName,
+      binding: binding(t.databaseId),
+    })),
+  }
+}
 
 const TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM releases WHERE resourceType IN ${TYPES}`
@@ -36,12 +73,12 @@ const SOURCE_TABLES = [
   'hkgovLandsdPlaceNames',
 ]
 
-async function rows(binding: LocalD1ExecBinding | undefined, sql: string) {
+async function rows(binding: ReadBinding | undefined, sql: string) {
   if (!binding) throw new Error('Division reset requires a complete database context.')
   return (await binding.prepare(sql).all()).results
 }
 
-export async function collectDivisionResetPlan(context: LocalAddressDbContext) {
+export async function collectDivisionResetPlan(context: ResetReadContext) {
   const releases = await rows(
     context.metaBinding,
     `SELECT id, code, sourceReleaseId, status, updatedAt FROM releases WHERE resourceType IN ${TYPES} ORDER BY id`,
@@ -60,10 +97,10 @@ export async function collectDivisionResetPlan(context: LocalAddressDbContext) {
 export type DivisionResetPlan = Awaited<ReturnType<typeof collectDivisionResetPlan>>
 
 /** Check semantic references as well as foreign keys, including retained history. */
-export async function divisionResetBlockers(context: LocalAddressDbContext) {
+export async function divisionResetBlockers(context: ResetReadContext) {
   const blockers: string[] = []
   const check = async (
-    binding: LocalD1ExecBinding | undefined,
+    binding: ReadBinding | undefined,
     label: string,
     sql: string,
   ) => {
@@ -115,6 +152,11 @@ export async function divisionResetBlockers(context: LocalAddressDbContext) {
     context.currentBinding,
     'Places retain division links',
     'SELECT 1 FROM placesDivision LIMIT 1',
+  )
+  await check(
+    context.currentBinding,
+    'Current addresses retain division snapshot references',
+    'SELECT 1 FROM address2d LIMIT 1',
   )
   return blockers
 }
@@ -204,7 +246,7 @@ function artefacts(
       target: {
         binding: context.currentBinding,
         databaseId: context.state.bindings.DB_CURRENT?.databaseId ?? null,
-        name: 'current',
+        name: 'current' as const,
       },
     },
     {
@@ -212,7 +254,7 @@ function artefacts(
       target: {
         binding: context.metaBinding,
         databaseId: context.state.bindings.DB_META?.databaseId ?? null,
-        name: 'meta',
+        name: 'meta' as const,
       },
     },
   ].filter(artefact => artefact.sql.trim())
@@ -236,8 +278,19 @@ export async function runResetDivisionsCommand(
     requireExistingRemoteCache: target.remote,
   })
   try {
-    const plan = await collectDivisionResetPlan(context)
-    const blockers = await divisionResetBlockers(context)
+    const readContext = resetReadContext(context, target)
+    const plan = await collectDivisionResetPlan(readContext)
+    const assertPlanMatches = async () => {
+      if (
+        JSON.stringify(await collectDivisionResetPlan(context)) !== JSON.stringify(plan)
+      ) {
+        throw new Error(
+          'Division reset requires a matching local database cache. Run cache:rebuild for this target and retry.',
+        )
+      }
+    }
+    await assertPlanMatches()
+    const blockers = await divisionResetBlockers(readContext)
     note(
       [
         formatField('target', describeTarget(target).label),
@@ -278,14 +331,15 @@ export async function runResetDivisionsCommand(
         'Remote division reset succeeded but its local cache could not be updated',
       validateUnderLock: async () => {
         if (
-          JSON.stringify(await collectDivisionResetPlan(context)) !==
+          JSON.stringify(await collectDivisionResetPlan(readContext)) !==
           JSON.stringify(plan)
         ) {
           throw new Error(
             'Division reset plan changed during confirmation. Run reset:divisions again.',
           )
         }
-        const blockers = await divisionResetBlockers(context)
+        await assertPlanMatches()
+        const blockers = await divisionResetBlockers(readContext)
         if (blockers.length)
           throw new Error(`Division reset blocked: ${blockers.join('; ')}`)
       },
