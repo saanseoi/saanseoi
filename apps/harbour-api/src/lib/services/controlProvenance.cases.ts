@@ -20,9 +20,21 @@ import {
 test('every resource release requires an audit, including deferred publication', async () => {
   const sqlite = initDb(join(createTempDir(), 'mandatory-audits.sqlite'))
   const db = createLocalHarbourDb(sqlite)
-  const release = sqlite.query('SELECT id FROM releases LIMIT 1').get() as {
-    id: string
-  }
+  const fixture = insertFixtureRelease(sqlite, {
+    releaseId: 'mandatory-audit-release',
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-06',
+    type: 'division',
+    sourceVersion: '2026-06-24.0',
+    rawObjectKey: 'division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'staged',
+    ingestedAt: '2026-06-24T00:00:00.000Z',
+    createdAt: '2026-06-24T00:00:00.000Z',
+    updatedAt: '2026-06-24T00:00:00.000Z',
+  })
+  const release = { id: fixture.releaseId }
   sqlite.query('DELETE FROM releaseProvenance WHERE releaseId = ?').run(release.id)
   for (const type of [
     'division',
