@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/statistic-normalisation.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'
 import { statisticLocalisationRule } from './statisticLocalisationRule'
@@ -341,29 +343,7 @@ function normaliseStatistics(
 }
 
 export const statisticNormalisationRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'normalise-censtatd-statistics',
-    scope: 'bulk',
-    basis: 'code',
-    summary:
-      'Select observation fields, interpret publisher literals and derive reference periods; group values by source feature, period and reviewed dimensions.',
-    inputs: ['publisher-properties', 'statistic-field-curations'],
-    outputs: [
-      'statsRecords',
-      'statsFields',
-      'statsFieldsI18n',
-      'statsMeasures',
-      'statsMeasuresI18n',
-      'statsValuesI18n',
-    ],
-    parameters: {},
-    implementation: {
-      path: 'apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts',
-      symbol: 'statisticNormalisationRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   ({
     input,
     options,

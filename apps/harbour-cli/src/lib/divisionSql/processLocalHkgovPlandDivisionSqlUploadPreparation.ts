@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/planning-division-normalisation.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { eq } from 'drizzle-orm'
 import { registerRule, guardSession } from '@repo/core/provenance'
 import type { HarbourReadableDb } from '@repo/core/db/types'
@@ -254,22 +256,7 @@ function validatePreparedDivisionsInternal(
 }
 
 export const planningDivisionRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'normalise-planning-divisions',
-    scope: 'bulk',
-    basis: 'code',
-    summary:
-      'Read prepared Planning divisions with their source identities, hierarchy, names and native geometry.',
-    inputs: ['planning-divisions'],
-    outputs: ['divisions'],
-    parameters: {},
-    implementation: {
-      path: 'apps/harbour-cli/src/lib/divisionSql/processLocalHkgovPlandDivisionSqlUploadPreparation.ts',
-      symbol: 'planningDivisionRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   (args: Parameters<typeof readPreparedDivisionsInternal>) =>
     readPreparedDivisionsInternal(...args),
 )

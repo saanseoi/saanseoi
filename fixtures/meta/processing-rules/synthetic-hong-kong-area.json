@@ -1,0 +1,28 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "overture_hong_kong_area_synthesised",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Derive missing Hong Kong area geometry by unioning its district land geometries, including Lok Ma Chau Loop, then subtract the Shenzhen Bay Port exclusion polygon.",
+  "inputs": ["district-land-geometries"],
+  "outputs": ["divisionAreas"],
+  "parameters": {
+    "exclusion": {
+      "coordinates": [
+        [
+          [113.935, 22.485],
+          [113.96, 22.485],
+          [113.96, 22.51],
+          [113.935, 22.51],
+          [113.935, 22.485]
+        ]
+      ],
+      "type": "Polygon"
+    }
+  },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts",
+    "symbol": "syntheticHongKongAreaRule"
+  }
+}
