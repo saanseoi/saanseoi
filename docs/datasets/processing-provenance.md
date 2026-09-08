@@ -5,6 +5,15 @@ consumers can use the separate `processing-result` effects contract described be
 
 ## Retained processing audit
 
+Every resource release requires a registered completed audit before publication,
+including deferred publication. Missing audits and failed attempts block publication
+regardless of publisher or resource type. Producers without audit capture must add it
+before their releases can be published.
+
+Division audit operations use an explicit registry of translations, patches, bulk
+declarations and normalisation counters. Unknown operations fail retention before any
+objects are written; operation-name patterns do not establish audit coverage.
+
 Audit groups automatic Area hierarchy insertion under Rules and independently reviewed
 classification corrections under Patches. Reviewed fixture mappings and individual
 guard-related decisions appear under Bulk Curations and Custom Curations respectively.
