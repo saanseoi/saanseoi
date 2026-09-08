@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import apiFieldDeclarations from '../../../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
 import {
   retainAuditResult,
   retainObject,
@@ -29,6 +30,13 @@ export async function retainStatisticProvenance(
   },
 ) {
   const { releaseId, datasetCode, source, canonical } = input
+  const apiFields = await retainObject(store, {
+    kind: 'api-field-declarations',
+    schemaVersion: 1,
+    fields: apiFieldDeclarations.fields.filter(
+      f => f.sourceDatasetCode === datasetCode,
+    ),
+  })
   const fields = [...input.fieldMetadata]
     .filter(([key]) => key.startsWith(`${datasetCode}\u0000`))
     .map(([key, metadata]) => ({ sourceField: key.split('\u0000')[1], metadata }))
@@ -233,6 +241,7 @@ export async function retainStatisticProvenance(
   ]
   const failed = guards.some(g => g.status === 'failed')
   return retainAuditResult(store, {
+    apiFields,
     releaseId,
     datasetCode,
     attempt: { id: releaseId, status: failed ? 'failed' : 'completed' },

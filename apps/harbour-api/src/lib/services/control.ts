@@ -160,12 +160,7 @@ export async function handlePublishDataset(
         'Publication is blocked by the failed processing audit attempt.',
       )
     if (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') {
-      const provenance = await db
-        .select({ releaseId: metaSchema.releaseProvenance.releaseId })
-        .from(metaSchema.releaseProvenance)
-        .where(eq(metaSchema.releaseProvenance.releaseId, dataset.releaseId))
-        .get()
-      if (!provenance)
+      if (!failedAudit)
         throw new ControlRequestError(
           'Statistics publication requires a verified retained processing result.',
         )

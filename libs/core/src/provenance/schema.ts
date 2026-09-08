@@ -1,11 +1,12 @@
 import { MAX_OBJECT_BYTES } from './objects'
 import { requireDefined } from '../requireDefined'
+import { auditObjectSchemas } from './auditSchema'
 /** Published JSON Schema and structural validator share these definitions. */
-type Shape = {
+export type Shape = {
   type?: 'object' | 'array' | 'string' | 'integer' | 'null'
   properties?: Record<string, Shape>
   required?: string[]
-  additionalProperties?: false
+  additionalProperties?: false | Shape
   items?: Shape
   anyOf?: Shape[]
   const?: string | number
@@ -100,6 +101,7 @@ export const provenanceSchema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
   title: 'SaanSeoi retained processing provenance v1',
   oneOf: [
+    ...auditObjectSchemas,
     applicationSchema,
     manifestSchema,
     object({
@@ -164,7 +166,12 @@ export function validateShape(value: unknown, shape: Shape, path = '$'): void {
       invalid()
       return
     }
-    if (!shape.properties) return
+    if (!shape.properties) {
+      if (typeof shape.additionalProperties === 'object')
+        for (const [key, item] of Object.entries(value))
+          validateShape(item, shape.additionalProperties, `${path}.${key}`)
+      return
+    }
     const row = value as Record<string, unknown>
     if (shape.required?.some(key => !Object.hasOwn(row, key))) invalid()
     for (const key of Object.keys(row)) {

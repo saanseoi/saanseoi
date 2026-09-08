@@ -81,6 +81,7 @@ export type AuditManifest = {
   bulk: BulkAudit[]
   guards: AuditGuard[]
   individualFixtures?: Array<{ type: string; object: ObjectRef }>
+  apiFields?: ObjectRef
   chunks: Array<ObjectRef & { firstOrdinal: number; count: number; index: ObjectRef }>
   applicationCount: number
 }

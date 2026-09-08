@@ -124,5 +124,5 @@ test('bulk payloads and completed failed guards cannot pass audit validation', a
       ...result.manifest,
       bulk: [{ ...result.manifest.bulk[0], evidence: [{ value: 123 }] }],
     }),
-  ).toThrow('Unexpected audit property')
+  ).toThrow('Invalid provenance structure')
 })

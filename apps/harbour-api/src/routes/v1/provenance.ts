@@ -167,6 +167,13 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
         manifest.kind === 'processing-audit'
       ) {
         validateAuditManifest(manifest)
+        if (query.view === 'api-fields')
+          return c.json(
+            manifest.apiFields
+              ? await readObject(c.env.R2_ASSETS, manifest.apiFields)
+              : { fields: [] },
+            200,
+          )
         if (query.view === 'manifest')
           return c.json(manifest as unknown as Record<string, unknown>, 200)
         return c.json(
