@@ -3,7 +3,7 @@ import { note, outro } from '@clack/prompts'
 import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { reconcileDraftReleaseSets } from '../upload/upload.ts'
-import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
+import { logApiReleaseSetPublication } from './uploadDisplay.ts'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -80,12 +80,13 @@ export async function runReconcileDraftReleaseSetsCommand(
       dbContext.cleanup()
     }
   }
-  for (const apiReleaseSetCode of result.publishedReleaseSetCodes) {
-    await recordInitialisationSummaryEvent({
-      apiReleaseSetCode,
-      type: 'published-api-release-set',
-    })
-  }
+  await logApiReleaseSetPublication({
+    apiReleaseSetPublications: result.publishedReleaseSetCodes.map(
+      apiReleaseSetCode => ({
+        apiReleaseSetCode,
+      }),
+    ),
+  })
   note(
     [
       formatField('inspected', String(result.inspected)),

@@ -3,7 +3,7 @@ import { note, outro } from '@clack/prompts'
 import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { createApiReleaseSetInitialDraft } from './docs.ts'
-import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
+import { logApiReleaseSetPublication } from './uploadDisplay.ts'
 import { bootstrapStatsReleaseSets } from '../upload/upload.ts'
 
 /** Creates initial, cohort-complete Statistics release sets from prepared snapshots. */
@@ -31,14 +31,11 @@ export async function runBootstrapStatsReleaseSetsCommand(
   }
 
   const result = await bootstrapStatsReleaseSets(target, { regionCode })
-  await Promise.all(
-    result.createdReleaseSetCodes.map(apiReleaseSetCode =>
-      recordInitialisationSummaryEvent({
-        apiReleaseSetCode,
-        type: 'published-api-release-set',
-      }),
-    ),
-  )
+  await logApiReleaseSetPublication({
+    apiReleaseSetPublications: result.createdReleaseSetCodes.map(apiReleaseSetCode => ({
+      apiReleaseSetCode,
+    })),
+  })
   const draftedPaths: string[] = []
   for (const code of result.createdReleaseSetCodes) {
     try {

@@ -250,7 +250,7 @@ async function countMetaRollbackRows(
     countRows(
       db,
       metaSchema.metaSnapshotSources,
-      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.sourceReleaseId} = ${input.release.releaseId}`,
+      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.resourceReleaseId} = ${input.release.releaseId}`,
     ),
     countRows(
       db,
@@ -457,7 +457,7 @@ export async function verifyPurgeResult(
     countRows(
       dbContext.metaDb,
       metaSchema.metaSnapshotSources,
-      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.sourceReleaseId} = ${input.releaseId}`,
+      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.resourceReleaseId} = ${input.releaseId}`,
     ),
     countRows(
       dbContext.metaDb,

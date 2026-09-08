@@ -817,6 +817,31 @@ test('treats a failed target release as a missing cohort that must be retried', 
   )
 })
 
+test('geometry publication cannot hide a missing statistics release', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic', 'divisionArea'],
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+  const geometry = { sourceVersion: '2021', status: 'published', type: 'divisionArea' }
+  expect(targetVersionsFromReport(dataset, [geometry]).get('2021')).toBeNull()
+  expect(
+    targetVersionsFromReport(dataset, [
+      { ...geometry, hasStatisticsSnapshot: true },
+    ]).get('2021'),
+  ).toBe('2021')
+  expect(
+    targetVersionsFromReport(dataset, [
+      geometry,
+      { ...geometry, type: 'divisionStatistic' },
+    ]).get('2021'),
+  ).toBe('2021')
+})
+
 test('wraps update errors to the guided output width, including long URLs', () => {
   const lines = wrapUpdateMessage(
     'Download failed',
