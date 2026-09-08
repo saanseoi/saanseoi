@@ -158,3 +158,13 @@ export const getRetainedBulkFixture = query(
     return readObject(store(), fixture.object)
   },
 )
+
+export const getRetainedRuleDeclaration = query(
+  z.object({ releaseId: z.string(), hash: z.string(), bulkId: z.string() }),
+  async input => {
+    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const bulk = manifest.bulk.find(b => b.id === input.bulkId)
+    if (!bulk) throw new Error('Rule is not declared by this release.')
+    return readObject(store(), bulk.definition)
+  },
+)

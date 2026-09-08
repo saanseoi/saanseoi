@@ -23,6 +23,7 @@ import {
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
+  assertOvertureHongKongDivisionSourceAssumptions,
   buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureHongKongDivisionClassificationProcessingActions,
   buildOvertureDivisionLocaleProcessingActions,
@@ -146,6 +147,8 @@ export async function buildDivisionSqlState(
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
+  if (message.source === 'overture' && message.regionCode === 'hk')
+    await assertOvertureHongKongDivisionSourceAssumptions(file)
   const hierarchyLookup = await buildDivisionHierarchyLookup(file)
   const sourceRelease = message.releaseCode
   if (!sourceRelease) {
@@ -369,6 +372,31 @@ export async function buildDivisionSqlState(
   return {
     currentRows,
     curationDocuments: curationDocumentsFor(translationsByDivisionId),
+    auditGuards: [
+      {
+        id: 'division-source-identities',
+        summary: 'Require non-empty, unique source division identities.',
+        consequence: 'block-ingestion',
+        status: 'passed',
+        checked: hierarchyLookup.size,
+        failed: 0,
+        reason: 'All source division identities are present and unique.',
+      },
+      ...(message.source === 'overture' && message.regionCode === 'hk'
+        ? [
+            {
+              id: 'overture-division-source-assumptions',
+              summary:
+                'Verify the registered assumptions for dropped Overture source fields.',
+              consequence: 'block-ingestion' as const,
+              status: 'passed' as const,
+              checked: 1,
+              failed: 0,
+              reason: 'The source satisfies the dropped-field assumptions.',
+            },
+          ]
+        : []),
+    ],
     currentSourceRows,
     deletedRows: [...currentRows.keys()].filter(id => !seenIds.has(id)).length,
     insertedVersions,

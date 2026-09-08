@@ -1,5 +1,7 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { resolveIdentityCuration } from '../identityCurations'
+import { curationDocumentsFor } from '../curationDocuments'
+import { hashValue } from '@repo/core/provenance'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
@@ -22,6 +24,8 @@ import {
 import {
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
+  divisionAreaGeometryRule,
+  divisionBoundaryGeometryRule,
   type NormalisedDivisionArea,
 } from '@repo/core/pipeline/services/divisionGeometry'
 import { metaSchema } from '@repo/db'
@@ -315,6 +319,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     let rejectedRows = 0
     let processedRows = 0
     const providerBridgeConfig = resolveProviderBridgeConfig(previewPlan)
+    const providerBridgeRows =
+      !options.normalisedInput && providerBridgeConfig
+        ? resolveIdentityCuration(
+            providerBridgeConfig.authority,
+            providerBridgeConfig.cohortKey ?? previewPlan.cohortKey,
+            'administrative',
+          )
+        : null
     const normalisedCache =
       options.cacheArtefacts &&
       !options.normalisedInput &&
@@ -323,7 +335,8 @@ export async function processLocalDivisionGeometrySqlUpload(
         ? await openNormalisedArtefactCache({
             filePath: preparedUpload.filePath,
             processingContract: [
-              'division-geometry-normalisation-v1',
+              'division-geometry-normalisation-v2',
+              await hashValue(providerBridgeRows),
               previewPlan.source,
               previewPlan.type,
               previewPlan.cohortKey,
@@ -339,11 +352,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       ? null
       : providerBridgeConfig !== null
         ? new Map(
-            resolveIdentityCuration(
-              providerBridgeConfig.authority,
-              providerBridgeConfig.cohortKey ?? previewPlan.cohortKey,
-              'administrative',
-            ).flatMap(row => [
+            (providerBridgeRows ?? []).flatMap(row => [
               [row.externalId, row.canonicalId] as const,
               ...(row.externalCode
                 ? [[row.externalCode, row.canonicalId] as const]
@@ -701,6 +710,11 @@ export async function processLocalDivisionGeometrySqlUpload(
       datasetCode,
       inputCount: previewPlan.rowCount,
       outputCount: normalised.length,
+      curationDocuments: curationDocumentsFor(providerBridgeRows),
+      normalisation:
+        previewPlan.type === 'divisionArea'
+          ? divisionAreaGeometryRule.declaration
+          : divisionBoundaryGeometryRule.declaration,
       actions: [
         ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
         ...buildSyntheticOvertureHongKongAreaProcessingActions(

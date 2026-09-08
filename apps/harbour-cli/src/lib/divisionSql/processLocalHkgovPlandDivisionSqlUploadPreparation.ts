@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import { registerRule, guardSession } from '@repo/core/provenance'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   createAsyncBufferFromR2,
@@ -71,7 +72,7 @@ export async function loadPlandNewTownDivisionCodes(metaDb: HarbourReadableDb) {
   return divisionCodesByCanonicalId
 }
 
-export async function readPreparedDivisions(
+async function readPreparedDivisionsInternal(
   bucket: LocalPipelineBucket,
   key: string,
   sourceRelease: string,
@@ -227,7 +228,7 @@ function normaliseI18n(value: unknown) {
   })
 }
 
-export function validatePreparedDivisions(
+function validatePreparedDivisionsInternal(
   records: PreparedDivision[],
   expectedCount: number,
 ) {
@@ -250,4 +251,45 @@ export function validatePreparedDivisions(
       }
     }
   }
+}
+
+export const planningDivisionRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'normalise-planning-divisions',
+    scope: 'bulk',
+    basis: 'code',
+    summary:
+      'Read prepared Planning divisions with their source identities, hierarchy, names and native geometry.',
+    inputs: ['planning-divisions'],
+    outputs: ['divisions'],
+    parameters: {},
+    implementation: {
+      path: 'apps/harbour-cli/src/lib/divisionSql/processLocalHkgovPlandDivisionSqlUploadPreparation.ts',
+      symbol: 'planningDivisionRule',
+    },
+  },
+  (args: Parameters<typeof readPreparedDivisionsInternal>) =>
+    readPreparedDivisionsInternal(...args),
+)
+
+export function readPreparedDivisions(
+  ...args: Parameters<typeof readPreparedDivisionsInternal>
+) {
+  return planningDivisionRule.execute(args)
+}
+export function validatePreparedDivisions(
+  ...args: Parameters<typeof validatePreparedDivisionsInternal>
+) {
+  return guardSession([
+    {
+      id: 'planning-prepared-divisions',
+      summary:
+        'Require expected Planning record coverage, unique identities and parent-before-child hierarchy.',
+      consequence: 'block-ingestion',
+    },
+  ]).check('planning-prepared-divisions', () =>
+    validatePreparedDivisionsInternal(...args),
+  )
 }

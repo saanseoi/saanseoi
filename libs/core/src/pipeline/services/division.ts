@@ -1001,12 +1001,22 @@ export async function assertOvertureHongKongDivisionSourceAssumptions(
   const violations = collectOvertureHongKongDivisionSourceAssumptionViolations(rows)
 
   if (violations.length > 0) {
-    throw new Error(
-      [
-        'Overture Hong Kong division parquet no longer matches dropped-field assumptions.',
-        ...violations.map(violation => `- ${violation}`),
-      ].join('\n'),
-    )
+    const reason = [
+      'Overture Hong Kong division parquet no longer matches dropped-field assumptions.',
+      ...violations.map(violation => `- ${violation}`),
+    ].join('\n')
+    throw new ProcessingGuardError(reason, [
+      {
+        id: 'overture-division-source-assumptions',
+        summary:
+          'Verify the registered assumptions for dropped Overture source fields.',
+        consequence: 'block-ingestion',
+        status: 'failed',
+        checked: 1,
+        failed: 1,
+        reason,
+      },
+    ])
   }
 }
 
@@ -1934,13 +1944,26 @@ export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
   const lookup = new Map<string, DivisionHierarchyLookupEntry>()
 
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
-    columns: ['id', 'subtype', 'class', 'parent_division_id', 'names'],
+    columns: ['id', 'admin_level', 'subtype', 'class', 'parent_division_id', 'names'],
   })) {
     for (const row of batch) {
       const id = asNonEmptyString(row.id)
 
-      if (!id) {
-        continue
+      if (!id || lookup.has(id)) {
+        const reason = !id
+          ? 'Division source row is missing its identity.'
+          : `Duplicate division source identity: ${id}.`
+        throw new ProcessingGuardError(reason, [
+          {
+            id: 'division-source-identities',
+            summary: 'Require non-empty, unique source division identities.',
+            consequence: 'block-ingestion',
+            status: 'failed',
+            checked: lookup.size + 1,
+            failed: 1,
+            reason,
+          },
+        ])
       }
 
       const otSubtype = asNonEmptyString(row.subtype)
@@ -1959,20 +1982,25 @@ export async function buildDivisionHierarchyLookup(file: AsyncBuffer) {
           .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
+      const classification = applyDivisionClassificationCuration(row)
       lookup.set(id, {
         i18n,
-        level: resolveDivisionLevel({
-          row,
-          otClass,
-          otSubtype,
-          parentDivisionId,
-        }),
-        type: resolveDivisionType({
-          row,
-          otClass,
-          otSubtype,
-          parentDivisionId,
-        }),
+        level:
+          classification?.level ??
+          resolveDivisionLevel({
+            row,
+            otClass,
+            otSubtype,
+            parentDivisionId,
+          }),
+        type:
+          classification?.type ??
+          resolveDivisionType({
+            row,
+            otClass,
+            otSubtype,
+            parentDivisionId,
+          }),
       })
     }
   }
