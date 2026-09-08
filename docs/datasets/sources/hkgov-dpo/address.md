@@ -99,6 +99,12 @@ Grandeur Terrace Block 1 uses the curator-selected northern block-alias point
 retains both publisher geometries and the derived geometry. Earlier matching points
 remain unchanged; any different source pair requires review.
 
+Grandeur Terrace Block 4 uses the fixed curator-selected point B `[114.00141, 22.46971]`
+across all historical and future releases, with no release bounds. Publisher coordinate
+differences do not block this decision; bilingual building identity guards still apply.
+The named record retains its identity, the separate alias is suppressed, and provenance
+retains both publisher geometries and the derived geometry.
+
 ALS ingestion retains the effective Address assembly recipe and exact source selections,
 including enrichment and lookup inputs, following the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
