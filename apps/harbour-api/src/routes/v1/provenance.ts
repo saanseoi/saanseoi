@@ -10,6 +10,7 @@ import {
   readObject,
   registerProcessingResult,
   retainObject,
+  provenanceSchema,
   validateManifest,
   type Digest,
 } from '@repo/core/provenance'
@@ -58,6 +59,7 @@ const get = createRoute({
       view: z
         .enum(['manifest', 'applications', 'audit', 'curations', 'api-fields'])
         .default('manifest'),
+      manifestHash: digest.optional(),
       offset: z.coerce.number().int().min(0).default(0),
       limit: z.coerce.number().int().min(1).max(256).default(256),
     }),
@@ -145,6 +147,11 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
         .where(eq(table.releaseId, c.req.valid('param').releaseId))
         .get()
       if (!row) throw new Error('Release has no retained processing result.')
+      if (
+        c.req.valid('query').manifestHash &&
+        c.req.valid('query').manifestHash !== row.manifestHash
+      )
+        throw new Error('Provenance generation changed; restart pagination.')
       const manifest = await readObject(c.env.R2_ASSETS, {
         hash: row.manifestHash as Digest,
         byteLength: row.byteLength,
@@ -202,4 +209,21 @@ const objectRoute = defineOpenAPIRoute<typeof object, AppEnv>({
     }
   },
 })
-export const provenanceRoutes = [putRoute, commitRoute, getRoute, objectRoute] as const
+const schemaConfig = createRoute({
+  method: 'get',
+  path: '/v1/provenance/schema',
+  tags: ['Provenance'],
+  responses,
+})
+const schemaRoute = defineOpenAPIRoute<typeof schemaConfig, AppEnv>({
+  route: schemaConfig,
+  handler: async c =>
+    c.json(provenanceSchema as unknown as Record<string, unknown>, 200),
+})
+export const provenanceRoutes = [
+  putRoute,
+  commitRoute,
+  getRoute,
+  objectRoute,
+  schemaRoute,
+] as const

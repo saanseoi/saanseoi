@@ -8,6 +8,71 @@ import {
   type NativeSourceRow,
 } from './nativeSourceSql.ts'
 import { readHkgovHydStreetArchive } from '../sources/hkgov/hkgovHyd.ts'
+import { sourceSchema } from '@repo/db'
+import { getTableConfig } from 'drizzle-orm/sqlite-core'
+
+test('road centreline schema reuses unchanged features across different archives', async () => {
+  const db = new Database(':memory:')
+  const config = getTableConfig(sourceSchema.sourceHkgovLandsdRoadCentrelines)
+  db.exec(
+    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash))`,
+  )
+  const original = {
+    sourceRecordId: 'road',
+    rawProperties: { name: 'Road' },
+    sourceGeometry: {
+      type: 'LineString',
+      coordinates: [
+        [1, 2],
+        [3, 4],
+      ],
+    },
+  }
+  const run = async (release: string, rows: NativeSourceRow[]) => {
+    for (const sql of await buildNativeSourceSql(
+      [{ name: config.name, provenance: 'required', replaceCurrentRows: true, rows }],
+      release,
+      release,
+    ))
+      db.exec(sql)
+  }
+  try {
+    await run('first', [
+      {
+        ...original,
+        sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-1' }],
+      },
+    ])
+    await run('second', [
+      {
+        ...original,
+        sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-2' }],
+      },
+    ])
+    expect(
+      db
+        .query(
+          `SELECT count(*) AS n, min(validFromRelease) AS first FROM "${config.name}"`,
+        )
+        .get(),
+    ).toEqual({ n: 1, first: 'first' })
+    await run('third', [
+      { ...original, rawProperties: { name: 'Changed' }, sources: null },
+    ])
+    expect(db.query(`SELECT count(*) AS n FROM "${config.name}"`).get()).toEqual({
+      n: 2,
+    })
+    expect(
+      db.query(`SELECT validToRelease FROM "${config.name}" WHERE isCurrent=0`).get(),
+    ).toEqual({ validToRelease: 'third' })
+    await run('fourth', [])
+    expect(
+      db.query(`SELECT count(*) AS n FROM "${config.name}" WHERE isCurrent=1`).get(),
+    ).toEqual({ n: 0 })
+  } finally {
+    db.close()
+  }
+})
 
 test('replays native polygon values and duplicate assertions without losing history', async () => {
   const db = new Database(':memory:')

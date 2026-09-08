@@ -1,4 +1,5 @@
 import type { Digest, Json, ObjectRef, ProvenanceStore, ValueRef } from './types'
+import { requireDefined } from '../requireDefined'
 
 export const MAX_OBJECT_BYTES = 1024 * 1024
 const encoder = new TextEncoder()
@@ -81,8 +82,10 @@ export async function retainObject(
 
 /** Resolve only own JSON members; absent and explicit null remain distinct. */
 export async function readValue(store: ProvenanceStore, ref: ValueRef): Promise<Json> {
-  let value = await readObject(store, ref)
-  const pointer = ref.pointer ?? ''
+  return valueAtPointer(await readObject(store, ref), ref.pointer ?? '')
+}
+
+export function valueAtPointer(value: Json, pointer: string): Json {
   if (pointer !== '' && !/^(\/(?:[^~]|~[01])*)+$/.test(pointer))
     throw new Error('Invalid provenance JSON Pointer.')
   for (const part of pointer === '' ? [] : pointer.slice(1).split('/')) {
@@ -94,7 +97,7 @@ export async function readValue(store: ProvenanceStore, ref: ValueRef): Promise<
       !Object.hasOwn(value, key)
     )
       throw new Error(`Missing retained value: ${pointer}`)
-    value = (value as Record<string, Json>)[key]!
+    value = requireDefined((value as Record<string, Json>)[key])
   }
   return value
 }
