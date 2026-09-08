@@ -28,6 +28,13 @@ export function guardSession(definitions: readonly GuardDefinition[]) {
   const snapshot = () => [...results.values()].map(g => ({ ...g }))
   return {
     snapshot,
+    notApplicable(id: string, reason: string) {
+      const result = results.get(id)
+      if (!result) throw new Error(`Unregistered processing guard: ${id}.`)
+      if (result.checked) throw new Error(`Cannot skip an executed guard: ${id}.`)
+      result.status = 'not-applicable'
+      result.reason = reason
+    },
     check<T>(id: string, run: () => T): T {
       const result = results.get(id)
       if (!result) throw new Error(`Unregistered processing guard: ${id}.`)
