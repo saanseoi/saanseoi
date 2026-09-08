@@ -13,6 +13,8 @@ import {
   provenanceSchema,
   validateManifest,
   type Digest,
+  validateAuditManifest,
+  readAuditPage,
 } from '@repo/core/provenance'
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import type { AppEnv } from '../../types'
@@ -62,6 +64,7 @@ const get = createRoute({
       manifestHash: digest.optional(),
       offset: z.coerce.number().int().min(0).default(0),
       limit: z.coerce.number().int().min(1).max(256).default(256),
+      q: z.string().max(300).default(''),
     }),
   },
   responses,
@@ -156,8 +159,31 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
         hash: row.manifestHash as Digest,
         byteLength: row.byteLength,
       })
-      validateManifest(manifest)
       const query = c.req.valid('query')
+      if (
+        manifest &&
+        typeof manifest === 'object' &&
+        !Array.isArray(manifest) &&
+        manifest.kind === 'processing-audit'
+      ) {
+        validateAuditManifest(manifest)
+        if (query.view === 'manifest')
+          return c.json(manifest as unknown as Record<string, unknown>, 200)
+        return c.json(
+          {
+            manifestHash: row.manifestHash,
+            ...(await readAuditPage(
+              c.env.R2_ASSETS,
+              manifest,
+              query.q,
+              Number(query.offset),
+              Number(query.limit),
+            )),
+          },
+          200,
+        )
+      }
+      validateManifest(manifest)
       if (query.view === 'manifest')
         return c.json(manifest as unknown as Record<string, unknown>, 200)
       const applications = await Array.fromAsync(

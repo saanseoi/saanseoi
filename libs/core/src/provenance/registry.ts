@@ -4,6 +4,7 @@ import { readObject } from './objects'
 import { verifyProcessingResult } from './bundle'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
+import { validateAuditManifest, verifyAuditResult } from './audit'
 
 /** Verify new R2 closures first; identical registered manifests are idempotent. */
 export async function registerProcessingResult(
@@ -13,8 +14,18 @@ export async function registerProcessingResult(
   ref: ObjectRef,
 ) {
   const manifest = await readObject(store, ref)
-  validateManifest(manifest)
-  if (manifest.releaseId !== releaseId) throw new Error('Provenance release mismatch.')
+  const audit =
+    !!manifest &&
+    typeof manifest === 'object' &&
+    !Array.isArray(manifest) &&
+    manifest.kind === 'processing-audit'
+  if (audit) validateAuditManifest(manifest)
+  else validateManifest(manifest)
+  // Each format is verified using its own contract before registration.
+  const result = manifest as
+    | import('./types').ProcessingManifest
+    | import('./auditTypes').AuditManifest
+  if (result.releaseId !== releaseId) throw new Error('Provenance release mismatch.')
   const table = metaSchema.releaseProvenance
   const releases = metaSchema.metaReleases
   const release = await db
@@ -26,7 +37,8 @@ export async function registerProcessingResult(
   if (release.type === 'street')
     throw new Error('Streets provenance is outside this implementation.')
   if (
-    manifest.collections.some(c => c.layer === 'canonical' && c.releaseId !== releaseId)
+    result.kind === 'processing-result' &&
+    result.collections.some(c => c.layer === 'canonical' && c.releaseId !== releaseId)
   )
     throw new Error('Canonical collection belongs to a different release.')
   const existing = await db
@@ -36,7 +48,8 @@ export async function registerProcessingResult(
     .get()
   if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength)
     return existing
-  await verifyProcessingResult(store, manifest)
+  if (result.kind === 'processing-audit') await verifyAuditResult(store, result)
+  else await verifyProcessingResult(store, result)
   if (!['staged', 'processing'].includes(release.status))
     throw new Error('Published provenance is immutable.')
   // A release has one processing result. Multiple outputs are declared in its collections.
@@ -48,7 +61,7 @@ export async function registerProcessingResult(
           releaseId: releases.id,
           manifestHash: sql<string>`${ref.hash}`,
           byteLength: sql<number>`${ref.byteLength}`,
-          applicationCount: sql<number>`${manifest.applicationCount}`,
+          applicationCount: sql<number>`${result.applicationCount}`,
         })
         .from(releases)
         .where(
@@ -63,7 +76,7 @@ export async function registerProcessingResult(
       set: {
         manifestHash: ref.hash,
         byteLength: ref.byteLength,
-        applicationCount: manifest.applicationCount,
+        applicationCount: result.applicationCount,
       },
     })
     .run()

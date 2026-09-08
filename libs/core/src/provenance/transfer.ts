@@ -7,6 +7,7 @@ import { cachedProvenanceStore } from './cache'
 import { readObject, retainObject } from './objects'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
+import { transferAuditResult, validateAuditManifest } from './audit'
 
 /** Transfer a verified graph, root last. It is not published until registered. */
 export async function transferProcessingResult(
@@ -16,6 +17,15 @@ export async function transferProcessingResult(
 ) {
   source = cachedProvenanceStore(source)
   const manifest = await readObject(source, ref)
+  if (
+    manifest &&
+    typeof manifest === 'object' &&
+    !Array.isArray(manifest) &&
+    manifest.kind === 'processing-audit'
+  ) {
+    validateAuditManifest(manifest)
+    return transferAuditResult(source, destination, ref, manifest)
+  }
   validateManifest(manifest)
   await verifyProcessingResult(source, manifest)
   const copied = new Set<string>()
