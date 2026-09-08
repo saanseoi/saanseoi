@@ -1,23 +1,10 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-translation.json'
+import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
 import { registerRule } from '../../provenance/auditTypes'
 
 export const divisionTranslationRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'apply-division-name-translation',
-    scope: 'individual',
-    basis: 'fixture',
-    summary:
-      'Add a selected translated division name only for a missing locale, preserving the recorded translation origin.',
-    inputs: ['division-i18n', 'division-translations'],
-    outputs: ['division-i18n'],
-    parameters: {},
-    implementation: {
-      path: 'libs/core/src/pipeline/services/divisionTranslationRule.ts',
-      symbol: 'divisionTranslationRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   (input: {
     source: DivisionI18nPayload[]
     localisations: Array<{ locale: string; name: string }>

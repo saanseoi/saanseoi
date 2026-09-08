@@ -1,5 +1,29 @@
 # Divisions dataset family
 
+## Resetting division data
+
+`saanseoi reset:divisions --target local --dry-run` previews a reset of all division
+identities, areas and boundaries across every domain. Omit `--dry-run` to confirm and
+execute it; `--yes` skips the confirmation. Preview and production targets use the same
+command with `--target preview` or `--target production`.
+
+The reset removes division releases, snapshots, API release sets and catalogue
+revisions, canonical current and history rows, and release-owned source rows across all
+configured Hong Kong annual shards. Dataset definitions, reviewed identities and source
+evidence assets remain available for reinitialisation. Source releases shared with
+another resource family remain. Generated delivery and release caches are removed unless
+`--keep-cache` is specified; delivery generations are invalidated in either case.
+
+Dependencies in addresses, Places division links, statistics and other snapshot or API
+families block the reset before deletion. Remote targets require a matching local
+metadata cache and check dependencies directly in D1. The command rechecks the plan and
+dependencies under the SQL delivery writer lock before execution. Pending delivery work
+must be resolved first. Stop ingestion writers before resetting; database families are
+reset sequentially, so an interrupted reset must be rerun before reinitialising
+divisions.
+
+## Processing
+
 Area and boundary normalisers register explicit JSON declarations from
 `fixtures/meta/processing-rules/division-area-geometry.json` and
 `division-boundary-geometry.json`; Audit retains those same definitions.

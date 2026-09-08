@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-classification.json'
+import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import fixture from '../../../../../fixtures/meta/curations/overture-division-classification.json'
 import { ProcessingGuardError } from '../../provenance/guards'
 import { registerRule } from '../../provenance/auditTypes'
@@ -86,22 +88,7 @@ function applyClassification({
 }
 
 export const divisionClassificationRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'apply-division-classification-curation',
-    scope: 'individual',
-    basis: 'fixture',
-    summary:
-      'Apply a reviewed division classification only when its source identity and expected classification match.',
-    inputs: ['source-divisions', 'division-classification-curations'],
-    outputs: ['divisions.type', 'divisions.level'],
-    parameters: {},
-    implementation: {
-      path: 'libs/core/src/pipeline/services/divisionClassificationCuration.ts',
-      symbol: 'divisionClassificationRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   applyClassification,
 )
 

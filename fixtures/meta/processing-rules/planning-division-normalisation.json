@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-planning-divisions",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Read prepared Planning divisions with their source identities, hierarchy, names and native geometry.",
+  "inputs": ["planning-divisions"],
+  "outputs": ["divisions"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/divisionSql/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
+    "symbol": "planningDivisionRule"
+  }
+}

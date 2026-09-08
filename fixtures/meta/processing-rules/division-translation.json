@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "apply-division-name-translation",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Add a selected translated division name only for a missing locale, preserving the recorded translation origin.",
+  "inputs": ["division-i18n", "division-translations"],
+  "outputs": ["division-i18n"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisionTranslationRule.ts",
+    "symbol": "divisionTranslationRule"
+  }
+}

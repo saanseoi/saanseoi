@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
 import type { DatasetProcessingMessage } from '../../types'
 import {
   registerProcessingResult,
@@ -1327,22 +1329,7 @@ function resolveDistrictNameForHongKongArea(
 }
 
 export const divisionNormalisationRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'normalise-divisions',
-    scope: 'bulk',
-    basis: 'code',
-    summary:
-      'Normalise source division identities, classification, names and hierarchy for the selected dataset.',
-    inputs: ['source-divisions'],
-    outputs: ['divisions'],
-    parameters: {},
-    implementation: {
-      path: 'libs/core/src/pipeline/services/division.ts',
-      symbol: 'divisionNormalisationRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   ({
     row,
     options,

@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../fixtures/meta/processing-rules/geography-identities.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
 import { registerRule } from '@repo/core/provenance'
 import { captureCurationDocuments } from './curationDocuments'
@@ -73,22 +75,7 @@ function resolveIdentityCurationInternal(
 }
 
 export const identityCurationRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'resolve-geography-identities',
-    scope: 'bulk',
-    basis: 'fixture',
-    summary:
-      'Select one reviewed geography identity map by authority, cohort and domain; require non-empty unique source identities and canonical targets.',
-    inputs: ['identity-mappings'],
-    outputs: ['canonical-geography-identities'],
-    parameters: {},
-    implementation: {
-      path: 'apps/harbour-cli/src/lib/identityCurations.ts',
-      symbol: 'identityCurationRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   (input: { authority: string; cohortKey: string; domain: string }) =>
     resolveIdentityCurationInternal(input.authority, input.cohortKey, input.domain),
 )

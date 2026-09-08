@@ -1,3 +1,5 @@
+import ruleFixture from '../../../../../fixtures/meta/processing-rules/synthetic-hong-kong-area.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
 import { registerRule } from '@repo/core/provenance'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
@@ -219,22 +221,7 @@ function unionHongKongAreaGeometries(
 }
 
 export const syntheticHongKongAreaRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'overture_hong_kong_area_synthesised',
-    scope: 'bulk',
-    basis: 'code',
-    summary:
-      'Derive missing Hong Kong area geometry by unioning its district land geometries, including Lok Ma Chau Loop, then subtract the Shenzhen Bay Port exclusion polygon.',
-    inputs: ['district-land-geometries'],
-    outputs: ['divisionAreas'],
-    parameters: { exclusion: SHENZHEN_BAY_PORT_EXCLUSION },
-    implementation: {
-      path: 'apps/harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts',
-      symbol: 'syntheticHongKongAreaRule',
-    },
-  },
+  ruleDeclarationFromFixture(ruleFixture),
   (
     input: {
       areas: readonly SyntheticOvertureHongKongArea[]
