@@ -25,7 +25,7 @@ async function copy() {
 </script>
 
 <article
-  class="overflow-hidden rounded-xl border border-current/10 bg-current/[0.015] text-sm"
+  class="overflow-hidden rounded-xl border border-current/10 bg-current/1.5 text-sm"
 >
   <header class="flex items-center justify-between gap-4 px-4 py-3">
     <div class="min-w-0">
@@ -65,7 +65,7 @@ async function copy() {
             >{sourceLocale}</span
           >
         </p>
-        <p class="break-words">{source}</p>
+        <p class="wrap-break-word">{source}</p>
       </div>
       <div class="min-w-0">
         <p class="mb-2 text-xs opacity-45">
@@ -75,7 +75,7 @@ async function copy() {
             >{targetLocale}</span
           >
         </p>
-        <p class="break-words font-medium">{target}</p>
+        <p class="wrap-break-word font-medium">{target}</p>
       </div>
     </div>
   {/if}

@@ -14,7 +14,7 @@ let rows = $derived(
 
 <div class="overflow-x-auto">
   <table
-    class="w-full table-fixed text-left text-sm [&_td]:break-words [&_code]:[overflow-wrap:anywhere]"
+    class="w-full table-fixed text-left text-sm [&_td]:wrap-break-word [&_code]:wrap-anywhere"
   >
     <thead class="border-b border-current/20 text-xs uppercase opacity-60">
       <tr>

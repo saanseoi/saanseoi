@@ -48,7 +48,7 @@ const display = (value: Json): string =>
 
 <article class="overflow-hidden rounded-xl border border-current/15 text-sm">
   <header
-    class="flex min-h-14 items-center justify-between gap-4 bg-current/[0.025] px-4 py-3"
+    class="flex min-h-14 items-center justify-between gap-4 bg-current/2.5 px-4 py-3"
   >
     <h4 class="text-base font-medium">{title}</h4>
     <div class="flex shrink-0 items-center gap-3">
@@ -86,12 +86,12 @@ const display = (value: Json): string =>
             {#each Object.entries(side.value) as [key, value]}
               <div class="flex flex-wrap justify-between gap-x-3 gap-y-1">
                 <dt class="capitalize opacity-55">{label(key)}</dt>
-                <dd class="min-w-0 break-words font-medium">{display(value)}</dd>
+                <dd class="min-w-0 wrap-break-word font-medium">{display(value)}</dd>
               </div>
             {/each}
           </dl>
         {:else}
-          <p class="break-words font-medium">{display(side.value)}</p>
+          <p class="wrap-break-word font-medium">{display(side.value)}</p>
         {/if}
       </div>
     {/each}

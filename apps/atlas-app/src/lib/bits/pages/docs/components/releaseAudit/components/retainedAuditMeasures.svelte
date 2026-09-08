@@ -20,13 +20,13 @@ const locales = ['en', 'zh-hant', 'zh-hans']
       <tr class="border-b border-current/10 align-top">
         <td class="p-2">
           <code
-            class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500 [overflow-wrap:anywhere]"
+            class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500 wrap-anywhere"
             >{String(row.measureCode ?? '—')}</code
           >
         </td>
         {#each locales as locale}
           {@const entry = (Array.isArray(row.localisations) ? row.localisations : []).map(object).find(item => String(item.locale).toLowerCase() === locale)}
-          <td class="break-words p-2">
+          <td class="wrap-break-word p-2">
             {#if entry}
               <p class="font-medium">{String(entry.name ?? '')}</p>
               <p class="mt-1 text-xs leading-relaxed opacity-60">
