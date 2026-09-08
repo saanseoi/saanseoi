@@ -1,9 +1,9 @@
 # Overture division geometry ingestion
 
 Area and boundary rule declarations are explicit JSON fixtures in
-`fixtures/meta/processing-rules/`, shared by their normalisers and retained audit. Their
-parameters specify excluded regions; the area rule also lists referent-only division IDs
-whose areas are excluded. Boundaries retain references to those identities. The
+`fixtures/meta/processing-rules/`, shared by their normalisers and retained audit. Both
+depend on `division-geometry-exclusions.json`, whose parameters specify regional and
+area-only referent exclusions. Boundaries retain references to those identities. The
 synthetic-area fixture owns the validated Shenzhen Bay Port exclusion polygon.
 
 The [processing audit](../../processing-provenance.md) retains registered geometry
@@ -195,6 +195,13 @@ synthetic identifier. Whether Overture supplies the identity or not, each recogn
 area receives a derived `divisionArea` when its source area geometry is absent. That
 geometry is the union of its district land geometries and is returned by the Divisions
 API with `include=areas:overture`.
+
+The division ingestion audit retains Kowloon restoration as an individual application of
+`fixtures/meta/patches/overture-kowloon-restoration.json`. Its evidence distinguishes an
+absent identity from a non-polygonal source row and includes the supplemental row and
+its district members. This records identity restoration; it does not claim that the
+later geometry union has completed. No application is inferred for historical releases
+without recorded ingestion evidence.
 
 ## Scoped parent fixture
 

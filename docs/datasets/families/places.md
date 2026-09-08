@@ -27,11 +27,13 @@ evidence under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Planning
 and finalisation share a draft run, preserving review and materialisation hashes.
 
-Processing audits use action/mode summaries and compressed evidence chunks in D1.
-Address-review publication checks read summary counts; locale-conflict statistics and
-audit reports decode the retained individual decisions. Supplementary Address metadata
-replay includes the evidence chunks. See the
-[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+Processing audits retain registered normalisation, country-selection and Address
+analysis declarations, aggregate counts, matching policies and reviewed identity
+decisions in R2. Places and supplementary Addresses register separate manifests before
+publication. Unresolved Address reviews retain a failed guard, and publication also
+requires the completed supplementary snapshot dependency. Completed audit delivery
+retries reuse retained objects. See the
+[processing provenance contract](../processing-provenance.md).
 
 Enrichment staging writes complete JSONL rows and syncs the temporary output before
 replacement. Failed enrichment preserves the completed output, and interrupted or

@@ -1,7 +1,8 @@
 # division type and level
 
 Lok Ma Chau Loop classification is selected from
-`fixtures/meta/curations/overture-division-classification.json`. Its source ID, admin
+`fixtures/meta/patches/overture-division-classification.json`. This is an independently
+reviewed QA patch, not the result of a curation guard triggering. Its source ID, admin
 level, class and subtype must match the fixture before the level-4 `macrohood`
 replacement is used. Both direct normalisation and hierarchy lookup execute the same
 registered guarded rule. The [processing audit](../../processing-provenance.md) retains

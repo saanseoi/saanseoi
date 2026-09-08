@@ -1,5 +1,15 @@
 # Divisions dataset family
 
+Published source releases expose [schemas and samples](../source-record-access.md) from
+their retained publisher records. Source validity follows the source release, including
+shared Planning division/area projections and every assigned source shard. Restoring a
+missing source ledger uses the registered archive and its content hash; canonical
+divisions and published release metadata remain independent of that repair.
+
+Geometry release churn describes incoming source records against the parent snapshot.
+For merge uploads, parent members absent from the input remain in the snapshot and are
+not counted as removed. Replacement uploads count absent parent members as removed.
+
 ## Resetting division data
 
 `saanseoi reset:divisions --target local --dry-run` previews a reset of all division
@@ -24,11 +34,41 @@ divisions.
 
 ## Processing
 
+Hong Kong Area insertion is a bulk normalisation rule, not a patch or curation. A
+separate `hong-kong-sar-area-district-hierarchy` guard checks the resulting ancestry for
+districts and district descendants. It requires exactly one recognised Area between the
+Hong Kong SAR and district, rejects conflicting or duplicate ancestors, and blocks
+unresolved mappings for review. Non-district branches do not acquire invented district
+parents. Audit retains checked/failed counts separately from the rule's assignment
+count.
+
+Reviewed supplemental replacements are resolved before row processing. For an identity
+being replaced, the hierarchy guard checks the final replacement after normalisation;
+the intermediate source row remains available for source provenance.
+
+QA corrections use explicit patch origins and fixtures under `fixtures/meta/patches/`.
+Curations name their related review guard; patch source checks are application
+preconditions, not triggers for requesting review. Area and boundary normalisers share
+the `division-geometry-exclusions.json` executable policy, retained as a resolved
+dependency in both declarations. WKB decoding has a shared registered rule too.
+
 Division, area, boundary, classification, translation, Planning and synthetic-area
 normalisers register JSON declarations from `fixtures/meta/processing-rules/`; Audit
 retains those same frozen definitions. Taxonomy mappings, locale priorities and geometry
 exclusions are consumed from their parameters. Merge ruleset references resolve these
 definitions and include their content in the resolved ruleset hash.
+
+Division normalisation retains executor-backed branch conditions, stable branch IDs and
+precedence for level/type classification, API locale copying and text locale inference.
+Bulk audit counts record selected matches and changed outputs per branch; shadowed
+candidates do not count as matches. Classification changes compare the canonical result
+with the raw source `level` or `type`. Locale copying counts added locale rows, and
+inference counts evaluated text values that produce locale-bearing output. Preparatory
+hierarchy lookups do not contribute to these counters.
+
+Recorded zero means no selected matches or changes in that execution. Missing branch
+definitions or counters mean **not recorded**. Audit presents only retained policy and
+never substitutes the current implementation for a historical declaration.
 
 Source-row `sources` is `null` when Overture division or division geometry ingestion has
 no supplied provenance. Ingestion does not manufacture source references from internal
@@ -158,6 +198,11 @@ Permanent Living Quarters geometry then references those Overture identities rat
 creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's
 173 polygonal Housing Market Areas. Building Groups are not divisions: their source
 centroids remain source history for a future buildings projection.
+
+When ingestion emits a supplemental Kowloon row, it retains an individual restoration
+application with the reviewed fixture, affected identity, observed source classification
+and geometry type, replacement row and district identities. Historical releases without
+that retained ingestion evidence do not receive inferred applications.
 
 The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
 those stable Overture area identities. Its Area/type polygons join the same
@@ -300,14 +345,15 @@ contribute aggregate counters to registered processor declarations, without affe
 record lists. Synthetic area geometry retains its registered union/exclusion rule and
 parameters. AI and human name translations are individual fixture curations with source
 text, resulting text, target locale and available parent names. The retained fixture
-preserves unused entries as well as applied instructions. Lok Ma Chau Loop uses a
-guarded classification fixture in both direct normalisation and hierarchy lookup. The
-admin-level expectation permits an omitted field only when the accepted source-release
-schema has no `admin_level` column; supplied values must match the fixture. Translation
-preparation passes the source-release context through the same normalisation guard.
-Identity, class and subtype checks remain mandatory, and source drift blocks ingestion.
-Audit shows bulk summaries first and loads declarations, fixtures and individual pages
-on request.
+preserves unused entries as well as applied instructions. Translation applications are
+captured for every source using the shared Division processor, including C&SD. Lok Ma
+Chau Loop uses a guarded classification fixture in both direct normalisation and
+hierarchy lookup. The admin-level expectation permits an omitted field only when the
+accepted source-release schema has no `admin_level` column; supplied values must match
+the fixture. Translation preparation passes the source-release context through the same
+normalisation guard. Identity, class and subtype checks remain mandatory, and source
+drift blocks ingestion. Audit shows bulk summaries first and loads declarations,
+fixtures and individual pages on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
@@ -332,6 +378,11 @@ context hash, source locale, source-text hash, and target locale. For divisions,
 context is the parent division ID and English parent name. This avoids re-translating
 the same name every month without incorrectly sharing a name whose meaning changes under
 a different parent.
+
+Translation context retains multilingual parent display names as `parentName.<locale>`
+alongside `parentDivisionId`. Display names are excluded from the context hash. Audit
+selects the UI locale, then English, another retained name in locale order, and the
+parent ID.
 
 Each entry also retains literal `sourceText` and the sorted canonical `recordIds` that
 have used it, so a web editor can show the source and link directly to affected

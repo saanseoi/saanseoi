@@ -1,9 +1,15 @@
 # Retained processing provenance
 
-Divisions and Statistics retain a `processing-audit` manifest. Other consumers can use
-the separate `processing-result` effects contract described below.
+Divisions, Statistics, Addresses and Places retain a `processing-audit` manifest. Other
+consumers can use the separate `processing-result` effects contract described below.
 
-## Divisions and Statistics audit
+## Retained processing audit
+
+Audit groups automatic Area hierarchy insertion under Rules and independently reviewed
+classification corrections under Patches. Reviewed fixture mappings and individual
+guard-related decisions appear under Bulk Curations and Custom Curations respectively.
+The hierarchy rule's assignment count and the separate Hong Kong hierarchy guard's
+checked/failed counts describe different operations.
 
 Bulk code rules retain immutable declarations and execution counts, without affected
 record lists, publisher values or canonical output copies. A declaration explains the
@@ -31,12 +37,23 @@ from them. A ruleset's resolved hash covers the referenced content, so a policy 
 changes its identity even when its reference names are unchanged. The source ruleset
 file's own hash is validated separately.
 
+Curations declare `review.kind: curation` and a related guard definition. Patches
+declare `review.kind: patch` and apply independently of a review guard triggering.
+Expected-source checks remain mandatory application preconditions for classification
+patches; a mismatch blocks ingestion. The retained individual action carries the same
+review origin as its definition. This linkage identifies the review requirement, not an
+invented historical failed-guard event.
+
+Patch instructions, including Lok Ma Chau Loop classification and Kowloon restoration,
+live in `fixtures/meta/patches/`. Shared rule dependencies retain their complete
+definitions, and CLI retention hashes their implementation sources recursively.
+
 Bulk fixture curations retain the selected reviewed documents in R2. Individual
-curations, including translations and guarded classification corrections, retain their
-decision, record context and a pointer to the selected fixture entry. Translation
-context includes available parent division names. Unused translation instructions are
-marked skipped without inventing a matching record. Statistics localisations with no
-recorded origin remain origin-unrecorded; verification alone does not prove translation.
+curations, translations and QA patches retain their decision, record context and a
+pointer to the selected fixture entry. Translation context includes available parent
+division names. Unused translation instructions are marked skipped without inventing a
+matching record. Statistics localisations with no recorded origin remain
+origin-unrecorded; verification alone does not prove translation.
 
 Guards expose passed, failed, not-applicable and not-run states, counts, reasons and
 their blocking or reporting consequence. A failed blocking guard is retained before the
@@ -130,7 +147,20 @@ reviewed field/measure/identity fixtures and selected API-field declarations. Th
 not retain publisher or canonical value packs. Statistics publication requires a
 registered result. Delivery retries transfer the retained graph.
 
-ALS and Places producer capture are not integrated with this audit contract. ALS source
-preservation requires a publisher-occurrence boundary before reconstruction, suppression
-and deduplication; removing three derived properties is not sufficient. Streets is
-outside this implementation's scope.
+ALS preparation seals audit inputs to its Parquet digest, including the registered
+preparation declarations and reviewed fixture documents. Address normalisation retains
+its declaration and output counts; individual identity-continuity decisions retain their
+selected entries. Automatic transformations retain aggregate counts rather than
+per-record copies. The source, current and history storage contracts remain separate
+from this audit.
+
+Places retains normalisation, country selection and Address-analysis declarations,
+selected matching policies and entries, and individual reviewed identity decisions.
+Places and supplementary Addresses register separate manifests before publication.
+Unresolved identity reviews retain failed blocking guards; supplementary dependency
+checks also remain required. Completed audit retries transfer the retained graph without
+regenerating it. These producers do not write processing-action evidence tables.
+
+This audit does not implement replayable Address effects. Such effects would require an
+ALS publisher-occurrence boundary before reconstruction, suppression and deduplication.
+Streets is outside this implementation's scope.

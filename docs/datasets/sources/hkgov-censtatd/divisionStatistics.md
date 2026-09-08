@@ -1,5 +1,33 @@
 # Census and Statistics Department division statistics
 
+The public source-record reader selects the dedicated district-density table, the
+retained district-area table for Subdivided Units, or the shared native statistics table
+for the other measure collections. It scopes shared-table records by source dataset and
+release validity. Source-shard assignments include every shard containing the release's
+assertions, independently of the shard holding canonical history.
+
+The `censtatd-source-assertion.json` rule validates prepared district assertions and
+retains publisher properties, native geometry and source references. The
+`censtatd-district-identity.json` rule consumes its authority, domain and target-cohort
+parameters to resolve reviewed district identities. Both have executable registrations
+and shared merge-ruleset references; the selected upload path retains their audit
+definitions and counts.
+
+Identity-bridge audit fixtures retain registered SaanSeoi division codes alongside
+canonical IDs. Existing retained audits remain unchanged; a code resolved from the
+current registry is identified as a current display lookup rather than retained
+evidence.
+
+`init:stats:government` restores Geographic Divisions first, including C&SD district and
+Permanent Living Quarters area-type geometry, and publishes the complete Divisions
+compositions before ingesting the remaining statistics datasets. Missing Divisions
+drafts are reconstructed from retained primary snapshots during reconciliation.
+
+Update readiness requires a published source release and Statistics evidence. A shared
+geometry release qualifies when it retains a draft or published `divisionStatistic`
+snapshot through a non-lookup contribution. Draft snapshots remain eligible while
+Statistics API composition is deferred; geometry alone does not establish readiness.
+
 Normalisation, population scaling, identity and field/localisation declarations are
 selected from `fixtures/meta/processing-rules/` and registered by their executors.
 Scaling derives its decimal exponent from the fixture's factor, without a separately
@@ -404,3 +432,20 @@ the reviewed `sourceField | fieldName | name | description` table for each suppo
 locale. Release notes therefore present exactly the curated offering names and inclusion
 criteria that the statistics processor publishes, without a second hand-maintained
 Markdown copy.
+
+## Resetting Statistics
+
+`saanseoi reset:stats` includes C&SD general statistics and district land-area,
+population and density assertions, together with their canonical Statistics data and
+release metadata, contributed Division geometry and its source assertions. It preserves
+unrelated geometry and source evidence assets. See the
+[Statistics family reset options](../../families/stats.md).
+
+## Reset and readiness
+
+`reset:stats` includes division and geometry contributions owned by C&SD Statistics
+datasets, including exact and simplified snapshots. It also retracts derived geographic
+snapshots, affected Divisions API release sets and catalogue revisions, preserving their
+other source inputs. Non-geographic consumers block deletion. Update readiness requires
+a published statistics release; a geometry release for the same source cohort does not
+satisfy that check.

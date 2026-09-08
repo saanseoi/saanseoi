@@ -1,5 +1,42 @@
 # Statistics dataset family
 
+Publisher [schemas and samples](../source-record-access.md) use the Statistics source
+catalogue and the exact source release. Every shard holding retained assertions must
+have a source-shard assignment for that release. A missing assignment can be restored
+from matching source rows whose `releaseId` and `validFromRelease` both identify the
+published release; the records and canonical observations remain intact.
+
+C&SD source-assertion normalisation and district identity bridging have executable
+JSON-backed rules in `fixtures/meta/processing-rules/`. Both merge rulesets reference
+the same district mapping definition. Upload audits retain the rules executed by the
+selected path, including their counts. Reviewed field and localisation declarations
+identify their related guard requirements.
+
+Retained identity-bridge fixtures include the registered SaanSeoi `divisionCode` when
+available, alongside the reviewed canonical ID. The code is display metadata and does
+not change identity resolution. Audit tables deduplicate equivalent field mappings
+across retained fixture representations; copying preserves the original documents.
+
+`saanseoi reset:stats --target local|preview|production` resets all Statistics releases,
+snapshots, API release sets, source assertions, canonical records and dictionaries
+across regions and retained shard years. It also retracts division identities and exact
+or simplified geometry contributed by Statistics datasets, selected through dataset
+ownership and non-lookup snapshot provenance. Unrelated geography and lookup
+dependencies remain available. Derived geographic snapshots, dependent Divisions API
+release sets and their catalogue revisions are retracted together. Other inputs to those
+compositions retain their source releases, assertions and independent snapshots. The
+plan lists each affected Divisions release set before confirmation. Shared
+source-release identities and source evidence assets are retained. Non-geographic
+families that reference the selected releases, snapshots or divisions block the reset.
+Use `--dry-run` to inspect the plan, `--yes` to skip confirmation, and `--keep-cache` to
+retain release SQL artefacts. Remote resets require a matching local database cache; the
+plan and dependencies are checked again under the SQL delivery lock.
+
+Statistics initialisation first restores the Geographic Divisions prerequisites.
+Divisions reconciliation recreates missing draft compositions from retained primary
+snapshots; geographic initialisation then restores C&SD district and area-type inputs
+and publishes complete Divisions release sets before the remaining statistics uploads.
+
 General and district C&SD uploads retain a versioned
 [processing provenance result](../processing-provenance.md) before publication. It
 captures registered normalisation and scaling declarations, execution counts, reviewed

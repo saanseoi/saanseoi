@@ -5,6 +5,14 @@ identity curation fixtures in the [R2 audit](../../processing-provenance.md). D1
 the manifest pointer and attempt status. Audit loads readable fixture contents on
 demand; failed blocking guards prevent publication.
 
+Housing Market Area division names retain each applied translation with its source text,
+target locale, resulting text and selected fixture entry. Only fixture entries without a
+captured application are reported as unused.
+
+Translation context retains parent identity and multilingual `parentName.<locale>`
+display names without changing the identity hash. Audit selects the UI locale, then
+English, another retained name in locale order, and the parent ID.
+
 Source storage uses `null` when no provenance references are supplied. A supplied
 canonical division ID is not a publisher source reference. Publisher district codes,
 classes and archive evidence remain valid provenance.
@@ -195,6 +203,11 @@ geometry.
 
 ## Statistical area companions
 
+Geometry release churn counts incoming source rows. A merge carries absent parent
+members into the resulting snapshot; those members are not removals and do not increase
+the incoming record count. Snapshot membership can therefore exceed a source release's
+record count.
+
 The C&SD Permanent Living Quarters release supplies three regional polygons (`HK`,
 `KLN`, and `NT`). They join the cohort-matched `hkgov-censtatd` companion rather than a
 second division collection: each polygon is linked to the corresponding canonical
@@ -292,3 +305,10 @@ independently selectable source variants with separate snapshot lineages; publis
 2024 cohort never supersedes the 2016 or 2021 release or snapshot. Release churn is
 measured only against the declared parent snapshot, so each initial cohort has an empty
 baseline: its 18 district areas are additions, not removals from another cohort.
+
+## Statistics reset dependencies
+
+`reset:stats` retracts C&SD geometry contributed by Statistics datasets and dependent
+geographic snapshots, including parent-derived and lookup-dependent geometry. Affected
+Divisions API release sets and catalogue revisions are included in the confirmation
+plan. Independent source releases, assertions and snapshots remain available.

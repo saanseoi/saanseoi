@@ -1,5 +1,15 @@
 # division hierarchy normalisation
 
+Area insertion implements the canonical Hong Kong hierarchy policy as a bulk rule. After
+insertion, the `hong-kong-sar-area-district-hierarchy` guard validates
+`SAR → Area → District` for districts and their descendants. Missing, ambiguous,
+conflicting or incorrectly ordered district ancestry blocks ingestion for review; the
+processor does not invent an unknown district-to-Area assignment.
+
+Reviewed supplemental replacements are resolved before row processing. The hierarchy
+guard runs on the normalised replacement for those identities, including historic
+Kowloon, while retaining the intermediate source row for provenance.
+
 ## v1
 
 ### EN
