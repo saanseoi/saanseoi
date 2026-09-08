@@ -12,8 +12,11 @@ import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { m } from '#lib/bits/internal/i18n.js'
 import Node from '#lib/bits/pages/docs/components/releaseSchema/components/releaseSchemaNode.svelte'
 import type { OpenApiSchema } from '#lib/bits/pages/docs/components/releaseSchema/releaseSchema.types.js'
+import type { ReleaseStatsMeasure } from '#lib/bits/pages/docs/components/releaseStats/releaseStats.types.js'
+import { sourceRecordFieldDescription } from './sourceRecordFieldDescriptions'
 
 type Props = {
+  measures?: ReleaseStatsMeasure[]
   family: string
   sourceReleaseCode: string
   resourceType: string
@@ -24,6 +27,7 @@ type Props = {
 }
 
 let {
+  measures = [],
   family,
   sourceReleaseCode,
   resourceType,
@@ -147,7 +151,7 @@ function sourceFieldSchema(
 }
 
 let recordSchema = $derived.by((): OpenApiSchema | null => {
-  if (!sourceSchema && !retainedSchema) return null
+  if (!sourceSchema && !retainedSchema && !measures.length) return null
 
   const rawProperties: OpenApiSchema = sourceSchema
     ? {
@@ -163,7 +167,56 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
         ),
         type: 'object',
       }
-    : { ...retainedSchema, description: m.source_record_schema_retained_description() }
+    : retainedSchema
+      ? {
+          ...retainedSchema,
+          description: m.source_record_schema_retained_description(),
+        }
+      : {
+          additionalProperties: true,
+          description: m.source_record_schema_retained_description(),
+          properties: Object.fromEntries(
+            measures.map(measure => [
+              measure.sourceField,
+              {
+                nullable: true,
+                type: measure.valueKind === 'numeric' ? 'number' : 'string',
+              },
+            ]),
+          ),
+          type: 'object',
+        }
+
+  if (!sourceSchema && rawProperties.properties) {
+    const measuresByField = new Map(
+      measures.map(measure => [measure.sourceField, measure]),
+    )
+    rawProperties.properties = Object.fromEntries(
+      Object.entries(rawProperties.properties).map(([field, schema]) => {
+        const measure = measuresByField.get(field)
+        if (!measure) {
+          const description = sourceRecordFieldDescription(sourceReleaseCode, field)
+          return [field, description ? { ...schema, description } : schema]
+        }
+        return [
+          field,
+          {
+            ...schema,
+            description: [
+              measure.name,
+              measure.definition,
+              measure.unitCode !== 'publisher-unknown'
+                ? `${m.source_audit_unit()}: ${measure.unitCode.replaceAll('-', ' ')}.`
+                : null,
+              schema.description,
+            ]
+              .filter(Boolean)
+              .join('\n\n'),
+          },
+        ]
+      }),
+    )
+  }
 
   return {
     description: m.source_record_schema_record_description(),

@@ -44,7 +44,7 @@ import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import SourceReleaseLoadError from './sourceReleaseLoadError.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
-import SourceResourceSelector from './sourceResourceSelector.svelte'
+import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import {
   getSourceReleaseContentQuery,
   preloadSourceReleaseContent,
@@ -156,6 +156,8 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
+let auditResourceTypes = $state<string[]>([])
+let selectedAuditResourceType = $state('')
 let showNoteDiff = $state(page.url.searchParams.get('view') === 'diff')
 $effect(() => {
   showNoteDiff = page.url.searchParams.get('view') === 'diff'
@@ -411,72 +413,103 @@ $effect(() => {
 })
 
 let actions = $derived<ReleaseNavAction[]>(
-  activeTab === 'notes' && versions[1]
+  activeTab === 'stats' && resources.length > 1
     ? [
         {
-          icon: 'proicons:diff',
-          id: 'diff',
-          label: m.source_diff_since_last_release(),
-          onSelect: () => setShowNoteDiff(!showNoteDiff),
-          pressed: showNoteDiff,
+          id: 'stats-resource',
+          label: m.source_resource_type(),
+          value: selectedResourceId,
+          options: resources.map(resource => ({
+            value: resource.id,
+            label: resourceLabel(resource.resourceType),
+          })),
+          onValueChange: value => {
+            selectedResourceId = value
+          },
         },
       ]
-    : activeTab === 'releases'
+    : activeTab === 'notes' && versions[1]
       ? [
           {
-            icon: 'proicons:info',
-            id: 'releases-info',
-            infoDescription: m.source_tab_released_as_description(),
-            label: m.source_tab_released_as_info(),
+            icon: 'proicons:diff',
+            id: 'diff',
+            label: m.source_diff_since_last_release(),
+            onSelect: () => setShowNoteDiff(!showNoteDiff),
+            pressed: showNoteDiff,
           },
         ]
-      : activeTab === 'assembly'
+      : activeTab === 'releases'
         ? [
             {
               icon: 'proicons:info',
-              id: 'assembly-info',
-              infoDescription: m.source_tab_assembly_description(),
-              label: m.source_tab_assembly_info(),
+              id: 'releases-info',
+              infoDescription: m.source_tab_released_as_description(),
+              label: m.source_tab_released_as_info(),
             },
           ]
-        : activeTab === 'samples' &&
-            sourceRecordFamily &&
-            sourceRecordsAvailable !== false
+        : activeTab === 'assembly'
           ? [
               {
-                icon: 'ion:reload-outline',
-                id: 'more-samples',
-                label: m.source_show_more(),
-                onSelect: () => {
-                  sourceSampleRequest += 1
-                  trackClientProductUsage({
-                    event: 'client.sample_control',
-                    surface: 'source_release',
-                    entityType: 'action',
-                    entityId: version?.code ?? params.releaseCode,
-                  })
-                },
+                icon: 'proicons:info',
+                id: 'assembly-info',
+                infoDescription: m.source_tab_assembly_description(),
+                label: m.source_tab_assembly_info(),
               },
             ]
-          : activeTab === 'audit'
+          : activeTab === 'samples' &&
+              sourceRecordFamily &&
+              sourceRecordsAvailable !== false
             ? [
-                sourceArchiveUrl
-                  ? {
-                      download: true,
-                      href: sourceArchiveUrl,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
-                      analyticsSurface: 'source_release',
-                    }
-                  : {
-                      disabled: true,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
-                    },
+                {
+                  icon: 'ion:reload-outline',
+                  id: 'more-samples',
+                  label: m.source_show_more(),
+                  onSelect: () => {
+                    sourceSampleRequest += 1
+                    trackClientProductUsage({
+                      event: 'client.sample_control',
+                      surface: 'source_release',
+                      entityType: 'action',
+                      entityId: version?.code ?? params.releaseCode,
+                    })
+                  },
+                },
               ]
-            : [],
+            : activeTab === 'audit'
+              ? [
+                  sourceArchiveUrl
+                    ? {
+                        download: true,
+                        href: sourceArchiveUrl,
+                        icon: 'ion:download-outline',
+                        id: 'download',
+                        label: m.source_download_archive(),
+                        analyticsSurface: 'source_release',
+                      }
+                    : {
+                        disabled: true,
+                        icon: 'ion:download-outline',
+                        id: 'download',
+                        label: m.source_download_archive(),
+                      },
+                  ...(auditResourceTypes.length > 1
+                    ? [
+                        {
+                          id: 'audit-resource',
+                          label: m.source_resource_type(),
+                          value: selectedAuditResourceType,
+                          options: auditResourceTypes.map(resourceType => ({
+                            value: resourceType,
+                            label: resourceLabel(resourceType),
+                          })),
+                          onValueChange: (value: string) => {
+                            selectedAuditResourceType = value
+                          },
+                        },
+                      ]
+                    : []),
+                ]
+              : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
@@ -566,11 +599,9 @@ $effect(() => {
               {/if}
             </div>
           {:else if activeTab === 'stats'}
-            {#if resources.length > 1}
-              <SourceResourceSelector {resources} bind:selected={selectedResourceId} />
-            {/if}
             <ReleaseStats.Root
-              measures={selectedResource && selectedResource.resourceType !== 'divisionStatistic' ? [] : content?.measures ?? []}
+              isFirstRelease={!previousVersion}
+              resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
               stats={selectedResource?.stats ?? version.stats}
               {districtAreas}
               {locale}
@@ -580,6 +611,7 @@ $effect(() => {
             />
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
+              measures={content?.measures ?? []}
               family={sourceRecordFamily}
               sourceReleaseCode={version.code}
               resourceType={source.resourceTypes[0] ?? ''}
@@ -599,6 +631,13 @@ $effect(() => {
             {/key}
           {:else if activeTab === 'audit'}
             <ReleaseAudit.Retained
+              selectedResourceType={selectedAuditResourceType}
+              onResourceTypesChange={resourceTypes => {
+                auditResourceTypes = resourceTypes
+                if (!resourceTypes.includes(selectedAuditResourceType)) {
+                  selectedAuditResourceType = resourceTypes[0] ?? ''
+                }
+              }}
               bind:headings={auditHeadings}
               bind:activeHeadingId={activeAuditHeadingId}
               datasetCode={params.datasetCode}
