@@ -1,5 +1,4 @@
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_overtureDivisionAreas` (
+CREATE TABLE `overtureDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -13,12 +12,7 @@ CREATE TABLE `__new_overtureDivisionAreas` (
 	CONSTRAINT `overtureDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_overtureDivisionAreas`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt` FROM `overtureDivisionAreas`;--> statement-breakpoint
-DROP TABLE `overtureDivisionAreas`;--> statement-breakpoint
-ALTER TABLE `__new_overtureDivisionAreas` RENAME TO `overtureDivisionAreas`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_overtureDivisionBoundaries` (
+CREATE TABLE `overtureDivisionBoundaries` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -32,12 +26,7 @@ CREATE TABLE `__new_overtureDivisionBoundaries` (
 	CONSTRAINT `overtureDivisionBoundaries_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_overtureDivisionBoundaries`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt` FROM `overtureDivisionBoundaries`;--> statement-breakpoint
-DROP TABLE `overtureDivisionBoundaries`;--> statement-breakpoint
-ALTER TABLE `__new_overtureDivisionBoundaries` RENAME TO `overtureDivisionBoundaries`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_overtureDivisions` (
+CREATE TABLE `overtureDivisions` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -51,12 +40,7 @@ CREATE TABLE `__new_overtureDivisions` (
 	CONSTRAINT `overtureDivisions_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_overtureDivisions`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt` FROM `overtureDivisions`;--> statement-breakpoint
-DROP TABLE `overtureDivisions`;--> statement-breakpoint
-ALTER TABLE `__new_overtureDivisions` RENAME TO `overtureDivisions`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_overturePlaces` (
+CREATE TABLE `overturePlaces` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -70,12 +54,7 @@ CREATE TABLE `__new_overturePlaces` (
 	CONSTRAINT `overturePlaces_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_overturePlaces`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt` FROM `overturePlaces`;--> statement-breakpoint
-DROP TABLE `overturePlaces`;--> statement-breakpoint
-ALTER TABLE `__new_overturePlaces` RENAME TO `overturePlaces`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovAlsAddresses2d` (
+CREATE TABLE `hkgovAlsAddresses2d` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -89,28 +68,21 @@ CREATE TABLE `__new_hkgovAlsAddresses2d` (
 	CONSTRAINT `hkgovAlsAddresses2d_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovAlsAddresses2d`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt` FROM `hkgovAlsAddresses2d`;--> statement-breakpoint
-DROP TABLE `hkgovAlsAddresses2d`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovAlsAddresses2d` RENAME TO `hkgovAlsAddresses2d`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovAlsAddresses3d` (
+CREATE TABLE `hkgovAlsAddresses3d` (
 	`sourceRecordId` text NOT NULL,
-	`versionHash` text NOT NULL,
-	`releaseId` text NOT NULL,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`sources` text,
 	`rawProperties` text NOT NULL,
-	CONSTRAINT `hkgovAlsAddresses3d_pk` PRIMARY KEY(`releaseId`, `sourceRecordId`)
+	`versionHash` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`validFromRelease` text NOT NULL,
+	`validToRelease` text,
+	`isCurrent` integer NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	CONSTRAINT `hkgovAlsAddresses3d_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovAlsAddresses3d`(`sourceRecordId`, `versionHash`, `releaseId`, `createdAt`, `updatedAt`, `sources`, `rawProperties`) SELECT `sourceRecordId`, `versionHash`, `releaseId`, `createdAt`, `updatedAt`, `sources`, `rawProperties` FROM `hkgovAlsAddresses3d`;--> statement-breakpoint
-DROP TABLE `hkgovAlsAddresses3d`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovAlsAddresses3d` RENAME TO `hkgovAlsAddresses3d`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovLandsdPlaceNames` (
+CREATE TABLE `hkgovLandsdPlaceNames` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -126,30 +98,10 @@ CREATE TABLE `__new_hkgovLandsdPlaceNames` (
 	CONSTRAINT `hkgovLandsdPlaceNames_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovLandsdPlaceNames`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `placeNames`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `placeNames` FROM `hkgovLandsdPlaceNames`;--> statement-breakpoint
-DROP TABLE `hkgovLandsdPlaceNames`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovLandsdPlaceNames` RENAME TO `hkgovLandsdPlaceNames`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovLandsdRoadCentrelines` (
+CREATE TABLE `hkgovLandsdRoadCentrelines` (
 	`sourceRecordId` text NOT NULL,
-	`versionHash` text NOT NULL,
-	`releaseId` text NOT NULL,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`sources` text,
 	`rawProperties` text,
-	`sourceGeometry` text NOT NULL,
-	CONSTRAINT `hkgovLandsdRoadCentrelines_pk` PRIMARY KEY(`sourceRecordId`, `releaseId`, `versionHash`)
-);
---> statement-breakpoint
-INSERT INTO `__new_hkgovLandsdRoadCentrelines`(`sourceRecordId`, `versionHash`, `releaseId`, `createdAt`, `updatedAt`, `sources`, `rawProperties`, `sourceGeometry`) SELECT `sourceRecordId`, `versionHash`, `releaseId`, `createdAt`, `updatedAt`, `sources`, `rawProperties`, `sourceGeometry` FROM `hkgovLandsdRoadCentrelines`;--> statement-breakpoint
-DROP TABLE `hkgovLandsdRoadCentrelines`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovLandsdRoadCentrelines` RENAME TO `hkgovLandsdRoadCentrelines`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovLandsdStreetBaselineRecords` (
-	`sourceRecordId` text NOT NULL,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
 	`validFromRelease` text NOT NULL,
@@ -157,7 +109,20 @@ CREATE TABLE `__new_hkgovLandsdStreetBaselineRecords` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text NOT NULL,
+	CONSTRAINT `hkgovLandsdRoadCentrelines_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+);
+--> statement-breakpoint
+CREATE TABLE `hkgovLandsdStreetBaselineRecords` (
+	`sourceRecordId` text NOT NULL,
 	`sources` text,
+	`versionHash` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`validFromRelease` text NOT NULL,
+	`validToRelease` text,
+	`isCurrent` integer NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`deferToNotices` integer NOT NULL,
 	`nameEn` text NOT NULL,
 	`nameZhHant` text NOT NULL,
@@ -165,12 +130,7 @@ CREATE TABLE `__new_hkgovLandsdStreetBaselineRecords` (
 	CONSTRAINT `hkgovLandsdStreetBaselineRecords_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovLandsdStreetBaselineRecords`(`sourceRecordId`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sources`, `deferToNotices`, `nameEn`, `nameZhHant`, `districtCode`) SELECT `sourceRecordId`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sources`, `deferToNotices`, `nameEn`, `nameZhHant`, `districtCode` FROM `hkgovLandsdStreetBaselineRecords`;--> statement-breakpoint
-DROP TABLE `hkgovLandsdStreetBaselineRecords`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovLandsdStreetBaselineRecords` RENAME TO `hkgovLandsdStreetBaselineRecords`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovLandsdStreetNotices` (
+CREATE TABLE `hkgovLandsdStreetNoticeApplications` (
 	`sourceRecordId` text NOT NULL,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -179,7 +139,23 @@ CREATE TABLE `__new_hkgovLandsdStreetNotices` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`method` text NOT NULL,
+	`disposition` text NOT NULL,
+	`nameChangeScope` text,
+	`retainedDescriptions` text,
+	CONSTRAINT `hkgovLandsdStreetNoticeApplications_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+);
+--> statement-breakpoint
+CREATE TABLE `hkgovLandsdStreetNotices` (
+	`sourceRecordId` text NOT NULL,
 	`sources` text,
+	`versionHash` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`validFromRelease` text NOT NULL,
+	`validToRelease` text,
+	`isCurrent` integer NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`gazetteDate` text NOT NULL,
 	`kind` text NOT NULL,
 	`noticeRef` text NOT NULL,
@@ -196,12 +172,7 @@ CREATE TABLE `__new_hkgovLandsdStreetNotices` (
 	CONSTRAINT `hkgovLandsdStreetNotices_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovLandsdStreetNotices`(`sourceRecordId`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sources`, `gazetteDate`, `kind`, `noticeRef`, `effectiveDate`, `previousNoticeRefs`, `rawExtractedText`, `parserDiagnostics`, `districtCodes`, `nameEn`, `nameZhHant`, `descriptionEn`, `descriptionZhHant`, `evidenceAssets`) SELECT `sourceRecordId`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sources`, `gazetteDate`, `kind`, `noticeRef`, `effectiveDate`, `previousNoticeRefs`, `rawExtractedText`, `parserDiagnostics`, `districtCodes`, `nameEn`, `nameZhHant`, `descriptionEn`, `descriptionZhHant`, `evidenceAssets` FROM `hkgovLandsdStreetNotices`;--> statement-breakpoint
-DROP TABLE `hkgovLandsdStreetNotices`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovLandsdStreetNotices` RENAME TO `hkgovLandsdStreetNotices`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovHydSensitiveStreets` (
+CREATE TABLE `hkgovHydSensitiveStreets` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -216,12 +187,7 @@ CREATE TABLE `__new_hkgovHydSensitiveStreets` (
 	CONSTRAINT `hkgovHydSensitiveStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovHydSensitiveStreets`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovHydSensitiveStreets`;--> statement-breakpoint
-DROP TABLE `hkgovHydSensitiveStreets`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovHydSensitiveStreets` RENAME TO `hkgovHydSensitiveStreets`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovHydStrategicStreets` (
+CREATE TABLE `hkgovHydStrategicStreets` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -236,12 +202,7 @@ CREATE TABLE `__new_hkgovHydStrategicStreets` (
 	CONSTRAINT `hkgovHydStrategicStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovHydStrategicStreets`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovHydStrategicStreets`;--> statement-breakpoint
-DROP TABLE `hkgovHydStrategicStreets`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovHydStrategicStreets` RENAME TO `hkgovHydStrategicStreets`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovHydStreetNamePlates` (
+CREATE TABLE `hkgovHydStreetNamePlates` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -256,12 +217,7 @@ CREATE TABLE `__new_hkgovHydStreetNamePlates` (
 	CONSTRAINT `hkgovHydStreetNamePlates_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovHydStreetNamePlates`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovHydStreetNamePlates`;--> statement-breakpoint
-DROP TABLE `hkgovHydStreetNamePlates`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovHydStreetNamePlates` RENAME TO `hkgovHydStreetNamePlates`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovTdPedestrianStreets` (
+CREATE TABLE `hkgovTdPedestrianStreets` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -277,12 +233,7 @@ CREATE TABLE `__new_hkgovTdPedestrianStreets` (
 	CONSTRAINT `hkgovTdPedestrianStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovTdPedestrianStreets`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `kind`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `kind` FROM `hkgovTdPedestrianStreets`;--> statement-breakpoint
-DROP TABLE `hkgovTdPedestrianStreets`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovTdPedestrianStreets` RENAME TO `hkgovTdPedestrianStreets`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovHadDivisionAreas` (
+CREATE TABLE `hkgovHadDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -297,12 +248,7 @@ CREATE TABLE `__new_hkgovHadDivisionAreas` (
 	CONSTRAINT `hkgovHadDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovHadDivisionAreas`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovHadDivisionAreas`;--> statement-breakpoint
-DROP TABLE `hkgovHadDivisionAreas`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovHadDivisionAreas` RENAME TO `hkgovHadDivisionAreas`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovCenstatdDistrictLandAreaPopulationDensities` (
+CREATE TABLE `hkgovCenstatdDistrictLandAreaPopulationDensities` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -317,12 +263,24 @@ CREATE TABLE `__new_hkgovCenstatdDistrictLandAreaPopulationDensities` (
 	CONSTRAINT `hkgovCenstatdDistrictLandAreaPopulationDensities_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovCenstatdDistrictLandAreaPopulationDensities`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovCenstatdDistrictLandAreaPopulationDensities`;--> statement-breakpoint
-DROP TABLE `hkgovCenstatdDistrictLandAreaPopulationDensities`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovCenstatdDistrictLandAreaPopulationDensities` RENAME TO `hkgovCenstatdDistrictLandAreaPopulationDensities`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovCenstatdDivisionAreas` (
+CREATE TABLE `hkgovCenstatdDivisionAreaDerivatives` (
+	`sourceRecordId` text NOT NULL,
+	`versionHash` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`validFromRelease` text NOT NULL,
+	`validToRelease` text,
+	`isCurrent` integer NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`inputVersionHash` text NOT NULL,
+	`transform` text NOT NULL,
+	`derivation` text NOT NULL,
+	`geometry` text,
+	`bbox` text,
+	CONSTRAINT `hkgovCenstatdDivisionAreaDerivatives_pk` PRIMARY KEY(`sourceRecordId`, `inputVersionHash`, `transform`, `versionHash`)
+);
+--> statement-breakpoint
+CREATE TABLE `hkgovCenstatdDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -338,12 +296,7 @@ CREATE TABLE `__new_hkgovCenstatdDivisionAreas` (
 	CONSTRAINT `hkgovCenstatdDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovCenstatdDivisionAreas`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `censusYear`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `censusYear` FROM `hkgovCenstatdDivisionAreas`;--> statement-breakpoint
-DROP TABLE `hkgovCenstatdDivisionAreas`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovCenstatdDivisionAreas` RENAME TO `hkgovCenstatdDivisionAreas`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovCenstatdStatistics` (
+CREATE TABLE `hkgovCenstatdStatistics` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -358,12 +311,7 @@ CREATE TABLE `__new_hkgovCenstatdStatistics` (
 	CONSTRAINT `hkgovCenstatdStatistics_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovCenstatdStatistics`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry` FROM `hkgovCenstatdStatistics`;--> statement-breakpoint
-DROP TABLE `hkgovCenstatdStatistics`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovCenstatdStatistics` RENAME TO `hkgovCenstatdStatistics`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovPlandNewTowns` (
+CREATE TABLE `hkgovPlandNewTowns` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -380,12 +328,7 @@ CREATE TABLE `__new_hkgovPlandNewTowns` (
 	CONSTRAINT `hkgovPlandNewTowns_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovPlandNewTowns`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `wasGeometryRepaired`, `repairedGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `wasGeometryRepaired`, `repairedGeometry` FROM `hkgovPlandNewTowns`;--> statement-breakpoint
-DROP TABLE `hkgovPlandNewTowns`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovPlandNewTowns` RENAME TO `hkgovPlandNewTowns`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
-PRAGMA foreign_keys=OFF;--> statement-breakpoint
-CREATE TABLE `__new_hkgovPlandPlanningCells` (
+CREATE TABLE `hkgovPlandPlanningCells` (
 	`sourceRecordId` text NOT NULL,
 	`sources` text,
 	`rawProperties` text,
@@ -402,10 +345,6 @@ CREATE TABLE `__new_hkgovPlandPlanningCells` (
 	CONSTRAINT `hkgovPlandPlanningCells_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-INSERT INTO `__new_hkgovPlandPlanningCells`(`sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `wasGeometryRepaired`, `repairedGeometry`) SELECT `sourceRecordId`, `sources`, `rawProperties`, `versionHash`, `releaseId`, `validFromRelease`, `validToRelease`, `isCurrent`, `createdAt`, `updatedAt`, `sourceGeometry`, `wasGeometryRepaired`, `repairedGeometry` FROM `hkgovPlandPlanningCells`;--> statement-breakpoint
-DROP TABLE `hkgovPlandPlanningCells`;--> statement-breakpoint
-ALTER TABLE `__new_hkgovPlandPlanningCells` RENAME TO `hkgovPlandPlanningCells`;--> statement-breakpoint
-PRAGMA foreign_keys=ON;--> statement-breakpoint
 CREATE INDEX `overtureDivisionAreas_releaseId_idx` ON `overtureDivisionAreas` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `overtureDivisionAreas_sourceRecordId_idx` ON `overtureDivisionAreas` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `overtureDivisionAreas_current_lookup_idx` ON `overtureDivisionAreas` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
@@ -428,17 +367,25 @@ CREATE INDEX `hkgovAlsAddresses2d_current_lookup_idx` ON `hkgovAlsAddresses2d` (
 CREATE INDEX `hkgovAlsAddresses2d_release_validity_idx` ON `hkgovAlsAddresses2d` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovAlsAddresses3d_releaseId_idx` ON `hkgovAlsAddresses3d` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovAlsAddresses3d_sourceRecordId_idx` ON `hkgovAlsAddresses3d` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `hkgovAlsAddresses3d_current_lookup_idx` ON `hkgovAlsAddresses3d` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
+CREATE INDEX `hkgovAlsAddresses3d_release_validity_idx` ON `hkgovAlsAddresses3d` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdPlaceNames_releaseId_idx` ON `hkgovLandsdPlaceNames` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdPlaceNames_sourceRecordId_idx` ON `hkgovLandsdPlaceNames` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdPlaceNames_current_lookup_idx` ON `hkgovLandsdPlaceNames` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdPlaceNames_release_validity_idx` ON `hkgovLandsdPlaceNames` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdRoadCentrelines_releaseId_idx` ON `hkgovLandsdRoadCentrelines` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdRoadCentrelines_sourceRecordId_idx` ON `hkgovLandsdRoadCentrelines` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdRoadCentrelines_current_lookup_idx` ON `hkgovLandsdRoadCentrelines` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdRoadCentrelines_release_validity_idx` ON `hkgovLandsdRoadCentrelines` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetBaselineRecords_releaseId_idx` ON `hkgovLandsdStreetBaselineRecords` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetBaselineRecords_sourceRecordId_idx` ON `hkgovLandsdStreetBaselineRecords` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetBaselineRecords_current_lookup_idx` ON `hkgovLandsdStreetBaselineRecords` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetBaselineRecords_release_validity_idx` ON `hkgovLandsdStreetBaselineRecords` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetBaselineRecords_deferToNotices_idx` ON `hkgovLandsdStreetBaselineRecords` (`deferToNotices`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdStreetNoticeApplications_releaseId_idx` ON `hkgovLandsdStreetNoticeApplications` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdStreetNoticeApplications_sourceRecordId_idx` ON `hkgovLandsdStreetNoticeApplications` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdStreetNoticeApplications_current_lookup_idx` ON `hkgovLandsdStreetNoticeApplications` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
+CREATE INDEX `hkgovLandsdStreetNoticeApplications_release_validity_idx` ON `hkgovLandsdStreetNoticeApplications` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetNotices_releaseId_idx` ON `hkgovLandsdStreetNotices` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetNotices_sourceRecordId_idx` ON `hkgovLandsdStreetNotices` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovLandsdStreetNotices_current_lookup_idx` ON `hkgovLandsdStreetNotices` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
@@ -471,6 +418,11 @@ CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_releaseId_idx` ON
 CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_sourceRecordId_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_current_lookup_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_release_validity_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_releaseId_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_sourceRecordId_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_current_lookup_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_release_validity_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_input_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`sourceRecordId`,`inputVersionHash`,`transform`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreas_releaseId_idx` ON `hkgovCenstatdDivisionAreas` (`releaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreas_sourceRecordId_idx` ON `hkgovCenstatdDivisionAreas` (`sourceRecordId`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreas_current_lookup_idx` ON `hkgovCenstatdDivisionAreas` (`sourceRecordId`,`isCurrent`);--> statement-breakpoint
