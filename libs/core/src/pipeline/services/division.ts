@@ -1,5 +1,12 @@
 import type { DatasetProcessingMessage } from '../../types'
 import {
+  registerProcessingResult,
+  registerRule,
+  ProcessingGuardError,
+  type ProvenanceStore,
+} from '../../provenance'
+import { retainDivisionProvenance } from './divisionProvenance'
+import {
   applyDivisionClassificationCuration,
   divisionClassificationFixture,
 } from './divisionClassificationCuration'
@@ -42,10 +49,7 @@ import {
   upsertDivisionCurrentStates,
 } from '../db/division'
 import { replaceDatasetStats } from '../db/stats'
-import {
-  replaceReleaseProcessingActions,
-  type ReleaseProcessingAction,
-} from '../db/processingActions'
+import type { ReleaseProcessingAction } from '../db/processingActions'
 import {
   advanceSourceOvertureDivisionRelease,
   buildSourceReleaseId,
@@ -291,8 +295,11 @@ export async function processDivisionDataset(
   options: {
     previousHistoryDbs?: HistoryDatabase[]
     previousSourceDbs?: SourceDatabase[]
+    auditStore?: ProvenanceStore
   } = {},
 ): Promise<ProcessDatasetResult> {
+  if (!options.auditStore)
+    throw new Error('Division processing requires an audit assets store.')
   const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
   const timings = createOperationTimer(debugEnabled)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -907,12 +914,18 @@ export async function processDivisionDataset(
       hongKongAreaHierarchyAssignmentCounts,
     ),
   )
-  await timings.measure('replaceReleaseProcessingActionsMs', () =>
-    replaceReleaseProcessingActions(
-      metaRepoDb,
-      message.releaseId ?? message.datasetId,
-      processingActions,
-    ),
+  const audit = await retainDivisionProvenance(options.auditStore, {
+    releaseId: message.releaseId ?? message.datasetId,
+    datasetCode: message.datasetCode ?? message.datasetId,
+    actions: processingActions,
+    inputCount: processedRows,
+    outputCount: processedRowsById.size,
+  })
+  await registerProcessingResult(
+    metaRepoDb,
+    options.auditStore,
+    message.releaseId ?? message.datasetId,
+    audit.ref,
   )
 
   if (sourceDb && message.source === 'overture' && currentSourceRows) {
@@ -1148,7 +1161,7 @@ function formatSourceValue(value: unknown) {
  * `decode_wkb_geometry_to_geojson`. Keep those fixture descriptions aligned
  * with this transformation when changing its behaviour.
  */
-export function normaliseDivisionRow(
+function normaliseDivisionRowInternal(
   row: Record<string, unknown>,
   options: DivisionNormaliseOptions = {},
 ) {
@@ -1299,6 +1312,56 @@ function resolveDistrictNameForHongKongArea(
   }
 
   return hierarchy.find(entry => entry.type === 'district')?.i18n.en?.name ?? null
+}
+
+export const divisionNormalisationRule = registerRule(
+  {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'normalise-divisions',
+    scope: 'bulk',
+    basis: 'code',
+    summary:
+      'Normalise source division identities, classification, names and hierarchy for the selected dataset.',
+    inputs: ['source-divisions'],
+    outputs: ['divisions'],
+    parameters: {},
+    implementation: {
+      path: 'libs/core/src/pipeline/services/division.ts',
+      symbol: 'divisionNormalisationRule',
+    },
+  },
+  ({
+    row,
+    options,
+  }: {
+    row: Record<string, unknown>
+    options: DivisionNormaliseOptions
+  }) => normaliseDivisionRowInternal(row, options),
+)
+
+export function normaliseDivisionRow(
+  row: Record<string, unknown>,
+  options: DivisionNormaliseOptions = {},
+) {
+  try {
+    return divisionNormalisationRule.execute({ row, options })
+  } catch (error) {
+    if (error instanceof ProcessingGuardError) throw error
+    const reason = error instanceof Error ? error.message : String(error)
+    throw new ProcessingGuardError(reason, [
+      {
+        id: 'division-source-normalisation',
+        summary:
+          'Require a source identity, supported classification, resolvable hierarchy and decodable geometry.',
+        consequence: 'block-ingestion',
+        status: 'failed',
+        checked: 1,
+        failed: 1,
+        reason,
+      },
+    ])
+  }
 }
 
 export function buildOvertureHongKongAreaHierarchyProcessingActions(
