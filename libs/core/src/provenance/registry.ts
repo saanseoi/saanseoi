@@ -62,6 +62,9 @@ export async function registerProcessingResult(
           manifestHash: sql<string>`${ref.hash}`,
           byteLength: sql<number>`${ref.byteLength}`,
           applicationCount: sql<number>`${result.applicationCount}`,
+          attemptStatus: sql<
+            'completed' | 'failed'
+          >`${result.kind === 'processing-audit' ? result.attempt.status : 'completed'}`,
         })
         .from(releases)
         .where(
@@ -77,6 +80,8 @@ export async function registerProcessingResult(
         manifestHash: ref.hash,
         byteLength: ref.byteLength,
         applicationCount: result.applicationCount,
+        attemptStatus:
+          result.kind === 'processing-audit' ? result.attempt.status : 'completed',
       },
     })
     .run()
