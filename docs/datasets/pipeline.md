@@ -339,8 +339,11 @@ The retained publisher artefact is source evidence, not a processing intermediat
 `upload` retains a supplied ZIP archive or source Parquet as an immutable managed R2
 asset. A direct GML or GeoJSON input remains available to its local preparer, but its
 retained copy is losslessly wrapped in a ZIP; the asset manifest records the original
-filename, MIME type, byte length and SHA-256. Do not retain normalised rows, generated
-Parquet or generated SQL in R2.
+filename, MIME type, byte length and SHA-256. Generated Parquet, SQL and disposable
+normalisation intermediates remain local processing artefacts. Complete values selected
+as effects or evidence in a verified
+[processing provenance result](processing-provenance.md) are retained in R2 under the
+separate provenance namespace.
 
 ### Release presentation metadata
 

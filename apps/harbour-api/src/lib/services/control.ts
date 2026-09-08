@@ -150,6 +150,17 @@ export async function handlePublishDataset(
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.type as ResourceType
+    if (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') {
+      const provenance = await db
+        .select({ releaseId: metaSchema.releaseProvenance.releaseId })
+        .from(metaSchema.releaseProvenance)
+        .where(eq(metaSchema.releaseProvenance.releaseId, dataset.releaseId))
+        .get()
+      if (!provenance)
+        throw new ControlRequestError(
+          'Statistics publication requires a verified retained processing result.',
+        )
+    }
     const materialisedSnapshots = await listSnapshotsForRelease(
       db,
       dataset.releaseId,
