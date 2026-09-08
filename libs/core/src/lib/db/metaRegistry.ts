@@ -1318,9 +1318,10 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
                     candidate.domainCode === release.domainCode,
                 ) === index,
             ),
-          stats: releaseStats.filter(stat =>
-            resourceIds.includes(stat.releaseId ?? ''),
-          ),
+          stats:
+            resourceIds.length === 1
+              ? releaseStats.filter(stat => resourceIds.includes(stat.releaseId ?? ''))
+              : [],
         }
       }),
   }))
@@ -1805,7 +1806,10 @@ async function queryRegistrySourceVersions(
                 candidate.role === item.role,
             ) === index,
         ),
-      stats: releaseStats.filter(stat => resourceIds.includes(stat.releaseId ?? '')),
+      stats:
+        resourceIds.length === 1
+          ? releaseStats.filter(stat => resourceIds.includes(stat.releaseId ?? ''))
+          : [],
       processingActions: includeProcessingActions
         ? processingActions.filter(action => resourceIds.includes(action.releaseId))
         : undefined,
