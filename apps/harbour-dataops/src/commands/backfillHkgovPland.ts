@@ -158,7 +158,7 @@ export async function runHkgovPlandBackfillCommand(
       const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
       if (completedReleaseCodes.has(releaseCode)) {
         console.log(
-          `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: already published or superseded`,
+          `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`,
         )
       }
       return !completedReleaseCodes.has(releaseCode)

@@ -18,7 +18,7 @@ let {
   >
     {#each distribution.rows as row}
       <div class="col-span-3 grid grid-cols-subgrid items-center">
-        <dt class="min-w-0 break-words text-label-md font-semibold text-primary">
+        <dt class="min-w-0 wrap-break-word text-label-md font-semibold text-primary">
           {row.label}
         </dt>
         <dd class="h-5 overflow-hidden bg-data-outline-variant/30" aria-hidden="true">
