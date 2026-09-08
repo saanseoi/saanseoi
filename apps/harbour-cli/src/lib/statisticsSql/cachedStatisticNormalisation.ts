@@ -1,8 +1,12 @@
 import { join } from 'node:path'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import { statisticFieldCurationRule } from './statisticFieldCurationRule'
+import { statisticLocalisationRule } from './statisticLocalisationRule'
 import { prepareCachedArtefact } from '../localPipeline/preparedArtefact.ts'
 import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
 import {
   normaliseHkgovCenstatdStatistics,
+  statisticNormalisationRule,
   type CanonicalStatsRows,
 } from './normaliseHkgovCenstatdStatistics.ts'
 
@@ -18,6 +22,12 @@ export async function normaliseCachedStatistics(
   if (input.length <= 18) return normalise(input, options)
   const identity = hashCanonicalStatisticPreparation({
     input,
+    rules: [
+      statisticNormalisationRule.declaration,
+      populationThousandsRule.declaration,
+      statisticFieldCurationRule.declaration,
+      statisticLocalisationRule.declaration,
+    ],
     fieldMetadata: [...(options.fieldMetadata ?? [])].sort(([a], [b]) =>
       a.localeCompare(b),
     ),
@@ -27,7 +37,7 @@ export async function normaliseCachedStatistics(
   })
   const entries = await prepareCachedArtefact<[string, unknown]>({
     directory: join(directory, identity),
-    inputs: { contract: 'censtatd-canonical-normalisation-v2', identity },
+    inputs: { contract: 'censtatd-canonical-normalisation-v1', identity },
     generate: async function* () {
       const canonical = normalise(input, options)
       for (const [section, rows] of Object.entries(canonical))
