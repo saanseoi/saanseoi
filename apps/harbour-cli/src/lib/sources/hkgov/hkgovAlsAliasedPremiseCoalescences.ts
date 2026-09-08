@@ -37,7 +37,7 @@ export function coalesceAlsAliasedPremises(
       application && fixedDecision && 'sourceVersions' in fixedDecision
         ? resolveHkgovAlsCurationVerification(
             version,
-            fixedDecision.sourceVersions,
+            requireDefined(fixedDecision.sourceVersions),
             application,
           )
         : null

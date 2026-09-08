@@ -124,7 +124,7 @@ test('selects B with exact source guards and preserves original points', () => {
       'owner',
     )
     expect(owner.geometry).toBe(alias.geometry)
-    expect(alias).toEqual(original[1])
+    expect(alias).toEqual(requireDefined(original[1]))
     expect(
       JSON.parse(owner.sources).hkgovAlsAliasedPremiseCoalescence.coordinateReview,
     ).toEqual({
@@ -218,6 +218,7 @@ test('retains Blocks 5–11 at B from April 25 until revoked with publisher prov
     )!
     if (
       !('fixedCoordinates' in decision) ||
+      !decision.fixedCoordinates ||
       !('application' in decision.fixedCoordinates)
     )
       throw new Error('Missing until-revoked decision')
@@ -257,7 +258,7 @@ test('retains Blocks 5–11 at B from April 25 until revoked with publisher prov
       rows[1]!.enStreetNumberFrom = '99'
       expect(() => coalesceAlsAliasedPremises(rows, version)).toThrow()
     }
-    const application = decision.fixedCoordinates.application
+    const application = requireDefined(decision.fixedCoordinates.application)
     const state = application.state
     try {
       application.state = 'revoked'

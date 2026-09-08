@@ -513,7 +513,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               const audit = await retainDivisionProvenance(bucket, {
                 releaseId,
                 datasetCode,
-                inputCount: nativeRecords.length,
+                inputCount: records.length,
                 outputCount: records.length,
                 normalisation: planningDivisionRule.declaration,
                 actions:
