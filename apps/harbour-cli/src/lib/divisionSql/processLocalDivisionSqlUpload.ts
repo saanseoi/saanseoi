@@ -546,6 +546,7 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
         )
 
+        progress.beginPhase('Retain processing provenance', {})
         const audit = await retainDivisionProvenance(bucket, {
           releaseId,
           datasetCode,
@@ -555,7 +556,10 @@ export async function processLocalDivisionSqlUpload(
           inputCount: previewPlan.rowCount,
           outputCount: divisionState.processedRows,
         })
+        progress.complete('Retain processing provenance')
+        progress.beginPhase('Deliver processing provenance', {})
         await deliverProcessingResult(target, bucket, audit.ref)
+        progress.complete('Deliver processing provenance')
 
         const metaFile = await runLocalStreamingPhase(
           progress,

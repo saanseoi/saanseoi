@@ -8,7 +8,7 @@ import {
 } from './objects'
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
-import { cachedProvenanceStore } from './cache'
+import { cachedProvenanceStore, createProvenanceReader } from './cache'
 import type { BulkAudit } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
 import { validateShape } from './schema'
@@ -353,12 +353,12 @@ export async function verifyAuditResult(
   store: ProvenanceStore,
   manifest: AuditManifest,
 ) {
-  store = cachedProvenanceStore(store)
+  const reader = createProvenanceReader(store)
   validateAuditManifest(manifest)
   const refs: ObjectRef[] = (manifest.individualFixtures ?? []).map(f => f.object)
   if (manifest.apiFields) refs.push(manifest.apiFields)
   for (const b of manifest.bulk) {
-    const definition = (await readObject(store, b.definition)) as unknown as {
+    const definition = (await reader.read(b.definition)) as unknown as {
       id: string
       scope: string
       basis: string
@@ -371,7 +371,7 @@ export async function verifyAuditResult(
       throw new Error('Bulk rule declaration mismatch.')
     refs.push(...b.fixtures.map(f => f.object))
     if (b.search) {
-      const search = (await readObject(store, b.search)) as unknown as {
+      const search = (await reader.read(b.search)) as unknown as {
         kind: string
         schemaVersion: number
         text: string
@@ -386,12 +386,12 @@ export async function verifyAuditResult(
   }
   const ids = new Set<string>()
   for (const ref of manifest.chunks) {
-    const chunk = (await readObject(store, ref)) as unknown as {
+    const chunk = (await reader.read(ref)) as unknown as {
       kind: string
       schemaVersion: number
       actions: IndividualAudit[]
     }
-    const index = (await readObject(store, ref.index)) as unknown as {
+    const index = (await reader.read(ref.index)) as unknown as {
       kind: string
       schemaVersion: number
       entries: SearchEntry[]
@@ -412,7 +412,7 @@ export async function verifyAuditResult(
       refs.push(a.definition)
       if (a.fixture) {
         refs.push(a.fixture.object)
-        await readValue(store, { ...a.fixture.object, pointer: a.fixture.pointer })
+        await reader.value({ ...a.fixture.object, pointer: a.fixture.pointer })
       }
     }
     if (
@@ -421,7 +421,7 @@ export async function verifyAuditResult(
     )
       throw new Error('Audit search index mismatch.')
   }
-  for (const ref of refs) await readObject(store, ref)
+  for (const ref of refs) await reader.read(ref)
 }
 
 export async function transferAuditResult(
