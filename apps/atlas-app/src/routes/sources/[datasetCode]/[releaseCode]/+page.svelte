@@ -166,6 +166,13 @@ let bulkActions = $derived(
     .filter(rule => rule.type === 'bulk') ?? [],
 )
 let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
+let hasRetainedAuditFamily = $derived(
+  source?.resourceTypes.some(type =>
+    ['division', 'divisionArea', 'divisionBoundary', 'divisionStatistic'].includes(
+      type,
+    ),
+  ) ?? false,
+)
 let sourceRecordsAvailable = $state<boolean | null>(null)
 let sourceSampleRequest = $state(0)
 let sourceSampleTarget = $state<string | null>(null)
@@ -261,7 +268,9 @@ let hasContent = $derived.by(() => {
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
     return Boolean(
-      (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
+      hasRetainedAuditFamily ||
+        (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
+          0 ||
         bulkActions.length,
     )
   }
@@ -361,6 +370,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
+  hasRetainedAuditFamily ||
   (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
@@ -381,6 +391,7 @@ $effect(() => {
   const unavailable =
     ((activeTab === 'schema' || activeTab === 'samples') && !sourceRecordFamily) ||
     (activeTab === 'audit' &&
+      !hasRetainedAuditFamily &&
       !isContentLoading &&
       (version?.processingActionCount ?? version?.processingActions?.length ?? 0) ===
         0 &&
