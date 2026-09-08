@@ -3045,6 +3045,7 @@ describe('publishReleaseArtefacts', () => {
 
       INSERT INTO sourceReleases (id, status, revokedAt, revocationReason, updatedAt) VALUES
         ('source-release-1', 'staged', null, null, 1760000000000);
+      UPDATE sourceReleases SET expectedResourceTypes = '["division"]' WHERE id = 'source-release-1';
 
       INSERT INTO releases (
         id, sourceReleaseId, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
@@ -3078,6 +3079,7 @@ describe('publishReleaseArtefacts', () => {
       );
     `)
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
+    sqlite.run("UPDATE releases SET resourceType = 'division' WHERE id = 'release-1'")
 
     const catalogRevision = await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
