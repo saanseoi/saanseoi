@@ -34,19 +34,32 @@ export async function resolveDivisionNameTranslations(
     }
   >()
 
-  for await (const { rows } of readDivisionRowsWithFixtures(
+  for await (const { rows, replacedDivisionIds } of readDivisionRowsWithFixtures(
     file,
     message,
     DIVISION_BATCH_SIZE,
   )) {
     for (const row of rows) {
-      const normalised = normaliseDivisionRow(row, { hierarchyLookup, source: message })
+      const normalised = normaliseDivisionRow(row, {
+        hierarchyLookup,
+        source: message,
+        deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
+      })
       const parentDivisionId = resolveParentDivisionIdFromHierarchy(
         normalised.base.hierarchy,
       )
       recordsById.set(normalised.base.id, {
         context: {
           parentDivisionId,
+          ...Object.fromEntries(
+            Object.entries(
+              parentDivisionId
+                ? (hierarchyLookup.get(parentDivisionId)?.i18n ?? {})
+                : {},
+            ).flatMap(([locale, value]) =>
+              value?.name ? [[`parentName.${locale.toLowerCase()}`, value.name]] : [],
+            ),
+          ),
           parentName: parentDivisionId
             ? (hierarchyLookup.get(parentDivisionId)?.i18n.en?.name ?? null)
             : null,
@@ -105,7 +118,7 @@ export function divisionAuditParents(
   })
 }
 
-export function buildOvertureDivisionTranslationProcessingActions(input: {
+export function buildDivisionTranslationProcessingActions(input: {
   division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
   rawNames: unknown
   translations: DatasetTranslationApplication[]
@@ -114,8 +127,8 @@ export function buildOvertureDivisionTranslationProcessingActions(input: {
   return input.translations.map(translation => ({
     action:
       translation.provenance === 'human-translated'
-        ? 'overture_division_name_human_translated'
-        : 'overture_division_name_ai_translated',
+        ? 'division_name_human_translated'
+        : 'division_name_ai_translated',
     affectedRecordCount: 1,
     evidence: {
       canonicalDivision: {

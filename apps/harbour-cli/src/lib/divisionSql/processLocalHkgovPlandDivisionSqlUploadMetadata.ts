@@ -57,7 +57,7 @@ export async function buildPlandMetaSql(
   ])
   if (
     snapshots.length !== 1 ||
-    !sources.some(row => row.sourceReleaseId === state.releaseId)
+    !sources.some(row => row.resourceReleaseId === state.releaseId)
   ) {
     throw new Error(`PLAND snapshot metadata is incomplete for ${state.releaseId}.`)
   }
@@ -106,7 +106,7 @@ export async function buildPlandMetaSql(
   const sourceColumns = [
     'snapshotId',
     'datasetId',
-    'sourceReleaseId',
+    'resourceReleaseId',
     'role',
     'selectedByRule',
     'selectionMode',
@@ -149,7 +149,7 @@ export async function buildPlandMetaSql(
       suffix: buildUpdateSuffix(snapshotColumns, ['id']),
     }),
     ...buildInsertStatements('snapshotSources', sourceColumns, sources, {
-      suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'sourceReleaseId']),
+      suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'resourceReleaseId']),
     }),
     ...assemblySql,
     ...buildInsertStatements('snapshotAssemblyRuns', assemblyRunColumns, assemblyRuns, {

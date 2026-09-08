@@ -558,6 +558,7 @@ export async function processLocalDivisionSqlUpload(
           releaseId,
           datasetCode,
           actions: divisionState.processingActions,
+          branchCounts: divisionState.branchCounts,
           curationDocuments: divisionState.curationDocuments,
           guards: divisionState.auditGuards,
           inputCount: previewPlan.rowCount,

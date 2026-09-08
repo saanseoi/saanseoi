@@ -134,7 +134,9 @@ export async function writeGeometryRows(
         ]),
       )
     : await getGeometryChurnBaseline(context.currentDb, type, version.parentSnapshotId)
-  const churn = createGeometryChurnCounts(rows, historyHashes, previousById)
+  const churn = createGeometryChurnCounts(rows, historyHashes, previousById, {
+    merge: version.merge,
+  })
   onProgress?.('close history rows')
   const closedHistoryRows =
     version.merge || version.skipCanonicalMaterialisation

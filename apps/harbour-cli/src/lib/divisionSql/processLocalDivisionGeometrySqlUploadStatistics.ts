@@ -86,6 +86,7 @@ export function createGeometryChurnCounts(
   rows: Array<NonNullable<NormalisedGeometry>>,
   hashes: Map<string, string>,
   previousById: Map<string, { id: string; type: string; versionHash: string }>,
+  options: { merge?: boolean } = {},
 ) {
   const churn = createEmptyGeometryChurnCounts()
 
@@ -108,6 +109,9 @@ export function createGeometryChurnCounts(
   }
 
   for (const previous of previousById.values()) {
+    // Merge uploads carry absent parent members into the resulting snapshot.
+    // Release counts describe incoming rows, not the shared snapshot inventory.
+    if (options.merge) continue
     if (hashes.has(previous.id)) continue
     churn.removed += 1
     churnCountsForType(churn, previous.type).removed += 1

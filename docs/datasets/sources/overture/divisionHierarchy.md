@@ -8,7 +8,9 @@ processor does not invent an unknown district-to-Area assignment.
 
 Reviewed supplemental replacements are resolved before row processing. The hierarchy
 guard runs on the normalised replacement for those identities, including historic
-Kowloon, while retaining the intermediate source row for provenance.
+Kowloon, while retaining the intermediate source row for provenance. Descendant entries
+after the district, including legitimate nested areas, remain part of the hierarchy;
+only the SAR → Area → District prefix and duplicate identities are guarded.
 
 ## v1
 

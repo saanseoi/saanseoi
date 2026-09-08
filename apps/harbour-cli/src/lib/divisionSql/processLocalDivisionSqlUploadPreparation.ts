@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/hongKongHierarchyGuard'
 import { curationDocumentsFor } from '../curationDocuments'
 import {
   hasLocaleRegression,
@@ -7,6 +8,7 @@ import {
 import { metaDivisionCodes } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import { createDivisionBranchCounts } from '@repo/core/pipeline/services/division'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import {
   countDivisionCurrentSnapshotI18nRows,
@@ -52,7 +54,7 @@ import type {
   OwnedDivisionVersionSnapshot,
 } from './processLocalDivisionSqlUploadTypes.ts'
 import {
-  buildOvertureDivisionTranslationProcessingActions,
+  buildDivisionTranslationProcessingActions,
   divisionAuditParents,
   mergeDivisionI18nTranslations,
   resolveDivisionNameTranslations,
@@ -143,6 +145,8 @@ export async function buildDivisionSqlState(
   const districtCounts = new Map<string, number>()
   const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
   const processingActions: ReleaseProcessingAction[] = []
+  const branchCounts = createDivisionBranchCounts()
+  const hierarchyGuard = createHongKongHierarchyGuard()
   const records: DivisionPreparedRecord[] = []
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
@@ -185,14 +189,22 @@ export async function buildDivisionSqlState(
     })
   }
 
-  for await (const { isSupplemental, rows: batch } of readDivisionRowsWithFixtures(
-    file,
-    message,
-    DIVISION_BATCH_SIZE,
-  )) {
+  for await (const {
+    isSupplemental,
+    replacedDivisionIds,
+    rows: batch,
+    processingActions: fixtureActions,
+  } of readDivisionRowsWithFixtures(file, message, DIVISION_BATCH_SIZE)) {
+    processingActions.push(...fixtureActions)
     for (const row of batch) {
       const raw = row as Record<string, unknown>
-      const normalised = normaliseDivisionRow(raw, { hierarchyLookup, source: message })
+      const normalised = normaliseDivisionRow(raw, {
+        deferHierarchyGuard: replacedDivisionIds.has(String(raw.id)),
+        hierarchyLookup,
+        source: message,
+        branchCounts,
+        hierarchyGuard,
+      })
       if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
           ...buildOvertureHongKongDivisionClassificationProcessingActions(1),
@@ -223,6 +235,7 @@ export async function buildDivisionSqlState(
           resolvedI18n.localisations,
           resolvedI18n.applications,
         ),
+        branchCounts,
       )
       if (message.source === 'overture') {
         processingActions.push(
@@ -232,14 +245,16 @@ export async function buildDivisionSqlState(
             rawNames: raw.names,
             sourceI18n: normalised.i18n,
           }),
-          ...buildOvertureDivisionTranslationProcessingActions({
-            division: normalised.base,
-            rawNames: raw.names,
-            translations: resolvedI18n.applications,
-            parents: divisionAuditParents(normalised.base.hierarchy),
-          }),
         )
       }
+      processingActions.push(
+        ...buildDivisionTranslationProcessingActions({
+          division: normalised.base,
+          rawNames: normalised.i18n.map(row => row.name),
+          translations: resolvedI18n.applications,
+          parents: divisionAuditParents(normalised.base.hierarchy),
+        }),
+      )
       const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
@@ -373,6 +388,7 @@ export async function buildDivisionSqlState(
     currentRows,
     curationDocuments: curationDocumentsFor(translationsByDivisionId),
     auditGuards: [
+      hierarchyGuard,
       {
         id: 'division-source-identities',
         summary: 'Require non-empty, unique source division identities.',
@@ -406,6 +422,7 @@ export async function buildDivisionSqlState(
     processedRows,
     processedRowsById,
     processingActions,
+    branchCounts,
     records,
     seenIds,
     snapshotId,
