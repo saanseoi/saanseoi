@@ -1,21 +1,20 @@
 # Census and Statistics Department division statistics
 
 Both SQL upload paths retain and register
-[processing provenance](../../processing-provenance.md) before publication. Publisher
-property literals are retained with input hashes; complete canonical outputs and
-resolved field/geography evidence share bounded value packs. The result explains
-population scaling, suppression/unavailability literals and dimension-grouped record
-splits. Reviewed field metadata and selected API-field declarations are frozen with the
-result, so later fixture edits do not change its explanation or recorded effects.
+[processing provenance](../../processing-provenance.md) before publication. Registered
+declarations explain population scaling, literal interpretation and dimension-grouped
+record splits using execution counts, without copying source or output values. Reviewed
+field, measure and identity fixtures and selected API-field declarations are frozen in
+R2. Explicitly recorded translations are individual curations; absent origin metadata
+means origin unrecorded, regardless of the verification flag.
 
 Every materialised reference period retains an assembly run pinned to its source
 release. Recipes and source rules accompany remote metadata replay under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 
-Processing-action replay includes compressed evidence chunks, action/mode summaries and
-aggregate processing metrics. Individual mapping decisions remain available to audit
-reports; chunk sizes follow the
-[pipeline contract](../../pipeline.md#release-presentation-metadata).
+The D1 registration identifies the retained manifest and completed or failed attempt.
+Audit exposes guard outcomes and consequences, lazy fixture inspection and searchable
+individual pages. Failed blocking guards prevent publication.
 
 Local source and canonical SQL retain native delivery plans for both general and
 district Statistics imports. Publication clears local ownership only after their

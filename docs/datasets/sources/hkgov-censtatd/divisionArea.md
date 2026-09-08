@@ -1,5 +1,10 @@
 # Census and Statistics Department District Council district areas
 
+Geometry processing retains a registered normalisation declaration, counts and selected
+identity curation fixtures in the [R2 audit](../../processing-provenance.md). D1 holds
+the manifest pointer and attempt status. Audit loads readable fixture contents on
+demand; failed blocking guards prevent publication.
+
 Source storage uses `null` when no provenance references are supplied. A supplied
 canonical division ID is not a publisher source reference. Publisher district codes,
 classes and archive evidence remain valid provenance.

@@ -8,10 +8,10 @@ PLAND metadata delivery includes assembly recipes, input rules and selected-rele
 under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 
-Processing audits retain action/mode summaries and compressed D1 evidence chunks.
-Metadata replay includes the chunks and processing metrics, preserving individual
-mapping decisions for the
-[audit reports](../../pipeline.md#release-presentation-metadata).
+Processing audits retain the registered Planning normalisation declaration, counts and
+source repair counters in R2. Coverage, identity and hierarchy guards expose their
+outcomes and block ingestion on failure. D1 registers the manifest and attempt status;
+the release Audit view reads the [retained audit](../../processing-provenance.md).
 
 Local SQL artefact imports use native delivery receipts with named current, history,
 source and metadata bindings. The release can resume retained payloads after

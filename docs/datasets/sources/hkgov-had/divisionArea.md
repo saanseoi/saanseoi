@@ -1,5 +1,10 @@
 # Home Affairs Department District Boundary area ingestion
 
+Geometry processing retains registered rule declarations, counts and selected identity
+curation fixtures in the [R2 audit](../../processing-provenance.md). D1 registers the
+manifest and attempt status. Audit provides lazy fixture inspection and guard outcomes;
+bulk rules contain no affected-record lists or copied geometry values.
+
 Source storage uses `null` when no provenance references are supplied. Publisher area
 identifiers and archive references are retained when available; internal source-record
 IDs are not manufactured as provenance.

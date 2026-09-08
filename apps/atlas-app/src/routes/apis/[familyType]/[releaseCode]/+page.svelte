@@ -526,7 +526,7 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'schema', label: m.api_release_schema() },
   { id: 'samples', label: m.api_release_samples() },
   { id: 'stats', label: m.api_release_stats() },
-  ...(['divisions', 'statistics'].includes(api.familyType) ||
+  ...(['divisions', 'stats'].includes(api.familyType) ||
   (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
   release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
@@ -652,7 +652,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(
-      ['divisions', 'statistics'].includes(api.familyType) ||
+      ['divisions', 'stats'].includes(api.familyType) ||
         (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
         release.bulkActions?.length,
     )

@@ -2,10 +2,10 @@
 
 General and district C&SD uploads retain a versioned
 [processing provenance result](../processing-provenance.md) before publication. It
-captures guarded publisher properties, complete canonical payloads, dimension splits,
-reviewed field definitions and resolved geography evidence. Shared application views
-expose audit, curation and applied API-field lineage. Reapplication consumes retained
-effects without invoking the normaliser; it excludes SQL timestamps and SCD bookkeeping.
+captures registered normalisation and scaling declarations, execution counts, reviewed
+field/measure/geography fixtures and API-field declarations. It contains no publisher or
+canonical value packs. Recorded translations are individual curations; publisher labels
+and origin-unrecorded labels remain reviewed bulk metadata.
 
 Publisher attributes are retained in `rawProperties` with source identity, release
 history, provenance and native geometry. Extracted measures, period labels and
@@ -17,10 +17,9 @@ Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can
 share a recipe; each has its own run and cohort. Remote replay includes the full recipe.
 
-Processing audits retain action/mode summaries and compressed evidence chunks in D1.
-Statistics metadata replay stages bounded BLOB statements before the audit summaries and
-processing metrics. Reports retain access to every decision through the
-[shared pipeline contract](../pipeline.md#release-presentation-metadata).
+Processing audits live in content-addressed R2 objects; D1 registers the manifest and
+attempt status. Audit loads individual pages and readable fixtures lazily, with
+free-text search. Failed blocking guards remain inspectable and prevent publication.
 
 Local source and canonical SQL use native receipt-backed delivery plans. Interrupted
 payload replay resumes from retained SQL without repeating committed writes; local

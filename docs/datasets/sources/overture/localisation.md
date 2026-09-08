@@ -1,5 +1,12 @@
 # locale
 
+Locale inference and API fallback contribute aggregate processing counters. Applied name
+translations are individual fixture curations in the
+[retained audit](../../processing-provenance.md), with source and translated text,
+target locale and available parent division names. Full selected translation fixtures
+are retained in bounded partitions; unapplied entries are explicitly skipped. Audit
+loads individual pages and fixture contents on demand and supports free-text search.
+
 ## v1
 
 ### EN

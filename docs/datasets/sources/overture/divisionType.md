@@ -1,5 +1,12 @@
 # division type and level
 
+Lok Ma Chau Loop classification is selected from
+`fixtures/meta/curations/overture-division-classification.json`. Its source ID, admin
+level, class and subtype must match the fixture before the level-4 `macrohood`
+replacement is used. Both direct normalisation and hierarchy lookup execute the same
+registered guarded rule. The [processing audit](../../processing-provenance.md) retains
+the fixture and individual decision; bulk normalisation retains declarations and counts.
+
 Source Divisions retain the complete publisher record in `rawProperties`, alongside
 identity, provenance and release history. Names, admin level, subtype, class, Wikidata,
 hierarchies and cartography have no duplicate source columns; canonical history/current
