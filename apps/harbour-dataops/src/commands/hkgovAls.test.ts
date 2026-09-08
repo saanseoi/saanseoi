@@ -11,6 +11,7 @@ import {
   inferAlsSourceVersionFromPath,
   resolveAlsReleaseVersions,
   selectAlsDivisionCohort,
+  selectPendingAlsSourceReleases,
   shouldIncludeSupersededAlsSourceVersions,
   reviewHkgovAlsCurationApplications,
   promptForDriftDecisions,
@@ -217,6 +218,22 @@ describe('ALS historical backfills', () => {
   test('keeps normal ingestion resume behaviour unchanged', () => {
     expect(shouldIncludeSupersededAlsSourceVersions({})).toBe(false)
     expect(shouldIncludeSupersededAlsSourceVersions({ continue: true })).toBe(true)
+  })
+})
+
+describe('ALS preflight resume', () => {
+  test('reviews only releases that still need ingestion unless forced', () => {
+    const releases = [
+      { sourceVersion: '2024-07-25.0' },
+      { sourceVersion: '2024-10-23.0' },
+      { sourceVersion: '2025-01-23.0' },
+    ]
+    const completed = new Set(['2024-07-25.0', '2024-10-23.0'])
+
+    expect(selectPendingAlsSourceReleases(releases, completed)).toEqual([
+      { sourceVersion: '2025-01-23.0' },
+    ])
+    expect(selectPendingAlsSourceReleases(releases, completed, true)).toEqual(releases)
   })
 })
 

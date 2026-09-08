@@ -63,6 +63,7 @@ test('division lookup fingerprints ignore map insertion order but retain lookup 
     ambiguousAreaZh: new Set(['甲']),
     ambiguousDistrictEn: new Set(['d']),
     ambiguousDistrictZh: new Set(['丁']),
+    countryId: 'hk',
     areaByEn: new Map([
       ['beta', 'b'],
       ['alpha', 'a'],

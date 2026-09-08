@@ -224,9 +224,10 @@ export async function runHkgovAlsIngestCommand(
         }),
       ),
   )
-  const pendingSourceReleases = sourceReleases.filter(
-    release =>
-      !completedSourceVersions.has(release.sourceVersion) || args.options.force,
+  const pendingSourceReleases = selectPendingAlsSourceReleases(
+    sourceReleases,
+    completedSourceVersions,
+    Boolean(args.options.force),
   )
   if (args.options['skip-curation-checks'] === true) {
     log.info(
@@ -439,6 +440,16 @@ export function shouldIncludeSupersededAlsSourceVersions(input: {
   // completed release is normally superseded, so treating only the active
   // release as complete would needlessly reprocess the rest of the series.
   return input.allowHistoricalCohort === true || input.continue === true
+}
+
+export function selectPendingAlsSourceReleases<T extends { sourceVersion: string }>(
+  sourceReleases: readonly T[],
+  completedSourceVersions: ReadonlySet<string>,
+  force = false,
+) {
+  return sourceReleases.filter(
+    release => force || !completedSourceVersions.has(release.sourceVersion),
+  )
 }
 
 async function listTargetCompletedAlsSourceVersions(
