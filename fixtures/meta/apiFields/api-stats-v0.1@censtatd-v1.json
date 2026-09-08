@@ -1,10 +1,27 @@
 {
-  "versionHash": "sha256:fa7003851471d6cd09807c9ffb803e6a58bd170c93ae74ced00bca0544eb591d",
+  "versionHash": "sha256:35a55bddfdb721cfb24f935edb86d4d516f9ce1803182daa2f8347ce0219844d",
   "apiVersion": "api-stats-v0.1",
   "domainCode": "government",
   "schemaVersion": "sv-statistics-v1",
   "rulesetVersion": "rs-division-statistic-merge-v1",
   "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-new-towns": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016",
+      "sourceSchemas": {
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district": "1.0",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": "1.0"
+      }
+    },
     {
       "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016",
       "sourceSchemas": {
