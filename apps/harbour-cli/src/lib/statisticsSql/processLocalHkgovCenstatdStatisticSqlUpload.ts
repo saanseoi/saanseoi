@@ -1,3 +1,4 @@
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { deliveryFileSha256 } from '../localPipeline/sqlDeliveryFiles.ts'
 import {
@@ -464,6 +465,15 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      target,
+      releaseId,
+      datasetCode,
+      store: new LocalPipelineBucket(
+        sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
+      ),
+    })
     progress.fail()
     if (
       target.remote &&
