@@ -7,7 +7,9 @@
 The canonical lookup selects columns from the accepted schema for the declared source
 release. From `2026-02-18.0`, the Parquet file must contain <black>admin_level</black>;
 earlier cohorts use subtype, class, parent and name fields. Missing required columns
-block processing. Classification curation guards still validate source assertions.
+block processing. Lok Ma Chau Loop classification curation permits an omitted admin
+level only for accepted release schemas without that column. Supplied admin levels must
+match the fixture, alongside the source identity, class and subtype checks.
 
 SaanSeoi unwrap Overture's nested <black>hierarchies</black> payload into a singleton
 `hierarchy` list, with the following process:

@@ -73,6 +73,7 @@ describe('LandsD native Place Name FileGDB intake', () => {
 
       const hierarchy = await buildDivisionHierarchyLookup(
         await asyncBufferFromFile(prepared.filePath),
+        { source: 'hkgov-landsd', sourceVersion: '2026-06-10.0' },
       )
 
       expect(hierarchy.get('LANDSD:123')).toMatchObject({ level: 5 })

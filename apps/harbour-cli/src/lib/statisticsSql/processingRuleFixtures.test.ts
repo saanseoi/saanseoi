@@ -17,7 +17,7 @@ test('geometry and statistic metadata executors expose their exact JSON fixture 
     [statisticFieldCurationRule, fields],
     [statisticLocalisationRule, localisation],
   ] as const) {
-    expect(rule.declaration).toEqual(fixture)
+    expect(fixture).toEqual(rule.declaration)
     expect(Object.isFrozen(rule.declaration)).toBe(true)
   }
 })

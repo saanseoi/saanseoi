@@ -149,7 +149,7 @@ export async function buildDivisionSqlState(
   const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
   if (message.source === 'overture' && message.regionCode === 'hk')
     await assertOvertureHongKongDivisionSourceAssumptions(file)
-  const hierarchyLookup = await buildDivisionHierarchyLookup(file)
+  const hierarchyLookup = await buildDivisionHierarchyLookup(file, message)
   const sourceRelease = message.releaseCode
   if (!sourceRelease) {
     throw new Error('Division i18n fixtures require a source release code.')
@@ -192,7 +192,7 @@ export async function buildDivisionSqlState(
   )) {
     for (const row of batch) {
       const raw = row as Record<string, unknown>
-      const normalised = normaliseDivisionRow(raw, { hierarchyLookup })
+      const normalised = normaliseDivisionRow(raw, { hierarchyLookup, source: message })
       if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
           ...buildOvertureHongKongDivisionClassificationProcessingActions(1),
