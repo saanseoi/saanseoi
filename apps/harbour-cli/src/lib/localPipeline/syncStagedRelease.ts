@@ -45,6 +45,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       .select({
         id: metaDatasets.id,
         processingRules: metaDatasets.processingRules,
+        resourceTypes: metaDatasets.resourceTypes,
       })
       .from(metaDatasets)
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
@@ -55,7 +56,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         ),
       )
       .limit(1)
-      .get()) as { id: string; processingRules: unknown } | undefined) ?? null
+      .get()) as
+      | { id: string; processingRules: unknown; resourceTypes: string[] }
+      | undefined) ?? null
 
   if (!dataset) {
     throw new Error(
@@ -64,11 +67,16 @@ export async function syncStagedReleaseIntoLocalMetaCache(
   }
 
   const existingRelease = await metaDb
-    .select({ status: metaReleases.status })
+    .select({ status: metaReleases.status, resourceType: metaReleases.resourceType })
     .from(metaReleases)
     .where(eq(metaReleases.code, release.releaseCode))
     .limit(1)
     .get()
+  if (existingRelease && existingRelease.resourceType !== plan.type) {
+    throw new Error(
+      `Resource release ${release.releaseCode} belongs to ${existingRelease.resourceType}, not ${plan.type}.`,
+    )
+  }
   if (
     existingRelease &&
     existingRelease.status !== 'staged' &&
@@ -106,6 +114,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           datasetId: dataset.id,
           code: sourceReleaseCode,
           sourceVersion: plan.sourceVersion,
+          expectedResourceTypes: dataset.resourceTypes,
           sourceSchemaVersion,
           publicationDate: plan.sourceVersion.split('.')[0] ?? null,
           cohortKey: plan.cohortKey,
@@ -121,32 +130,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           createdAt: now,
           updatedAt: now,
         })
-        .onConflictDoUpdate({
-          target: metaSourceReleases.code,
-          set: {
-            datasetId: dataset.id,
-            sourceVersion: plan.sourceVersion,
-            sourceSchemaVersion,
-            publicationDate: plan.sourceVersion.split('.')[0] ?? null,
-            cohortKey: plan.cohortKey,
-            rawObjectKey: release.rawObjectKey,
-            originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
-            processingRules,
-            status: 'staged',
-            revokedAt: null,
-            revocationReason: null,
-            supersededBySourceReleaseId: null,
-            ingestedAt: now,
-            updatedAt: now,
-          },
-          where: or(
-            eq(metaSourceReleases.status, 'staged'),
-            eq(metaSourceReleases.status, 'failed'),
-            ...(options.reuseExistingRelease
-              ? [eq(metaSourceReleases.status, 'processing')]
-              : []),
-          ),
-        })
+        .onConflictDoNothing({ target: metaSourceReleases.code })
         .run()
 
       return tx
