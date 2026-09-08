@@ -1,7 +1,11 @@
 {
+  "source_audit_level_explanation": "Assign each division a level in the geographic hierarchy using the first matching rule below. ‘Matched’ counts divisions selected by the rule; ‘Changed’ counts those assigned a different level.",
+  "source_audit_type_explanation": "Assign each division a type, such as country, area or district, using the first matching rule below. ‘Matched’ counts divisions selected by the rule; ‘Changed’ counts those assigned a different type.",
+  "source_audit_locale_explanation": "Keep an existing {locale} name. If it is missing, use the first available language variant listed below; if none is available, leave it missing. ‘Matched’ counts divisions selected by each rule; ‘Changed’ counts those given a {locale} name.",
   "source_audit_description": "Description",
   "source_audit_branch_locale_title": "Locale Normalisation: {locale}",
-  "source_audit_branch_explanation": "Apply the first matching retained branch in priority order. Matched and changed counts use the retained counting units below.",
+  "source_audit_branch_explanation": "Rules are checked from top to bottom. The first match determines the result. ‘Matched’ counts the items selected by each rule; ‘Changed’ counts those whose value was updated.",
+  "source_audit_area_name_condition": "A primary or common name matches one of: {names} (ignoring capitalisation)",
   "source_audit_branches_unrecorded": "Branch conditions, precedence and per-mapping counts were not recorded for this release.",
   "source_audit_parameters_counting_units": "Retained rule parameters and counting units",
   "source_audit_branch_priority": "Branch / priority",

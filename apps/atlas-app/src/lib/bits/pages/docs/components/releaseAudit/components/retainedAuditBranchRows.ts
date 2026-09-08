@@ -6,15 +6,27 @@ import type {
   RuleBranch,
 } from '@repo/core/provenance'
 
-export function branchConditionText(condition: BranchCondition): string {
+export function branchConditionText(
+  condition: BranchCondition,
+  areaNames: string[] = [],
+): string {
   if ('all' in condition)
     return condition.all.length
       ? condition.all
-          .map(branchConditionText)
+          .map(child => branchConditionText(child, areaNames))
           .reduce((left, right) => m.source_audit_condition_and({ left, right }))
       : m.source_audit_otherwise()
   if ('any' in condition)
-    return `(${condition.any.map(branchConditionText).reduce((left, right) => (left ? m.source_audit_condition_or({ left, right }) : right), '')})`
+    return `(${condition.any.map(child => branchConditionText(child, areaNames)).reduce((left, right) => (left ? m.source_audit_condition_or({ left, right }) : right), '')})`
+  if (
+    condition.field === 'isHongKongArea' &&
+    'equals' in condition &&
+    condition.equals === true &&
+    areaNames.length
+  )
+    return m.source_audit_area_name_condition({
+      names: areaNames.map(name => `\`${name}\``).join(', '),
+    })
   return 'equals' in condition
     ? m.source_audit_field_equals({
         field: condition.field,
@@ -38,6 +50,14 @@ export function retainedBranchGroups(
     !Array.isArray(declaration.branches)
   )
     return []
+  const parameters = declaration.parameters
+  const names =
+    parameters && typeof parameters === 'object' && !Array.isArray(parameters)
+      ? parameters.hongKongAreaNames
+      : undefined
+  const areaNames = Array.isArray(names)
+    ? names.filter((name): name is string => typeof name === 'string')
+    : []
   const groups = new Map<
     string,
     Array<{
@@ -49,13 +69,27 @@ export function retainedBranchGroups(
       changed?: number
     }>
   >()
-  for (const value of declaration.branches) {
+  const seenLocaleConditions = new Set<string>()
+  for (const value of [...declaration.branches].sort(
+    (a, b) =>
+      (a as unknown as RuleBranch).precedence - (b as unknown as RuleBranch).precedence,
+  )) {
     const branch = value as unknown as RuleBranch
+    if (branch.group.startsWith('Locale Normalisation: ')) {
+      const key = `${branch.group}:${JSON.stringify(branch.condition)}`
+      if (
+        seenLocaleConditions.has(key) &&
+        !counts?.[branch.id]?.matched &&
+        !counts?.[branch.id]?.changed
+      )
+        continue
+      seenLocaleConditions.add(key)
+    }
     const rows = groups.get(branch.group) ?? []
     rows.push({
       id: branch.id,
       precedence: branch.precedence,
-      condition: branchConditionText(branch.condition),
+      condition: branchConditionText(branch.condition, areaNames),
       result: `\`${branch.result}\``,
       matched: counts?.[branch.id]?.matched,
       changed: counts?.[branch.id]?.changed,
@@ -64,8 +98,19 @@ export function retainedBranchGroups(
   }
   return [...groups].map(([title, rows]) => ({
     title: branchGroupTitle(title),
+    explanation: branchGroupExplanation(title),
     rows: rows.sort((a, b) => a.precedence - b.precedence),
   }))
+}
+
+function branchGroupExplanation(title: string): string {
+  if (title === 'Level Classification') return m.source_audit_level_explanation()
+  if (title === 'Type Classification') return m.source_audit_type_explanation()
+  if (title.startsWith('Locale Normalisation: '))
+    return m.source_audit_locale_explanation({
+      locale: title.slice('Locale Normalisation: '.length),
+    })
+  return m.source_audit_branch_explanation()
 }
 
 function branchGroupTitle(title: string): string {

@@ -1,7 +1,11 @@
 {
+  "source_audit_level_explanation": "按以下首个符合条件的规则，设置各行政区的地理层级。“匹配”是规则选中的行政区数量；“变更”是其中层级有更新的数量。",
+  "source_audit_type_explanation": "按以下首个符合条件的规则，设置各行政区的类型，例如国家、区域或地区。“匹配”是规则选中的行政区数量；“变更”是其中类型有更新的数量。",
+  "source_audit_locale_explanation": "保留现有的 {locale} 名称。如缺少该名称，则使用以下首个可用的语言变体；如全部都没有，则留空。“匹配”是各规则选中的行政区数量；“变更”是其中新增了 {locale} 名称的数量。",
   "source_audit_description": "描述",
   "source_audit_branch_locale_title": "语言标准化：{locale}",
-  "source_audit_branch_explanation": "按优先顺序应用首个匹配的已保留分支。匹配及变更数量采用以下保留的计数单位。",
+  "source_audit_branch_explanation": "从上到下检查规则，首个符合条件的规则决定结果。“匹配”是各规则选中的项目数量；“变更”是其中数值有更新的项目数量。",
+  "source_audit_area_name_condition": "主要或常用名称符合以下其中一项：{names}（不区分大小写）",
   "source_audit_branches_unrecorded": "此版本未记录分支条件、优先顺序及各映射项目的数量。",
   "source_audit_parameters_counting_units": "已保留的规则参数及计数单位",
   "source_audit_branch_priority": "分支／优先顺序",
