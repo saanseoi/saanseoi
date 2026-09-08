@@ -365,10 +365,11 @@ export const getSourceReleaseContentData = query(
       ])
 
       const measures =
-        tab === 'stats'
+        tab === 'stats' || tab === 'schema'
           ? await getSourceReleaseMeasures({
               datasetCode,
               releaseId: version.id,
+              includeUnobserved: tab === 'schema',
             })
           : []
       const result = {
@@ -432,14 +433,29 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
 async function getSourceReleaseMeasures(input: {
   datasetCode: string
   releaseId: string
+  includeUnobserved?: boolean
 }) {
+  const statisticRelease = await getMetaDb()
+    .select({ id: metaReleases.id })
+    .from(metaReleases)
+    .where(
+      and(
+        eq(metaReleases.sourceReleaseId, input.releaseId),
+        eq(metaReleases.resourceType, 'divisionStatistic'),
+      ),
+    )
+    .get()
+  if (!statisticRelease) return []
+
   const currentDb = getCurrentDb()
-  const records = await currentDb
-    .select({ values: currentSchema.statsRecords.values })
-    .from(currentSchema.statsRecords)
-    .where(eq(currentSchema.statsRecords.sourceReleaseId, input.releaseId))
-    .all()
-  if (!records.length) return []
+  const records = input.includeUnobserved
+    ? []
+    : await currentDb
+        .select({ values: currentSchema.statsRecords.values })
+        .from(currentSchema.statsRecords)
+        .where(eq(currentSchema.statsRecords.sourceReleaseId, statisticRelease.id))
+        .all()
+  if (!records.length && !input.includeUnobserved) return []
 
   const countsByMeasure = new Map<string, number>()
   for (const record of records) {
@@ -483,7 +499,7 @@ async function getSourceReleaseMeasures(input: {
             )
             .where(
               and(
-                eq(historySchema.statsFields.sourceReleaseId, input.releaseId),
+                eq(historySchema.statsFields.sourceReleaseId, statisticRelease.id),
                 eq(historySchema.statsFields.datasetCode, input.datasetCode),
               ),
             )
@@ -495,14 +511,14 @@ async function getSourceReleaseMeasures(input: {
   const uniqueRows = [...new Map(rows.map(row => [row.fieldName, row])).values()]
   return uniqueRows.flatMap(row => {
     const observationCount = countsByMeasure.get(row.fieldName)
-    return observationCount === undefined
+    return observationCount === undefined && !input.includeUnobserved
       ? []
       : [
           {
             definition: row.definition,
             aggregation: row.aggregation,
             name: row.name ?? row.sourceField,
-            observationCount,
+            observationCount: observationCount ?? 0,
             sourceField: row.sourceField,
             statisticKind: row.statisticKind,
             unitCode: row.unitCode,
