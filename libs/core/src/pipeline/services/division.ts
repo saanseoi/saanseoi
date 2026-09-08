@@ -1,4 +1,8 @@
 import type { DatasetProcessingMessage } from '../../types'
+import {
+  applyDivisionClassificationCuration,
+  divisionClassificationFixture,
+} from './divisionClassificationCuration'
 import type { ApiLocale } from '../../lib/apiLocales'
 import { resolveLatestPublishedSnapshotForResourceTypeRegion } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
@@ -1162,7 +1166,7 @@ export function normaliseDivisionRow(
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
   const overtureHongKongDivisionClassificationCorrection =
-    resolveOvertureHongKongDivisionClassificationCorrection(id)
+    applyDivisionClassificationCuration(row)
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const type = landsdPlaceName
     ? 'settlement'
@@ -1333,11 +1337,11 @@ export function buildOvertureHongKongDivisionClassificationProcessingActions(
       action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
       affectedRecordCount,
       evidence: {
-        canonical: { level: 4, type: 'macrohood' },
+        canonical: divisionClassificationFixture.entries[0]!.replacement,
         divisionId: OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID,
         hierarchy:
           'The canonical hierarchy lookup applies the same correction to descendants.',
-        source: { adminLevel: 2, class: null, subtype: 'region' },
+        source: divisionClassificationFixture.entries[0]!.expected,
       },
       mode: 'automatic',
       summary:
@@ -2214,15 +2218,6 @@ function resolveAdminLevelToken(row: Record<string, unknown>) {
 
 export function resolveAdminLevelValue(row: Record<string, unknown>) {
   return asOptionalInteger(row.admin_level) ?? asOptionalInteger(row.adminLevel)
-}
-
-function resolveOvertureHongKongDivisionClassificationCorrection(id: string) {
-  if (id !== OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID) return null
-
-  return {
-    level: 4,
-    type: 'macrohood' as const,
-  }
 }
 
 function normaliseDivisionLevelToken(value: string | null) {
