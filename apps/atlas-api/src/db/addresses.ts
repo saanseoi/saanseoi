@@ -290,6 +290,20 @@ export async function getAddressRecordCurrent(
   return row ? mapAddressRow(row as AddressRow) : null
 }
 
+export async function hasCurrentAddressSnapshot(
+  db: CurrentDatabase,
+  snapshotId: string,
+) {
+  return Boolean(
+    await db
+      .select({ id: address2d.id })
+      .from(address2d)
+      .where(eq(address2d.snapshotId, snapshotId))
+      .limit(1)
+      .get(),
+  )
+}
+
 export async function listAddressRecordsCurrent(
   db: CurrentDatabase,
   lookup: AddressListLookup,
