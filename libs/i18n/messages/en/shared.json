@@ -483,6 +483,8 @@
   "source_direct_records": "Source records",
   "source_direct_usage": "Browse this pinned source release with the cursor-paginated JSON response, including geometry. Pass nextCursor back as cursor to request the following page.",
   "source_resource_type": "Resource type",
+  "source_resource_areas": "Areas",
+  "source_resource_boundaries": "Boundaries",
   "source_released_as_domain_description": "A grouping of datasets whose geometry make them incompatible with each other; e.g. electoral vs planning divisions",
   "source_released_as_cohort_description": "The release cohort: a versioned set of source data used together.",
   "source_released_as_snapshot_description": "The immutable data snapshot included in this API release.",
