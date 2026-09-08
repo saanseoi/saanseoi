@@ -1,5 +1,12 @@
 # HKGov DPO ALS addresses
 
+Each release's preflight runs in an isolated Bun process so parsed 2D and 3D payload
+memory is reclaimed when the process exits. Successful preflight checkpoints survive
+interruption and are reused when their inputs match. Source or curation edits,
+processing code changes, incoming identity history changes and local database changes
+invalidate reuse. Remote preflight results are always recomputed. Uploads and final
+verification remain separate from the preflight cache.
+
 ALS 2D source rows retain supplied `sources` references, including the `hkgovAls`
 wrapper. Missing or empty references are stored as SQL `NULL` in both worker ingestion
 and bulk SQL import; synthetic source-record IDs are not provenance.

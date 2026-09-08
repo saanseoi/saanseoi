@@ -1,5 +1,13 @@
 # Addresses dataset family
 
+ALS chronological preflight prepares each release in a separate child process.
+Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
+including identity records, drift candidates, curation applications and division
+quality. Reuse requires matching source contents, processing code, curation fixtures,
+arguments, incoming identity history and local database file state. Failed children do
+not create checkpoints. Cache hits still participate in chronological identity and
+curation review; they do not represent completed ingestion.
+
 Source-row `sources` is nullable. ALS ingestion retains supplied publisher or ingestion
 references and stores `null` when none are supplied; it does not manufacture a reference
 to the row's own synthetic identifier.

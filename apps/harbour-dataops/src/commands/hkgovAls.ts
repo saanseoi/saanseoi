@@ -47,6 +47,7 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from '../lib/terminal.ts'
 import { progressPhase } from '../lib/progressPhase.ts'
+import { isolatedAlsReview } from '../lib/isolatedAlsReview.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -466,7 +467,7 @@ async function listTargetCompletedAlsSourceVersions(
   }
 }
 
-async function prepareHkgovAlsRelease(args: {
+export async function prepareHkgovAlsRelease(args: {
   args: ParsedArgs
   addressCohortKey: string
   divisionCohortKey: string
@@ -831,7 +832,7 @@ async function reviewHkgovAlsIngest(args: {
     const result = await progressPhase(
       `Review ALS release ${reviewed + 1}/${args.sourceReleases.length}: ${sourceVersion}`,
       () =>
-        prepareHkgovAlsRelease({
+        isolatedAlsReview({
           args: args.args,
           addressCohortKey,
           divisionCohortKey,
