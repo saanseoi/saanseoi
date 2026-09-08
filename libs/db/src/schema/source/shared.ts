@@ -35,8 +35,9 @@ export function sourceVersionedRecordColumns() {
 /** A versioned publisher source record with optional source provenance. */
 export function sourceVersionedAssertionColumns() {
   return {
-    ...sourceVersionedRecordColumns(),
+    sourceRecordId: text('sourceRecordId').notNull(),
     sources: sourceReferences(),
+    ...sourceVersioning,
   }
 }
 
@@ -86,8 +87,10 @@ export function sourceReleaseRevisionRecordColumns() {
 /** A release-revision source record with optional source provenance. */
 export function sourceReleaseRevisionAssertionColumns() {
   return {
-    ...sourceReleaseRevisionRecordColumns(),
+    sourceRecordId: text('sourceRecordId').notNull(),
     sources: sourceReferences(),
+    rawProperties: jsonText('rawProperties'),
+    ...sourceReleaseRevisioning,
   }
 }
 
