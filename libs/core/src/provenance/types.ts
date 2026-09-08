@@ -3,6 +3,8 @@ export type Json = null | boolean | number | string | Json[] | { [key: string]: 
 export type JsonRecord = { [key: string]: Json }
 export type Digest = `sha256:${string}`
 export type ObjectRef = { hash: Digest; byteLength: number }
+/** Optional pointer addresses a value inside a shared bounded object. */
+export type ValueRef = ObjectRef & { pointer?: string }
 export type RecordKey = { collection: string; id: string }
 export type RecordRef = RecordKey & { hash: Digest }
 
@@ -36,7 +38,7 @@ export type Effect = {
   /** null asserts that the target does not exist. */
   before: Digest | null
   /** null excludes/removes an output; otherwise the object contains its full value. */
-  after: ObjectRef | null
+  after: ValueRef | null
 }
 
 export type Application = {
@@ -74,8 +76,6 @@ export type ProcessingManifest = {
   /** Ordered chunks define execution order. No producer code is invoked on replay. */
   chunks: Array<ObjectRef & { firstOrdinal: number; count: number }>
   applicationCount: number
-  /** All dependencies, including record values and evidence, must be retained. */
-  objects: ObjectRef[]
   summaries: Array<{
     operation: string
     outcome: Application['outcome']

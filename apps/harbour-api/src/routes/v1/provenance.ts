@@ -103,7 +103,9 @@ const putRoute = defineOpenAPIRoute<typeof put, AppEnv>({
         bytes.set(part, offset)
         offset += part.length
       }
-      const value = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
+      const value = JSON.parse(
+        new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes),
+      )
       if ((await hashValue(value)) !== c.req.valid('param').hash)
         throw new Error('Object digest mismatch.')
       return c.json(await retainObject(c.env.R2_ASSETS, value), 200)
@@ -138,7 +140,7 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const table = metaSchema.releaseProvenance
       const row = await db
-        .select()
+        .select({ manifestHash: table.manifestHash, byteLength: table.byteLength })
         .from(table)
         .where(eq(table.releaseId, c.req.valid('param').releaseId))
         .get()
@@ -149,9 +151,15 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
       })
       validateManifest(manifest)
       const query = c.req.valid('query')
-      if (query.view === 'manifest') return c.json(manifest, 200)
+      if (query.view === 'manifest')
+        return c.json(manifest as unknown as Record<string, unknown>, 200)
       const applications = await Array.fromAsync(
-        readApplications(c.env.R2_ASSETS, manifest, query.offset, query.limit),
+        readApplications(
+          c.env.R2_ASSETS,
+          manifest,
+          Number(query.offset),
+          Number(query.limit),
+        ),
       )
       const rows =
         query.view === 'audit'
@@ -164,12 +172,12 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
       return c.json(
         {
           manifestHash: row.manifestHash,
-          offset: query.offset,
+          offset: Number(query.offset),
           nextOffset:
-            query.offset + applications.length < manifest.applicationCount
-              ? query.offset + applications.length
+            Number(query.offset) + applications.length < manifest.applicationCount
+              ? Number(query.offset) + applications.length
               : null,
-          rows,
+          rows: rows as unknown[],
         },
         200,
       )
@@ -183,10 +191,10 @@ const objectRoute = defineOpenAPIRoute<typeof object, AppEnv>({
   handler: async c => {
     try {
       return c.json(
-        await readObject(c.env.R2_ASSETS, {
+        (await readObject(c.env.R2_ASSETS, {
           hash: c.req.valid('param').hash as Digest,
-          byteLength: c.req.valid('query').byteLength,
-        }),
+          byteLength: Number(c.req.valid('query').byteLength),
+        })) as unknown as Record<string, unknown>,
         200,
       )
     } catch (e) {
