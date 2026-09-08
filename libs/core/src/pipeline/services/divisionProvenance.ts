@@ -9,10 +9,15 @@ import {
   type ObjectRef,
   type AuditGuard,
 } from '../../provenance'
-import { divisionClassificationFixture } from './divisionClassificationCuration'
+import {
+  divisionClassificationFixture,
+  divisionClassificationRule,
+} from './divisionClassificationCuration'
+import { divisionTranslationRule } from './divisionTranslationRule'
 import { divisionNormalisationRule } from './division'
 import { requireDefined } from '../../requireDefined'
 import type { ReleaseProcessingAction } from '../db/processingActions'
+import { retainFixturePartitions } from '../../provenance/fixtures'
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -38,6 +43,8 @@ export async function retainDivisionProvenance(
     normalisation?: RuleDeclaration
     retainDeclaration?: (declaration: RuleDeclaration) => Promise<ObjectRef>
     guards?: AuditGuard[]
+    identityCurationDefinition?: RuleDeclaration
+    actionDeclarations?: Record<string, RuleDeclaration>
   },
 ) {
   const bulk: BulkAudit[] = []
@@ -46,27 +53,43 @@ export async function retainDivisionProvenance(
     input.retainDeclaration ??
     ((declaration: RuleDeclaration) => retainObject(store, declaration))
   const individuals: IndividualAudit[] = []
+  const usedTranslationEntries = new Set<string>()
   const individualDocuments = (input.curationDocuments ?? []).filter(
     f => f.type === 'division-translations',
   )
-  const individualFixtures = await Promise.all(
-    individualDocuments.map(async f => ({
-      type: f.type,
-      object: await retainObject(store, f.document),
+  const documentPartitions = await Promise.all(
+    individualDocuments.map(f => retainFixturePartitions(store, f.document, 'entries')),
+  )
+  const individualFixtures = documentPartitions.flatMap((parts, index) =>
+    parts.map(part => ({
+      type: requireDefined(individualDocuments[index]).type,
+      object: part.object,
     })),
   )
   const translations = input.actions.filter(a =>
     /_name_(ai|human)_translated$/.test(a.action),
   )
   const translationFixture = translations.length
-    ? await retainObject(store, {
-        kind: 'division-translation-curations',
-        schemaVersion: 1,
-        datasetCode: input.datasetCode,
-        entries: translations.map(a => record(a.evidence).translation),
-      })
+    ? await retainFixturePartitions(
+        store,
+        {
+          kind: 'division-translation-curations',
+          schemaVersion: 1,
+          datasetCode: input.datasetCode,
+          entries: translations.map(a => record(a.evidence).translation),
+        },
+        'entries',
+      )
     : null
   const classifications = await retainObject(store, divisionClassificationFixture)
+  function translationReference(index: number) {
+    const part = requireDefined(
+      translationFixture?.find(
+        p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count,
+      ),
+    )
+    return { object: part.object, pointer: `/entries/${index - part.firstOrdinal}` }
+  }
   const grouped = new Map<string, ReleaseProcessingAction[]>()
   for (const action of input.actions)
     grouped.set(action.action, [...(grouped.get(action.action) ?? []), action])
@@ -83,33 +106,22 @@ export async function retainDivisionProvenance(
     const translated = /_name_(ai|human)_translated$/.test(id)
     const classification = divisionClassificationFixture.entries.find(e => e.id === id)
     const individual = translated || !!classification
-    const basis = individual ? ('fixture' as const) : ('code' as const)
-    const summary =
-      id === normalisation.id
-        ? requireDefined(actions[0]).summary
-        : id.replaceAll('_', ' ')
-    const definition = await retainDeclaration({
-      kind: 'processing-rule',
-      schemaVersion: 1,
-      id,
-      scope: individual ? 'individual' : 'bulk',
-      basis,
-      summary,
-      inputs: normalisation.inputs,
-      outputs: normalisation.outputs,
-      parameters: {},
-      implementation: {
-        path: 'libs/core/src/pipeline/services/division.ts',
-        symbol: 'normaliseDivisionRow',
-      },
-    })
-    const retainedDefinition =
-      id === normalisation.id ? await retainDeclaration(normalisation) : definition
+    // Substep counters belong to the registered processor; they are not separate,
+    // independently authored rule declarations.
+    if (!individual && id !== normalisation.id && !input.actionDeclarations?.[id])
+      continue
+    const declaration = classification
+      ? divisionClassificationRule.declaration
+      : translated
+        ? divisionTranslationRule.declaration
+        : (input.actionDeclarations?.[id] ?? normalisation)
+    const { basis, summary } = declaration
+    const definition = await retainDeclaration(declaration)
     if (!individual) {
       const affected = actions.reduce((n, a) => n + a.affectedRecordCount, 0)
       bulk.push({
         id,
-        definition: retainedDefinition,
+        definition,
         basis,
         summary,
         outcome: affected ? 'applied' : 'not-applicable',
@@ -120,7 +132,26 @@ export async function retainDivisionProvenance(
               ? { [requireDefined(normalisation.outputs[0])]: input.outputCount }
               : {},
           recordsAffected: affected,
-          decisions: { applied: actions.length },
+          decisions:
+            id === normalisation.id
+              ? Object.fromEntries([
+                  ['normalised', input.outputCount],
+                  ...[...grouped]
+                    .filter(
+                      ([key]) =>
+                        key !== normalisation.id &&
+                        !/_name_(ai|human)_translated$/.test(key) &&
+                        !divisionClassificationFixture.entries.some(
+                          e => e.id === key,
+                        ) &&
+                        !input.actionDeclarations?.[key],
+                    )
+                    .map(([key, values]) => [
+                      key,
+                      values.reduce((n, a) => n + a.affectedRecordCount, 0),
+                    ]),
+                ])
+              : { applied: affected },
         },
         fixtures: [],
       })
@@ -136,10 +167,7 @@ export async function retainDivisionProvenance(
             object: classifications,
             pointer: `/entries/${divisionClassificationFixture.entries.indexOf(classification)}`,
           }
-        : {
-            object: requireDefined(translationFixture),
-            pointer: `/entries/${translations.indexOf(a)}`,
-          }
+        : translationReference(translations.indexOf(a))
       if (translated) {
         const documentIndex =
           individualDocuments.findIndex(f => f.type === 'division-translations') ?? -1
@@ -160,9 +188,15 @@ export async function retainDivisionProvenance(
             throw new Error(
               'Applied division translation does not match its retained fixture.',
             )
+          usedTranslationEntries.add(`${documentIndex}:${index}`)
+          const part = requireDefined(
+            documentPartitions[documentIndex]?.find(
+              p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count,
+            ),
+          )
           selectedFixture = {
-            object: requireDefined(individualFixtures[documentIndex]).object,
-            pointer: `/entries/${index}`,
+            object: part.object,
+            pointer: `/entries/${index - part.firstOrdinal}`,
           }
         }
       }
@@ -205,33 +239,60 @@ export async function retainDivisionProvenance(
       })
     }
   }
+  for (const [documentIndex, document] of individualDocuments.entries()) {
+    const entries = record(document.document).entries
+    if (!Array.isArray(entries)) continue
+    const definition = await retainDeclaration(divisionTranslationRule.declaration)
+    for (const [index, value] of entries.entries()) {
+      if (usedTranslationEntries.has(`${documentIndex}:${index}`)) continue
+      const entry = record(value)
+      const context = record(entry.context)
+      const part = requireDefined(
+        documentPartitions[documentIndex]?.find(
+          p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count,
+        ),
+      )
+      individuals.push({
+        id: `unused-translation:${documentIndex}:${index}`,
+        operation: divisionTranslationRule.declaration.id,
+        basis: 'fixture',
+        outcome: 'skipped',
+        summary: 'Retained translation instruction was not applied in this attempt.',
+        reason:
+          'No applied translation selected this entry; the source text, context or required locale may differ, or the locale is already present.',
+        definition,
+        fixture: {
+          object: part.object,
+          pointer: `/entries/${index - part.firstOrdinal}`,
+        },
+        record: {
+          id: strings(entry.recordIds).join(', ') || `${documentIndex}:${index}`,
+          names: [...strings(entry.sourceText), ...strings(entry.text)],
+          parents: context.parentDivisionId
+            ? [
+                {
+                  id: String(context.parentDivisionId),
+                  names: strings(context.parentName),
+                },
+              ]
+            : [],
+        },
+        context: entry as JsonRecord,
+      })
+    }
+  }
   const identityDocuments = (input.curationDocuments ?? []).filter(
     f => f.type === 'identity-mappings',
   )
   if (identityDocuments.length) {
-    const id = 'curate-division-identities'
-    const summary =
-      'Apply the reviewed source-to-canonical identity mappings for this geography cohort.'
+    const declaration = requireDefined(input.identityCurationDefinition)
+    const { id, summary } = declaration
     bulk.push({
       id,
       summary,
       basis: 'fixture',
       outcome: input.outputCount ? 'applied' : 'not-applicable',
-      definition: await retainDeclaration({
-        kind: 'processing-rule',
-        schemaVersion: 1,
-        id,
-        summary,
-        scope: 'bulk',
-        basis: 'fixture',
-        inputs: normalisation.inputs,
-        outputs: normalisation.outputs,
-        parameters: {},
-        implementation: {
-          path: 'apps/harbour-cli/src/lib/identityCurations.ts',
-          symbol: 'resolveIdentityCuration',
-        },
-      }),
+      definition: await retainDeclaration(declaration),
       counts: {
         inputs: { 'source-geometry': input.inputCount },
         outputs: { 'canonical-geometries': input.outputCount },

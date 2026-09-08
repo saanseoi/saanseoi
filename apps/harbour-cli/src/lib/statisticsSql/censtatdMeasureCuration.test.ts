@@ -581,12 +581,24 @@ test('uses Azure Chinese suggestions after an English schema proposal is edited'
     isTranslationVerified: false,
     locale: 'zh-Hant',
     name: '繁:Reference population',
+    origin: {
+      kind: 'machine-translated',
+      sourceLocale: 'en',
+      sourceName: 'Reference population',
+      sourceDescription: 'Population counted at the reference date',
+    },
   })
   expect(proposals.zhHans).toEqual({
     description: '简:Population counted at the reference date',
     isTranslationVerified: false,
     locale: 'zh-Hans',
     name: '简:Reference population',
+    origin: {
+      kind: 'machine-translated',
+      sourceLocale: 'en',
+      sourceName: 'Reference population',
+      sourceDescription: 'Population counted at the reference date',
+    },
   })
 })
 

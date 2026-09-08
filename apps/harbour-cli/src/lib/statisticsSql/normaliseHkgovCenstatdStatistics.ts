@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { statisticFieldCurationRule } from './statisticFieldCurationRule'
 import { statisticLocalisationRule } from './statisticLocalisationRule'
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import {
@@ -172,9 +173,11 @@ function normaliseStatistics(
       const sourceValue = literal(raw)
       if (sourceValue === null) continue
       const parsed = parseObservationValue(sourceField, sourceValue)
-      const metadata = options.fieldMetadata?.get(
-        `${row.datasetCode}\u0000${sourceField}`,
-      )
+      const metadata = statisticFieldCurationRule.execute({
+        metadata: options.fieldMetadata,
+        datasetCode: row.datasetCode,
+        sourceField,
+      })
       const fieldName = metadata?.fieldName ?? sourceField
       const measureCode = metadata?.measureCode ?? fieldName
       const observationId = observationIdentifier({
@@ -339,7 +342,14 @@ export const statisticNormalisationRule = registerRule(
     summary:
       'Select observation fields, interpret publisher literals and derive reference periods; group values by source feature, period and reviewed dimensions.',
     inputs: ['publisher-properties', 'statistic-field-curations'],
-    outputs: ['statsRecords'],
+    outputs: [
+      'statsRecords',
+      'statsFields',
+      'statsFieldsI18n',
+      'statsMeasures',
+      'statsMeasuresI18n',
+      'statsValuesI18n',
+    ],
     parameters: {},
     implementation: {
       path: 'apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts',

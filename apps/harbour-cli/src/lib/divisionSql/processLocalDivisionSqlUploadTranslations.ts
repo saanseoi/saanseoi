@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { divisionTranslationRule } from '@repo/core/pipeline/services/divisionTranslationRule'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
@@ -76,32 +77,7 @@ export function mergeDivisionI18nTranslations(
   localisations: Array<{ locale: string; name: string }>,
   applications: DatasetTranslationApplication[],
 ) {
-  const existing = new Set(source.map(localised => localised.locale))
-  const divisionId = source[0]?.divisionId
-  if (!divisionId) return source
-
-  return [
-    ...source,
-    ...localisations.flatMap(localised =>
-      existing.has(localised.locale)
-        ? []
-        : [
-            {
-              divisionId,
-              isLocaleInferred: false,
-              locale: localised.locale,
-              name: localised.name,
-              nameAlts: null,
-              nameProvenance:
-                applications.find(
-                  application => application.locale === localised.locale,
-                )?.provenance ?? 'ai-translated',
-              nameRules: null,
-              nameVariant: [localised.name],
-            } satisfies DivisionI18nPayload,
-          ],
-    ),
-  ]
+  return divisionTranslationRule.execute({ source, localisations, applications })
 }
 
 export function divisionAuditParents(

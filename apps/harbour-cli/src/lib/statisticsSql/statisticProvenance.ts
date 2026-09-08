@@ -1,5 +1,7 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { retainStatisticTranslations } from './statisticTranslationAudit'
+import { statisticFieldCurationRule } from './statisticFieldCurationRule'
+import { identityCurationRule } from '../identityCurations'
 import apiFieldDeclarations from '../../../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
 import {
   retainAuditResult,
@@ -7,6 +9,7 @@ import {
   type AuditGuard,
   type BulkAudit,
   type ProvenanceStore,
+  type RuleDeclaration,
 } from '@repo/core/provenance'
 import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
 import { statisticNormalisationRule } from './normaliseHkgovCenstatdStatistics'
@@ -54,34 +57,14 @@ export async function retainStatisticProvenance(
     ...(input.geographyFixtures ?? []),
   ]
   const bulk: BulkAudit[] = []
-  const add = async (
-    id: string,
-    summary: string,
-    inputs: string[],
-    outputs: string[],
-    affected: number,
-    basis: 'code' | 'fixture' = 'code',
-  ) => {
+  const add = async (declaration: RuleDeclaration, affected: number) => {
+    const { id, summary, basis } = declaration
     bulk.push({
       id,
       basis,
       summary,
       outcome: source.length ? 'applied' : 'not-applicable',
-      definition: await retainObject(store, {
-        kind: 'processing-rule',
-        schemaVersion: 1,
-        id,
-        scope: 'bulk',
-        basis,
-        summary,
-        inputs,
-        outputs,
-        parameters: {},
-        implementation: {
-          path: 'apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts',
-          symbol: 'normaliseHkgovCenstatdStatistics',
-        },
-      }),
+      definition: await retainRegisteredRule(store, declaration),
       counts: {
         inputs: { 'publisher-properties': source.length },
         outputs: {},
@@ -92,27 +75,16 @@ export async function retainStatisticProvenance(
         basis === 'fixture' ? [{ type: 'statistic-fields', object: fixture }] : [],
     })
   }
-  await add(
-    'normalise-censtatd-statistics',
-    'Select observation fields, interpret publisher literals and derive reference periods; group values by source feature, period and reviewed dimensions.',
-    ['publisher-properties'],
-    ['statsRecords'],
-    source.length,
-  )
-  requireDefined(bulk[0]).counts.outputs = { statsRecords: canonical.records.length }
-  requireDefined(bulk[0]).definition = await retainRegisteredRule(
-    store,
-    statisticNormalisationRule.declaration,
-  )
-  requireDefined(bulk[0]).summary = statisticNormalisationRule.declaration.summary
-  await add(
-    'curate-statistic-fields',
-    'Apply reviewed field names, dimensions, units, aggregations and localisations.',
-    ['publisher-properties'],
-    ['statsFields'],
-    canonical.fields.length,
-    'fixture',
-  )
+  await add(statisticNormalisationRule.declaration, source.length)
+  requireDefined(bulk[0]).counts.outputs = {
+    statsRecords: canonical.records.length,
+    statsFields: canonical.fields.length,
+    statsFieldsI18n: canonical.fieldsI18n.length,
+    statsMeasures: canonical.measures.length,
+    statsMeasuresI18n: canonical.measuresI18n.length,
+    statsValuesI18n: canonical.valuesI18n.length,
+  }
+  await add(statisticFieldCurationRule.declaration, canonical.fields.length)
   requireDefined(bulk[1]).counts.outputs = { statsFields: canonical.fields.length }
   requireDefined(bulk[1]).counts.inputs = { 'field-definitions': fields.length }
   for (const document of documents.filter(f => f.type !== 'identity-mappings'))
@@ -120,35 +92,9 @@ export async function retainStatisticProvenance(
       type: document.type,
       object: await retainObject(store, document.document),
     })
-  const dictionaries = [
-    'fields',
-    'fieldsI18n',
-    'measures',
-    'measuresI18n',
-    'valuesI18n',
-  ] as const
-  await add(
-    'materialise-statistic-dictionaries',
-    'Materialise the field, measure and localisation dictionaries selected by the reviewed definitions.',
-    ['statistic-field-curations'],
-    ['statsFields', 'statsMeasures', 'statsValuesI18n'],
-    canonical.fields.length,
-  )
-  requireDefined(bulk[2]).counts.outputs = Object.fromEntries(
-    dictionaries.map(key => [key, canonical[key].length]),
-  )
-  requireDefined(bulk[2]).counts.recordsAffected = dictionaries.reduce(
-    (total, key) => total + canonical[key].length,
-    0,
-  )
-  requireDefined(bulk[2]).counts.decisions = {
-    materialised: requireDefined(bulk[2]).counts.recordsAffected,
-  }
   const identities = documents.filter(f => f.type === 'identity-mappings')
   if (identities.length) {
-    const id = 'curate-statistic-geography'
-    const summary =
-      'Resolve canonical geography through the reviewed source identity mappings for the selected cohort.'
+    const { id, summary } = identityCurationRule.declaration
     const linked = source.filter(
       row => row.divisionId !== null && row.divisionId !== undefined,
     ).length
@@ -157,21 +103,7 @@ export async function retainStatisticProvenance(
       summary,
       basis: 'fixture',
       outcome: source.length ? 'applied' : 'not-applicable',
-      definition: await retainObject(store, {
-        kind: 'processing-rule',
-        schemaVersion: 1,
-        id,
-        scope: 'bulk',
-        basis: 'fixture',
-        summary,
-        inputs: ['publisher-properties'],
-        outputs: ['statsRecords.divisionId'],
-        parameters: {},
-        implementation: {
-          path: 'apps/harbour-cli/src/lib/statisticsSql/censtatdDistrictBridge.ts',
-          symbol: 'resolveHkgovCenstatdDistrictBridge',
-        },
-      }),
+      definition: await retainRegisteredRule(store, identityCurationRule.declaration),
       counts: {
         inputs: { 'publisher-properties': source.length },
         outputs: { 'geography-links': linked },
