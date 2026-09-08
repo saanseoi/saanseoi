@@ -1,4 +1,5 @@
 import type { CurrentDatabase, HistoryDatabase, MetaDatabase } from '@repo/db'
+import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import type { UploadEnvironment } from '../../cli/options.ts'
 import type {
   HkgovAlsIdentityDecisions,
@@ -15,6 +16,7 @@ export type PrepareHkgovAlsOptions = {
   environment: UploadEnvironment
   currentDb?: CurrentDatabase
   historyDb?: HistoryDatabase
+  historyShards?: ReadonlyMap<string, ReplayShard>
   identityDecisions?: HkgovAlsIdentityDecisions
   identityHistory?: HkgovAlsIdentityHistory
   metaDb?: MetaDatabase

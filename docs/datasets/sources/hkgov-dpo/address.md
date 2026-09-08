@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+ALS division lookups replay the selected Overture snapshot from parent to target using
+all assigned history shards. Both preflight fingerprints and source preparation use this
+retained membership, so eviction of older current projections cannot interrupt
+chronological review. Translations use their own retained version hashes.
+
 Each release's preflight runs in an isolated Bun process so parsed 2D and 3D payload
 memory is reclaimed when the process exits. Successful preflight checkpoints survive
 interruption and are reused when their inputs match. Source or curation edits,

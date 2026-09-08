@@ -14,10 +14,13 @@ import type { UploadEnvironment } from '../../cli/options.ts'
 import type { DivisionLookupMaps, DivisionLookupSource } from './hkgovAlsTypes.ts'
 import { COUNTRY_NAME_ALIASES, HARBOUR_API_WRANGLER_CONFIG } from './hkgovAlsConfig.ts'
 import { normaliseEnKey, normaliseZhKey, sqlLiteral } from './hkgovAlsNormalisation.ts'
+import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
+import { loadAlsDivisionHistory } from './hkgovAlsDivisionHistory'
 
 export async function loadDivisionLookupMaps(options: {
   currentDb?: CurrentDatabase
   historyDb?: HistoryDatabase
+  historyShards?: ReadonlyMap<string, ReplayShard>
   cohortKey: string
   dbPath?: string
   environment: UploadEnvironment
@@ -47,6 +50,15 @@ export async function loadDivisionLookupMaps(options: {
     if (!snapshot) {
       throw new Error(
         `No published Overture division snapshot found for cohort ${options.cohortKey}.`,
+      )
+    }
+    if (options.historyShards) {
+      return buildDivisionLookupMaps(
+        await loadAlsDivisionHistory(
+          options.metaDb,
+          snapshot.id,
+          options.historyShards,
+        ),
       )
     }
     let rows = await options.currentDb
