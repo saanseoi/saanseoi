@@ -7,7 +7,91 @@
   "summary": "Normalise source division identities, classification, names and hierarchy for the selected dataset.",
   "inputs": ["source-divisions"],
   "outputs": ["divisions"],
-  "parameters": {},
+  "parameters": {
+    "levelTokens": [
+      {
+        "token": "country",
+        "level": 0
+      },
+      {
+        "token": "sar",
+        "level": 0
+      },
+      {
+        "token": "dependency",
+        "level": 0
+      },
+      {
+        "token": "city",
+        "level": 1
+      },
+      {
+        "token": "state",
+        "level": 1
+      },
+      {
+        "token": "province",
+        "level": 1
+      },
+      {
+        "token": "district",
+        "level": 2
+      },
+      {
+        "token": "region",
+        "level": 2
+      },
+      {
+        "token": "subdistrict",
+        "level": 3
+      },
+      {
+        "token": "borough",
+        "level": 3
+      },
+      {
+        "token": "town",
+        "level": 3
+      },
+      {
+        "token": "macrohood",
+        "level": 4
+      },
+      {
+        "token": "neighbourhood",
+        "level": 5
+      },
+      {
+        "token": "neighborhood",
+        "level": 5
+      },
+      {
+        "token": "village",
+        "level": 5
+      },
+      {
+        "token": "microhood",
+        "level": 6
+      },
+      {
+        "token": "hamlet",
+        "level": 6
+      }
+    ],
+    "hongKongAreaNames": [
+      "hong kong island",
+      "香港島",
+      "kowloon",
+      "九龍",
+      "new territories",
+      "新界"
+    ],
+    "apiLocaleFallbacks": {
+      "en": ["en"],
+      "zh-hant": ["zh-hk", "zh-hant", "zh-mo", "zh-tw"],
+      "zh-hans": ["zh-hans", "zh-cn", "zh-sg"]
+    }
+  },
   "implementation": {
     "path": "libs/core/src/pipeline/services/division.ts",
     "symbol": "divisionNormalisationRule"

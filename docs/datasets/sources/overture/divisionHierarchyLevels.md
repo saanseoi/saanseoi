@@ -21,6 +21,10 @@ Lok Ma Chau Loop is a level-4 <black>macrohood</black>. It is not one of the 18
 administrative districts, and its Overture microhood descendant therefore inherits a
 macrohood rather than a district ancestor.
 
+The classification guard uses the source-release schema during hierarchy lookup,
+translation preparation and canonical normalisation. It permits an omitted `admin_level`
+only for releases whose schema does not contain that field.
+
 ### ZH-HANT
 
 在 geographic domain 中，level 0 的 <black>country</black> 或 <black>sar</black>

@@ -32,18 +32,40 @@ type SyntheticOvertureHongKongArea = {
   divisionId: string
 }
 
-const SHENZHEN_BAY_PORT_EXCLUSION = {
-  coordinates: [
-    [
-      [113.935, 22.485],
-      [113.96, 22.485],
-      [113.96, 22.51],
-      [113.935, 22.51],
-      [113.935, 22.485],
-    ],
-  ],
-  type: 'Polygon',
-} as const satisfies GeoJsonGeometry
+export function syntheticAreaExclusion(
+  value: typeof ruleFixture.parameters.exclusion,
+): GeoJsonGeometry {
+  if (value.type !== 'Polygon' || !value.coordinates.length) {
+    throw new Error('Synthetic area exclusion must be a non-empty Polygon.')
+  }
+  return {
+    type: 'Polygon',
+    coordinates: value.coordinates.map(ring => {
+      if (ring.length < 4 || JSON.stringify(ring[0]) !== JSON.stringify(ring.at(-1))) {
+        throw new Error('Synthetic area exclusion must contain closed polygon rings.')
+      }
+      return ring.map(position => {
+        const [longitude, latitude] = position
+        if (
+          position.length !== 2 ||
+          longitude === undefined ||
+          latitude === undefined ||
+          !Number.isFinite(longitude) ||
+          !Number.isFinite(latitude) ||
+          Math.abs(longitude) > 180 ||
+          Math.abs(latitude) > 90
+        ) {
+          throw new Error(
+            'Synthetic area exclusion must contain finite WGS84 positions.',
+          )
+        }
+        return [longitude, latitude]
+      })
+    }),
+  }
+}
+
+syntheticAreaExclusion(ruleFixture.parameters.exclusion)
 
 export async function resolveSyntheticOvertureHongKongAreas(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
@@ -228,7 +250,12 @@ export const syntheticHongKongAreaRule = registerRule(
       normalised: readonly NonNullable<NormalisedGeometry>[]
     },
     parameters,
-  ) => buildSyntheticAreaRows(input.areas, input.normalised, parameters.exclusion),
+  ) =>
+    buildSyntheticAreaRows(
+      input.areas,
+      input.normalised,
+      syntheticAreaExclusion(parameters.exclusion),
+    ),
 )
 
 export function buildSyntheticOvertureHongKongAreaRows(

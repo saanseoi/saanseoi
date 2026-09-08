@@ -299,10 +299,11 @@ text, resulting text, target locale and available parent names. The retained fix
 preserves unused entries as well as applied instructions. Lok Ma Chau Loop uses a
 guarded classification fixture in both direct normalisation and hierarchy lookup. The
 admin-level expectation permits an omitted field only when the accepted source-release
-schema has no `admin_level` column; supplied values must match the fixture. Identity,
-class and subtype checks remain mandatory, and source drift blocks ingestion. Audit
-shows bulk summaries first and loads declarations, fixtures and individual pages on
-request.
+schema has no `admin_level` column; supplied values must match the fixture. Translation
+preparation passes the source-release context through the same normalisation guard.
+Identity, class and subtype checks remain mandatory, and source drift blocks ingestion.
+Audit shows bulk summaries first and loads declarations, fixtures and individual pages
+on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
