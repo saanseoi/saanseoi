@@ -151,7 +151,7 @@ function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
     `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
-    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR sourceReleaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR resourceReleaseId = ${literal(input.releaseId)};`,
     `DELETE FROM apiReleaseSets WHERE id = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM snapshots WHERE id = ${literal(input.snapshotId)};`,
   ]
@@ -270,7 +270,7 @@ function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
     `DELETE FROM releaseProcessingActionChunks WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
     `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
-    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR sourceReleaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR resourceReleaseId = ${literal(input.releaseId)};`,
     `DELETE FROM apiReleaseSets WHERE id = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM snapshots WHERE id = ${literal(input.snapshotId)};`,
     `DELETE FROM releases WHERE id = ${literal(input.releaseId)};`,
