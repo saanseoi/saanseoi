@@ -506,13 +506,13 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
             ELSE 'supporting'
           END AS role,
           r.code AS resourceReleaseCode,
-          ss.sourceReleaseId,
+          ss.resourceReleaseId,
           r.sourceVersion,
           arss.variant
         FROM apiReleaseSetSnapshots arss
         INNER JOIN snapshots s ON s.id = arss.snapshotId
         INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
-        INNER JOIN releases r ON r.id = ss.sourceReleaseId
+        INNER JOIN releases r ON r.id = ss.resourceReleaseId
         INNER JOIN sourceReleases sr ON sr.id = r.sourceReleaseId
         INNER JOIN datasets d ON d.id = ss.datasetId
         INNER JOIN publishers p ON p.id = d.publisherId

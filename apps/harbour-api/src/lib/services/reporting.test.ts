@@ -14,6 +14,41 @@ import { listIngestRuns, listReleases, listStats } from './reporting'
 const repoRoot = resolve(import.meta.dir, '../../../../..')
 
 describe('reporting service', () => {
+  test('reports deferred statistics snapshots but excludes lookup and archived snapshots', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'stats-readiness-'))
+    try {
+      const metaSqlite = await initSqlite(
+        join(tempDir, 'meta.sqlite'),
+        resolve(repoRoot, 'libs/db/migrations/meta'),
+      )
+      seedMetaCatalog(metaSqlite)
+      seedRelease(metaSqlite)
+      const metaDb = createLocalHarbourDb(metaSqlite)
+      const ready = async () =>
+        (await listReleases(metaDb, {}, 'preview', { limit: 10 }))[0]
+          ?.hasStatisticsSnapshot
+      expect(await ready()).toBe(false)
+      metaSqlite.exec(`
+        INSERT INTO snapshots (id, resourceType, code, cohortKey, status)
+        VALUES ('stats-readiness', 'divisionStatistic', 'stats-readiness', '2026-06', 'draft');
+        INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role)
+        VALUES ('stats-readiness', 'hkgov-dpo-hk-address',
+          'release-dr-hk-hkgov-dpo-address-2026-06-24.0', 'primary');
+      `)
+      expect(await ready()).toBe(true)
+      metaSqlite.exec(
+        "UPDATE snapshotSources SET role = 'lookup' WHERE snapshotId = 'stats-readiness'",
+      )
+      expect(await ready()).toBe(false)
+      metaSqlite.exec(
+        "UPDATE snapshotSources SET role = 'primary' WHERE snapshotId = 'stats-readiness'; UPDATE snapshots SET status = 'archived' WHERE id = 'stats-readiness'",
+      )
+      expect(await ready()).toBe(false)
+      metaSqlite.close()
+    } finally {
+      await rm(tempDir, { recursive: true, force: true })
+    }
+  })
   test('returns release row counts from real meta/source/history databases', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-reporting-'))
 

@@ -50,21 +50,6 @@ export async function assertPlaceAddressDependencies(
   snapshotId: string,
   releaseId: string,
 ) {
-  const reviews = await db
-    .select()
-    .from(metaSchema.releaseProcessingActions)
-    .where(
-      and(
-        eq(metaSchema.releaseProcessingActions.releaseId, releaseId),
-        eq(metaSchema.releaseProcessingActions.action, 'overture_place_address_review'),
-      ),
-    )
-    .all()
-  if (reviews.some(review => Number(review.affectedRecordCount) > 0)) {
-    throw new ControlRequestError(
-      'Places publication has outstanding Address identity reviews.',
-    )
-  }
   const runs = await db
     .select()
     .from(metaSchema.metaSnapshotAssemblyRuns)
@@ -87,7 +72,7 @@ export async function assertPlaceAddressDependencies(
   const supplementary = await db
     .select({
       id: metaSnapshots.id,
-      sourceReleaseId: metaSnapshotSources.sourceReleaseId,
+      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
     })
     .from(metaSnapshots)
     .innerJoin(
@@ -122,7 +107,7 @@ export async function assertPlaceAddressDependencies(
     !sources.some(
       source =>
         source.role === 'lookup' &&
-        source.sourceReleaseId === supplementary.sourceReleaseId &&
+        source.resourceReleaseId === supplementary.sourceReleaseId &&
         source.selectedByRule ===
           'api-composition:places/overture:place/default->address/overture-places',
     )
@@ -159,10 +144,15 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         'Publication is blocked by the failed processing audit attempt.',
       )
-    if (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') {
+    if (
+      (datasetType === 'divisionStatistic' && dataset.source === 'hkgov-censtatd') ||
+      (datasetType === 'address' &&
+        ['hkgov-dpo', 'overture'].includes(dataset.source)) ||
+      (datasetType === 'place' && dataset.source === 'overture')
+    ) {
       if (!failedAudit)
         throw new ControlRequestError(
-          'Statistics publication requires a verified retained processing result.',
+          `${datasetType === 'divisionStatistic' ? 'Statistics' : datasetType === 'address' ? 'Addresses' : 'Places'} publication requires a verified retained processing result.`,
         )
     }
     const materialisedSnapshots = await listSnapshotsForRelease(

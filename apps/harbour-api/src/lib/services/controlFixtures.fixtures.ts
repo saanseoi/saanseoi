@@ -94,7 +94,7 @@ export function seedSnapshot(
     );
 
     INSERT INTO snapshotSources (
-      snapshotId, datasetId, sourceReleaseId, role, createdAt
+      snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (
       '${snapshotId}',
       '${datasetId}',
@@ -194,7 +194,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     );
 
     INSERT OR IGNORE INTO snapshotSources (
-      snapshotId, datasetId, sourceReleaseId, role
+      snapshotId, datasetId, resourceReleaseId, role
     ) VALUES
     (
       '${snapshotId}', 'hkgov-censtatd-hk-permanent-living-quarters',
@@ -260,7 +260,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       .get(releaseId) as { datasetId: string }
     sqlite
       .query(
-        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES (?, ?, ?, ?)',
+        'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
       )
       .run(snapshotId, datasetId.datasetId, releaseId, 'supporting')
   }

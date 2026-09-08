@@ -459,6 +459,11 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   expect(legacyReleaseSet.code).toBe('data-hk-stats-2022')
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
+    createdReleaseSetCodes: ['data-hk-stats-2022'],
+    inspectedSnapshots: 2,
+    skippedCohortKeys: ['2026-Q2'],
+  })
+  expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
     inspectedSnapshots: 2,
     skippedCohortKeys: ['2022', '2026-Q2'],
