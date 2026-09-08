@@ -3,6 +3,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { readObject, type ProvenanceStore } from '@repo/core/provenance'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics'
 import { retainStatisticProvenance } from './statisticProvenance'
+import { censtatdSourceAssertionRule } from './processLocalHkgovCenstatdDistrictStatisticSqlUpload'
 import type { CenstatdFieldMetadata } from './censtatdMeasureCurationTypes'
 
 test('Statistics retains bulk counts and reviewed definitions without source or canonical row values', async () => {
@@ -67,8 +68,16 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
     source,
     canonical,
     fieldMetadata,
+    additionalRules: [
+      { declaration: censtatdSourceAssertionRule.declaration, count: source.length },
+    ],
   })
   expect(result.manifest.kind).toBe('processing-audit')
+  expect(
+    result.manifest.bulk.find(
+      rule => rule.id === censtatdSourceAssertionRule.declaration.id,
+    )?.counts.recordsAffected,
+  ).toBe(source.length)
   expect(result.manifest.applicationCount).toBe(0)
   expect(result.manifest.chunks).toEqual([])
   expect(

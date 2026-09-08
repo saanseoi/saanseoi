@@ -3,6 +3,8 @@ import {
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisionStatistics'
 import { resolveIdentityCuration } from '../identityCurations'
+import fixture from '../../../../../fixtures/meta/processing-rules/censtatd-district-identity.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { captureCurationDocuments, curationDocumentsFor } from '../curationDocuments'
 
 type DistrictBridgeCohortKey = '2016' | '2021'
@@ -65,18 +67,29 @@ export function resolveCenstatdNewTownBridgeCohort(
 export async function resolveHkgovCenstatdDistrictBridge(
   cohortKey: DistrictBridgeCohortKey,
 ): Promise<ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>> {
-  const censtatdRows = resolveIdentityCuration(
-    'hkgov-censtatd',
-    cohortKey,
-    'administrative',
-  )
-  const hadRows = resolveIdentityCuration('hkgov-had', '2022', 'administrative')
-
-  return captureCurationDocuments(
-    createHkgovCenstatdDistrictResolution(censtatdRows, hadRows),
-    curationDocumentsFor(censtatdRows, hadRows),
-  )
+  return censtatdDistrictIdentityRule.execute(cohortKey)
 }
+
+export const censtatdDistrictIdentityRule = registerRule(
+  ruleDeclarationFromFixture(fixture),
+  (cohortKey: DistrictBridgeCohortKey, parameters) => {
+    const censtatdRows = resolveIdentityCuration(
+      parameters.sourceAuthority,
+      cohortKey,
+      parameters.domain,
+    )
+    const hadRows = resolveIdentityCuration(
+      parameters.targetAuthority,
+      parameters.targetCohort,
+      parameters.domain,
+    )
+
+    return captureCurationDocuments(
+      createHkgovCenstatdDistrictResolution(censtatdRows, hadRows),
+      curationDocumentsFor(censtatdRows, hadRows),
+    )
+  },
+)
 
 /**
  * Resolves the reviewed 2021 C&SD New Town codes through the curated identifier

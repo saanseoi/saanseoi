@@ -31,6 +31,7 @@ export async function retainStatisticProvenance(
     fieldMetadata: ReadonlyMap<string, unknown>
     measureMetadata?: ReadonlyMap<string, unknown>
     geographyFixtures?: CurationDocument[]
+    additionalRules?: Array<{ declaration: RuleDeclaration; count: number }>
   },
 ) {
   const { releaseId, datasetCode, source, canonical } = input
@@ -136,6 +137,15 @@ export async function retainStatisticProvenance(
     },
     fixtures: [],
   })
+  for (const { declaration, count } of input.additionalRules ?? []) {
+    if (bulk.some(rule => rule.id === declaration.id))
+      throw new Error(`Duplicate audit rule: ${declaration.id}.`)
+    await add(declaration, count)
+    const rule = requireDefined(bulk.at(-1))
+    rule.outcome = count ? 'applied' : 'not-applicable'
+    rule.counts.inputs = { [requireDefined(declaration.inputs[0])]: count }
+    rule.counts.outputs = { [requireDefined(declaration.outputs[0])]: count }
+  }
   const sourceRefs = new Set(source.map(s => s.sourceFeatureRef))
   const duplicateSources = source.length - sourceRefs.size
   const orphanOutputs = canonical.records.filter(

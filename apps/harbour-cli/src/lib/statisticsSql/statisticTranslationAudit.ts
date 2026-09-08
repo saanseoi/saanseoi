@@ -54,6 +54,9 @@ export async function retainStatisticTranslations(
         individuals.push({
           id: `${type}:${key}:${localisation.locale}`,
           operation: statisticLocalisationRule.declaration.id,
+          ...(statisticLocalisationRule.declaration.review
+            ? { review: statisticLocalisationRule.declaration.review }
+            : {}),
           basis: 'fixture',
           outcome: id && applied.has(id) ? 'applied' : 'unmatched',
           summary: statisticLocalisationRule.declaration.summary,

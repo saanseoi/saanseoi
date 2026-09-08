@@ -77,32 +77,35 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     UPDATE releases SET status = 'processing' WHERE id = '${releaseId}';
     UPDATE sourceReleases SET status = 'processing';
   `)
-  await syncStagedReleaseIntoLocalMetaCache(
-    metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
-    {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-area.parquet',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      releaseId,
-    },
-    {
-      cohortKey: '2023-H2',
-      regionCode: 'hk',
-      source: 'hkgov-censtatd',
-      sourceVersion: '2023-H2',
-      theme: 'divisions',
-      type: 'divisionArea',
-    },
-    { reuseExistingRelease: true },
-  )
+  await expect(
+    syncStagedReleaseIntoLocalMetaCache(
+      metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-area.parquet',
+        releaseCode:
+          'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+        releaseId,
+      },
+      {
+        cohortKey: '2023-H2',
+        regionCode: 'hk',
+        source: 'hkgov-censtatd',
+        sourceVersion: '2023-H2',
+        theme: 'divisions',
+        type: 'divisionArea',
+      },
+      { reuseExistingRelease: true },
+    ),
+  ).rejects.toThrow('belongs to divisionStatistic')
   expect(
     sqlite
       .query('SELECT resourceType, status FROM releases WHERE id = ?')
       .get(releaseId),
-  ).toEqual({ resourceType: 'divisionArea', status: 'staged' })
+  ).toEqual({ resourceType: 'divisionStatistic', status: 'processing' })
   expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
-    status: 'staged',
+    status: 'processing',
   })
 
   sqlite.close()

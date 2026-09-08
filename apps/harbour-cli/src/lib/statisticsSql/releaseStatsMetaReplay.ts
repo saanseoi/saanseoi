@@ -278,7 +278,7 @@ export async function replayStatisticSnapshotMetaToRemote(
         .all(),
     ])
   if (
-    !sources.some(source => source.sourceReleaseId === releaseId) ||
+    !sources.some(source => source.resourceReleaseId === releaseId) ||
     snapshotAssignments.length < uniqueSnapshotIds.length ||
     releaseAssignments.length === 0 ||
     lineages.length !== snapshotLineageIds.length
@@ -351,7 +351,7 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
       [
         'snapshotId',
         'datasetId',
-        'sourceReleaseId',
+        'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
@@ -360,7 +360,7 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
         'createdAt',
       ],
       metadata.sources,
-      ['snapshotId', 'sourceReleaseId'],
+      ['snapshotId', 'resourceReleaseId'],
     ),
     ...buildMetaInsertStatements(
       'releaseShardAssignments',

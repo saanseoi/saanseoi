@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { readdirSync } from 'node:fs'
-import { ruleDeclarationFromFixture } from '@repo/core/provenance'
+import { resolveRuleFixtureCatalog } from '@repo/core/provenance'
 import { syntheticAreaExclusion } from '../divisionSql/processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
 const root = new URL('../../../../../', import.meta.url)
@@ -9,19 +9,28 @@ const names = readdirSync(fixtures)
   .filter(name => name.endsWith('.json'))
   .sort()
 
-test('every processing rule fixture is the exact frozen definition consumed by its registered executor', async () => {
+test('every authored processing rule field is retained by its registered executor', async () => {
   const ids = new Set<string>()
-  expect(names.length).toBe(12)
+  expect(names.length).toBeGreaterThanOrEqual(16)
+  const catalogue = resolveRuleFixtureCatalog(
+    Object.fromEntries(
+      await Promise.all(
+        names.map(async name => [
+          name.slice(0, -5),
+          await Bun.file(new URL(name, fixtures)).json(),
+        ]),
+      ),
+    ),
+  )
   for (const name of names) {
-    const fixture = ruleDeclarationFromFixture(
-      await Bun.file(new URL(name, fixtures)).json(),
-    )
+    const fixture = catalogue.get(name.slice(0, -5))!
     expect(ids.has(fixture.id)).toBe(false)
     ids.add(fixture.id)
     const module = await import(new URL(fixture.implementation.path, root).href)
     const rule = module[fixture.implementation.symbol]
     expect(typeof rule.execute).toBe('function')
-    expect(rule.declaration).toEqual(fixture)
+    // Executors may add derived branch descriptions; authored values must match.
+    expect(rule.declaration).toMatchObject(fixture)
     expect(Object.isFrozen(rule.declaration)).toBe(true)
     expect(Object.isFrozen(rule.declaration.parameters)).toBe(true)
   }

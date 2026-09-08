@@ -1,4 +1,6 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
+import sourceAssertionFixture from '../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { curationDocumentsFor } from '../curationDocuments'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import {
@@ -56,7 +58,10 @@ import {
   buildCanonicalStatsSqlBatches,
   replayCanonicalStatsSqlBatches,
 } from './canonicalStatsSql.ts'
-import { resolveHkgovCenstatdDistrictBridge } from './censtatdDistrictBridge.ts'
+import {
+  resolveHkgovCenstatdDistrictBridge,
+  censtatdDistrictIdentityRule,
+} from './censtatdDistrictBridge.ts'
 import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import {
   loadCenstatdMeasureMetadata,
@@ -459,6 +464,16 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           fieldMetadata,
           measureMetadata,
           geographyFixtures: curationDocumentsFor(resolutionBySourceDistrictCode),
+          additionalRules: [
+            {
+              declaration: censtatdSourceAssertionRule.declaration,
+              count: canonicalInput.length,
+            },
+            {
+              declaration: censtatdDistrictIdentityRule.declaration,
+              count: resolutionBySourceDistrictCode.size,
+            },
+          ],
         })
         await deliverProcessingResult(target, store, result.ref)
       },
@@ -553,7 +568,17 @@ async function readSourceRows(
   return rows
 }
 
-async function normaliseSourceRow(
+export const censtatdSourceAssertionRule = registerRule(
+  ruleDeclarationFromFixture(sourceAssertionFixture),
+  (args: Parameters<typeof normaliseSourceRowInternal>) =>
+    normaliseSourceRowInternal(...args),
+)
+
+function normaliseSourceRow(...args: Parameters<typeof normaliseSourceRowInternal>) {
+  return censtatdSourceAssertionRule.execute(args)
+}
+
+async function normaliseSourceRowInternal(
   value: Record<string, unknown>,
   releaseId: string,
   releaseCode: string,
@@ -619,10 +644,6 @@ async function normaliseHistoryRow(
   resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
   sourceReleaseId: string,
 ): Promise<HistoryStatisticRow> {
-  // See `map_censtatd_district_code_to_canonical_division` in the
-  // division-statistic merge ruleset selected by this dataset fixture. Keep
-  // its field paths and localised description in sync with this canonical
-  // identity resolution.
   const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
   if (!resolved) {
     throw new Error(
