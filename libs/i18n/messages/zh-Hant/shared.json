@@ -1,4 +1,11 @@
 {
+  "source_audit_exclusion_area": "排除區域",
+  "source_audit_guard_hk_hierarchy_summary": "香港各區及其下屬地區必須遵循以下層級：香港特別行政區 → 認可區域 → 區。",
+  "source_audit_guard_hk_hierarchy_reason": "所有已檢查的香港地區層級均遵循：香港特別行政區 → 認可區域 → 區。",
+  "source_audit_patch_kowloon_title": "九龍",
+  "source_audit_patch_kowloon_reason": "當 Overture 缺少九龍區域記錄時，補回其區域身分。",
+  "source_audit_patch_lok_ma_chau_reason": "落馬洲河套地區屬於香港的局部地區，並非與各區同級。來源資料保留發佈者的分類；處理後的記錄及層級查詢則使用經審核的局部地區分類。",
+  "source_audit_locales_explanation": "保留各語言的現有名稱。如缺少名稱，則使用該語言列表中首個可用的變體；如全部都沒有，則留空。「符合」是各規則選中的行政區數量；「變更」是當中新增了該語言名稱的數量。",
   "source_audit_level_explanation": "按以下首個符合條件的規則，設定各行政區的地理層級。「符合」是規則選中的行政區數量；「變更」是當中層級有更新的數量。",
   "source_audit_type_explanation": "按以下首個符合條件的規則，設定各行政區的類型，例如國家、區域或地區。「符合」是規則選中的行政區數量；「變更」是當中類型有更新的數量。",
   "source_audit_locale_explanation": "保留現有的 {locale} 名稱。如缺少該名稱，則使用以下首個可用的語言變體；如全部都沒有，則留空。「符合」是各規則選中的行政區數量；「變更」是當中新增了 {locale} 名稱的數量。",

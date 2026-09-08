@@ -16,6 +16,7 @@ let {
   explanation: string
   rows: Array<{
     id?: string
+    locale?: string
     precedence?: number
     condition: string
     result: string
@@ -56,9 +57,11 @@ $effect(() => {
           {m.source_audit_mappings_conditions()}
           · {matchingRows.length}
         </summary>
-        <div class="mt-3 overflow-x-auto">
+        <div class="mt-3 max-h-[640px] overflow-auto">
           <table class="w-full text-left text-sm">
-            <thead class="text-xs uppercase tracking-wide opacity-50">
+            <thead
+              class="sticky top-0 z-10 bg-background text-xs uppercase tracking-wide [&_th]:text-foreground/50"
+            >
               <tr>
                 <th class="pb-2 pr-4 font-medium">
                   {m.source_audit_branch_priority()}

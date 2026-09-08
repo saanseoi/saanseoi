@@ -58,6 +58,10 @@ retains those same frozen definitions. Taxonomy mappings, locale priorities and 
 exclusions are consumed from their parameters. Merge ruleset references resolve these
 definitions and include their content in the resolved ruleset hash.
 
+API locale fallback lists contain only alternative source locales. Existing target names
+are kept before alternatives are checked; English has no alternatives. The audit
+presents locale rules together in one flat mapping table.
+
 Division normalisation retains executor-backed branch conditions, stable branch IDs and
 precedence for level/type classification, API locale copying and text locale inference.
 Bulk audit counts record selected matches and changed outputs per branch; shadowed
