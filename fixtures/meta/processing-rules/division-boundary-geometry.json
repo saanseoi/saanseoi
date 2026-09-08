@@ -10,6 +10,6 @@
   "parameters": { "excludedRegions": ["CN-GD"] },
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
-    "symbol": "normaliseDivisionBoundaryGeometryRow"
+    "symbol": "divisionBoundaryGeometryRule"
   }
 }

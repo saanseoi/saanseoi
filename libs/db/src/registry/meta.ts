@@ -206,6 +206,7 @@ type DataShardFileFixture = {
 export type MergeProcessingRule = {
   operationCode: string
   definition?: ReturnType<typeof ruleDeclarationFromFixture>
+  definitions?: Array<ReturnType<typeof ruleDeclarationFromFixture>>
   type: 'bulk' | 'record'
   sourceFieldPath?: string
   targetFieldPath?: string
@@ -225,7 +226,7 @@ type MergeRulesetFixture = {
   version: string
   notes?: string
   mergeRules?: Array<
-    MergeProcessingRule | { operationCode: string; ruleFixture: string }
+    MergeProcessingRule | { operationCode: string; ruleFixture: string | string[] }
   >
 }
 
@@ -482,16 +483,35 @@ export function resolveMergeRulesetDefinitions(
 ) {
   const mergeRules = (fixture.mergeRules ?? []).map((rule): MergeProcessingRule => {
     if (!('ruleFixture' in rule)) return rule
-    const definition = definitions.get(rule.ruleFixture)
-    if (!definition)
-      throw new Error(`Unknown processing rule fixture: ${rule.ruleFixture}.`)
+    const names = Array.isArray(rule.ruleFixture)
+      ? rule.ruleFixture
+      : [rule.ruleFixture]
+    if (!names.length) throw new Error('Processing rule references must not be empty.')
+    const selected = names.map(name => {
+      const definition = definitions.get(name)
+      if (!definition) throw new Error(`Unknown processing rule fixture: ${name}.`)
+      return structuredClone(definition)
+    })
+    const first = selected[0]!
+    if (selected.some(definition => definition.scope !== first.scope)) {
+      throw new Error('One merge operation cannot combine bulk and individual rules.')
+    }
     return {
       operationCode: rule.operationCode,
-      type: definition.scope === 'bulk' ? 'bulk' : 'record',
-      sourceFieldPath: definition.inputs.join(', '),
-      targetFieldPath: definition.outputs.join(', '),
-      i18n: [{ locale: 'en', description: definition.summary }],
-      definition: structuredClone(definition),
+      type: first.scope === 'bulk' ? 'bulk' : 'record',
+      sourceFieldPath: [
+        ...new Set(selected.flatMap(definition => definition.inputs)),
+      ].join(', '),
+      targetFieldPath: [
+        ...new Set(selected.flatMap(definition => definition.outputs)),
+      ].join(', '),
+      i18n: [
+        {
+          locale: 'en',
+          description: selected.map(definition => definition.summary).join(' '),
+        },
+      ],
+      ...(selected.length === 1 ? { definition: first } : { definitions: selected }),
     }
   })
   const resolved = { ...fixture, mergeRules }

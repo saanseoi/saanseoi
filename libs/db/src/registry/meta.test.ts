@@ -18,7 +18,34 @@ import {
   initialPublishers,
   resolveInitialDataShardsForEnvironment,
   validateDivisionCodeFixtures,
+  resolveMergeRulesetDefinitions,
 } from './meta'
+import populationRule from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
+
+test('referenced policy content determines resolved ruleset identity and descriptions', () => {
+  const definition = ruleDeclarationFromFixture(structuredClone(populationRule))
+  const definitions = new Map([['population', definition]])
+  const fixture = {
+    versionHash: 'source-file-hash',
+    code: 'test',
+    resourceType: 'divisionStatistic' as const,
+    strategy: 'merge' as const,
+    version: '1',
+    mergeRules: [{ operationCode: 'scale', ruleFixture: 'population' }],
+  }
+  const first = resolveMergeRulesetDefinitions(fixture, definitions)
+  expect(first.mergeRules[0]?.definition).toEqual(definition)
+  expect(first.mergeRules[0]?.i18n[0]?.description).toBe(definition.summary)
+  definition.parameters.factor = 100
+  const changed = resolveMergeRulesetDefinitions(fixture, definitions)
+  expect(changed.versionHash).not.toBe(first.versionHash)
+  expect(first.mergeRules[0]?.definition?.parameters.factor).toBe(1000)
+  expect(resolveMergeRulesetDefinitions(fixture, definitions)).toEqual(changed)
+  expect(() => resolveMergeRulesetDefinitions(fixture, new Map())).toThrow(
+    'Unknown processing rule',
+  )
+})
 
 describe('fixture version hashes', () => {
   test.each(['tseung-kwan-o', 'tseung_kwan_o', 'TSEUNG-KWAN-O', '_HK', 'HK__AREA'])(
@@ -335,7 +362,7 @@ describe('fixture version hashes', () => {
               }),
               expect.objectContaining({
                 operationCode: 'overture_division_locale_inferred',
-                type: 'record',
+                type: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
