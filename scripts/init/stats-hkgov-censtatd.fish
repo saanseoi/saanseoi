@@ -3,6 +3,15 @@
 source (command dirname (status filename))/common.fish
 init_configure "saanseoi init:stats:government" $argv
 
+# Statistics-owned geometry is a prerequisite of the Divisions composition.
+# Restore it and publish Divisions before the remaining Statistics sources.
+set -l geography_cache_args
+if test "$saanseoi_init_cache_artefacts" -ne 1
+    set geography_cache_args --no-cache-artefacts
+end
+init_run_step ./bin/saanseoi init:divisions:geographic \
+    --target $saanseoi_init_target --continue $geography_cache_args
+
 # Keep this launch set explicit: it is intentionally narrower than the full
 # stats scope, whose datasets may have independent launch schedules.
 set -l datasets \

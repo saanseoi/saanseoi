@@ -3,6 +3,11 @@
 source (command dirname (status filename))/common.fish
 init_configure "saanseoi init:divisions:geographic" $argv
 
+# A statistics reset can retract compositions while retaining Overture sources.
+# Recreate their draft sets before C&SD companions select their target cohorts.
+init_run_step ./bin/saanseoi release-sets:reconcile \
+    --target $saanseoi_init_target --api-family divisions --region hk
+
 set -l root "$saanseoi_init_repo/data/overture"
 set -l releases \
     2025-09-24.0 \
