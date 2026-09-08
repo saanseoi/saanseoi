@@ -65,45 +65,6 @@ export function sourceSpatialAssertionColumns() {
   }
 }
 
-/**
- * Immutable source-release branch membership. Unlike legacy source tables,
- * this does not infer a linear validity range: release revisions are retained
- * as separate branches and selected explicitly by snapshot composition.
- */
-export const sourceReleaseRevisioning = {
-  versionHash: text('versionHash').notNull(),
-  releaseId: text('releaseId').notNull(),
-  ...timestamps,
-}
-
-/** A source child row retained independently for every release revision. */
-export function sourceReleaseRevisionRecordColumns() {
-  return {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceReleaseRevisioning,
-  }
-}
-
-/** A release-revision source record with optional source provenance. */
-export function sourceReleaseRevisionAssertionColumns() {
-  return {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    sources: sourceReferences(),
-    rawProperties: jsonText('rawProperties'),
-    ...sourceReleaseRevisioning,
-  }
-}
-
-export const sourceReleaseRevisionIndexes = <
-  TTable extends { releaseId: unknown; sourceRecordId: unknown },
->(
-  table: TTable,
-  prefix: string,
-) => [
-  index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
-  index(`${prefix}_sourceRecordId_idx`).on(table.sourceRecordId as never),
-]
-
 export const sourceVersionIndexes = <
   TTable extends {
     releaseId: unknown

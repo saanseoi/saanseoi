@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { buildLatestReleaseRollbackSql } from '@repo/core/pipeline/rollback'
 import { als3dHash } from '../sources/hkgov/hkgovAls3d'
 import { createLocalExecBinding } from '../dbCache/localDbCache.ts'
 import {
@@ -45,6 +46,7 @@ test('writes large bound collections, replays idempotently and journals removed 
     createTable(databases.history, historySchema.address3dI18n)
     createTable(databases.history, historySchema.snapshotVersionChanges)
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses3d)
+    createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses2d)
     databases.current.exec(
       "CREATE TABLE address2d (snapshotId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('snapshot','building',NULL),('snapshot','762','building'),('snapshot','772','building'); CREATE UNIQUE INDEX one_collection_per_owner ON address3d(snapshotId,address2dId);",
     )
@@ -194,6 +196,81 @@ test('writes large bound collections, replays idempotently and journals removed 
         )
         .get(),
     ).toEqual({ operation: 'delete' })
+    const runSourceRelease = async (sourceVersion: string, hash: string | null) => {
+      const next = hash
+        ? [
+            { ...records[0], versionHash: hash, rawProperties: { hash } },
+            collection,
+            { ...records[2], sourceVersion },
+          ]
+        : [
+            {
+              kind: 'manifest',
+              sourceVersion,
+              sourceCount: 0,
+              collectionCount: 0,
+              unitCount: 0,
+            },
+          ]
+      await writeFile(path, next.map(row => JSON.stringify(row)).join('\n'))
+      const validated = await validateAddress3dPreparation(path, sourceVersion)
+      await importAddress3dCollections({
+        ...args,
+        sourceVersion,
+        releaseId: sourceVersion,
+        expectedDigest: validated.digest,
+      })
+    }
+    await runSourceRelease('2026-09-01.0', 'source-hash')
+    expect(
+      databases.source.query('SELECT count(*) AS n FROM hkgovAlsAddresses3d').get(),
+    ).toEqual({ n: 1 })
+    expect(
+      databases.source
+        .query('SELECT validFromRelease, isCurrent FROM hkgovAlsAddresses3d')
+        .get(),
+    ).toEqual({ validFromRelease: args.sourceVersion, isCurrent: 1 })
+    await runSourceRelease('2026-10-01.0', 'changed-hash')
+    await runSourceRelease('2026-10-01.0', 'changed-hash')
+    expect(
+      databases.source
+        .query(
+          'SELECT versionHash, validToRelease, isCurrent FROM hkgovAlsAddresses3d ORDER BY versionHash',
+        )
+        .all(),
+    ).toEqual([
+      { versionHash: 'changed-hash', validToRelease: null, isCurrent: 1 },
+      { versionHash: 'source-hash', validToRelease: '2026-10-01.0', isCurrent: 0 },
+    ])
+    const rollback = buildLatestReleaseRollbackSql({
+      apiReleaseSetId: 'test',
+      previousApiReleaseSetId: null,
+      previousReleaseId: '2026-09-01.0',
+      releaseId: '2026-10-01.0',
+      snapshotId: 'snapshot',
+      source: 'hkgov-dpo',
+      sourceVersion: '2026-10-01.0',
+      type: 'address',
+    })
+    databases.source.exec(rollback.source)
+    expect(
+      databases.source
+        .query('SELECT versionHash, isCurrent, validToRelease FROM hkgovAlsAddresses3d')
+        .all(),
+    ).toEqual([{ versionHash: 'source-hash', isCurrent: 1, validToRelease: null }])
+    await runSourceRelease('2026-10-01.0', 'changed-hash')
+    await runSourceRelease('2026-11-01.0', null)
+    expect(
+      databases.source
+        .query('SELECT count(*) AS n FROM hkgovAlsAddresses3d WHERE isCurrent=1')
+        .get(),
+    ).toEqual({ n: 0 })
+    await runSourceRelease('2026-12-01.0', 'changed-hash')
+    expect(
+      databases.source.query('SELECT count(*) AS n FROM hkgovAlsAddresses3d').get(),
+    ).toEqual({ n: 2 })
+    // Restore the preparation used by the owner-validation checks below.
+    await writeFile(path, records.map(row => JSON.stringify(row)).join('\n'))
     const other = collectionStatements(
       { ...collection, id: 'other' },
       'snapshot',

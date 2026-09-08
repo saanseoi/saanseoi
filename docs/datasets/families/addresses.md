@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retain
+`validFromRelease`, `validToRelease` and `isCurrent`. An unchanged source version is
+reused across releases; changed and removed assertions close their validity range.
+Snapshot collections and their source-release journals are materialised separately.
+
 ALS chronological preflight prepares each release in a separate child process.
 Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
 including identity records, drift candidates, curation applications and division

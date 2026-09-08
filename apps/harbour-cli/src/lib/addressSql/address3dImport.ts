@@ -329,18 +329,25 @@ export async function importAddress3dCollections(args: {
   for await (const record of records(args.path)) {
     if (record.kind === 'source') {
       await args.execute('source', [
+        {
+          sql: 'UPDATE hkgovAlsAddresses3d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?',
+          params: [args.sourceVersion, now, record.sourceRecordId, record.versionHash],
+        },
         insert(
           'hkgovAlsAddresses3d',
           {
             sourceRecordId: record.sourceRecordId,
             versionHash: record.versionHash,
             releaseId: args.releaseId,
+            validFromRelease: args.sourceVersion,
+            validToRelease: null,
+            isCurrent: 1,
             rawProperties: record.rawProperties,
             sources: record.sources,
             createdAt: now,
             updatedAt: now,
           },
-          'ON CONFLICT(releaseId,sourceRecordId) DO NOTHING',
+          'ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
         ),
       ])
     } else if (record.kind === 'collection') {
@@ -354,6 +361,12 @@ export async function importAddress3dCollections(args: {
       await args.execute('current', currentStatements)
     }
   }
+  await args.execute('source', [
+    {
+      sql: 'UPDATE hkgovAlsAddresses3d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
+      params: [args.sourceVersion, now, args.releaseId],
+    },
+  ])
   for (const prior of args.priorMembership) {
     if (validated.ids.has(prior.recordId)) continue
     await args.execute('history', [

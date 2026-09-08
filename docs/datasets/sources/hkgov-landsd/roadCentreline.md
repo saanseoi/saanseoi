@@ -4,6 +4,11 @@ Source rows retain native `rawProperties` and `sourceGeometry` with source ident
 release history and provenance. Extracted names, street codes and classifications are
 used during canonical processing without parallel columns in source storage.
 
+Rows are keyed by `(sourceRecordId, versionHash)`. Content hashes cover publisher
+properties and native geometry without archive provenance. Unchanged rows retain their
+first `validFromRelease`; changed and removed segments close their validity range and
+cease to be current. Each complete archive determines the current segment inventory.
+
 The Lands Department Road Centreline dataset supplies road-centreline segments for
 SaanSeoi Streets. It is intended for approximate location queries and map annotation
 labelling, not legal road boundaries.

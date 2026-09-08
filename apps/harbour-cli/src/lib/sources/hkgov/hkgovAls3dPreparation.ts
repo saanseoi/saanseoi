@@ -183,25 +183,8 @@ export async function prepareAls3dCollections(options: {
       const source = {
         kind: 'source' as const,
         sourceRecordId,
-        versionHash: als3dHash(
-          houseRetention
-            ? { feature, houseRetention }
-            : csuCorrection.decision
-              ? {
-                  feature,
-                  corrections,
-                  suppression,
-                  backfill,
-                  csuCorrection: csuCorrection.decision,
-                }
-              : suppression
-                ? { feature, suppression }
-                : backfill
-                  ? { feature, backfill }
-                  : corrections.length
-                    ? { feature, corrections }
-                    : feature,
-        ),
+        // Curated collection decisions do not create new publisher payload versions.
+        versionHash: als3dHash(feature),
         rawProperties: feature,
         sources: [
           ...(houseRetention

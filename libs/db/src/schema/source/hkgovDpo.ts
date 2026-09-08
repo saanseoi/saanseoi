@@ -1,23 +1,18 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import { jsonText } from '../shared'
-import {
-  sourceAssertionColumns,
-  sourceVersionIndexes,
-  sourceReleaseRevisionAssertionColumns,
-  sourceReleaseRevisionIndexes,
-} from './shared'
+import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 /** Every publisher 3D occurrence is retained, even when its inventory is shared. */
 export const sourceHkgovAlsAddresses3d = sqliteTable(
   'hkgovAlsAddresses3d',
   {
-    ...sourceReleaseRevisionAssertionColumns(),
+    ...sourceAssertionColumns(),
     rawProperties: jsonText('rawProperties').notNull(),
   },
   table => [
-    primaryKey({ columns: [table.releaseId, table.sourceRecordId] }),
-    ...sourceReleaseRevisionIndexes(table, 'hkgovAlsAddresses3d'),
+    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    ...sourceVersionIndexes(table, 'hkgovAlsAddresses3d'),
   ],
 )
 

@@ -31,6 +31,12 @@ with source identity, release tracking and provenance. Source identifiers, coord
 and bilingual components remain in that payload; canonical history/current tables own
 the extracted and normalised projections.
 
+Address3D source versions are keyed by `(sourceRecordId, versionHash)` and reused when
+their publisher payload is unchanged. Collection corrections and release provenance do
+not contribute to the source payload hash. `validFromRelease` records first appearance;
+changed or removed assertions receive `validToRelease` and cease to be current. Release
+rollback restores the preceding source state without deleting reused source versions.
+
 History resolution preserves prepared ALS canonical premise IDs, including reviewed
 aliases. `CsuId` (or `GeoAddress`) and premise components establish source identity;
 district, street and building number cannot override it. Distinct premises sharing a

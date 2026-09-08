@@ -7,6 +7,9 @@ import {
 import { prepareCachedArtefact } from '../localPipeline/preparedArtefact.ts'
 import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
 import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
+import { retainStatisticProvenance } from './statisticProvenance.ts'
+import { LocalPipelineBucket } from '../localPipeline/localBucket.ts'
+import { deliverProcessingResult } from '../api/provenance.ts'
 import {
   completeSqlDeliveryRelease,
   readPendingSqlDelivery,
@@ -433,6 +436,23 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       releaseId,
       snapshots.map(snapshot => snapshot.id),
       { delivery: delivery('statistics-meta-snapshots') },
+    )
+    await runStatisticProgressStep(
+      progress,
+      { action: 'Retain', subject: 'processing provenance' },
+      async () => {
+        const store = new LocalPipelineBucket(
+          sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
+        )
+        const result = await retainStatisticProvenance(store, {
+          releaseId,
+          datasetCode,
+          source: canonicalInput,
+          canonical,
+          fieldMetadata,
+        })
+        await deliverProcessingResult(target, store, result.ref)
+      },
     )
     const published = await runStatisticProgressStep(
       progress,
