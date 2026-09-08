@@ -22,9 +22,7 @@ $effect(() => {
     <span class="sr-only">{m.source_audit_loading_applications()}</span>
     <div aria-hidden="true" class="space-y-3 motion-safe:animate-pulse">
       <div class="h-3 w-24 rounded bg-current/10"></div>
-      <div
-        class="overflow-hidden rounded-xl border border-current/10 bg-current/[0.015]"
-      >
+      <div class="overflow-hidden rounded-xl border border-current/10 bg-current/1.5">
         <div class="flex items-center justify-between gap-4 px-4 py-3">
           <div class="space-y-2">
             <div class="h-5 w-28 rounded bg-current/10"></div>

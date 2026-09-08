@@ -7,7 +7,7 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
 </script>
 
 <div class="overflow-x-auto">
-  <table class="w-full table-fixed text-left text-sm [&_code]:[overflow-wrap:anywhere]">
+  <table class="w-full table-fixed text-left text-sm [&_code]:wrap-anywhere">
     <thead class="border-b border-current/20 text-xs uppercase opacity-60">
       <tr>
         <th class="p-2">{m.source_audit_source_identity()}</th>

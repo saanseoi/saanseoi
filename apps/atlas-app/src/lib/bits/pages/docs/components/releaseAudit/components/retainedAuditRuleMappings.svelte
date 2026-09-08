@@ -42,7 +42,7 @@ $effect(() => {
 {#if matching}
   <article class="overflow-hidden rounded-xl border border-current/15 text-sm">
     <header
-      class="flex min-h-14 items-center justify-between gap-4 bg-current/[0.025] px-4 py-3"
+      class="flex min-h-14 items-center justify-between gap-4 bg-current/2.5 px-4 py-3"
     >
       <h4 class="text-base font-medium">{title}</h4>
       <CopyRule {getRule} />

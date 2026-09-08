@@ -22,7 +22,7 @@ const label = (key: string) =>
     <dl class="grid grid-cols-[minmax(7rem,1fr)_minmax(0,3fr)] gap-x-4 gap-y-2 text-sm">
       {#each Object.entries(item) as [key, child]}
         <dt class="font-medium capitalize opacity-65">{label(key)}</dt>
-        <dd class="min-w-0 break-words">{@render render(child)}</dd>
+        <dd class="min-w-0 wrap-break-word">{@render render(child)}</dd>
       {/each}
       {#if 'isTranslationVerified' in item && 'locale' in item && !('origin' in item)}
         <dt class="font-medium opacity-65">{m.source_audit_origin()}</dt>

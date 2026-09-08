@@ -16,7 +16,7 @@ let { guards }: { guards: AuditGuard[] } = $props()
       class="grid grid-cols-[minmax(0,1fr)_7rem] overflow-hidden rounded-xl border border-current/15 text-sm sm:grid-cols-[minmax(0,1fr)_9rem]"
     >
       <div class="min-w-0 divide-y divide-current/10">
-        <div class="flex items-center gap-3 bg-current/[0.025] px-4 py-4">
+        <div class="flex items-center gap-3 bg-current/2.5 px-4 py-4">
           <span
             role="img"
             aria-label={m.source_audit_requirement()}

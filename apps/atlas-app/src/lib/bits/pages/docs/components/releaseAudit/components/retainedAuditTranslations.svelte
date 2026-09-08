@@ -185,7 +185,7 @@ async function toggle(side: 'source' | 'target', value: string) {
                 {/if}
               </span>
               <span
-                class="line-clamp-3 break-words text-right text-base sm:text-lg"
+                class="line-clamp-3 wrap-break-word text-right text-base sm:text-lg"
                 title={`${String(row.sourceText ?? '')} → ${String(row.text ?? row.name ?? '')}`}
                 >{String(row.sourceText ?? m.source_audit_source_text_missing())}
                 <span class="opacity-40">→</span>
@@ -195,7 +195,7 @@ async function toggle(side: 'source' | 'target', value: string) {
               >
             </span>
           </summary>
-          <div class="border-t border-current/10 bg-current/[0.025] p-4">
+          <div class="border-t border-current/10 bg-current/2.5 p-4">
             {#if expanded.includes(index) && releaseId && hash && reference}
               <Applications
                 {releaseId}
