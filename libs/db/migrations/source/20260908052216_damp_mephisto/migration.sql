@@ -3,6 +3,16 @@
 -- __sourceVersioningMap, validates release chronology, and preserves reappearances
 -- as distinct source lifecycles.
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
+CREATE TABLE `__sourceVersioningGuard` (`valid` integer NOT NULL CHECK (`valid` = 1));--> statement-breakpoint
+INSERT INTO `__sourceVersioningGuard`
+SELECT CASE WHEN
+  (SELECT count(*) FROM hkgovAlsAddresses3d) =
+  (SELECT count(*) FROM __sourceVersioningMap WHERE tableName='hkgovAlsAddresses3d')
+  AND
+  (SELECT count(*) FROM hkgovLandsdRoadCentrelines) =
+  (SELECT count(*) FROM __sourceVersioningMap WHERE tableName='hkgovLandsdRoadCentrelines')
+THEN 1 ELSE 0 END;--> statement-breakpoint
+DROP TABLE `__sourceVersioningGuard`;--> statement-breakpoint
 CREATE TABLE `__new_hkgovAlsAddresses3d` (
 	`sourceRecordId` text NOT NULL, `sources` text, `rawProperties` text NOT NULL,
 	`versionHash` text NOT NULL, `releaseId` text NOT NULL, `validFromRelease` text NOT NULL,

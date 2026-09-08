@@ -27,3 +27,28 @@ test('Oi Hei latest GeoAddress and point backfill all 30 releases with unchanged
     )
   }
 })
+
+test('Oi Hei retains raw publisher geometry when the bounded coordinate policy ran first', () => {
+  const assertion = fixture.assertions.find(a => a.version === '2026-04-03.0')
+  if (!assertion) throw new Error('Missing 2026-04-03.0 Oi Hei assertion')
+  const derivedGeometry = { type: 'Point', coordinates: fixture.coordinates }
+  const row = {
+    hkgovCsuId: fixture.csu,
+    geoAddress: assertion.premises.GeoAddress,
+    engPremisesAddressJson: JSON.stringify(assertion.premises.EngPremisesAddress),
+    chiPremisesAddressJson: JSON.stringify(assertion.premises.ChiPremisesAddress),
+    geometry: JSON.stringify(derivedGeometry),
+    sources: JSON.stringify({
+      hkgovAlsCoordinateBackfill: {
+        publisherGeometry: assertion.geometry,
+        derivedGeometry,
+      },
+    }),
+  } as PreparedHkgovAlsRow
+
+  backfillOiHei([row], assertion.version)
+
+  expect(JSON.parse(row.sources).hkgovAlsOiHeiBackfill.publisherGeometry).toEqual(
+    assertion.geometry,
+  )
+})

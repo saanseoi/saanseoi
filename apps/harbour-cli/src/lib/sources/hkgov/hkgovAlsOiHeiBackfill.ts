@@ -25,9 +25,19 @@ export function backfillOiHei(
       evidence.premises,
       'Oi Hei backfill: source identity changed',
     )
-    assert.deepEqual(
-      JSON.parse(row.geometry ?? 'null'),
-      evidence.geometry,
+    const geometry = JSON.parse(row.geometry ?? 'null')
+    const sources = JSON.parse(row.sources)
+    const coordinateBackfill = sources.hkgovAlsCoordinateBackfill
+    const alreadyBackfilledByCoordinatePolicy =
+      coordinateBackfill &&
+      JSON.stringify(coordinateBackfill.publisherGeometry) ===
+        JSON.stringify(evidence.geometry) &&
+      JSON.stringify(coordinateBackfill.derivedGeometry) ===
+        JSON.stringify({ type: 'Point', coordinates: fixture.coordinates }) &&
+      JSON.stringify(geometry) === JSON.stringify(coordinateBackfill.derivedGeometry)
+    assert(
+      JSON.stringify(geometry) === JSON.stringify(evidence.geometry) ||
+        alreadyBackfilledByCoordinatePolicy,
       'Oi Hei backfill: source point changed',
     )
     row.geoAddress = fixture.geoAddress
@@ -38,7 +48,7 @@ export function backfillOiHei(
       latitude: fixture.coordinates[1]!.toFixed(5),
     }
     row.sources = JSON.stringify({
-      ...JSON.parse(row.sources),
+      ...sources,
       hkgovAlsOiHeiBackfill: {
         curationFile: 'hkgov-dpo-address-oi-hei-backfill.json',
         sourceVersion: version,
