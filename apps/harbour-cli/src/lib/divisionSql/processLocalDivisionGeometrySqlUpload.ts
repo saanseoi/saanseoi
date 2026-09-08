@@ -1,3 +1,4 @@
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { resolveIdentityCuration } from '../identityCurations'
 import {
   ensureDraftSnapshotForRelease,
@@ -812,6 +813,13 @@ export async function processLocalDivisionGeometrySqlUpload(
       publishResult,
     }
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      store: bucket,
+      target,
+      releaseId,
+      datasetCode,
+    })
     progress.fail(error)
     const failureClient =
       controlClient ?? (createHarbourControlClient(target) as HarbourClient)

@@ -231,6 +231,12 @@ export async function buildDivisionSqlState(
             division: normalised.base,
             rawNames: raw.names,
             translations: resolvedI18n.applications,
+            parents: (normalised.base.hierarchy ?? []).map(parent => ({
+              id: parent.division_id,
+              names: Object.values(parent.i18n).flatMap(localised =>
+                localised.name ? [localised.name] : [],
+              ),
+            })),
           }),
         )
       }
