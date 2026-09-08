@@ -20,8 +20,6 @@ import {
   publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
   extractPlaceAddressTexts,
   type NormalisedPlace,
@@ -77,6 +75,11 @@ import { chunkStatements, insertSql, lit } from './processLocalPlaceSqlUploadImp
 import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 
 type PrepareSupplementaryAddressesInput = {
+  retainAudit: (
+    releaseId: string,
+    datasetCode: string,
+    audit: import('./placeProvenance').PlaceAddressAuditInput,
+  ) => Promise<void>
   curationPath?: string
   entryLedgerPath?: string
   context: LocalAddressDbContext
@@ -94,7 +97,6 @@ type PrepareSupplementaryAddressesInput = {
   datasetId: string
   targets: Awaited<ReturnType<typeof placeTargets>>
   importOptions: SqlImportExecutionOptions
-  actions: ReleaseProcessingAction[]
   /** Counts source Places whose Address candidates have been analysed. */
   onProgress?: (current: number) => void
   /** Names the current uncounted preparation or materialisation substage. */
@@ -345,7 +347,6 @@ async function prepareSupplementaryAddressesLocked(
   const resolutionOutput = await open(resolutionTempPath, 'w')
   const supplementaryResolutions: StagedAddressResolution[] = []
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
-  const resolutionReasons = new Map<AddressResolution['tier'], Set<string>>()
   let analysedRows = 0
   try {
     try {
@@ -379,9 +380,6 @@ async function prepareSupplementaryAddressesLocked(
           resolution.tier,
           (resolutionCounts.get(resolution.tier) ?? 0) + 1,
         )
-        const reasons = resolutionReasons.get(resolution.tier) ?? new Set<string>()
-        reasons.add(resolution.reason)
-        resolutionReasons.set(resolution.tier, reasons)
         if (resolution.tier === 'supplementary')
           supplementaryResolutions.push(stagedResolution)
         analysedRows += 1
@@ -400,22 +398,6 @@ async function prepareSupplementaryAddressesLocked(
   }
   const reviewCount = resolutionCounts.get('review') ?? 0
   input.onStage?.('record Address decisions')
-  const actions: ReleaseProcessingAction[] = [
-    ...input.actions,
-    ...(['direct', 'supplementary', 'review', 'delayed'] as const).map(tier => ({
-      action: `overture_place_address_${tier}`,
-      mode: 'automatic' as const,
-      affectedRecordCount: resolutionCounts.get(tier) ?? 0,
-      summary: `Overture Place Address analysis: ${tier}.`,
-      evidence: {
-        policyVersion: fixture.activePolicy,
-        policy: fixture.policies[fixture.activePolicy],
-        reviewArtefact: 'overture-place-address-review.json',
-        reasons: [...(resolutionReasons.get(tier) ?? [])],
-      },
-    })),
-  ]
-  await replaceReleaseProcessingActions(db, input.releaseId, actions)
   // Always replace the release-owned review artefact, including on a successful retry.
   input.onStage?.('write Address review artefact')
   const reviewPath = resolve(input.releaseRoot, 'overture-place-address-review.json')
@@ -443,6 +425,12 @@ async function prepareSupplementaryAddressesLocked(
       sourceRelease: input.plan.sourceVersion,
       total: reviewCount,
     })
+    await input.retainAudit(input.releaseId, input.plan.datasetCode, {
+      fixture,
+      resolutionPath,
+      sourceVersion: input.plan.sourceVersion,
+      supplementaryCount: 0,
+    })
     throw new Error(
       `${reviewCount} Place Address identities require explicit curation; ${saved} decisions saved. Continue the initialisation to apply saved decisions. Review ${reviewPath}; --yes cannot select identities.`,
     )
@@ -451,24 +439,6 @@ async function prepareSupplementaryAddressesLocked(
     ...entryLedger,
     entries: fixture.entries,
   })
-
-  // Only approved decisions may be frozen. A review stop must not seal stale actions.
-  if (!input.importOptions.isLocal) {
-    await deliverSqlPhase(
-      {
-        context: input.context,
-        releaseId: input.releaseId,
-        phase: 'places-address-actions',
-        nativeLocal: true,
-        inputs: { plan: input.plan, snapshots: input.snapshots, actions },
-      },
-      async () => {
-        for (const sql of await readAuditReplaySql(db, input.releaseId)) {
-          await executeSqlText(input.targets.meta, sql, input.importOptions)
-        }
-      },
-    )
-  }
 
   input.onStage?.('materialise supplementary Addresses')
   const parentDataset = (await db
@@ -584,6 +554,13 @@ async function prepareSupplementaryAddressesLocked(
       )
     }
     await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+    await input.retainAudit(releaseId, datasetCode, {
+      materialisationHash,
+      fixture,
+      resolutionPath,
+      sourceVersion: input.plan.sourceVersion,
+      supplementaryCount: addresses.length,
+    })
   } else {
     // Each supplementary snapshot is a complete map, including an empty accepted set.
     // Replay must not inherit withdrawn addresses from a previous cohort.
@@ -762,6 +739,13 @@ async function prepareSupplementaryAddressesLocked(
     )
     input.onStage?.('verify supplementary Address rows')
     await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+    await input.retainAudit(releaseId, datasetCode, {
+      materialisationHash,
+      fixture,
+      resolutionPath,
+      sourceVersion: input.plan.sourceVersion,
+      supplementaryCount: addresses.length,
+    })
     // Publication follows successful imports. A retry of a published snapshot must reproduce its hash.
     await publishSnapshot(db, snapshot.id)
     await db
@@ -802,6 +786,13 @@ async function prepareSupplementaryAddressesLocked(
     selectionMode: 'exact_ref',
   })
   return {
+    audit: {
+      materialisationHash,
+      fixture,
+      resolutionPath,
+      sourceVersion: input.plan.sourceVersion,
+      supplementaryCount: addresses.length,
+    },
     resolutionPath,
     releaseId,
     releaseCode,
@@ -923,4 +914,3 @@ async function assertSupplementaryAddressRows(
   }
 }
 import { deliverSqlPhase } from '../localPipeline/sqlDeliveryPhase.ts'
-import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'

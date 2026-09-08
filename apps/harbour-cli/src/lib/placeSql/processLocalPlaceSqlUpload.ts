@@ -11,7 +11,9 @@ import type {
   PublishDatasetResult,
 } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import { deliverProducerAudit } from '../api/producerAuditDelivery'
+import { retainPlaceProvenance } from './placeProvenance'
+import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { resolveApiReleaseSetStatsTarget } from '../api/apiReleaseSetStats.ts'
 import type { PreparedUploadFile } from '../upload/parquetRepack.ts'
@@ -194,13 +196,6 @@ export async function processLocalPlaceSqlUpload(
         ),
       previewPlan.rowCount,
     )
-    await runPlaceProgressPhase(
-      progress,
-      'Review',
-      'source Places',
-      () => replaceReleaseProcessingActions(metaDb, releaseId, stagedPlaces.actions),
-      stagedPlaces.processedRows,
-    )
     const historyRows = await runPlaceProgressPhase(
       progress,
       'Prepare',
@@ -231,7 +226,25 @@ export async function processLocalPlaceSqlUpload(
           datasetId,
           targets,
           importOptions,
-          actions: stagedPlaces.actions,
+          retainAudit: async (auditReleaseId, auditDatasetCode, addresses) =>
+            deliverProducerAudit({
+              target,
+              directory: resolve(releaseRoot, `provenance-${auditReleaseId}`),
+              allowFailed: auditReleaseId === releaseId,
+              identity:
+                addresses.materialisationHash ??
+                JSON.stringify({
+                  resolutions: await deliveryFileSha256(addresses.resolutionPath),
+                  fixture: addresses.fixture,
+                }),
+              retain: store =>
+                retainPlaceProvenance(store, {
+                  releaseId: auditReleaseId,
+                  datasetCode: auditDatasetCode,
+                  addresses,
+                  ...(auditReleaseId === releaseId ? { staged: stagedPlaces } : {}),
+                }),
+            }),
           onProgress: current => reportProgress(current, 'Place Address candidates'),
           onStage: subject => reportProgress(stagedPlaces.includedRows, subject),
         }),
@@ -410,6 +423,28 @@ export async function processLocalPlaceSqlUpload(
         ),
       stagedEnrichedPlaces.stats.localisedRows,
     )
+    await runPlaceProgressPhase(
+      progress,
+      'Retain',
+      'Places processing provenance',
+      async () =>
+        deliverProducerAudit({
+          target,
+          directory: resolve(releaseRoot, `provenance-${releaseId}`),
+          identity: JSON.stringify({
+            source: await deliveryFileSha256(stagedPlaces.path),
+            enriched: sqlDelivery.inputs.enrichedSha256,
+            supplementary: supplementary.audit.materialisationHash,
+          }),
+          retain: store =>
+            retainPlaceProvenance(store, {
+              releaseId,
+              datasetCode,
+              staged: stagedPlaces,
+              addresses: supplementary.audit,
+            }),
+        }),
+    )
     await runPlaceProgressPhase(progress, 'Publish', 'curated Address collection', () =>
       processingClient.publishDataset(
         supplementary.releaseId,
@@ -539,6 +574,13 @@ export async function processLocalPlaceSqlUpload(
     progress.finish('Places processing complete')
     completed = true
   } catch (error) {
+    await retainProcessingFailure({
+      error,
+      target,
+      releaseId,
+      datasetCode,
+      store: new LocalPipelineBucket(resolve(releaseRoot, `provenance-${releaseId}`)),
+    })
     progress.fail(error)
     await client
       ?.stageFailed(
