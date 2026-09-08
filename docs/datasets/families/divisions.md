@@ -1,6 +1,6 @@
 # Divisions dataset family
 
-Planning division release statistics include identity and version-hash churn, separately
+Planning division release statistics include identity and attribute churn, separately
 from source input counts. Repair statistics appear under Quality Checks. See the
 [Planning source documentation](../sources/hkgov-pland/divisionArea.md) for local
 retained-history backfill instructions.

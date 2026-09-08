@@ -1,9 +1,11 @@
 # Planning Department TPU and subunit areas
 
-Division release churn compares canonical IDs and version hashes with the preceding
+Division release churn compares canonical IDs and division attributes with the preceding
 Planning inventory. Source feature counts count importer input cells; division totals
-include the primary, secondary, tertiary and subunit hierarchy. Geometry repair counts
-count affected output divisions and appear under Quality Checks.
+exclude geometry and release provenance from their churn comparison. Geometry churn
+belongs to the companion Areas release. Unit Distribution counts each planning level.
+Division totals include the primary, secondary, tertiary and subunit hierarchy. Geometry
+repair counts count affected output divisions and appear under Quality Checks.
 
 Local retained inventories can backfill aggregate churn with
 `apps/harbour-cli/scripts/backfillPlanningChurn.ts META.sqlite HISTORY.sqlite`. The
