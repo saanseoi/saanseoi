@@ -37,6 +37,7 @@ describe('upload helpers', () => {
       expect(JSON.parse(String(init?.body))).toMatchObject({
         fileName: 'division.parquet',
         force: true,
+        allowHistoricalCohort: true,
         plan: {
           cohortKey: '2025-09',
           source: 'overture',
@@ -62,7 +63,7 @@ describe('upload helpers', () => {
       { filePath: 'division.parquet' } as never,
       previewResult(),
       'schema-version-1',
-      { force: true },
+      { force: true, allowHistoricalCohort: true },
     )
 
     expect(calls).toEqual(['https://harbour.saanseoi.hk/v1/registerUpload'])

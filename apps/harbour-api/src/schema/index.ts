@@ -232,6 +232,14 @@ export const RegisterUploadRequestSchema = z
         description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
+    allowHistoricalCohort: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Allow an explicitly identified independent historical cohort without superseding the latest source release.',
+        examples: [true],
+      }),
     resumeStagedRelease: z
       .boolean()
       .optional()

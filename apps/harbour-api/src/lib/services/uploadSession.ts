@@ -7,6 +7,7 @@ import type { SchemaFingerprintResolver, UploadInspection } from '@repo/core'
 export type RegisterUploadRequest = {
   fileName: string
   force?: boolean
+  allowHistoricalCohort?: boolean
   resumeStagedRelease?: boolean
   reuseExistingRelease?: boolean
   inspection: UploadInspection
@@ -38,6 +39,7 @@ export async function handleRegisterUploadRequest(
         : request.reuseExistingRelease
           ? ['processing']
           : undefined,
+    allowHistoricalCohort: request.allowHistoricalCohort,
     resumeInterruptedProcessingRelease: request.resumeStagedRelease,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
