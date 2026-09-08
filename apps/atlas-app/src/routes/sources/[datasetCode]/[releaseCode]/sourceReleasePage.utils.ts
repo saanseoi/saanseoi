@@ -5,7 +5,12 @@ import type {
   ReleaseStatsDistrictArea,
 } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 
-export type SourceRecordFamily = 'divisions'
+export type SourceRecordFamily =
+  | 'addresses'
+  | 'divisions'
+  | 'places'
+  | 'stats'
+  | 'streets'
 
 export type SourceReleaseTab =
   | 'notes'
@@ -33,13 +38,15 @@ const sourceRecordResourceTypes = new Set([
 ])
 
 /**
- * Public raw-record storage is currently available for Division-family sources.
- * Keep this explicit so a source page never suggests records for a family whose
- * endpoint has no source-record catalogue.
+ * Select the publisher dataset's primary family before its derived resources.
  */
 export function getSourceRecordFamily(
   resourceTypes: readonly string[],
 ): SourceRecordFamily | null {
+  if (resourceTypes.includes('place')) return 'places'
+  if (resourceTypes.includes('divisionStatistic')) return 'stats'
+  if (resourceTypes.includes('address')) return 'addresses'
+  if (resourceTypes.includes('street')) return 'streets'
   return resourceTypes.some(type => sourceRecordResourceTypes.has(type))
     ? 'divisions'
     : null

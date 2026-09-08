@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { AuditManifest } from '@repo/core/provenance'
 import { m } from '#lib/bits/internal/i18n.js'
+import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import Bulk from './retainedAuditBulk.svelte'
 import Translations from './retainedAuditTranslationSection.svelte'
 import Applications from './retainedAuditApplications.svelte'
@@ -156,6 +157,8 @@ let filteredGuards = $derived(
   ),
 )
 </script>
+
+<h2 class="mb-4 text-xl font-medium">{resourceLabel(resourceType)}</h2>
 
 <section
   class="space-y-8"

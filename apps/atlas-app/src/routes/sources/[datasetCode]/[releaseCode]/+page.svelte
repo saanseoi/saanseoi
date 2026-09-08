@@ -44,6 +44,7 @@ import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import SourceReleaseLoadError from './sourceReleaseLoadError.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
+import SourceResourceSelector from './sourceResourceSelector.svelte'
 import {
   getSourceReleaseContentQuery,
   preloadSourceReleaseContent,
@@ -256,6 +257,14 @@ $effect(() => {
 })
 
 let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale))
+let selectedResourceId = $state('')
+let resources = $derived(version?.resources ?? [])
+let selectedResource = $derived(
+  resources.find(resource => resource.id === selectedResourceId) ?? resources[0],
+)
+$effect(() => {
+  if (selectedResource) selectedResourceId = selectedResource.id
+})
 let hasContent = $derived.by(() => {
   if (isContentLoading) return true
   if (activeTab === 'notes') {
@@ -263,7 +272,8 @@ let hasContent = $derived.by(() => {
       ? noteDiff.changes.length > 0
       : notesPresentation.markdown.trim().length > 0
   }
-  if (activeTab === 'stats') return Boolean(version?.stats?.length)
+  if (activeTab === 'stats')
+    return Boolean(selectedResource?.stats.length ?? version?.stats?.length)
   if (activeTab === 'schema' || activeTab === 'samples')
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
@@ -450,25 +460,6 @@ let actions = $derived<ReleaseNavAction[]>(
             ]
           : activeTab === 'audit'
             ? [
-                ...(bulkActions.length
-                  ? [
-                      {
-                        icon: 'ion:layers-outline',
-                        id: 'bulk',
-                        label: m.source_bulk_actions(),
-                        onSelect: () => {
-                          showBulkActions = !showBulkActions
-                          trackClientProductUsage({
-                            event: 'client.audit_control',
-                            surface: 'source_release',
-                            entityType: 'action',
-                            entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                          })
-                        },
-                        pressed: showBulkActions,
-                      },
-                    ]
-                  : []),
                 sourceArchiveUrl
                   ? {
                       download: true,
@@ -575,9 +566,12 @@ $effect(() => {
               {/if}
             </div>
           {:else if activeTab === 'stats'}
+            {#if resources.length > 1}
+              <SourceResourceSelector {resources} bind:selected={selectedResourceId} />
+            {/if}
             <ReleaseStats.Root
-              measures={content?.measures ?? []}
-              stats={version.stats}
+              measures={selectedResource && selectedResource.resourceType !== 'divisionStatistic' ? [] : content?.measures ?? []}
+              stats={selectedResource?.stats ?? version.stats}
               {districtAreas}
               {locale}
               presentation={statsPresentation}
@@ -586,6 +580,8 @@ $effect(() => {
             />
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
+              family={sourceRecordFamily}
+              sourceReleaseCode={version.code}
               resourceType={source.resourceTypes[0] ?? ''}
               source={source.publisherCode}
               sourceSchemaUrl={source.schemaURL}
@@ -603,6 +599,8 @@ $effect(() => {
             {/key}
           {:else if activeTab === 'audit'}
             <ReleaseAudit.Retained
+              bind:headings={auditHeadings}
+              bind:activeHeadingId={activeAuditHeadingId}
               datasetCode={params.datasetCode}
               releaseCode={params.releaseCode}
             >

@@ -155,6 +155,12 @@ export type RegistryApi = {
 }
 
 export type SourceVersion = {
+  resources?: Array<{
+    id: string
+    resourceType: string
+    status: string
+    stats: NonNullable<SourceVersion['stats']>
+  }>
   id: string
   datasetId: string
   datasetCode: string

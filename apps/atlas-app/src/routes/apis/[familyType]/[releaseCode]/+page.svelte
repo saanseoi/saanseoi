@@ -572,25 +572,7 @@ let actions = $derived<ReleaseNavAction[]>(
         ]
       : activeTab === 'schema'
         ? [profileAction]
-        : activeTab === 'audit' && release.bulkActions?.length
-          ? [
-              {
-                icon: 'ion:layers-outline',
-                id: 'bulk',
-                label: m.source_bulk_actions(),
-                onSelect: () => {
-                  showBulkActions = !showBulkActions
-                  trackClientProductUsage({
-                    event: 'client.audit_control',
-                    surface: 'api_release',
-                    entityType: 'action',
-                    entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                  })
-                },
-                pressed: showBulkActions,
-              },
-            ]
-          : [],
+        : [],
 )
 
 let sourceReleaseLinksPresentation = $derived(
@@ -863,7 +845,12 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {/await}
           {/if}
         {:else if activeTab === 'audit'}
-          <RetainedAudit familyType={api.familyType} releaseCode={release.code}>
+          <RetainedAudit
+            familyType={api.familyType}
+            releaseCode={release.code}
+            bind:headings={auditHeadings}
+            bind:activeHeadingId={activeAuditHeadingId}
+          >
             {#if auditRoot}
               {#await auditRoot then module}
                 {@const ReleaseAuditRoot = module.default}

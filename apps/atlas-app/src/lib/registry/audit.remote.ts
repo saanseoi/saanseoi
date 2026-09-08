@@ -104,7 +104,7 @@ export const getRetainedApiAudit = query(
     inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
     inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId}
     inner join ${versions} on ${versions.id} = ${sets.apiVersionId}
-    where ${sources.sourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
+    where ${sources.resourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
   )`)
       .all()
     return (
