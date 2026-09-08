@@ -58,6 +58,7 @@ export function divisionLookupFingerprint(lookup: DivisionLookupMaps) {
     ambiguousDistrictZh: sortedSetValues(lookup.ambiguousDistrictZh),
     areaByEn: sortedMapEntries(lookup.areaByEn),
     areaByZh: sortedMapEntries(lookup.areaByZh),
+    countryId: lookup.countryId,
     districtByEn: sortedMapEntries(lookup.districtByEn),
     districtByZh: sortedMapEntries(lookup.districtByZh),
     snapshotId: lookup.snapshotId,
