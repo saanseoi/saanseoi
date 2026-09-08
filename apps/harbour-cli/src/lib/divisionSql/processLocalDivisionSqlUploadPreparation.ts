@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { curationDocumentsFor } from '../curationDocuments'
 import {
   hasLocaleRegression,
   hasNameRegression,
@@ -51,6 +52,7 @@ import type {
 } from './processLocalDivisionSqlUploadTypes.ts'
 import {
   buildOvertureDivisionTranslationProcessingActions,
+  divisionAuditParents,
   mergeDivisionI18nTranslations,
   resolveDivisionNameTranslations,
 } from './processLocalDivisionSqlUploadTranslations.ts'
@@ -231,12 +233,7 @@ export async function buildDivisionSqlState(
             division: normalised.base,
             rawNames: raw.names,
             translations: resolvedI18n.applications,
-            parents: (normalised.base.hierarchy ?? []).map(parent => ({
-              id: parent.division_id,
-              names: Object.values(parent.i18n).flatMap(localised =>
-                localised.name ? [localised.name] : [],
-              ),
-            })),
+            parents: divisionAuditParents(normalised.base.hierarchy),
           }),
         )
       }
@@ -371,6 +368,7 @@ export async function buildDivisionSqlState(
 
   return {
     currentRows,
+    curationDocuments: curationDocumentsFor(translationsByDivisionId),
     currentSourceRows,
     deletedRows: [...currentRows.keys()].filter(id => !seenIds.has(id)).length,
     insertedVersions,

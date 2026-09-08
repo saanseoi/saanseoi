@@ -79,6 +79,7 @@ export type AuditManifest = {
   attempt: { id: string; status: 'completed' | 'failed' }
   bulk: BulkAudit[]
   guards: AuditGuard[]
+  individualFixtures?: Array<{ type: string; object: ObjectRef }>
   chunks: Array<ObjectRef & { firstOrdinal: number; count: number; index: ObjectRef }>
   applicationCount: number
 }

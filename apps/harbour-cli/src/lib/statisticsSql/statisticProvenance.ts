@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import {
   retainAuditResult,
   retainObject,
@@ -29,7 +30,7 @@ export async function retainStatisticProvenance(
 ) {
   const { releaseId, datasetCode, source, canonical } = input
   const fields = [...input.fieldMetadata]
-    .filter(([key]) => key.startsWith(datasetCode + '\u0000'))
+    .filter(([key]) => key.startsWith(`${datasetCode}\u0000`))
     .map(([key, metadata]) => ({ sourceField: key.split('\u0000')[1], metadata }))
   const fixture = await retainObject(store, {
     kind: 'statistic-field-curations',
@@ -89,12 +90,12 @@ export async function retainStatisticProvenance(
     ['statsRecords'],
     source.length,
   )
-  bulk[0]!.counts.outputs = { statsRecords: canonical.records.length }
-  bulk[0]!.definition = await retainRegisteredRule(
+  requireDefined(bulk[0]).counts.outputs = { statsRecords: canonical.records.length }
+  requireDefined(bulk[0]).definition = await retainRegisteredRule(
     store,
     statisticNormalisationRule.declaration,
   )
-  bulk[0]!.summary = statisticNormalisationRule.declaration.summary
+  requireDefined(bulk[0]).summary = statisticNormalisationRule.declaration.summary
   await add(
     'curate-statistic-fields',
     'Apply reviewed field names, dimensions, units, aggregations and localisations.',
@@ -103,9 +104,10 @@ export async function retainStatisticProvenance(
     canonical.fields.length,
     'fixture',
   )
-  bulk[1]!.counts.outputs = { statsFields: canonical.fields.length }
-  for (const document of documents)
-    bulk[1]!.fixtures.push({
+  requireDefined(bulk[1]).counts.outputs = { statsFields: canonical.fields.length }
+  requireDefined(bulk[1]).counts.inputs = { 'field-definitions': fields.length }
+  for (const document of documents.filter(f => f.type !== 'identity-mappings'))
+    requireDefined(bulk[1]).fixtures.push({
       type: document.type,
       object: await retainObject(store, document.document),
     })
@@ -123,9 +125,58 @@ export async function retainStatisticProvenance(
     ['statsFields', 'statsMeasures', 'statsValuesI18n'],
     canonical.fields.length,
   )
-  bulk[2]!.counts.outputs = Object.fromEntries(
+  requireDefined(bulk[2]).counts.outputs = Object.fromEntries(
     dictionaries.map(key => [key, canonical[key].length]),
   )
+  requireDefined(bulk[2]).counts.recordsAffected = dictionaries.reduce(
+    (total, key) => total + canonical[key].length,
+    0,
+  )
+  requireDefined(bulk[2]).counts.decisions = {
+    materialised: requireDefined(bulk[2]).counts.recordsAffected,
+  }
+  const identities = documents.filter(f => f.type === 'identity-mappings')
+  if (identities.length) {
+    const id = 'curate-statistic-geography'
+    const summary =
+      'Resolve canonical geography through the reviewed source identity mappings for the selected cohort.'
+    const linked = source.filter(
+      row => row.divisionId !== null && row.divisionId !== undefined,
+    ).length
+    bulk.push({
+      id,
+      summary,
+      basis: 'fixture',
+      outcome: source.length ? 'applied' : 'not-applicable',
+      definition: await retainObject(store, {
+        kind: 'processing-rule',
+        schemaVersion: 1,
+        id,
+        scope: 'bulk',
+        basis: 'fixture',
+        summary,
+        inputs: ['publisher-properties'],
+        outputs: ['statsRecords.divisionId'],
+        parameters: {},
+        implementation: {
+          path: 'apps/harbour-cli/src/lib/statisticsSql/censtatdDistrictBridge.ts',
+          symbol: 'resolveHkgovCenstatdDistrictBridge',
+        },
+      }),
+      counts: {
+        inputs: { 'publisher-properties': source.length },
+        outputs: { 'geography-links': linked },
+        recordsAffected: linked,
+        decisions: { linked, unresolved: source.length - linked },
+      },
+      fixtures: await Promise.all(
+        identities.map(async f => ({
+          type: f.type,
+          object: await retainObject(store, f.document),
+        })),
+      ),
+    })
+  }
   const scaling = populationThousandsRule.declaration
   const scaled = canonical.observations.filter(
     o => o.sourceField === scaling.parameters.sourceField && o.numericValue !== null,
@@ -162,7 +213,7 @@ export async function retainStatisticProvenance(
     checked,
     failed,
     reason: failed
-      ? failed + ' checks failed.'
+      ? `${failed} checks failed.`
       : 'All checked records satisfy the requirement.',
   })
   const guards = [

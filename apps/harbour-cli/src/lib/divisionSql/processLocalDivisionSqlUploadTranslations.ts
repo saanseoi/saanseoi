@@ -104,6 +104,31 @@ export function mergeDivisionI18nTranslations(
   ]
 }
 
+export function divisionAuditParents(
+  hierarchy: unknown,
+): Array<{ id: string; names: string[] }> {
+  if (!Array.isArray(hierarchy)) return []
+  return hierarchy.flatMap(parent => {
+    if (!parent || typeof parent !== 'object' || typeof parent.division_id !== 'string')
+      return []
+    const localisations =
+      parent.i18n && typeof parent.i18n === 'object' ? Object.values(parent.i18n) : []
+    return [
+      {
+        id: parent.division_id,
+        names: localisations.flatMap(value =>
+          value &&
+          typeof value === 'object' &&
+          'name' in value &&
+          typeof value.name === 'string'
+            ? [value.name]
+            : [],
+        ),
+      },
+    ]
+  })
+}
+
 export function buildOvertureDivisionTranslationProcessingActions(input: {
   division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
   rawNames: unknown

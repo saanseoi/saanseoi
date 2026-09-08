@@ -8,6 +8,7 @@ import {
 } from '../../provenance'
 import { divisionClassificationFixture } from './divisionClassificationCuration'
 import { divisionNormalisationRule } from './division'
+import { requireDefined } from '../../requireDefined'
 import type { ReleaseProcessingAction } from '../db/processingActions'
 
 function record(value: unknown): Record<string, unknown> {
@@ -30,10 +31,17 @@ export async function retainDivisionProvenance(
     actions: ReleaseProcessingAction[]
     inputCount: number
     outputCount: number
+    curationDocuments?: Array<{ type: string; document: unknown }>
   },
 ) {
   const bulk: BulkAudit[] = []
   const individuals: IndividualAudit[] = []
+  const individualFixtures = await Promise.all(
+    (input.curationDocuments ?? []).map(async f => ({
+      type: f.type,
+      object: await retainObject(store, f.document),
+    })),
+  )
   const translations = input.actions.filter(a =>
     /_name_(ai|human)_translated$/.test(a.action),
   )
@@ -65,7 +73,9 @@ export async function retainDivisionProvenance(
     const individual = translated || !!classification
     const basis = individual ? ('fixture' as const) : ('code' as const)
     const summary =
-      id === 'normalise-divisions' ? actions[0]!.summary : id.replaceAll('_', ' ')
+      id === 'normalise-divisions'
+        ? requireDefined(actions[0]).summary
+        : id.replaceAll('_', ' ')
     const definition = await retainObject(store, {
       kind: 'processing-rule',
       schemaVersion: 1,
@@ -123,7 +133,7 @@ export async function retainDivisionProvenance(
               pointer: `/entries/${divisionClassificationFixture.entries.indexOf(classification)}`,
             }
           : {
-              object: translationFixture!,
+              object: requireDefined(translationFixture),
               pointer: `/entries/${translations.indexOf(a)}`,
             },
         record: {
@@ -161,6 +171,7 @@ export async function retainDivisionProvenance(
     attempt: { id: input.releaseId, status: 'completed' },
     bulk,
     individuals,
+    individualFixtures,
     guards: [
       {
         id: 'division-source-normalisation',
