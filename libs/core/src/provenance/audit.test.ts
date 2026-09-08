@@ -1,0 +1,128 @@
+import { expect, test } from 'bun:test'
+import {
+  retainAuditResult,
+  readAuditPage,
+  verifyAuditResult,
+  validateAuditManifest,
+} from './audit'
+import { retainObject, objectKey } from './objects'
+import { transferProcessingResult } from './transfer'
+import type { IndividualAudit } from './auditTypes'
+import type { ProvenanceStore } from './types'
+
+function memoryStore() {
+  const objects = new Map<string, ArrayBuffer>()
+  const reads: string[] = []
+  const store: ProvenanceStore = {
+    async get(key) {
+      reads.push(key)
+      const bytes = objects.get(key)
+      return bytes ? { arrayBuffer: async () => bytes } : null
+    },
+    async put(key, bytes) {
+      objects.set(key, bytes)
+    },
+  }
+  return { store, reads, objects }
+}
+
+test('individual search reads indexes and only matching action chunks; transfer preserves the complete audit', async () => {
+  const { store, reads } = memoryStore()
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'translate',
+    scope: 'individual',
+    basis: 'fixture',
+  })
+  const fixture = await retainObject(store, {
+    entries: [{ sourceText: 'River', translation: '河' }],
+  })
+  const individuals: IndividualAudit[] = Array.from({ length: 300 }, (_, i) => ({
+    id: `action-${i}`,
+    operation: 'translate',
+    basis: 'fixture',
+    outcome: 'applied',
+    summary: 'Translate a name.',
+    reason: 'Reviewed translation.',
+    definition,
+    fixture: { object: fixture, pointer: '/entries/0' },
+    record: {
+      id: `division-${i}`,
+      names: [i === 280 ? '河' : 'River'],
+      parents: [
+        { id: 'parent', names: [i === 280 ? 'North district' : 'South district'] },
+      ],
+    },
+    context: {},
+  }))
+  const result = await retainAuditResult(store, {
+    releaseId: 'release',
+    datasetCode: 'divisions',
+    attempt: { id: 'attempt', status: 'completed' },
+    bulk: [],
+    guards: [],
+    individuals,
+  })
+  expect(result.manifest.chunks).toHaveLength(2)
+  reads.length = 0
+  const page = await readAuditPage(store, result.manifest, 'north 河')
+  expect(page.rows.map(r => r.id)).toEqual(['action-280'])
+  expect(reads).not.toContain(objectKey(result.manifest.chunks[0]!.hash))
+  expect(reads).toContain(objectKey(result.manifest.chunks[1]!.hash))
+  const destination = memoryStore()
+  await transferProcessingResult(store, destination.store, result.ref)
+  await verifyAuditResult(destination.store, result.manifest)
+  expect(
+    (await readAuditPage(destination.store, result.manifest, '', 250, 50)).rows,
+  ).toHaveLength(50)
+})
+
+test('bulk payloads and completed failed guards cannot pass audit validation', async () => {
+  const { store } = memoryStore()
+  const definition = await retainObject(store, {
+    id: 'normalise',
+    scope: 'bulk',
+    basis: 'code',
+  })
+  const result = await retainAuditResult(store, {
+    releaseId: 'release',
+    datasetCode: 'stats',
+    attempt: { id: 'attempt', status: 'failed' },
+    individuals: [],
+    bulk: [
+      {
+        id: 'normalise',
+        definition,
+        basis: 'code',
+        summary: 'Normalise numbers.',
+        outcome: 'not-run',
+        counts: { inputs: {}, outputs: {}, recordsAffected: 0, decisions: {} },
+        fixtures: [],
+      },
+    ],
+    guards: [
+      {
+        id: 'unique',
+        summary: 'Require unique identities.',
+        consequence: 'block-ingestion',
+        status: 'failed',
+        checked: 2,
+        failed: 1,
+        reason: 'Duplicate identity.',
+      },
+    ],
+  })
+  expect(() =>
+    validateAuditManifest({
+      ...result.manifest,
+      attempt: { id: 'attempt', status: 'completed' },
+    }),
+  ).toThrow('failed blocking guard')
+  expect(() =>
+    validateAuditManifest({
+      ...result.manifest,
+      bulk: [{ ...result.manifest.bulk[0], evidence: [{ value: 123 }] }],
+    }),
+  ).toThrow('Unexpected audit property')
+})
