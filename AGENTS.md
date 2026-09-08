@@ -44,6 +44,9 @@
 
 ## Project shape
 
+- When starting Streets work, review the deferred
+  [source-payload TODO](docs/datasets/families/streets.md#todo-source-payload-consolidation).
+
 - Primary apps:
   - `apps/atlas-api`: Public Hono API
   - `apps/atlas-app`: Public SvelteKit App

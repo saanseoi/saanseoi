@@ -1,5 +1,19 @@
 # Streets API family
 
+## TODO: Source payload consolidation
+
+- [ ] When Streets work resumes, review moving parsed publisher attributes from
+      `hkgovLandsdStreetBaselineRecords` and `hkgovLandsdStreetNotices` into
+      `rawProperties`. The baseline stores names and district codes directly; notices
+      store names, descriptions, dates, classifications, notice references and district
+      codes directly. These are structured PDF extractions, so define the retained raw
+      payload before removing columns. Preserve source identity, provenance, document
+      evidence, parser diagnostics and notice-application decisions. Update ingestion
+      and readers, generate the migration, and verify retained evidence and lifecycle
+      behaviour. This review is deferred until Streets work starts.
+
+## Source storage and publication
+
 Street ingestion records its selected release, source rule and effective recipe under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 
