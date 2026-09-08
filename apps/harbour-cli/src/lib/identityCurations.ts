@@ -1,7 +1,7 @@
 import ruleFixture from '../../../../fixtures/meta/processing-rules/geography-identities.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
-import { registerRule } from '@repo/core/provenance'
+import { registerRule, auditDivisionCode } from '@repo/core/provenance'
 import { captureCurationDocuments } from './curationDocuments'
 import { readFileSync, readdirSync } from 'node:fs'
 import { computeVersionHash } from '@repo/db'
@@ -16,7 +16,12 @@ export type IdentityCuration = {
   sourceReleaseCode: string
   mappingMethod: string
   reviewStatus: string
-  mappings: Array<{ externalId: string; externalCode?: string; canonicalId: string }>
+  mappings: Array<{
+    externalId: string
+    externalCode?: string
+    canonicalId: string
+    divisionCode?: string
+  }>
 }
 
 /** Reviewed source evidence; never synchronised into the metadata database. */
@@ -68,9 +73,19 @@ function resolveIdentityCurationInternal(
       `Incomplete or duplicate identity curation for ${authority}/${domain}/${cohortKey}.`,
     )
   }
+  const retained = {
+    ...requireDefined(fixtures[0]),
+    mappings: rows.map(row => ({
+      ...row,
+      ...(auditDivisionCode(row.canonicalId)
+        ? { divisionCode: auditDivisionCode(row.canonicalId) }
+        : {}),
+    })),
+  }
+  retained.versionHash = computeVersionHash(retained)
   return captureCurationDocuments(
     rows.map(row => ({ ...row, externalCode: row.externalCode ?? null })),
-    [{ type: 'identity-mappings', document: requireDefined(fixtures[0]) }],
+    [{ type: 'identity-mappings', document: retained }],
   )
 }
 

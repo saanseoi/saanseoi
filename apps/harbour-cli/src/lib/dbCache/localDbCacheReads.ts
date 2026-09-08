@@ -108,7 +108,7 @@ async function findIncompletePublishedReleases(
             FROM snapshots s
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
             LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-            WHERE ss.sourceReleaseId = ?
+            WHERE ss.resourceReleaseId = ?
               AND ss.datasetId = ?
               AND s.resourceType = ?
               AND s.status = 'published'

@@ -174,6 +174,10 @@ export async function resolveDatasetNameTranslationsBatch(input: {
 
       if (entry) {
         if (cached) {
+          if (JSON.stringify(cached.context) !== JSON.stringify(context)) {
+            cached.context = context
+            fixtureChanged = true
+          }
           const firstSeenRelease = [cached.firstSeenRelease, input.sourceRelease]
             .sort()
             .at(0)
@@ -387,7 +391,14 @@ function normaliseContext(context: Record<string, string | null>) {
 }
 
 function hashContext(context: Record<string, string | null>) {
-  return hashText(JSON.stringify(context))
+  // Locale-tagged display names do not change translation identity.
+  return hashText(
+    JSON.stringify(
+      Object.fromEntries(
+        Object.entries(context).filter(([key]) => !key.startsWith('parentName.')),
+      ),
+    ),
+  )
 }
 
 async function readFixture(

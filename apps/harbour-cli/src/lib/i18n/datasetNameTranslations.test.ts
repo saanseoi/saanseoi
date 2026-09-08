@@ -42,7 +42,15 @@ describe('dataset name translations', () => {
       const second = await resolveDatasetNameTranslationsBatch({
         datasetCode: DATASET,
         fixturePath,
-        records: [record('division-2')],
+        records: [
+          {
+            ...record('division-2'),
+            context: {
+              ...record('division-2').context,
+              'parentName.zh-hant': '香港島',
+            },
+          },
+        ],
         sourceRelease: RELEASE_2,
         translate: async () => {
           throw new Error('dataset cache should prevent translation')
@@ -52,6 +60,9 @@ describe('dataset name translations', () => {
         { locale: 'en', name: 'Central' },
         { locale: 'zh-hans', name: '中环' },
       ])
+      expect(
+        second.get('division-2')?.applications[0]?.context['parentName.zh-hant'],
+      ).toBe('香港島')
 
       const fixture = JSON.parse(await readFile(fixturePath, 'utf8')) as {
         entries: Array<{

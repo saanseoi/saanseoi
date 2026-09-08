@@ -85,7 +85,7 @@ function setup() {
     insert(meta, 'snapshotSources', {
       snapshotId: resourceType,
       datasetId: 'dataset',
-      sourceReleaseId: resourceType,
+      resourceReleaseId: resourceType,
     })
   }
   for (const family of ['divisions', 'places']) {
@@ -202,7 +202,7 @@ describe('all-divisions reset', () => {
     insert(meta, 'snapshotSources', {
       snapshotId: 'place',
       datasetId: 'dataset',
-      sourceReleaseId: 'division',
+      resourceReleaseId: 'division',
     })
     meta.exec(
       "UPDATE apiReleaseSetSnapshots SET anchorSnapshotId = 'divisionArea' WHERE apiReleaseSetId = 'places'",
