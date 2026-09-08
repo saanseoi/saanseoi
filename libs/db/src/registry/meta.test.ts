@@ -326,17 +326,12 @@ describe('fixture version hashes', () => {
             rules: expect.arrayContaining([
               expect.objectContaining({
                 operationCode: 'normalise_overture_division_hierarchy',
-                sourceFieldPath: 'hierarchies',
+                definition: expect.objectContaining({ id: 'normalise-divisions' }),
                 type: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'derive_division_type_from_overture_taxonomy',
-                mappings: expect.arrayContaining([
-                  expect.objectContaining({
-                    from: 'subtype = dependency',
-                    to: 'sar',
-                  }),
-                ]),
+                definition: expect.objectContaining({ id: 'normalise-divisions' }),
               }),
               expect.objectContaining({
                 operationCode: 'overture_division_locale_inferred',
@@ -344,7 +339,9 @@ describe('fixture version hashes', () => {
               }),
               expect.objectContaining({
                 operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
-                sourceFieldPath: 'id, subtype, class, admin_level',
+                definition: expect.objectContaining({
+                  id: 'apply-division-classification-curation',
+                }),
                 type: 'record',
               }),
             ]),
@@ -374,7 +371,7 @@ describe('fixture version hashes', () => {
               }),
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_population_thousands_to_persons',
-                sourceFieldPath: 'raw_properties.MYPOPN_LAND',
+                sourceFieldPath: 'publisher-properties.MYPOPN_LAND',
                 type: 'bulk',
               }),
             ]),

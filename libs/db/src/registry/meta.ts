@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
 import { profileNames, resolverCodes } from '../constants/schema'
 import type {
   ApiFamilyType,
@@ -204,6 +205,7 @@ type DataShardFileFixture = {
 
 export type MergeProcessingRule = {
   operationCode: string
+  definition?: ReturnType<typeof ruleDeclarationFromFixture>
   type: 'bulk' | 'record'
   sourceFieldPath?: string
   targetFieldPath?: string
@@ -222,7 +224,9 @@ type MergeRulesetFixture = {
   strategy: 'merge'
   version: string
   notes?: string
-  mergeRules?: MergeProcessingRule[]
+  mergeRules?: Array<
+    MergeProcessingRule | { operationCode: string; ruleFixture: string }
+  >
 }
 
 export type DatasetMergeRuleReference = {
@@ -458,7 +462,45 @@ function sqlTimestampMs(value: string) {
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
-const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions')
+const processingRuleDefinitions = new Map(
+  readdirSync(join(fixturesDir.pathname, 'processing-rules'))
+    .filter(name => name.endsWith('.json'))
+    .map(name => [
+      name.slice(0, -5),
+      ruleDeclarationFromFixture(
+        JSON.parse(
+          readFileSync(join(fixturesDir.pathname, 'processing-rules', name), 'utf8'),
+        ),
+      ),
+    ]),
+)
+
+/** Resolve references before hashing so policy edits change the consumed ruleset identity. */
+export function resolveMergeRulesetDefinitions(
+  fixture: MergeRulesetFixture,
+  definitions = processingRuleDefinitions,
+) {
+  const mergeRules = (fixture.mergeRules ?? []).map((rule): MergeProcessingRule => {
+    if (!('ruleFixture' in rule)) return rule
+    const definition = definitions.get(rule.ruleFixture)
+    if (!definition)
+      throw new Error(`Unknown processing rule fixture: ${rule.ruleFixture}.`)
+    return {
+      operationCode: rule.operationCode,
+      type: definition.scope === 'bulk' ? 'bulk' : 'record',
+      sourceFieldPath: definition.inputs.join(', '),
+      targetFieldPath: definition.outputs.join(', '),
+      i18n: [{ locale: 'en', description: definition.summary }],
+      definition: structuredClone(definition),
+    }
+  })
+  const resolved = { ...fixture, mergeRules }
+  return { ...resolved, versionHash: computeVersionHash(resolved) }
+}
+
+const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions').map(
+  fixture => resolveMergeRulesetDefinitions(fixture),
+)
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')

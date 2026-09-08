@@ -181,35 +181,9 @@ const OVERTURE_HK_DIVISION_PREFLIGHT_COLUMNS = [
 ]
 const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
 const PRIMARY_SOURCE_OWNER_KEY = 'source-current'
-const DIVISION_LEVEL_TOKENS = new Map<string, number>([
-  ['country', 0],
-  ['sar', 0],
-  ['dependency', 0],
-  ['city', 1],
-  ['state', 1],
-  ['province', 1],
-  ['district', 2],
-  ['region', 2],
-  ['subdistrict', 3],
-  ['borough', 3],
-  ['town', 3],
-  ['macrohood', 4],
-  ['neighbourhood', 5],
-  ['neighborhood', 5],
-  ['village', 5],
-  ['microhood', 6],
-  ['hamlet', 6],
-])
+
 const OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID =
   '222b7818-970a-491d-98b6-b88d8c6f0161'
-const HONG_KONG_AREA_NAMES = new Set([
-  'hong kong island',
-  '香港島',
-  'kowloon',
-  '九龍',
-  'new territories',
-  '新界',
-])
 
 type DivisionCodeAssignment = {
   canonicalId: string
@@ -278,11 +252,6 @@ function groupIdsByOwnerShard<
   }
 
   return idsByOwnerKey
-}
-const CANONICAL_DIVISION_API_LOCALE_FALLBACKS: Record<ApiLocale, string[]> = {
-  en: ['en'],
-  'zh-hant': ['zh-hk', 'zh-hant', 'zh-mo', 'zh-tw'],
-  'zh-hans': ['zh-hans', 'zh-cn', 'zh-sg'],
 }
 
 /**
@@ -1555,7 +1524,7 @@ export function buildCanonicalDivisionApiI18n(rows: DivisionI18nPayload[]) {
   const canonicalRows = [...rows]
 
   for (const [locale, candidates] of Object.entries(
-    CANONICAL_DIVISION_API_LOCALE_FALLBACKS,
+    divisionNormalisationRule.declaration.parameters.apiLocaleFallbacks,
   ) as Array<[ApiLocale, string[]]>) {
     if (byLocale.has(locale)) {
       continue
@@ -2159,7 +2128,7 @@ function resolveDivisionLevel(input: {
   otClass: string | null
   parentDivisionId: string | null
   row: Record<string, unknown>
-}) {
+}): number {
   const normalisedSubtype = normaliseDivisionLevelToken(input.otSubtype)
   const normalisedClass = normaliseDivisionLevelToken(input.otClass)
   const normalisedAdminLevel = normaliseDivisionLevelToken(
@@ -2201,7 +2170,8 @@ function resolveDivisionLevel(input: {
   )
 
   for (const candidate of candidates) {
-    for (const [token, level] of DIVISION_LEVEL_TOKENS.entries()) {
+    for (const { token, level } of divisionNormalisationRule.declaration.parameters
+      .levelTokens) {
       if (candidate.includes(token)) {
         return level
       }
@@ -2328,7 +2298,9 @@ function isHongKongArea(row: Record<string, unknown>) {
   }
 
   return collectDivisionNameCandidates(names as Record<string, unknown>).some(name =>
-    HONG_KONG_AREA_NAMES.has(name.toLowerCase()),
+    divisionNormalisationRule.declaration.parameters.hongKongAreaNames.includes(
+      name.toLowerCase(),
+    ),
   )
 }
 

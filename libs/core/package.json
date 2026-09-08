@@ -13,6 +13,7 @@
   },
   "exports": {
     "./provenance": "./src/provenance/index.ts",
+    "./provenance/ruleFixture": "./src/provenance/ruleFixture.ts",
     ".": "./src/index.ts",
     "./requireDefined": "./src/requireDefined.ts",
     "./codes": "./src/codes.ts",
