@@ -60,7 +60,7 @@ $effect(() => {
       <Mappings
         {query}
         title={group.title}
-        explanation={m.source_audit_branch_explanation()}
+        explanation={group.explanation}
         rows={group.rows}
         getRule={() => getRetainedRuleDeclaration({releaseId, hash, bulkId: bulk.id})}
       />

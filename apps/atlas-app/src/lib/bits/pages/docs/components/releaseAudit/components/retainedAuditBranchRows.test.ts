@@ -2,6 +2,37 @@ import { expect, test } from 'bun:test'
 import type { Json } from '@repo/core/provenance'
 import { retainedBranchGroups } from './retainedAuditBranchRows'
 
+test('locale tables omit shadowed checks but preserve recorded activity', () => {
+  const declaration: Json = {
+    branches: [
+      {
+        id: 'existing',
+        group: 'Locale Normalisation: zh-hant',
+        precedence: 1,
+        condition: { field: 'zh-hant', equals: true },
+        result: 'zh-hant',
+      },
+      {
+        id: 'duplicate',
+        group: 'Locale Normalisation: zh-hant',
+        precedence: 3,
+        condition: { field: 'zh-hant', equals: true },
+        result: 'zh-hant',
+      },
+    ],
+  }
+  expect(retainedBranchGroups(declaration)[0]?.rows.map(row => row.id)).toEqual([
+    'existing',
+  ])
+  expect(retainedBranchGroups(declaration)[0]?.explanation).toContain(
+    'Keep an existing zh-hant name',
+  )
+  expect(
+    retainedBranchGroups(declaration, { duplicate: { matched: 1, changed: 0 } })[0]
+      ?.rows,
+  ).toHaveLength(2)
+})
+
 test('area condition displays the names retained with the release', () => {
   const declaration: Json = {
     parameters: { hongKongAreaNames: ['kowloon', '九龍'] },
