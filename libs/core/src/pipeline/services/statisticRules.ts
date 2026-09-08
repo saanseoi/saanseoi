@@ -1,23 +1,17 @@
 import { registerRule } from '../../provenance/auditTypes'
+import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
+import declaration from '../../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
 
 export const populationThousandsRule = registerRule(
-  {
-    kind: 'processing-rule',
-    schemaVersion: 1,
-    id: 'normalise_censtatd_population_thousands_to_persons',
-    scope: 'bulk',
-    basis: 'code',
-    summary: 'Convert population in thousands to persons using decimal arithmetic.',
-    inputs: ['publisher-properties.MYPOPN_LAND'],
-    outputs: ['statsRecords.values'],
-    parameters: { sourceField: 'MYPOPN_LAND', factor: 1000 },
-    implementation: {
-      path: 'libs/core/src/pipeline/services/statisticRules.ts',
-      symbol: 'populationThousandsRule',
-    },
-  },
+  ruleDeclarationFromFixture(declaration),
   (value: string, parameters) => {
     const exponent = Math.log10(parameters.factor)
+    if (
+      !Number.isSafeInteger(parameters.factor) ||
+      !Number.isInteger(exponent) ||
+      exponent < 0
+    )
+      throw new Error('Population scaling requires a positive power-of-ten factor.')
     if (!/^[+-]?\d+(?:\.\d+)?$/.test(value))
       throw new Error('Population scaling requires a decimal literal.')
     const sign = value.startsWith('-') ? '-' : ''

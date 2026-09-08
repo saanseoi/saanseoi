@@ -1,5 +1,8 @@
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
 import { registerRule, ProcessingGuardError } from '../../provenance'
+import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
+import areaDeclaration from '../../../../../fixtures/meta/processing-rules/division-area-geometry.json'
+import boundaryDeclaration from '../../../../../fixtures/meta/processing-rules/division-boundary-geometry.json'
 import type {
   NewSourceDivisionAreaRow,
   NewSourceDivisionBoundaryRow,
@@ -192,28 +195,13 @@ function normaliseDivisionBoundaryGeometry(
   }
 }
 
-const geometryDeclaration = (kind: 'Area' | 'Boundary') => ({
-  kind: 'processing-rule' as const,
-  schemaVersion: 1 as const,
-  id: `normalise-division-${kind.toLowerCase()}-geometry`,
-  scope: 'bulk' as const,
-  basis: 'code' as const,
-  summary: `Normalise division ${kind.toLowerCase()} geometry, identities and source references; exclude Guangdong spillover and referent-only geometry.`,
-  inputs: ['source-geometry'],
-  outputs: [`division${kind === 'Area' ? 'Areas' : 'Boundaries'}`],
-  parameters: {},
-  implementation: {
-    path: 'libs/core/src/pipeline/services/divisionGeometry.ts',
-    symbol: `normaliseDivision${kind}GeometryRow`,
-  },
-})
 export const divisionAreaGeometryRule = registerRule(
-  geometryDeclaration('Area'),
+  ruleDeclarationFromFixture(areaDeclaration),
   (args: Parameters<typeof normaliseDivisionAreaGeometry>) =>
     normaliseDivisionAreaGeometry(...args),
 )
 export const divisionBoundaryGeometryRule = registerRule(
-  geometryDeclaration('Boundary'),
+  ruleDeclarationFromFixture(boundaryDeclaration),
   (args: Parameters<typeof normaliseDivisionBoundaryGeometry>) =>
     normaliseDivisionBoundaryGeometry(...args),
 )

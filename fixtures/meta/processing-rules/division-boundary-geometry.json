@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-division-boundary-geometry",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Normalise division boundary geometry, identities and source references; exclude Guangdong spillover and referent-only geometry.",
+  "inputs": ["source-geometry"],
+  "outputs": ["divisionBoundaries"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
+    "symbol": "normaliseDivisionBoundaryGeometryRow"
+  }
+}
