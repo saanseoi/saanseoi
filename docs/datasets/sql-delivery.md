@@ -136,6 +136,12 @@ plan-specific advisory locks prevent competing local recovery writers. Receipts 
 this delivery's completion; external writers must still respect release-operation
 ownership of the mirror and target databases.
 
+The upload command automatically resumes every retained plan in this marker, after
+confirmation and before opening the planning mirror. It uses the same checksum, target,
+generation and receipt checks as explicit `sql:resume`, and does not run during a dry
+run. If the owning release is not yet published, the marker remains until that release
+workflow completes.
+
 Release completion holds the same cache-wide lock as phase registration while checking
 plans and clearing ownership. Every registered plan must belong to that release and
 cache. Malformed pending markers stop planning and completion; they are never treated as
@@ -173,7 +179,8 @@ bin/saanseoi sql:status --target production \
   --plan .local/harbour-sql/releases/production/RELEASE/sql-delivery-address
 ```
 
-Resume remote delivery and local replay:
+Resume remote delivery and local replay explicitly when recovering a delivery outside
+the upload workflow:
 
 ```sh
 bin/saanseoi sql:resume --target production \
