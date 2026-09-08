@@ -1,7 +1,11 @@
 {
+  "source_audit_level_explanation": "按以下首個符合條件的規則，設定各行政區的地理層級。「符合」是規則選中的行政區數量；「變更」是當中層級有更新的數量。",
+  "source_audit_type_explanation": "按以下首個符合條件的規則，設定各行政區的類型，例如國家、區域或地區。「符合」是規則選中的行政區數量；「變更」是當中類型有更新的數量。",
+  "source_audit_locale_explanation": "保留現有的 {locale} 名稱。如缺少該名稱，則使用以下首個可用的語言變體；如全部都沒有，則留空。「符合」是各規則選中的行政區數量；「變更」是當中新增了 {locale} 名稱的數量。",
   "source_audit_description": "描述",
   "source_audit_branch_locale_title": "語言標準化：{locale}",
-  "source_audit_branch_explanation": "按優先次序套用首個符合條件的已保留分支。符合及變更數量採用以下保留的計數單位。",
+  "source_audit_branch_explanation": "由上至下檢查規則，首個符合條件的規則決定結果。「符合」是各規則選中的項目數量；「變更」是當中數值有更新的項目數量。",
+  "source_audit_area_name_condition": "主要或常用名稱符合以下其中一項：{names}（不分大小寫）",
   "source_audit_branches_unrecorded": "此版本未記錄分支條件、優先次序及各對應項目的數量。",
   "source_audit_parameters_counting_units": "已保留的規則參數及計數單位",
   "source_audit_branch_priority": "分支／優先次序",

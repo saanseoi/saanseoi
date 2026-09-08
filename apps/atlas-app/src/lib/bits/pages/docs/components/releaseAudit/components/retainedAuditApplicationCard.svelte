@@ -1,6 +1,8 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
 import { auditStatus } from './retainedAuditStatus'
+import { getLocale } from '@repo/i18n/runtime'
+import { translationParentName } from './translationParentName'
 import type { IndividualAudit } from '@repo/core/provenance'
 import Badge from '@iconify-svelte/proicons/badge'
 let { row }: { row: IndividualAudit } = $props()
@@ -11,6 +13,9 @@ let sourceLocale = $derived(text(row.context.sourceLocale))
 let targetLocale = $derived(text(row.context.locale ?? row.context.targetLocale))
 let title = $derived(source || row.record.names[0] || m.source_audit_record())
 let parent = $derived(row.record.parents.at(-1))
+let parentName = $derived(
+  translationParentName(row.context, getLocale()) ?? parent?.names[0] ?? parent?.id,
+)
 let copied = $state(false)
 let copyFailure = $state(false)
 async function copy() {
@@ -32,7 +37,7 @@ async function copy() {
       <h4 class="truncate text-base font-medium" {title}>{title}</h4>
       {#if parent}
         <p class="mt-1 truncate text-xs opacity-50" title={parent.names.join(' · ')}>
-          {m.source_audit_parent_value({ parent: parent.names[0] || parent.id })}
+          {m.source_audit_parent_value({ parent: parentName || parent.id })}
         </p>
       {/if}
     </div>

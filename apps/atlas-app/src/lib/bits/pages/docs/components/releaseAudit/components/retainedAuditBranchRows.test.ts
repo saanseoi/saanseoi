@@ -2,6 +2,25 @@ import { expect, test } from 'bun:test'
 import type { Json } from '@repo/core/provenance'
 import { retainedBranchGroups } from './retainedAuditBranchRows'
 
+test('area condition displays the names retained with the release', () => {
+  const declaration: Json = {
+    parameters: { hongKongAreaNames: ['kowloon', '九龍'] },
+    branches: [
+      {
+        id: 'type.hong-kong-area',
+        group: 'Type Classification',
+        precedence: 1,
+        condition: { field: 'isHongKongArea', equals: true },
+        result: 'area',
+      },
+    ],
+  }
+  const condition = retainedBranchGroups(declaration)[0]?.rows[0]?.condition
+  expect(condition).toContain('`kowloon`, `九龍`')
+  expect(condition).not.toContain('isHongKongArea')
+  expect(condition).not.toContain('hong kong island')
+})
+
 test('historical parameters do not manufacture retained conditions or precedence', () => {
   expect(
     retainedBranchGroups({
