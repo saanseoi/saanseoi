@@ -34,6 +34,47 @@ function strings(value: unknown): string[] {
   return Object.values(value).flatMap(strings)
 }
 
+/** Explicit audit coverage: new operations must declare how their evidence is retained. */
+const translationActions = new Set([
+  'overture_division_name_ai_translated',
+  'overture_division_name_human_translated',
+  'division_name_ai_translated',
+  'division_name_human_translated',
+])
+const normalisationCounters = new Set([
+  'overture_division_hong_kong_area_hierarchy_assigned',
+  'overture_division_locale_inferred',
+  'overture_division_api_locale_fallback_added',
+  'overture_division_geometry_cn_gd_excluded',
+  'planning_geometry_self_intersection_repaired',
+])
+
+type ActionKind = 'translation' | 'classification' | 'patch' | 'bulk' | 'counter'
+function actionRegistry(
+  normalisation: RuleDeclaration,
+  declarations: Record<string, RuleDeclaration>,
+) {
+  const registry = new Map<string, ActionKind>()
+  for (const id of normalisationCounters) registry.set(id, 'counter')
+  for (const id of translationActions) registry.set(id, 'translation')
+  for (const entry of divisionClassificationFixture.entries) {
+    if (registry.has(entry.id))
+      throw new Error(`Duplicate Division audit operation: ${entry.id}`)
+    registry.set(entry.id, 'classification')
+  }
+  registry.set(kowloonRestorationFixture.id, 'patch')
+  for (const id of [normalisation.id, ...Object.keys(declarations)]) {
+    if (registry.has(id) && registry.get(id) !== 'counter')
+      throw new Error(`Duplicate Division audit operation: ${id}`)
+    registry.set(id, 'bulk')
+  }
+  return (id: string): ActionKind => {
+    const kind = registry.get(id)
+    if (!kind) throw new Error(`Unregistered Division audit operation: ${id}`)
+    return kind
+  }
+}
+
 /** Bulk actions discard their transient row evidence at this boundary. */
 export async function retainDivisionProvenance(
   store: ProvenanceStore,
@@ -58,6 +99,8 @@ export async function retainDivisionProvenance(
 ) {
   const bulk: BulkAudit[] = []
   const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
+  const actionKind = actionRegistry(normalisation, input.actionDeclarations ?? {})
+  for (const action of input.actions) actionKind(action.action)
   if (input.branchCounts) {
     const ids = new Set(normalisation.branches?.map(branch => branch.id))
     if (Object.keys(input.branchCounts).some(id => !ids.has(id)))
@@ -80,9 +123,7 @@ export async function retainDivisionProvenance(
       object: part.object,
     })),
   )
-  const translations = input.actions.filter(a =>
-    /_name_(ai|human)_translated$/.test(a.action),
-  )
+  const translations = input.actions.filter(a => actionKind(a.action) === 'translation')
   const translationFixture = translations.length
     ? await retainFixturePartitions(
         store,
@@ -106,7 +147,7 @@ export async function retainDivisionProvenance(
   }
   const grouped = new Map<string, ReleaseProcessingAction[]>()
   for (const action of input.actions) {
-    if (action.action === kowloonRestorationFixture.id) {
+    if (actionKind(action.action) === 'patch') {
       const evidence = record(action.evidence)
       individuals.push({
         id: `${action.action}:${kowloonRestorationFixture.divisionId}`,
@@ -142,13 +183,16 @@ export async function retainDivisionProvenance(
     },
   ])
   for (const [id, actions] of grouped) {
-    const translated = /_name_(ai|human)_translated$/.test(id)
-    const classification = divisionClassificationFixture.entries.find(e => e.id === id)
+    const kind = actionKind(id)
+    const translated = kind === 'translation'
+    const classification =
+      kind === 'classification'
+        ? requireDefined(divisionClassificationFixture.entries.find(e => e.id === id))
+        : undefined
     const individual = translated || !!classification
     // Substep counters belong to the registered processor; they are not separate,
     // independently authored rule declarations.
-    if (!individual && id !== normalisation.id && !input.actionDeclarations?.[id])
-      continue
+    if (kind === 'counter') continue
     const declaration = classification
       ? divisionClassificationRule.declaration
       : translated
@@ -185,15 +229,7 @@ export async function retainDivisionProvenance(
               ? Object.fromEntries([
                   ['normalised', input.outputCount],
                   ...[...grouped]
-                    .filter(
-                      ([key]) =>
-                        key !== normalisation.id &&
-                        !/_name_(ai|human)_translated$/.test(key) &&
-                        !divisionClassificationFixture.entries.some(
-                          e => e.id === key,
-                        ) &&
-                        !input.actionDeclarations?.[key],
-                    )
+                    .filter(([key]) => actionKind(key) === 'counter')
                     .map(([key, values]) => [
                       key,
                       values.reduce((n, a) => n + a.affectedRecordCount, 0),
