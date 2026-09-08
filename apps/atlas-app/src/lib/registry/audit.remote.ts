@@ -4,6 +4,7 @@ import { and, eq, sql, metaSchema } from '@repo/db'
 import {
   readObject,
   readAuditPage,
+  readAuditDecision,
   validateAuditManifest,
   type Digest,
 } from '@repo/core/provenance'
@@ -166,5 +167,13 @@ export const getRetainedRuleDeclaration = query(
     const bulk = manifest.bulk.find(b => b.id === input.bulkId)
     if (!bulk) throw new Error('Rule is not declared by this release.')
     return readObject(store(), bulk.definition)
+  },
+)
+
+export const getRetainedAuditDecision = query(
+  z.object({ releaseId: z.string(), hash: z.string(), actionId: z.string().max(2048) }),
+  async input => {
+    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    return readAuditDecision(store(), manifest, input.actionId)
   },
 )
