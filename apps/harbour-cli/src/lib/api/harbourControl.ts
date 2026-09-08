@@ -35,18 +35,6 @@ function controlErrorMessage(body: Record<string, unknown> | null, status: numbe
   return `Harbour control request failed with status ${status}.`
 }
 
-function isLocalProxyConnectionLoss(
-  body: Record<string, unknown> | null,
-  status: number,
-) {
-  return (
-    status === 500 &&
-    [body?.message, body?.error].some(
-      value => typeof value === 'string' && /network connection lost/i.test(value),
-    )
-  )
-}
-
 export function createHarbourControlClient(target: UploadTarget) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const authHeaders = getAuthHeaders()
@@ -89,7 +77,7 @@ export function createHarbourControlClient(target: UploadTarget) {
           // published, so repeating it after Wrangler loses its proxy
           // connection is idempotent. Other publication paths may create API
           // release-set revisions and must retain the normal no-retry policy.
-          retryLocalProxyConnectionLoss:
+          retryLocalDeferredPublishFailure:
             !target.remote && publishOptions.deferStatsReleaseSet === true,
         },
       )
@@ -143,7 +131,7 @@ async function postControl<TResponse = Record<string, unknown>>(
   authHeaders: Record<string, string>,
   path: string,
   payload: StagePayload | PublishPayload,
-  options: { retryLocalProxyConnectionLoss?: boolean } = {},
+  options: { retryLocalDeferredPublishFailure?: boolean } = {},
 ): Promise<TResponse | null> {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const response = await fetch(`${baseUrl}${path}`, {
@@ -164,8 +152,8 @@ async function postControl<TResponse = Record<string, unknown>>(
 
     if (
       attempt === 0 &&
-      options.retryLocalProxyConnectionLoss &&
-      isLocalProxyConnectionLoss(body, response.status)
+      options.retryLocalDeferredPublishFailure &&
+      response.status === 500
     ) {
       await Bun.sleep(LOCAL_PROXY_RETRY_DELAY_MS)
       continue

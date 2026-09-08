@@ -81,7 +81,7 @@ describe('harbour control client', () => {
       })
 
       return calls.length === 1
-        ? Response.json({ error: 'Network connection lost.' }, { status: 500 })
+        ? new Response(null, { status: 500 })
         : Response.json({ releaseId: 'release-id', status: 'published' })
     }) as unknown as typeof fetch
 
