@@ -124,6 +124,14 @@ function normaliseStatistics(
   } = {},
 ): CanonicalStatsRows {
   const guards = guardSession(statisticGuardDefinitions)
+  if (!options.measureMetadata)
+    guards.notApplicable(
+      'statistic-measure-registration',
+      'No separate measure registry was supplied to this normalisation.',
+    )
+  if (!input.length)
+    for (const definition of statisticGuardDefinitions)
+      guards.notApplicable(definition.id, 'There are no input records to check.')
   const observations: CanonicalObservation[] = []
   const fields = new Map<string, CanonicalField>()
   const fieldsI18n = new Map<string, Row>()

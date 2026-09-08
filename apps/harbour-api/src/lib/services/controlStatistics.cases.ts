@@ -121,6 +121,24 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     .run(releaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
   await upsertSnapshotSource(db, snapshot.id, dataset.id, releaseId, 'primary')
 
+  sqlite
+    .query("UPDATE releaseProvenance SET attemptStatus = 'failed' WHERE releaseId = ?")
+    .run(releaseId)
+  const beforeFailedPublish = sqlite
+    .query('SELECT status FROM releases WHERE id = ?')
+    .get(releaseId)
+  await expect(
+    handlePublishDataset(db, { deferSourcePublish: true, releaseId }),
+  ).rejects.toThrow('failed processing audit attempt')
+  expect(
+    sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+  ).toEqual(beforeFailedPublish)
+  sqlite
+    .query(
+      "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE releaseId = ?",
+    )
+    .run(releaseId)
+
   const result = await handlePublishDataset(db, {
     deferSourcePublish: true,
     releaseId,
