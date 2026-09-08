@@ -10,7 +10,8 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import { retainDivisionProvenance } from './divisionProvenance'
+import { deliverProcessingResult } from '../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
@@ -694,13 +695,20 @@ export async function processLocalDivisionGeometrySqlUpload(
         ),
       )
     }
-    await replaceReleaseProcessingActions(metaDb, releaseId, [
-      ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
-      ...buildSyntheticOvertureHongKongAreaProcessingActions(
-        previewPlan,
-        areasWithoutSourceGeometry,
-      ),
-    ])
+    const audit = await retainDivisionProvenance(bucket, {
+      releaseId,
+      datasetCode,
+      inputCount: previewPlan.rowCount,
+      outputCount: normalised.length,
+      actions: [
+        ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
+        ...buildSyntheticOvertureHongKongAreaProcessingActions(
+          previewPlan,
+          areasWithoutSourceGeometry,
+        ),
+      ],
+    })
+    await deliverProcessingResult(target, bucket, audit.ref)
     progress.complete(
       formatGeometryCompletedLabel(
         'Calculate',

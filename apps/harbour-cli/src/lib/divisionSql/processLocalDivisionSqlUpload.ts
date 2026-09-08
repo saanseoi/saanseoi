@@ -10,7 +10,8 @@ import { readDivisionDeliveryOutputs } from './divisionDeliveryOutputs.ts'
 import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
+import { retainDivisionProvenance } from './divisionProvenance'
+import { deliverProcessingResult } from '../api/provenance'
 import { getMergedCurrentSourceOvertureDivisionMap } from '@repo/core/pipeline/db/source'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
@@ -544,11 +545,14 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
         )
 
-        await replaceReleaseProcessingActions(
-          dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+        const audit = await retainDivisionProvenance(bucket, {
           releaseId,
-          divisionState.processingActions,
-        )
+          datasetCode,
+          actions: divisionState.processingActions,
+          inputCount: previewPlan.rowCount,
+          outputCount: divisionState.processedRows,
+        })
+        await deliverProcessingResult(target, bucket, audit.ref)
 
         const metaFile = await runLocalStreamingPhase(
           progress,
