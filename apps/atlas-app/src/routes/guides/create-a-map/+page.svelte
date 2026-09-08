@@ -1894,7 +1894,7 @@ const rendererReference = $derived(
 const rendererInstallCode = $derived(rendererReference.installCommand)
 const rendererVersionDependency = $derived(
   renderer === 'maplibre'
-    ? { name: 'maplibre-gl', pinnedVersion: '6.7.0' }
+    ? { name: 'maplibre-gl', pinnedVersion: '6.8.0' }
     : renderer === 'mapbox'
       ? { name: 'mapbox-gl', pinnedVersion: '3.29.0' }
       : { name: 'leaflet', pinnedVersion: '1.9.4' },

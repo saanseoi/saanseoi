@@ -110,8 +110,8 @@
     "./sourceSchema": "./src/schema/source/index.ts"
   },
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
-    "@types/bun": "^1.4.1",
+    "@clack/prompts": "^1.8.0",
+    "@types/bun": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c"
   },
   "devDependencies": {
