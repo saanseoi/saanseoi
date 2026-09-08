@@ -13,6 +13,13 @@ Places uses `/places/v0.1`, `/places/v0.1/search`, `/places/v0.1/{id}`, and
 discovery and JSON/NDJSON downloads apply the same region filter. Basemap coverage is
 independent of API data availability.
 
+Address collections and searches paginate materialised snapshots in SQL and include
+`meta.page.total`. Historical reads replay bounded ID batches and stop after one
+matching record beyond the requested page. These responses omit the optional total;
+clients follow `links.next` until it is absent. Detail reads replay only the requested
+address ID. Deep offsets and selective historical filters or searches can require
+walking multiple batches.
+
 SaanSeoi APIs use a small, explicit request path:
 
 ```text
