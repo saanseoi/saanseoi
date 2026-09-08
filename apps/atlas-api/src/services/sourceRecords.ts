@@ -9,17 +9,14 @@ const DEFAULT_PAGE_LIMIT = 100
 const MAX_PAGE_LIMIT = 500
 const DOWNLOAD_PAGE_LIMIT = 500
 
-export type SourceFamily = 'addresses' | 'divisions' | 'places' | 'stats'
+export type SourceFamily = 'addresses' | 'divisions' | 'places' | 'stats' | 'streets'
 
-type SourceRecordCatalogueEntry = {
-  geometryColumn?: 'sourceGeometry'
-  geometryEncoding?: 'brotli-json'
-  geometryProperty?: string
-  randomSampleStrategy?: 'uuid-pivot'
-  tableName: string
-}
-
+import {
+  sourceCatalogueFor,
+  type SourceRecordCatalogueEntry,
+} from './sourceRecordCatalogue'
 type SourceReleaseRow = {
+  sourceValidityCode?: string
   datasetCode: string
   releaseId: string
   resourceType: string
@@ -30,6 +27,7 @@ type SourceReleaseRow = {
 
 type SourceReleaseWithShard = SourceReleaseRow & {
   bindingName: string
+  bindingNames?: string[]
   datasetId: string
   publisherCode: string
   sourceReleaseId: string
@@ -77,88 +75,6 @@ export type SourceReleaseDiscoveryEntry = Omit<
 type Cursor = {
   sourceRecordId: string
   versionHash: string
-}
-
-const DIVISION_SOURCE_RECORD_CATALOGUE = {
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
-    geometryColumn: 'sourceGeometry',
-    geometryEncoding: 'brotli-json',
-    tableName: 'hkgovCenstatdDivisionAreas',
-  },
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
-    geometryColumn: 'sourceGeometry',
-    geometryEncoding: 'brotli-json',
-    tableName: 'hkgovCenstatdDivisionAreas',
-  },
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
-    geometryColumn: 'sourceGeometry',
-    geometryEncoding: 'brotli-json',
-    tableName: 'hkgovCenstatdDivisionAreas',
-  },
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
-    geometryColumn: 'sourceGeometry',
-    geometryEncoding: 'brotli-json',
-    tableName: 'hkgovCenstatdDivisionAreas',
-  },
-  'ds-hk-hkgov-had-division-area-district': {
-    geometryColumn: 'sourceGeometry',
-    tableName: 'hkgovHadDivisionAreas',
-  },
-  'ds-hk-hkgov-landsd-division': {
-    geometryColumn: 'sourceGeometry',
-    tableName: 'hkgovLandsdPlaceNames',
-  },
-  'ds-hk-hkgov-pland-division-new-town': {
-    geometryColumn: 'sourceGeometry',
-    tableName: 'hkgovPlandNewTowns',
-  },
-  'ds-hk-hkgov-pland-division-pu': {
-    geometryColumn: 'sourceGeometry',
-    tableName: 'hkgovPlandPlanningCells',
-  },
-  'ds-hk-overture-division': {
-    geometryProperty: 'geometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overtureDivisions',
-  },
-  'ds-hk-overture-division-area': {
-    geometryProperty: 'geometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overtureDivisionAreas',
-  },
-  'ds-hk-overture-division-boundary': {
-    geometryProperty: 'geometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overtureDivisionBoundaries',
-  },
-} as const satisfies Record<string, SourceRecordCatalogueEntry>
-
-const EMPTY_SOURCE_RECORD_CATALOGUE = {} as const satisfies Record<
-  string,
-  SourceRecordCatalogueEntry
->
-
-const PLACE_SOURCE_RECORD_CATALOGUE = {
-  'ds-hk-overture-place': {
-    geometryProperty: 'geometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overturePlaces',
-  },
-} as const satisfies Record<string, SourceRecordCatalogueEntry>
-
-function sourceCatalogueFor(
-  family: SourceFamily,
-): Record<string, SourceRecordCatalogueEntry> {
-  switch (family) {
-    case 'addresses':
-      return EMPTY_SOURCE_RECORD_CATALOGUE
-    case 'divisions':
-      return DIVISION_SOURCE_RECORD_CATALOGUE
-    case 'places':
-      return PLACE_SOURCE_RECORD_CATALOGUE
-    case 'stats':
-      return EMPTY_SOURCE_RECORD_CATALOGUE
-  }
 }
 
 function sourceBindingForName(
@@ -234,6 +150,7 @@ function decodeCursor(value: string | undefined): Cursor | null {
 async function resolveSourceRelease(
   metaDb: AppEnv['Variables']['metaDb'],
   sourceReleaseCode: string,
+  family: SourceFamily,
   region?: ApiRegion,
 ): Promise<SourceReleaseWithShard | null> {
   const result = await runWithD1ReadRetry(() =>
@@ -244,10 +161,11 @@ async function resolveSourceRelease(
           datasets.code AS datasetCode,
           releases.id AS releaseId,
           releases.resourceType AS resourceType,
-          releases.code AS sourceReleaseCode,
+          sourceReleases.code AS sourceReleaseCode,
           releases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           sourceReleases.id AS sourceReleaseId,
+          releases.code AS sourceValidityCode,
           publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
         FROM releases
@@ -259,7 +177,7 @@ async function resolveSourceRelease(
           ON releaseShardAssignments.releaseId = releases.id
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
-        WHERE releases.code = ? AND datasets.regionCode = ?
+        WHERE (sourceReleases.code = ? OR releases.code = ?) AND datasets.regionCode = ?
           AND releases.status IN ('published', 'superseded')
           AND releases.revokedAt IS NULL
           AND sourceReleases.status IN ('published', 'superseded')
@@ -268,15 +186,76 @@ async function resolveSourceRelease(
           AND dataShards.status = 'active'
           `,
       )
-      .bind(sourceReleaseCode, resolveDataRegion(region))
+      .bind(sourceReleaseCode, sourceReleaseCode, resolveDataRegion(region))
       .all<SourceReleaseWithShard>(),
   )
 
-  const rows = [...new Map(result.results.map(row => [row.bindingName, row])).values()]
-  return rows.length === 1 ? (rows[0] ?? null) : null
+  const preferred =
+    result.results.find(
+      row =>
+        row.resourceType ===
+        (sourceCatalogueFor(family)[row.datasetCode]?.resourceType ??
+          {
+            stats: 'divisionStatistic',
+            divisions: 'division',
+            places: 'place',
+            addresses: 'address',
+            streets: 'street',
+          }[family]),
+    ) ?? result.results[0]
+  const rows = [
+    ...new Map(
+      result.results
+        .filter(row => row.releaseId === preferred?.releaseId)
+        .map(row => [row.bindingName, row]),
+    ).values(),
+  ]
+  const release = rows[0]
+  return release ? { ...release, bindingNames: rows.map(row => row.bindingName) } : null
 }
 
 async function readSourceRecordPage(args: {
+  cursor: Cursor | null
+  entry: SourceRecordCatalogueEntry
+  includeGeometry: boolean
+  limit: number
+  random: boolean
+  release: SourceReleaseWithShard
+  sourceDbs: D1Database[]
+}): Promise<SourceRecordRow[]> {
+  const pages = await Promise.all(
+    args.sourceDbs.map(sourceDb => readShardSourceRecordPage({ ...args, sourceDb })),
+  )
+  const rows = [
+    ...new Map(
+      pages.flat().map(row => [`${row.sourceRecordId}:${row.versionHash}`, row]),
+    ).values(),
+  ]
+  if (args.random && pages.length > 1) {
+    // Shuffle the small candidate pool so an earlier shard is not always favoured.
+    for (let index = rows.length - 1; index > 0; index -= 1) {
+      const other = Math.floor(Math.random() * (index + 1))
+      const value = rows[index]!
+      rows[index] = rows[other]!
+      rows[other] = value
+    }
+  } else if (!args.random) {
+    rows.sort((left, right) =>
+      left.sourceRecordId < right.sourceRecordId
+        ? -1
+        : left.sourceRecordId > right.sourceRecordId
+          ? 1
+          : left.versionHash < right.versionHash
+            ? -1
+            : left.versionHash > right.versionHash
+              ? 1
+              : 0,
+    )
+  }
+  return rows.slice(0, args.limit)
+}
+
+async function readShardSourceRecordPage(args: {
   cursor: Cursor | null
   entry: SourceRecordCatalogueEntry
   includeGeometry: boolean
@@ -300,13 +279,13 @@ async function readSourceRecordPage(args: {
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
+         AND validFromRelease >= ?
        ${cursorCondition}
        ORDER BY sourceRecordId ASC, versionHash ASC
        LIMIT ?`,
     )
     .bind(
-      args.release.sourceVersion,
-      args.release.sourceVersion,
+      ...sourceValidityValues(args),
       ...(args.cursor
         ? [
             args.cursor.sourceRecordId,
@@ -362,11 +341,12 @@ async function readUuidPivotSourceRecordPage(args: {
          FROM ${args.entry.tableName}
          WHERE validFromRelease <= ?
            AND (validToRelease IS NULL OR validToRelease > ?)
+           AND validFromRelease >= ?
            AND sourceRecordId ${operator} ?
          ORDER BY sourceRecordId ASC, versionHash ASC
          LIMIT ?`,
       )
-      .bind(args.release.sourceVersion, args.release.sourceVersion, randomStart, limit)
+      .bind(...sourceValidityValues(args), randomStart, limit)
     const result = await runWithD1ReadRetry(() => statement.all<SourceRecordRow>())
     return result.results
   }
@@ -399,12 +379,30 @@ async function readRandomOrderedSourceRecordPage(args: {
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
+         AND validFromRelease >= ?
        ORDER BY RANDOM()
        LIMIT ?`,
     )
-    .bind(args.release.sourceVersion, args.release.sourceVersion, args.limit)
+    .bind(...sourceValidityValues(args), args.limit)
   const result = await runWithD1ReadRetry(() => statement.all<SourceRecordRow>())
   return result.results
+}
+
+function sourceValidityValues(args: {
+  entry: SourceRecordCatalogueEntry
+  release: SourceReleaseRow
+}): [string, string, string] {
+  const key =
+    args.entry.releaseKey === 'version'
+      ? args.release.sourceVersion
+      : (args.release.sourceValidityCode ?? args.release.sourceReleaseCode)
+  // Shared publisher tables contain several datasets. A release-code lower
+  // bound prevents an earlier dataset's open intervals leaking into this one.
+  const lower =
+    args.entry.releaseKey === 'version'
+      ? ''
+      : `${args.release.datasetCode.replace(/^ds-/, 'dr-')}-`
+  return [key, key, lower]
 }
 
 function toSourceRecord(
@@ -449,15 +447,18 @@ async function resolveRecordsRequest(args: {
   const release = await resolveSourceRelease(
     args.metaDb,
     args.sourceReleaseCode,
+    args.family,
     args.region,
   )
   if (!release) return null
 
   const entry = sourceCatalogueFor(args.family)[release.datasetCode]
-  const sourceDb = entry ? sourceBindingForName(args.env, release.bindingName) : null
-  if (!entry || !sourceDb) return null
+  const sourceDbs = (release.bindingNames ?? [release.bindingName]).map(name =>
+    sourceBindingForName(args.env, name),
+  )
+  if (!entry || sourceDbs.some(db => !db)) return null
 
-  return { entry, release, sourceDb }
+  return { entry, release, sourceDbs: sourceDbs as D1Database[] }
 }
 
 export async function listSourceRecords(args: {
@@ -523,6 +524,76 @@ export async function listSourceRecords(args: {
     },
     records: pageRows.map(row =>
       toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry),
+    ),
+  }
+}
+
+/** Exhaustive field/type inventory of the retained release, not a random sample. */
+export async function getSourceRecordSchema(args: {
+  env: AppBindings
+  family: SourceFamily
+  region?: ApiRegion
+  metaDb: AppEnv['Variables']['metaDb']
+  sourceReleaseCode: string
+}) {
+  const resolved = await resolveRecordsRequest(args)
+  if (!resolved) return null
+  const { entry, sourceDbs } = resolved
+  const results = await Promise.all(
+    sourceDbs.map(async sourceDb => {
+      const statement = sourceDb
+        .prepare(`
+    SELECT field.key AS name, field.type AS type
+    FROM ${entry.tableName} AS record, json_each(record.rawProperties) AS field
+    WHERE record.validFromRelease <= ?
+      AND (record.validToRelease IS NULL OR record.validToRelease > ?)
+      AND record.validFromRelease >= ?
+    GROUP BY field.key, field.type
+    ORDER BY field.key, field.type
+  `)
+        .bind(...sourceValidityValues(resolved))
+      return runWithD1ReadRetry(() => statement.all<{ name: string; type: string }>())
+    }),
+  )
+  const fields = new Map<string, Set<string>>()
+  const types: Record<string, string> = {
+    text: 'string',
+    integer: 'integer',
+    real: 'number',
+    true: 'boolean',
+    false: 'boolean',
+    array: 'array',
+    object: 'object',
+    null: 'null',
+  }
+  for (const field of results.flatMap(result => result.results)) {
+    const values = fields.get(field.name) ?? new Set<string>()
+    values.add(types[field.type] ?? field.type)
+    fields.set(field.name, values)
+  }
+  return {
+    type: 'object' as const,
+    additionalProperties: true,
+    properties: Object.fromEntries(
+      [...fields].map(([name, values]) => {
+        const nonNull = [...values].filter(type => type !== 'null')
+        const definitions = nonNull.map(type => ({
+          type,
+          ...(type === 'object' ? { additionalProperties: true } : {}),
+          ...(type === 'array' ? { items: {} } : {}),
+        }))
+        return [
+          name,
+          {
+            ...(definitions.length === 1
+              ? definitions[0]
+              : definitions.length
+                ? { anyOf: definitions }
+                : { type: 'null' }),
+            nullable: values.has('null'),
+          },
+        ]
+      }),
     ),
   }
 }
@@ -752,7 +823,7 @@ async function querySourceReleaseDiscoveryRows(
         `SELECT DISTINCT
           datasets.code AS datasetCode,
           releases.resourceType AS resourceType,
-          releases.code AS sourceReleaseCode,
+          sourceReleases.code AS sourceReleaseCode,
           datasets.sourceVariant AS sourceVariant,
           apiReleaseSets.code AS apiReleaseSetCode,
           snapshotSources.role AS role,
@@ -772,7 +843,7 @@ async function querySourceReleaseDiscoveryRows(
         INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
         INNER JOIN snapshotSources ON snapshotSources.snapshotId = snapshots.id
-        INNER JOIN releases ON releases.id = snapshotSources.sourceReleaseId
+        INNER JOIN releases ON releases.id = snapshotSources.resourceReleaseId
         INNER JOIN sourceReleases
           ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId

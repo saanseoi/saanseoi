@@ -4,6 +4,7 @@ import { Database } from 'bun:sqlite'
 
 import {
   listSourceRecords,
+  getSourceRecordSchema,
   listSourceReleases,
   SourceRecordRequestError,
   streamSourceRecordsNdjson,
@@ -57,7 +58,7 @@ function metaDatabase(input?: {
                 )
                 expect(query).toContain('releases.revokedAt IS NULL')
                 expect(query).toContain('datasets.regionCode = ?')
-                expect(values).toEqual([sourceReleaseCode, 'hk'])
+                expect(values).toEqual([sourceReleaseCode, sourceReleaseCode, 'hk'])
                 return {
                   results:
                     input?.published === false
@@ -87,6 +88,164 @@ function metaDatabase(input?: {
 const sourceReleaseCode = 'dr-hk-overture-division-2026-07-22.0'
 
 describe('source records', () => {
+  test('resolves the public parent to its statistics child without losing retained geometry', async () => {
+    const sqlite = new Database(':memory:')
+    const code =
+      'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    sqlite.exec(`
+      CREATE TABLE publishers(id, code);
+      CREATE TABLE datasets(id, code, publisherId, regionCode, sourceVariant);
+      CREATE TABLE sourceReleases(id, code, status, revokedAt);
+      CREATE TABLE releases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
+      CREATE TABLE releaseShardAssignments(releaseId, dataShardId);
+      CREATE TABLE dataShards(id, bindingName, shardType, status);
+      CREATE TABLE hkgovCenstatdStatistics(sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease);
+      INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
+      INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
+      INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
+    `)
+    sqlite.run('INSERT INTO datasets VALUES(?, ?, ?, ?, ?)', [
+      'dataset',
+      datasetCode,
+      'publisher',
+      'hk',
+      'official-statistics',
+    ])
+    sqlite.run('INSERT INTO sourceReleases VALUES(?, ?, ?, NULL)', [
+      'parent',
+      code,
+      'published',
+    ])
+    for (const [id, type] of [
+      ['area', 'divisionArea'],
+      ['statistic', 'divisionStatistic'],
+    ]) {
+      sqlite.run('INSERT INTO releases VALUES(?, ?, ?, ?, ?, ?, ?, NULL)', [
+        id!,
+        `${code}::${type}`,
+        'parent',
+        'dataset',
+        type!,
+        '2021',
+        'published',
+      ])
+    }
+    sqlite.run('INSERT INTO hkgovCenstatdStatistics VALUES(?, ?, ?, ?, ?, NULL)', [
+      'record',
+      'hash',
+      '{"population":42}',
+      '{"type":"Point","coordinates":[114,22]}',
+      `${code}::divisionStatistic`,
+    ])
+    const binding = {
+      prepare(query: string) {
+        return {
+          bind(...values: (string | number)[]) {
+            return {
+              all: async () => ({
+                results: sqlite.query(query).all(...values),
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    }
+    const args = {
+      metaDb: { $client: binding } as never,
+      env: { DB_SOURCE_HK_2026: binding } as never,
+      family: 'stats' as const,
+      sourceReleaseCode: code,
+      limit: 10,
+    }
+    try {
+      const plain = await listSourceRecords({ ...args, includeGeometry: false })
+      expect(plain?.records).toHaveLength(1)
+      expect(plain?.records[0]).toMatchObject({
+        resourceType: 'divisionStatistic',
+        rawProperties: { population: 42 },
+      })
+      expect(plain?.records[0]).not.toHaveProperty('geometry')
+      const spatial = await listSourceRecords({ ...args, includeGeometry: true })
+      expect(spatial?.records[0]?.geometry).toEqual({
+        type: 'Point',
+        coordinates: [114, 22],
+      })
+      sqlite.run("UPDATE sourceReleases SET status = 'processing'")
+      expect(await listSourceRecords({ ...args, includeGeometry: false })).toBeNull()
+    } finally {
+      sqlite.close()
+    }
+  })
+
+  test('uses full source codes for areas and inventories every record without leaking another dataset', async () => {
+    const sqlite = new Database(':memory:')
+    sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
+      sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      validFromRelease TEXT, validToRelease TEXT
+    )`)
+    const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
+    const insert = sqlite.query(
+      'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?)',
+    )
+    insert.run('old', 'v1', '{"obsolete":true}', code.replace('2021', '2016'), code)
+    insert.run('a', 'v1', '{"name":"One","value":1,"optional":null}', code, null)
+    insert.run('b', 'v1', '{"name":"Two","value":"suppressed","rare":true}', code, null)
+    insert.run(
+      'unrelated',
+      'v1',
+      '{"wrongDataset":true}',
+      code.replace('new-towns', 'major-housing-estates'),
+      null,
+    )
+    insert.run('future', 'v1', '{"future":true}', code.replace('2021', '2026'), null)
+    const sourceDb = {
+      prepare(query: string) {
+        return {
+          bind(...values: Array<string | number>) {
+            return {
+              all: async () => ({
+                results: sqlite.query(query).all(...values),
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    } as never
+    const args = {
+      env: { DB_SOURCE_HK_2026: sourceDb } as never,
+      family: 'stats' as const,
+      includeGeometry: false,
+      metaDb: metaDatabase({
+        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        sourceReleaseCode: code,
+        sourceVersion: '2021',
+      }),
+      sourceReleaseCode: code,
+    }
+    try {
+      for (const sample of [undefined, 'random'] as const) {
+        const page = await listSourceRecords({ ...args, sample, limit: 10 })
+        expect(page?.records.map(record => record.sourceRecordId).sort()).toEqual([
+          'a',
+          'b',
+        ])
+      }
+      const schema = await getSourceRecordSchema(args)
+      expect(schema?.properties).toEqual({
+        name: { type: 'string', nullable: false },
+        optional: { type: 'null', nullable: true },
+        rare: { type: 'boolean', nullable: false },
+        value: { anyOf: [{ type: 'integer' }, { type: 'string' }], nullable: false },
+      })
+    } finally {
+      sqlite.close()
+    }
+  })
+
   test('reads and streams exact Places source versions with pagination and geometry', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE overturePlaces (
@@ -307,10 +466,10 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[2]).toMatch(
+            expect(values[3]).toMatch(
               /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
             )
-            expect(values[3]).toBe(2)
+            expect(values[4]).toBe(2)
             return {
               all: async () => ({
                 results: [
@@ -365,7 +524,7 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[2]).toMatch(
+            expect(values[3]).toMatch(
               /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
             )
             return {
@@ -414,7 +573,12 @@ describe('source records', () => {
         query = value
         return {
           bind(...values: unknown[]) {
-            expect(values).toEqual(['2016', '2016', 2])
+            expect(values).toEqual([
+              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016',
+              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016',
+              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-',
+              2,
+            ])
             return {
               all: async () => ({
                 results: [
@@ -538,7 +702,7 @@ describe('source records', () => {
             },
           ],
           'hkgovCenstatdDivisionAreas',
-          '2016',
+          censtatdRelease,
         ),
         DB_SOURCE_HK_BEFORE: sourceDatabase([]),
       } as never,
