@@ -9,6 +9,22 @@ import {
 } from './api'
 
 describe('api helpers', () => {
+  test('builds next links from lookahead without inventing a total', () => {
+    for (const hasMore of [true, false]) {
+      const document = buildJsonApiListDocument({
+        url: new URL('https://api.saanseoi.hk/addresses/v0.1?access_token=secret'),
+        data: [{ id: 'a' }],
+        limit: 1,
+        offset: 1,
+        hasMore,
+        meta: { page: { limit: 1, offset: 1 } },
+      })
+      expect(Boolean(document.links.next)).toBe(hasMore)
+      expect(document.links.prev).toBeDefined()
+      expect(JSON.stringify(document)).not.toContain('secret')
+      expect(document.meta.page).not.toHaveProperty('total')
+    }
+  })
   test('buildJsonApiListDocument builds pagination links and included resources', () => {
     const document = buildJsonApiListDocument({
       url: new URL('http://localhost/divisions/v0.1?page[limit]=10&page[offset]=10'),

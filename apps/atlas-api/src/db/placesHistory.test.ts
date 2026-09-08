@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { createLocalHarbourDb } from '../../../../libs/core/src/testing/localDb'
 import { loadMigrationSql } from '../../../../libs/core/src/testing/metaFixtures'
 
-import { listReplayedPlaceRecords } from './placesHistory'
+import { listReplayedPlaceRecords, listReplayedPlacePage } from './placesHistory'
 
 const MIGRATIONS_DIR = resolve(import.meta.dir, '../../../../libs/db/migrations')
 const TIMESTAMP = '2026-09-05T00:00:00.000Z'
@@ -278,6 +278,42 @@ test('replays Place text and Address-derived divisions from the selected snapsho
     })
 
     expect(records).toHaveLength(101)
+    const lookup = {
+      divisionSnapshotId: 'division-snapshot-old',
+      historyDbsByBinding: {
+        DB_HISTORY_HK_2025: createLocalHarbourDb(history) as never,
+      },
+      localeSelection: { mode: 'requested' as const, locales: ['en'] },
+      metaDb: createLocalHarbourDb(meta),
+      snapshotId: 'place-snapshot-old',
+      limit: 2,
+      offset: 99,
+    }
+    const page = await listReplayedPlacePage(lookup)
+    expect(page.total).toBe(101)
+    expect(page.records.map(record => record.place.id)).toEqual(
+      records
+        .map(record => record.place.id)
+        .sort()
+        .slice(99),
+    )
+    const filtered = await listReplayedPlacePage({
+      ...lookup,
+      offset: 0,
+      divisionId: 'division-district-old',
+    })
+    expect(filtered.total).toBe(1)
+    expect(filtered.records[0]?.i18n.en?.name).toBe('Old Place Name')
+    run(
+      history,
+      `UPDATE snapshotVersionChanges SET operation = 'delete', versionHash = NULL WHERE recordType = 'place' AND recordId = 'place-1'`,
+    )
+    const deletedPage = await listReplayedPlacePage({ ...lookup, offset: 99 })
+    expect(deletedPage.total).toBe(100)
+    expect(deletedPage.records).toHaveLength(1)
+    expect((await listReplayedPlacePage({ ...lookup, offset: 100 })).records).toEqual(
+      [],
+    )
     expect(records.find(record => record.place.id === 'place-1')).toMatchObject({
       place: {
         id: 'place-1',

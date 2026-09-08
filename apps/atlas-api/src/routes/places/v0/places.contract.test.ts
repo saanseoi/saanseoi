@@ -529,20 +529,29 @@ function seedHistory(sqlite: Database) {
   }
 }
 
-function createFixtureEnvironment() {
+function createFixtureEnvironment(
+  options: { historyOnly?: boolean; rejectHistory?: boolean } = {},
+) {
   const metaSqlite = initSqlite(['meta'])
   const currentSqlite = initSqlite(['current'])
   const historySqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
-  seedCurrent(currentSqlite)
+  if (!options.historyOnly) seedCurrent(currentSqlite)
   seedHistory(historySqlite)
+  const historyDb = options.rejectHistory
+    ? ({
+        prepare() {
+          throw new Error('Current Places must not read history')
+        },
+      } as unknown as D1Database)
+    : createMockD1(historySqlite)
   return {
     env: {
       DB_META: createMockD1(metaSqlite),
       DB_CURRENT: createMockD1(currentSqlite),
-      DB_HISTORY_HK_BEFORE: createMockD1(historySqlite),
-      DB_HISTORY_HK_2025: createMockD1(historySqlite),
-      DB_HISTORY_HK_2026: createMockD1(historySqlite),
+      DB_HISTORY_HK_BEFORE: historyDb,
+      DB_HISTORY_HK_2025: historyDb,
+      DB_HISTORY_HK_2026: historyDb,
       DB_SOURCE_HK_BEFORE: createMockD1(currentSqlite),
       DB_SOURCE_HK_2025: createMockD1(currentSqlite),
       DB_SOURCE_HK_2026: createMockD1(currentSqlite),
@@ -562,6 +571,35 @@ function createFixtureEnvironment() {
 }
 
 describe('Places collection through the Worker route', () => {
+  for (const historyOnly of [false, true]) {
+    test(`paginates with historyOnly=${historyOnly}, including empty filtered pages`, async () => {
+      const fixture = createFixtureEnvironment({
+        historyOnly,
+        rejectHistory: !historyOnly,
+      })
+      try {
+        for (const offset of [0, 1]) {
+          const response = await app.fetch(
+            new Request(
+              `http://localhost/places/v0.1?releaseSet=${RELEASE_SET}&include=divisions&filter[basicCategory]=restaurant&filter[taxonomyPrimary]=ramen_restaurant&filter[operatingStatus]=open&page[limit]=1&page[offset]=${offset}`,
+            ),
+            fixture.env,
+          )
+          const body = (await response.json()) as {
+            data: Array<{ id: string }>
+            meta: { page: { total: number } }
+          }
+          expect(response.status).toBe(200)
+          expect(body.meta.page.total).toBe(1)
+          expect(body.data.map(row => row.id)).toEqual(
+            offset === 0 ? ['place-ramen'] : [],
+          )
+        }
+      } finally {
+        fixture.close()
+      }
+    })
+  }
   test('defaults to HK, resolves GBA to HK, and keeps MO outside HK publications', async () => {
     const fixture = createFixtureEnvironment()
     try {
