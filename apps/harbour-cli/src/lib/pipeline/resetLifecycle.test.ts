@@ -96,3 +96,44 @@ test('scoped reset SQL rechecks pending ownership and excludes active delivery w
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test('scoped local reset can discard an orphaned SQL ownership marker', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'reset-orphaned-delivery-'))
+  const db = new Database(':memory:')
+  const marker = join(root, 'pending-sql-delivery.json')
+  try {
+    db.exec('CREATE TABLE protectedRows(id); INSERT INTO protectedRows VALUES(1)')
+    await writeFile(
+      marker,
+      JSON.stringify({
+        releaseId: 'orphaned-release',
+        directories: [join(root, 'missing-plan')],
+      }),
+    )
+    await executeResetSqlArtefacts({
+      artefacts: [
+        {
+          target: {
+            name: 'current' as const,
+            databaseId: null,
+            binding: createLocalExecBinding(db, 'DB_CURRENT'),
+          },
+          sql: 'DELETE FROM protectedRows;',
+        },
+      ],
+      cacheReleaseCodes: [],
+      cacheReleaseIds: [],
+      cacheRoot: root,
+      context: { state: { dbCacheDir: root } } as unknown as LocalAddressDbContext,
+      keepCache: true,
+      discardAbandonedSqlDelivery: true,
+      target: { remote: false, environment: 'preview' },
+      remoteCacheErrorMessage: 'reset failed',
+    })
+    expect(await Bun.file(marker).exists()).toBe(false)
+    expect(db.query('SELECT count(*) AS n FROM protectedRows').get()).toEqual({ n: 0 })
+  } finally {
+    db.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})

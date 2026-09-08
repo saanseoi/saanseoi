@@ -36,7 +36,7 @@ export function printUsage() {
   saanseoi tiles:render --region gba|hk|mo --date YYYY-MM-DD [--mode light|dark|postcard|postcard-lit] [--dry-run]
   saanseoi schedule [--dry-run]
   saanseoi init:addresses:saanseoi [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
-  saanseoi reset:divisions [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
+  saanseoi reset:divisions [--target local|preview|production] [--dry-run] [--yes] [--keep-cache] [--discard-abandoned-sql-delivery]
   saanseoi reset:stats [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
   saanseoi reset:addresses:official [--target local|preview|production] [--dry-run] [--yes] [--keep-cache] [--discard-abandoned-staged] [--discard-changed-docs] [--adopt-failed]
   saanseoi reset:places:overture [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
