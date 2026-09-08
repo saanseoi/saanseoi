@@ -12,12 +12,24 @@ copy. The processor and audit producer use the same registered definition and fr
 parameters. CLI retention also records the referenced source file's SHA-256 revision.
 Processor substeps can contribute named aggregate counters to that declaration.
 
-The population scaling, area/boundary geometry and Statistics field/localisation
-declarations are readable JSON under `fixtures/meta/processing-rules/`. Executors
-validate and register these fixtures directly; the retained declaration is the same
-frozen definition. Storing a declaration in a fixture does not change its operation
-basis: algorithmic transformations remain code rules, while reviewed value selections
-remain fixture-backed decisions.
+Division normalisation, classification, translation, geometry, Planning, synthetic-area,
+geography-identity and Statistics declarations are readable JSON under
+`fixtures/meta/processing-rules/`. Executors validate and register these fixtures
+directly; the retained declaration is the same frozen definition. Storing a declaration
+in a fixture does not change its operation basis: algorithmic transformations remain
+code rules, while reviewed value selections remain fixture-backed decisions.
+
+Taxonomy mappings, ordered level matching, area-name recognition, API locale priorities,
+geometry exclusions and population scaling factors are consumed from those definitions.
+Algorithms remain in the referenced TypeScript implementations. Empty parameters mean
+the rule has no static policy parameters; reviewed input fixtures are separate inputs,
+not embedded dataset values.
+
+Merge rulesets reference shared declarations by fixture basename. Resolution includes
+the exact definitions and derives descriptions, input/output paths and execution scope
+from them. A ruleset's resolved hash covers the referenced content, so a policy edit
+changes its identity even when its reference names are unchanged. The source ruleset
+file's own hash is validated separately.
 
 Bulk fixture curations retain the selected reviewed documents in R2. Individual
 curations, including translations and guarded classification corrections, retain their

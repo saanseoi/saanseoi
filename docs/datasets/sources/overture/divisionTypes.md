@@ -1,5 +1,10 @@
 # canonical division types
 
+The `division-normalisation.json` processing fixture owns subtype/class mappings,
+hierarchy classifications, ordered level tokens, Hong Kong area-name recognition and
+fallbacks. The normaliser consumes these parameters directly. Level-token order and
+substring matching are significant; review both when editing taxonomy policy.
+
 ## v1
 
 ### EN

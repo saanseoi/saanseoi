@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:185406f329a861201d0152925d66b579a52127ab6edf2ad4fedb1357252acfa3",
+  "versionHash": "sha256:077dd057b8b0e50e3b83c0a16ff9b1bd72b5deb2206d563fe4326b2ef219d2dc",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -83,24 +83,7 @@
     },
     {
       "operationCode": "overture_division_locale_inferred",
-      "type": "record",
-      "sourceFieldPath": "names",
-      "targetFieldPath": "i18n.*.locale",
-      "condition": "A source division name has no usable locale label and its locale is inferred from its text.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each division-name locale inferred from unlabeled Overture source text."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個根據未標示 Overture 來源文字推斷的區劃名稱語言。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个根据未标示 Overture 源文本推断的区划名称语言。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "overture_division_api_locale_fallback_added",
@@ -116,24 +99,7 @@
     },
     {
       "operationCode": "overture_division_geometry_cn_gd_excluded",
-      "type": "record",
-      "sourceFieldPath": "region",
-      "targetFieldPath": "geometry",
-      "condition": "The Overture geometry belongs to the Guangdong spillover region (`CN-GD`) rather than Hong Kong.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each Guangdong spillover geometry excluded from a Hong Kong Overture release."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個從香港 Overture 發布版本中排除的廣東延伸幾何。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个从香港 Overture 发布版本中排除的广东延伸几何。"
-        }
-      ]
+      "ruleFixture": ["division-area-geometry", "division-boundary-geometry"]
     },
     {
       "operationCode": "overture_hong_kong_area_synthesised",

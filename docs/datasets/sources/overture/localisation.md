@@ -1,5 +1,9 @@
 # locale
 
+The `division-normalisation.json` processing rule supplies ordered API locale
+priorities. The processor reads the same frozen parameters retained in Audit. The
+`division-translation.json` rule declares how selected translation fixtures apply.
+
 Locale inference and API fallback contribute aggregate processing counters. Applied name
 translations are individual fixture curations in the
 [retained audit](../../processing-provenance.md), with source and translated text,
