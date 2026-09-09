@@ -1,7 +1,7 @@
 <script lang="ts">
-type Props = { label: string }
+type Props = { emphasis?: string; label: string }
 
-let { label }: Props = $props()
+let { emphasis, label }: Props = $props()
 
 type Segment = { value: string; code: boolean }
 
@@ -26,10 +26,18 @@ const parseInlineCode = (value: string): Segment[] => {
   return segments.length ? segments : [{ code: false, value }]
 }
 
-let segments = $derived(parseInlineCode(label))
+let emphasisedPrefix = $derived(
+  emphasis && label.startsWith(emphasis) ? emphasis : undefined,
+)
+let segments = $derived(
+  parseInlineCode(emphasisedPrefix ? label.slice(emphasisedPrefix.length) : label),
+)
 </script>
 
 <span class="min-w-0 -translate-y-px">
+  {#if emphasisedPrefix}
+    <strong class="font-semibold">{emphasisedPrefix}</strong>
+  {/if}
   {#each segments as segment}
     {#if segment.code}
       <code class="font-mono text-[0.9em]">{segment.value}</code>

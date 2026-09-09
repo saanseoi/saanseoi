@@ -15,6 +15,7 @@ function stripFrontmatter(markdown: string) {
 }
 
 export type MarkdownHeading = {
+  emphasis?: string
   id: string
   level: number
   text: string
