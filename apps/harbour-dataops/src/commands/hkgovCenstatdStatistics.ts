@@ -20,6 +20,7 @@ import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sour
 import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 import { loadDatasetFixtures } from '../../../harbour-cli/src/lib/sources/sourceUpdates.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import {
   fetchReleaseReport,
   type ReleaseReportRow,
@@ -47,25 +48,14 @@ export function pendingCenstatdStatisticResourceTypes(
   return expectedTypes.filter(type => !publishedTypes.has(type))
 }
 
-export function formatCompletedCenstatdStatisticReleases(
+export async function formatCompletedCenstatdStatisticReleases(
+  target: UploadTarget,
   datasetCode: string,
-  sourceVersion: string,
-  resourceTypes: readonly StatisticResourceType[],
 ) {
-  const releaseBase = `dr-${datasetCode.slice('ds-'.length)}-${sourceVersion}`
-  const releaseCodes = resourceTypes.map(type => `${releaseBase}::${type}`)
-  const initColumnWidth = Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH)
-  const releaseColumnWidth = Math.max(
-    Number.isSafeInteger(initColumnWidth) && initColumnWidth > 0 ? initColumnWidth : 0,
-    ...releaseCodes.map(code => code.length),
-  )
-
-  return releaseCodes
-    .map(
-      releaseCode =>
-        `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`,
-    )
-    .join('\n')
+  return formatInitialisationSkippedDatasets(target, {
+    datasetCodes: [datasetCode],
+    releaseCodes: [],
+  })
 }
 
 export async function runHkgovCenstatdStatisticsIngestCommand(
@@ -267,10 +257,8 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
 
     if (pendingTypes.length === 0) {
       console.log(
-        formatCompletedCenstatdStatisticReleases(
-          datasetCode,
-          sourceVersion,
-          requestedTypes,
+        (await formatCompletedCenstatdStatisticReleases(target, datasetCode)).join(
+          '\n',
         ),
       )
       return

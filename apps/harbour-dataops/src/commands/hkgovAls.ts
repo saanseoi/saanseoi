@@ -30,6 +30,7 @@ import {
 } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
@@ -270,6 +271,7 @@ export async function runHkgovAlsIngestCommand(
     )
   }
 
+  let renderedCompletedSkip = false
   for (const {
     addressCohortKey,
     divisionCohortKey,
@@ -277,7 +279,10 @@ export async function runHkgovAlsIngestCommand(
     sourceVersion,
   } of sourceReleases) {
     if (completedSourceVersions.has(sourceVersion) && !args.options.force) {
-      console.log(formatCompletedAlsRelease(sourceVersion))
+      if (!renderedCompletedSkip) {
+        console.log((await formatCompletedAlsRelease(target)).join('\n'))
+        renderedCompletedSkip = true
+      }
       continue
     }
     const outputFile = resolveInvocationPath(
@@ -393,14 +398,11 @@ export async function runHkgovAlsIngestCommand(
   }
 }
 
-export function formatCompletedAlsRelease(sourceVersion: string) {
-  const releaseCode = `dr-hk-hkgov-dpo-address-${sourceVersion}`
-  const initColumnWidth = Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH)
-  const releaseColumnWidth = Math.max(
-    Number.isSafeInteger(initColumnWidth) && initColumnWidth > 0 ? initColumnWidth : 0,
-    releaseCode.length,
-  )
-  return `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`
+export async function formatCompletedAlsRelease(target: UploadTarget) {
+  return formatInitialisationSkippedDatasets(target, {
+    datasetCodes: ['ds-hk-hkgov-dpo-address'],
+    releaseCodes: [],
+  })
 }
 
 function formatAlsReviewCommand(input: {
