@@ -171,6 +171,7 @@ export const getAuditPage = query(
     category: z.enum(['translations', 'patches', 'curations', 'rules']).optional(),
     fixtureIndex: z.number().int().min(0).optional(),
     entryIndex: z.number().int().min(0).optional(),
+    countOnly: z.boolean().default(false),
   }),
   async input => {
     const { manifest } = await manifestFor(input.releaseId, input.hash)
@@ -188,6 +189,7 @@ export const getAuditPage = query(
       buildAuditPageIndex(bucket, manifest),
     )
     return readIndexedAuditPage(bucket, manifest, index, input.q, input.offset, 50, {
+      countOnly: input.countOnly,
       category: input.category,
       fixture: fixture
         ? { hash: fixture.object.hash, pointer: `/entries/${input.entryIndex}` }
@@ -246,10 +248,17 @@ export const getAuditFixtureGroup = query(
     if (!bulk) throw new Error('Rule is not declared by this release.')
     const fixtures = bulk.fixtures.filter(f => f.type === input.type)
     if (!fixtures.length) throw new Error('Fixture is not declared by this release.')
-    const groups = await loadAuditFixtures([{ id: bulk.id, fixtures }], (_id, index) =>
-      readObject(store(), fixtures[index]!.object),
+    const groups = await loadAuditFixtures(
+      [{ id: bulk.id, fixtures }],
+      (_id, index) => {
+        const fixture = fixtures[index]
+        if (!fixture) throw new Error('Fixture is not declared by this release.')
+        return readObject(store(), fixture.object)
+      },
     )
-    return filterAuditFixture(groups[bulk.id]![input.type]!, input.q)
+    const group = groups[bulk.id]?.[input.type]
+    if (group === undefined) throw new Error('Fixture group could not be loaded.')
+    return filterAuditFixture(group, input.q)
   },
 )
 
@@ -267,9 +276,11 @@ export const getAuditAlsDecisions = query(
       `als/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
       async () => {
         const bulk = manifest.bulk.filter(b => b.id === 'curate-als-addresses')
-        const groups = await loadAuditFixtures(bulk, (_id, index) =>
-          readObject(store(), bulk[0]!.fixtures[index]!.object),
-        )
+        const groups = await loadAuditFixtures(bulk, (_id, index) => {
+          const fixture = bulk[0]?.fixtures[index]
+          if (!fixture) throw new Error('Fixture is not declared by this release.')
+          return readObject(store(), fixture.object)
+        })
         return alsAuditDecisions(
           groups['curate-als-addresses'] ?? {},
           input.releaseCode,
