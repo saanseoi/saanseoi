@@ -8,9 +8,10 @@ import ReleaseNavInlineLabel from './releaseNavInlineLabel.svelte'
 type Props = {
   activeOutlineId: string | null
   items: ReleaseNavOutlineItem[]
+  onOutlineSelect?: (id: string) => void
   panel?: HTMLElement
 }
-let { activeOutlineId, items, panel }: Props = $props()
+let { activeOutlineId, items, onOutlineSelect, panel }: Props = $props()
 let open = $state(false)
 let activeItem = $derived(items.find(item => item.id === activeOutlineId) ?? items[0])
 
@@ -28,6 +29,11 @@ function toggle() {
 
 function dismiss() {
   open = false
+}
+
+function select(id: string) {
+  dismiss()
+  onOutlineSelect?.(id)
 }
 </script>
 
@@ -81,7 +87,7 @@ function dismiss() {
         ariaLabel={m.source_release_sections()}
         {items}
         mobile
-        onSelect={dismiss}
+        onSelect={select}
         {panel}
       />
     </div>
