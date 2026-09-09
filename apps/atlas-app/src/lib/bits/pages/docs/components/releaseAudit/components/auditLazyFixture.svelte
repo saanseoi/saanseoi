@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Json } from '@repo/core/provenance'
+import { untrack } from 'svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import { getAuditFixtureGroup } from '#lib/registry/audit.remote.js'
 import type { FixtureSearchGroup } from './auditFixtureCatalogue'
@@ -25,7 +26,9 @@ let {
   label: string
   group: FixtureSearchGroup
 } = $props()
-let open = $state(type === 'statistic-fields' || type === 'statistic-measures')
+let open = $state(
+  untrack(() => type === 'statistic-fields' || type === 'statistic-measures'),
+)
 let value = $state<Json>()
 let failure = $state(false)
 let retry = $state(0)

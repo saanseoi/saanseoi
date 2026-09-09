@@ -1,5 +1,6 @@
 <script lang="ts">
 import { m } from '@repo/i18n/messages'
+import { untrack } from 'svelte'
 import type { AlsDecision } from './auditAlsDecisions'
 import type { AlsSearchRow } from './auditFixtureCatalogue'
 import { getAuditAlsDecisions } from '#lib/registry/audit.remote.js'
@@ -54,7 +55,10 @@ $effect(() => {
   releaseId
   releaseCode
   hash
-  if (open) void load(true)
+  if (open)
+    untrack(() => {
+      void load(true)
+    })
   return () => {
     generation++
   }
