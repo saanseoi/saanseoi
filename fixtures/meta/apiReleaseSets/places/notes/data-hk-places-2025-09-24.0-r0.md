@@ -38,23 +38,18 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## Notes and limitations
 
 - The Place collection is anchored to the Overture Place source release for this cohort.
-  Discover its source release with
-  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>.
-  Read retained Overture records with
+  You can pull the source records with
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>.
   Follow <black>nextCursor</black> for further JSON pages, or add
   <black>format=ndjson</black> to stream the records. Add
   <black>include=geometry</black> to expose the retained source geometry separately.
 - Address context is supplementary. `address2dId` is populated only when the Place
   address can be matched to the selected ALS snapshot; this release does not resolve an
-  `address3dId`. An unmatched publisher address remains source data and does not create
-  or modify an official ALS address.
+  `address3dId`. This is a future improvement.
 - Division relationships are derived from the reviewed address link. A Place without an
-  ALS link can have an empty Division relationship; do not infer a Division from point
-  geometry.
-- Place geometry is a point for positioning and indexing. It is not a boundary and does
-  not by itself establish Division membership. H3 indexes and full-text search are
-  derived projections of the Place snapshot.
+  ALS link can have an empty Division relationship.
+- Place geometry is a point for positioning and indexing. H3 indexes and full-text
+  search are derived projections of the Place snapshot.
 - Overture's September 2025 source release sets every `operating_status` value to
   `open`; this reflects the source release and should not be treated as an independent
   current-status verification.
@@ -86,18 +81,15 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Place collection 以此 cohort 的 Overture Place 來源發布為基礎。使用
-  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>
-  尋找其來源發布。使用
+- Place collection 以此 cohort 的 Overture Place 來源發布為基礎。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
-  讀取保留的 Overture 記錄。沿 <black>nextCursor</black> 取得後續 JSON 頁面，或加入
+  取得來源記錄。沿 <black>nextCursor</black> 取得後續 JSON 頁面，或加入
   <black>format=ndjson</black> 串流傳輸記錄。加入 <black>include=geometry</black>
   可另行取得保留的來源幾何資料。
 - 地址背景資料屬於補充資料。只有在 Place 地址能與所選 ALS snapshot 配對時，才會填入
-  `address2dId`；此版本不會解析
-  `address3dId`。未配對的發布者地址會保留為來源資料，不會建立或修改官方 ALS 地址。
-- Division 關係由已審核的地址連結衍生。沒有 ALS 連結的 Place，其 Division 關係可以為空；請勿從點幾何資料推斷 Division。
-- Place 幾何資料是用於定位及索引的點，不是邊界，也不會單獨確立 Division 歸屬。H3 索引及全文搜尋是由 Place
+  `address2dId`；此版本不會解析 `address3dId`。這是日後的改善項目。
+- Division 關係由已審核的地址連結衍生。沒有 ALS 連結的 Place，其 Division 關係可以為空。
+- Place 幾何資料是用於定位及索引的點。H3 索引及全文搜尋是由 Place
   snapshot 衍生的 projection。
 - Overture 2025 年 9 月來源發布將所有 `operating_status` 值設定為
   `open`；這反映來源發布，不應視作獨立的目前狀態核實。
@@ -127,19 +119,16 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Place collection 以此 cohort 的 Overture Place 源发布为基础。使用
-  <black>/places/v0.1/source-releases?releaseSet=data-hk-places-2025-09-24.0-r0</black>
-  查找其源发布。使用
+- Place collection 以此 cohort 的 Overture Place 源发布为基础。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
-  读取保留的 Overture 记录。沿 <black>nextCursor</black> 获取后续 JSON 页面，或添加
+  获取源记录。沿 <black>nextCursor</black> 获取后续 JSON 页面，或添加
   <black>format=ndjson</black> 流式传输记录。添加 <black>include=geometry</black>
   可另行获取保留的源几何数据。
 - 地址背景数据属于补充数据。只有在 Place 地址能与所选 ALS snapshot 匹配时，才会填入
-  `address2dId`；此版本不会解析
-  `address3dId`。未匹配的发布者地址会保留为源数据，不会创建或修改官方 ALS 地址。
-- Division 关系由已审核的地址链接衍生。没有 ALS 链接的 Place，其 Division 关系可以为空；请勿从点几何数据推断 Division。
-- Place 几何数据是用于定位及索引的点，不是边界，也不会单独确立 Division 归属。H3 索引及全文搜索是由 Place
-  snapshot 衍生的 projection。
+  `address2dId`；此版本不会解析 `address3dId`。这是日后的改进项目。
+- Division 关系由已审核的地址链接衍生。没有 ALS 链接的 Place，其 Division 关系可以为空。
+- Place 几何数据是用于定位及索引的点。H3 索引及全文搜索是由 Place
+  snapshot 派生的 projection。
 - Overture 2025 年 9 月源发布将所有 `operating_status` 值设为
   `open`；这反映源发布，不应视作独立的当前状态核实。
 - 请参阅[发布范围表](#source-heading-release-scope)链接的源发布说明，以了解发布者特有的schema、溯源及兼容性资料。
