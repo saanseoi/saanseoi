@@ -121,6 +121,16 @@ Fields which are not exposed as part of the two-dimensional
   consolidated during release preparation, with source evidence and decisions retained
   in processing records
 
+## Limitations
+
+### Curation policy
+
+{{addressCurationPolicy:en}}
+
+### Known Quality Issues
+
+{{addressKnownQualityIssues:en}}
+
 # ZH-HANT
 
 ## 更新紀錄
@@ -214,6 +224,16 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 - 完全重複的 GeoJSON feature 及經審核的等價 premise representation - 在 release
   preparation 期間合併，來源證據及決定則保留於 processing record
 
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hant}}
+
+### 已知品質問題
+
+{{addressKnownQualityIssues:zh-Hant}}
+
 # ZH-HANS
 
 ## 更新记录
@@ -306,3 +326,13 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
   response，而非交付的 premise
 - 完全重复的 GeoJSON feature 及经审核的等价 premise representation - 在 release
   preparation 期间合并，源证据及决定则保留于 processing record
+
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hans}}
+
+### 已知质量问题
+
+{{addressKnownQualityIssues:zh-Hans}}

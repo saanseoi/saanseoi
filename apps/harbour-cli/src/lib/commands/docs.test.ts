@@ -280,6 +280,60 @@ Publishes revision r{{ revision }}.
     expect(rendered).not.toContain('{{apiKeyNote:')
   })
 
+  test('renders address notes, curation policy and quality issues without moving fixture headings', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `## Notes and limitations
+
+{{addressNotesAndLimitations:en}}
+
+### Curation policy
+
+{{addressCurationPolicy:en}}
+
+### Known Quality Issues
+
+{{addressKnownQualityIssues:en}}
+
+## 備註與限制
+
+{{addressNotesAndLimitations:zh-Hant}}
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hant}}
+
+### 已知品質問題
+
+{{addressKnownQualityIssues:zh-Hant}}
+
+## 备注与限制
+
+{{addressNotesAndLimitations:zh-Hans}}
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hans}}
+
+### 已知质量问题
+
+{{addressKnownQualityIssues:zh-Hans}}
+`,
+      frontmatter: {},
+    })
+
+    expect(rendered).toContain('## Notes and limitations')
+    expect(rendered).toContain('### Curation policy')
+    expect(rendered).toContain('### Known Quality Issues')
+    expect(rendered).toContain('### 整理政策')
+    expect(rendered).toContain('### 已知品質問題')
+    expect(rendered).toContain('### 已知质量问题')
+    expect(rendered).toContain('MODEL HOUSING ESTATE')
+    expect(rendered).toContain('476.3 metres away')
+    expect(rendered).not.toContain('{{addressNotesAndLimitations:')
+    expect(rendered).not.toContain('{{addressCurationPolicy:')
+    expect(rendered).not.toContain('{{addressKnownQualityIssues:')
+  })
+
   test('renders experimental API warnings in every supported locale', async () => {
     const rendered = await renderMarkdownFixtureBody({
       body: `{{experimentalApiWarning:en}}

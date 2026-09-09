@@ -2,11 +2,13 @@
 import { m } from '#lib/bits/internal/i18n.js'
 import { untrack, type Snippet } from 'svelte'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
+import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import {
   getRetainedSourceAudit,
   getRetainedApiAudit,
 } from '#lib/registry/audit.remote.js'
 import RetainedAuditRelease from './retainedAuditRelease.svelte'
+import Controls from './releaseAuditControls.svelte'
 let {
   datasetCode,
   familyType,
@@ -27,6 +29,14 @@ let {
   activeHeadingId?: string | null
 } = $props()
 let panel = $state<HTMLDivElement>()
+type AuditSearchState = {
+  failed: boolean
+  filteredCount: number
+  loading: boolean
+  totalCount: number
+}
+let query = $state('')
+let searchStates = $state.raw<Record<string, AuditSearchState>>({})
 $effect(() => {
   if (!panel) return
   const element = panel
@@ -48,6 +58,8 @@ $effect(() => {
       const resource =
         heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
         ''
+      const source =
+        heading.closest<HTMLElement>('[data-audit-source]')?.dataset.auditSource ?? ''
       const text =
         heading.getAttribute('data-audit-toc-title')?.trim() ||
         heading.firstChild?.textContent?.trim() ||
@@ -55,7 +67,7 @@ $effect(() => {
         m.source_audit_section()
       heading.id = `audit-${encodeURIComponent(resource)}-${text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-')}`
       heading.style.scrollMarginTop = '10rem'
-      return { id: heading.id, level: 2, text }
+      return { id: heading.id, level: 2, text: source ? `${source} · ${text}` : text }
     })
     if (JSON.stringify(headings) !== JSON.stringify(next)) headings = next
     updateActive()
@@ -100,6 +112,37 @@ let visibleResources = $derived(
       )
     : [],
 )
+let searchState = $derived.by(() => {
+  const states = visibleResources.map(resource => searchStates[resource.releaseId])
+  if (states.some(state => !state)) return null
+  if (states.some(state => state?.failed)) return { failed: true }
+  return {
+    filteredCount: states.reduce(
+      (total, state) => total + (state?.filteredCount ?? 0),
+      0,
+    ),
+    loading: states.some(state => state?.loading),
+    totalCount: states.reduce((total, state) => total + (state?.totalCount ?? 0), 0),
+  }
+})
+const updateSearchState = (releaseId: string, state: AuditSearchState) => {
+  const current = searchStates[releaseId]
+  if (
+    current?.failed === state.failed &&
+    current.filteredCount === state.filteredCount &&
+    current.loading === state.loading &&
+    current.totalCount === state.totalCount
+  )
+    return
+  searchStates = { ...searchStates, [releaseId]: state }
+}
+const sourceAuditHref = (resource: {
+  sourceDatasetCode?: string
+  sourceReleaseCode?: string
+}) =>
+  resource.sourceDatasetCode && resource.sourceReleaseCode
+    ? `/sources/${encodeURIComponent(resource.sourceDatasetCode)}/${encodeURIComponent(resource.sourceReleaseCode)}?tab=audit`
+    : undefined
 </script>
 
 {#if audit.error}
@@ -113,13 +156,55 @@ let visibleResources = $derived(
   <p class="py-4 text-sm opacity-60">{m.source_audit_loading_summaries()}</p>
 {:else if audit.current.length}
   <div class="space-y-8" bind:this={panel}>
+    <Controls
+      bind:query
+      filteredCount={searchState?.failed
+          ? '—'
+          : (searchState?.filteredCount ?? 0).toLocaleString()}
+      totalCount={searchState?.failed ? '—' : (searchState?.totalCount ?? 0).toLocaleString()}
+      loading={searchState === null || Boolean(searchState?.loading)}
+      infoLabel={m.source_audit_search_info()}
+      infoDescription={m.source_audit_search_info_description()}
+      placeholder={m.source_audit_search_retained_placeholder()}
+    />
     {#each visibleResources as resource (resource.releaseId)}
-      <RetainedAuditRelease
-        manifest={resource.manifest}
-        hash={resource.hash}
-        resourceType={resource.resourceType}
-        showResourceHeading={selectedResourceType === undefined}
-      />
+      <section
+        class="space-y-5 border-t border-border-card/60 pt-8"
+        data-audit-source={`${resource.sourceDatasetCode ?? resource.resourceType} ${resource.sourceReleaseCode ?? ''}`}
+      >
+        <div class="space-y-1">
+          <p
+            class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
+          >
+            {m.reference_source_release()}
+          </p>
+          {#if sourceAuditHref(resource)}
+            <a
+              class="text-lg font-medium text-primary underline decoration-border-card underline-offset-4 transition hover:decoration-secondary"
+              href={sourceAuditHref(resource)}
+            >
+              {resource.sourceDatasetCode}
+              · {resource.sourceReleaseCode}
+            </a>
+          {:else}
+            <h2 class="text-lg font-medium text-primary">
+              {resourceLabel(resource.resourceType)}
+            </h2>
+          {/if}
+          <p class="text-sm text-foreground-alt">
+            {resourceLabel(resource.resourceType)}
+          </p>
+        </div>
+        <RetainedAuditRelease
+          manifest={resource.manifest}
+          hash={resource.hash}
+          resourceType={resource.resourceType}
+          showControls={false}
+          showResourceHeading={false}
+          bind:query
+          onSearchStateChange={state => updateSearchState(resource.releaseId, state)}
+        />
+      </section>
     {/each}
   </div>
 {:else}
