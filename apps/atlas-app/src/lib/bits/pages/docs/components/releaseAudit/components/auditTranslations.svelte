@@ -102,6 +102,7 @@ async function toggle(side: 'source' | 'target', value: string) {
       <header>
         <SectionHeading
           title={`${m.source_audit_translations()} (${matching.length.toLocaleString()})`}
+          tocTitle={m.source_audit_translations()}
           label={m.source_audit_translations_info()}
           description={m.source_audit_translations_info_description()}
         >
