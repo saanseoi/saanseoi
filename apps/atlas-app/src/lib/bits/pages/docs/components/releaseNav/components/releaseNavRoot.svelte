@@ -172,6 +172,7 @@ $effect(() => {
 <ReleaseNavContent
   bind:panel={contentPanel}
   {hasContent}
+  hasOutline={outline.length > 0}
   {loading}
   {mobileSideNav}
   {navBar}

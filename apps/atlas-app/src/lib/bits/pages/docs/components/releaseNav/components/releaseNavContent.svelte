@@ -2,10 +2,12 @@
 import type { Snippet } from 'svelte'
 import type { Action } from 'svelte/action'
 import { fade } from 'svelte/transition'
+import { fitReleaseNavSidebar } from '../releaseNavSidebar'
 
 type Props = {
   children?: Snippet
   hasContent: boolean
+  hasOutline?: boolean
   loading?: boolean
   mobileSideNav?: Snippet
   panel?: HTMLElement
@@ -18,6 +20,7 @@ type Props = {
 let {
   children,
   hasContent,
+  hasOutline = false,
   loading = false,
   mobileSideNav,
   panel = $bindable<HTMLElement>(),
@@ -54,7 +57,7 @@ $effect(() => {
       <div
         data-release-nav-content-panel
         bind:this={panel}
-        class={`relative mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
+        class={`relative mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasOutline ? '[&_[data-release-nav-content-body]]:pb-[50svh]' : ''} ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
       >
         {#if showLoadingIndicator}
           <div
@@ -73,6 +76,7 @@ $effect(() => {
       </div>
     </div>
     <div
+      use:fitReleaseNavSidebar
       class="hidden h-[calc(100svh-136px)] xl:sticky xl:top-[112px] xl:block xl:self-start"
     >
       {@render sideNav?.()}
