@@ -268,6 +268,7 @@ function isBlockNameVariant(
           index % 2 === 0
             ? [
                 `${owner}${open}${block.ref}${block.descriptor}${parentheses[index + 1]}`,
+                `${owner}${open}第${block.ref}${block.descriptor}${parentheses[index + 1]}`,
               ]
             : [],
         )
