@@ -237,6 +237,7 @@ async function main() {
     case 'init:addresses:saanseoi':
     case 'init:addresses':
     case 'init':
+    case 'init:minimal':
     case 'init:local':
     case 'init:production':
     case 'init:stats:government':

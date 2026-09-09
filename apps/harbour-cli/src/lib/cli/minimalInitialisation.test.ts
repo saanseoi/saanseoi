@@ -6,6 +6,17 @@ import { resolve } from 'node:path'
 
 const previous = process.env.SAANSEOI_INIT_MINIMAL
 const repo = resolve(import.meta.dir, '../../../../..')
+test('CLI dispatches minimal initialisation to its explicit-target validation', () => {
+  const result = Bun.spawnSync({
+    cmd: [process.execPath, 'apps/harbour-cli/src/cli.ts', 'init:minimal'],
+    cwd: repo,
+  })
+  const output = result.stdout.toString() + result.stderr.toString()
+  expect(result.exitCode).toBe(1)
+  expect(output).toContain('requires an explicit --target')
+  expect(output).not.toContain('Unsupported harbour command')
+})
+
 afterEach(() => {
   if (previous === undefined) delete process.env.SAANSEOI_INIT_MINIMAL
   else process.env.SAANSEOI_INIT_MINIMAL = previous
@@ -52,26 +63,21 @@ test('minimal requires an explicit target and curation checks before spawning', 
 })
 
 test('production minimal coordinator forwards target and resume without resetting', () => {
-  const all = readFileSync(resolve(repo, 'scripts/init/all.fish'), 'utf8').replace(
-    /^source .*$/m,
-    '',
-  )
-  const minimal = readFileSync(
-    resolve(repo, 'scripts/init/minimal.fish'),
-    'utf8',
-  ).replace(/^source .*$/m, all)
   const result = Bun.spawnSync({
     cmd: [
       'fish',
       '--no-config',
       '-c',
       `
-      source scripts/init/common.fish
-      function init_run_step
-        echo $SAANSEOI_INIT_MINIMAL (string join ' ' -- $argv)
+      function source
+        builtin source $argv
+        if string match -q '*/common.fish' -- $argv[1]
+          function init_run_step
+            echo $SAANSEOI_INIT_MINIMAL (string join ' ' -- $argv)
+          end
+        end
       end
-      set argv --target production --continue
-      ${minimal}
+      source scripts/init/minimal.fish --target production --continue
     `,
     ],
     cwd: repo,
