@@ -182,9 +182,7 @@ test('bulk search indexes retained fixture contents without reading fixtures dur
   ).toEqual([])
 })
 
-test('bulk search bounds large retained fixture indexes', {
-  timeout: 30_000,
-}, async () => {
+test('bulk search bounds large retained fixture indexes', async () => {
   const { store } = memoryStore()
   const definition = await retainObject(store, {
     kind: 'processing-rule',
@@ -223,7 +221,7 @@ test('bulk search bounds large retained fixture indexes', {
     ],
   })
   expect(result.manifest.bulk[0]?.search?.byteLength).toBeLessThanOrEqual(1024 * 1024)
-})
+}, 30_000)
 
 test('bulk payloads and completed failed guards cannot pass audit validation', async () => {
   const { store } = memoryStore()
