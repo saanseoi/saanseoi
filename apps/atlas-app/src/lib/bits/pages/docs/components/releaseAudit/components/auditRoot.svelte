@@ -201,9 +201,11 @@ const sourceHeadingId = (releaseId: string) =>
       infoDescription={m.source_audit_search_info_description()}
       placeholder={m.source_audit_search_retained_placeholder()}
     />
-    {#each visibleResources as resource (resource.releaseId)}
+    {#each visibleResources as resource, index (resource.releaseId)}
       <section
-        class={familyType ? 'space-y-5 border-t border-border-card/60 pt-8' : ''}
+        class={familyType
+          ? `space-y-5 pt-8 ${index === 0 ? '' : 'border-t border-border-card/60'}`
+          : ''}
       >
         {#if familyType}
           <div>
