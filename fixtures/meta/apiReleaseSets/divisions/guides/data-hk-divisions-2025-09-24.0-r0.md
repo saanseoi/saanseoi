@@ -4,6 +4,7 @@ updatedAt: "2026-08-24T19:32:35.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2025-09-24.0"
+revision: "0"
 regionCode: "hk"
 cohortKey: "2025-09-24.0"
 domainCode: "geographic"
@@ -42,9 +43,7 @@ Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> to get a list of divi
 ```
 
 Every division in the list has an <black>id</black>. Use it with <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one division. If you need the
-same view, use the same release, response-shape, language, and geometry selectors
-(explained below):
+/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one division:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
