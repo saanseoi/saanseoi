@@ -64,7 +64,7 @@ const containsActive = (node: OutlineNode): boolean =>
           if (event.defaultPrevented) onSelect?.(node.id)
         }}
         aria-current={active ? 'location' : undefined}
-        ><ReleaseNavInlineLabel label={node.label} /></a
+        ><ReleaseNavInlineLabel emphasis={node.emphasis} label={node.label} /></a
       >
       {#if node.children.length}
         {@const activeChildIndex = node.children.findIndex(containsActive)}

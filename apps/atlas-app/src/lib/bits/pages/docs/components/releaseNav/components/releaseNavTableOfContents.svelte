@@ -51,7 +51,10 @@ function select(id: string) {
     >
       <span class="block min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
         >{#if activeItem}
-          <ReleaseNavInlineLabel label={activeItem.label} />
+          <ReleaseNavInlineLabel
+            emphasis={activeItem.emphasis}
+            label={activeItem.label}
+          />
         {:else}
           {m.source_release_sections()}
         {/if}</span
