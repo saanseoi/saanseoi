@@ -31,6 +31,18 @@ let {
 }: Props = $props()
 
 let showLoadingIndicator = $state(false)
+let retainedPanelHeight = $state<number | null>(null)
+let wasLoading = false
+
+$effect.pre(() => {
+  if (loading && !wasLoading && panel) {
+    const height = panel.getBoundingClientRect().height
+    retainedPanelHeight = height > 0 ? height : null
+  } else if (!loading) {
+    retainedPanelHeight = null
+  }
+  wasLoading = loading
+})
 
 $effect(() => {
   if (!loading) {
@@ -56,7 +68,9 @@ $effect(() => {
       </div>
       <div
         data-release-nav-content-panel
+        data-release-nav-retaining-height={retainedPanelHeight ? 'true' : undefined}
         bind:this={panel}
+        style:min-height={retainedPanelHeight ? `${retainedPanelHeight}px` : undefined}
         class={`relative mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasOutline ? '[&_[data-release-nav-content-body]]:pb-[50svh]' : ''} ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
       >
         {#if showLoadingIndicator}
@@ -83,3 +97,13 @@ $effect(() => {
     </div>
   </div>
 </div>
+
+<style>
+[data-release-nav-content-panel][data-release-nav-retaining-height="true"]
+  > :global([data-release-nav-loading-layer]) {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 10;
+}
+</style>

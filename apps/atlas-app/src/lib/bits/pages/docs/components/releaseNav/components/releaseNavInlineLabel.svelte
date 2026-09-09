@@ -1,4 +1,6 @@
 <script lang="ts">
+import { formatReleaseNavLabel } from '../releaseNavLabel'
+
 type Props = { emphasis?: string; label: string }
 
 let { emphasis, label }: Props = $props()
@@ -26,11 +28,17 @@ const parseInlineCode = (value: string): Segment[] => {
   return segments.length ? segments : [{ code: false, value }]
 }
 
+let displayLabel = $derived(formatReleaseNavLabel(label))
+let displayEmphasis = $derived(emphasis ? formatReleaseNavLabel(emphasis) : undefined)
 let emphasisedPrefix = $derived(
-  emphasis && label.startsWith(emphasis) ? emphasis : undefined,
+  displayEmphasis && displayLabel.startsWith(displayEmphasis)
+    ? displayEmphasis
+    : undefined,
 )
 let segments = $derived(
-  parseInlineCode(emphasisedPrefix ? label.slice(emphasisedPrefix.length) : label),
+  parseInlineCode(
+    emphasisedPrefix ? displayLabel.slice(emphasisedPrefix.length) : displayLabel,
+  ),
 )
 </script>
 

@@ -48,9 +48,17 @@ const containsActive = (node: OutlineNode): boolean =>
     <li class:ml-2={nested} class:pl-3={nested} class="relative">
       {#if nested}
         <span
+          data-release-nav-stem={stem}
           class={`pointer-events-none absolute -top-1 left-0 z-1 w-px ${stem === 'inactive' ? 'bg-outline-variant/80' : 'bg-secondary'} ${isLast || stem === 'active-end' ? (mobile ? 'h-6.25' : 'h-4.75') : '-bottom-1'}`}
           aria-hidden="true"
         ></span>
+        {#if stem === 'active-end' && !isLast}
+          <span
+            data-release-nav-stem-continuation
+            class={`pointer-events-none absolute -bottom-1 left-0 z-1 w-px bg-outline-variant/80 ${mobile ? 'top-5' : 'top-3.5'}`}
+            aria-hidden="true"
+          ></span>
+        {/if}
         <span
           class={`pointer-events-none absolute left-0 w-3 border-t ${containsActive(node) ? 'border-secondary' : 'border-outline-variant/80'} ${mobile ? 'top-5' : 'top-3.5'}`}
           aria-hidden="true"
