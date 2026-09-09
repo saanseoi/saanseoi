@@ -20,6 +20,36 @@ export function formatApiReleaseSetCode(code: string) {
   ].join('')
 }
 
+/** Compact, component-coloured rows for large documentation publish batches. */
+export function formatApiReleaseSetDocsGrid(codes: readonly string[]) {
+  return codes.map(code => {
+    const parsed = parseReleaseSetCode(code)
+    if (!parsed) return `  ${colorize(code, 33)}`
+
+    const revision = `r${parsed.sequence}`
+    const suffix = releaseSetSuffix(code, parsed)
+    return [
+      `  ${colorize(parsed.apiFamily.padEnd(12), apiReleaseSetFamilyColour(parsed.apiFamily))}`,
+      colorize(parsed.cohortKey.padStart(16), 33),
+      colorize(revision.padStart(4), 35),
+      suffix ? formatMutedValue(suffix) : '',
+    ]
+      .filter(Boolean)
+      .join('  ')
+      .trimEnd()
+  })
+}
+
+function releaseSetSuffix(
+  code: string,
+  parsed: ReturnType<typeof parseReleaseSetCode>,
+) {
+  if (!parsed) return ''
+  const revision = parsed.sequence > 0 ? `-r${parsed.sequence}` : ''
+  const base = `data-${parsed.regionCode}-${parsed.apiFamily}-${parsed.cohortKey}${revision}`
+  return code.startsWith(base) ? code.slice(base.length) : ''
+}
+
 function apiReleaseSetFamilyColour(apiFamily: string) {
   switch (apiFamily) {
     case 'addresses':
