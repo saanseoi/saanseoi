@@ -74,8 +74,12 @@ let {
 
 let contentPanel = $state<HTMLElement>()
 let observedOutlineId = $state<string | null>(null)
+let retainedOutlineId = $state<string | null>(null)
 let optimisticVersionCode = $state<string | null>(null)
 let committedVersionCode = $state<string | null>(null)
+let visibleOutlineId = $derived(
+  activeOutlineId ?? observedOutlineId ?? retainedOutlineId,
+)
 const persistence = createReleaseNavigationPersistence({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   getVersions: () => versions,
@@ -107,8 +111,13 @@ $effect(() => {
 
 $effect(() => {
   visibleVersionCode
-  if (loading) return
+  if (loading || nestedContent) return
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
+})
+
+$effect(() => {
+  const activeId = activeOutlineId ?? observedOutlineId
+  if (!loading && activeId) retainedOutlineId = activeId
 })
 </script>
 
@@ -133,7 +142,7 @@ $effect(() => {
 
 {#snippet mobileSideNav()}
   <ReleaseNavMobileSideNav
-    activeOutlineId={activeOutlineId ?? observedOutlineId}
+    activeOutlineId={visibleOutlineId}
     canShowToc={outline.length > 0}
     currentVersionCode={visibleVersionCode}
     {loading}
@@ -146,7 +155,7 @@ $effect(() => {
 
 {#snippet sideNav()}
   <ReleaseNavSideNav
-    activeOutlineId={activeOutlineId ?? observedOutlineId}
+    activeOutlineId={visibleOutlineId}
     canExpand={nestedContent || outline.length > 0}
     {loading}
     currentVersionCode={visibleVersionCode}

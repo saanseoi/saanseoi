@@ -14,7 +14,6 @@ let { content, headings, activeHeadingId = $bindable(null) }: Props = $props()
 $effect(() => {
   const root = content
   const headingIds = headings.map(heading => heading.id)
-  activeHeadingId = null
   if (!root || !headingIds.length) return
 
   let disposed = false
