@@ -587,10 +587,13 @@ describe('Places collection through the Worker route', () => {
           )
           const body = (await response.json()) as {
             data: Array<{ id: string }>
-            meta: { page: { total: number } }
+            meta: { page: { total?: number; hasMore?: boolean } }
           }
           expect(response.status).toBe(200)
-          expect(body.meta.page.total).toBe(1)
+          if (historyOnly) {
+            expect(body.meta.page.total).toBeUndefined()
+            expect(body.meta.page.hasMore).toBe(false)
+          } else expect(body.meta.page.total).toBe(1)
           expect(body.data.map(row => row.id)).toEqual(
             offset === 0 ? ['place-ramen'] : [],
           )
