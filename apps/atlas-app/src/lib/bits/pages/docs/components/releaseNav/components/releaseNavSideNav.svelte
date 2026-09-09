@@ -18,6 +18,7 @@ type Props = {
   domains?: ReleaseNavDomain[]
   domainTitle?: string
   loading?: boolean
+  onOutlineSelect?: (id: string) => void
   outline?: ReleaseNavOutlineItem[]
   panel?: HTMLElement
   onVersionPreload?: ReleaseNavVersionPreload
@@ -31,6 +32,7 @@ let {
   domains = [],
   domainTitle = 'Domains',
   loading = false,
+  onOutlineSelect,
   outline = [],
   panel,
   onVersionPreload,
@@ -58,6 +60,7 @@ let {
           activeId={activeOutlineId}
           ariaLabel={m.source_release_sections()}
           items={outline}
+          onSelect={onOutlineSelect}
           {panel}
         />
       {/if}

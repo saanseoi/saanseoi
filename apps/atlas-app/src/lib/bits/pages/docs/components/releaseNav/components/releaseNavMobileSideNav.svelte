@@ -12,6 +12,7 @@ type Props = {
   canShowToc?: boolean
   currentVersionCode: string
   loading?: boolean
+  onOutlineSelect?: (id: string) => void
   outline?: ReleaseNavOutlineItem[]
   panel?: HTMLElement
   onVersionPreload?: ReleaseNavVersionPreload
@@ -22,6 +23,7 @@ let {
   canShowToc = true,
   currentVersionCode,
   loading = false,
+  onOutlineSelect,
   outline = [],
   panel,
   onVersionPreload,
@@ -81,7 +83,12 @@ $effect(() => {
 </script>
 
 {#if isTocMode}
-  <ReleaseNavTableOfContents {activeOutlineId} items={outline} {panel} />
+  <ReleaseNavTableOfContents
+    {activeOutlineId}
+    items={outline}
+    {onOutlineSelect}
+    {panel}
+  />
 {:else}
   <ReleaseNavMobilePicker
     {currentVersionCode}

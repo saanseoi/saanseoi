@@ -10,7 +10,7 @@ type Props = {
   ariaLabel: string
   items: ReleaseNavOutlineItem[]
   mobile?: boolean
-  onSelect?: () => void
+  onSelect?: (id: string) => void
   panel?: HTMLElement
 }
 
@@ -60,8 +60,8 @@ const containsActive = (node: OutlineNode): boolean =>
         class={`relative z-10 flex items-center rounded-md px-2 font-body leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary ${mobile ? 'min-h-10 py-1.5 text-label-md' : 'min-h-7 py-1 text-label-sm'} ${active ? 'bg-secondary-container text-foreground-alt dark:text-[#edf2ee]!' : 'text-foreground-alt hover:bg-black/5 hover:text-primary dark:hover:bg-white/10'}`}
         href={node.href ?? `#${node.id}`}
         onclick={event => {
-          scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
-          onSelect?.()
+          void scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
+          if (event.defaultPrevented) onSelect?.(node.id)
         }}
         aria-current={active ? 'location' : undefined}
         ><ReleaseNavInlineLabel label={node.label} /></a
