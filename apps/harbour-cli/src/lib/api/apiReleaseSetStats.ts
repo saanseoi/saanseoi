@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto'
+import {
+  buildDivisionApiStats,
+  type DivisionHistoryTarget,
+} from './divisionApiReleaseSetStats'
 
 import {
   buildAddressApiReleaseSetStatsRows,
-  buildDivisionApiReleaseSetStatsRows,
   createLocaleStatsAccumulator,
   type AddressDivisionQualityCounts,
   type StatsLocaleGroup,
@@ -12,7 +15,6 @@ import {
   type PlaceLocaleConflict,
   type PlaceI18nRecord,
 } from '@repo/core/pipeline/services/place'
-import { resolveDistrictId } from '@repo/core/pipeline/services/division'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -56,6 +58,7 @@ export type ApiReleaseSetStatsTarget = {
 
 type CalculateApiReleaseSetStatsOptions = {
   currentDb: HarbourReadableDb
+  historyTargets?: DivisionHistoryTarget[]
   family: 'address' | 'division' | 'place'
   harbourClient: HarbourClient
   importOptions: ApiReleaseSetStatsImportOptions
@@ -81,6 +84,17 @@ export function resolveApiReleaseSetStatsTarget(
     apiReleaseSetId: publishResult?.apiReleaseSetId,
     snapshotId: publishResult?.snapshotId,
   }
+}
+
+/** A source snapshot may publish before the required API companion snapshots. */
+export function isApiReleaseSetStatsReady(
+  result: PublishDatasetResult | void | null | undefined,
+) {
+  return Boolean(
+    result?.apiReleaseSetId &&
+      result.snapshotId &&
+      result.apiReleaseSetStatus !== 'draft',
+  )
 }
 
 export async function calculateAndStoreApiReleaseSetStats(
@@ -123,7 +137,11 @@ export async function calculateAndStoreApiReleaseSetStats(
             options.addressQuality,
           )
         : options.family === 'division'
-          ? await buildDivisionStatsRows(options.currentDb, snapshotId)
+          ? await buildDivisionApiStats(
+              options.metaDb,
+              options.historyTargets ?? [],
+              apiReleaseSetId,
+            )
           : await buildPlaceStatsRows(
               options.currentDb,
               snapshotId,
@@ -352,74 +370,6 @@ async function buildAddressComponentCounts(db: HarbourReadableDb, snapshotId: st
 
 function countDistinctAddressComponent(column: unknown) {
   return sql<number>`count(distinct case when ${column} is not null then ${currentSchema.address2dI18n.addressId} end)`
-}
-
-async function buildDivisionStatsRows(
-  db: HarbourReadableDb,
-  snapshotId: string,
-): Promise<ApiReleaseSetScopedStatsRow[]> {
-  const [
-    divisionCount,
-    divisionI18nCount,
-    byDivisionType,
-    byLevel,
-    divisionRows,
-    localeStats,
-  ] = await Promise.all([
-    countRows(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-    ),
-    countRows(
-      db,
-      currentSchema.divisionsI18n,
-      currentSchema.divisionsI18n.snapshotId,
-      snapshotId,
-    ),
-    countGrouped(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-      currentSchema.divisions.type,
-    ),
-    countGrouped(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-      currentSchema.divisions.level,
-    ),
-    db
-      .select({
-        hierarchy: currentSchema.divisions.hierarchy,
-        id: currentSchema.divisions.id,
-        type: currentSchema.divisions.type,
-      })
-      .from(currentSchema.divisions)
-      .where(eq(currentSchema.divisions.snapshotId, snapshotId))
-      .all(),
-    buildDivisionLocaleStats(db, snapshotId),
-  ])
-
-  const byDistrict = new Map<string, number>()
-  for (const division of divisionRows) {
-    const districtId = resolveDistrictId(division)
-    if (districtId) byDistrict.set(districtId, (byDistrict.get(districtId) ?? 0) + 1)
-  }
-
-  localeStats.total = divisionCount
-
-  return buildDivisionApiReleaseSetStatsRows({
-    byDistrict,
-    byDivisionType,
-    byLevel,
-    divisionCount,
-    divisionI18nCount,
-    localeStats,
-  })
 }
 
 async function buildPlaceStatsRows(
@@ -764,75 +714,6 @@ async function buildAddressLocaleStats(
   return stats
 }
 
-async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: string) {
-  const stats = createLocaleStatsAccumulator()
-  const [coverageRows, provenanceRows, altRows] = await Promise.all([
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.name} IS NOT NULL`,
-        ),
-      )
-      .groupBy(currentSchema.divisionsI18n.locale)
-      .all(),
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-        provenance: sql<string>`coalesce(${currentSchema.divisionsI18n.nameProvenance}, case when ${currentSchema.divisionsI18n.isLocaleInferred} then 'inferred' else 'provided' end)`,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.name} IS NOT NULL`,
-        ),
-      )
-      .groupBy(
-        currentSchema.divisionsI18n.locale,
-        currentSchema.divisionsI18n.nameProvenance,
-        currentSchema.divisionsI18n.isLocaleInferred,
-      )
-      .all(),
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.nameAlts} IS NOT NULL`,
-        ),
-      )
-      .groupBy(currentSchema.divisionsI18n.locale)
-      .all(),
-  ])
-
-  applyLocaleCountRows(stats.count, coverageRows)
-  for (const row of provenanceRows) {
-    const map =
-      row.provenance === 'inferred'
-        ? stats.inferredCoverage
-        : row.provenance === 'ai-translated'
-          ? stats.aiTranslatedCoverage
-          : row.provenance === 'human-translated'
-            ? stats.humanTranslatedCoverage
-            : stats.providedCoverage
-    applyLocaleCountRows(map, [row])
-  }
-  applyLocaleCountRows(stats.altCoverage, altRows)
-
-  return stats
-}
-
 async function countRows(
   db: HarbourReadableDb,
   table: unknown,
@@ -938,19 +819,6 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
       ].join(''),
     ),
   ].join('\n')
-}
-
-function applyLocaleCountRows(
-  target: Map<StatsLocaleGroup, number>,
-  rows: GroupCountRow[],
-) {
-  for (const row of rows) {
-    const group = toStatsLocaleGroup(String(row.groupValue))
-
-    if (group) {
-      target.set(group, Number(row.count ?? 0))
-    }
-  }
 }
 
 function toStatsLocaleGroup(locale: string): StatsLocaleGroup | null {

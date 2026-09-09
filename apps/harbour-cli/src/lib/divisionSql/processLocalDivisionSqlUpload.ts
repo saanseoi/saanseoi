@@ -31,6 +31,7 @@ import {
 import { createLocalControlClient } from '../localPipeline/localControlClient.ts'
 import {
   calculateAndStoreApiReleaseSetStats,
+  isApiReleaseSetStatsReady,
   resolveApiReleaseSetStatsTarget,
 } from '../api/apiReleaseSetStats.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../localPipeline/syncStagedRelease.ts'
@@ -841,8 +842,9 @@ export async function processLocalDivisionSqlUpload(
         postPublishCacheError = normaliseError(error)
       }
     }
-    if (!options.deferApiReleaseSet) {
+    if (!options.deferApiReleaseSet && isApiReleaseSetStatsReady(publishResult)) {
       await calculateAndStoreApiReleaseSetStats({
+        historyTargets: dbContext.historyTargets,
         currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
         family: 'division',
         harbourClient,
