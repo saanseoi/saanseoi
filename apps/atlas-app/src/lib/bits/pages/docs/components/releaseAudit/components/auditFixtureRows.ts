@@ -1,7 +1,7 @@
 import { m } from '@repo/i18n/messages'
 import type { Json } from '@repo/core/provenance'
 import { auditDivisionCode } from '@repo/core/provenance/divisionCodes'
-import { matchesAudit } from './auditSearch'
+import { auditSearchText, matchesAudit, matchesAuditText } from './auditSearch'
 const representations = new WeakMap<object, Json[]>()
 export const auditBulkTitle = (id: string) =>
   ({
@@ -62,13 +62,15 @@ export function mergeAuditFixtures(documents: Json[]) {
   }
   return merged
 }
-export function matchesFixtureRow(query: string, value: Json) {
+export function fixtureRowSearchText(value: Json) {
   const row = object(value)
-  return matchesAudit(
-    query,
+  return auditSearchText(
     value && typeof value === 'object' ? (representations.get(value) ?? value) : value,
     row.divisionCode ?? auditDivisionCode(String(row.canonicalId)),
   )
+}
+export function matchesFixtureRow(query: string, value: Json) {
+  return !query.trim() || matchesAuditText(query, fixtureRowSearchText(value))
 }
 export function filterAuditFixture(value: Json, query: string): Json {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return value

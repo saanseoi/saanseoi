@@ -56,22 +56,28 @@ $effect(() => {
     frame = requestAnimationFrame(updateOverflow)
   }
   const resize = new ResizeObserver(scheduleUpdate)
+  const observed = new Set<Element>()
   const observeChildren = () => {
-    resize.disconnect()
-    resize.observe(viewport)
-    for (const child of viewport.children) resize.observe(child)
+    for (const child of observed) {
+      if (child.parentElement === viewport) continue
+      resize.unobserve(child)
+      observed.delete(child)
+    }
+    for (const child of viewport.children) {
+      if (observed.has(child)) continue
+      resize.observe(child)
+      observed.add(child)
+    }
   }
   const mutation = new MutationObserver(() => {
     observeChildren()
     scheduleUpdate()
   })
 
+  resize.observe(viewport)
   observeChildren()
   mutation.observe(viewport, {
-    attributes: true,
-    characterData: true,
     childList: true,
-    subtree: true,
   })
 
   return () => {

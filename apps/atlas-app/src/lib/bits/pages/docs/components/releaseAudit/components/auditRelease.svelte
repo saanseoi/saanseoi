@@ -4,25 +4,18 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import Bulk from './auditBulk.svelte'
 import AlsCurations from './auditAlsCurations.svelte'
-import { alsAuditDecisions } from './auditAlsDecisions'
 import Translations from './auditTranslationSection.svelte'
 import Applications from './auditApplications.svelte'
 import Guards from './auditGuards.svelte'
 import DivisionRules from './auditDivisionRules.svelte'
 import ComparisonCard from './auditPatchCard.svelte'
-import { matchesAudit } from './auditSearch'
+import { matchesAudit, matchesAuditText } from './auditSearch'
 import { guardCopy } from './auditGuardCopy'
 import Controls from './releaseAuditControls.svelte'
 import SectionHeading from './auditSectionHeading.svelte'
-import { getAuditPage, getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
-import type { Json } from '@repo/core/provenance'
-import {
-  loadAuditFixtures,
-  auditFixtureRows,
-  matchesFixtureRow,
-  fixtureHasContents,
-  auditBulkTitle,
-} from './auditFixtureRows'
+import { getAuditPage, getAuditFixtureCatalogue } from '#lib/registry/audit.remote.js'
+import { catalogueGroupMatches, type FixtureCatalogue } from './auditFixtureCatalogue'
+import { auditBulkTitle } from './auditFixtureRows'
 let {
   manifest,
   hash,
@@ -51,17 +44,13 @@ let effectiveQuery = $state('')
 let matchingActions = $state(0)
 let searchLoading = $state(false)
 let searchFailure = $state('')
-let fixtureGroups = $state.raw<Record<string, Record<string, Json>>>({})
+let catalogue = $state.raw<FixtureCatalogue>({ groups: {}, als: [] })
+let matchingBulkIds = $state<string[]>([])
 let fixtureRows = $derived(
-  Object.entries(fixtureGroups).flatMap(([id, groups]) =>
+  Object.entries(catalogue.groups).flatMap(([id, groups]) =>
     id === 'curate-als-addresses'
-      ? alsAuditDecisions(groups, releaseCode).map(d => ({
-          title: d.title,
-          description: d.description,
-          context: d.context,
-          decision: d.raw,
-        }))
-      : Object.values(groups).flatMap(auditFixtureRows),
+      ? catalogue.als.map(d => d.text)
+      : Object.values(groups).flatMap(group => group.rows),
   ),
 )
 let fixtureCountsLoading = $state(true)
@@ -74,15 +63,10 @@ $effect(() => {
   let current = true
   fixtureCountsLoading = true
   fixtureCountsFailed = false
-  fixtureGroups = {}
-  loadAuditFixtures(
-    manifest.bulk,
-    (bulkId, index) =>
-      getRetainedBulkFixture({ releaseId, hash: currentHash, bulkId, index }),
-    () => current,
-  )
-    .then(groups => {
-      if (current) fixtureGroups = groups
+  catalogue = { groups: {}, als: [] }
+  getAuditFixtureCatalogue({ releaseId, hash: currentHash, releaseCode })
+    .then(result => {
+      if (current) catalogue = result
     })
     .catch(() => {
       if (current) fixtureCountsFailed = true
@@ -95,7 +79,7 @@ $effect(() => {
   }
 })
 let matchingFixtureCount = $derived(
-  fixtureRows.filter(row => matchesFixtureRow(effectiveQuery, row)).length,
+  fixtureRows.filter(text => matchesAuditText(effectiveQuery, text)).length,
 )
 $effect(() => {
   const value = query.trim().slice(0, 300)
@@ -110,6 +94,7 @@ $effect(() => {
 $effect(() => {
   if (!effectiveQuery) {
     matchingActions = 0
+    matchingBulkIds = []
     searchLoading = false
     searchFailure = ''
     return
@@ -126,6 +111,7 @@ $effect(() => {
     .then(result => {
       if (!current) return
       matchingActions = result.total
+      matchingBulkIds = result.bulkIds
     })
     .catch(() => {
       if (current) searchFailure = m.source_audit_search_count_error()
@@ -154,8 +140,9 @@ const matchesBulk = (item: AuditManifest['bulk'][number]) =>
         item.counts.inputs,
         item.counts.outputs,
       ) ||
-      Object.values(fixtureGroups[item.id] ?? {}).some(value =>
-        fixtureHasContents(value, effectiveQuery),
+      matchingBulkIds.includes(item.id) ||
+      Object.values(catalogue.groups[item.id] ?? {}).some(value =>
+        catalogueGroupMatches(value, effectiveQuery),
       ))
 let countableBulk = $derived(
   manifest.bulk.filter(item => item.id !== 'curate-als-addresses'),
@@ -274,7 +261,7 @@ $effect(() => {
         {bulk}
         releaseId={manifest.releaseId}
         {hash}
-        groups={fixtureGroups[bulk.id]}
+        groups={catalogue.groups[bulk.id]}
       />
     {/each}
     <Applications
@@ -305,8 +292,10 @@ $effect(() => {
         query={effectiveQuery}
       />
       <AlsCurations
-        groups={fixtureGroups['curate-als-addresses'] ?? {}}
-        releaseId={releaseCode}
+        rows={catalogue.als}
+        releaseId={manifest.releaseId}
+        {releaseCode}
+        {hash}
         query={effectiveQuery}
       />
     </div>
@@ -325,7 +314,7 @@ $effect(() => {
             {bulk}
             releaseId={manifest.releaseId}
             {hash}
-            groups={fixtureGroups[bulk.id]}
+            groups={catalogue.groups[bulk.id]}
           />
         {/each}
       </div>
@@ -363,7 +352,7 @@ $effect(() => {
             {bulk}
             releaseId={manifest.releaseId}
             {hash}
-            groups={fixtureGroups[bulk.id]}
+            groups={catalogue.groups[bulk.id]}
           />
         {/if}
       {/each}
