@@ -7,6 +7,24 @@ import tailwindcss from '@tailwindcss/vite'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
 import { sveltekit } from '@sveltejs/kit/vite'
 
+function atlasAdapter(options: Parameters<typeof adapter>[0]) {
+  const cloudflareAdapter = adapter(options)
+
+  // SvelteKit 3 delivers `event.platform` through the adapter emulator in dev.
+  // The current Cloudflare adapter prerelease initialises the platform proxy but
+  // does not yet expose that hook.
+  cloudflareAdapter.emulate = () => ({
+    platform: () =>
+      (
+        globalThis as typeof globalThis & {
+          __sveltekit_cloudflare_platform?: App.Platform
+        }
+      ).__sveltekit_cloudflare_platform as App.Platform,
+  })
+
+  return cloudflareAdapter
+}
+
 export default defineConfig({
   plugins: [
     tailwindcss(),
@@ -24,7 +42,7 @@ export default defineConfig({
           filename.split(/[/\\]/).includes('node_modules') ? undefined : true,
       },
 
-      adapter: adapter({
+      adapter: atlasAdapter({
         platformProxy: {
           // Share the same Miniflare state as the local API/workers stack and migration scripts.
           configPath: resolve(import.meta.dirname, 'wrangler.jsonc'),
