@@ -27,6 +27,7 @@ import { runResetStatsCommand } from './lib/commands/resetStats.ts'
 import {
   beginOfficialAddressInitialisation,
   completeOfficialAddressInitialisation,
+  getOfficialAddressInitialisationStatus,
   runResetOfficialAddressesCommand,
 } from './lib/commands/resetAddresses.ts'
 import {
@@ -152,6 +153,9 @@ async function main() {
       await beginOfficialAddressInitialisation(target, {
         continue: args.options.continue === true,
       })
+      return
+    case 'init:addresses:saanseoi:status':
+      console.log(await getOfficialAddressInitialisationStatus(target))
       return
     case 'init:addresses:saanseoi:complete':
       await completeOfficialAddressInitialisation(target)

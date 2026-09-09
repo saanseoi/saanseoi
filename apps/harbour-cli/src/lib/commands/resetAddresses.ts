@@ -74,7 +74,71 @@ function manifestPath(target: UploadTarget) {
 /** Return the durable lifecycle state without opening any D1 bindings. */
 export async function getOfficialAddressInitialisationStatus(target: UploadTarget) {
   const path = manifestPath(target)
-  if (!existsSync(path)) return 'missing' as const
+  if (!existsSync(path)) {
+    // A focused init can outlive a lost local manifest. Never adopt this state
+    // for reset ownership, but do not attempt a second clean-baseline init
+    // when the completed Address API state still proves the run succeeded.
+    if (target.remote) return 'missing' as const
+    const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
+      cacheTableProfile: 'address',
+      includeAllHistoryShardYears: true,
+      includeAllSourceShardYears: true,
+    })
+    try {
+      const [release, snapshot, apiReleaseSet] = await Promise.all([
+        context.metaDb
+          .select({ id: metaSchema.metaReleases.id })
+          .from(metaSchema.metaReleases)
+          .innerJoin(
+            metaSchema.metaDatasets,
+            eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+          )
+          .where(
+            and(
+              eq(metaSchema.metaDatasets.code, DATASET_CODE),
+              or(
+                eq(metaSchema.metaReleases.status, 'published'),
+                eq(metaSchema.metaReleases.status, 'superseded'),
+              ),
+            ),
+          )
+          .limit(1)
+          .get(),
+        context.metaDb
+          .select({ id: metaSchema.metaSnapshots.id })
+          .from(metaSchema.metaSnapshots)
+          .where(
+            and(
+              eq(metaSchema.metaSnapshots.resourceType, 'address'),
+              eq(metaSchema.metaSnapshots.status, 'published'),
+            ),
+          )
+          .limit(1)
+          .get(),
+        context.metaDb
+          .select({ id: metaSchema.metaApiReleaseSets.id })
+          .from(metaSchema.metaApiReleaseSets)
+          .innerJoin(
+            metaSchema.metaApiVersions,
+            eq(
+              metaSchema.metaApiReleaseSets.apiVersionId,
+              metaSchema.metaApiVersions.id,
+            ),
+          )
+          .where(
+            and(
+              eq(metaSchema.metaApiVersions.familyType, 'addresses'),
+              eq(metaSchema.metaApiReleaseSets.status, 'current'),
+            ),
+          )
+          .limit(1)
+          .get(),
+      ])
+      return release && snapshot && apiReleaseSet ? 'complete' : 'missing'
+    } finally {
+      context.cleanup()
+    }
+  }
 
   const manifest = await readManifest(path)
   if (manifest.target !== targetName(target))
