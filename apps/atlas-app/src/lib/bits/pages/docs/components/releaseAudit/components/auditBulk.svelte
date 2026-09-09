@@ -16,6 +16,7 @@ import {
   auditFixtureRows,
   fixtureHasContents,
 } from './auditFixtureRows'
+import { auditRuleCopy } from './auditRuleCopy'
 const titles = () =>
   ({
     'prepare-als-addresses': m.source_audit_als_prepare_title(),
@@ -94,7 +95,7 @@ async function loadDeclaration() {
     class="flex min-h-14 items-center justify-between gap-4 bg-current/2.5 px-4 py-3"
   >
     <h4 class="text-base font-medium">
-      {titles()[bulk.id] ?? title(bulk.id)}
+      {auditRuleCopy(bulk.id)?.title ?? titles()[bulk.id] ?? title(bulk.id)}
     </h4>
     <div class="flex items-center gap-2">
       {#if bulk.id === 'normalise-als-addresses'}
@@ -116,7 +117,7 @@ async function loadDeclaration() {
       ? m.source_audit_als_prepare_summary()
       : bulk.id === 'normalise-als-addresses'
         ? m.source_audit_als_normalise_summary()
-        : bulk.summary}
+        : auditRuleCopy(bulk.id)?.summary ?? bulk.summary}
   </p>
   <div class="grid grid-cols-2 border-t border-current/10">
     {#each [{title: m.source_audit_input(), counts: bulk.counts.inputs}, {title: m.source_audit_output(), counts: bulk.counts.outputs}] as side}
