@@ -683,7 +683,12 @@ export function createReleaseStatsPresentation({
       return leftLabel.localeCompare(rightLabel) || left.localeCompare(right)
     })
     .map(([group, groupRows]) => {
-      const label = group === 'summary' ? copy.labels.stats : copy.statLabel(group)
+      const label =
+        group === 'summary'
+          ? copy.labels.stats
+          : group === 'table'
+            ? 'Record types'
+            : copy.statLabel(group)
       const id = addHeading(sectionId(group), label)
       return {
         id,
