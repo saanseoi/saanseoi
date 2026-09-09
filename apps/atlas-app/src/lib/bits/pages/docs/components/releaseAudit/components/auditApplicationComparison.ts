@@ -5,7 +5,11 @@ export function auditApplicationComparison(
   row: IndividualAudit,
 ): { input: Json; output: Json } | null {
   const context = row.context
-  const inputKey = Object.hasOwn(context, 'expected') ? 'expected' : 'input'
+  const inputKey = Object.hasOwn(context, 'expected')
+    ? 'expected'
+    : Object.hasOwn(context, 'sourceRows')
+      ? 'sourceRows'
+      : 'input'
   const outputKey = Object.hasOwn(context, 'replacement') ? 'replacement' : 'output'
   if (
     row.review?.kind !== 'patch' &&
@@ -13,6 +17,7 @@ export function auditApplicationComparison(
   )
     return null
   let input = context[inputKey] ?? null
+  if (Array.isArray(input) && input.length === 0) input = null
   const output = context[outputKey] ?? null
   if (
     row.operation === 'overture_hong_kong_area_geometry_restored' &&
