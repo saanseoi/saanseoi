@@ -71,7 +71,7 @@ $effect(() => {
         data-release-nav-retaining-height={retainedPanelHeight ? 'true' : undefined}
         bind:this={panel}
         style:min-height={retainedPanelHeight ? `${retainedPanelHeight}px` : undefined}
-        class={`relative mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasOutline ? '[&_[data-release-nav-content-body]]:pb-[50svh]' : ''} ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
+        class={`relative mt-4 scroll-mt-24 xl:mt-2 xl:scroll-mt-[120px] ${hasOutline ? '**:data-release-nav-content-body:pb-[50svh]' : ''} ${hasContent && showNestedPanel ? 'xl:h-[calc(100svh-144px)] xl:min-h-[calc(100svh-144px)] xl:max-h-[calc(100svh-144px)] xl:overflow-hidden xl:rounded-lg xl:border xl:border-outline-variant/60 xl:bg-surface-container-lowest xl:dark:border-outline-variant' : ''}`}
       >
         {#if showLoadingIndicator}
           <div

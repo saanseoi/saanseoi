@@ -21,8 +21,8 @@ let { decision }: { decision: AlsDecision } = $props()
         <dl class="space-y-2 text-sm">
           {#each alsHandlingFields(side.value) as field}
             <div class="flex flex-wrap justify-between gap-x-4 gap-y-1">
-              <dt class="break-words opacity-60">{field.label}</dt>
-              <dd class="max-w-full break-words text-emerald-500">{field.value}</dd>
+              <dt class="wrap-break-word opacity-60">{field.label}</dt>
+              <dd class="max-w-full wrap-break-word text-emerald-500">{field.value}</dd>
             </div>
           {:else}
             <p class="opacity-55">No structured values retained for this side.</p>

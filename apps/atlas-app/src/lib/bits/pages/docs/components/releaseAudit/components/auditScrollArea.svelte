@@ -102,7 +102,7 @@ $effect(() => {
   {#if hasMore}
     <button
       type="button"
-      class="absolute inset-x-0 -bottom-px z-20 flex h-11 w-full cursor-pointer items-end justify-center rounded-b-xl bg-linear-to-b from-transparent via-surface/85 to-surface pb-1 text-secondary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-secondary"
+      class="absolute inset-x-0 -bottom-px z-20 flex h-11 w-full cursor-pointer items-end justify-center rounded-b-xl bg-linear-to-b from-transparent via-surface/85 to-surface pb-1 text-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
       aria-label={m.source_show_more()}
       onclick={pageForward}
     >
