@@ -7,6 +7,7 @@ apiReleaseSet: "data-hk-addresses-2024-07-25.0"
 revision: "0"
 regionCode: "hk"
 cohortKey: "2024-07-25.0"
+publisherReleaseDate: "2024-07-25"
 domainCode: "saanseoi"
 ---
 
@@ -51,11 +52,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi {{regionName:zh-Hant}} Addresses API 首個發布集。
-- 將 <black>{{ cohortKey }}</black> 的政府地址查詢服務 snapshot 作為主要 Address
-  collection 發布，並按 Addresses API composition 選取所需的 Overture
-  Division 背景資料。
-- 將雙語格式化地址、處所組成部分、座標、政府識別碼及發布者溯源資料正規化為標準 Address 模型。
+- 山水 | SaanSeoi 初始版本
+- <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
+  <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
 ## 修訂紀錄
 
@@ -86,11 +85,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi {{regionName:zh-Hans}} Addresses API 首个发布集。
-- 将 <black>{{ cohortKey }}</black> 的政府地址查询服务 snapshot 作为主要 Address
-  collection 发布，并按 Addresses API composition 选择所需的 Overture
-  Division 背景数据。
-- 将双语格式化地址、处所组成部分、坐标、政府标识符及发布者溯源数据规范化为标准 Address 模型。
+- 山水 | SaanSeoi 初始版本
+- <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
+  <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
 ## 修订记录
 
