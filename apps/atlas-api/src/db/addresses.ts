@@ -67,6 +67,7 @@ type AddressListLookup = {
   snapshotIds: string[]
   limit?: number
   offset?: number
+  after?: string
   countryId?: string
   areaId?: string
   districtId?: string
@@ -334,7 +335,12 @@ export async function listAddressRecordsCurrent(
       i18n,
     })
     .from(address2d)
-    .where(and(...buildAddressConditions(lookup)))
+    .where(
+      and(
+        ...buildAddressConditions(lookup),
+        lookup.after === undefined ? undefined : sql`${address2d.id} > ${lookup.after}`,
+      ),
+    )
     .orderBy(asc(address2d.id))
     .limit(lookup.limit ?? 25)
     .offset(lookup.offset ?? 0)
