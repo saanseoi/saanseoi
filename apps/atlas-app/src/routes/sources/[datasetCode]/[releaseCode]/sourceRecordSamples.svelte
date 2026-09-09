@@ -12,7 +12,7 @@ import {
   type AddressSample,
 } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
 import GroupedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesGroupedField.svelte'
-import { loadReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/loadReleaseSamples'
+import { loadReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/loadReleaseSamples.js'
 
 type Props = {
   family: string

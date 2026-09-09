@@ -12,12 +12,12 @@ const copy: ReleaseStatsCopy = {
     dataset: 'Dataset',
     records: 'records',
     overview: 'Overview',
-    changeSummary: 'Change summary',
+    changeSummary: 'Change Summary',
     comparisonBaseline: 'Baseline',
     comparisonPrevious: 'Previous release',
     coverage: 'Coverage',
     completeness: 'Completeness',
-    namesByLocale: 'Names by locale',
+    namesByLocale: 'Names by Locale',
     provided: 'Provided',
     inferred: 'Inferred',
     aiTranslated: 'AI translated',
@@ -588,7 +588,7 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.overview?.recordCount).toBe('7')
     expect(model.genericGroups).toEqual([
       expect.objectContaining({
-        label: 'Record types',
+        label: 'Record Types',
         rows: expect.arrayContaining([
           expect.objectContaining({ groupValue: 'divisions', value: '7' }),
           expect.objectContaining({ groupValue: 'divisionsI18n', value: '21' }),

@@ -163,6 +163,7 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
   searchStates = { ...searchStates, [releaseId]: state }
 }
 const sourceSubTypeLabels: Record<string, string> = {
+  district: 'District',
   pu: 'PU',
   'new-town': 'New Town',
 }

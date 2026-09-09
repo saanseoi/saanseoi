@@ -7,10 +7,10 @@ test('requests only missing samples and retries duplicates', async () => {
     counts.push(count)
     return counts.length === 1
       ? [
-          { id: 'a', type: 'division' },
-          { id: 'a', type: 'division' },
+          { id: 'a', name: 'First' },
+          { id: 'a', name: 'First' },
         ]
-      : [{ id: 'b', type: 'division' }]
+      : [{ id: 'b', name: 'Second' }]
   })
   expect(counts).toEqual([2, 1])
   expect(result.map(row => row.id)).toEqual(['a', 'b'])

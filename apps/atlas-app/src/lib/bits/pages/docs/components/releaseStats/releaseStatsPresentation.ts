@@ -687,7 +687,7 @@ export function createReleaseStatsPresentation({
         group === 'summary'
           ? copy.labels.stats
           : group === 'table'
-            ? 'Record types'
+            ? 'Record Types'
             : copy.statLabel(group)
       const id = addHeading(sectionId(group), label)
       return {
