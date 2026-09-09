@@ -33,6 +33,7 @@ import {
 import {
   beginOverturePlacesInitialisation,
   completeOverturePlacesInitialisation,
+  getOverturePlacesInitialisationStatus,
   markOverturePlacesInitialisationFailed,
   runResetOverturePlacesCommand,
 } from './lib/commands/resetPlaces.ts'
@@ -164,6 +165,9 @@ async function main() {
       await beginOverturePlacesInitialisation(target, {
         continue: args.options.continue === true,
       })
+      return
+    case 'init:places:overture:status':
+      console.log(await getOverturePlacesInitialisationStatus(target))
       return
     case 'init:places:overture:complete':
       await completeOverturePlacesInitialisation(target)

@@ -4,6 +4,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
 import {
+  formatCompletedAlsRelease,
   formatAlsDivisionQualitySummary,
   filterDivisionI18nToKnownDivisions,
   formatSourceDuplicateSummary,
@@ -89,6 +90,14 @@ describe('formatAlsDivisionQualitySummary', () => {
     expect(summary).toContain('district ambiguous: NORTH DISTRICT / TAI PO')
     expect(summary).not.toContain('district matched: NORTH DISTRICT')
     expect(summary).not.toContain('area matched: KOWLOON')
+  })
+})
+
+describe('completed ALS release feedback', () => {
+  test('uses the standard one-line skipped-release renderer', () => {
+    expect(formatCompletedAlsRelease('2026-08-19.0')).toBe(
+      '\u001b[36m◆\u001b[39m  dr-hk-hkgov-dpo-address-2026-08-19.0  SKIPPED: published or superseded',
+    )
   })
 })
 

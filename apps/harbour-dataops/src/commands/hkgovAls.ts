@@ -277,10 +277,7 @@ export async function runHkgovAlsIngestCommand(
     sourceVersion,
   } of sourceReleases) {
     if (completedSourceVersions.has(sourceVersion) && !args.options.force) {
-      note(
-        'A completed local address release already exists for this source version; skipping it.',
-        `ALREADY COMPLETED — ${sourceVersion}`,
-      )
+      console.log(formatCompletedAlsRelease(sourceVersion))
       continue
     }
     const outputFile = resolveInvocationPath(
@@ -394,6 +391,16 @@ export async function runHkgovAlsIngestCommand(
       await writeJson(historyFile, history)
     }
   }
+}
+
+export function formatCompletedAlsRelease(sourceVersion: string) {
+  const releaseCode = `dr-hk-hkgov-dpo-address-${sourceVersion}`
+  const initColumnWidth = Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH)
+  const releaseColumnWidth = Math.max(
+    Number.isSafeInteger(initColumnWidth) && initColumnWidth > 0 ? initColumnWidth : 0,
+    releaseCode.length,
+  )
+  return `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`
 }
 
 function formatAlsReviewCommand(input: {
