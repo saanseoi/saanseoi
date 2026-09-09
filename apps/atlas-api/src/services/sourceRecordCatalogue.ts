@@ -16,7 +16,6 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     tableName: 'hkgovHadDivisionAreas',
   },
   'ds-hk-hkgov-landsd-division': {
-    releaseKey: 'version',
     geometryColumn: 'sourceGeometry',
     tableName: 'hkgovLandsdPlaceNames',
   },

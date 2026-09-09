@@ -60,6 +60,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
     cohortKey: input.sourceVersion,
     datasetCode: PLACE_NAME_DATASET,
     releaseNotesUrl: input.releaseNotesUrl,
+    recoverPublishedRelease: true,
     rowCount: rows.length,
     source: 'hkgov-landsd',
     sourceVersion: input.sourceVersion,

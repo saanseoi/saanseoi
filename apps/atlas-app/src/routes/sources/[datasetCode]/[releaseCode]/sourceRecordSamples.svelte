@@ -46,7 +46,6 @@ function requestUrl(limit: number) {
   const url = new URL(`${apiBaseUrl}/${family}/v0.1/sources`)
   url.searchParams.set('sourceRelease', sourceReleaseCode)
   url.searchParams.set('sample', 'random')
-  url.searchParams.set('include', 'geometry')
   url.searchParams.set('limit', String(limit))
   return url
 }
