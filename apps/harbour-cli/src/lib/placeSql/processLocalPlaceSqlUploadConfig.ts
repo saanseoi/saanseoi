@@ -20,6 +20,18 @@ export const SUPPLEMENTARY_CURATION_PATH = resolve(
   '../../../../../fixtures/meta/curations/overture-place-address.json',
 )
 
+/** Human decisions are append-only records so individual reviews stay auditable. */
+export const SUPPLEMENTARY_CURATION_DECISIONS_PATH = resolve(
+  import.meta.dir,
+  '../../../../../fixtures/meta/curations/overture-place-address.jsonl',
+)
+
+/** Reproducible matcher defaults, deliberately outside the reviewed curation ledger. */
+export const SUPPLEMENTARY_DEFAULT_DECISIONS_PATH = resolve(
+  import.meta.dir,
+  '../../../../../.local/overture-places/address-defaults.jsonl',
+)
+
 export const SUPPLEMENTARY_ENTRY_LEDGER_ROOT = resolve(
   import.meta.dir,
   '../../../../../.local/overture-places/address-entries',
