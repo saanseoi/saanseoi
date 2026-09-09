@@ -8,6 +8,7 @@ import type {
   SupplementaryDecision,
 } from './supplementaryPlaceAddress.ts'
 import {
+  parseSupplementaryDecisionJsonLines,
   parseSupplementaryCuration,
   parsedAddressFingerprint,
   supplementaryIdentity,
@@ -127,19 +128,26 @@ export async function reviewPlaceAddressCurations(input: {
   definitions: PlaceAddressDefinition[]
   geometry: Map<string, { lng: number; lat: number }>
   curationPath: string
+  curationDecisionsPath?: string
   sourceRelease: string
   total: number
 }) {
   // The CLI log wrapper pipes stdout through tee; stdin retains the terminal.
   if (!process.stdin.isTTY) return 0
   const byId = Map.groupBy(input.definitions, row => row.addressId)
-  const lockPath = `${input.curationPath}.review.lock`
+  const decisionPath = input.curationDecisionsPath ?? input.curationPath
+  const lockPath = `${decisionPath}.review.lock`
   const lock = await open(lockPath, 'wx')
   let saved = 0
   let deferred = 0
   try {
     let original = await readFile(input.curationPath, 'utf8')
     const policy = JSON.parse(original)
+    let decisionText = input.curationDecisionsPath
+      ? await readFile(input.curationDecisionsPath, 'utf8')
+      : undefined
+    if (decisionText !== undefined)
+      policy.decisions = parseSupplementaryDecisionJsonLines(decisionText)
     parseSupplementaryCuration(policy)
     let index = 0
     for await (const row of input.rows) {
@@ -274,10 +282,27 @@ export async function reviewPlaceAddressCurations(input: {
         throw new Error(
           'Place Address policy changed during review; saved decisions are retained. Reopen review.',
         )
+      if (
+        input.curationDecisionsPath &&
+        (await readFile(input.curationDecisionsPath, 'utf8')) !== decisionText
+      )
+        throw new Error(
+          'Place Address decisions changed during review; saved decisions are retained. Reopen review.',
+        )
+      policy.decisions = policy.decisions.filter(
+        (existing: SupplementaryDecision) =>
+          !(
+            existing.placeId === decision.placeId &&
+            existing.fingerprint === decision.fingerprint &&
+            existing.sourceRelease === decision.sourceRelease
+          ),
+      )
       policy.decisions.push(decision)
       parseSupplementaryCuration(policy)
-      const next = `${JSON.stringify(policy, null, 2)}\n`
-      const temporary = `${input.curationPath}.${crypto.randomUUID()}.tmp`
+      const next = input.curationDecisionsPath
+        ? `${policy.decisions.map(JSON.stringify).join('\n')}\n`
+        : `${JSON.stringify(policy, null, 2)}\n`
+      const temporary = `${decisionPath}.${crypto.randomUUID()}.tmp`
       const file = await open(temporary, 'wx')
       try {
         await file.writeFile(next)
@@ -285,8 +310,9 @@ export async function reviewPlaceAddressCurations(input: {
       } finally {
         await file.close()
       }
-      await rename(temporary, input.curationPath)
-      original = next
+      await rename(temporary, decisionPath)
+      if (input.curationDecisionsPath) decisionText = next
+      else original = next
       saved++
     }
     return saved

@@ -83,6 +83,22 @@ export type SupplementaryEntryLedger = {
   generationVersion: 1
   entries: SupplementaryEntry[]
 }
+
+export function parseSupplementaryDecisionJsonLines(value: string) {
+  const decisions = value
+    .split('\n')
+    .filter(line => line.trim())
+    .map((line, index) => {
+      try {
+        return JSON.parse(line) as SupplementaryDecision
+      } catch {
+        throw new Error(
+          `Invalid Overture Place Address decision at JSONL line ${index + 1}.`,
+        )
+      }
+    })
+  return decisions
+}
 export type Candidate = {
   addressId: string
   score: number

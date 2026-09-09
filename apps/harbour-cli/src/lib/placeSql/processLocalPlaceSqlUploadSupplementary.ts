@@ -29,6 +29,7 @@ import {
   compactAddressResolution,
   createSupplementaryAddressAnalyser,
   emptySupplementaryEntryLedger,
+  parseSupplementaryDecisionJsonLines,
   parseSupplementaryCuration,
   parseSupplementaryEntryLedger,
   type AddressResolution,
@@ -69,6 +70,8 @@ import {
 import {
   LOCAL_RELEASE_ROOT,
   SUPPLEMENTARY_CURATION_PATH,
+  SUPPLEMENTARY_CURATION_DECISIONS_PATH,
+  SUPPLEMENTARY_DEFAULT_DECISIONS_PATH,
   supplementaryEntryLedgerPath,
 } from './processLocalPlaceSqlUploadConfig.ts'
 import { chunkStatements, insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
@@ -81,6 +84,7 @@ type PrepareSupplementaryAddressesInput = {
     audit: import('./placeProvenance').PlaceAddressAuditInput,
   ) => Promise<void>
   curationPath?: string
+  curationDecisionsPath?: string
   entryLedgerPath?: string
   context: LocalAddressDbContext
   metaDb: HarbourReadableDb & HarbourWritableDb
@@ -235,12 +239,34 @@ async function prepareSupplementaryAddressesLocked(
   input.onStage?.('official Address definitions')
   const curationPath = input.curationPath ?? SUPPLEMENTARY_CURATION_PATH
   const fixtureText = await readFile(curationPath, 'utf8')
+  const curationDecisionsPath =
+    input.curationDecisionsPath ??
+    (input.curationPath ? undefined : SUPPLEMENTARY_CURATION_DECISIONS_PATH)
+  const decisionText = curationDecisionsPath
+    ? await readFile(curationDecisionsPath, 'utf8')
+    : undefined
+  const defaultDecisionText = await readOptionalFile(
+    SUPPLEMENTARY_DEFAULT_DECISIONS_PATH,
+  )
   const entryLedgerPath = resolveEntryLedgerPath(input)
   const entryLedgerText = await readOptionalFile(entryLedgerPath)
   const entryLedger = entryLedgerText
     ? parseSupplementaryEntryLedger(JSON.parse(entryLedgerText))
     : emptySupplementaryEntryLedger()
-  const fixture = parseSupplementaryCuration(JSON.parse(fixtureText), entryLedger)
+  const fixture = parseSupplementaryCuration(
+    {
+      ...JSON.parse(fixtureText),
+      decisions: mergeSupplementaryDecisions(
+        defaultDecisionText
+          ? parseSupplementaryDecisionJsonLines(defaultDecisionText)
+          : [],
+        decisionText === undefined
+          ? JSON.parse(fixtureText).decisions
+          : parseSupplementaryDecisionJsonLines(decisionText),
+      ),
+    },
+    entryLedger,
+  )
   const official = (await currentDb
     .select({
       areaId: currentSchema.address2d.areaId,
@@ -414,6 +440,16 @@ async function prepareSupplementaryAddressesLocked(
   // Detect another ingester/reviewer changing the unversioned identity policy.
   if ((await readFile(curationPath, 'utf8')) !== fixtureText)
     throw new Error('Place Address curation changed during analysis; retry.')
+  if (
+    curationDecisionsPath &&
+    (await readFile(curationDecisionsPath, 'utf8')) !== decisionText
+  )
+    throw new Error('Place Address decisions changed during analysis; retry.')
+  if (
+    (await readOptionalFile(SUPPLEMENTARY_DEFAULT_DECISIONS_PATH)) !==
+    defaultDecisionText
+  )
+    throw new Error('Place Address defaults changed during analysis; retry.')
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
   if (reviewCount) {
@@ -422,6 +458,7 @@ async function prepareSupplementaryAddressesLocked(
       definitions,
       geometry,
       curationPath,
+      ...(curationDecisionsPath ? { curationDecisionsPath } : {}),
       sourceRelease: input.plan.sourceVersion,
       total: reviewCount,
     })
@@ -593,6 +630,7 @@ async function prepareSupplementaryAddressesLocked(
         policies,
         curationHash: await createHash({
           policy: JSON.parse(fixtureText),
+          decisions: fixture.decisions,
           entryLedger: {
             ...entryLedger,
             entries: fixture.entries,
@@ -799,6 +837,24 @@ async function prepareSupplementaryAddressesLocked(
     snapshotId: snapshot.id,
     addresses,
   }
+}
+
+function mergeSupplementaryDecisions(
+  defaults: ReturnType<typeof parseSupplementaryDecisionJsonLines>,
+  curated: ReturnType<typeof parseSupplementaryDecisionJsonLines>,
+) {
+  const decisions = new Map(
+    defaults.map(decision => [
+      `${decision.placeId}\0${decision.sourceRelease}\0${decision.fingerprint}`,
+      decision,
+    ]),
+  )
+  for (const decision of curated)
+    decisions.set(
+      `${decision.placeId}\0${decision.sourceRelease}\0${decision.fingerprint}`,
+      decision,
+    )
+  return [...decisions.values()]
 }
 
 async function writeSupplementaryReviewArtefact(input: {
