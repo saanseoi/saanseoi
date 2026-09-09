@@ -5,6 +5,7 @@ import type { ReleaseContentHeading } from './releaseContentOutline.types'
 import {
   releaseNavActivationRootMargin,
   releaseNavActivationViewportFraction,
+  releaseNavScrollsIndependently,
 } from '../releaseNav/releaseNavScroll'
 
 type Props = {
@@ -29,12 +30,8 @@ $effect(() => {
       .filter((heading): heading is HTMLElement => heading !== null)
     if (!elements.length) return
 
-    const scrollsIndependently = () => {
-      const overflowY = getComputedStyle(root).overflowY
-      return /^(auto|scroll)$/.test(overflowY) && root.scrollHeight > root.clientHeight
-    }
     const activationLine = () => {
-      const independentScroll = scrollsIndependently()
+      const independentScroll = releaseNavScrollsIndependently(root)
       const viewportTop = independentScroll ? root.getBoundingClientRect().top : 0
       const viewportHeight = independentScroll ? root.clientHeight : window.innerHeight
       const normalOffset = viewportHeight * releaseNavActivationViewportFraction
@@ -55,7 +52,7 @@ $effect(() => {
       activeHeadingId = current?.id ?? null
     }
     const observer = new IntersectionObserver(update, {
-      root: scrollsIndependently() ? root : null,
+      root: releaseNavScrollsIndependently(root) ? root : null,
       rootMargin: releaseNavActivationRootMargin,
     })
     elements.forEach(element => {
