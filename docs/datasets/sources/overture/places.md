@@ -1,5 +1,8 @@
 # Overture Places
 
+[Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
+2025-10-22.0 in full, with a separate completion manifest for the bounded sample.
+
 The source table stores the complete publisher record only in `rawProperties`, plus
 source identity, provenance and version/release tracking. Names, coordinates,
 categories, brand, contacts and addresses are projected only into canonical

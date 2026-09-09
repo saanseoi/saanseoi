@@ -1,5 +1,9 @@
 # Census and Statistics Department division statistics
 
+[Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
+distinct configured source versions before update discovery, retaining companion
+resources. Discovered updates are also capped at two versions per dataset.
+
 Native-source updates with geography require all declared resource children to be
 published or superseded for the same source version. This includes the Division and
 Division Area children of Housing Market Areas and Permanent Living Quarters, and the

@@ -1,5 +1,8 @@
 # Planning Department TPU and subunit areas
 
+[Minimal initialisation](../../minimal-initialisation.md) selects PU 2001/2006 and New
+Town 2006/2011, retaining both Division and Division Area resources per version.
+
 Planning Unit and New Town API release statistics use the shared
 [division API backfill](../../families/divisions.md#api-release-statistics), including
 historical cohorts. API churn compares canonical identities across cohorts even when

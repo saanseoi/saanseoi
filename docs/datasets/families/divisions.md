@@ -1,5 +1,11 @@
 # Divisions dataset family
 
+New Territories area restoration includes the nine statutory district land geometries
+and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
+
+[Minimal initialisation](../minimal-initialisation.md) selects two Overture and Planning
+versions while retaining the configured companion geometry prerequisites.
+
 ## API release statistics
 
 Division API release statistics replay immutable snapshot membership across assigned
@@ -216,15 +222,15 @@ Home Affairs Department profiles are kept in the provider source folders:
 
 The default `geographic` domain retains Overture as its primary provider variant, rather
 than using the provider name as the domain identity. If Overture omits Hong Kong Island,
-Kowloon, or the New Territories, ingestion synthesises their level-1 `area` identities
-from the configured district members. Every one of those recognised areas receives a
-derived Overture `divisionArea` union when Overture omits its own area geometry, even if
-Overture does provide the division identity itself. Those reviewed identities retain
-their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon (`Q239143`) and the
-New Territories (`Q596660`). This rule is applied independently to every Overture
-cohort, so a missing area is not limited to the newest release. Kowloon reuses
-Overture's historic division ID `17009785-57fd-4e5b-af86-2d27352e4718`; it is never
-assigned a SaanSeoi replacement. Lok Ma Chau Loop
+Kowloon, or the New Territories, ingestion restores their level-1 `area` identities from
+the configured district members. Every one of those recognised areas receives an
+individual Overture `divisionArea` geometry patch when Overture omits its own area
+geometry, even if Overture does provide the division identity itself. Those reviewed
+identities retain their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon
+(`Q239143`) and the New Territories (`Q596660`). This rule is applied independently to
+every Overture cohort, so a missing area is not limited to the newest release. Kowloon
+reuses Overture's historic division ID `17009785-57fd-4e5b-af86-2d27352e4718`; it is
+never assigned a SaanSeoi replacement. Lok Ma Chau Loop
 (`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a district: the
 correction keeps level 2 to the 18 statutory districts, retains raw Overture taxonomy as
 provenance, and is recorded in each affected source release's processing actions. C&SD
@@ -233,10 +239,11 @@ creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes 
 173 polygonal Housing Market Areas. Building Groups are not divisions: their source
 centroids remain source history for a future buildings projection.
 
-When ingestion emits a supplemental Kowloon row, it retains an individual restoration
+When ingestion emits a supplemental area row, it retains an individual identity-patch
 application with the reviewed fixture, affected identity, observed source classification
-and geometry type, replacement row and district identities. Historical releases without
-that retained ingestion evidence do not receive inferred applications.
+and geometry type, replacement row and district identities. The area geometry processor
+retains one individual geometry-patch application per restored area. Historical releases
+without that retained ingestion evidence do not receive inferred applications.
 
 The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
 those stable Overture area identities. Its Area/type polygons join the same
@@ -376,18 +383,18 @@ additions and never as removals from another cohort.
 
 For Overture, locale inference, API-locale fallbacks and `CN-GD` geometry exclusions
 contribute aggregate counters to registered processor declarations, without affected
-record lists. Synthetic area geometry retains its registered union/exclusion rule and
-parameters. AI and human name translations are individual fixture curations with source
-text, resulting text, target locale and available parent names. The retained fixture
-preserves unused entries as well as applied instructions. Translation applications are
-captured for every source using the shared Division processor, including C&SD. Lok Ma
-Chau Loop uses a guarded classification fixture in both direct normalisation and
-hierarchy lookup. The admin-level expectation permits an omitted field only when the
-accepted source-release schema has no `admin_level` column; supplied values must match
-the fixture. Translation preparation passes the source-release context through the same
-normalisation guard. Identity, class and subtype checks remain mandatory, and source
-drift blocks ingestion. Audit shows bulk summaries first and loads declarations,
-fixtures and individual pages on request.
+record lists. Reviewed area geometry retains its fixture-backed union/exclusion patch
+and parameters. AI and human name translations are individual fixture curations with
+source text, resulting text, target locale and available parent names. The retained
+fixture preserves unused entries as well as applied instructions. Translation
+applications are captured for every source using the shared Division processor,
+including C&SD. Lok Ma Chau Loop uses a guarded classification fixture in both direct
+normalisation and hierarchy lookup. The admin-level expectation permits an omitted field
+only when the accepted source-release schema has no `admin_level` column; supplied
+values must match the fixture. Translation preparation passes the source-release context
+through the same normalisation guard. Identity, class and subtype checks remain
+mandatory, and source drift blocks ingestion. Audit shows bulk summaries first and loads
+declarations, fixtures and individual pages on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to

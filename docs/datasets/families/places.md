@@ -1,5 +1,8 @@
 # Places dataset family
 
+[Minimal initialisation](../minimal-initialisation.md) selects the first two configured
+Overture versions and uses a separate completion manifest.
+
 Canonical list requests use SQL pagination for materialised snapshots. Historical lists
 replay bounded batches until the requested page and one further match are found. Their
 `meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
