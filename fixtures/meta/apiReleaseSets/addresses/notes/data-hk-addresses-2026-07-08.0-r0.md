@@ -3,11 +3,11 @@ createdAt: "2026-09-09T00:26:38.567Z"
 updatedAt: "2026-09-09T00:26:38.567Z"
 apiFamily: "addresses"
 apiVersion: "api-addresses-v0.1"
-apiReleaseSet: "data-hk-addresses-2024-07-25.0"
+apiReleaseSet: "data-hk-addresses-2026-07-08.0"
 revision: "0"
 regionCode: "hk"
-cohortKey: "2024-07-25.0"
-publisherReleaseDate: "2024-07-25"
+cohortKey: "2026-07-08.0"
+publisherReleaseDate: "2026-07-08"
 domainCode: "saanseoi"
 ---
 
@@ -15,12 +15,9 @@ domainCode: "saanseoi"
 
 ## Changelog
 
-- First 山水 | SaanSeoi Addresses API release set for {{regionName:en}}.
-- Publishes the Address Lookup Service snapshot for <black>{{ cohortKey }}</black> as
-  the primary Address collection. The nearest (i.e. earliest) Overture Division context
-  is selected for inclusion in the Addresses API composition.
-- Normalises bilingual formatted addresses, premise components, coordinates, government
-  identifiers, and publisher provenance into the canonical Address model.
+- <orange>Upstream</orange> Digital Policy Office Address Lookup Service (ALS)
+  two-dimensional district GeoJSON delivery dated
+  <black>{{publisherReleaseDate}}</black>
 
 ## Revision log
 
@@ -52,7 +49,6 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
   <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
@@ -85,7 +81,6 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
   <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
