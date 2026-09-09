@@ -169,7 +169,7 @@ let bulkActions = $derived(
     .filter(rule => rule.type === 'bulk') ?? [],
 )
 let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
-let hasRetainedAuditFamily = $derived(
+let hasAuditFamily = $derived(
   source?.resourceTypes.some(type =>
     ['division', 'divisionArea', 'divisionBoundary', 'divisionStatistic'].includes(
       type,
@@ -280,7 +280,7 @@ let hasContent = $derived.by(() => {
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
     return Boolean(
-      hasRetainedAuditFamily ||
+      hasAuditFamily ||
         (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
           0 ||
         bulkActions.length,
@@ -382,7 +382,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
-  hasRetainedAuditFamily ||
+  hasAuditFamily ||
   (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
@@ -403,7 +403,7 @@ $effect(() => {
   const unavailable =
     ((activeTab === 'schema' || activeTab === 'samples') && !sourceRecordFamily) ||
     (activeTab === 'audit' &&
-      !hasRetainedAuditFamily &&
+      !hasAuditFamily &&
       !isContentLoading &&
       (version?.processingActionCount ?? version?.processingActions?.length ?? 0) ===
         0 &&
@@ -630,7 +630,7 @@ $effect(() => {
               />
             {/key}
           {:else if activeTab === 'audit'}
-            <ReleaseAudit.Retained
+            <ReleaseAudit.Audit
               selectedResourceType={selectedAuditResourceType}
               onResourceTypesChange={resourceTypes => {
                 auditResourceTypes = resourceTypes
@@ -654,7 +654,7 @@ $effect(() => {
                 bind:headings={auditHeadings}
                 bind:activeHeadingId={activeAuditHeadingId}
               />
-            </ReleaseAudit.Retained>
+            </ReleaseAudit.Audit>
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance

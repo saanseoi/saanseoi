@@ -341,7 +341,8 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       snapshots: { ...input.snapshots, snapshotId: withdrawnPlaceSnapshot.id },
     })
     const generatedAddressId = first.addresses[0]?.current.id
-    expect(generatedAddressId).toBeDefined()
+    if (!generatedAddressId)
+      throw new Error('Expected a generated supplementary Address.')
     expect(withdrawn.addresses).toEqual([])
     expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toEqual([
       expect.objectContaining({

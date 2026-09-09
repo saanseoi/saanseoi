@@ -22,7 +22,7 @@ async function manifestFor(releaseId: string, hash?: string) {
     .from(table)
     .where(eq(table.releaseId, releaseId))
     .get()
-  if (!row) throw new Error('Release has no retained audit.')
+  if (!row) throw new Error('Release has no audit.')
   if (hash && hash !== row.manifestHash)
     throw new Error('Audit changed; reload the release before continuing.')
   const manifest = await readObject(store(), {
@@ -33,7 +33,7 @@ async function manifestFor(releaseId: string, hash?: string) {
   return { manifest, hash: row.manifestHash }
 }
 
-export const getRetainedSourceAudit = query(
+export const getSourceAudit = query(
   z.object({ datasetCode: z.string(), releaseCode: z.string() }),
   async input => {
     const {
@@ -41,6 +41,8 @@ export const getRetainedSourceAudit = query(
       metaReleases: r,
       metaSourceReleases: s,
       metaDatasets: d,
+      metaPublishers: publishers,
+      metaPublisherI18n: publisherI18n,
     } = metaSchema
     const rows = await getMetaDb()
       .select({
@@ -49,6 +51,8 @@ export const getRetainedSourceAudit = query(
         resourceType: r.resourceType,
         sourceDatasetCode: d.code,
         sourceReleaseCode: s.code,
+        sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+        sourceSubType: d.subType,
         hash: p.manifestHash,
         byteLength: p.byteLength,
       })
@@ -56,6 +60,7 @@ export const getRetainedSourceAudit = query(
       .innerJoin(r, eq(r.id, p.releaseId))
       .innerJoin(s, eq(s.id, r.sourceReleaseId))
       .innerJoin(d, eq(d.id, s.datasetId))
+      .innerJoin(publishers, eq(d.publisherId, publishers.id))
       .where(and(eq(d.code, input.datasetCode), eq(s.code, input.releaseCode)))
       .all()
     return (
@@ -80,7 +85,7 @@ export const getRetainedSourceAudit = query(
   },
 )
 
-export const getRetainedApiAudit = query(
+export const getApiAudit = query(
   z.object({ familyType: z.string(), releaseCode: z.string() }),
   async input => {
     const {
@@ -92,6 +97,8 @@ export const getRetainedApiAudit = query(
       metaApiVersions: versions,
       metaSourceReleases: sourceReleases,
       metaDatasets: datasets,
+      metaPublishers: publishers,
+      metaPublisherI18n: publisherI18n,
     } = metaSchema
     const rows = await getMetaDb()
       .select({
@@ -100,6 +107,8 @@ export const getRetainedApiAudit = query(
         resourceType: r.resourceType,
         sourceDatasetCode: datasets.code,
         sourceReleaseCode: sourceReleases.code,
+        sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+        sourceSubType: datasets.subType,
         hash: p.manifestHash,
         byteLength: p.byteLength,
       })
@@ -107,6 +116,7 @@ export const getRetainedApiAudit = query(
       .innerJoin(r, eq(p.releaseId, r.id))
       .innerJoin(sourceReleases, eq(r.sourceReleaseId, sourceReleases.id))
       .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
+      .innerJoin(publishers, eq(datasets.publisherId, publishers.id))
       .where(sql`exists (
     select 1 from ${sources}
     inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
@@ -137,7 +147,7 @@ export const getRetainedApiAudit = query(
   },
 )
 
-export const getRetainedAuditPage = query(
+export const getAuditPage = query(
   z.object({
     releaseId: z.string(),
     hash: z.string(),
@@ -195,7 +205,7 @@ export const getRetainedRuleDeclaration = query(
   },
 )
 
-export const getRetainedAuditDecision = query(
+export const getAuditDecision = query(
   z.object({ releaseId: z.string(), hash: z.string(), actionId: z.string().max(2048) }),
   async input => {
     const { manifest } = await manifestFor(input.releaseId, input.hash)

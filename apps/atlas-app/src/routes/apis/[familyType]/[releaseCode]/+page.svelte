@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Retained as RetainedAudit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
+import { Audit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import { afterNavigate, goto } from '$app/navigation'
 import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
@@ -845,7 +845,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {/await}
           {/if}
         {:else if activeTab === 'audit'}
-          <RetainedAudit
+          <Audit
             familyType={api.familyType}
             releaseCode={release.code}
             bind:headings={auditHeadings}
@@ -876,7 +876,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                 {/if}
               {/await}
             {/if}
-          </RetainedAudit>
+          </Audit>
         {:else}
           {#if linksComponents}
             {#await linksComponents then modules}
