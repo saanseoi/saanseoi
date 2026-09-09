@@ -1,4 +1,5 @@
 {
+  "source_audit_districts": "地區",
   "source_audit_als_prepare_title": "整理 ALS 地址",
   "source_audit_als_normalise_title": "統一 ALS 地址格式",
   "source_audit_als_prepare_summary": "讀取已發佈的中英文地址；處理重複記錄及已審核的例外情況；確定每個地址所屬的分區；並將樓層及單位清單連結至相應地址。",
@@ -472,7 +473,7 @@
   "source_tab_information": "來源版本資訊",
   "source_tab_stats": "統計",
   "source_tab_assembly": "組裝",
-  "source_tab_assembly_description": "與此來源版本一同組裝的來源發布版本。",
+  "source_tab_assembly_description": "組裝會把來源發布版本合併為快照。API 發布集會選用快照。",
   "source_tab_assembly_info": "關於組裝",
   "source_show_more": "顯示更多",
   "source_retry": "重試",
