@@ -57,6 +57,7 @@ export async function runReconcileDraftReleaseSetsCommand(
     try {
       for (const statsTarget of result.publishedReleaseSetStatsTargets) {
         await calculateAndStoreApiReleaseSetStats({
+          historyTargets: dbContext.historyTargets,
           currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
           family: statsTarget.family,
           harbourClient: createHarbourControlClient(target) as HarbourClient,

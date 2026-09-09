@@ -1,5 +1,10 @@
 import { retainProcessingFailure } from '../api/processingFailureAudit'
 import {
+  calculateAndStoreApiReleaseSetStats,
+  isApiReleaseSetStatsReady,
+  resolveApiReleaseSetStatsTarget,
+} from '../api/apiReleaseSetStats'
+import {
   planningDivisionChurn,
   planningDivisionContentHash,
 } from './planningDivisionChurn'
@@ -666,6 +671,38 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           deliveryContext.state.dbCacheDir,
         ),
       )
+    }
+    if (isApiReleaseSetStatsReady(publishResult)) {
+      const statsContext = target.remote
+        ? await resolveLocalAddressDbContext(
+            target,
+            previewPlan.regionCode,
+            previewPlan.sourceVersion,
+            {
+              cacheTableProfile: 'division',
+              includePreviousShardYears: true,
+              requireExistingRemoteCache: true,
+              resumeSqlDeliveryReleaseId: releaseId,
+            },
+          )
+        : context
+      try {
+        await calculateAndStoreApiReleaseSetStats({
+          currentDb: statsContext.currentDb as unknown as HarbourReadableDb,
+          historyTargets: statsContext.historyTargets,
+          family: 'division',
+          harbourClient: client,
+          importOptions: resolvePlandImportOptions(target, statsContext),
+          metaDb: statsContext.metaDb as unknown as HarbourReadableDb &
+            HarbourWritableDb,
+          progress,
+          releaseCode,
+          releaseId,
+          target: resolveApiReleaseSetStatsTarget(publishResult),
+        })
+      } finally {
+        if (statsContext !== context) statsContext.cleanup()
+      }
     }
     await completeSqlDeliveryRelease(deliveryContext.state.dbCacheDir, releaseId)
     return {
