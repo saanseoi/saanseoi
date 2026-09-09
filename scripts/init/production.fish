@@ -21,9 +21,11 @@ for command in \
     init:places \
     init:stats
     if test "$command" = init:stats
-        SAANSEOI_INIT_COMPLETED_PREREQUISITES=divisions:geographic \
+        SAANSEOI_INIT_DEFER_DOCS=1 SAANSEOI_INIT_COMPLETED_PREREQUISITES=divisions:geographic \
             init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
     else
-        init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
+        SAANSEOI_INIT_DEFER_DOCS=1 init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
     end
 end
+
+init_publish_docs

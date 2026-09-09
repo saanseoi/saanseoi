@@ -9,6 +9,17 @@ if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
+set -l initialisation_status (SAANSEOI_INIT_COMMAND= SAANSEOI_INIT_GUIDES= ./bin/saanseoi init:places:overture:status --target $saanseoi_init_target 2>&1)
+set -l initialisation_status_code $status
+if test "$initialisation_status_code" -ne 0
+    string join \n -- $initialisation_status >&2
+    exit $initialisation_status_code
+end
+if test (string trim -- (string join \n -- $initialisation_status)) = complete
+    echo "Overture Places initialisation is already complete; no work required."
+    exit 0
+end
+
 init_run_step ./bin/saanseoi init:places:overture:begin \
     --target $saanseoi_init_target $continue_args
 set -g saanseoi_init_failure_command ./bin/saanseoi init:places:overture:fail \
