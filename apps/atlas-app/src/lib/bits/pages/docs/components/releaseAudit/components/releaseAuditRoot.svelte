@@ -17,7 +17,7 @@ import {
 } from './releaseAuditBulkSections'
 import type { AuditAction, AuditActionPage, AuditSection } from './releaseAudit.types'
 import { matchesFuzzyQuery } from './releaseAuditSearch'
-import { auditHeadingId } from './releaseAuditUtils'
+import { auditHeadingId, releaseAuditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 import {
   releaseNavActivationRootMargin,
@@ -246,6 +246,11 @@ let hasUnfetchedActionRows = $derived(
   ) ?? false,
 )
 let sectionHeadings = $derived([
+  {
+    id: releaseAuditHeadingId,
+    level: 2,
+    text: m.source_audit_title(),
+  },
   ...visibleBulkSections.map(rule => ({
     id: bulkSectionHeadingId(rule),
     level: 2,

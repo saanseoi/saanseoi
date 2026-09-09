@@ -2,6 +2,7 @@
 import { Tooltip } from 'bits-ui'
 import ReleaseAuditControlsHeader from './releaseAuditControlsHeader.svelte'
 import ReleaseAuditControlsSearch from './releaseAuditControlsSearch.svelte'
+import { releaseAuditHeadingId } from './releaseAuditUtils'
 
 type Props = {
   filteredCount: string
@@ -28,7 +29,7 @@ let {
 }: Props = $props()
 </script>
 
-<section class="pt-2">
+<section id={releaseAuditHeadingId} class="pt-2">
   <Tooltip.Provider>
     <ReleaseAuditControlsHeader
       {filteredCount}

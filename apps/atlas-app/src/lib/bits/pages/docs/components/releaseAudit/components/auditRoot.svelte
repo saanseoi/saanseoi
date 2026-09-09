@@ -7,6 +7,7 @@ import { getSourceAudit, getApiAudit } from '#lib/registry/audit.remote.js'
 import { releaseNavActivationViewportFraction } from '../../releaseNav/releaseNavScroll'
 import AuditRelease from './auditRelease.svelte'
 import Controls from './releaseAuditControls.svelte'
+import { releaseAuditHeadingId } from './releaseAuditUtils'
 let {
   datasetCode,
   familyType,
@@ -49,10 +50,12 @@ $effect(() => {
       )?.id ?? null
   }
   const update = () => {
-    visible = [...element.querySelectorAll<HTMLElement>('h3')].filter(
+    const sectionElements = [...element.querySelectorAll<HTMLElement>('h3')].filter(
       heading => heading.getClientRects().length > 0,
     )
-    const sectionHeadings = visible.map(heading => {
+    const auditHeading = element.querySelector<HTMLElement>(`#${releaseAuditHeadingId}`)
+    visible = auditHeading ? [auditHeading, ...sectionElements] : sectionElements
+    const sectionHeadings = sectionElements.map(heading => {
       const resource =
         heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
         ''
@@ -73,18 +76,25 @@ $effect(() => {
     const sourceHeadings = [
       ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading]'),
     ]
-    const next = familyType
-      ? sourceHeadings.flatMap(source => [
-          {
-            id: source.id,
-            level: 2,
-            text: source.dataset.auditSourceLabel ?? m.source_audit_section(),
-          },
-          ...sectionHeadings
-            .filter(section => section.resource === source.dataset.auditReleaseId)
-            .map(({ resource: _resource, ...section }) => section),
-        ])
-      : sectionHeadings.map(({ resource: _resource, ...section }) => section)
+    const next = [
+      {
+        id: releaseAuditHeadingId,
+        level: 2,
+        text: m.source_audit_title(),
+      },
+      ...(familyType
+        ? sourceHeadings.flatMap(source => [
+            {
+              id: source.id,
+              level: 2,
+              text: source.dataset.auditSourceLabel ?? m.source_audit_section(),
+            },
+            ...sectionHeadings
+              .filter(section => section.resource === source.dataset.auditReleaseId)
+              .map(({ resource: _resource, ...section }) => section),
+          ])
+        : sectionHeadings.map(({ resource: _resource, ...section }) => section)),
+    ]
     if (JSON.stringify(headings) !== JSON.stringify(next)) headings = next
     updateActive()
   }
