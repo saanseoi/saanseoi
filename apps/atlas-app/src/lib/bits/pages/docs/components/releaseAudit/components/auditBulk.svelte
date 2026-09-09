@@ -6,16 +6,11 @@ import {
   getRetainedBulkFixture,
   getRetainedRuleDeclaration,
 } from '#lib/registry/audit.remote.js'
-import AuditFixture from './auditFixture.svelte'
-import FixtureDisclosure from './auditFixtureDisclosure.svelte'
+import LazyFixture from './auditLazyFixture.svelte'
 import Skeleton from './auditApplicationSkeleton.svelte'
 import CopyRule from './auditCopyRule.svelte'
 import RuleParameters from './auditRuleParameters.svelte'
-import {
-  filterAuditFixture,
-  auditFixtureRows,
-  fixtureHasContents,
-} from './auditFixtureRows'
+import { catalogueGroupMatches, type FixtureSearchGroup } from './auditFixtureCatalogue'
 import { auditRuleCopy } from './auditRuleCopy'
 const titles = () =>
   ({
@@ -56,13 +51,8 @@ let {
   releaseId: string
   hash: string
   query?: string
-  groups?: Record<string, Json>
+  groups?: Record<string, FixtureSearchGroup>
 } = $props()
-let fixtures = $derived(
-  Object.fromEntries(
-    bulk.fixtures.map((fixture, index) => [index, groups?.[fixture.type]]),
-  ),
-)
 let failure = $state('')
 let declaration = $state<Json>()
 let parameters = $derived(
@@ -70,10 +60,6 @@ let parameters = $derived(
     ? declaration.parameters
     : null,
 )
-const filteredFixture = (value: Json | undefined) =>
-  value === undefined ? undefined : filterAuditFixture(value, query)
-const hasRows = (value: Json | undefined) =>
-  value !== undefined && fixtureHasContents(value, query)
 $effect(() => {
   releaseId
   hash
@@ -173,8 +159,8 @@ async function loadDeclaration() {
     </details>
   {/if}
   {#each bulk.fixtures as fixture, index}
-    {@const filtered = filteredFixture(fixtures[index])}
-    {#if bulk.fixtures.findIndex(part => part.type === fixture.type) === index && hasRows(filtered)}
+    {@const group = groups?.[fixture.type]}
+    {#if bulk.fixtures.findIndex(part => part.type === fixture.type) === index && group && catalogueGroupMatches(group, query)}
       <div class="relative border-t border-current/10">
         <div class="absolute right-4 top-2 z-10">
           <CopyRule
@@ -185,33 +171,15 @@ async function loadDeclaration() {
         }}
           />
         </div>
-        <FixtureDisclosure
-          open={fixture.type === 'statistic-fields' || fixture.type === 'statistic-measures'}
-        >
-          {#snippet summary()}
-            {fixture.type === 'statistic-fields' ? m.source_audit_statistical_fields() : fixture.type === 'statistic-measures' ? m.source_audit_statistical_measures() : fixture.type === 'identity-mappings' ? m.source_audit_identity_bridge() : label(fixture.type)}
-            {#if fixtures[index] !== undefined}
-              <span class="ml-2 text-xs font-normal tabular-nums opacity-50"
-                >{auditFixtureRows(filtered).length}
-                / {auditFixtureRows(fixtures[index]).length}</span
-              >
-            {/if}
-          {/snippet}
-          {#if fixtures[index] !== undefined}
-            <AuditFixture value={filtered ?? fixtures[index] ?? null} />
-          {:else}
-            {#if !failure}
-              <Skeleton />
-            {:else}
-              <p class="text-sm">{failure}</p>
-            {/if}
-            {#if failure}
-              <button type="button" class="text-sm underline" onclick={loadDeclaration}>
-                {m.source_audit_retry_fixture()}
-              </button>
-            {/if}
-          {/if}
-        </FixtureDisclosure>
+        <LazyFixture
+          {releaseId}
+          {hash}
+          {query}
+          {group}
+          bulkId={bulk.id}
+          type={fixture.type}
+          label={fixture.type === 'statistic-fields' ? m.source_audit_statistical_fields() : fixture.type === 'statistic-measures' ? m.source_audit_statistical_measures() : fixture.type === 'identity-mappings' ? m.source_audit_identity_bridge() : label(fixture.type)}
+        />
       </div>
     {/if}
   {/each}
