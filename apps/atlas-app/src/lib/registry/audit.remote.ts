@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { and, eq, sql, metaSchema } from '@repo/db'
 import {
   readObject,
-  readAuditPage,
+  buildAuditPageIndex,
+  readIndexedAuditPage,
   readAuditDecision,
   validateAuditManifest,
   type Digest,
@@ -13,10 +14,10 @@ import { cachedAuditData } from './auditCache.server'
 import {
   loadAuditFixtures,
   filterAuditFixture,
-} from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureRows'
-import { auditFixtureCatalogue } from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureCatalogue'
-import { alsAuditDecisions } from '#lib/bits/pages/docs/components/releaseAudit/components/auditAlsDecisions'
-import { matchesAudit } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch'
+} from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureRows.js'
+import { auditFixtureCatalogue } from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureCatalogue.js'
+import { alsAuditDecisions } from '#lib/bits/pages/docs/components/releaseAudit/components/auditAlsDecisions.js'
+import { matchesAudit } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch.js'
 
 function store() {
   const bucket = getRequestEvent().platform?.env.R2_GUIDE_ASSETS
@@ -182,7 +183,11 @@ export const getAuditPage = query(
       (!fixture || input.entryIndex === undefined)
     )
       throw new Error('Translation fixture is not declared by this release.')
-    return readAuditPage(store(), manifest, input.q, input.offset, 50, {
+    const bucket = store()
+    const index = await cachedAuditData(`actions/${input.hash}`, () =>
+      buildAuditPageIndex(bucket, manifest),
+    )
+    return readIndexedAuditPage(bucket, manifest, index, input.q, input.offset, 50, {
       category: input.category,
       fixture: fixture
         ? { hash: fixture.object.hash, pointer: `/entries/${input.entryIndex}` }

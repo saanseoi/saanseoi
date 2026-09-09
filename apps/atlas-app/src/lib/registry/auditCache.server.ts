@@ -6,7 +6,7 @@ export async function cachedAuditData<T>(
   build: () => Promise<T>,
 ): Promise<T> {
   const event = getRequestEvent()
-  const cache = event.platform?.caches?.default
+  const cache = await event.platform?.caches?.open('audit-presentation')
   if (!cache) return build()
   const request = new Request(new URL(`/__audit-cache/v1/${key}`, event.url.origin))
   const hit = await cache.match(request)
@@ -18,7 +18,7 @@ export async function cachedAuditData<T>(
   const write = cache.put(request, response).catch(error => {
     console.warn('Unable to cache audit presentation data', error)
   })
-  if (event.platform?.context) event.platform.context.waitUntil(write)
+  if (event.platform?.ctx) event.platform.ctx.waitUntil(write)
   else await write
   return value
 }
