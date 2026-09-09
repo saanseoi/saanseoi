@@ -22,6 +22,9 @@ set -l releases \
     2026-06-17.0 \
     2026-07-22.0 \
     2026-08-19.0
+if test "$SAANSEOI_INIT_MINIMAL" = 1
+    set releases $releases[1..2]
+end
 set -l had_uploaded 0
 set -l defer_release_set_args --defer-api-release-set
 

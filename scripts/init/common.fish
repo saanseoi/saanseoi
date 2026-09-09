@@ -40,7 +40,9 @@ function init_clear_clean_run_manifests
     end
     rm -f \
         "$saanseoi_init_repo/.local/hkgov-dpo/init-runs/$target.json" \
-        "$saanseoi_init_repo/.local/overture-places/init-runs/$target.json"
+        "$saanseoi_init_repo/.local/overture-places/init-runs/$target.json" \
+        "$saanseoi_init_repo/.local/hkgov-dpo/init-runs/$target.minimal.json" \
+        "$saanseoi_init_repo/.local/overture-places/init-runs/$target.minimal.json"
 end
 
 set -g saanseoi_init_continue 0
