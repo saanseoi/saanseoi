@@ -8,7 +8,9 @@ export async function cachedAuditData<T>(
   const event = getRequestEvent()
   const cache = await event.platform?.caches?.open('audit-presentation')
   if (!cache) return build()
-  const request = new Request(new URL(`/__audit-cache/v1/${key}`, event.url.origin))
+  // Remote queries prohibit event.url access. This URL names a cache entry only;
+  // it is never fetched, and the named cache belongs to the current environment.
+  const request = new Request(`https://audit-cache.saanseoi.invalid/v1/${key}`)
   const hit = await cache.match(request)
   if (hit) return hit.json() as Promise<T>
   const value = await build()
