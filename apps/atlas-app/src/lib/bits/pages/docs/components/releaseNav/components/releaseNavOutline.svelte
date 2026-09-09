@@ -42,7 +42,7 @@ let tree = $derived(buildTree(items))
     <li class:ml-2={nested} class:pl-3={nested} class="relative">
       {#if nested}
         <span
-          class={`pointer-events-none absolute top-0 left-0 border-l border-outline-variant/80 ${isLast ? mobile ? 'h-5' : 'h-3.5' : 'bottom-0'}`}
+          class={`pointer-events-none absolute -top-0.75 left-0 border-l border-outline-variant/80 ${isLast ? mobile ? 'h-5.5' : 'h-4' : '-bottom-0.75'}`}
           aria-hidden="true"
         ></span>
         <span
@@ -51,7 +51,7 @@ let tree = $derived(buildTree(items))
         ></span>
       {/if}
       <a
-        class={`relative z-10 flex items-center rounded-md border-l-2 px-2 font-body leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary ${mobile ? 'min-h-10 py-1.5 text-label-md' : 'min-h-7 py-0.5 text-label-sm'} ${active ? 'border-secondary bg-secondary/10 font-semibold text-primary dark:bg-secondary/16' : 'border-transparent text-foreground-alt hover:bg-black/5 hover:text-primary dark:hover:bg-white/10'}`}
+        class={`relative z-10 flex items-center rounded-md px-2 font-body leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary ${mobile ? 'min-h-10 py-1.5 text-label-md' : 'min-h-7 py-1 text-label-sm'} ${active ? 'bg-secondary-container font-semibold text-foreground-alt dark:text-[#edf2ee]!' : 'text-foreground-alt hover:bg-black/5 hover:text-primary dark:hover:bg-white/10'}`}
         href={node.href ?? `#${node.id}`}
         onclick={event => {
           scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
@@ -61,7 +61,7 @@ let tree = $derived(buildTree(items))
         ><ReleaseNavInlineLabel label={node.label} /></a
       >
       {#if node.children.length}
-        <ol>
+        <ol class="space-y-0.5 pt-0.5">
           {#each node.children as child, index}
             {@render item(child, true, index === node.children.length - 1)}
           {/each}
@@ -69,7 +69,7 @@ let tree = $derived(buildTree(items))
       {/if}
     </li>
   {/snippet}
-  <ol class="space-y-1">
+  <ol class="space-y-0.5">
     {#each tree as node, index}
       {@render item(node, false, index === tree.length - 1)}
     {/each}

@@ -29,10 +29,12 @@ const parseInlineCode = (value: string): Segment[] => {
 let segments = $derived(parseInlineCode(label))
 </script>
 
-{#each segments as segment}
-  {#if segment.code}
-    <code class="font-mono text-[0.9em]">{segment.value}</code>
-  {:else}
-    {segment.value}
-  {/if}
-{/each}
+<span class="min-w-0 -translate-y-px">
+  {#each segments as segment}
+    {#if segment.code}
+      <code class="font-mono text-[0.9em]">{segment.value}</code>
+    {:else}
+      {segment.value}
+    {/if}
+  {/each}
+</span>

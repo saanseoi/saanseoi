@@ -43,7 +43,9 @@ let {
 {/snippet}
 
 <aside class="h-full">
-  <div class="flex h-full min-h-0 flex-col">
+  <div
+    class={`grid h-full min-h-0 ${domains.length ? 'grid-rows-[var(--release-version-height,1fr)_minmax(0,1fr)]' : 'grid-rows-[minmax(0,1fr)]'}`}
+  >
     <ReleaseNavVersionList
       {canExpand}
       {currentVersionCode}

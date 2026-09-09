@@ -98,7 +98,6 @@ export function createNestedContentScroll({
 export async function scrollToReleaseNavAnchor({
   event,
   id,
-  items,
   mobile = false,
   panel,
 }: {
@@ -116,10 +115,6 @@ export async function scrollToReleaseNavAnchor({
 
   event.preventDefault()
 
-  const rootFontSize = Number.parseFloat(
-    getComputedStyle(document.documentElement).fontSize,
-  )
-  const firstItemPadding = id === items[0]?.id ? 1.5 * rootFontSize : 0
   const scrollContainer = target.closest<HTMLElement>('[data-release-nav-content-body]')
   const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
 
@@ -132,12 +127,14 @@ export async function scrollToReleaseNavAnchor({
       }
     }
 
+    const targetRect = target.getBoundingClientRect()
+    const containerRect = scrollContainer.getBoundingClientRect()
     const top =
       scrollContainer.scrollTop +
-      target.getBoundingClientRect().top -
-      scrollContainer.getBoundingClientRect().top -
-      firstItemPadding -
-      24
+      targetRect.top +
+      targetRect.height / 2 -
+      containerRect.top -
+      containerRect.height / 2
 
     await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
@@ -145,23 +142,16 @@ export async function scrollToReleaseNavAnchor({
     return
   }
 
-  const mobileOffset = Math.max(
-    0,
-    document.querySelector('header')?.getBoundingClientRect().bottom ?? 0,
-    controls?.getBoundingClientRect().bottom ?? 0,
-    document
-      .querySelector<HTMLElement>('[data-release-nav-mobile-toc-trigger]')
-      ?.getBoundingClientRect().bottom ?? 0,
-  )
-
-  const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
-
   await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
 
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
 
+  const targetRect = target.getBoundingClientRect()
   window.scrollTo({
-    top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset),
+    top: Math.max(
+      0,
+      window.scrollY + targetRect.top + targetRect.height / 2 - window.innerHeight / 2,
+    ),
     behavior: 'smooth',
   })
 }
@@ -196,11 +186,12 @@ export const observeReleaseNavOutline = (
 
     if (!firstTarget) return
 
-    const offset = Math.min(160, window.innerHeight * 0.25)
+    const activationLine = window.innerHeight / 2
     const active =
       [...targets]
         .reverse()
-        .find(target => target.getBoundingClientRect().top <= offset) ?? firstTarget
+        .find(target => target.getBoundingClientRect().top <= activationLine) ??
+      firstTarget
 
     onActive(active.id)
   }
@@ -212,7 +203,7 @@ export const observeReleaseNavOutline = (
 
     if (!targets.length) return false
 
-    observer = new IntersectionObserver(update, { rootMargin: '-20% 0px -65% 0px' })
+    observer = new IntersectionObserver(update, { rootMargin: '-50% 0px -49% 0px' })
     for (const target of targets) observer.observe(target)
     window.addEventListener('scroll', update, { passive: true })
     update()
