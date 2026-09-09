@@ -17,17 +17,13 @@ export function fitReleaseNavSidebar(node: HTMLElement) {
   let frame = 0
 
   function measure() {
-    frame = 0
     if (!node.getClientRects().length || !versions) return
 
-    // Use the row's document position, not the moving sticky controls. Changing
-    // height on scroll fights native sticky positioning and scroll anchoring.
-    const top = Math.max(
-      112,
-      (node.parentElement?.getBoundingClientRect().top ?? 112) + window.scrollY,
-    )
+    // Keep the outer sticky box stable. Only its contents grow as the header
+    // leaves the viewport, so layout cannot move the sticky boundary itself.
+    const top = Math.max(112, node.getBoundingClientRect().top)
     const height = Math.max(0, window.innerHeight - top - 24)
-    node.style.height = `${height}px`
+    node.style.setProperty('--release-sidebar-height', `${height}px`)
 
     if (!domains) return
     const versionHeight = intrinsicListHeight(versions)
@@ -48,7 +44,12 @@ export function fitReleaseNavSidebar(node: HTMLElement) {
   }
 
   function schedule() {
-    if (!frame) frame = requestAnimationFrame(measure)
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        measure()
+      })
+    }
   }
 
   const resize = new ResizeObserver(schedule)
@@ -68,6 +69,9 @@ export function fitReleaseNavSidebar(node: HTMLElement) {
   }
   const mutation = new MutationObserver(observeContents)
   mutation.observe(node, { childList: true, subtree: true })
+  // Apply scroll geometry in the event itself rather than one animation frame
+  // later, which makes the bottom edge visibly chase the scrolling page.
+  window.addEventListener('scroll', measure, { passive: true })
   window.addEventListener('resize', schedule)
   observeContents()
 
@@ -76,6 +80,7 @@ export function fitReleaseNavSidebar(node: HTMLElement) {
       cancelAnimationFrame(frame)
       resize.disconnect()
       mutation.disconnect()
+      window.removeEventListener('scroll', measure)
       window.removeEventListener('resize', schedule)
     },
   }
