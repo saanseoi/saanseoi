@@ -7,6 +7,7 @@ import {
   type JsonRecord,
   type ProvenanceStore,
   type RuleDeclaration,
+  type AuditGuard,
 } from '@repo/core/provenance'
 import { addressNormalisationRule } from '@repo/core/pipeline/services/addressPipeline/normalisation'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -22,6 +23,7 @@ export type AddressPreparationAudit = {
   declarations: { preparation: RuleDeclaration; curation: RuleDeclaration }
   fixtures: Array<{ type: string; document: Record<string, unknown> }>
   processingActions: ReleaseProcessingAction[]
+  guards?: AuditGuard[]
 }
 
 export async function readAddressPreparationAudit(
@@ -166,17 +168,6 @@ export async function retainAddressProvenance(
         decisions: { normalised: input.outputCount },
       },
     ],
-    guards: [
-      {
-        id: 'address-materialisation',
-        summary: 'Require completed Address normalisation and SQL generation.',
-        consequence: 'block-ingestion',
-        status: 'passed',
-        checked: preparation.outputCount,
-        failed: 0,
-        reason:
-          'The Address processor completed normalisation and SQL generation before audit retention.',
-      },
-    ],
+    guards: preparation.guards ?? [],
   })
 }
