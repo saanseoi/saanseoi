@@ -470,7 +470,6 @@ export {
   formatDivisionApiReleaseSetReadiness,
   formatAddressApiReleaseSetReadiness,
   selectPublishedApiReleaseSetPublications,
-  rainbowWaveText,
 } from './uploadDisplay.ts'
 
 export { censtatdDistrictDatasetCode } from './uploadPreparation.ts'

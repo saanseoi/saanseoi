@@ -7,7 +7,6 @@ import {
   formatAddressApiReleaseSetReadiness,
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
-  rainbowWaveText,
   resolveDivisionDomainCode,
   selectPublishedApiReleaseSetPublications,
 } from './upload.ts'
@@ -119,12 +118,6 @@ describe('division API release set readiness display', () => {
     expect(
       parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0--overture'),
     ).toBe('2025-09-24.0')
-  })
-
-  test('renders a release set code as a rainbow wave', () => {
-    expect(rainbowWaveText('set')).toBe(
-      '\u001B[38;5;196ms\u001B[38;5;202me\u001B[38;5;226mt\u001B[39m',
-    )
   })
 
   test('renders the required members from the active API composition', () => {
