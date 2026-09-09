@@ -4,7 +4,7 @@
   "id": "apply-division-name-translation",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Add a selected translated division name only for a missing locale, preserving the recorded translation origin.",
+  "summary": "Add a reviewed name in a language only when no name in that language was published, and record where the translation came from.",
   "inputs": ["division-i18n", "division-translations"],
   "outputs": ["division-i18n"],
   "parameters": {},

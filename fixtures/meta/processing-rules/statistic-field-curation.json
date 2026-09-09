@@ -4,7 +4,7 @@
   "id": "curate-statistic-fields",
   "scope": "bulk",
   "basis": "fixture",
-  "summary": "Select reviewed field names, dimensions, units, aggregations and localisations by dataset and publisher field key.",
+  "summary": "Use the reviewed list to choose each dataset field’s name, grouping, unit, calculation and language versions.",
   "inputs": ["statistic-field-curations"],
   "outputs": ["statsFields"],
   "parameters": {},

@@ -4,7 +4,7 @@
   "id": "exclude-division-geometry",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Exclude configured spillover regions and area geometry belonging to referent-only division identities.",
+  "summary": "Leave out configured areas beyond Hong Kong and shapes attached only as references.",
   "inputs": ["source-geometry"],
   "outputs": ["geometry-selection"],
   "parameters": {

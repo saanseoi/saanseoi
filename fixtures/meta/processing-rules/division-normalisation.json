@@ -4,7 +4,7 @@
   "id": "normalise-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Normalise source division identities, classification, names and hierarchy for the selected dataset.",
+  "summary": "Create one SaanSeoi division from each publisher record, keeping its record ID, type, names and parent relationship.",
   "inputs": ["source-divisions"],
   "outputs": ["divisions"],
   "parameters": {

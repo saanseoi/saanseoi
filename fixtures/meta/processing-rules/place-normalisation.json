@@ -4,7 +4,7 @@
   "id": "normalise-overture-places",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Normalise Overture Place coordinates, names, locale scripts, categories, brands, contacts and publisher addresses; omit records without an identity or point geometry.",
+  "summary": "Keep usable Overture place records with their map point, names, categories, brand, contact details and published address. Leave out records without a publisher ID or map point.",
   "inputs": ["publisher-places"],
   "outputs": ["places", "placesI18n"],
   "parameters": {},

@@ -4,7 +4,7 @@
   "id": "normalise-division-area-geometry",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Normalise division area geometry, identities and source references; exclude Guangdong spillover and referent-only geometry.",
+  "summary": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas.",
   "inputs": ["source-geometry"],
   "outputs": ["divisionAreas"],
   "parameters": {},

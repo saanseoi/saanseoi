@@ -4,7 +4,7 @@
   "id": "resolve-place-addresses",
   "scope": "bulk",
   "basis": "fixture",
-  "summary": "Resolve Place Address identity using the selected matching policy, accepted supplementary entries and explicitly reviewed decisions.",
+  "summary": "Match each place to an official address using the selected policy, approved extra addresses and reviewed decisions.",
   "inputs": ["places", "official-addresses", "place-address-curations"],
   "outputs": ["place-address-links", "supplementary-addresses"],
   "parameters": {},

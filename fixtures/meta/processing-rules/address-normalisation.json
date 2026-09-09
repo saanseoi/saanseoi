@@ -4,7 +4,7 @@
   "id": "normalise-als-addresses",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Turn the prepared records into consistent address fields in both languages. Apply reviewed field corrections and identify whether each address describes a whole site, a building or a section.",
+  "summary": "Make the address fields consistent in both languages. Apply reviewed field corrections and identify whether each address describes a whole site, a building or a section.",
   "inputs": ["prepared-addresses"],
   "outputs": ["address2d", "address2dI18n"],
   "parameters": {},

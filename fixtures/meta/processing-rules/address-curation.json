@@ -4,7 +4,7 @@
   "id": "curate-als-addresses",
   "scope": "bulk",
   "basis": "fixture",
-  "summary": "Apply reviewed ALS identity, component, hierarchy, inventory, retention and coordinate fixtures under their source and release guards.",
+  "summary": "Apply the reviewed decisions about duplicate addresses, address parts, parent relationships, unit lists, records to retain and map points.",
   "inputs": ["als-curations"],
   "outputs": ["prepared-addresses"],
   "parameters": {},

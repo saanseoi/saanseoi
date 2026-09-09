@@ -4,7 +4,7 @@
   "id": "normalise_censtatd_population_thousands_to_persons",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Convert population in thousands to persons using decimal arithmetic.",
+  "summary": "Multiply population figures given in thousands by 1,000.",
   "inputs": ["publisher-properties.MYPOPN_LAND"],
   "outputs": ["statsRecords.values"],
   "parameters": { "sourceField": "MYPOPN_LAND", "factor": 1000 },

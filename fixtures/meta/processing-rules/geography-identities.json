@@ -4,7 +4,7 @@
   "id": "resolve-geography-identities",
   "scope": "bulk",
   "basis": "fixture",
-  "summary": "Select one reviewed geography identity map by authority, cohort and domain; require non-empty unique source identities and canonical targets.",
+  "summary": "Use the identity bridge to match each publisher geography record to one SaanSeoi geography. Every publisher record must be unique and have a match.",
   "inputs": ["identity-mappings"],
   "outputs": ["canonical-geography-identities"],
   "parameters": {},
