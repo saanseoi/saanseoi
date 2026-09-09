@@ -134,6 +134,15 @@ describe('initialisation commands', () => {
     })
   })
 
+  test('runs the top-level API families in dependency order', () => {
+    const source = readFileSync(resolve(repoRoot, 'scripts/init/all.fish'), 'utf8')
+    const order = ['init:divisions', 'init:stats', 'init:addresses', 'init:places']
+    const positions = order.map(command => source.indexOf(`    ${command}`))
+
+    expect(positions.every(position => position >= 0)).toBe(true)
+    expect(positions).toEqual([...positions].sort((left, right) => left - right))
+  })
+
   test('does not resolve an unsupported family and domain', () => {
     expect(resolveInitialisationCommand('init:divisions:unknown')).toBeUndefined()
   })
