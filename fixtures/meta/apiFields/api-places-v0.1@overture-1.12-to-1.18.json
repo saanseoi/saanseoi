@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cf1d19b0b9e1d09e5e7176866421fc06090fdf0c66ba30fc49be9c0005da6f2e",
+  "versionHash": "sha256:cf4bcc9dcb57362e31a4f067e59ba9f0b56778392faa51b120071420d7c5925b",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-place-v1",
@@ -19,6 +19,14 @@
         "ds-hk-overture-place": "1.13.0",
         "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.12.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2025-12-17.0",
+      "sourceSchemas": {
+        "ds-hk-overture-place": "1.15.0",
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.14.0"
       }
     },
     {

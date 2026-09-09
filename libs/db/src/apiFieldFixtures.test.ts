@@ -15,6 +15,32 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('resolves December Places with the selected November Division schema', () => {
+    const lookup = {
+      apiVersion: 'api-places-v0.1',
+      domainCode: 'overture',
+      lineageSnapshotVersions: [
+        'ss-hk-place-2025-09-24.0',
+        'ss-hk-place-2025-10-22.0',
+        'ss-hk-place-2025-12-17.0',
+      ],
+      schemaVersion: 'sv-place-v1',
+      rulesetVersion: 'rs-place-merge-v1',
+      sourceSchemas: {
+        'ds-hk-hkgov-dpo-address': '3.2',
+        'ds-hk-overture-division': '1.14.0',
+        'ds-hk-overture-place': '1.15.0',
+      },
+    }
+    expect(resolveApiFieldFixture(lookup)).not.toBeNull()
+    expect(
+      resolveApiFieldFixture({
+        ...lookup,
+        sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '1.11.0' },
+      }),
+    ).toBeNull()
+  })
+
   test('bundled mappings have current hashes and registered resolvers', () => {
     for (const fixture of listApiFieldFixtures()) {
       expect(fixture.versionHash).toBe(computeVersionHash(fixture))
