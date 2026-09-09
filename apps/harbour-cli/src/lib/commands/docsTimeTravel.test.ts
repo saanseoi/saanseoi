@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { parseMarkdownFixture, renderMarkdownFixtureBody } from './docsRendering.ts'
 
-test('renders shared time travel sections for Divisions and Places only', async () => {
+test('renders shared time travel sections for versioned API guides', async () => {
   const root = resolve(import.meta.dir, '../../../../..')
   let guides = 0
   for await (const path of new Glob('fixtures/meta/apiReleaseSets/*/guides/*.md').scan(
@@ -33,7 +33,7 @@ test('renders shared time travel sections for Divisions and Places only', async 
     expect(rendered).toContain('links.permalink')
     guides++
   }
-  expect(guides).toBe(24)
+  expect(guides).toBe(25)
 })
 
 test('frontmatter overrides supply checkpoint examples and missing values fail clearly', async () => {
