@@ -70,6 +70,7 @@ test('requires retained processing audits for Addresses and Places before publis
     const releaseCode = `dr-hk-${source}-${datasetType}-2026-06-24.0`
     const releaseId = `release-${releaseCode}`
     const snapshotId = `snapshot-${releaseId}`
+    let supplementarySnapshotCode: string | null = null
 
     if (datasetType === 'address') {
       // Historical address releases remain published history rather than
@@ -167,6 +168,23 @@ test('requires retained processing audits for Addresses and Places before publis
     })
 
     if (datasetType === 'address') {
+      sqlite.exec(`
+        INSERT OR IGNORE INTO datasets (
+          id, publisherId, code, regionCode, releaseType, releaseFrequency, theme,
+          sourceUrl, versionHash, createdAt, updatedAt
+        ) VALUES (
+          'overture-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk',
+          'static', 'monthly', 'places',
+          'https://docs.overturemaps.org/schema/reference/places/place/',
+          'vh-dataset-overture-hk-place-v1', 1718236800000, 1718236800000
+        );
+        UPDATE datasets
+        SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address')
+        WHERE id = 'overture-hk-place'
+          AND NOT EXISTS (
+            SELECT 1 FROM json_each(resourceTypes) WHERE value = 'address'
+          );
+      `)
       const divisionReleaseId = 'release-dr-hk-overture-division-2026-06-17.0'
       insertFixtureRelease(sqlite, {
         releaseId: divisionReleaseId,
@@ -193,6 +211,37 @@ test('requires retained processing audits for Addresses and Places before publis
         status: 'published',
         timestamp: 1762300800000,
       })
+      const supplementaryRelease = insertFixtureRelease(sqlite, {
+        datasetCode: 'ds-hk-overture-place',
+        source: 'overture',
+        regionCode: 'hk',
+        cohortKey: '2026-06',
+        type: 'address',
+        sourceVersion: '2026-06-17.0',
+        rawObjectKey: 'hk/overture/2026-06-17.0/place.parquet',
+        originalFileName: 'place.parquet',
+        status: 'published',
+        ingestedAt: '2026-06-05T00:01:00.000Z',
+        createdAt: '2026-06-05T00:01:00.000Z',
+        updatedAt: '2026-06-05T00:01:00.000Z',
+      })
+      const supplementarySnapshot = await ensureDraftSnapshotForRelease(db, 'address', {
+        cohortKey: '2026-06',
+        datasetCode: 'ds-hk-overture-place',
+        datasetId: 'overture-hk-place',
+        regionCode: 'hk',
+        sourceReleaseId: supplementaryRelease.releaseId,
+        variant: 'overture-places',
+      })
+      await upsertSnapshotSource(
+        db,
+        supplementarySnapshot.id,
+        'overture-hk-place',
+        supplementaryRelease.releaseId,
+        'primary',
+      )
+      await publishSnapshot(db, supplementarySnapshot.id)
+      supplementarySnapshotCode = supplementarySnapshot.code
       const { listCurrentApiCompositionMembersForType } = await import(
         '@repo/core/db/metaRegistry'
       )
@@ -416,7 +465,10 @@ test('requires retained processing audits for Addresses and Places before publis
     )
     expect(supportingSnapshots).toEqual(
       datasetType === 'address'
-        ? [{ code: 'ss-hk-division-2026-06-17.0', role: 'supporting' }]
+        ? [
+            { code: supplementarySnapshotCode, role: 'supporting' },
+            { code: 'ss-hk-division-2026-06-17.0', role: 'supporting' },
+          ]
         : [
             { code: 'ss-hk-address-historical-selection', role: 'supporting' },
             { code: 'ss-hk-address-overture-places-2026-06', role: 'supporting' },

@@ -43,6 +43,16 @@ export function releaseSetMemberKey(resourceType: ResourceType, variant: string)
   return `${resourceType}:${variant}`
 }
 
+/**
+ * A variant identifies the materialised output, not necessarily its publisher.
+ * Overture Places emits an Address output under `overture-places`, while the
+ * publisher and dataset remain `overture` / `ds-hk-overture-place`.
+ */
+function publisherCodeForVariant(variant: string) {
+  if (variant === 'overture-places') return 'overture'
+  return publisherCodeForSource(variant.split(':')[0] ?? variant)
+}
+
 export async function resolveCarriedSnapshots(
   db: HarbourReadableDb,
   activeReleaseSet: Awaited<
@@ -76,8 +86,9 @@ export async function resolveSupportingSnapshotsForMember(
 ) {
   if (member.variant !== 'default') {
     const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
-    const source = member.variant.split(':')[0] ?? member.variant
-    const publisherCode = datasetCode ? undefined : publisherCodeForSource(source)
+    const publisherCode = datasetCode
+      ? undefined
+      : publisherCodeForVariant(member.variant)
     const snapshots =
       await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
         db,
