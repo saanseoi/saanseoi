@@ -736,7 +736,12 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
     bind:activeTab
   >
     {#if isContentLoading && contentResource.showSkeleton}
-      <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
+      <div
+        data-release-nav-loading-layer
+        transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
+      >
+        <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
+      </div>
     {:else if contentResource.error}
       <section
         class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
