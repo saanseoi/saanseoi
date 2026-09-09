@@ -3,6 +3,7 @@ import { tick } from 'svelte'
 
 import type { ReleaseContentHeading } from './releaseContentOutline.types'
 import {
+  getReleaseNavDocumentActive,
   releaseNavActivationRootMargin,
   releaseNavActivationViewportFraction,
   releaseNavScrollsIndependently,
@@ -26,7 +27,7 @@ $effect(() => {
   void tick().then(() => {
     if (disposed) return
     const elements = headingIds
-      .map(id => root.querySelector<HTMLElement>(`#${id}`))
+      .map(id => root.querySelector<HTMLElement>(`#${CSS.escape(id)}`))
       .filter((heading): heading is HTMLElement => heading !== null)
     if (!elements.length) return
 
@@ -44,6 +45,10 @@ $effect(() => {
       return viewportTop + Math.min(normalOffset, firstOffset + root.scrollTop)
     }
     const update = () => {
+      if (!releaseNavScrollsIndependently(root)) {
+        activeHeadingId = getReleaseNavDocumentActive(elements)
+        return
+      }
       const current =
         [...elements]
           .reverse()
@@ -60,11 +65,15 @@ $effect(() => {
     })
     root.addEventListener('scroll', update, { passive: true })
     window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('release-nav:anchor', update)
+    window.addEventListener('resize', update)
     update()
     cleanup = () => {
       observer.disconnect()
       root.removeEventListener('scroll', update)
       window.removeEventListener('scroll', update)
+      window.removeEventListener('release-nav:anchor', update)
+      window.removeEventListener('resize', update)
     }
   })
   return () => {
