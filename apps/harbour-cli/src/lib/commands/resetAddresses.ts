@@ -136,7 +136,7 @@ export async function beginOfficialAddressInitialisation(
 export async function completeOfficialAddressInitialisation(target: UploadTarget) {
   const path = manifestPath(target)
   const manifest = await readManifest(path)
-  if (manifest.status !== 'running')
+  if (!['running', 'complete'].includes(manifest.status))
     throw new Error('Official-address initialisation is not running.')
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'address',
@@ -444,17 +444,37 @@ async function collectOwnedRecords(
     throw new Error('Official-address initialisation produced no address releases.')
   const releaseIds = releases.map(row => row.id)
   const snapshotRows = await context.metaDb
-    .select({ id: metaSchema.metaSnapshotSources.snapshotId })
+    .select({
+      id: metaSchema.metaSnapshotSources.snapshotId,
+      role: metaSchema.metaSnapshotSources.role,
+    })
     .from(metaSchema.metaSnapshotSources)
     .where(inArray(metaSchema.metaSnapshotSources.resourceReleaseId, releaseIds))
     .all()
-  const snapshotIds = [...new Set(snapshotRows.map(row => row.id))]
+  const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
   const apiRows =
     snapshotIds.length === 0
       ? []
       : await context.metaDb
-          .select({ id: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId })
+          .select({
+            id: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
+            familyType: metaSchema.metaApiVersions.familyType,
+          })
           .from(metaSchema.metaApiReleaseSetSnapshots)
+          .innerJoin(
+            metaSchema.metaApiReleaseSets,
+            eq(
+              metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
+              metaSchema.metaApiReleaseSets.id,
+            ),
+          )
+          .innerJoin(
+            metaSchema.metaApiVersions,
+            eq(
+              metaSchema.metaApiReleaseSets.apiVersionId,
+              metaSchema.metaApiVersions.id,
+            ),
+          )
           .where(inArray(metaSchema.metaApiReleaseSetSnapshots.snapshotId, snapshotIds))
           .all()
   const assets = await context.metaDb
@@ -468,7 +488,7 @@ async function collectOwnedRecords(
     .all()
   const currentDivisionSnapshotIds = await readCurrentDivisionSnapshotIds(context)
   return {
-    apiReleaseSetIds: [...new Set(apiRows.map(row => row.id))],
+    apiReleaseSetIds: selectOwnedOfficialAddressApiReleaseSetIds(apiRows),
     assetIds: assets,
     materialisedDivisionSnapshotIds: resolveOwnedMaterialisedDivisionSnapshotIds(
       currentDivisionSnapshotIds,
@@ -486,6 +506,26 @@ export function resolveOwnedMaterialisedDivisionSnapshotIds(
   baselineSnapshotIds: string[],
 ) {
   return currentSnapshotIds.filter(id => !baselineSnapshotIds.includes(id))
+}
+
+/**
+ * A downstream Address or Place snapshot may look up an ALS release. It is not
+ * part of the official-address initialisation, whose snapshots own that
+ * release as their primary source.
+ */
+export function selectOwnedOfficialAddressSnapshotIds(
+  rows: Array<{ id: string; role: string }>,
+) {
+  return [...new Set(rows.filter(row => row.role === 'primary').map(row => row.id))]
+}
+
+/** The reset boundary covers Address API compositions, never Places that reference ALS. */
+export function selectOwnedOfficialAddressApiReleaseSetIds(
+  rows: Array<{ id: string; familyType: string }>,
+) {
+  return [
+    ...new Set(rows.filter(row => row.familyType === 'addresses').map(row => row.id)),
+  ]
 }
 
 async function assertResetStillSafe(
