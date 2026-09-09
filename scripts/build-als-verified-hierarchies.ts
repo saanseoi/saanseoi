@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 const fixturePath = 'fixtures/meta/curations/hkgov-dpo-address-hierarchies.json'
 const fixture = JSON.parse(await readFile(fixturePath, 'utf8'))
 const audit = JSON.parse(
-  await readFile('fixtures/meta/curations/hkgov-dpo-address-estate-audit.json', 'utf8'),
+  await readFile('.local/hkgov-dpo/estate-review/estate-audit.json', 'utf8'),
 )
 if (audit.version !== 1) {
   throw new Error(
