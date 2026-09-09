@@ -7,6 +7,7 @@ import {
   getRetainedRuleDeclaration,
 } from '#lib/registry/audit.remote.js'
 import AuditFixture from './auditFixture.svelte'
+import FixtureDisclosure from './auditFixtureDisclosure.svelte'
 import Skeleton from './auditApplicationSkeleton.svelte'
 import CopyRule from './auditCopyRule.svelte'
 import RuleParameters from './auditRuleParameters.svelte'
@@ -17,14 +18,32 @@ import {
 } from './auditFixtureRows'
 const titles = () =>
   ({
+    'prepare-als-addresses': m.source_audit_als_prepare_title(),
+    'normalise-als-addresses': m.source_audit_als_normalise_title(),
     'curate-statistic-fields': m.source_audit_statistic_field_mappings(),
     'resolve-geography-identities': m.source_audit_identity_bridge(),
     'normalise-censtatd-statistics': m.source_audit_observation_normalisation(),
     normalise_censtatd_population_thousands_to_persons:
       m.source_audit_population_unit_conversion(),
   }) as Record<string, string>
+const labels = (): Record<string, string> => ({
+  'publisher-occurrences': m.source_audit_als_publisher_occurrences(),
+  'als-curations': m.source_audit_als_curations(),
+  'prepared-addresses': m.source_audit_als_prepared_addresses(),
+  'curation-documents': m.source_audit_als_curation_documents(),
+  address2d: m.source_audit_als_address2d(),
+  address2dI18n: m.source_audit_als_address2d_i18n(),
+  address3d: m.source_audit_als_address3d(),
+  address3dUnits: m.source_audit_als_address3d_units(),
+})
 const label = (value: string) =>
-  value.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ')
+  labels()[value] ??
+  value
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[_-]/g, ' ')
+    .replace(/\bals\b/gi, 'ALS')
+const title = (value: string) =>
+  label(value).replace(/\b[a-z]/g, character => character.toUpperCase())
 let {
   bulk,
   releaseId,
@@ -74,10 +93,15 @@ async function loadDeclaration() {
   <header
     class="flex min-h-14 items-center justify-between gap-4 bg-current/2.5 px-4 py-3"
   >
-    <h4 class="text-base font-medium capitalize">
-      {titles()[bulk.id] ?? label(bulk.id)}
+    <h4 class="text-base font-medium">
+      {titles()[bulk.id] ?? title(bulk.id)}
     </h4>
     <div class="flex items-center gap-2">
+      {#if bulk.id === 'normalise-als-addresses'}
+        <span class="rounded-full border border-current/15 px-2 py-1 text-xs opacity-65"
+          >{m.source_audit_als_depends_on({ rule: m.source_audit_als_prepare_title() })}</span
+        >
+      {/if}
       <span
         class={['rounded-full px-2 py-1 text-xs', bulk.outcome === 'applied' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500']}
         title={auditStatus(bulk.outcome)}
@@ -88,7 +112,11 @@ async function loadDeclaration() {
     </div>
   </header>
   <p class="border-t border-current/10 px-4 py-3 leading-relaxed opacity-65">
-    {bulk.summary}
+    {bulk.id === 'prepare-als-addresses'
+      ? m.source_audit_als_prepare_summary()
+      : bulk.id === 'normalise-als-addresses'
+        ? m.source_audit_als_normalise_summary()
+        : bulk.summary}
   </p>
   <div class="grid grid-cols-2 border-t border-current/10">
     {#each [{title: m.source_audit_input(), counts: bulk.counts.inputs}, {title: m.source_audit_output(), counts: bulk.counts.outputs}] as side}
@@ -156,11 +184,10 @@ async function loadDeclaration() {
         }}
           />
         </div>
-        <details
-          class="px-4 py-3"
+        <FixtureDisclosure
           open={fixture.type === 'statistic-fields' || fixture.type === 'statistic-measures'}
         >
-          <summary class="cursor-pointer pr-12 text-sm font-medium">
+          {#snippet summary()}
             {fixture.type === 'statistic-fields' ? m.source_audit_statistical_fields() : fixture.type === 'statistic-measures' ? m.source_audit_statistical_measures() : fixture.type === 'identity-mappings' ? m.source_audit_identity_bridge() : label(fixture.type)}
             {#if fixtures[index] !== undefined}
               <span class="ml-2 text-xs font-normal tabular-nums opacity-50"
@@ -168,28 +195,22 @@ async function loadDeclaration() {
                 / {auditFixtureRows(fixtures[index]).length}</span
               >
             {/if}
-          </summary>
-          <div class="mt-4 max-h-[640px] overflow-auto">
-            {#if fixtures[index] !== undefined}
-              <AuditFixture value={filtered ?? fixtures[index] ?? null} />
+          {/snippet}
+          {#if fixtures[index] !== undefined}
+            <AuditFixture value={filtered ?? fixtures[index] ?? null} />
+          {:else}
+            {#if !failure}
+              <Skeleton />
             {:else}
-              {#if !failure}
-                <Skeleton />
-              {:else}
-                <p class="text-sm">{failure}</p>
-              {/if}
-              {#if failure}
-                <button
-                  type="button"
-                  class="text-sm underline"
-                  onclick={loadDeclaration}
-                >
-                  {m.source_audit_retry_fixture()}
-                </button>
-              {/if}
+              <p class="text-sm">{failure}</p>
             {/if}
-          </div>
-        </details>
+            {#if failure}
+              <button type="button" class="text-sm underline" onclick={loadDeclaration}>
+                {m.source_audit_retry_fixture()}
+              </button>
+            {/if}
+          {/if}
+        </FixtureDisclosure>
       </div>
     {/if}
   {/each}

@@ -28,7 +28,7 @@ let {
 }: Props = $props()
 </script>
 
-<section class="py-2">
+<section class="pt-2">
   <Tooltip.Provider>
     <ReleaseAuditControlsHeader
       {filteredCount}

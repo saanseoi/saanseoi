@@ -19,6 +19,10 @@ import type { AuditAction, AuditActionPage, AuditSection } from './releaseAudit.
 import { matchesFuzzyQuery } from './releaseAuditSearch'
 import { auditHeadingId } from './releaseAuditUtils'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
+import {
+  releaseNavActivationRootMargin,
+  releaseNavActivationViewportFraction,
+} from '../../releaseNav/releaseNavScroll'
 
 const AUDIT_PAGE_SIZE = 50
 const COMPLETE_SEARCH_PAGE_SIZE = 500
@@ -838,7 +842,7 @@ $effect(() => {
       .filter((heading): heading is HTMLElement => heading !== null)
     if (!elements.length) return
 
-    const activationOffset = Math.min(160, window.innerHeight * 0.25)
+    const activationOffset = window.innerHeight * releaseNavActivationViewportFraction
     const updateActiveHeading = () => {
       const current =
         [...elements]
@@ -849,7 +853,7 @@ $effect(() => {
     }
 
     const observer = new IntersectionObserver(updateActiveHeading, {
-      rootMargin: `-${activationOffset}px 0px -65% 0px`,
+      rootMargin: releaseNavActivationRootMargin,
     })
     elements.forEach(heading => {
       observer.observe(heading)
