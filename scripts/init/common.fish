@@ -54,6 +54,7 @@ set -g saanseoi_init_completed_releases_loaded 0
 set -g saanseoi_init_release_column_width 0
 set -g saanseoi_init_docs_pending 0
 set -g saanseoi_init_upload_failures 0
+set -g saanseoi_init_skipped_release_codes
 
 function init_configure
     set -l usage $argv[1]
@@ -182,16 +183,18 @@ end
 function init_skip_completed_release
     set -l release_code $argv[1]
     if init_is_completed_release "$release_code"
-        set -l guides (string split -- ',' "$SAANSEOI_INIT_GUIDES")
-        if test (count $guides) -gt 1
-            for guide in $guides[1..-2]
-                printf '\033[90m│   \033[39m'
-            end
-        end
-        printf '\033[36m◆\033[39m  %-*s  SKIPPED: published or superseded\n' $saanseoi_init_release_column_width "$release_code"
+        set -a saanseoi_init_skipped_release_codes "$release_code"
         return 0
     end
     return 1
+end
+
+function init_render_skipped_releases
+    if test (count $saanseoi_init_skipped_release_codes) -eq 0
+        return
+    end
+    set -l release_codes (string join , -- $saanseoi_init_skipped_release_codes)
+    init_run_step ./bin/saanseoi init:skipped --target $saanseoi_init_target --release $release_codes
 end
 
 function init_run_upload
@@ -306,6 +309,7 @@ function init_domain_has_pending_releases
 end
 
 function init_complete
+    init_render_skipped_releases
     if test "$saanseoi_init_upload_failures" -ne 0
         init_fail 1
     end

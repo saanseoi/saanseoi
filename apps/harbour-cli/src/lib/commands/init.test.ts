@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import {
-  formatCompletedInitialisationSkip,
+  formatInitialisationSkippedDatasets,
   formatInitialisationSummary,
   interruptInitialisationProcess,
   resolveInitialisationCommand,
@@ -302,17 +302,23 @@ describe('initialisation commands', () => {
 
   test('renders completed initialisers through the standard dataset skip grid', async () => {
     const [addresses, places] = await Promise.all([
-      formatCompletedInitialisationSkip('ds-hk-hkgov-dpo-address'),
-      formatCompletedInitialisationSkip('ds-hk-overture-place'),
+      formatInitialisationSkippedDatasets(
+        { environment: 'dev', remote: false },
+        { datasetCodes: ['ds-hk-hkgov-dpo-address'], releaseCodes: [] },
+      ),
+      formatInitialisationSkippedDatasets(
+        { environment: 'dev', remote: false },
+        { datasetCodes: ['ds-hk-overture-place'], releaseCodes: [] },
+      ),
     ])
 
-    for (const line of [addresses, places]) {
+    for (const line of [...addresses, ...places]) {
       expect(line).toContain('◆')
       expect(line).toContain('SKIPPED: no updates')
       expect(line).not.toContain('\n')
     }
-    expect(addresses).toContain('Address Lookup Service')
-    expect(places).toContain('Place + Address')
+    expect(addresses[0]).toContain('Address Lookup Service')
+    expect(places[0]).toContain('Place + Address')
   })
 
   test('defers family docs and publishes them once at the end of aggregate init', () => {
@@ -368,7 +374,7 @@ describe('initialisation commands', () => {
     }
   })
 
-  test('normal init skips completed releases before opening input files or the uploader', () => {
+  test('normal init records completed releases before opening input files or the uploader', () => {
     const result = Bun.spawnSync({
       cmd: [
         'fish',
@@ -395,12 +401,8 @@ describe('initialisation commands', () => {
       cwd: repoRoot,
     })
     expect(result.exitCode).toBe(0)
-    const output = result.stdout.toString()
-    expect(output).toContain('dr-test-published   SKIPPED:')
-    expect(output).toContain('dr-test-superseded  SKIPPED:')
-    const rows = output.trimEnd().split('\n')
-    expect(rows[0]?.indexOf('SKIPPED:')).toBe(rows[1]?.indexOf('SKIPPED:'))
-    expect(output).not.toContain('UPLOAD PLAN')
+    expect(result.stdout.toString()).toBe('')
+    expect(result.stdout.toString()).not.toContain('UPLOAD PLAN')
     expect(result.stderr.toString()).toBe('')
   })
 
@@ -439,8 +441,7 @@ describe('initialisation commands', () => {
       cwd: repoRoot,
     })
     expect(result.exitCode).toBe(0)
-    expect(result.stdout.toString()).toContain('SKIPPED: published or superseded')
-    expect(result.stdout.toString().trimEnd().split('\n')).toHaveLength(3)
+    expect(result.stdout.toString()).toBe('')
     expect(result.stderr.toString()).toBe('')
   })
 
