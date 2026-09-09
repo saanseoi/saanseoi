@@ -187,16 +187,6 @@ export function selectPublishedApiReleaseSetPublications(
   return [...publications.values()]
 }
 
-export function rainbowWaveText(value: string) {
-  const colors = [196, 202, 226, 46, 51, 21, 201]
-  return [...value]
-    .map(
-      (character, index) => `\u001B[38;5;${colors[index % colors.length]}m${character}`,
-    )
-    .join('')
-    .concat('\u001B[39m')
-}
-
 function redText(value: string) {
   return `\u001B[31m${value}\u001B[39m`
 }
