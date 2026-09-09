@@ -220,6 +220,7 @@ const listDivisionAreasCurrentByDivisionIdsMock = mock(
 )
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
+  hasCurrentDivisionSnapshot: async () => false,
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   resolvePublishedSnapshotForResourceTypeRegionCohortKey:
@@ -236,6 +237,39 @@ const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
 }
 
 describe('division services', () => {
+  test('paginates materialised divisions without replaying history', async () => {
+    const list = mock(async () => [baseRecord])
+    const count = mock(async () => 5269)
+    const replay = mock(async () => {
+      throw new Error('Must not replay current data')
+    })
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0?page[limit]=1&page[offset]=100',
+      requestedVersionPath: 'divisions/v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { 'page[limit]': 1, 'page[offset]': 100 },
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrent: list,
+        countDivisionsCurrent: count,
+        resolveSnapshotReplayPlan: replay,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(list).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ limit: 1, offset: 100 }),
+    )
+    expect(count).toHaveBeenCalledTimes(1)
+    expect(replay).not.toHaveBeenCalled()
+    if (result.status === 200) expect(result.body.meta.page.total).toBe(5269)
+  })
+
   beforeEach(() => {
     listRecords = [baseRecord]
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(

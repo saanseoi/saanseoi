@@ -532,6 +532,20 @@ export async function getDivisionRecordCurrent(
   return records[0] ?? null
 }
 
+export async function hasCurrentDivisionSnapshot(
+  db: CurrentDatabase,
+  snapshotId: string,
+) {
+  return Boolean(
+    await db
+      .select({ id: divisions.id })
+      .from(divisions)
+      .where(eq(divisions.snapshotId, snapshotId))
+      .limit(1)
+      .get(),
+  )
+}
+
 export async function listDivisionRecordsCurrent(
   db: CurrentDatabase,
   lookup: DivisionListLookup,
