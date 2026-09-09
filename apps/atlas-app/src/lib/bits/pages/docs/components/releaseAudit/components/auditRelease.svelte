@@ -3,6 +3,8 @@ import type { AuditManifest } from '@repo/core/provenance'
 import { m } from '#lib/bits/internal/i18n.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import Bulk from './auditBulk.svelte'
+import AlsCurations from './auditAlsCurations.svelte'
+import { alsAuditDecisions } from './auditAlsDecisions'
 import Translations from './auditTranslationSection.svelte'
 import Applications from './auditApplications.svelte'
 import Guards from './auditGuards.svelte'
@@ -25,6 +27,7 @@ let {
   manifest,
   hash,
   resourceType,
+  releaseCode,
   showResourceHeading = true,
   showControls = true,
   query = $bindable(''),
@@ -33,6 +36,7 @@ let {
   manifest: AuditManifest
   hash: string
   resourceType: string
+  releaseCode: string
   showResourceHeading?: boolean
   showControls?: boolean
   query?: string
@@ -49,8 +53,15 @@ let searchLoading = $state(false)
 let searchFailure = $state('')
 let fixtureGroups = $state.raw<Record<string, Record<string, Json>>>({})
 let fixtureRows = $derived(
-  Object.values(fixtureGroups).flatMap(groups =>
-    Object.values(groups).flatMap(auditFixtureRows),
+  Object.entries(fixtureGroups).flatMap(([id, groups]) =>
+    id === 'curate-als-addresses'
+      ? alsAuditDecisions(groups, releaseCode).map(d => ({
+          title: d.title,
+          description: d.description,
+          context: d.context,
+          decision: d.raw,
+        }))
+      : Object.values(groups).flatMap(auditFixtureRows),
   ),
 )
 let fixtureCountsLoading = $state(true)
@@ -146,7 +157,10 @@ const matchesBulk = (item: AuditManifest['bulk'][number]) =>
       Object.values(fixtureGroups[item.id] ?? {}).some(value =>
         fixtureHasContents(value, effectiveQuery),
       ))
-let matchingBulkCount = $derived(manifest.bulk.filter(matchesBulk).length)
+let countableBulk = $derived(
+  manifest.bulk.filter(item => item.id !== 'curate-als-addresses'),
+)
+let matchingBulkCount = $derived(countableBulk.filter(matchesBulk).length)
 let rules = $derived(
   manifest.bulk.filter(
     item =>
@@ -157,7 +171,11 @@ let rules = $derived(
 )
 let curations = $derived(
   manifest.bulk.filter(
-    item => item.basis === 'fixture' && !isPatch(item.id) && matchesBulk(item),
+    item =>
+      item.basis === 'fixture' &&
+      item.id !== 'curate-als-addresses' &&
+      !isPatch(item.id) &&
+      matchesBulk(item),
   ),
 )
 let patches = $derived(
@@ -174,8 +192,10 @@ let hierarchy = $derived({
   output: m.source_audit_hierarchy_output(),
 })
 let filteredGuards = $derived(
-  manifest.guards.filter(guard =>
-    matchesAudit(effectiveQuery, m.source_audit_guards(), guard, guardCopy(guard)),
+  manifest.guards.filter(
+    guard =>
+      guard.id !== 'address-materialisation' &&
+      matchesAudit(effectiveQuery, m.source_audit_guards(), guard, guardCopy(guard)),
   ),
 )
 let filteredCount = $derived(
@@ -183,12 +203,12 @@ let filteredCount = $derived(
     ? 0
     : (effectiveQuery
         ? matchingActions + matchingBulkCount
-        : manifest.applicationCount + manifest.bulk.length) + matchingFixtureCount,
+        : manifest.applicationCount + countableBulk.length) + matchingFixtureCount,
 )
 let totalCount = $derived(
   fixtureCountsFailed
     ? 0
-    : manifest.applicationCount + manifest.bulk.length + fixtureRows.length,
+    : manifest.applicationCount + countableBulk.length + fixtureRows.length,
 )
 let searchLoadingState = $derived(
   fixtureCountsLoading ||
@@ -210,7 +230,7 @@ $effect(() => {
 {/if}
 
 <section
-  class="space-y-8"
+  class="space-y-1"
   data-audit-release={manifest.releaseId}
   aria-label={m.source_audit_title()}
 >
@@ -284,6 +304,11 @@ $effect(() => {
         category="curations"
         query={effectiveQuery}
       />
+      <AlsCurations
+        groups={fixtureGroups['curate-als-addresses'] ?? {}}
+        releaseId={releaseCode}
+        query={effectiveQuery}
+      />
     </div>
     {#if curations.length}
       <div class="space-y-3">
@@ -350,5 +375,9 @@ $effect(() => {
   </section>
   {#if filteredGuards.length}
     <Guards guards={filteredGuards} />
+  {:else if manifest.bulk.some(b => b.id === 'prepare-als-addresses') && !effectiveQuery}
+    <p class="px-2 py-3 text-sm opacity-60">
+      Detailed source-guard results were not retained for this release.
+    </p>
   {/if}
 </section>

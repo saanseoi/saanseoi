@@ -4,6 +4,7 @@ import { untrack, type Snippet } from 'svelte'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import { getSourceAudit, getApiAudit } from '#lib/registry/audit.remote.js'
+import { releaseNavActivationViewportFraction } from '../../releaseNav/releaseNavScroll'
 import AuditRelease from './auditRelease.svelte'
 import Controls from './releaseAuditControls.svelte'
 let {
@@ -39,7 +40,7 @@ $effect(() => {
   const element = panel
   let visible: HTMLElement[] = []
   const updateActive = () => {
-    const offset = Math.min(160, window.innerHeight * 0.25)
+    const offset = window.innerHeight * releaseNavActivationViewportFraction
     activeHeadingId =
       (
         [...visible]
@@ -204,7 +205,9 @@ const sourceHeadingId = (releaseId: string) =>
     {#each visibleResources as resource, index (resource.releaseId)}
       <section
         class={familyType
-          ? `space-y-5 pt-8 ${index === 0 ? '' : 'border-t border-border-card/60'}`
+          ? index === 0
+            ? 'space-y-5'
+            : 'space-y-5 border-t border-border-card/60 pt-8'
           : ''}
       >
         {#if familyType}
@@ -222,6 +225,7 @@ const sourceHeadingId = (releaseId: string) =>
         {/if}
         <AuditRelease
           manifest={resource.manifest}
+          releaseCode={resource.code}
           hash={resource.hash}
           resourceType={resource.resourceType}
           showControls={false}
