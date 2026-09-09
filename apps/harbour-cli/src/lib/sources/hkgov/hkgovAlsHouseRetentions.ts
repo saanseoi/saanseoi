@@ -1,7 +1,7 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
-import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
+import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
 import { als3dHash, readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
 import {
   curationProvenance,
@@ -15,6 +15,7 @@ import {
 } from './hkgovAlsNormalisation'
 
 const curationFile = 'hkgov-dpo-address-house-retentions.json'
+const fixture = loadHouseRetentionFixture()
 type Rule = (typeof fixture.retentions)[number]
 const premise = (f: Als3dFeature) => f.properties.Address.PremisesAddress
 function active(version: string) {

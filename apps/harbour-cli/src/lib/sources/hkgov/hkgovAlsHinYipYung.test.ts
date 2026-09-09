@@ -2,8 +2,10 @@ import { expect, test } from 'bun:test'
 import { requireDefined } from '@repo/core/requireDefined'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
-import houseFixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
+import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
 import yungFixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-yung-shing-shared-building.json'
+
+const houseFixture = loadHouseRetentionFixture()
 import { retainAlsHouses, labelAlsHouseRetentions } from './hkgovAlsHouseRetentions'
 import { applyYungShingSharedBuilding } from './hkgovAlsYungShingSharedBuilding'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'

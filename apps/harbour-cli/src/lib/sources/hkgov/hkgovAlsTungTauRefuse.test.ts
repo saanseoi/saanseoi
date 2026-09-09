@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test'
-import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
+import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
 import { retainAlsHouses } from './hkgovAlsHouseRetentions'
+
+const fixture = loadHouseRetentionFixture()
 import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
 
 test('Tung Tau refuse point is retained across reviewed releases and until revoked with raw evidence', () => {

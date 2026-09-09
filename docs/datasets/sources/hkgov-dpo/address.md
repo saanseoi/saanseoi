@@ -347,13 +347,16 @@ these explicitly approved houses, without changing other retention rules' dated-
 requirements.
 
 `hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
-house assertions. Queens Hill's Wong Ching, Wong Lok, Wong Wui and Wong Yi Houses retain
-their named addresses and last inventories across the prolonged publisher omission; Wong
-Sheng, Wong Shun and Wong Yet receive their temporary inventory gaps. Exact source
-assertions guard empty replacements. Lai Shek retains its richer 120 Lei Muk Road
-address, 340 flats and original coordinates; Yung Shek retains its original coordinates
-and 813 flats without its empty duplicate. Active retention continues until revoked,
-with verification status recorded separately from the evidence release.
+house assertions and guards. Replayable publisher features live in the ignored
+`.local/hkgov-dpo/curations/house-retention-evidence.jsonl` cache, regenerated on demand
+from retained ALS releases by `bun scripts/build-als-house-retention-evidence.ts`.
+Queens Hill's Wong Ching, Wong Lok, Wong Wui and Wong Yi Houses retain their named
+addresses and last inventories across the prolonged publisher omission; Wong Sheng, Wong
+Shun and Wong Yet receive their temporary inventory gaps. Exact source assertions guard
+empty replacements. Lai Shek retains its richer 120 Lei Muk Road address, 340 flats and
+original coordinates; Yung Shek retains its original coordinates and 813 flats without
+its empty duplicate. Active retention continues until revoked, with verification status
+recorded separately from the evidence release.
 
 `hkgov-dpo-address-approved-issue-batch.json` holds exact bilingual, geometry and
 inventory evidence for reviewed duplicate and component decisions. On Yam's combined Yiu
