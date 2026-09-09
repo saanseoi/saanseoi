@@ -59,6 +59,108 @@ function manifestPath(target: UploadTarget) {
   return resolve(MANIFEST_ROOT, `${targetName(target)}.json`)
 }
 
+/** Return the durable lifecycle state without mutating any D1 bindings. */
+export async function getOverturePlacesInitialisationStatus(target: UploadTarget) {
+  const path = manifestPath(target)
+  if (existsSync(path)) {
+    const manifest = await readPlacesManifest(path)
+    if (manifest.target !== targetName(target))
+      throw new Error('Overture Places initialisation manifest target does not match.')
+    return manifest.status
+  }
+
+  // A completed focused run can outlive its local manifest. It is not safe to
+  // adopt that state for reset ownership, but it is equally unsafe to try a
+  // new clean-baseline initialisation over the published Places data.
+  if (target.remote) return 'missing' as const
+  const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
+    cacheTableProfile: 'places',
+    includeAllHistoryShardYears: true,
+    includeAllSourceShardYears: true,
+  })
+  try {
+    const [release, current, apiReleaseSet] = await Promise.all([
+      context.metaDb
+        .select({ id: metaSchema.metaReleases.id })
+        .from(metaSchema.metaReleases)
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaDatasets.code, DATASET_CODE),
+            eq(metaSchema.metaReleases.resourceType, 'place'),
+            or(
+              eq(metaSchema.metaReleases.status, 'published'),
+              eq(metaSchema.metaReleases.status, 'superseded'),
+            ),
+          ),
+        )
+        .limit(1)
+        .get(),
+      context.currentDb
+        .select({ id: currentSchema.places.id })
+        .from(currentSchema.places)
+        .limit(1)
+        .get(),
+      context.metaDb
+        .select({ id: metaSchema.metaApiReleaseSets.id })
+        .from(metaSchema.metaApiReleaseSets)
+        .innerJoin(
+          metaSchema.metaApiVersions,
+          eq(metaSchema.metaApiReleaseSets.apiVersionId, metaSchema.metaApiVersions.id),
+        )
+        .innerJoin(
+          metaSchema.metaApiReleaseSetSnapshots,
+          eq(
+            metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
+            metaSchema.metaApiReleaseSets.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaSnapshots,
+          eq(
+            metaSchema.metaApiReleaseSetSnapshots.snapshotId,
+            metaSchema.metaSnapshots.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(
+            metaSchema.metaSnapshotLineages.primaryDatasetId,
+            metaSchema.metaDatasets.id,
+          ),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaApiVersions.familyType, 'places'),
+            eq(metaSchema.metaApiReleaseSets.status, 'current'),
+            eq(metaSchema.metaDatasets.code, DATASET_CODE),
+            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+          ),
+        )
+        .limit(1)
+        .get(),
+    ])
+    return release && current && apiReleaseSet
+      ? ('complete' as const)
+      : ('missing' as const)
+  } finally {
+    context.cleanup()
+  }
+}
+
 /** Start Places initialisation only from an empty Places baseline. */
 export async function beginOverturePlacesInitialisation(
   target: UploadTarget,
@@ -67,12 +169,21 @@ export async function beginOverturePlacesInitialisation(
   const path = manifestPath(target)
   if (existsSync(path)) {
     const existing = await readPlacesManifest(path)
+    if (existing.target !== targetName(target))
+      throw new Error('Overture Places initialisation manifest target does not match.')
     if (options.continue && ['running', 'failed'].includes(existing.status)) {
       if (existing.status === 'failed') {
         await recoverFailedPlacesIngestRuns(target, existing)
         await writePlacesManifest(path, resumePlacesManifest(existing))
       }
       note(formatField('manifest', path), 'RESUMING OVERTURE PLACES INITIALISATION')
+      return
+    }
+    if (existing.status === 'complete') {
+      note(
+        formatField('manifest', path),
+        'OVERTURE PLACES INITIALISATION ALREADY COMPLETE',
+      )
       return
     }
     throw new Error(

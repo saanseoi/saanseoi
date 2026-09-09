@@ -284,6 +284,57 @@ describe('initialisation commands', () => {
     expect(source.slice(statusCheck, begin)).toContain('exit 0')
   })
 
+  test('skips an already-complete Overture Places initialisation before any work', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/places-overture.fish'),
+      'utf8',
+    )
+
+    const statusCheck = source.indexOf('init:places:overture:status')
+    const begin = source.indexOf('init:places:overture:begin')
+    const ingest = source.indexOf('init_run_upload')
+    expect(statusCheck).toBeGreaterThan(-1)
+    expect(statusCheck).toBeLessThan(begin)
+    expect(begin).toBeLessThan(ingest)
+    expect(source.slice(statusCheck, begin)).toContain('exit 0')
+  })
+
+  test('defers family docs and publishes them once at the end of aggregate init', () => {
+    for (const scriptName of ['all.fish', 'local.fish', 'production.fish']) {
+      const script = readFileSync(resolve(repoRoot, 'scripts/init', scriptName), 'utf8')
+      const result = Bun.spawnSync({
+        cmd: [
+          'fish',
+          '--no-config',
+          '-c',
+          `
+          source scripts/init/common.fish
+          function init_clear_clean_run_manifests
+          end
+          function init_run_step
+            printf '%s|%s\\n' $argv[2] "$SAANSEOI_INIT_DEFER_DOCS"
+          end
+          ${script.slice(script.indexOf('init_configure'))}
+        `,
+        ],
+        cwd: repoRoot,
+      })
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stderr.toString()).toBe('')
+      const lines = result.stdout.toString().trim().split('\n')
+      expect(lines.filter(line => line.startsWith('docs:publish|'))).toEqual([
+        'docs:publish|',
+      ])
+      expect(
+        lines
+          .filter(line => line.startsWith('init:'))
+          .every(line => line.endsWith('|1')),
+      ).toBe(true)
+      expect(lines.at(-1)).toBe('docs:publish|')
+    }
+  })
+
   test('retains artefact caches by default and forwards the explicit opt-out', () => {
     const common = readFileSync(resolve(repoRoot, 'scripts/init/common.fish'), 'utf8')
     expect(common).toContain('set -g saanseoi_init_cache_artefacts 1')
