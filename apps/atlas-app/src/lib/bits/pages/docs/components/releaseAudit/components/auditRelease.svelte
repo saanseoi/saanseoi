@@ -106,6 +106,7 @@ $effect(() => {
     releaseId: manifest.releaseId,
     hash,
     q: effectiveQuery,
+    countOnly: true,
     offset: 0,
   })
     .then(result => {

@@ -66,6 +66,7 @@ export async function readIndexedAuditPage(
   offset = 0,
   limit = 50,
   filter?: {
+    countOnly?: boolean
     category?: ReturnType<typeof auditActionCategory>
     fixture?: { hash: string; pointer: string }
   },
@@ -88,7 +89,7 @@ export async function readIndexedAuditPage(
           row.fixture.pointer === filter.fixture.pointer)) &&
       matches(row.text),
   )
-  const page = matching.slice(offset, offset + limit)
+  const page = filter?.countOnly ? [] : matching.slice(offset, offset + limit)
   const rows: IndividualAudit[] = []
   for (const chunk of new Set(page.map(row => row.chunk))) {
     const ref = manifest.chunks[chunk]
@@ -105,6 +106,9 @@ export async function readIndexedAuditPage(
     rows,
     bulkIds: index.bulk.filter(row => matches(row.text)).map(row => row.id),
     total: matching.length,
-    nextOffset: offset + rows.length < matching.length ? offset + rows.length : null,
+    nextOffset:
+      !filter?.countOnly && offset + rows.length < matching.length
+        ? offset + rows.length
+        : null,
   }
 }

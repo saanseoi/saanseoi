@@ -31,7 +31,7 @@ const read = (offset = 0, copy = false) =>
     releaseId,
     releaseCode,
     hash,
-    kind: all[0]!.kind,
+    kind: all[0]?.kind ?? '',
     q: query,
     offset,
     all: copy,
