@@ -20,7 +20,8 @@
     "test": "bun test --path-ignore-patterns 'src/**/*.svelte.{test,spec}.{js,ts}'",
     "test:browser": "svelte-kit sync && vitest run --project client",
     "test:watch": "bun test --watch",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage",
+    "review:release-tabs": "bun ./scripts/open-release-review-tabs.ts"
   },
   "dependencies": {
     "@better-auth/core": "1.7.3",
