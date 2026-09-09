@@ -1,5 +1,9 @@
 # LandsD Place Name database
 
+API inventory counts, locale coverage and identity/attribute churn use the shared
+[division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
+The first published inventory is a baseline with every record counted as added.
+
 The Lands Department Place Name database is a point gazetteer derived from the official
 Hong Kong place-name record. The CSDI layer contains three broad classes: `Settlement`,
 `Hydrographic`, and `Topographic`.

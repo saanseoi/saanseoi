@@ -1,5 +1,30 @@
 # Divisions dataset family
 
+## API release statistics
+
+Division API release statistics replay immutable snapshot membership across assigned
+history shards, including inherited records and localised names. Counts, locale coverage
+and churn therefore describe the complete API inventory. Churn compares the preceding
+published cohort/revision in the same region, domain and API version; the first release
+counts its inventory as added. Identity, hierarchy, attributes and names participate in
+change detection; geometry and ingestion provenance do not.
+
+Both general and Planning division publication calculate these API statistics.
+Reconciled division release sets use the same calculation and recover missing churn for
+both current and archived cohorts. Draft API sets wait for their required companion
+snapshots before calculating statistics. To rebuild local statistics for all published
+division domains, run:
+
+```sh
+./bin/saanseoi stats:backfill-divisions --target local --dry-run
+./bin/saanseoi stats:backfill-divisions --target local
+```
+
+`--release CODE[,CODE...]` limits the repaired releases without limiting predecessor
+selection. The command validates every selected inventory before writing. It replaces
+API presentation statistics only; source statistics, snapshots and publication state
+remain intact. Missing history assignments or content versions stop the backfill.
+
 Planning division release statistics include identity and attribute churn, separately
 from source input counts. Repair statistics appear under Quality Checks. See the
 [Planning source documentation](../sources/hkgov-pland/divisionArea.md) for local

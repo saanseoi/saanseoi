@@ -1,5 +1,9 @@
 # Census and Statistics Department District Council district areas
 
+Housing Market Area API inventory counts, locale coverage and churn use the shared
+[division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
+Comparisons stay within the HMA domain; geometry statistics remain source-owned.
+
 Geometry processing retains a registered normalisation declaration, counts and selected
 identity curation fixtures in the [R2 audit](../../processing-provenance.md). D1 holds
 the manifest pointer and attempt status. Audit loads readable fixture contents on
