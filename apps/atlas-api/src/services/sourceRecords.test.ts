@@ -566,6 +566,49 @@ describe('source records', () => {
     expect(result?.records.map(record => record.sourceRecordId)).toEqual(['division-1'])
   })
 
+  test('samples ALS using its prefixed UUID index', async () => {
+    let query = ''
+    const sourceDb = {
+      prepare(value: string) {
+        query = value
+        return {
+          bind(...values: unknown[]) {
+            expect(values[3]).toMatch(/^ss-[0-9a-f-]{36}$/)
+            return {
+              all: async () => ({
+                results: [
+                  {
+                    sourceRecordId: 'ss-example',
+                    versionHash: 'v1',
+                    rawProperties: '{}',
+                  },
+                ],
+                success: true,
+              }),
+            }
+          },
+        }
+      },
+    } as never
+    const result = await listSourceRecords({
+      env: { DB_SOURCE_HK_2026: sourceDb } as never,
+      family: 'addresses',
+      includeGeometry: false,
+      limit: 1,
+      sample: 'random',
+      sourceReleaseCode: 'dr-hk-hkgov-dpo-address-2026-07-22.0',
+      metaDb: metaDatabase({
+        datasetCode: 'ds-hk-hkgov-dpo-address',
+        resourceType: 'address',
+        sourceReleaseCode: 'dr-hk-hkgov-dpo-address-2026-07-22.0',
+        sourceVersion: '2026-07-22.0',
+      }),
+    })
+    expect(query).toContain('sourceRecordId >= ?')
+    expect(query).not.toContain('RANDOM()')
+    expect(result?.records).toHaveLength(1)
+  })
+
   test('uses random ordering for publisher source identifiers outside Overture UUID space', async () => {
     let query = ''
     const randomSourceDatabase = {

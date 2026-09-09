@@ -237,6 +237,35 @@ const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
 }
 
 describe('division services', () => {
+  test('reads a materialised detail by ID without history replay', async () => {
+    const lookup = mock(async () => [baseRecord])
+    const replay = mock(async () => {
+      throw new Error('Unexpected replay')
+    })
+    const result = await getDivisionDetail({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0/example',
+      requestedVersionPath: 'divisions/v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      id: baseRecord.division.id,
+      query: {},
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrentByIds: lookup,
+        resolveSnapshotReplayPlan: replay,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(lookup).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ divisionIds: [baseRecord.division.id] }),
+    )
+    expect(replay).not.toHaveBeenCalled()
+  })
   test('paginates materialised divisions without replaying history', async () => {
     const list = mock(async () => [baseRecord])
     const count = mock(async () => 5269)
