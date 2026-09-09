@@ -1,5 +1,15 @@
 # HKGov DPO ALS addresses
 
+[Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
+retained versions before division-cohort resolution, curation and completed-release
+filtering. Each selected delivery is processed in full.
+
+Address API publication calculates release churn from immutable Address2D and Address3D
+snapshot membership and content hashes, including retained translations. Comparisons use
+the preceding compatible API release and include history across shard years. Local
+retained release statistics can be rebuilt with
+`saanseoi stats:backfill-addresses --target local`.
+
 The release audit groups reviewed exceptions by their resolution: temporal coverage,
 coordinate replacement, duplicate consolidation, identifier and component corrections,
 containment, inventory edits and dated changes. Group names describe handling; address

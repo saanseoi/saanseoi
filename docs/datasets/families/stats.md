@@ -1,5 +1,8 @@
 # Statistics dataset family
 
+[Minimal initialisation](../minimal-initialisation.md) selects at most two distinct
+configured versions per source dataset, including their companion resources.
+
 Each publisher version has one source release and independently processed resource
 children. A multi-resource product uses resource-qualified child codes such as
 `dr-…-2024::divisionStatistic` and `dr-…-2024::divisionArea`. The public source code,

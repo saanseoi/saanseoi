@@ -1,5 +1,22 @@
 # Addresses dataset family
 
+[Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
+ALS versions and keeps its completion manifest separate from full runs.
+
+Every published Address API release calculates added, changed, removed and unchanged
+records against the preceding compatible API release in its domain and region. Immutable
+snapshot membership and content version hashes determine churn across all assigned
+history shards. Address2D supplies the overview totals; Address3D has a separate table
+breakdown. The first release compares against an empty baseline.
+`saanseoi stats:backfill-addresses --target local` rebuilds retained release statistics,
+preparing all replacements before writing them. `--dry-run` calculates without writing.
+
+API release samples seek from a random UUID using `page[after]` and wrap to the start
+when the seek has no result. This provides varied examples, not a uniform statistical
+sample. The selected release set and profile apply to every request. ID seeks omit
+totals and replay only candidate windows for historical releases; `page[offset]` skips
+records after the supplied ID when both parameters are used.
+
 ALS audit curations are presented by the condition they resolve, with address context
 inside each instance and structured input/output fields. Release-scoped decision counts
 are distinct from confirmed applications. Source guard outcomes come from counters at

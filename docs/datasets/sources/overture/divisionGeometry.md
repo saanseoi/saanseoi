@@ -1,16 +1,18 @@
 # Overture division geometry ingestion
 
+[Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
+2025-10-22.0 with all three Division, Division Area and Division Boundary resources.
+
 Area and boundary rule declarations are explicit JSON fixtures in
 `fixtures/meta/processing-rules/`, shared by their normalisers and audit. Both depend on
 `division-geometry-exclusions.json`, whose parameters specify regional and area-only
-referent exclusions. Boundaries retain references to those identities. The
-synthetic-area fixture owns the validated Shenzhen Bay Port exclusion polygon.
+referent exclusions. Boundaries retain references to those identities. The Hong Kong
+area geometry patch fixture owns the validated Shenzhen Bay Port exclusion polygon.
 
 The [processing audit](../../processing-provenance.md) retains registered geometry
-normalisation and synthetic-area declarations with counts, including Guangdong spillover
-exclusions. The synthetic union rule executes the same exclusion polygon parameters
-retained in its declaration. Bulk rules do not copy affected IDs or geometry values.
-Selected identity fixtures remain readable in Audit.
+normalisation and geometry-patch declarations with counts, including Guangdong spillover
+exclusions. Bulk rules do not copy affected IDs or geometry values. Selected identity
+and geometry patch fixtures remain readable in Audit.
 
 Overture division, area and boundary source rows preserve supplied publisher `sources`.
 When references are absent or empty, source storage uses `null` without generating a
@@ -185,7 +187,7 @@ area and boundary uploads can be performed in either order. If one geometry snap
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
 
-## Synthetic Hong Kong areas
+## Reviewed Hong Kong area patches
 
 If the scoped Overture division input omits Hong Kong Island, Kowloon or the New
 Territories, the division processor creates a reviewed level-1 identity from the
@@ -193,16 +195,22 @@ configured district members. The generated row carries the stable canonical ID a
 corresponding Wikidata ID: `Q3248921`, `Q239143`, or `Q596660`. Kowloon deliberately
 reuses Overture's historic ID `17009785-57fd-4e5b-af86-2d27352e4718`, rather than a new
 synthetic identifier. Whether Overture supplies the identity or not, each recognised
-area receives a derived `divisionArea` when its source area geometry is absent. That
-geometry is the union of its district land geometries and is returned by the Divisions
-API with `include=areas:overture`.
+area receives an individual `divisionArea` geometry patch when its source area geometry
+is absent. That patch is the union of its district land geometries, with the configured
+Shenzhen Bay Port exclusion, and is returned by the Divisions API with
+`include=areas:overture`.
 
-The division ingestion audit retains Kowloon restoration as an individual application of
-`fixtures/meta/patches/overture-kowloon-restoration.json`. Its evidence distinguishes an
-absent identity from a non-polygonal source row and includes the supplemental row and
-its district members. This records identity restoration; it does not claim that the
-later geometry union has completed. No application is inferred for historical releases
-without recorded ingestion evidence.
+The New Territories geometry union includes Lok Ma Chau Loop as an additional land
+geometry input alongside its nine statutory districts. Its identity and land geometry
+must both resolve before restoration can complete; the audit records all ten inputs.
+
+The division ingestion audit retains Kowloon restoration and the Hong Kong Island and
+New Territories identity restorations as individual applications of their patch
+fixtures. The geometry audit retains one individual
+`overture_hong_kong_area_geometry_restored` application for each missing area geometry.
+The bulk normalisation count remains the source-row count; patched rows are not added to
+that rule's output count. No application is inferred for historical releases without
+recorded ingestion evidence.
 
 ## Scoped parent fixture
 
