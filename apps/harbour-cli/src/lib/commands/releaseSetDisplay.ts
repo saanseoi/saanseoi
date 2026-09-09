@@ -40,6 +40,31 @@ export function formatApiReleaseSetDocsGrid(codes: readonly string[]) {
   })
 }
 
+/** Compact publisher, dataset, and version rows for source-release documentation batches. */
+export function formatReleaseDocsGrid(
+  rows: ReadonlyArray<{
+    datasetCode: string
+    regionCode: string
+    source: string
+    sourceVersion: string
+  }>,
+) {
+  return rows.map(row => {
+    const datasetPrefix = `ds-${row.regionCode}-${row.source}-`
+    const dataset = row.datasetCode.startsWith(datasetPrefix)
+      ? row.datasetCode.slice(datasetPrefix.length)
+      : row.datasetCode
+
+    return [
+      `  ${colorize(row.source.padEnd(18), 35)}`,
+      colorize(dataset.padEnd(20), 34),
+      colorize(row.sourceVersion, 33),
+    ]
+      .join('  ')
+      .trimEnd()
+  })
+}
+
 function releaseSetSuffix(
   code: string,
   parsed: ReturnType<typeof parseReleaseSetCode>,
