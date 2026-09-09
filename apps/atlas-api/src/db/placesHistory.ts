@@ -256,12 +256,13 @@ export async function listReplayedPlacePage(
     operatingStatus?: string
     divisionId?: string
   },
-): Promise<{ records: PlaceRecord[]; total: number }> {
+): Promise<{ records: PlaceRecord[]; hasMore: boolean }> {
   const plan = await resolveSnapshotReplayPlan(args.metaDb as never, args.snapshotId)
   const pageIds: string[] = []
   let total = 0
+  let hasMore = false
   let after: string | undefined
-  for (;;) {
+  outer: for (;;) {
     let candidates: string[] = []
     for (const step of plan) {
       for (const assignment of step.shards) {
@@ -307,7 +308,13 @@ export async function listReplayedPlacePage(
         (args.divisionId && !record.divisionIds.includes(args.divisionId))
       )
         continue
-      if (total >= args.offset && pageIds.length < args.limit) pageIds.push(id)
+      if (total >= args.offset) {
+        if (pageIds.length === args.limit) {
+          hasMore = true
+          break outer
+        }
+        pageIds.push(id)
+      }
       total++
     }
     after = candidates.at(-1)
@@ -316,5 +323,5 @@ export async function listReplayedPlacePage(
     ? await listReplayedPlaceRecords({ ...args, recordIds: pageIds })
     : []
   const byId = new Map(records.map(record => [record.place.id, record]))
-  return { records: pageIds.flatMap(id => byId.get(id) ?? []), total }
+  return { records: pageIds.flatMap(id => byId.get(id) ?? []), hasMore }
 }

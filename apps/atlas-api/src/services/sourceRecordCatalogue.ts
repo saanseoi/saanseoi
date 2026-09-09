@@ -7,6 +7,7 @@ export type SourceRecordCatalogueEntry = {
   geometryEncoding?: 'brotli-json'
   geometryProperty?: string
   randomSampleStrategy?: 'uuid-pivot'
+  randomSamplePrefix?: string
   tableName: string
 }
 
@@ -48,6 +49,8 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
 const ADDRESS_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-hkgov-dpo-address': {
     releaseKey: 'version',
+    randomSampleStrategy: 'uuid-pivot',
+    randomSamplePrefix: 'ss-',
     tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties
       FROM hkgovAlsAddresses2d UNION ALL
       SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties

@@ -931,7 +931,8 @@ const PlacesListDocumentMetaSchema = z
     page: z.object({
       limit: z.number().int(),
       offset: z.number().int(),
-      total: z.number().int(),
+      total: z.number().int().optional(),
+      hasMore: z.boolean().optional(),
     }),
   })
   .extend(ApiVersionMetadataSchema.shape)
