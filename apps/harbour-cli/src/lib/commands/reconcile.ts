@@ -1,9 +1,10 @@
-import { note, outro } from '@clack/prompts'
+import { log, note, outro } from '@clack/prompts'
 
 import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { reconcileDraftReleaseSets } from '../upload/upload.ts'
 import { logApiReleaseSetPublication } from './uploadDisplay.ts'
+import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -87,24 +88,23 @@ export async function runReconcileDraftReleaseSetsCommand(
       }),
     ),
   })
+  if (
+    result.publishedReleaseSetCodes.length === 0 &&
+    result.pendingReleaseSetCodes.length === 0
+  ) {
+    return
+  }
   note(
     [
       formatField('inspected', String(result.inspected)),
-      formatField(
-        'published',
-        result.publishedReleaseSetCodes.length > 0
-          ? result.publishedReleaseSetCodes.join(', ')
-          : '-',
-      ),
-      formatField(
-        'pending',
-        result.pendingReleaseSetCodes.length > 0
-          ? result.pendingReleaseSetCodes.join(', ')
-          : '-',
-      ),
+      formatField('published', String(result.publishedReleaseSetCodes.length)),
+      formatField('pending', String(result.pendingReleaseSetCodes.length)),
     ].join('\n'),
     'DRAFT RELEASE-SET RECONCILIATION',
   )
+  for (const code of result.pendingReleaseSetCodes) {
+    log.warn(`Pending API release set  ${formatApiReleaseSetCode(code)}`)
+  }
   outro('Harbour draft release-set reconciliation complete')
 }
 

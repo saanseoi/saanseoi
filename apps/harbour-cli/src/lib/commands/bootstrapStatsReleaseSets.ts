@@ -31,6 +31,9 @@ export async function runBootstrapStatsReleaseSetsCommand(
   }
 
   const result = await bootstrapStatsReleaseSets(target, { regionCode })
+  if (result.createdReleaseSetCodes.length === 0) {
+    return
+  }
   await logApiReleaseSetPublication({
     apiReleaseSetPublications: result.createdReleaseSetCodes.map(apiReleaseSetCode => ({
       apiReleaseSetCode,
@@ -52,26 +55,14 @@ export async function runBootstrapStatsReleaseSetsCommand(
       formatField('inspected snapshots', String(result.inspectedSnapshots)),
       formatField(
         'published release sets',
-        result.createdReleaseSetCodes.length > 0
-          ? result.createdReleaseSetCodes.join(', ')
-          : '-',
+        String(result.createdReleaseSetCodes.length),
       ),
-      formatField(
-        'skipped cohorts',
-        result.skippedCohortKeys.length > 0 ? result.skippedCohortKeys.join(', ') : '-',
-      ),
-      formatField(
-        'drafted notes',
-        draftedPaths.length > 0 ? draftedPaths.join(', ') : '-',
-      ),
+      formatField('skipped cohorts', String(result.skippedCohortKeys.length)),
+      formatField('drafted notes', String(draftedPaths.length)),
     ].join('\n'),
     'STATISTICS RELEASE-SET BOOTSTRAP',
   )
-  outro(
-    result.createdReleaseSetCodes.length > 0
-      ? 'Statistics release-set bootstrap complete: new release sets published ✓'
-      : 'Statistics release-set bootstrap complete: no new release sets published ✓',
-  )
+  outro('Statistics release-set bootstrap complete: new release sets published ✓')
 }
 
 function optionRegionCode(
