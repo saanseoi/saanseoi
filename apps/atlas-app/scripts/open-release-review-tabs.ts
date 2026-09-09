@@ -1,206 +1,139 @@
 #!/usr/bin/env bun
 
-import { chromium, type BrowserContext, type Page } from 'playwright'
+const atlasAppUrl = 'http://localhost:5173'
+const atlasApiUrl = 'http://localhost:8787'
+const registryReleasesPath = '/v0.1/api/releases?view=review'
 
-const defaultBaseUrl = 'http://127.0.0.1:5173'
-const guidePath = '/guides/use-the-api'
-
-type Options = {
-  baseUrl: URL
-  headless: boolean
-  printOnly: boolean
+type RegistryRelease = {
+  apiFamily: string
+  code: string
+  contributingSources?: Array<{
+    sourceCode: string
+    sourceReleaseCode: string
+  }>
 }
 
-const usage = `Open the current API-domain release notes and their source releases.
+const apiReleaseTabs = [
+  'release',
+  'guide',
+  'schema',
+  'samples',
+  'stats',
+  'audit',
+  'sources',
+] as const
+
+const sourceReleaseTabs = [
+  'notes',
+  'schema',
+  'samples',
+  'stats',
+  'audit',
+  'releases',
+  'assembly',
+] as const
+
+const usage = `Open every tab for the latest local API-domain releases and their source releases.
 
 Usage:
-  bun apps/atlas-app/scripts/open-release-review-tabs.ts [options]
+  bun run review:release-tabs [--print]
+
+Discovery fetches ${atlasApiUrl}${registryReleasesPath}, then passes every local URL to one $BROWSER instance.
 
 Options:
-  --base-url <url>  Atlas app to review (default: ${defaultBaseUrl})
-  --print           List the tabs without opening a review browser
-  --headless        Run the discovery browser headlessly (implies --print)
-  --help            Show this help
+  --print  List the URLs without opening $BROWSER
+  --help   Show this help`
 
-Examples:
-  bun apps/atlas-app/scripts/open-release-review-tabs.ts
-  bun apps/atlas-app/scripts/open-release-review-tabs.ts --base-url https://saanseoi.hk
-  bun apps/atlas-app/scripts/open-release-review-tabs.ts --print`
+function isRegistryRelease(value: unknown): value is RegistryRelease {
+  if (!value || typeof value !== 'object') return false
+  const release = value as Partial<RegistryRelease>
+  return typeof release.apiFamily === 'string' && typeof release.code === 'string'
+}
 
-function parseBaseUrl(value: string) {
-  const baseUrl = new URL(value)
-  if (!['http:', 'https:'].includes(baseUrl.protocol)) {
-    throw new Error('--base-url must be an absolute HTTP(S) URL.')
+function parsePrintOnly(args: string[]) {
+  if (args.includes('--help')) {
+    console.log(usage)
+    process.exit(0)
   }
-  return baseUrl
+  if (args.every(argument => argument === '--print')) return args.includes('--print')
+  throw new Error(`Unknown option: ${args.find(argument => argument !== '--print')}`)
 }
 
-function parseOptions(args: string[]): Options | 'help' {
-  let baseUrl = new URL(defaultBaseUrl)
-  let headless = false
-  let printOnly = false
-
-  for (let index = 0; index < args.length; index += 1) {
-    const argument = args[index]
-    if (argument === '--help') return 'help'
-    if (argument === '--print') {
-      printOnly = true
-      continue
-    }
-    if (argument === '--headless') {
-      headless = true
-      continue
-    }
-    if (argument === '--base-url') {
-      const value = args[index + 1]
-      if (!value) throw new Error('--base-url requires a URL.')
-      baseUrl = parseBaseUrl(value)
-      index += 1
-      continue
-    }
-    throw new Error(`Unknown option: ${argument}`)
-  }
-
-  return { baseUrl, headless, printOnly: printOnly || headless }
-}
-
-const hasRoute = (href: string, baseUrl: URL, firstSegment: string) => {
-  const url = new URL(href, baseUrl)
-  const segments = url.pathname.split('/').filter(Boolean)
-  return (
-    url.origin === baseUrl.origin &&
-    segments.length === 3 &&
-    segments[0] === firstSegment
-  )
-}
-
-const uniqueUrls = (hrefs: string[], baseUrl: URL) => [
-  ...new Set(hrefs.map(href => new URL(href, baseUrl).href)),
-]
-
-async function collectHrefs(page: Page, selector: string) {
-  return page.locator(selector).evaluateAll(links =>
-    links.flatMap(link => {
-      const href = link.getAttribute('href')
-      return href ? [href] : []
-    }),
-  )
-}
-
-async function loadPage(context: BrowserContext, url: URL | string) {
-  const page = await context.newPage()
-  const response = await page.goto(url.toString(), { waitUntil: 'domcontentloaded' })
-  if (!response?.ok()) {
-    await page.close()
-    throw new Error(`Could not open ${url} (${response?.status() ?? 'no response'}).`)
-  }
-  return page
-}
-
-async function assertGuideAvailable(baseUrl: URL) {
-  const guideUrl = new URL(guidePath, baseUrl)
+async function getReviewReleases() {
+  const requestUrl = new URL(registryReleasesPath, atlasApiUrl).href
   let response: Response
 
   try {
-    response = await fetch(guideUrl, { signal: AbortSignal.timeout(5_000) })
+    response = await fetch(requestUrl, { signal: AbortSignal.timeout(10_000) })
   } catch {
     throw new Error(
-      `Atlas is not available at ${baseUrl.origin}. Start it in another terminal with \`bun run dev:atlas\`, then rerun \`bun run review:release-tabs\`.`,
+      `Atlas API is not available at ${atlasApiUrl}. Start it with \`bun run dev:atlas\`, then rerun \`bun run review:release-tabs\`.`,
     )
   }
 
   if (!response.ok) {
     throw new Error(
-      `Atlas is available at ${baseUrl.origin}, but ${guidePath} returned HTTP ${response.status}. Resolve that route error before reviewing release tabs.`,
+      `Registry request failed: ${requestUrl} returned HTTP ${response.status}.`,
     )
   }
-}
 
-async function collectReleaseUrls(context: BrowserContext, baseUrl: URL) {
-  const guideUrl = new URL(guidePath, baseUrl)
-  const guidePage = await loadPage(context, guideUrl)
-  const hrefs = await collectHrefs(
-    guidePage,
-    'a[aria-label^="How to use the "][href^="/apis/"]',
-  )
-  await guidePage.close()
-
-  const releaseUrls = uniqueUrls(hrefs, baseUrl).filter(href =>
-    hasRoute(href, baseUrl, 'apis'),
-  )
-  if (!releaseUrls.length) {
-    throw new Error(`No published API-domain release notes were found at ${guideUrl}.`)
-  }
-  return releaseUrls
-}
-
-async function collectSourceUrls(
-  context: BrowserContext,
-  baseUrl: URL,
-  releaseUrls: string[],
-) {
-  const sourceUrls = new Set<string>()
-
-  for (const releaseUrl of releaseUrls) {
-    const sourceTabUrl = new URL(releaseUrl)
-    sourceTabUrl.hash = ''
-    sourceTabUrl.searchParams.set('tab', 'sources')
-    const page = await loadPage(context, sourceTabUrl)
-    const hrefs = await collectHrefs(page, 'a[href^="/sources/"]')
-    await page.close()
-
-    for (const href of hrefs) {
-      if (hasRoute(href, baseUrl, 'sources')) {
-        sourceUrls.add(new URL(href, baseUrl).href)
-      }
-    }
+  const body = (await response.json()) as { data?: unknown }
+  if (!Array.isArray(body.data) || !body.data.every(isRegistryRelease)) {
+    throw new Error(`The registry response at ${requestUrl} has an unexpected shape.`)
   }
 
-  return [...sourceUrls].sort((left, right) => left.localeCompare(right))
+  return body.data
 }
 
-async function openTabs(context: BrowserContext, urls: string[]) {
-  for (const url of urls) {
-    await loadPage(context, url)
-  }
+function tabUrl(pathname: string, tab: string) {
+  const url = new URL(pathname, atlasAppUrl)
+  url.searchParams.set('tab', tab)
+  return url.href
+}
+
+const releaseUrls = (release: RegistryRelease) => {
+  const pathname = `/apis/${encodeURIComponent(release.apiFamily)}/${encodeURIComponent(release.code)}`
+  return apiReleaseTabs.map(tab => tabUrl(pathname, tab))
+}
+
+const sourceUrls = (
+  source: NonNullable<RegistryRelease['contributingSources']>[number],
+) => {
+  const pathname = `/sources/${encodeURIComponent(source.sourceCode)}/${encodeURIComponent(source.sourceReleaseCode)}`
+  return sourceReleaseTabs.map(tab => tabUrl(pathname, tab))
+}
+
+function buildReviewUrls(releases: RegistryRelease[]) {
+  const apiUrls = releases.flatMap(releaseUrls)
+  const sourceTabUrls = [
+    ...new Set(
+      releases.flatMap(release =>
+        (release.contributingSources ?? []).flatMap(sourceUrls),
+      ),
+    ),
+  ].sort((left, right) => left.localeCompare(right))
+  return [...apiUrls, ...sourceTabUrls]
 }
 
 async function main() {
-  const options = parseOptions(process.argv.slice(2))
-  if (options === 'help') {
-    console.log(usage)
+  const printOnly = parsePrintOnly(process.argv.slice(2))
+  const urls = buildReviewUrls(await getReviewReleases())
+  if (!urls.length) throw new Error('The registry has no published API releases.')
+
+  if (printOnly) {
+    for (const url of urls) console.log(url)
     return
   }
 
-  await assertGuideAvailable(options.baseUrl)
-  const browser = await chromium.launch({
-    channel: 'chrome',
-    headless: options.headless,
+  const browser = process.env.BROWSER
+  if (!browser) throw new Error('$BROWSER is not set.')
+
+  const browserProcess = Bun.spawn([browser, ...urls], {
+    stdio: ['ignore', 'ignore', 'inherit'],
   })
-  const context = await browser.newContext()
+  browserProcess.unref()
 
-  try {
-    const releaseUrls = await collectReleaseUrls(context, options.baseUrl)
-    const sourceUrls = await collectSourceUrls(context, options.baseUrl, releaseUrls)
-    const urls = [...releaseUrls, ...sourceUrls]
-
-    if (options.printOnly) {
-      console.log(
-        `Found ${releaseUrls.length} API-domain release note(s) and ${sourceUrls.length} source release page(s).`,
-      )
-      for (const url of urls) console.log(url)
-      await browser.close()
-    } else {
-      await openTabs(context, urls)
-      console.log(
-        `Opened ${releaseUrls.length} API-domain release note tab(s) and ${sourceUrls.length} source release tab(s).`,
-      )
-      await browser.disconnect()
-    }
-  } catch (error) {
-    await browser.close()
-    throw error
-  }
+  console.log(`Opened ${urls.length} review tabs in $BROWSER.`)
 }
 
 try {

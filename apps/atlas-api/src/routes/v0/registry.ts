@@ -17,12 +17,14 @@ import {
   listRegistrySourceVersions,
 } from '@repo/core/db/metaRegistry'
 import { ErrorResponseSchema, ValidationErrorOpenAPIResponse } from '../../schema'
+import { runWithD1ReadRetry } from '../../lib/d1'
 import { openApiText } from '../../lib/openapi-i18n'
 import type { AppEnv } from '../../types'
 
 const RegistryListQuerySchema = z
   .object({
     limit: z.coerce.number().int().min(1).max(200).optional(),
+    view: z.enum(['full', 'review']).optional(),
   })
   .openapi('RegistryListQuery')
 
@@ -185,14 +187,101 @@ function createRegistryDetailRoute(resource: RegistryResource) {
 const listRouteConfigs = REGISTRY_RESOURCES.map(createRegistryListRoute)
 const detailRouteConfigs = REGISTRY_RESOURCES.map(createRegistryDetailRoute)
 
+type RegistryReviewReleaseRow = {
+  apiFamily: string
+  code: string
+  sourceCode: string | null
+  sourceReleaseCode: string | null
+}
+
+async function listRegistryReviewReleases(db: AppEnv['Variables']['metaDb']) {
+  const result = await runWithD1ReadRetry(() =>
+    db.$client
+      .prepare(
+        `WITH rankedReleaseSets AS (
+          SELECT
+            apiReleaseSets.id,
+            apiVersions.familyType AS apiFamily,
+            apiReleaseSets.code,
+            row_number() OVER (
+              PARTITION BY
+                apiVersions.familyType,
+                coalesce(apiReleaseSets.regionCode, ''),
+                apiReleaseSets.domainCode
+              ORDER BY apiReleaseSets.cohortKey DESC, apiReleaseSets.revision DESC
+            ) AS domainRank
+          FROM apiReleaseSets
+          INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
+          WHERE apiReleaseSets.status <> 'draft'
+            AND apiReleaseSets.cohortKey IS NOT NULL
+        )
+        SELECT DISTINCT
+          rankedReleaseSets.apiFamily,
+          rankedReleaseSets.code,
+          CASE
+            WHEN sourceReleases.id IS NULL THEN NULL
+            ELSE datasets.code
+          END AS sourceCode,
+          sourceReleases.code AS sourceReleaseCode
+        FROM rankedReleaseSets
+        LEFT JOIN apiReleaseSetSnapshots
+          ON apiReleaseSetSnapshots.apiReleaseSetId = rankedReleaseSets.id
+        LEFT JOIN snapshotSources
+          ON snapshotSources.snapshotId = apiReleaseSetSnapshots.snapshotId
+        LEFT JOIN releases
+          ON releases.id = snapshotSources.resourceReleaseId
+          AND releases.status IN ('published', 'superseded')
+          AND releases.revokedAt IS NULL
+        LEFT JOIN sourceReleases
+          ON sourceReleases.id = releases.sourceReleaseId
+          AND sourceReleases.status IN ('published', 'superseded')
+          AND sourceReleases.revokedAt IS NULL
+        LEFT JOIN datasets ON datasets.id = releases.datasetId
+        WHERE rankedReleaseSets.domainRank = 1
+        ORDER BY rankedReleaseSets.apiFamily ASC, rankedReleaseSets.code ASC,
+          datasets.code ASC, sourceReleases.code ASC`,
+      )
+      .all<RegistryReviewReleaseRow>(),
+  )
+  const releases = new Map<
+    string,
+    {
+      apiFamily: string
+      code: string
+      contributingSources: Array<{ sourceCode: string; sourceReleaseCode: string }>
+    }
+  >()
+
+  for (const row of result.results) {
+    const key = `${row.apiFamily}\u0000${row.code}`
+    const release = releases.get(key) ?? {
+      apiFamily: row.apiFamily,
+      code: row.code,
+      contributingSources: [],
+    }
+    if (row.sourceCode && row.sourceReleaseCode) {
+      release.contributingSources.push({
+        sourceCode: row.sourceCode,
+        sourceReleaseCode: row.sourceReleaseCode,
+      })
+    }
+    releases.set(key, release)
+  }
+
+  return [...releases.values()]
+}
+
 export const registryRoutes = [
   ...listRouteConfigs.map((routeConfig, index) =>
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,
       handler: async c => {
         const resource = REGISTRY_RESOURCES[index] ?? REGISTRY_RESOURCES[0]
-        const { limit } = c.req.valid('query')
-        const data = await resource.list(c.var.metaDb, limit)
+        const { limit, view } = c.req.valid('query')
+        const data =
+          resource.publicName === 'releases' && view === 'review'
+            ? await listRegistryReviewReleases(c.var.metaDb)
+            : await resource.list(c.var.metaDb, limit)
 
         return c.json(parseJsonResponse(RegistryListResponseSchema, { data }), 200)
       },
