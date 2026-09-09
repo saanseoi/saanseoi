@@ -143,6 +143,72 @@ describe('initialisation commands', () => {
     expect(positions).toEqual([...positions].sort((left, right) => left - right))
   })
 
+  test('hands completed Geographic Divisions to Statistics in combined initialisers', () => {
+    for (const script of ['all.fish', 'local.fish', 'production.fish']) {
+      const result = Bun.spawnSync({
+        cmd: [
+          'fish',
+          '--no-config',
+          '-c',
+          `
+          source scripts/init/common.fish
+          function init_run_step
+            printf '%s|%s\\n' $argv[2] "$SAANSEOI_INIT_COMPLETED_PREREQUISITES"
+          end
+          ${readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8').slice(
+            readFileSync(resolve(repoRoot, 'scripts/init', script), 'utf8').indexOf(
+              'init_configure',
+            ),
+          )}
+        `,
+        ],
+        cwd: repoRoot,
+      })
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stderr.toString()).toBe('')
+      const statsLine = result.stdout
+        .toString()
+        .trim()
+        .split('\n')
+        .find(line => line.startsWith('init:stats|'))
+      expect(statsLine).toBe('init:stats|divisions:geographic')
+    }
+  })
+
+  test('initialises Geographic Divisions for standalone Statistics only', () => {
+    const script = readFileSync(
+      resolve(repoRoot, 'scripts/init/stats-hkgov-censtatd.fish'),
+      'utf8',
+    )
+    const run = (completedPrerequisites?: string) =>
+      Bun.spawnSync({
+        cmd: [
+          'fish',
+          '--no-config',
+          '-c',
+          `
+          source scripts/init/common.fish
+          function init_run_step
+            echo $argv[2]
+          end
+          ${completedPrerequisites ? `set -gx SAANSEOI_INIT_COMPLETED_PREREQUISITES ${completedPrerequisites}` : ''}
+          ${script.slice(script.indexOf('init_configure'))}
+        `,
+        ],
+        cwd: repoRoot,
+      })
+
+    const standalone = run()
+    expect(standalone.exitCode).toBe(0)
+    expect(standalone.stdout.toString()).toContain('init:divisions:geographic')
+
+    const combined = run('divisions:geographic')
+    expect(combined.exitCode).toBe(0)
+    expect(combined.stdout.toString()).not.toContain('init:divisions:geographic')
+    expect(combined.stdout.toString()).toContain('update')
+  })
+
   test('does not resolve an unsupported family and domain', () => {
     expect(resolveInitialisationCommand('init:divisions:unknown')).toBeUndefined()
   })
