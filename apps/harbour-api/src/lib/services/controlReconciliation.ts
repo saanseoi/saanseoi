@@ -14,6 +14,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
+  isNull,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
@@ -249,7 +250,12 @@ async function listCurrentReleaseSetStatsTargets(
     .innerJoin(metaReleases, eq(metaSnapshotSources.resourceReleaseId, metaReleases.id))
     .where(
       and(
-        eq(metaApiReleaseSets.status, 'current'),
+        request.apiFamily === 'divisions'
+          ? or(
+              eq(metaApiReleaseSets.status, 'current'),
+              eq(metaApiReleaseSets.status, 'archived'),
+            )
+          : eq(metaApiReleaseSets.status, 'current'),
         eq(
           metaApiVersions.familyType,
           request.apiFamily === 'addresses'
@@ -276,7 +282,18 @@ async function listCurrentReleaseSetStatsTargets(
     const existingStats = await db
       .select({ id: metaSchema.stats.id })
       .from(metaSchema.stats)
-      .where(eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId))
+      .where(
+        and(
+          eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId),
+          request.apiFamily === 'divisions'
+            ? and(
+                eq(metaSchema.stats.metric, 'churn'),
+                eq(metaSchema.stats.dimension, 'count'),
+                isNull(metaSchema.stats.groupBy),
+              )
+            : undefined,
+        ),
+      )
       .limit(1)
       .get()
     if (existingStats) continue
