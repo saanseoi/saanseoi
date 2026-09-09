@@ -3,6 +3,7 @@ import { onMount } from 'svelte'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
 import { m } from '#lib/bits/internal/i18n.js'
+import ReleaseSamplesSkeleton from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesSkeleton.svelte'
 import NestedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesNestedField.svelte'
 import SourceIdentifier from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesIdentifier.svelte'
 import {
@@ -153,10 +154,6 @@ $effect(() => {
     <p class="font-body text-body-md text-foreground-alt">
       {m.source_record_samples_unavailable()}
     </p>
-  {:else if loading}
-    <p class="font-body text-body-md text-foreground-alt" role="status">
-      {m.source_record_samples_loading()}
-    </p>
   {:else if samples.length > 1}
     <div class="space-y-3">
       <dl
@@ -201,10 +198,14 @@ $effect(() => {
         </div>
       {/each}
     </div>
-  {:else if !loading && !errorMessage}
+  {:else if mounted && !loading && !errorMessage}
     <p class="font-body text-body-md text-foreground-alt">
       {m.source_record_samples_empty()}
     </p>
+  {/if}
+
+  {#if !unavailable && (!mounted || loading)}
+    <ReleaseSamplesSkeleton label={m.source_record_samples_loading()} />
   {/if}
 
   {#if errorMessage}

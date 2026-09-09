@@ -9,6 +9,26 @@ vi.hoisted(() => {
   })
 })
 
+test('shows a skeleton while source samples are pending', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise<Response>(() => {})),
+  )
+  try {
+    const screen = await render(SourceRecordSamples, {
+      family: 'divisions',
+      request: 0,
+      sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
+    })
+    await expect.element(screen.getByRole('status')).toBeVisible()
+    await expect
+      .element(screen.getByRole('status'))
+      .toHaveAttribute('aria-busy', 'true')
+  } finally {
+    vi.unstubAllGlobals()
+  }
+})
+
 test('renders the first source record without fetching surplus candidates', async () => {
   const fetch = vi.fn().mockResolvedValue(
     new Response(

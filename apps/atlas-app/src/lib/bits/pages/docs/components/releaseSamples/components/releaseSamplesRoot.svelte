@@ -14,6 +14,7 @@ import {
 import NestedField from './releaseSamplesNestedField.svelte'
 import GroupedField from './releaseSamplesGroupedField.svelte'
 import ReleaseSamplesIdentifier from './releaseSamplesIdentifier.svelte'
+import ReleaseSamplesSkeleton from './releaseSamplesSkeleton.svelte'
 
 type Props = {
   apiVersion: string
@@ -199,10 +200,14 @@ $effect(() => {
           </dl>
         {/each}
       </div>
-    {:else if !loading && !errorMessage}
+    {:else if mounted && !loading && !errorMessage}
       <p class="font-body text-body-md text-foreground-alt">
         No complete {apiFamily} samples are available for this release set and profile.
       </p>
+    {/if}
+
+    {#if !mounted || loading}
+      <ReleaseSamplesSkeleton />
     {/if}
 
     {#if errorMessage}
