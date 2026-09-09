@@ -39,6 +39,68 @@ type ApiProfileDocumentation = {
 }
 
 export const apiProfileDocumentationByFamily = {
+  addresses: {
+    compact: {
+      en: {
+        useCase: 'building a small address list or picker',
+        coverage:
+          'identifier, dataset, granularity, Address3D coverage, requested formatted addresses and Division relationships',
+      },
+      'zh-Hant': {
+        useCase: '建立小型地址清單或選擇器',
+        coverage:
+          '識別碼、資料集、細緻度、Address3D 覆蓋、所選格式化地址及 Division 關係',
+      },
+      'zh-Hans': {
+        useCase: '建立小型地址列表或选择器',
+        coverage:
+          '标识符、数据集、粒度、Address3D 覆盖、所选格式化地址及 Division 关系',
+      },
+    },
+    default: {
+      en: {
+        useCase: 'showing ordinary address information',
+        coverage: 'compact fields plus parsed address components and record timestamps',
+      },
+      'zh-Hant': {
+        useCase: '顯示一般地址資料',
+        coverage: '基本欄位，加上已解析的地址組成部分及記錄時間戳記',
+      },
+      'zh-Hans': {
+        useCase: '显示一般地址资料',
+        coverage: '基本字段，加上已解析的地址组成部分及记录时间戳',
+      },
+    },
+    map: {
+      en: {
+        useCase: 'drawing or fitting address markers',
+        coverage: 'default fields plus point geometry and bounding box',
+      },
+      'zh-Hant': {
+        useCase: '繪製或縮放地址標記',
+        coverage: '預設欄位，加上點幾何及邊界框',
+      },
+      'zh-Hans': {
+        useCase: '绘制或缩放地址标记',
+        coverage: '默认字段，加上点几何及边界框',
+      },
+    },
+    full: {
+      en: {
+        useCase: 'auditing an address or tracing its source',
+        coverage:
+          'map fields plus all stored locales, snapshot ID, publisher identifiers and source evidence',
+      },
+      'zh-Hant': {
+        useCase: '審核地址或追溯其來源',
+        coverage: '地圖欄位，加上所有已儲存語言、快照 ID、發布者識別碼及來源證據',
+      },
+      'zh-Hans': {
+        useCase: '审核地址或追溯其来源',
+        coverage: '地图字段，加上所有已存储语言、快照 ID、发布者标识符及源证据',
+      },
+    },
+  },
   divisions: {
     compact: {
       en: {
@@ -166,8 +228,70 @@ export const apiProfileDocumentationByFamily = {
       },
     },
   },
+  stats: {
+    compact: {
+      en: {
+        useCase: 'retrieving the core observation with the smallest locale selection',
+        coverage:
+          'dataset, reference period, geography, dimensions, values, comparability and requested related-resource locales',
+      },
+      'zh-Hant': {
+        useCase: '以最小語言選擇取得核心觀測值',
+        coverage: '資料集、參考期、地理範圍、維度、數值、可比性及所選相關資源語言',
+      },
+      'zh-Hans': {
+        useCase: '以最小语言选择获取核心观测值',
+        coverage: '数据集、参考期、地理范围、维度、数值、可比性及所选相关资源语言',
+      },
+    },
+    default: {
+      en: {
+        useCase: 'showing an ordinary statistical observation',
+        coverage:
+          'dataset, reference period, geography, dimensions, values, comparability and requested related-resource locales',
+      },
+      'zh-Hant': {
+        useCase: '顯示一般統計觀測值',
+        coverage: '資料集、參考期、地理範圍、維度、數值、可比性及所選相關資源語言',
+      },
+      'zh-Hans': {
+        useCase: '显示一般统计观测值',
+        coverage: '数据集、参考期、地理范围、维度、数值、可比性及所选相关资源语言',
+      },
+    },
+    map: {
+      en: {
+        useCase: 'joining observations to requested map geography',
+        coverage:
+          'default fields; use include=divisions or an area companion to retrieve display geometry',
+      },
+      'zh-Hant': {
+        useCase: '將觀測值連接至所要求的地圖地理資料',
+        coverage: '預設欄位；使用 include=divisions 或 area companion 取得顯示幾何資料',
+      },
+      'zh-Hans': {
+        useCase: '将观测值连接至所请求的地图地理数据',
+        coverage: '默认字段；使用 include=divisions 或 area companion 获取显示几何数据',
+      },
+    },
+    full: {
+      en: {
+        useCase: 'auditing an observation or tracing its publisher source',
+        coverage:
+          'default fields plus source-release ID, publisher feature reference and record timestamps',
+      },
+      'zh-Hant': {
+        useCase: '審核觀測值或追溯其發布者來源',
+        coverage: '預設欄位，加上來源發布 ID、發布者 feature 參照及記錄時間戳記',
+      },
+      'zh-Hans': {
+        useCase: '审核观测值或追溯其发布者来源',
+        coverage: '默认字段，加上源发布 ID、发布者 feature 引用及记录时间戳',
+      },
+    },
+  },
 } as const satisfies Record<
-  'divisions' | 'places',
+  'addresses' | 'divisions' | 'places' | 'stats',
   Record<ApiProfileName, Record<ApiProfileDocumentationLocale, ApiProfileDocumentation>>
 >
 
