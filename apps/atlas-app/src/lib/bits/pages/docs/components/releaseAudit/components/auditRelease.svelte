@@ -340,38 +340,40 @@ $effect(() => {
       label={m.source_audit_rules_info()}
       description={m.source_audit_rules_info_description()}
     />
-    {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
-      <ComparisonCard
-        {...hierarchy}
-        status="applied"
-        statusLabel={m.source_audit_assigned_count({ count: hierarchyCount.toLocaleString() })}
-      />
-    {/if}
-    {#each rules as bulk (bulk.id)}
-      {#if bulk.id === 'normalise-divisions'}
-        <DivisionRules
-          {bulk}
-          releaseId={manifest.releaseId}
-          {hash}
-          query={effectiveQuery}
-          bind:matching={divisionRulesMatching}
-        />
-      {:else}
-        <Bulk
-          query={effectiveQuery}
-          {bulk}
-          releaseId={manifest.releaseId}
-          {hash}
-          groups={fixtureGroups[bulk.id]}
+    <div class="space-y-5">
+      {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
+        <ComparisonCard
+          {...hierarchy}
+          status="applied"
+          statusLabel={m.source_audit_assigned_count({ count: hierarchyCount.toLocaleString() })}
         />
       {/if}
-    {/each}
-    <Applications
-      releaseId={manifest.releaseId}
-      {hash}
-      category="rules"
-      query={effectiveQuery}
-    />
+      {#each rules as bulk (bulk.id)}
+        {#if bulk.id === 'normalise-divisions'}
+          <DivisionRules
+            {bulk}
+            releaseId={manifest.releaseId}
+            {hash}
+            query={effectiveQuery}
+            bind:matching={divisionRulesMatching}
+          />
+        {:else}
+          <Bulk
+            query={effectiveQuery}
+            {bulk}
+            releaseId={manifest.releaseId}
+            {hash}
+            groups={fixtureGroups[bulk.id]}
+          />
+        {/if}
+      {/each}
+      <Applications
+        releaseId={manifest.releaseId}
+        {hash}
+        category="rules"
+        query={effectiveQuery}
+      />
+    </div>
   </section>
   {#if filteredGuards.length}
     <Guards guards={filteredGuards} />

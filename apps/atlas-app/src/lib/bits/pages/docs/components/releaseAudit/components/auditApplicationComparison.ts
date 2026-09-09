@@ -12,5 +12,21 @@ export function auditApplicationComparison(
     !(Object.hasOwn(context, inputKey) && Object.hasOwn(context, outputKey))
   )
     return null
-  return { input: context[inputKey] ?? null, output: context[outputKey] ?? null }
+  let input = context[inputKey] ?? null
+  const output = context[outputKey] ?? null
+  if (
+    row.operation === 'overture_hong_kong_area_geometry_restored' &&
+    output &&
+    typeof output === 'object' &&
+    !Array.isArray(output) &&
+    typeof output.id === 'string' &&
+    !output.id.endsWith(':new-territories') &&
+    input &&
+    typeof input === 'object' &&
+    !Array.isArray(input)
+  ) {
+    const { exclusionArea: _exclusionArea, ...districts } = input
+    input = districts
+  }
+  return { input, output }
 }

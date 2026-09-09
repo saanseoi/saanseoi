@@ -9,6 +9,7 @@ import Applications from './auditApplications.svelte'
 import Origin from './auditTranslationOrigin.svelte'
 import { matchesAudit } from './auditSearch'
 import SectionHeading from './auditSectionHeading.svelte'
+import ScrollArea from './auditScrollArea.svelte'
 let {
   entries,
   references,
@@ -138,89 +139,94 @@ async function toggle(side: 'source' | 'target', value: string) {
         </SectionHeading>
       </header>
     {/if}
-    <section
-      class="max-h-[calc(48rem+10px)] overflow-y-auto overscroll-contain rounded-xl border border-current/15"
-      bind:this={scroller}
-      aria-busy={pendingToggle !== null}
+    <ScrollArea
+      bind:element={scroller}
+      containerClass="overflow-hidden rounded-xl"
+      viewportClass="max-h-[calc(48rem+10px)] overflow-y-auto overscroll-contain rounded-xl border border-current/15"
+      ariaBusy={pendingToggle !== null}
       onscroll={event => { const element = event.currentTarget; if (!pendingToggle && element.scrollHeight - element.scrollTop - element.clientHeight < 200) visible = Math.min(visible + 24, matching.length) }}
-      aria-label={m.source_audit_translation_entries()}
+      ariaLabel={m.source_audit_translation_entries()}
     >
-      {#each matching.slice(0, visible) as { entry, index } (index)}
-        {@const row = object(entry)}
-        {@const parentName = translationParentName(row.context, getLocale())}
-        {@const reference = references?.[index] ?? (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined)}
-        <details
-          class="border-b border-current/10 last:border-b-0"
-          open={expanded.includes(index)}
-          ontoggle={event => { if (event.currentTarget.open && !expanded.includes(index)) expanded = [...expanded, index]; else if (!event.currentTarget.open && expanded.includes(index)) expanded = expanded.filter(value => value !== index) }}
-        >
-          <summary
-            class="flex h-24 list-none cursor-pointer items-center gap-3 pl-4 pr-8 py-3 hover:bg-current/5 [&::-webkit-details-marker]:hidden"
+      {#snippet children()}
+        {#each matching.slice(0, visible) as { entry, index } (index)}
+          {@const row = object(entry)}
+          {@const parentName = translationParentName(row.context, getLocale())}
+          {@const reference = references?.[index] ?? (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined)}
+          <details
+            class="border-b border-current/10 last:border-b-0"
+            open={expanded.includes(index)}
+            ontoggle={event => { if (event.currentTarget.open && !expanded.includes(index)) expanded = [...expanded, index]; else if (!event.currentTarget.open && expanded.includes(index)) expanded = expanded.filter(value => value !== index) }}
           >
-            <Origin origin={String(row.provenance ?? row.authority ?? '')} />
-            <span
-              class="grid h-full min-w-0 flex-1 grid-cols-[minmax(8rem,1fr)_minmax(0,2fr)] items-center gap-3"
+            <summary
+              class="flex h-24 list-none cursor-pointer items-center gap-3 pl-4 pr-8 py-3 hover:bg-current/5 [&::-webkit-details-marker]:hidden"
             >
-              <span class="min-w-0 space-y-2">
-                <span class="flex items-center gap-1 text-[10px] sm:text-xs">
-                  <span class="rounded bg-current/5 px-1.5 py-0.5 text-current/60"
-                    >{locale(entry, 'source')}</span
-                  >
-                  <span class="opacity-30">→</span>
-                  <span class="rounded bg-current/5 px-1.5 py-0.5 text-current/60"
-                    >{locale(entry, 'target')}</span
-                  >
-                </span>
-                {#if parentName}
-                  <span class="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <span
-                      role="img"
-                      aria-label={m.source_audit_parent_context()}
-                      title={m.source_audit_parent_division_context()}
-                      class="shrink-0 opacity-40"
-                      ><Location class="size-4" /></span
+              <Origin origin={String(row.provenance ?? row.authority ?? '')} />
+              <span
+                class="grid h-full min-w-0 flex-1 grid-cols-[minmax(8rem,1fr)_minmax(0,2fr)] items-center gap-3"
+              >
+                <span class="min-w-0 space-y-2">
+                  <span class="flex items-center gap-1 text-[10px] sm:text-xs">
+                    <span class="rounded bg-current/5 px-1.5 py-0.5 text-current/60"
+                      >{locale(entry, 'source')}</span
                     >
-                    <span
-                      class="min-w-0 truncate text-sm font-medium sm:text-base"
-                      title={parentName}
-                      >{parentName}</span
+                    <span class="opacity-30">→</span>
+                    <span class="rounded bg-current/5 px-1.5 py-0.5 text-current/60"
+                      >{locale(entry, 'target')}</span
                     >
                   </span>
-                {/if}
+                  {#if parentName}
+                    <span
+                      class="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5"
+                    >
+                      <span
+                        role="img"
+                        aria-label={m.source_audit_parent_context()}
+                        title={m.source_audit_parent_division_context()}
+                        class="shrink-0 opacity-40"
+                        ><Location class="size-4" /></span
+                      >
+                      <span
+                        class="min-w-0 truncate text-sm font-medium sm:text-base"
+                        title={parentName}
+                        >{parentName}</span
+                      >
+                    </span>
+                  {/if}
+                </span>
+                <span
+                  class="line-clamp-3 wrap-break-word text-right text-base sm:text-lg"
+                  title={`${String(row.sourceText ?? '')} → ${String(row.text ?? row.name ?? '')}`}
+                  >{String(row.sourceText ?? m.source_audit_source_text_missing())}
+                  <span class="opacity-40">→</span>
+                  <strong class="font-medium"
+                    >{String(row.text ?? row.name ?? '')}</strong
+                  ></span
+                >
               </span>
-              <span
-                class="line-clamp-3 wrap-break-word text-right text-base sm:text-lg"
-                title={`${String(row.sourceText ?? '')} → ${String(row.text ?? row.name ?? '')}`}
-                >{String(row.sourceText ?? m.source_audit_source_text_missing())}
-                <span class="opacity-40">→</span>
-                <strong class="font-medium"
-                  >{String(row.text ?? row.name ?? '')}</strong
-                ></span
-              >
-            </span>
-          </summary>
-          <div class="border-t border-current/10 bg-current/2.5 p-4">
-            {#if expanded.includes(index) && releaseId && hash && reference}
-              <Applications
-                {releaseId}
-                {hash}
-                fixtureIndex={reference.fixtureIndex}
-                entryIndex={reference.entryIndex}
-              />
-            {:else}
-              <p class="text-sm">
-                {String(row.sourceText ?? '')}
-                → {String(row.text ?? row.name ?? '')}
-              </p>
-            {/if}
-          </div>
-        </details>
-      {/each}
-      {#if !matching.length}
-        <p class="p-4 text-sm opacity-60">
-          {m.source_audit_no_locale_matches()}
-        </p>
-      {/if}
-    </section>
+            </summary>
+            <div class="border-t border-current/10 bg-current/2.5 p-4">
+              {#if expanded.includes(index) && releaseId && hash && reference}
+                <Applications
+                  {releaseId}
+                  {hash}
+                  fixtureIndex={reference.fixtureIndex}
+                  entryIndex={reference.entryIndex}
+                />
+              {:else}
+                <p class="text-sm">
+                  {String(row.sourceText ?? '')}
+                  → {String(row.text ?? row.name ?? '')}
+                </p>
+              {/if}
+            </div>
+          </details>
+        {/each}
+        {#if !matching.length}
+          <p class="p-4 text-sm opacity-60">
+            {m.source_audit_no_locale_matches()}
+          </p>
+        {/if}
+      {/snippet}
+    </ScrollArea>
   </section>
 {/if}

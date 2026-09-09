@@ -4,6 +4,8 @@ import { auditStatus } from './auditStatus'
 import Badge from '@iconify-svelte/proicons/badge'
 import type { Json } from '@repo/core/provenance'
 import PatchValue from './auditPatchValue.svelte'
+import Districts from './auditDistricts.svelte'
+import OutputGeometry from './auditOutputGeometry.svelte'
 let {
   title,
   reason,
@@ -12,6 +14,8 @@ let {
   id,
   status = 'applied',
   statusLabel,
+  geometryReleaseId,
+  exclusion = null,
 }: {
   title: string
   reason: string
@@ -20,6 +24,8 @@ let {
   id?: string
   status?: string
   statusLabel?: string
+  geometryReleaseId?: string
+  exclusion?: Json
 } = $props()
 let copied = $state(false)
 let copyFailure = $state(false)
@@ -107,17 +113,32 @@ const display = (value: Json): string =>
         <p class="text-xs font-medium uppercase tracking-wide opacity-45">
           {side.title}
         </p>
-        {#if side.value && typeof side.value === 'object' && !Array.isArray(side.value)}
+        {#if side.value === output && geometryReleaseId && id}
+          <OutputGeometry
+            releaseId={geometryReleaseId}
+            divisionId={id}
+            {title}
+            {exclusion}
+          />
+        {:else if side.value && typeof side.value === 'object' && !Array.isArray(side.value)}
           <dl class="space-y-2">
             {#each fields(side.value) as [key, value]}
               <div class="flex flex-wrap justify-between gap-x-3 gap-y-1">
-                <dt class="capitalize opacity-55">{label(key)}</dt>
+                <dt class="capitalize opacity-55">
+                  {key === 'districtLandDivisionIds' ? m.source_audit_districts() : label(key)}
+                </dt>
                 <dd
                   class="min-w-0 wrap-break-word font-medium"
                   class:w-full={typeof value === 'object' && value !== null}
                   class:pl-6={typeof value === 'object' && value !== null}
                 >
-                  <PatchValue {value} hierarchy={key === 'hierarchies'} />
+                  {#if key === 'districtLandDivisionIds' && Array.isArray(value)}
+                    <Districts
+                      ids={value.filter((id): id is string => typeof id === 'string')}
+                    />
+                  {:else}
+                    <PatchValue {value} hierarchy={key === 'hierarchies'} />
+                  {/if}
                 </dd>
               </div>
             {/each}

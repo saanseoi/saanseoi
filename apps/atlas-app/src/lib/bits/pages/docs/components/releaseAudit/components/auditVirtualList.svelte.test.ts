@@ -9,12 +9,19 @@ test('large variable-height fixtures recycle rows and reach the final entry', as
   }))
   const screen = await render(Fixture, { value: { entries } })
   await expect.element(screen.getByText('fixture-row-0', { exact: true })).toBeVisible()
-  const viewport = document.querySelector<HTMLElement>('[data-audit-virtual-list]')!
+  const viewport = document.querySelector<HTMLElement>('[data-audit-virtual-list]')
+  if (!viewport) throw new Error('Audit virtual-list viewport was not rendered')
   expect(viewport.querySelectorAll(':scope > ul > li').length).toBeLessThan(30)
+  const more = screen.getByRole('button', { name: 'Show more' })
+  await expect.element(more).toBeVisible()
+  await more.click()
+  await expect.poll(() => viewport.scrollTop).toBeGreaterThan(0)
+  expect(viewport.scrollTop).toBeLessThanOrEqual(viewport.clientHeight + 1)
   viewport.scrollTop = viewport.scrollHeight
   await expect
     .element(screen.getByText('fixture-row-1999', { exact: true }))
     .toBeVisible()
+  await expect.poll(() => more.elements()).toHaveLength(0)
   expect(viewport.querySelectorAll(':scope > ul > li').length).toBeLessThan(30)
   expect(screen.getByText('fixture-row-0', { exact: true }).elements()).toHaveLength(0)
   viewport.scrollTop = 0
