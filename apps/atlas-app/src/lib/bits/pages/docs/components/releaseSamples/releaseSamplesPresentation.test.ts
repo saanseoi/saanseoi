@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   getUniqueAddressSamples,
   getSampleApiPath,
+  getSamplePageOffsets,
   groupAddressSamples,
   sampleValueTones,
   supportsReleaseSamples,
@@ -32,6 +33,25 @@ function completeAddressSample(id: string) {
 }
 
 describe('address release samples', () => {
+  test('caps random pages at the available offsets for small releases', () => {
+    for (const maximumOffset of [0, 1, 2, 3]) {
+      expect(getSamplePageOffsets(maximumOffset, 4).sort((a, b) => a - b)).toEqual(
+        Array.from({ length: maximumOffset + 1 }, (_, index) => index),
+      )
+    }
+  })
+
+  test('returns unique in-range pages for large releases', () => {
+    const offsets = getSamplePageOffsets(100_000, 4)
+    expect(new Set(offsets).size).toBe(4)
+    expect(
+      offsets.every(
+        offset => Number.isInteger(offset) && offset >= 0 && offset <= 100_000,
+      ),
+    ).toBe(true)
+    expect(getSamplePageOffsets(10, 0)).toEqual([])
+  })
+
   test('presents every populated branch of a full record below its single id', () => {
     expect(toCompleteAddressSample(address('address-1'))).toEqual({
       id: 'address-1',

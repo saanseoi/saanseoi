@@ -81,6 +81,17 @@ export function getSampleApiPath(apiVersion: string) {
   return sampleApiTargets[apiVersion as keyof typeof sampleApiTargets]?.path ?? null
 }
 
+export function getSamplePageOffsets(maximumOffset: number, count: number) {
+  const offsets = new Set<number>()
+  const size = Math.min(count, maximumOffset + 1)
+  // Floyd's sampling algorithm: one iteration per offset, without retries.
+  for (let index = maximumOffset + 1 - size; index <= maximumOffset; index += 1) {
+    const candidate = Math.floor(Math.random() * (index + 1))
+    offsets.add(offsets.has(candidate) ? index : candidate)
+  }
+  return [...offsets]
+}
+
 function toSampleFields(source: unknown): ReleaseSampleField[] {
   if (!source || typeof source !== 'object') return []
 
