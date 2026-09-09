@@ -23,6 +23,7 @@ export type ReleaseNavTab = {
 }
 
 export type ReleaseNavOutlineItem = {
+  emphasis?: string
   id: string
   label: string
   href?: string

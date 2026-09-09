@@ -615,6 +615,10 @@ let outline = $derived<ReleaseNavOutlineItem[]>(
     ? sourceOutline
     : tocHeadings.map(heading => ({
         depth: heading.level,
+        emphasis:
+          'emphasis' in heading && typeof heading.emphasis === 'string'
+            ? heading.emphasis
+            : undefined,
         id: heading.id,
         label: 'label' in heading ? heading.label : heading.text,
       })),
