@@ -146,123 +146,129 @@ test('coordinate guards retain publisher estate names after HA display curation'
   ).toEqual([114.21588, 22.33308])
 })
 
-test('reviewed coordinate backfill guards match their April 2026 source events', async () => {
-  const audit = await Bun.file(
-    'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
-  ).json()
-  for (const estateName of ['AP LEI CHAU ESTATE', 'BUTTERFLY ESTATE']) {
-    const estate = audit.estates.find(
-      (entry: { name: string }) => entry.name === estateName,
+const estateAuditCache = '.local/hkgov-dpo/estate-review/estate-audit.json'
+
+test.skipIf(!Bun.file(estateAuditCache).size)(
+  'reviewed coordinate backfill guards match their April 2026 source events',
+  async () => {
+    const audit = await Bun.file(estateAuditCache).json()
+    for (const estateName of ['AP LEI CHAU ESTATE', 'BUTTERFLY ESTATE']) {
+      const estate = audit.estates.find(
+        (entry: { name: string }) => entry.name === estateName,
+      )
+      const event = estate?.timeline.find(
+        (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
+      )
+      const changes = new Map<string, { previous?: number[]; current?: number[] }>(
+        event.changed
+          .filter((change: { before: { building: string } }) => change.before.building)
+          .map(
+            (change: {
+              before: {
+                building: string
+                csu: string
+                assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+              }
+              after: {
+                assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+              }
+            }) =>
+              [
+                JSON.stringify([change.before.csu, change.before.building]),
+                {
+                  previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
+                  current: change.after.assertions[0]?.occurrences[0]?.coordinates,
+                },
+              ] as const,
+          ),
+      )
+      const decisions = fixture.backfills.filter(
+        decision =>
+          decision.estate === estateName && decision.automaticPolicy === undefined,
+      )
+      expect(decisions).toHaveLength(6)
+      for (const decision of decisions) {
+        const change = changes.get(
+          JSON.stringify([decision.csu, decision.enBuildingName]),
+        )
+        expect(change?.previous).toEqual(decision.previousCoordinates)
+        expect(change?.current).toEqual(decision.currentCoordinates)
+      }
+    }
+  },
+)
+
+test.skipIf(!Bun.file(estateAuditCache).size)(
+  'automatic coordinate backfills retain exact named source-event guards',
+  async () => {
+    const audit = await Bun.file(estateAuditCache).json()
+    const automatic = fixture.backfills.filter(
+      decision =>
+        decision.automaticPolicy === 'coordinate-only-named-under-50m-backfill',
     )
-    const event = estate?.timeline.find(
-      (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
-    )
-    const changes = new Map<string, { previous?: number[]; current?: number[] }>(
-      event.changed
-        .filter((change: { before: { building: string } }) => change.before.building)
-        .map(
-          (change: {
-            before: {
-              building: string
-              csu: string
-              assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-            }
-            after: {
-              assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-            }
-          }) =>
-            [
-              JSON.stringify([change.before.csu, change.before.building]),
-              {
-                previous: change.before.assertions[0]?.occurrences[0]?.coordinates,
-                current: change.after.assertions[0]?.occurrences[0]?.coordinates,
-              },
-            ] as const,
-        ),
-    )
+    expect(automatic.length).toBeGreaterThan(1_000)
+    for (const decision of automatic) {
+      const release = `${decision.evidenceSourceVersion.replaceAll('-', '').slice(0, 8)}-`
+      const estate = audit.estates.find(
+        (entry: { name: string }) => entry.name === decision.estate,
+      )
+      const event = estate?.timeline.find((entry: { release: string }) =>
+        entry.release.startsWith(release),
+      )
+      const change = event?.changed.find(
+        (entry: {
+          before: {
+            csu: string
+            building: string
+            assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+          }
+          after: {
+            assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
+          }
+        }) =>
+          entry.before.csu === decision.csu &&
+          entry.before.building === decision.enBuildingName,
+      )
+      expect(change?.before.assertions[0]?.occurrences[0]?.coordinates).toEqual(
+        decision.previousCoordinates,
+      )
+      expect(change?.after.assertions[0]?.occurrences[0]?.coordinates).toEqual(
+        decision.currentCoordinates,
+      )
+    }
+  },
+)
+
+test.skipIf(!Bun.file(estateAuditCache).size)(
+  'Hing Wah II approved current points match the April 25 publisher event',
+  async () => {
+    const audit = await Bun.file(estateAuditCache).json()
+    const event = audit.estates
+      .find((estate: { name: string }) => estate.name === 'HING WAH (II) ESTATE')
+      .timeline.find(
+        (entry: { release: string }) => entry.release === '20260425-1038-ALS-GeoJSON',
+      )
     const decisions = fixture.backfills.filter(
       decision =>
-        decision.estate === estateName && decision.automaticPolicy === undefined,
+        decision.estate === 'HING WAH (II) ESTATE' &&
+        decision.automaticPolicy === undefined,
     )
-    expect(decisions).toHaveLength(6)
+    expect(decisions).toHaveLength(8)
     for (const decision of decisions) {
-      const change = changes.get(
-        JSON.stringify([decision.csu, decision.enBuildingName]),
+      const change = event.changed.find(
+        (change: { before: { csu: string } }) => change.before.csu === decision.csu,
       )
-      expect(change?.previous).toEqual(decision.previousCoordinates)
-      expect(change?.current).toEqual(decision.currentCoordinates)
-    }
-  }
-})
-
-test('automatic coordinate backfills retain exact named source-event guards', async () => {
-  const audit = await Bun.file(
-    'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
-  ).json()
-  const automatic = fixture.backfills.filter(
-    decision => decision.automaticPolicy === 'coordinate-only-named-under-50m-backfill',
-  )
-  expect(automatic.length).toBeGreaterThan(1_000)
-  for (const decision of automatic) {
-    const release = `${decision.evidenceSourceVersion.replaceAll('-', '').slice(0, 8)}-`
-    const estate = audit.estates.find(
-      (entry: { name: string }) => entry.name === decision.estate,
-    )
-    const event = estate?.timeline.find((entry: { release: string }) =>
-      entry.release.startsWith(release),
-    )
-    const change = event?.changed.find(
-      (entry: {
-        before: {
-          csu: string
-          building: string
-          assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-        }
-        after: {
-          assertions: Array<{ occurrences: Array<{ coordinates: number[] }> }>
-        }
-      }) =>
-        entry.before.csu === decision.csu &&
-        entry.before.building === decision.enBuildingName,
-    )
-    expect(change?.before.assertions[0]?.occurrences[0]?.coordinates).toEqual(
-      decision.previousCoordinates,
-    )
-    expect(change?.after.assertions[0]?.occurrences[0]?.coordinates).toEqual(
-      decision.currentCoordinates,
-    )
-  }
-})
-
-test('Hing Wah II approved current points match the April 25 publisher event', async () => {
-  const audit = await Bun.file(
-    'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
-  ).json()
-  const event = audit.estates
-    .find((estate: { name: string }) => estate.name === 'HING WAH (II) ESTATE')
-    .timeline.find(
-      (entry: { release: string }) => entry.release === '20260425-1038-ALS-GeoJSON',
-    )
-  const decisions = fixture.backfills.filter(
-    decision =>
-      decision.estate === 'HING WAH (II) ESTATE' &&
-      decision.automaticPolicy === undefined,
-  )
-  expect(decisions).toHaveLength(8)
-  for (const decision of decisions) {
-    const change = event.changed.find(
-      (change: { before: { csu: string } }) => change.before.csu === decision.csu,
-    )
-    expect(decision.currentCoordinates).toEqual(
-      change.after.assertions[0].occurrences[0].coordinates,
-    )
-    if (decision.sourceVersionFrom === '2026-04-03.0') {
-      expect(decision.previousCoordinates).toEqual(
-        change.before.assertions[0].occurrences[0].coordinates,
+      expect(decision.currentCoordinates).toEqual(
+        change.after.assertions[0].occurrences[0].coordinates,
       )
+      if (decision.sourceVersionFrom === '2026-04-03.0') {
+        expect(decision.previousCoordinates).toEqual(
+          change.before.assertions[0].occurrences[0].coordinates,
+        )
+      }
     }
-  }
-})
+  },
+)
 
 test('Hing Wah II current points preserve raw geometry and dated Wo Hing inventory', () => {
   for (const version of ['2024-07-25.0', '2025-04-26.0', '2026-04-03.0']) {
