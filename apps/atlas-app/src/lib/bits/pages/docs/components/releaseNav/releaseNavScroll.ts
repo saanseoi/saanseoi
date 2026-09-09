@@ -143,8 +143,11 @@ export async function scrollToReleaseNavAnchor({
 
     const targetRect = target.getBoundingClientRect()
     const containerRect = scrollContainer.getBoundingClientRect()
-    // TOC navigation uses fixed clearance, independently of scrollspy look-ahead.
-    const top = scrollContainer.scrollTop + targetRect.top - containerRect.top - 24
+    const top =
+      scrollContainer.scrollTop +
+      targetRect.top -
+      containerRect.top -
+      containerRect.height * releaseNavActivationViewportFraction
 
     await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })

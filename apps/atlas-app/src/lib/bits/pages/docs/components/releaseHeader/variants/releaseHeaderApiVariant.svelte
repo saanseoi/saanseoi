@@ -10,9 +10,10 @@ type Props = {
   api: RegistryApi
   release: ApiRelease
   locale: AppLocale
+  activeTab?: string
 }
 
-let { api, release, locale }: Props = $props()
+let { api, release, locale, activeTab = 'release' }: Props = $props()
 
 const displayDate = (value?: string | null) =>
   value?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? m.api_release_unavailable()
@@ -82,7 +83,7 @@ let composition = $derived(
     .sort((left, right) => right.version - left.version)[0],
 )
 let domainOptions = $derived(
-  getReleaseHeaderDomainOptions(api, release).map(option => ({
+  getReleaseHeaderDomainOptions(api, release, activeTab).map(option => ({
     ...option,
     label:
       selectLocalisedRow(composition?.i18n?.[option.code], locale)?.name ?? option.code,
