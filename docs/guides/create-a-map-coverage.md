@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Places pagination follows `links.next` until absent. Materialised snapshots provide
+`meta.page.total`; historical snapshots provide `meta.page.hasMore` without scanning the
+whole release for an exact count. Tutorial clients must not require `total`.
+
 Publisher fields can be inspected through the source-release Schema and Samples tabs and
 the [source-record endpoints](../datasets/source-record-access.md). Tutorial marker
 queries use the canonical Places collection and its map profile; source inventories have

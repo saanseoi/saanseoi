@@ -11,7 +11,12 @@ import { createAMapLlmLaterSectionInstructions } from './createAMapLlmLaterSecti
 import { createAMapLlmDecisionMatrixInstructions } from './createAMapLlmDecisionMatrix'
 
 const joinInstructions = (sections: string[]) =>
-  sections.map(section => section.trim()).join('\n\n')
+  [
+    ...sections,
+    'For Places pagination, follow links.next until it is absent. Historical snapshots expose meta.page.hasMore instead of an exact meta.page.total; do not require a total to load subsequent pages.',
+  ]
+    .map(section => section.trim())
+    .join('\n\n')
 
 const llmsTextLineWidth = 88
 

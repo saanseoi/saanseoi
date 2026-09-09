@@ -1,5 +1,10 @@
 # Places dataset family
 
+Canonical list requests use SQL pagination for materialised snapshots. Historical lists
+replay bounded batches until the requested page and one further match are found. Their
+`meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
+until it is absent. Filters apply before selecting page members.
+
 Source Place records retain the complete publisher payload in `rawProperties`, alongside
 identity, provenance and release history. Normalised coordinates, names, taxonomy,
 contact details and addresses belong to canonical history/current tables; source tables
