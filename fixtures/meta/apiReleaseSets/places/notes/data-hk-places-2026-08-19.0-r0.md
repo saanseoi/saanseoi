@@ -56,8 +56,6 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   Place is open.
 - This source deprecation does not change the Places API contract in this release:
   canonical category and taxonomy fields remain available.
-- Operating status is publisher data, not an independent SaanSeoi verification that a
-  Place is open.
 - H3 and full-text indexes are derived projections of the selected Place snapshot.
 
 # ZH-HANT
