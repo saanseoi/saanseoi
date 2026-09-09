@@ -203,7 +203,7 @@ async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
   ]
   for (const fixture of bulk.fixtures)
     values.push(serialise(await readObject(store, fixture.object)))
-  return [
+  const tokens = [
     ...new Set(
       values
         .join(' ')
@@ -212,7 +212,19 @@ async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
         .split(/[\s"{},:[\]]+/)
         .filter(Boolean),
     ),
-  ].join(' ')
+  ]
+  // Search text is derived metadata. Keep it bounded when a large retained
+  // fixture is split across many provenance objects; the complete fixture
+  // partitions remain available for exact audit reads.
+  const encoder = new TextEncoder()
+  const maxSearchBytes = MAX_OBJECT_BYTES - 1024
+  let bounded = ''
+  for (const token of tokens) {
+    const next = bounded ? `${bounded} ${token}` : token
+    if (encoder.encode(next).length > maxSearchBytes) break
+    bounded = next
+  }
+  return bounded
 }
 
 export async function retainAuditResult(

@@ -182,6 +182,49 @@ test('bulk search indexes retained fixture contents without reading fixtures dur
   ).toEqual([])
 })
 
+test('bulk search bounds large retained fixture indexes', {
+  timeout: 30_000,
+}, async () => {
+  const { store } = memoryStore()
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'large-fixture',
+    scope: 'bulk',
+    basis: 'fixture',
+  })
+  const fixtures = await Promise.all(
+    Array.from({ length: 140 }, async (_, index) => ({
+      type: 'large-fixture',
+      object: await retainObject(store, {
+        values: Array.from(
+          { length: 500 },
+          (_, value) => `fixture-${index}-${value}-searchable`,
+        ),
+      }),
+    })),
+  )
+  const result = await retainAuditResult(store, {
+    releaseId: 'large-release',
+    datasetCode: 'large',
+    attempt: { id: 'large-attempt', status: 'completed' },
+    guards: [],
+    individuals: [],
+    bulk: [
+      {
+        id: 'large-fixture',
+        definition,
+        basis: 'fixture',
+        summary: 'Retain a large fixture.',
+        outcome: 'applied',
+        counts: { inputs: {}, outputs: {}, recordsAffected: 1, decisions: {} },
+        fixtures,
+      },
+    ],
+  })
+  expect(result.manifest.bulk[0]?.search?.byteLength).toBeLessThanOrEqual(1024 * 1024)
+})
+
 test('bulk payloads and completed failed guards cannot pass audit validation', async () => {
   const { store } = memoryStore()
   const definition = await retainObject(store, {
