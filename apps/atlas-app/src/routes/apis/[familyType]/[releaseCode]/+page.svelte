@@ -451,7 +451,7 @@ let currentComposition = $derived(
 )
 
 let domains = $derived(
-  getReleaseHeaderDomainOptions(api, release).map(option => ({
+  getReleaseHeaderDomainOptions(api, release, activeTab).map(option => ({
     ...option,
     label:
       selectLocalisedRow(currentComposition?.i18n?.[option.code], locale)?.name ??
@@ -554,6 +554,7 @@ let actions = $derived<ReleaseNavAction[]>(
       ]
     : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
       ? [
+          profileAction,
           {
             icon: 'ion:reload-outline',
             id: 'more-samples',
@@ -568,7 +569,6 @@ let actions = $derived<ReleaseNavAction[]>(
               })
             },
           },
-          profileAction,
         ]
       : activeTab === 'schema'
         ? [profileAction]
@@ -706,7 +706,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
 />
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
-  <ReleaseHeader.ApiVariant {api} {release} {locale} />
+  <ReleaseHeader.ApiVariant {api} {release} {locale} {activeTab} />
 
   <ReleaseNav.Root
     analyticsSurface="api_release"
@@ -836,6 +836,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                 <ReleaseSamplesRoot
                   apiVersion={release.apiVersion}
                   apiFamily={release.apiFamily}
+                  domainCode={currentDomainCode}
                   profile={apiProfile}
                   releaseSet={release.code}
                   request={sampleRequest}
