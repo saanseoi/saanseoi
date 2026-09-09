@@ -23,8 +23,13 @@ import {
   listAddresses,
   searchAddresses,
 } from './addresses'
-import { AddressUnitsResponseSchema } from '../schema/addresses'
-import { AddressSearchQuerySchema, AddressesListQuerySchema } from '../schema/addresses'
+import {
+  AddressDetailResponseSchema,
+  AddressDetailQuerySchema,
+  AddressSearchQuerySchema,
+  AddressesListQuerySchema,
+  AddressUnitsResponseSchema,
+} from '../schema/addresses'
 
 test('publishes and serves a curated Address union with dataset filtering, global pagination and distinct bilingual search', async () => {
   const meta = new Database(':memory:')
@@ -166,6 +171,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
           countryId,
           parentAddressId: id === 'b' ? 'a' : null,
           granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
+          geometry: { type: 'Point', coordinates: [114.13, 22.28] },
+          bbox: [114.13, 22.28, 114.13, 22.28],
         })
         .run()
       for (const locale of ['en', 'zh-hant', 'zh-hans']) {
@@ -319,6 +326,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       en: { formattedAddress: 'Harbour b' },
       'zh-hant': { formattedAddress: 'Harbour b' },
     })
+    const map = await getAddressDetail({
+      ...args,
+      id: 'b',
+      query: { profile: 'map' },
+    })
+    expect(map.status === 200 && map.body.data.attributes.geometry).toEqual({
+      type: 'Point',
+      coordinates: [114.13, 22.28],
+    })
     const page = await listAddresses({
       ...args,
       query: { 'page[limit]': 2, 'page[offset]': 1 },
@@ -396,6 +412,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(AddressesListQuerySchema.safeParse({ domain: 'official' }).success).toBe(
       false,
     )
+    expect(AddressesListQuerySchema.safeParse({ include: 'units' }).success).toBe(false)
+    expect(
+      AddressDetailQuerySchema.safeParse({ include: 'units,hierarchy' }).success,
+    ).toBe(true)
     expect(
       AddressSearchQuerySchema.safeParse({
         match: 'full-text',
@@ -436,6 +456,56 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(ordinary.status === 200 && ordinary.body.data.attributes).not.toHaveProperty(
       'units',
     )
+    expect(ordinary.status === 200 && ordinary.body.data.relationships.units).toEqual({
+      data: { type: 'address3d', id: 'collection' },
+      meta: {
+        address3dCoverage: {
+          kind: 'direct',
+          ownerAddress2dId: 'a',
+          address3dId: 'collection',
+          membership: 'established',
+        },
+      },
+    })
+    const withUnits = await getAddressDetail({
+      ...args,
+      id: 'a',
+      query: { include: 'units,hierarchy', locales: 'en' },
+    })
+    expect(withUnits.status).toBe(200)
+    expect(
+      withUnits.status === 200 &&
+        AddressDetailResponseSchema.safeParse(withUnits.body).success,
+    ).toBe(true)
+    const includedUnits =
+      withUnits.status === 200
+        ? withUnits.body.included?.find(
+            (
+              item,
+            ): item is {
+              type: string
+              id: string
+              attributes: {
+                address2dId: string
+                i18n: Record<string, unknown>
+                units: unknown[]
+              }
+            } =>
+              typeof item === 'object' &&
+              item !== null &&
+              'type' in item &&
+              item.type === 'address3d',
+          )
+        : undefined
+    expect(includedUnits).toMatchObject({
+      type: 'address3d',
+      id: 'collection',
+      attributes: {
+        address2dId: 'a',
+        units: [unit],
+        i18n: { en: { unit: { unitExpression: 'FLAT 01', floorExpression: '1/F' } } },
+      },
+    })
     const inventory = await getAddressUnits({
       ...args,
       id: 'a',
