@@ -6,6 +6,7 @@ release: "dr-hk-hkgov-dpo-address-2025-05-22.0"
 regionCode: "hk"
 source: "hkgov-dpo"
 sourceVersion: "2025-05-22.0"
+publisherReleaseDate: "2025-05-22"
 releaseVersion: "2025-05-22.0"
 sourceSchemaVersion: "3.2"
 type: "address"
@@ -17,7 +18,9 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rc
 
 ## Changelog
 
-- Digital Policy Office Address Lookup Service (ALS) delivery dated 2025-05-22.
+- <orange>Upstream</orange> Digital Policy Office Address Lookup Service (ALS)
+  two-dimensional district GeoJSON delivery dated
+  <black>{{publisherReleaseDate}}</black>
 
 ## Compatibility
 
@@ -104,7 +107,8 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 ## 更新紀錄
 
-- 數字政策辦公室地址查詢服務（ALS）2025-05-22 的資料交付。
+- <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
+  <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
 ## 兼容性
 
@@ -177,7 +181,8 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 ## 更新记录
 
-- 数字政策办公室地址查询服务（ALS）2025-05-22 的数据交付。
+- <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
+  <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
 ## 兼容性
 
