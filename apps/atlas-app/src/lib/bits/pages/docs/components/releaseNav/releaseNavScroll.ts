@@ -18,6 +18,13 @@ const isPrimaryUnmodifiedClick = (event: MouseEvent) =>
 export const getReleaseNavContentTarget = (panel?: HTMLElement) =>
   panel?.querySelector<HTMLElement>('[data-release-nav-content-body]') ?? panel
 
+export const releaseNavScrollsIndependently = (element: HTMLElement) => {
+  const overflowY = getComputedStyle(element).overflowY
+  return (
+    /^(auto|scroll)$/.test(overflowY) && element.scrollHeight > element.clientHeight
+  )
+}
+
 export function createReleaseNavigationPersistence({
   getContentTarget,
   getVersions,
@@ -125,7 +132,7 @@ export async function scrollToReleaseNavAnchor({
   const scrollContainer = target.closest<HTMLElement>('[data-release-nav-content-body]')
   const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
 
-  if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
+  if (scrollContainer && releaseNavScrollsIndependently(scrollContainer)) {
     if (panel && controls) {
       const desiredPanelTop = controls.getBoundingClientRect().bottom + 8
       const panelTop = panel.getBoundingClientRect().top
