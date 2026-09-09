@@ -11,12 +11,8 @@ let {
   labels,
 }: { rows: ComponentCoveragePresentation; labels: ReleaseStatsLabels } = $props()
 </script>
-<Section
-  ><Header
-    id="stats-address-components"
-    eyebrow="Availability"
-    title={labels.addressComponents}
-  >
+<Section id="stats-address-components"
+  ><Header eyebrow="Availability" title={labels.addressComponents}>
     <InfoTooltip
       label="About address component availability"
       description="The share of addresses whose formatted labels include each optional component. A missing component does not mean the address is incomplete."

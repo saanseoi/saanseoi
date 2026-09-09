@@ -8,12 +8,11 @@ let {
   labels,
 }: { processing: ProcessingPresentation; labels: ReleaseStatsLabels } = $props()
 </script>
-<Section
+<Section id="stats-processing-actions"
   ><div
     class="flex w-full items-center gap-1.5 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
   >
     <h2
-      id="stats-processing-actions"
       class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
     >
       {labels.processingActions}

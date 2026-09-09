@@ -5,9 +5,8 @@ import Section from './releaseStatsSection.svelte'
 let { coverage }: { coverage: ObservationMeasureCoveragePresentation } = $props()
 </script>
 
-<Section class="p-5">
+<Section id={coverage.id} class="p-5">
   <h2
-    id={coverage.id}
     class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
   >
     {coverage.title}

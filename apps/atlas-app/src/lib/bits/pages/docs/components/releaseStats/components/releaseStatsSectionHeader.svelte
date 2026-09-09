@@ -5,7 +5,7 @@ let {
   title,
   children,
 }: {
-  id: string
+  id?: string
   eyebrow?: string
   title: string
   children?: import('svelte').Snippet

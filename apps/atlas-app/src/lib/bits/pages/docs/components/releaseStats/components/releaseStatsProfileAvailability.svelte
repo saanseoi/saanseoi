@@ -13,12 +13,8 @@ const colour = {
 }
 </script>
 
-<Section>
-  <Header
-    id="stats-profile-availability"
-    eyebrow="Value availability"
-    title="Observations by status"
-  >
+<Section id="stats-profile-availability">
+  <Header eyebrow="Value availability" title="Observations by status">
     <div class="flex items-center gap-3">
       <Legend
         label="Observation status"

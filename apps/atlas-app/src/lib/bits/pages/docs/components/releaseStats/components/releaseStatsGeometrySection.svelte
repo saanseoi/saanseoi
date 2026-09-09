@@ -125,8 +125,8 @@ const sortedRows = $derived(
 )
 </script>
 
-<Section>
-  <Header eyebrow={labels.geometry} id={geometry.id} title={labels.geometryByDistrict}>
+<Section id={geometry.id}>
+  <Header eyebrow={labels.geometry} title={labels.geometryByDistrict}>
     <InfoTooltip
       label={labels.geometryInfo}
       description={labels.geometryInfoDescription}

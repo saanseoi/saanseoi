@@ -6,7 +6,7 @@ import Section from './releaseStatsSection.svelte'
 let { linkage }: { linkage: DivisionLinkagePresentation } = $props()
 </script>
 
-<Section>
+<Section id={linkage.id}>
   <div
     class="flex w-full items-center gap-1.5 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
   >
@@ -16,10 +16,7 @@ let { linkage }: { linkage: DivisionLinkagePresentation } = $props()
       >
         Linkage
       </p>
-      <h2
-        id={linkage.id}
-        class="mt-1 font-display text-title-lg font-bold text-primary"
-      >
+      <h2 class="mt-1 font-display text-title-lg font-bold text-primary">
         Divisions & Streets
       </h2>
     </div>
