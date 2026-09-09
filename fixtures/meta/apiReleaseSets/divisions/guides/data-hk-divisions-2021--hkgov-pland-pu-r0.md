@@ -69,6 +69,13 @@ To request records from this specific release, include both selectors:
                  cohort={{ cohortKey }}
 ```
 
+Or you can select the published release directly:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}
+```
+
 The examples below include the cohort and domain for consistency, even where they do not
 affect the feature being explained.
 
