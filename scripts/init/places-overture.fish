@@ -42,6 +42,10 @@ set -l releases \
     2026-07-22.0 \
     2026-08-19.0
 
+if test "$SAANSEOI_INIT_MINIMAL" = 1
+    set releases $releases[1..2]
+end
+
 for release in $releases
     set -l dir "$root/$release/divisions/中国/Hong Kong SAR"
     if not test -d "$dir"
