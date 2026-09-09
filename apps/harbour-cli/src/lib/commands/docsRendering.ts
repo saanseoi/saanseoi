@@ -186,6 +186,11 @@ function renderAddressNotesAndLimitations(markdown: string) {
   distinct section children. ALS does not identify a unit's section, so a section's
   <black>ancestor</black> coverage does not assign any of the <black>422</black> units
   to it. That membership remains unresolved until the source explicitly provides it.
+- An Address detail request can use <black>include=units</black> to receive its selected
+  <black>address3d</black> collection in the top-level <black>included</black> array.
+  Combine it with <black>hierarchy</black> when both resources are needed. Unit inclusion
+  is deliberately unavailable on list and search requests, which prevents one page from
+  expanding into every unit of many buildings.
 - Building-number ranges preserve the source assertion. They do not imply that every
   intervening number exists, or establish a parent-child relationship between addresses.
 - Coordinates identify an address position. They are not a building footprint or a
@@ -202,6 +207,10 @@ function renderAddressNotesAndLimitations(markdown: string) {
 - Address3D coverage 說明 Address2D 記錄可用的單位 collection。coverage 為
   <black>none</black>
   並不證明樓宇沒有單位。祖先 coverage 在關係明確解析前亦不確立成員關係。
+- Address 詳情請求可使用 <black>include=units</black>，把所選的
+  <black>address3d</black> collection 放入頂層 <black>included</black> 陣列；如亦需要
+  hierarchy，請一併加入。為避免一頁展開多幢樓宇的全部單位，清單及搜尋請求不提供
+  單位 inclusion。
 - 樓宇號碼範圍保留來源斷言，不表示每個中間號碼均存在，亦不建立地址之間的父子關係。
 - 座標標示地址位置，並非樓宇輪廓或郵遞保證。
 - 全文及樓宇號碼搜尋索引是此不可變 release set 的衍生 projection。請參閱
@@ -214,6 +223,10 @@ function renderAddressNotesAndLimitations(markdown: string) {
 - Address3D coverage 说明 Address2D 记录可用的单位 collection。coverage 为
   <black>none</black>
   并不证明楼宇没有单位。祖先 coverage 在关系明确解析前也不确立成员关系。
+- Address 详情请求可使用 <black>include=units</black>，把所选的
+  <black>address3d</black> collection 放入顶层 <black>included</black> 数组；如也需要
+  hierarchy，请一并加入。为避免一页展开多幢楼宇的全部单位，列表及搜索请求不提供
+  单位 inclusion。
 - 楼宇号码范围保留源断言，不表示每个中间号码均存在，也不建立地址之间的父子关系。
 - 坐标标示地址位置，并非楼宇轮廓或邮递保证。
 - 全文及楼宇号码搜索索引是此不可变 release set 的派生 projection。请参阅

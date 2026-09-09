@@ -329,6 +329,7 @@ Publishes revision r{{ revision }}.
     expect(rendered).toContain('### 已知质量问题')
     expect(rendered).toContain('MODEL HOUSING ESTATE')
     expect(rendered).toContain('476.3 metres away')
+    expect(rendered).toContain('include=units')
     expect(rendered).not.toContain('{{addressNotesAndLimitations:')
     expect(rendered).not.toContain('{{addressCurationPolicy:')
     expect(rendered).not.toContain('{{addressKnownQualityIssues:')
