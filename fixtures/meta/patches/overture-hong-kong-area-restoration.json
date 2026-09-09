@@ -1,0 +1,7 @@
+{
+  "kind": "division-area-restoration-patches",
+  "schemaVersion": 1,
+  "id": "overture_hong_kong_area_identities_restored",
+  "reason": "Restore the Hong Kong Island and New Territories area identities when they are missing from Overture.",
+  "method": "union-overture-district-areas"
+}

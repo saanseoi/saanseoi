@@ -22,6 +22,10 @@ import {
   kowloonRestorationDeclaration,
   kowloonRestorationFixture,
 } from './kowloonRestoration'
+import {
+  overtureHongKongAreaRestorationDeclaration,
+  overtureHongKongAreaRestorationFixture,
+} from './overtureHongKongAreaRestoration'
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -50,9 +54,16 @@ const normalisationCounters = new Set([
 ])
 
 type ActionKind = 'translation' | 'classification' | 'patch' | 'bulk' | 'counter'
+type PatchDefinition = {
+  declaration: RuleDeclaration
+  fixture: unknown
+  names?: string[]
+  reason?: string
+}
 function actionRegistry(
   normalisation: RuleDeclaration,
   declarations: Record<string, RuleDeclaration>,
+  patches: Record<string, PatchDefinition>,
 ) {
   const registry = new Map<string, ActionKind>()
   for (const id of normalisationCounters) registry.set(id, 'counter')
@@ -63,6 +74,7 @@ function actionRegistry(
     registry.set(entry.id, 'classification')
   }
   registry.set(kowloonRestorationFixture.id, 'patch')
+  for (const id of Object.keys(patches)) registry.set(id, 'patch')
   for (const id of [normalisation.id, ...Object.keys(declarations)]) {
     if (registry.has(id) && registry.get(id) !== 'counter')
       throw new Error(`Duplicate Division audit operation: ${id}`)
@@ -91,6 +103,7 @@ export async function retainDivisionProvenance(
     guards?: AuditGuard[]
     identityCurationDefinition?: RuleDeclaration
     actionDeclarations?: Record<string, RuleDeclaration>
+    patchDefinitions?: Record<string, PatchDefinition>
     actionCounts?: Record<
       string,
       Pick<import('../../provenance').AuditCounts, 'inputs' | 'outputs'>
@@ -99,7 +112,25 @@ export async function retainDivisionProvenance(
 ) {
   const bulk: BulkAudit[] = []
   const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
-  const actionKind = actionRegistry(normalisation, input.actionDeclarations ?? {})
+  const patchDefinitions: Record<string, PatchDefinition> = {
+    [kowloonRestorationFixture.id]: {
+      declaration: kowloonRestorationDeclaration,
+      fixture: kowloonRestorationFixture,
+      names: kowloonRestorationFixture.names,
+      reason: kowloonRestorationFixture.reason,
+    },
+    [overtureHongKongAreaRestorationFixture.id]: {
+      declaration: overtureHongKongAreaRestorationDeclaration,
+      fixture: overtureHongKongAreaRestorationFixture,
+      reason: overtureHongKongAreaRestorationFixture.reason,
+    },
+    ...(input.patchDefinitions ?? {}),
+  }
+  const actionKind = actionRegistry(
+    normalisation,
+    input.actionDeclarations ?? {},
+    patchDefinitions,
+  )
   for (const action of input.actions) actionKind(action.action)
   if (input.branchCounts) {
     const ids = new Set(normalisation.branches?.map(branch => branch.id))
@@ -149,22 +180,29 @@ export async function retainDivisionProvenance(
   for (const action of input.actions) {
     if (actionKind(action.action) === 'patch') {
       const evidence = record(action.evidence)
+      const patch = requireDefined(patchDefinitions[action.action])
+      const recordId = String(evidence.divisionId ?? '')
+      const names = strings(evidence.names)
       individuals.push({
-        id: `${action.action}:${kowloonRestorationFixture.divisionId}`,
+        id: `${action.action}:${recordId}`,
         operation: action.action,
         review: { kind: 'patch' },
         basis: 'fixture',
         outcome: 'applied',
         summary: action.summary,
-        reason: kowloonRestorationFixture.reason,
-        definition: await retainDeclaration(kowloonRestorationDeclaration),
+        reason:
+          typeof evidence.reason === 'string'
+            ? evidence.reason
+            : (patch.reason ?? action.summary),
+        definition: await retainDeclaration(patch.declaration),
         fixture: {
-          object: await retainObject(store, kowloonRestorationFixture),
-          pointer: '',
+          object: await retainObject(store, patch.fixture),
+          pointer:
+            typeof evidence.fixturePointer === 'string' ? evidence.fixturePointer : '',
         },
         record: {
-          id: kowloonRestorationFixture.divisionId,
-          names: kowloonRestorationFixture.names,
+          id: recordId,
+          names: names.length ? names : (patch.names ?? [recordId]),
           parents: [],
         },
         context: evidence as JsonRecord,

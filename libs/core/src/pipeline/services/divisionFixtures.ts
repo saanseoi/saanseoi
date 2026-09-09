@@ -5,6 +5,7 @@ import { readParquetObjectsInBatches } from '../parquetR2'
 import prcCountryAnchor from '../../../../../fixtures/divisions/overture/hk-prc-country-anchor.json'
 import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
 import { kowloonRestorationActions } from './kowloonRestoration'
+import { overtureHongKongAreaRestorationActions } from './overtureHongKongAreaRestoration'
 import type { ReleaseProcessingAction } from '../db/processingActions'
 
 type DivisionFixtureRow = Record<string, unknown>
@@ -64,7 +65,10 @@ export async function* readDivisionRowsWithFixtures(
       isSupplemental: true,
       replacedDivisionIds: new Set(),
       rows,
-      processingActions: kowloonRestorationActions(sourceRows, rows),
+      processingActions: [
+        ...kowloonRestorationActions(sourceRows, rows),
+        ...overtureHongKongAreaRestorationActions(sourceRows, rows),
+      ],
     }
   }
 }
