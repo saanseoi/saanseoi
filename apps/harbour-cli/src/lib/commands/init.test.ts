@@ -152,6 +152,8 @@ describe('initialisation commands', () => {
           '-c',
           `
           source scripts/init/common.fish
+          function init_clear_clean_run_manifests
+          end
           function init_run_step
             printf '%s|%s\\n' $argv[2] "$SAANSEOI_INIT_COMPLETED_PREREQUISITES"
           end

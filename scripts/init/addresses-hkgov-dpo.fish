@@ -8,6 +8,12 @@ if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
+set -l initialisation_status (./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target)
+if test "$initialisation_status" = complete
+    echo "Official address initialisation is already complete; no work required."
+    exit 0
+end
+
 init_run_step ./bin/saanseoi init:addresses:saanseoi:begin --target $saanseoi_init_target $continue_args
 
 init_run_step bun run --silent dataops -- hkgov-dpo:ingest \
