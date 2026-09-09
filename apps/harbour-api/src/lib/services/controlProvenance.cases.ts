@@ -463,18 +463,22 @@ test('requires retained processing audits for Addresses and Places before publis
           ).length
         : 0,
     )
-    expect(supportingSnapshots).toEqual(
+    const expectedSupportingSnapshots =
       datasetType === 'address'
-        ? [
-            { code: supplementarySnapshotCode, role: 'supporting' },
-            { code: 'ss-hk-division-2026-06-17.0', role: 'supporting' },
-          ]
+        ? (() => {
+            if (supplementarySnapshotCode === null)
+              throw new Error('Expected the Overture supplementary Address snapshot.')
+            return [
+              { code: supplementarySnapshotCode, role: 'supporting' },
+              { code: 'ss-hk-division-2026-06-17.0', role: 'supporting' },
+            ]
+          })()
         : [
             { code: 'ss-hk-address-historical-selection', role: 'supporting' },
             { code: 'ss-hk-address-overture-places-2026-06', role: 'supporting' },
             { code: 'ss-hk-division-historical-selection', role: 'supporting' },
-          ],
-    )
+          ]
+    expect(supportingSnapshots).toEqual(expectedSupportingSnapshots)
   }
 })
 

@@ -429,7 +429,14 @@ export async function handlePublishDataset(
       )
       const requiredMembers = new Set(
         domainMembers
-          .filter(member => member.isRequired)
+          .filter(
+            member =>
+              member.isRequired &&
+              // Overture's supplementary Addresses are required once their
+              // first snapshot exists; Address history before that cohort is
+              // intentionally ALS-only.
+              member.variant !== 'overture-places',
+          )
           .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
       )
       const satisfiedRequiredMembers = new Set<string>()
@@ -450,7 +457,10 @@ export async function handlePublishDataset(
         // the data they materialised. Preserve that choice instead of replacing
         // it with an independently resolved cohort match.
         if (explicitlyCarriedMemberKeys.has(memberKey)) {
-          if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+          if (member.isRequired) {
+            requiredMembers.add(memberKey)
+            satisfiedRequiredMembers.add(memberKey)
+          }
           continue
         }
 
@@ -462,7 +472,10 @@ export async function handlePublishDataset(
         )
 
         if (supportingSnapshots.length === 0) continue
-        if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+        if (member.isRequired) {
+          requiredMembers.add(memberKey)
+          satisfiedRequiredMembers.add(memberKey)
+        }
 
         for (const supportingSnapshot of supportingSnapshots) {
           carriedSnapshots.push({

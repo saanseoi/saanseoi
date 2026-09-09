@@ -31,10 +31,10 @@ let { markdown, labels, transclusions, nested = false }: Props = $props()
 const releaseNotesRenderers = {
   ...defaultRenderers,
   note: ReleaseNotesCallout,
-  // Glossary and definition content uses a small amount of presentational HTML
-  // (`<i>` and `<br>`). Render those elements rather than exposing their source
+  // Glossary, definition and generated release-note content uses a small amount of
+  // presentational HTML (`<b>`, `<br>`, `<i>` and `<u>`). Render those elements rather than exposing their source
   // text, while keeping every other ordinary HTML element escaped.
-  html: allowHtmlOnly(['br', 'i']),
+  html: allowHtmlOnly(['b', 'br', 'i', 'u']),
 }
 
 const releaseNotesMarkdownExtensions: MarkedExtension[] = [

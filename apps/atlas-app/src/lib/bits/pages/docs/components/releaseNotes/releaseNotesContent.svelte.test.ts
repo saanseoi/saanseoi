@@ -236,6 +236,21 @@ test('renders allowed presentational HTML in transcluded definitions', async () 
   expect(screen.container.querySelector('br')).not.toBeNull()
 })
 
+test('renders allowed presentational HTML in generated release notes', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '<b>Building CSU-ID</b> is <u>not</u> a durable identifier.',
+      'en',
+    ),
+  )
+
+  await expect
+    .element(screen.getByText('Building CSU-ID'))
+    .toHaveProperty('tagName', 'B')
+  await expect.element(screen.getByText('not')).toHaveProperty('tagName', 'U')
+})
+
 test('renders release-note callouts', async () => {
   const screen = await render(
     ReleaseNotesContent,
