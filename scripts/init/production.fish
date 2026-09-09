@@ -20,5 +20,10 @@ for command in \
     init:addresses \
     init:places \
     init:stats
-    init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
+    if test "$command" = init:stats
+        SAANSEOI_INIT_COMPLETED_PREREQUISITES=divisions:geographic \
+            init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
+    else
+        init_run_step ./bin/saanseoi $command --target production $cache_artefact_opt_out_args
+    end
 end

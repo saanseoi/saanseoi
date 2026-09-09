@@ -21,6 +21,14 @@ function init_run_step
     or init_fail $status
 end
 
+# Parent initialisers may hand off a prerequisite they have already completed
+# to a child process. The marker is deliberately process-scoped: a standalone
+# child must still establish every prerequisite itself.
+function init_has_completed_prerequisite
+    set -l prerequisite $argv[1]
+    contains -- "$prerequisite" (string split ',' -- "$SAANSEOI_INIT_COMPLETED_PREREQUISITES")
+end
+
 # The clean local and production coordinators reset their databases before
 # starting. Their family manifests are therefore stale by definition and must
 # not block the next clean run. Focused initialisers deliberately do not call
