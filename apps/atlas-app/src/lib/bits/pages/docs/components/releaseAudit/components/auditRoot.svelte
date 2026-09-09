@@ -82,6 +82,7 @@ $effect(() => {
       ...(familyType
         ? sourceHeadings.flatMap(source => [
             {
+              emphasis: source.dataset.auditSourceEmphasis,
               id: source.id,
               level: 2,
               text: source.dataset.auditSourceLabel ?? m.source_audit_section(),
@@ -173,8 +174,8 @@ const sourceOutlineLabel = (resource: {
   sourceSubType?: string | null
 }) =>
   [
-    resource.sourcePublisherShortName,
     resourceLabel(resource.resourceType),
+    resource.sourcePublisherShortName,
     sourceSubTypeLabel(resource.sourceSubType),
   ]
     .filter(Boolean)
@@ -231,6 +232,7 @@ const sourceHeadingId = (releaseId: string) =>
               id={sourceHeadingId(resource.releaseId)}
               class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
               data-audit-source-heading
+              data-audit-source-emphasis={resourceLabel(resource.resourceType)}
               data-audit-release-id={resource.releaseId}
               data-audit-source-label={sourceOutlineLabel(resource)}
             >
