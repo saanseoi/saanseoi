@@ -3,7 +3,11 @@ import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
 import type { UploadInspection } from '@repo/core'
-import { updateDatasetStatus } from '@repo/core/db/metaRegistry'
+import {
+  buildSourceReleaseCode,
+  getDatasetById,
+  updateDatasetStatus,
+} from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 
@@ -48,6 +52,8 @@ export type NativeSourceRelease = {
   datasetCode: string
   releaseNotesUrl: string
   rowCount: number
+  /** Restore the native source ledger for a published converted release. */
+  recoverPublishedRelease?: boolean
   source: string
   sourceVersion: string
   tables: NativeSourceTable[]
@@ -79,14 +85,7 @@ export async function processNativeSourceSqlRelease(
     theme: input.theme,
     type: input.type,
   }
-  const prepared = await prepareUpload(registerOptions)
-  const registered = await dispatchUpload(
-    target,
-    registerOptions,
-    prepared,
-    prepared.plan.schemaFingerprint,
-    { allowReprocessPublished: true, force: true },
-  )
+  const registered = await resolveNativeSourceRelease(target, input, registerOptions)
   const releaseId = requireString(registered.releaseId, 'releaseId')
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
@@ -176,6 +175,43 @@ export async function processNativeSourceSqlRelease(
   } finally {
     context.cleanup()
   }
+}
+
+async function resolveNativeSourceRelease(
+  target: UploadTarget,
+  input: NativeSourceRelease,
+  registerOptions: Parameters<typeof prepareUpload>[0],
+) {
+  if (input.recoverPublishedRelease && !target.remote) {
+    const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
+    const context = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
+      cacheTableProfile: 'nativeSource',
+    })
+    try {
+      const releaseCode = buildSourceReleaseCode(input.datasetCode, input.sourceVersion)
+      const existing = await getDatasetById(
+        context.metaDb as unknown as HarbourReadableDb,
+        releaseCode,
+      )
+      if (
+        existing?.status === 'published' &&
+        existing.datasetCode === input.datasetCode
+      ) {
+        return { releaseCode: existing.releaseCode, releaseId: existing.releaseId }
+      }
+    } finally {
+      context.cleanup()
+    }
+  }
+
+  const prepared = await prepareUpload(registerOptions)
+  return dispatchUpload(
+    target,
+    registerOptions,
+    prepared,
+    prepared.plan.schemaFingerprint,
+    { allowReprocessPublished: true, force: true },
+  )
 }
 
 function resolveNativeRemoteReplay(

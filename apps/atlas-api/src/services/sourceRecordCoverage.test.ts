@@ -36,6 +36,14 @@ test('source catalogues include every retained family and preserve both ALS dime
     expect(Object.keys(sourceCatalogueFor('stats'))).toHaveLength(8)
     expect(Object.keys(sourceCatalogueFor('streets'))).toHaveLength(6)
     expect(sourceCatalogueFor('places')['ds-hk-overture-place']).toBeDefined()
+    // Native LandsD records retain their validity against the source-release
+    // code, unlike Overture's publisher-versioned source tables.
+    expect(
+      sourceCatalogueFor('divisions')['ds-hk-hkgov-landsd-division'],
+    ).toMatchObject({ tableName: 'hkgovLandsdPlaceNames' })
+    expect(
+      sourceCatalogueFor('divisions')['ds-hk-hkgov-landsd-division']?.releaseKey,
+    ).toBeUndefined()
   } finally {
     database.close()
   }
