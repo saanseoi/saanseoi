@@ -2,6 +2,10 @@
 import { tick } from 'svelte'
 
 import type { ReleaseContentHeading } from './releaseContentOutline.types'
+import {
+  releaseNavActivationRootMargin,
+  releaseNavActivationViewportFraction,
+} from '../releaseNav/releaseNavScroll'
 
 type Props = {
   content?: HTMLElement
@@ -24,18 +28,35 @@ $effect(() => {
       .map(id => root.querySelector<HTMLElement>(`#${id}`))
       .filter((heading): heading is HTMLElement => heading !== null)
     if (!elements.length) return
-    const activationOffset = Math.min(160, window.innerHeight * 0.25)
+
+    const scrollsIndependently = () => {
+      const overflowY = getComputedStyle(root).overflowY
+      return /^(auto|scroll)$/.test(overflowY) && root.scrollHeight > root.clientHeight
+    }
+    const activationLine = () => {
+      const independentScroll = scrollsIndependently()
+      const viewportTop = independentScroll ? root.getBoundingClientRect().top : 0
+      const viewportHeight = independentScroll ? root.clientHeight : window.innerHeight
+      const normalOffset = viewportHeight * releaseNavActivationViewportFraction
+      if (!independentScroll) return viewportTop + normalOffset
+
+      // At the top, start at the first heading rather than looking past a short
+      // opening section. Gradually restore the normal look-ahead as we scroll.
+      const firstOffset =
+        elements[0].getBoundingClientRect().top - viewportTop + root.scrollTop
+      return viewportTop + Math.min(normalOffset, firstOffset + root.scrollTop)
+    }
     const update = () => {
       const current =
         [...elements]
           .reverse()
-          .find(heading => heading.getBoundingClientRect().top <= activationOffset) ??
+          .find(heading => heading.getBoundingClientRect().top <= activationLine()) ??
         elements[0]
       activeHeadingId = current?.id ?? null
     }
     const observer = new IntersectionObserver(update, {
-      root,
-      rootMargin: `-${activationOffset}px 0px -65% 0px`,
+      root: scrollsIndependently() ? root : null,
+      rootMargin: releaseNavActivationRootMargin,
     })
     elements.forEach(element => {
       observer.observe(element)

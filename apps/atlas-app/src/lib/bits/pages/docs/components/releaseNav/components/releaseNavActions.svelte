@@ -22,26 +22,32 @@ let { actions = [], analyticsSurface }: Props = $props()
         label={action.label}
       />
     {:else if action.options}
-      <label
-        class="relative inline-flex h-8 items-center border border-data-outline-variant/70 bg-background text-foreground-alt transition hover:border-data-primary hover:text-data-primary focus-within:border-secondary focus-within:text-secondary"
-      >
-        <span class="sr-only">{action.label}</span>
-        <select
-          class="h-full cursor-pointer appearance-none bg-transparent py-0 pl-3 pr-8 font-body text-label-md font-semibold outline-hidden"
-          aria-label={action.label}
-          disabled={action.disabled}
-          value={action.value}
-          onchange={event => action.onValueChange?.(event.currentTarget.value)}
+      <label class="inline-flex items-center gap-5">
+        {#if action.id === 'profile'}
+          <span class="font-mono text-label-md text-data-primary">profile</span>
+        {:else}
+          <span class="sr-only">{action.label}</span>
+        {/if}
+        <span
+          class="relative inline-flex h-8 items-center border border-data-outline-variant/70 bg-background text-foreground-alt transition hover:border-data-primary hover:text-data-primary focus-within:border-secondary focus-within:text-secondary"
         >
-          {#each action.options as option (option.value)}
-            <option value={option.value}>{option.label}</option>
-          {/each}
-        </select>
-        <Icon
-          icon="ion:chevron-down-outline"
-          class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2"
-          aria-hidden="true"
-        />
+          <select
+            class="h-full cursor-pointer appearance-none bg-transparent py-0 pl-3 pr-8 font-body text-label-md font-semibold outline-hidden"
+            aria-label={action.label}
+            disabled={action.disabled}
+            value={action.value}
+            onchange={event => action.onValueChange?.(event.currentTarget.value)}
+          >
+            {#each action.options as option (option.value)}
+              <option value={option.value}>{option.label}</option>
+            {/each}
+          </select>
+          <Icon
+            icon="ion:chevron-down-outline"
+            class="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2"
+            aria-hidden="true"
+          />
+        </span>
       </label>
     {:else if action.href && !action.disabled}
       <a

@@ -1,8 +1,12 @@
 import { tick } from 'svelte'
+import { routeReleaseNavWheel } from './releaseNavWheel'
 import { goto } from '$app/navigation'
 import type { ReleaseNavOutlineItem, ReleaseNavVersion } from './releaseNav.types'
 
 type ContentTarget = () => HTMLElement | undefined
+
+export const releaseNavActivationViewportFraction = 0.5
+export const releaseNavActivationRootMargin = '-50% 0px -49% 0px'
 
 const isPrimaryUnmodifiedClick = (event: MouseEvent) =>
   event.button === 0 &&
@@ -85,10 +89,13 @@ export function createNestedContentScroll({
   onNavigate: (event: MouseEvent) => void
 }) {
   return (node: HTMLElement) => {
+    const wheel = (event: WheelEvent) => routeReleaseNavWheel(node, event)
+    node.addEventListener('wheel', wheel, { passive: false })
     node.addEventListener('click', onNavigate, { capture: true })
 
     return {
       destroy: () => {
+        node.removeEventListener('wheel', wheel)
         node.removeEventListener('click', onNavigate, { capture: true })
       },
     }
@@ -129,12 +136,8 @@ export async function scrollToReleaseNavAnchor({
 
     const targetRect = target.getBoundingClientRect()
     const containerRect = scrollContainer.getBoundingClientRect()
-    const top =
-      scrollContainer.scrollTop +
-      targetRect.top +
-      targetRect.height / 2 -
-      containerRect.top -
-      containerRect.height / 2
+    // TOC navigation uses fixed clearance, independently of scrollspy look-ahead.
+    const top = scrollContainer.scrollTop + targetRect.top - containerRect.top - 24
 
     await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
@@ -150,7 +153,9 @@ export async function scrollToReleaseNavAnchor({
   window.scrollTo({
     top: Math.max(
       0,
-      window.scrollY + targetRect.top + targetRect.height / 2 - window.innerHeight / 2,
+      window.scrollY +
+        targetRect.top -
+        window.innerHeight * releaseNavActivationViewportFraction,
     ),
     behavior: 'smooth',
   })
@@ -186,7 +191,7 @@ export const observeReleaseNavOutline = (
 
     if (!firstTarget) return
 
-    const activationLine = window.innerHeight / 2
+    const activationLine = window.innerHeight * releaseNavActivationViewportFraction
     const active =
       [...targets]
         .reverse()
@@ -203,7 +208,9 @@ export const observeReleaseNavOutline = (
 
     if (!targets.length) return false
 
-    observer = new IntersectionObserver(update, { rootMargin: '-50% 0px -49% 0px' })
+    observer = new IntersectionObserver(update, {
+      rootMargin: releaseNavActivationRootMargin,
+    })
     for (const target of targets) observer.observe(target)
     window.addEventListener('scroll', update, { passive: true })
     update()
