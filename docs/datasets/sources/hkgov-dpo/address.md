@@ -1,5 +1,20 @@
 # HKGov DPO ALS addresses
 
+The release audit groups reviewed exceptions by their resolution: temporal coverage,
+coordinate replacement, duplicate consolidation, identifier and component corrections,
+containment, inventory edits and dated changes. Group names describe handling; address
+names belong to individual context headers. Each instance presents structured input and
+output fields, a copyable retained decision, and the recorded application lifecycle.
+Counts refer to decisions within the selected release's scope, excluding explicit
+zero-match epochs and empty fixtures. A schedule alone does not prove application; the
+audit distinguishes this from an observed guard result.
+
+Preparation retains separate guard counters at successful identity, coordinate,
+component-gap, inventory-source, parent, section-ownership, shared-owner,
+inventory-agreement and record-size checks. Skipped checks do not produce successful
+guard results. Releases without these counters report that detailed guard results were
+not retained; SQL completion is not a substitute for source validation.
+
 ALS division lookups replay the selected Overture snapshot from parent to target using
 all assigned history shards. Both preflight fingerprints and source preparation use this
 retained membership, so eviction of older current projections cannot interrupt

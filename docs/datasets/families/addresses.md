@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+ALS audit curations are presented by the condition they resolve, with address context
+inside each instance and structured input/output fields. Release-scoped decision counts
+are distinct from confirmed applications. Source guard outcomes come from counters at
+the executed checks; missing historical counters are reported as unavailable.
+
 ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retain
 `validFromRelease`, `validToRelease` and `isCurrent`. An unchanged source version is
 reused across releases; changed and removed assertions close their validity range.
