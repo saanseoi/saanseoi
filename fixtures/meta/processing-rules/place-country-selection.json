@@ -4,7 +4,7 @@
   "id": "select-place-countries",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Exclude Places whose publisher Address country is CN or MO; include missing country codes for review.",
+  "summary": "Leave out places whose published address is in Mainland China or Macao. Keep places with no country code for review.",
   "inputs": ["normalised-places"],
   "outputs": ["included-places"],
   "parameters": { "excludedCountries": ["CN", "MO"] },

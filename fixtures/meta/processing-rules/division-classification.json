@@ -4,7 +4,7 @@
   "id": "apply-division-classification-patch",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Apply a reviewed division classification only when its source identity and expected classification match.",
+  "summary": "Apply a reviewed type and level only to the division with the expected publisher record ID.",
   "inputs": ["source-divisions", "division-classification-patches"],
   "outputs": ["divisions.type", "divisions.level"],
   "parameters": {},

@@ -4,7 +4,7 @@
   "id": "decode_wkb_geometry_to_geojson",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Decode source WKB geometry into GeoJSON; accept already decoded GeoJSON and return null for absent geometry.",
+  "summary": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty.",
   "inputs": ["source-geometry"],
   "outputs": ["GeoJSON"],
   "parameters": {},

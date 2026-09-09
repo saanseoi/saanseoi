@@ -4,7 +4,7 @@
   "id": "prepare-als-addresses",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Read the English and Chinese source addresses, resolve duplicate records and reviewed exceptions, locate each address within its district, and link floor and unit lists to their address.",
+  "summary": "Read published English and Chinese addresses; resolve duplicate records and reviewed exceptions; locate each address within its district; and link floor and unit lists to it.",
   "inputs": ["publisher-occurrences", "als-curations"],
   "outputs": ["prepared-addresses"],
   "parameters": {},

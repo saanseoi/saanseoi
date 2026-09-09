@@ -4,7 +4,7 @@
   "id": "map_censtatd_district_code_to_canonical_division",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Resolve the selected reviewed C&SD district cohort through canonical HAD division identities and district codes.",
+  "summary": "Match each selected C&SD district code with its corresponding Home Affairs Department district.",
   "inputs": ["identity-mappings", "district-cohort"],
   "outputs": ["canonical-district-identities"],
   "parameters": {

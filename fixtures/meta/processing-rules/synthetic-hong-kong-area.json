@@ -4,7 +4,7 @@
   "id": "overture_hong_kong_area_synthesised",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Derive missing Hong Kong area geometry by unioning its district land geometries, including Lok Ma Chau Loop, then subtract the Shenzhen Bay Port exclusion polygon.",
+  "summary": "Build the missing Hong Kong area shape by joining district land shapes, including Lok Ma Chau Loop, then remove Shenzhen Bay Port.",
   "inputs": ["district-land-geometries", "exclusion-area"],
   "outputs": ["divisionAreas"],
   "parameters": {

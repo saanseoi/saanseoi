@@ -4,7 +4,7 @@
   "id": "apply-statistic-localisation",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Apply a reviewed field or measure localisation, preserving its translation verification flag.",
+  "summary": "Apply reviewed names and descriptions for a statistic field or measure, including whether the translation has been checked.",
   "inputs": ["statistic-localisation-curations"],
   "outputs": ["statsFieldsI18n", "statsMeasuresI18n"],
   "parameters": {},
