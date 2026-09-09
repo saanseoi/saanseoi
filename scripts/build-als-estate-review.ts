@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { buildEstateChronology, type SourceReport } from './lib/als-estate-timeline'
 import {
   mergerEventKey,
@@ -18,6 +18,9 @@ import coordinateBackfills from '../fixtures/meta/curations/hkgov-dpo-address-co
 const audit = JSON.parse(
   await readFile('.local/hkgov-dpo/address3d-audit.json', 'utf8'),
 )
+const cacheRoot = '.local/hkgov-dpo/estate-review'
+const inventoryCachePath = `${cacheRoot}/2d-estate-inventory.json`
+const auditCachePath = `${cacheRoot}/estate-audit.json`
 audit.reports.sort((a: SourceReport, b: SourceReport) =>
   a.release.localeCompare(b.release),
 )
@@ -354,12 +357,14 @@ const requiresAdditional2dReview = (estate: { name: string }) =>
   hierarchy.additional2dReview?.includes(estate.name) &&
   !automaticallyResolved2dHierarchyEstates.has(estate.name)
 const output = {
-  version: 2,
+  version: 3,
+  generatorVersion: 1,
   automaticReviewPolicies: historyDecisions.automaticPolicies ?? [],
   chronologicalDirection: 'earliest_to_latest',
   earliestSourceRelease: audit.reports[0].release,
   latestSourceRelease: latest.release,
   sourceReleaseCount: audit.reports.length,
+  sourceReleases: audit.reports.map((report: SourceReport) => report.release),
   inclusionCriteria:
     'Named estates appearing in any retained ALS public-rental-housing 3D file, including empty inventories and estates absent from the latest release. This is source-file membership, not a claim about current tenure. 2D-only names are inventoried separately.',
   note: 'Review earliest baseline then chronological deltas. Timeline fingerprints ignore source feature order, retain occurrence multiplicity, and compare 3D publisher inventory hashes, streets, coordinates and 2D aggregate counts. They do not infer renames or provide a full 2D component diff. Current HA corroboration and latest-only curation never approve historical ownership. Pending decisions require human review; only guarded hierarchy rules affect ingestion.',
@@ -423,14 +428,12 @@ const output = {
     }))
     .filter((r: { groups: SourceReport['groups'] }) => r.groups.length),
 }
+await mkdir(cacheRoot, { recursive: true })
 await writeFile(
-  'fixtures/meta/curations/hkgov-dpo-address-2d-estate-inventory.json',
-  `${JSON.stringify({ version: 1, inclusionCriteria: 'ALS 2D estate names never present in any retained ALS 3D file; outside the public-rental-housing unit review cohort.', estates: chronology.excluded2dOnly }, null, 2)}\n`,
+  inventoryCachePath,
+  `${JSON.stringify({ version: 2, generatorVersion: 1, sourceReleases: output.sourceReleases, inclusionCriteria: 'ALS 2D estate names never present in any retained ALS 3D file; outside the public-rental-housing unit review cohort.', estates: chronology.excluded2dOnly }, null, 2)}\n`,
 )
-await writeFile(
-  'fixtures/meta/curations/hkgov-dpo-address-estate-audit.json',
-  `${JSON.stringify(output, null, 2)}\n`,
-)
+await writeFile(auditCachePath, `${JSON.stringify(output, null, 2)}\n`)
 await writeFile(
   'fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json',
   `${JSON.stringify(
