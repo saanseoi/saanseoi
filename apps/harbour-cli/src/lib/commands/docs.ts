@@ -5,7 +5,7 @@ import { cancel, isCancel, log, note, outro, select } from '@clack/prompts'
 import { describeTarget, formatField, formatMutedValue } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import { colorize } from './updateFormatting.ts'
-import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
+import { formatApiReleaseSetDocsGrid } from './releaseSetDisplay.ts'
 import {
   compareReleaseRows,
   compareReleaseSetRows,
@@ -187,36 +187,30 @@ async function runApiReleaseSetDocsPublishCommand(
   }> = []
 
   for (const familyRows of rowsByScope.values()) {
-    let effectiveNotesFixture: DocsFixture | null = null
-    let effectiveGuideFixture: DocsFixture | null = null
-
     for (const row of familyRows) {
       const apiFamily = row.parsedCode.apiFamily
       const notesFixture = await readFixtureIfExists(apiFamily, row.code)
       const guideFixture = await readGuideFixtureIfExists(apiFamily, row.code)
 
-      if (notesFixture) effectiveNotesFixture = notesFixture
-      if (guideFixture) effectiveGuideFixture = guideFixture
-
-      if (!effectiveNotesFixture && !effectiveGuideFixture) {
+      if (!notesFixture && !guideFixture) {
         continue
       }
 
       const frontmatter = frontmatterForApiReleaseSetRow(row)
-      const notes = effectiveNotesFixture
+      const notes = notesFixture
         ? await renderMarkdownFixtureBody(
-            effectiveNotesFixture,
+            notesFixture,
             frontmatter,
             row.sources ?? [],
-            effectiveNotesFixture.path,
+            notesFixture.path,
           )
         : row.notes
-      const guide = effectiveGuideFixture
+      const guide = guideFixture
         ? await renderMarkdownFixtureBody(
-            effectiveGuideFixture,
+            guideFixture,
             frontmatter,
             row.sources ?? [],
-            effectiveGuideFixture.path,
+            guideFixture.path,
           )
         : row.guide
 
@@ -224,9 +218,9 @@ async function runApiReleaseSetDocsPublishCommand(
         updates.push({
           code: row.code,
           guide,
-          guidePath: effectiveGuideFixture?.path ?? null,
+          guidePath: guideFixture?.path ?? null,
           notes,
-          notesPath: effectiveNotesFixture?.path ?? null,
+          notesPath: notesFixture?.path ?? null,
         })
       }
     }
@@ -247,8 +241,13 @@ async function runApiReleaseSetDocsPublishCommand(
     ].join('\n'),
     'DOCS PUBLISH',
   )
-  for (const update of updates) {
-    log.info(`API release-set docs updated  ${formatApiReleaseSetCode(update.code)}`)
+  if (updates.length > 0) {
+    console.log(
+      [
+        `${colorize('◆', 36)}  ${colorize('API RELEASE-SET DOCS UPDATED', 90)}`,
+        ...formatApiReleaseSetDocsGrid(updates.map(update => update.code)),
+      ].join('\n'),
+    )
   }
   outro(dryRun ? 'API docs publish dry run complete' : 'API docs published ✓')
 }
