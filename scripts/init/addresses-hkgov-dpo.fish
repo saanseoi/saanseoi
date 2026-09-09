@@ -8,7 +8,7 @@ if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
-set -l initialisation_status (./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target)
+set -l initialisation_status (SAANSEOI_INIT_COMMAND= SAANSEOI_INIT_GUIDES= ./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target)
 if test "$initialisation_status" = complete
     echo "Official address initialisation is already complete; no work required."
     exit 0
