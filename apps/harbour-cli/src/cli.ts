@@ -21,7 +21,10 @@ import {
 import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
-import { runInitialisationCommand } from './lib/commands/init.ts'
+import {
+  formatCompletedInitialisationSkip,
+  runInitialisationCommand,
+} from './lib/commands/init.ts'
 import { runResetDivisionsCommand } from './lib/commands/resetDivisions.ts'
 import { runResetStatsCommand } from './lib/commands/resetStats.ts'
 import {
@@ -158,6 +161,9 @@ async function main() {
     case 'init:addresses:saanseoi:status':
       console.log(await getOfficialAddressInitialisationStatus(target))
       return
+    case 'init:addresses:saanseoi:skip':
+      console.log(await formatCompletedInitialisationSkip('ds-hk-hkgov-dpo-address'))
+      return
     case 'init:addresses:saanseoi:complete':
       await completeOfficialAddressInitialisation(target)
       return
@@ -168,6 +174,9 @@ async function main() {
       return
     case 'init:places:overture:status':
       console.log(await getOverturePlacesInitialisationStatus(target))
+      return
+    case 'init:places:overture:skip':
+      console.log(await formatCompletedInitialisationSkip('ds-hk-overture-place'))
       return
     case 'init:places:overture:complete':
       await completeOverturePlacesInitialisation(target)
