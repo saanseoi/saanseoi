@@ -3,6 +3,42 @@ import type { AuditGuard } from '@repo/core/provenance'
 
 export function guardCopy(guard: AuditGuard) {
   const copy: Record<string, { summary: string; reason: string }> = {
+    'als-unique-identities': {
+      summary: m.source_audit_als_guard_unique_identities(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-inventory-source': {
+      summary: m.source_audit_als_guard_inventory_source(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-inventory-parent': {
+      summary: m.source_audit_als_guard_inventory_parent(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-section-ownership': {
+      summary: m.source_audit_als_guard_section_ownership(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-shared-inventory-owner': {
+      summary: m.source_audit_als_guard_shared_inventory_owner(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-inventory-agreement': {
+      summary: m.source_audit_als_guard_inventory_agreement(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-inventory-size': {
+      summary: m.source_audit_als_guard_inventory_size(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-coordinate-source': {
+      summary: m.source_audit_als_guard_coordinate_source(),
+      reason: m.source_audit_als_guard_passed(),
+    },
+    'als-component-gap': {
+      summary: m.source_audit_als_guard_component_gap(),
+      reason: m.source_audit_als_guard_passed(),
+    },
     'hong-kong-sar-area-district-hierarchy': {
       summary: m.source_audit_guard_hk_hierarchy_summary(),
       reason: m.source_audit_guard_hk_hierarchy_reason(),

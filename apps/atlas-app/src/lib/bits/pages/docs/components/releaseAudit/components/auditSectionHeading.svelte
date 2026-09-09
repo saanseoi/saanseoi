@@ -15,16 +15,18 @@ let { children, description, label, title }: Props = $props()
 
 <Tooltip.Provider delayDuration={200}>
   <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-2">
-    <div class="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3">
-      <h3 class="text-lg font-medium">{title}</h3>
-      {@render children?.()}
-    </div>
+    <h3 class="mr-auto text-lg font-medium">{title}</h3>
+    {#if children}
+      <div class="ml-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3">
+        {@render children()}
+      </div>
+    {/if}
     <Tooltip.Root>
       <Tooltip.Trigger>
         {#snippet child({ props })}
           <button
             {...props}
-            class="ml-auto inline-flex size-8 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-current/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2"
+            class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-current/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2"
             type="button"
             aria-label={label}
           >
