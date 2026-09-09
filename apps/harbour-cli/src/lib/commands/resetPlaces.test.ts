@@ -8,6 +8,7 @@ import {
   collectOwnedPlaces,
   failRunningPlacesIngestRuns,
   failPlacesManifest,
+  hasCompletedOverturePlacesBaseline,
   resumePlacesManifest,
 } from './resetPlaces.ts'
 
@@ -129,6 +130,36 @@ function createPlacesOwnershipDb() {
 }
 
 describe('Overture Places initialisation ownership', () => {
+  test('recognises the complete retained local baseline without claiming reset ownership', () => {
+    const completedSourceVersions = [
+      '2025-09-24.0',
+      '2025-10-22.0',
+      '2025-12-17.0',
+      '2026-01-21.0',
+      '2026-02-18.0',
+      '2026-03-18.0',
+      '2026-04-15.0',
+      '2026-05-20.0',
+      '2026-06-17.0',
+      '2026-07-22.0',
+      '2026-08-19.0',
+    ]
+    expect(
+      hasCompletedOverturePlacesBaseline({
+        completedSourceVersions,
+        hasCurrentPlaces: true,
+        hasPublishedPlaceSnapshot: true,
+      }),
+    ).toBe(true)
+    expect(
+      hasCompletedOverturePlacesBaseline({
+        completedSourceVersions: completedSourceVersions.slice(1),
+        hasCurrentPlaces: true,
+        hasPublishedPlaceSnapshot: true,
+      }),
+    ).toBe(false)
+  })
+
   test('records failed runs and resumes them without retaining stale failure state', () => {
     const running = {
       createdAt: '2026-09-06T00:00:00.000Z',

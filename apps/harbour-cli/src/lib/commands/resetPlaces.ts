@@ -35,6 +35,19 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
 const RELEASE_ARTEFACT_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 const DATASET_CODE = 'ds-hk-overture-place'
+const OVERTURE_PLACES_SOURCE_VERSIONS = [
+  '2025-09-24.0',
+  '2025-10-22.0',
+  '2025-12-17.0',
+  '2026-01-21.0',
+  '2026-02-18.0',
+  '2026-03-18.0',
+  '2026-04-15.0',
+  '2026-05-20.0',
+  '2026-06-17.0',
+  '2026-07-22.0',
+  '2026-08-19.0',
+] as const
 
 export type PlacesInitManifest = {
   createdAt: string
@@ -79,9 +92,9 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
     includeAllSourceShardYears: true,
   })
   try {
-    const [release, current, apiReleaseSet] = await Promise.all([
+    const [completedReleases, snapshot, current] = await Promise.all([
       context.metaDb
-        .select({ id: metaSchema.metaReleases.id })
+        .select({ sourceVersion: metaSchema.metaReleases.sourceVersion })
         .from(metaSchema.metaReleases)
         .innerJoin(
           metaSchema.metaDatasets,
@@ -91,40 +104,20 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
           and(
             eq(metaSchema.metaDatasets.code, DATASET_CODE),
             eq(metaSchema.metaReleases.resourceType, 'place'),
+            inArray(
+              metaSchema.metaReleases.sourceVersion,
+              OVERTURE_PLACES_SOURCE_VERSIONS,
+            ),
             or(
               eq(metaSchema.metaReleases.status, 'published'),
               eq(metaSchema.metaReleases.status, 'superseded'),
             ),
           ),
         )
-        .limit(1)
-        .get(),
-      context.currentDb
-        .select({ id: currentSchema.places.id })
-        .from(currentSchema.places)
-        .limit(1)
-        .get(),
+        .all(),
       context.metaDb
-        .select({ id: metaSchema.metaApiReleaseSets.id })
-        .from(metaSchema.metaApiReleaseSets)
-        .innerJoin(
-          metaSchema.metaApiVersions,
-          eq(metaSchema.metaApiReleaseSets.apiVersionId, metaSchema.metaApiVersions.id),
-        )
-        .innerJoin(
-          metaSchema.metaApiReleaseSetSnapshots,
-          eq(
-            metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
-            metaSchema.metaApiReleaseSets.id,
-          ),
-        )
-        .innerJoin(
-          metaSchema.metaSnapshots,
-          eq(
-            metaSchema.metaApiReleaseSetSnapshots.snapshotId,
-            metaSchema.metaSnapshots.id,
-          ),
-        )
+        .select({ id: metaSchema.metaSnapshots.id })
+        .from(metaSchema.metaSnapshots)
         .innerJoin(
           metaSchema.metaSnapshotLineages,
           eq(
@@ -141,8 +134,6 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
         )
         .where(
           and(
-            eq(metaSchema.metaApiVersions.familyType, 'places'),
-            eq(metaSchema.metaApiReleaseSets.status, 'current'),
             eq(metaSchema.metaDatasets.code, DATASET_CODE),
             eq(metaSchema.metaSnapshots.resourceType, 'place'),
             eq(metaSchema.metaSnapshots.status, 'published'),
@@ -152,13 +143,35 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
         )
         .limit(1)
         .get(),
+      context.currentDb
+        .select({ id: currentSchema.places.id })
+        .from(currentSchema.places)
+        .limit(1)
+        .get(),
     ])
-    return release && current && apiReleaseSet
+    return hasCompletedOverturePlacesBaseline({
+      completedSourceVersions: completedReleases.map(row => row.sourceVersion),
+      hasCurrentPlaces: Boolean(current),
+      hasPublishedPlaceSnapshot: Boolean(snapshot),
+    })
       ? ('complete' as const)
       : ('missing' as const)
   } finally {
     context.cleanup()
   }
+}
+
+export function hasCompletedOverturePlacesBaseline(input: {
+  completedSourceVersions: readonly string[]
+  hasCurrentPlaces: boolean
+  hasPublishedPlaceSnapshot: boolean
+}) {
+  const completed = new Set(input.completedSourceVersions)
+  return (
+    input.hasCurrentPlaces &&
+    input.hasPublishedPlaceSnapshot &&
+    OVERTURE_PLACES_SOURCE_VERSIONS.every(version => completed.has(version))
+  )
 }
 
 /** Start Places initialisation only from an empty Places baseline. */
