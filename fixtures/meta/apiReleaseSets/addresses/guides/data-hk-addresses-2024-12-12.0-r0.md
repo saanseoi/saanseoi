@@ -141,6 +141,20 @@ collection is available. A null <black>data</black> value means no applicable co
 is published in the selected release. Do not infer a unit's membership from ancestor
 coverage marked <black>unresolved</black>.
 
+Alternatively, include the same collection in one Address detail response:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/{id}?
+                 releaseSet={{ apiReleaseSet }}&
+                 include=units
+```
+
+The collection appears as an <black>address3d</black> resource in the top-level
+<black>included</black> array. Use <black>include=units,hierarchy</black> when you also
+need the Division hierarchy. Unit inclusion is available only on one Address detail
+request; list and search requests accept <black>include=hierarchy</black> only, avoiding
+a page that expands into every unit of many buildings.
+
 ## Adding Languages (`I18n`)
 
 {{localeSelectionSection:en}}
@@ -337,6 +351,19 @@ ID、發布者識別碼及來源證據，請使用 <black>profile=full</black>�
 為 null 表示所選發布沒有適用 collection。請勿從標示為 <black>unresolved</black>
 的祖先 coverage 推斷單位成員關係。
 
+你亦可在一個 Address 詳情回應中包含同一 collection：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/{id}?
+                 releaseSet={{ apiReleaseSet }}&
+                 include=units
+```
+
+collection 會作為 <black>address3d</black> 資源出現在頂層 <black>included</black>
+陣列。如同時需要 Division hierarchy，請使用
+<black>include=units,hierarchy</black>。單位 inclusion 僅適用於單一 Address 詳情請求；清單及搜尋請求只接受
+<black>include=hierarchy</black>，避免一頁展開多幢樓宇的全部單位。
+
 ## 時間回溯
 
 {{timeTravelSection:zh-Hant}}
@@ -502,6 +529,19 @@ ID、发布者标识符及源证据，请使用 <black>profile=full</black>。
 如有集合，响应会包含楼层及单位引用和本地化格式化部分。<black>data</black>
 为 null 表示所选发布没有适用 collection。请勿从标示为 <black>unresolved</black>
 的祖先 coverage 推断单位成员关系。
+
+你也可在一个 Address 详情响应中包含同一 collection：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/{id}?
+                 releaseSet={{ apiReleaseSet }}&
+                 include=units
+```
+
+collection 会作为 <black>address3d</black> 资源出现在顶层 <black>included</black>
+数组。如同时需要 Division hierarchy，请使用
+<black>include=units,hierarchy</black>。单位 inclusion 仅适用于单一 Address 详情请求；列表及搜索请求只接受
+<black>include=hierarchy</black>，避免一页展开多幢楼宇的全部单位。
 
 ## 时间回溯
 

@@ -210,10 +210,14 @@ stores locale-specific expressions keyed by those IDs. Full expressions are reta
 belong to Place localisation (`accessHint`), not the address inventory.
 
 Ordinary address responses expose `address3dCoverage`, without loading unit arrays.
-`GET /addresses/v0.1/{id}/units` explicitly fetches the selected collection. Direct
-coverage has established owner membership. An explicitly listed section can expose
-ancestor coverage with unresolved membership: the units belong to the parent building,
-not necessarily that section. Containment alone never supplies residential coverage.
+`GET /addresses/v0.1/{id}?include=units` includes the selected `address3d` collection in
+the JSON:API `included` array. It can be combined with `include=hierarchy`; unit
+inclusion is deliberately detail-only, so list and search requests cannot expand one
+page into every unit of many buildings. `GET /addresses/v0.1/{id}/units` remains the
+direct collection endpoint. Direct coverage has established owner membership. An
+explicitly listed section can expose ancestor coverage with unresolved membership: the
+units belong to the parent building, not necessarily that section. Containment alone
+never supplies residential coverage.
 
 A Place retains its precise `address2dId` and selected `addressSnapshotId`; an optional
 unit reference includes `address3dId`, `address3dUnitId`, and `address3dMembership`.
