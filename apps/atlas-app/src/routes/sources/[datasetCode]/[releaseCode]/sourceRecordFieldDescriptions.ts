@@ -14,6 +14,33 @@ const planningUnitFields: Record<string, string> = {
 // References: docs/datasets/sources/hkgov-had/divisionArea.md,
 // hkgov-landsd/placeName.md and hkgov-hyd/streetNamePlate.md.
 const datasetFields: Record<string, Record<string, string>> = {
+  'hkgov-censtatd-division-statistic-permanent-living-quarters': {
+    AREA_CHI: 'Geographic area name in Traditional Chinese.',
+    AREA_ENG:
+      'Geographic area name in English: Hong Kong Island, Kowloon or New Territories.',
+    PERIOD:
+      'Publisher reference period for the living-quarters figures, retained as text.',
+    QTR_ALL:
+      'Total permanent living quarters across public rental housing, subsidised sale flats and private housing in the area.',
+    QTR_PRH: 'Permanent living quarters in public rental housing in the area.',
+    QTR_PRH_HA:
+      'Public rental housing quarters provided by the Hong Kong Housing Authority.',
+    QTR_PRH_HS:
+      'Public rental housing quarters provided by the Hong Kong Housing Society.',
+    QTR_SSF:
+      'Permanent living quarters classified as subsidised sale flats in the area.',
+    QTR_SSF_HA: 'Subsidised sale flats provided by the Hong Kong Housing Authority.',
+    QTR_SSF_HS: 'Subsidised sale flats provided by the Hong Kong Housing Society.',
+    QTR_SSF_URA: 'Subsidised sale flats provided by the Urban Renewal Authority.',
+    QTR_PH: 'Permanent living quarters classified as private housing in the area.',
+    QTR_PH_PRF: 'Private housing quarters classified as private residential flats.',
+    QTR_PH_VBM:
+      'Private housing quarters classified as villas, bungalows or modern village houses.',
+    QTR_PH_SSTV:
+      'Private housing quarters classified as simple stone structures or traditional village houses.',
+    QTR_PH_SQ: 'Private housing quarters classified as staff quarters.',
+    QTR_PH_NDQ: 'Private housing quarters classified as non-domestic quarters.',
+  },
   'hkgov-pland-division-new-town': {
     NewTown_en: 'Publisher New Town name in English.',
     NewTown_Tc: 'Publisher New Town name in Traditional Chinese.',
