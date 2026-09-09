@@ -50,6 +50,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   ALS link can have an empty Division relationship.
 - Place geometry is a point for positioning and indexing. H3 indexes and full-text
   search are derived projections of the Place snapshot.
+- Operating status is publisher data, not an independent SaanSeoi verification that a
+  Place is open.
 - Overture's September 2025 source release sets every `operating_status` value to
   `open`; this reflects the source release and should not be treated as an independent
   current-status verification.
@@ -80,6 +82,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
+
+- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
 
 - Place collection 以此 cohort 的 Overture Place 來源發布為基礎。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
@@ -118,6 +122,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 {{apiReleaseSetSources:zh-Hans}}
 
 ## 备注与限制
+
+- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
 
 - Place collection 以此 cohort 的 Overture Place 源发布为基础。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
