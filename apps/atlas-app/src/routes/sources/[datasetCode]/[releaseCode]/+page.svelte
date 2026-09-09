@@ -559,11 +559,16 @@ $effect(() => {
       bind:activeTab
     >
       {#if isContentLoading && contentResource.showSkeleton}
-        <ReleaseNav.ContentSkeleton
-          tab={activeTab}
-          diff={showNoteDiff}
-          linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
-        />
+        <div
+          data-release-nav-loading-layer
+          transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
+        >
+          <ReleaseNav.ContentSkeleton
+            tab={activeTab}
+            diff={showNoteDiff}
+            linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
+          />
+        </div>
       {:else if releaseQueryError}
         <SourceReleaseLoadError
           message={m.source_release_load_error()}
