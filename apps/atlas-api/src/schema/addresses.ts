@@ -13,39 +13,41 @@ export const Address3dCoverageSchema = z.union([
     membership: z.enum(['established', 'unresolved']),
   }),
 ])
-export const AddressUnitsResponseSchema = z.object({
-  data: z
-    .object({
-      type: z.literal('address3d'),
-      id: z.string(),
-      attributes: z.object({
-        snapshotId: z.string(),
-        address2dId: z.string(),
-        unitCount: z.number().int(),
-        units: z.array(
+const Address3dResourceSchema = z
+  .object({
+    type: z.literal('address3d'),
+    id: z.string(),
+    attributes: z.object({
+      snapshotId: z.string(),
+      address2dId: z.string(),
+      unitCount: z.number().int(),
+      units: z.array(
+        z.object({
+          id: z.string(),
+          unitRef: z.string(),
+          unitType: z.enum(address3dUnitTypes),
+          floorRef: z.string(),
+          floorType: z.enum(address3dFloorTypes),
+          unitPortion: z.string().nullable(),
+        }),
+      ),
+      i18n: z.record(
+        z.string(),
+        z.record(
+          z.string(),
           z.object({
-            id: z.string(),
-            unitRef: z.string(),
-            unitType: z.enum(address3dUnitTypes),
-            floorRef: z.string(),
-            floorType: z.enum(address3dFloorTypes),
-            unitPortion: z.string().nullable(),
+            unitExpression: z.string(),
+            floorExpression: z.string(),
+            formattedAddressPart: z.string().optional(),
           }),
         ),
-        i18n: z.record(
-          z.string(),
-          z.record(
-            z.string(),
-            z.object({
-              unitExpression: z.string(),
-              floorExpression: z.string(),
-              formattedAddressPart: z.string().optional(),
-            }),
-          ),
-        ),
-      }),
-    })
-    .nullable(),
+      ),
+    }),
+  })
+  .openapi('Address3d')
+
+export const AddressUnitsResponseSchema = z.object({
+  data: Address3dResourceSchema.nullable(),
   meta: z.object({ address3dCoverage: Address3dCoverageSchema }),
 })
 
@@ -53,7 +55,6 @@ import { openApiText } from '../lib/openapi-i18n'
 import {
   ApiVersionMetadataSchema,
   BBoxSchema,
-  GeometrySchema,
   IdSchema,
   JsonApiLinkMapSchema,
   JsonApiVersionSchema,
@@ -240,6 +241,15 @@ const AddressI18nSchema = z
     'x-recordKeyName': openApiText('openapi_addresses_i18n_locale_label'),
   })
 
+const AddressPointGeometrySchema = z
+  .object({
+    type: z.literal('Point'),
+    coordinates: z.array(z.number()).min(2).max(3),
+  })
+  .openapi('AddressPointGeometry', {
+    description: openApiText('openapi_addresses_geometry_description'),
+  })
+
 const AddressAttributesSchema = z
   .object({
     address3dCoverage: Address3dCoverageSchema,
@@ -261,7 +271,7 @@ const AddressAttributesSchema = z
         examples: ['ss-hk-address-2026-08-19.0'],
       }),
     geometry: z
-      .union([GeometrySchema, z.null()])
+      .union([AddressPointGeometrySchema, z.null()])
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_geometry_description'),
@@ -311,6 +321,13 @@ const AddressDivisionRelationshipSchema = z
   })
   .openapi('AddressDivisionRelationship')
 
+const AddressUnitsRelationshipSchema = z
+  .object({
+    data: z.union([z.object({ type: z.literal('address3d'), id: IdSchema }), z.null()]),
+    meta: z.object({ address3dCoverage: Address3dCoverageSchema }),
+  })
+  .openapi('AddressUnitsRelationship')
+
 const AddressRelationshipsSchema = z
   .object({
     country: AddressDivisionRelationshipSchema,
@@ -322,6 +339,7 @@ const AddressRelationshipsSchema = z
     microhood: AddressDivisionRelationshipSchema,
     village: AddressDivisionRelationshipSchema,
     hamlet: AddressDivisionRelationshipSchema,
+    units: AddressUnitsRelationshipSchema,
     hierarchy: z.object({
       data: z.array(z.object({ type: z.literal('divisions'), id: IdSchema })),
     }),
@@ -407,6 +425,10 @@ const AddressSelectionQuerySchema = z.object({
   locales: RequestedLocalesQuerySchema.optional(),
 })
 
+const AddressDetailIncludeSchema = z
+  .enum(['hierarchy', 'units', 'hierarchy,units', 'units,hierarchy'])
+  .optional()
+
 export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
   'filter[dataset]': z
     .string()
@@ -421,11 +443,11 @@ export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
   'filter[country]': IdSchema.optional(),
   'filter[area]': IdSchema.optional(),
   'filter[district]': IdSchema.optional(),
-  include: z.enum(['hierarchy']).optional(),
+  include: z.literal('hierarchy').optional(),
 }).openapi('AddressesListQuery')
 
 export const AddressDetailQuerySchema = AddressSelectionQuerySchema.extend({
-  include: z.enum(['hierarchy']).optional(),
+  include: AddressDetailIncludeSchema,
 }).openapi('AddressDetailQuery')
 
 export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({

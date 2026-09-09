@@ -1944,6 +1944,24 @@ describe('atlas-api', () => {
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')
+    const addressPointGeometry = addresses.components?.schemas?.AddressPointGeometry as
+      | {
+          description?: string
+          properties?: Record<
+            string,
+            { enum?: string[]; maxItems?: number; minItems?: number }
+          >
+        }
+      | undefined
+    expect(addressPointGeometry?.description).toBe(
+      'The address position as a WGS84 GeoJSON Point, when requested and available.',
+    )
+    expect(addressPointGeometry?.properties?.type?.enum).toEqual(['Point'])
+    expect(addressPointGeometry?.properties?.coordinates).toMatchObject({
+      minItems: 2,
+      maxItems: 3,
+    })
+    expect(addresses.components?.schemas).not.toHaveProperty('Geometry')
     const addressAttributes = addresses.components?.schemas?.AddressAttributes as {
       properties: Record<string, { enum?: string[]; description?: string }>
     }

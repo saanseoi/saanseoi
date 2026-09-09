@@ -29,7 +29,11 @@ import {
   listReplayedAddressPage,
 } from '../db/addressesHistory'
 import { attachAddress3dCoverage, getAddress3dCollection } from '../db/address3d'
-import type { Address3dCoverage } from '@repo/db/address3d'
+import type {
+  Address3dCoverage,
+  Address3dUnit,
+  Address3dUnitI18n,
+} from '@repo/db/address3d'
 import { listDivisionRecordsCurrentByIds } from '../db/divisions'
 import { listReplayedDivisionRecords } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
@@ -56,7 +60,7 @@ export type RequestedAddressVersion = 'addresses/v0' | 'addresses/v0.1'
 export async function getAddressUnits(args: Parameters<typeof getAddressDetail>[0]) {
   const result = await getAddressDetail({
     ...args,
-    query: { ...args.query, profile: 'full' },
+    query: { ...args.query, include: undefined, profile: 'full' },
   })
   if (result.status !== 200) return result
   const attributes = result.body.data.attributes
@@ -73,25 +77,13 @@ export async function getAddressUnits(args: Parameters<typeof getAddressDetail>[
     collectionId: coverage.address3dId,
   })
   if (!record) throw new Error('Address3D coverage points to an absent collection')
-  const selectedLocales = new Set(Object.keys(attributes.i18n ?? {}))
   return {
     status: 200 as const,
     body: {
-      data: {
-        type: 'address3d' as const,
-        id: record.collection.id,
-        attributes: {
-          snapshotId: attributes.snapshotId,
-          address2dId: record.collection.address2dId,
-          unitCount: record.collection.unitCount,
-          units: record.collection.units,
-          i18n: Object.fromEntries(
-            record.i18n
-              .filter(row => selectedLocales.has(row.locale))
-              .map(row => [row.locale, row.units]),
-          ),
-        },
-      },
+      data: createAddress3dResource({
+        record,
+        selectedLocales: Object.keys(attributes.i18n ?? {}),
+      }),
       meta: { address3dCoverage: coverage },
     },
   }
@@ -101,6 +93,22 @@ export type ResolvedAddressApiVersion = 'api-addresses-v0.1'
 export type AddressProfile = ApiProfileName
 
 type JsonObject = Record<string, unknown>
+type AddressPointGeometry = {
+  type: 'Point'
+  coordinates: number[]
+}
+
+type Address3dResourcePayload = {
+  type: 'address3d'
+  id: string
+  attributes: {
+    snapshotId: string
+    address2dId: string
+    unitCount: number
+    units: Address3dUnit[]
+    i18n: Record<string, Record<string, Address3dUnitI18n>>
+  }
+}
 
 type AddressResourcePayload = {
   type: 'addresses'
@@ -111,7 +119,7 @@ type AddressResourcePayload = {
     granularity: AddressRecord['address']['granularity']
     address3dCoverage: Address3dCoverage
     snapshotId?: string
-    geometry?: JsonObject | null
+    geometry?: AddressPointGeometry | null
     bbox?: BBox | null
     createdAt?: string
     updatedAt?: string
@@ -129,6 +137,10 @@ type AddressResourcePayload = {
     microhood: { data: { type: 'divisions'; id: string } | null }
     village: { data: { type: 'divisions'; id: string } | null }
     hamlet: { data: { type: 'divisions'; id: string } | null }
+    units: {
+      data: { type: 'address3d'; id: string } | null
+      meta: { address3dCoverage: Address3dCoverage }
+    }
     hierarchy: { data: Array<{ type: 'divisions'; id: string }> }
   }
   links: { self: string }
@@ -195,10 +207,10 @@ async function loadIncludedAddressHierarchy(args: {
   records: AddressRecord[]
   snapshotId: string
   routeState: AddressRouteState
-  include?: 'hierarchy'
+  include?: string
   baseUrl: string
 }) {
-  if (args.include !== 'hierarchy') return []
+  if (!requestedAddressIncludes(args.include).has('hierarchy')) return []
 
   const idsBySnapshot = new Map<string, Set<string>>()
   for (const record of args.records) {
@@ -255,6 +267,67 @@ async function loadIncludedAddressHierarchy(args: {
   )
 }
 
+function requestedAddressIncludes(value?: string) {
+  return new Set(
+    (value ?? '')
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean),
+  )
+}
+
+function createAddress3dResource(args: {
+  record: NonNullable<Awaited<ReturnType<typeof getAddress3dCollection>>>
+  selectedLocales: string[]
+}): Address3dResourcePayload {
+  const selectedLocales = new Set(args.selectedLocales)
+  return {
+    type: 'address3d',
+    id: args.record.collection.id,
+    attributes: {
+      snapshotId: args.record.collection.snapshotId,
+      address2dId: args.record.collection.address2dId,
+      unitCount: args.record.collection.unitCount,
+      units: args.record.collection.units,
+      i18n: Object.fromEntries(
+        args.record.i18n
+          .filter(row => selectedLocales.has(row.locale))
+          .map(row => [row.locale, row.units]),
+      ),
+    },
+  }
+}
+
+async function loadIncludedAddressUnits(args: {
+  currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
+  metaDb: AppEnv['Variables']['metaDb']
+  record: AddressRecord
+  routeState: AddressRouteState
+  include?: string
+}) {
+  if (!requestedAddressIncludes(args.include).has('units')) return []
+  const coverage = args.record.address3dCoverage ?? { kind: 'none' as const }
+  if (coverage.kind === 'none') return []
+  const record = await getAddress3dCollection({
+    currentDb: args.currentDb,
+    historyDbsByBinding: args.historyDbsByBinding,
+    metaDb: args.metaDb,
+    snapshotId: args.record.address.snapshotId,
+    collectionId: coverage.address3dId,
+  })
+  if (!record) throw new Error(`Missing Address3D collection ${coverage.address3dId}.`)
+  return [
+    createAddress3dResource({
+      record,
+      selectedLocales:
+        args.routeState.localeSelection.mode === 'all'
+          ? record.i18n.map(row => row.locale)
+          : args.routeState.localeSelection.locales,
+    }),
+  ]
+}
+
 type ActiveAddressSnapshot = {
   snapshotIds: string[]
   datasetBySnapshot: Map<string, string>
@@ -301,7 +374,10 @@ export type AddressDetailQuery = Omit<
   | 'filter[dataset]'
   | 'filter[area]'
   | 'filter[district]'
->
+  | 'include'
+> & {
+  include?: 'hierarchy' | 'units' | 'hierarchy,units' | 'units,hierarchy'
+}
 
 type AddressNotFoundResponse = {
   httpStatus: 404
@@ -408,6 +484,22 @@ function addressHierarchyIds(address: AddressRecord['address']) {
   ].filter((id): id is string => Boolean(id))
 }
 
+function addressPointGeometry(value: unknown): AddressPointGeometry | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const { type, coordinates } = value as JsonObject
+  if (
+    type !== 'Point' ||
+    !Array.isArray(coordinates) ||
+    coordinates.length < 2 ||
+    coordinates.length > 3 ||
+    !coordinates.every(
+      coordinate => typeof coordinate === 'number' && Number.isFinite(coordinate),
+    )
+  )
+    return null
+  return { type, coordinates }
+}
+
 function createAddressResource(args: {
   baseUrl: string
   routeState: AddressRouteState
@@ -431,7 +523,7 @@ function createAddressResource(args: {
   }
 
   if (isMapAddressProfile(args.routeState.profile)) {
-    attributes.geometry = (address.geometry as JsonObject | null) ?? null
+    attributes.geometry = addressPointGeometry(address.geometry)
     attributes.bbox = (address.bbox as BBox | null) ?? null
   }
 
@@ -458,6 +550,19 @@ function createAddressResource(args: {
       microhood: { data: divisionRelationship(address.microhoodId) },
       village: { data: divisionRelationship(address.villageId) },
       hamlet: { data: divisionRelationship(address.hamletId) },
+      units: {
+        data:
+          args.record.address3dCoverage?.kind === 'none' ||
+          !args.record.address3dCoverage
+            ? null
+            : {
+                type: 'address3d' as const,
+                id: args.record.address3dCoverage.address3dId,
+              },
+        meta: {
+          address3dCoverage: args.record.address3dCoverage ?? { kind: 'none' },
+        },
+      },
       hierarchy: {
         data: addressHierarchyIds(address).map(id => ({
           type: 'divisions' as const,
@@ -684,8 +789,8 @@ export async function listAddresses(args: {
   })
 
   const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(() =>
-    loadIncludedAddressHierarchy({
+  const included = await runWithD1ReadRetry(async () => [
+    ...(await loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
       historyDbsByBinding: args.historyDbsByBinding,
       metaDb: args.metaDb,
@@ -694,8 +799,8 @@ export async function listAddresses(args: {
       routeState,
       include: args.query.include,
       baseUrl: url.origin,
-    }),
-  )
+    })),
+  ])
   const body = buildJsonApiListDocument({
     url,
     data: records.map(record =>
@@ -850,8 +955,8 @@ export async function searchAddresses(args: {
     records,
   })
   const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(() =>
-    loadIncludedAddressHierarchy({
+  const included = await runWithD1ReadRetry(async () => [
+    ...(await loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
       historyDbsByBinding: args.historyDbsByBinding,
       metaDb: args.metaDb,
@@ -860,8 +965,8 @@ export async function searchAddresses(args: {
       routeState,
       include: args.query.include,
       baseUrl: url.origin,
-    }),
-  )
+    })),
+  ])
   const body = buildJsonApiListDocument({
     url,
     data: records.map(record =>
@@ -965,8 +1070,8 @@ export async function getAddressDetail(args: {
   })
 
   const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(() =>
-    loadIncludedAddressHierarchy({
+  const included = await runWithD1ReadRetry(async () => [
+    ...(await loadIncludedAddressHierarchy({
       currentDb: args.currentDb,
       historyDbsByBinding: args.historyDbsByBinding,
       metaDb: args.metaDb,
@@ -975,8 +1080,16 @@ export async function getAddressDetail(args: {
       routeState,
       include: args.query.include,
       baseUrl: url.origin,
-    }),
-  )
+    })),
+    ...(await loadIncludedAddressUnits({
+      currentDb: args.currentDb,
+      historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+      metaDb: args.metaDb,
+      record,
+      routeState,
+      include: args.query.include,
+    })),
+  ])
   const body = buildJsonApiDetailDocument({
     url,
     data: createAddressResource({

@@ -121,7 +121,7 @@ export async function attachAddress3dCoverage(args: {
   }
 }
 
-/** Fetch a collection only on an explicit unit request. */
+/** Fetch a collection only when an Address request explicitly opts into units. */
 export async function getAddress3dCollection(args: {
   currentDb: CurrentDatabase
   metaDb: unknown
