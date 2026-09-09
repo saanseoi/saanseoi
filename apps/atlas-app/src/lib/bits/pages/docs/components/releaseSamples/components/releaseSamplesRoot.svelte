@@ -6,7 +6,6 @@ import {
   getSampleApiPath,
   getSamplePageOffsets,
   groupAddressSamples,
-  getUniqueAddressSamples,
   sampleValueTones,
   supportsReleaseSamples,
   type AddressSample,
@@ -15,6 +14,7 @@ import NestedField from './releaseSamplesNestedField.svelte'
 import GroupedField from './releaseSamplesGroupedField.svelte'
 import ReleaseSamplesIdentifier from './releaseSamplesIdentifier.svelte'
 import ReleaseSamplesSkeleton from './releaseSamplesSkeleton.svelte'
+import { loadReleaseSamples } from '../loadReleaseSamples'
 
 type Props = {
   apiVersion: string
@@ -24,6 +24,7 @@ type Props = {
   releaseSet: string
   request: number
   sampleCount?: number
+  recordCount?: number | null
   view?: 'distinct' | 'grouped'
 }
 
@@ -38,7 +39,6 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
 )
 const initialExamples = 1
 const examplesPerRequest = 4
-const candidatesPerRequest = 10
 
 let {
   apiVersion,
@@ -47,6 +47,7 @@ let {
   profile,
   releaseSet,
   request,
+  recordCount = null,
   sampleCount = $bindable(0),
   view = $bindable<'distinct' | 'grouped'>('distinct'),
 }: Props = $props()
@@ -92,31 +93,22 @@ async function loadMore(count: number) {
       samples = []
       sampleCount = 0
       view = 'distinct'
-      total = null
+      total = recordCount
       loadedReleaseSet = target
     }
 
-    if (total === null) {
-      const firstPage = await getPage(0, 1)
-      const value = firstPage.meta?.page?.total
-      total = typeof value === 'number' && value >= 0 ? value : 0
-    }
-    if (!total) return
-
-    const selected: AddressSample[] = []
-    const maximumOffset = Math.max(total - candidatesPerRequest, 0)
-    for (let attempt = 0; attempt < 4 && selected.length < count; attempt += 1) {
-      const offsets = getSamplePageOffsets(maximumOffset, count)
-      const pages = await Promise.all(
-        offsets.map(offset => getPage(offset, candidatesPerRequest)),
-      )
-      selected.push(
-        ...getUniqueAddressSamples(
-          pages.flatMap(page => page.data ?? []),
-          [...samples, ...selected],
-        ).slice(0, count - selected.length),
-      )
-    }
+    const selected = await loadReleaseSamples(samples, count, async missing => {
+      if (total === 0) return []
+      if (total === null) {
+        const firstPage = await getPage(samples.length, missing)
+        const value = firstPage.meta?.page?.total
+        total = typeof value === 'number' && value >= 0 ? value : null
+        return firstPage.data ?? []
+      }
+      const offsets = getSamplePageOffsets(Math.max(total - 1, 0), missing)
+      const pages = await Promise.all(offsets.map(offset => getPage(offset, 1)))
+      return pages.flatMap(page => page.data ?? [])
+    })
     samples = [...samples, ...selected]
     sampleCount = samples.length
     if (samples.length > 1) view = 'grouped'
