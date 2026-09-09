@@ -4,6 +4,7 @@ import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import type { ApiProfileName } from '@repo/core/apiLocales'
 import {
   getSampleApiPath,
+  getSamplePageOffsets,
   groupAddressSamples,
   getUniqueAddressSamples,
   sampleValueTones,
@@ -104,13 +105,9 @@ async function loadMore(count: number) {
     const selected: AddressSample[] = []
     const maximumOffset = Math.max(total - candidatesPerRequest, 0)
     for (let attempt = 0; attempt < 4 && selected.length < count; attempt += 1) {
-      const offsets = new Set<number>()
-      while (offsets.size < count) {
-        offsets.add(Math.floor(Math.random() * (maximumOffset + 1)))
-        if (maximumOffset === 0) break
-      }
+      const offsets = getSamplePageOffsets(maximumOffset, count)
       const pages = await Promise.all(
-        [...offsets].map(offset => getPage(offset, candidatesPerRequest)),
+        offsets.map(offset => getPage(offset, candidatesPerRequest)),
       )
       selected.push(
         ...getUniqueAddressSamples(
