@@ -561,6 +561,42 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     releaseId: division.releaseId,
     snapshotId: expect.any(String),
   })
+  // Archived cohorts with partial presentation stats must remain recoverable.
+  sqlite
+    .query('UPDATE apiReleaseSets SET status = ? WHERE id = ?')
+    .run('archived', releaseSetId)
+  sqlite
+    .query(
+      "INSERT INTO stats (id, type, apiReleaseSetId, dimension, metric, metricUnit, value, createdAt, updatedAt) VALUES ('partial-division-stats', 'apiReleaseSet', ?, 'records', 'count', 'count', 1, '2026-01-01', '2026-01-01')",
+    )
+    .run(releaseSetId)
+  const archivedRecovery = await handleReconcileDraftReleaseSets(db, {
+    apiFamily: 'divisions',
+    regionCode: 'hk',
+  })
+  expect(
+    archivedRecovery.publishedReleaseSetStatsTargets.some(
+      row => row.apiReleaseSetId === releaseSetId,
+    ),
+  ).toBe(true)
+  sqlite
+    .query(
+      "UPDATE stats SET metric = 'churn', dimension = 'count' WHERE id = 'partial-division-stats'",
+    )
+    .run()
+  const completeRecovery = await handleReconcileDraftReleaseSets(db, {
+    apiFamily: 'divisions',
+    regionCode: 'hk',
+  })
+  expect(
+    completeRecovery.publishedReleaseSetStatsTargets.some(
+      row => row.apiReleaseSetId === releaseSetId,
+    ),
+  ).toBe(false)
+  sqlite.query("DELETE FROM stats WHERE id = 'partial-division-stats'").run()
+  sqlite
+    .query('UPDATE apiReleaseSets SET status = ? WHERE id = ?')
+    .run('current', releaseSetId)
   const deferredAfterReconciliation = await handlePublishDataset(db, {
     deferApiReleaseSet: true,
     releaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
