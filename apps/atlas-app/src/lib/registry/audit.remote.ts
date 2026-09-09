@@ -104,10 +104,11 @@ export const getApiAudit = query(
         releaseId: r.id,
         code: r.code,
         resourceType: r.resourceType,
-        apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
+        apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
         sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
         sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
         sourceSubType: datasets.subType,
+        sourceVariant: datasets.sourceVariant,
         hash: p.manifestHash,
         byteLength: p.byteLength,
       })
@@ -121,7 +122,7 @@ export const getApiAudit = query(
     inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
     inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId}
     inner join ${versions} on ${versions.id} = ${sets.apiVersionId}
-    where ${sources.resourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
+    where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
   )`)
       .all()
     return (
