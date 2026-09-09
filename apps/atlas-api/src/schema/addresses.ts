@@ -357,7 +357,6 @@ const AddressResourceSchema = z
     links: JsonApiLinkMapSchema.optional().openapi({
       description: openApiText('openapi_addresses_links_description'),
     }),
-    meta: z.object({}).loose().optional(),
   })
   .openapi('Address')
 

@@ -41,6 +41,12 @@ type DivisionGeometry =
   | { type: 'Polygon'; coordinates: DivisionPosition[][] }
   | { type: 'MultiPolygon'; coordinates: DivisionPosition[][][] }
 
+type DivisionAreaGeometry = Exclude<DivisionGeometry, { type: 'Point' }>
+
+type DivisionBoundaryGeometry =
+  | { type: 'LineString'; coordinates: DivisionPosition[] }
+  | { type: 'MultiLineString'; coordinates: DivisionPosition[][] }
+
 function isDivisionPosition(value: unknown): value is DivisionPosition {
   return (
     Array.isArray(value) &&
@@ -83,6 +89,22 @@ function asDivisionGeometry(value: unknown): DivisionGeometry | null {
   return null
 }
 
+function asDivisionAreaGeometry(value: unknown): DivisionAreaGeometry | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const { type } = value as Record<string, unknown>
+  return type === 'Polygon' || type === 'MultiPolygon'
+    ? (value as DivisionAreaGeometry)
+    : null
+}
+
+function asDivisionBoundaryGeometry(value: unknown): DivisionBoundaryGeometry | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const { type } = value as Record<string, unknown>
+  return type === 'LineString' || type === 'MultiLineString'
+    ? (value as DivisionBoundaryGeometry)
+    : null
+}
+
 type DivisionHierarchyResourceIdentifier = {
   type: 'divisions'
   id: string
@@ -123,29 +145,40 @@ type DivisionResourcePayload = {
   }
 }
 
-type DivisionGeometryResourcePayload = {
-  type: 'division-areas' | 'division-boundaries'
-  id: string
-  attributes: {
-    divisionId?: string
-    leftDivisionId?: string
-    rightDivisionId?: string
-    geometry: JsonObject | null
-    bbox: BBox | null
-    type: 'land' | 'maritime' | 'mixed'
-    isLand: boolean | null
-    isTerritorial: boolean | null
-    sources?: SourcesPayload | null
-    identifiers?: unknown
-    variant?:
-      | 'hkgov-censtatd'
-      | 'hkgov-censtatd-landclipped'
-      | 'hkgov-had'
-      | 'hkgov-pland-new-town'
-      | 'hkgov-pland-pu'
-      | 'overture'
-  }
+type DivisionGeometryResourceAttributes = {
+  bbox: BBox | null
+  type: 'land' | 'maritime' | 'mixed'
+  isLand: boolean | null
+  isTerritorial: boolean | null
+  sources?: SourcesPayload | null
+  identifiers?: unknown
+  variant?:
+    | 'hkgov-censtatd'
+    | 'hkgov-censtatd-landclipped'
+    | 'hkgov-had'
+    | 'hkgov-pland-new-town'
+    | 'hkgov-pland-pu'
+    | 'overture'
 }
+
+type DivisionGeometryResourcePayload =
+  | {
+      type: 'division-areas'
+      id: string
+      attributes: DivisionGeometryResourceAttributes & {
+        divisionId: string
+        geometry: DivisionAreaGeometry | null
+      }
+    }
+  | {
+      type: 'division-boundaries'
+      id: string
+      attributes: DivisionGeometryResourceAttributes & {
+        leftDivisionId: string
+        rightDivisionId: string
+        geometry: DivisionBoundaryGeometry | null
+      }
+    }
 
 export type IncludedResourcePayload =
   | DivisionResourcePayload
@@ -869,26 +902,37 @@ export function createIncludedDivisionGeometryResource(args: {
   record: DivisionAreaRecord | DivisionBoundaryRecord
   kind: 'area' | 'boundary'
 }): DivisionGeometryResourcePayload {
-  const { record } = args
-  const isArea = args.kind === 'area'
+  const attributes = (record: DivisionAreaRecord | DivisionBoundaryRecord) => ({
+    bbox: (record.bbox as BBox | null) ?? null,
+    type: record.type,
+    isLand: record.isLand,
+    isTerritorial: record.isTerritorial,
+    sources: (record.sources as SourcesPayload | null) ?? null,
+    identifiers: record.identifiers,
+    variant: record.variant,
+  })
+  if (args.kind === 'area') {
+    const record = args.record as DivisionAreaRecord
+    return {
+      type: 'division-areas',
+      id: record.id,
+      attributes: {
+        ...attributes(record),
+        divisionId: record.divisionId,
+        geometry: asDivisionAreaGeometry(record.geometry),
+      },
+    }
+  }
+
+  const record = args.record as DivisionBoundaryRecord
   return {
-    type: isArea ? 'division-areas' : 'division-boundaries',
+    type: 'division-boundaries',
     id: record.id,
     attributes: {
-      ...(isArea
-        ? { divisionId: (record as DivisionAreaRecord).divisionId }
-        : {
-            leftDivisionId: (record as DivisionBoundaryRecord).leftDivisionId,
-            rightDivisionId: (record as DivisionBoundaryRecord).rightDivisionId,
-          }),
-      geometry: (record.geometry as JsonObject | null) ?? null,
-      bbox: (record.bbox as BBox | null) ?? null,
-      type: record.type,
-      isLand: record.isLand,
-      isTerritorial: record.isTerritorial,
-      sources: (record.sources as SourcesPayload | null) ?? null,
-      identifiers: record.identifiers,
-      variant: record.variant,
+      ...attributes(record),
+      leftDivisionId: record.leftDivisionId,
+      rightDivisionId: record.rightDivisionId,
+      geometry: asDivisionBoundaryGeometry(record.geometry),
     },
   }
 }

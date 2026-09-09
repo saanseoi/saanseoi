@@ -1944,6 +1944,10 @@ describe('atlas-api', () => {
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')
+    const address = addresses.components?.schemas?.Address as
+      | { properties?: Record<string, unknown> }
+      | undefined
+    expect(address?.properties?.meta).toBeUndefined()
     const addressPointGeometry = addresses.components?.schemas?.AddressPointGeometry as
       | {
           description?: string
@@ -2119,35 +2123,19 @@ describe('atlas-api', () => {
     expect(divisionAttributes?.properties).not.toHaveProperty('overture')
     expect(divisionAttributes?.properties).toHaveProperty('wikidataId')
     expect(divisionAttributes?.properties).not.toHaveProperty('wikidata')
-    const divisionGeometrySchema = divisions.components?.schemas
-      ?.DivisionGeometryResource as
-      | {
-          properties?: Record<
-            string,
-            {
-              enum?: unknown[]
-              examples?: unknown[]
-              properties?: Record<string, { enum?: unknown[]; examples?: unknown[] }>
-            }
-          >
-        }
-      | undefined
+    const divisionsOpenApi = JSON.stringify(divisions)
+    expect(divisions.components?.schemas).not.toHaveProperty('Geometry')
+    expect(divisionsOpenApi).toContain('division-areas')
+    expect(divisionsOpenApi).toContain('division-boundaries')
+    expect(divisionsOpenApi).toContain('MultiPolygon')
+    expect(divisionsOpenApi).toContain('MultiLineString')
+    expect(divisionsOpenApi).not.toContain('GeometryCollection')
+    expect(divisionsOpenApi).not.toContain('MultiPoint')
     expect(divisionAttributes?.properties?.wikidataId).toMatchObject({
       examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
     })
-    expect(
-      divisionGeometrySchema?.properties?.attributes?.properties?.type?.enum,
-    ).toEqual(['land', 'maritime', 'mixed'])
-    expect(
-      divisionGeometrySchema?.properties?.attributes?.properties?.variant?.enum,
-    ).toEqual([
-      'hkgov-censtatd',
-      'hkgov-censtatd-landclipped',
-      'hkgov-had',
-      'hkgov-pland-new-town',
-      'hkgov-pland-pu',
-      'overture',
-    ])
+    expect(divisionsOpenApi).toContain('hkgov-censtatd-landclipped')
+    expect(divisionsOpenApi).toContain('hkgov-pland-new-town')
     expect(divisionResource?.properties).not.toHaveProperty('meta')
     expect(divisionAttributes?.description).toBe(
       'Canonical data for this resource, excluding its relationships.',

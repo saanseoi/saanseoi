@@ -1,9 +1,9 @@
 # Overture division geometry ingestion
 
 Area and boundary rule declarations are explicit JSON fixtures in
-`fixtures/meta/processing-rules/`, shared by their normalisers and retained audit. Both
-depend on `division-geometry-exclusions.json`, whose parameters specify regional and
-area-only referent exclusions. Boundaries retain references to those identities. The
+`fixtures/meta/processing-rules/`, shared by their normalisers and audit. Both depend on
+`division-geometry-exclusions.json`, whose parameters specify regional and area-only
+referent exclusions. Boundaries retain references to those identities. The
 synthetic-area fixture owns the validated Shenzhen Bay Port exclusion polygon.
 
 The [processing audit](../../processing-provenance.md) retains registered geometry
