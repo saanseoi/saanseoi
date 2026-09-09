@@ -384,10 +384,12 @@ records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolut
 `create_supplementary` creates and links the address described by `address.values`;
 `keep_existing` retains the previous ID; and `leave_unlinked` records no address link.
 Only `create_supplementary` includes `address` values and their optional ALS base.
-Generated entries may record `retiredAtSourceRelease`; published history remains the
-durable replay source. Artefacts use unique temporary files and replace their
-destination only after a complete write; interrupted writes remove their temporary
-files.
+Generated entries record `firstSeen` and, when the Place is absent from a later complete
+release or is explicitly left unlinked, `revokedAt`. A withdrawal writes an `address2d`
+delete tombstone to that supplementary snapshot's version changes, so historical replay
+does not carry the Address into later releases. Published history remains the durable
+replay source. Artefacts use unique temporary files and replace their destination only
+after a complete write; interrupted writes remove their temporary files.
 
 The Overture Places family reset owns both `place/default` and `address/overture-places`
 snapshots and their resource releases. It removes supplementary Address current and
