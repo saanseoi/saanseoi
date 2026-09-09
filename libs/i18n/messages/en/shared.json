@@ -2877,7 +2877,7 @@
   "openapi_addresses_snapshot_not_ready_description": "Address snapshot is not ready.",
   "openapi_addresses_attributes_description": "Canonical address data, excluding relationships.",
   "openapi_addresses_snapshot_id_description": "The immutable address snapshot that produced this record.",
-  "openapi_addresses_geometry_description": "The address position as a GeoJSON geometry, when requested and available.",
+  "openapi_addresses_geometry_description": "The address position as a WGS84 GeoJSON Point, when requested and available.",
   "openapi_addresses_bbox_description": "The address geometry's bounding box in west, south, east, north order, when available.",
   "openapi_addresses_created_at_description": "When SaanSeoi first created this canonical address record.",
   "openapi_addresses_updated_at_description": "When SaanSeoi last updated this canonical address record.",

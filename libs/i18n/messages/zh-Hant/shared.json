@@ -2880,7 +2880,7 @@
   "openapi_addresses_snapshot_not_ready_description": "地址快照尚未準備好。",
   "openapi_addresses_attributes_description": "地址的標準資料，不包括關係。",
   "openapi_addresses_snapshot_id_description": "產生此記錄的不可變地址快照。",
-  "openapi_addresses_geometry_description": "要求且可用時，以 GeoJSON 幾何表示的地址位置。",
+  "openapi_addresses_geometry_description": "要求且可用時，以 WGS84 GeoJSON Point 表示的地址位置。",
   "openapi_addresses_bbox_description": "地址幾何的邊界框，順序為西、南、東、北；如有提供。",
   "openapi_addresses_created_at_description": "SaanSeoi 首次建立此標準地址記錄的時間。",
   "openapi_addresses_updated_at_description": "SaanSeoi 最後更新此標準地址記錄的時間。",

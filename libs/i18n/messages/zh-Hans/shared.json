@@ -2874,7 +2874,7 @@
   "openapi_addresses_snapshot_not_ready_description": "地址快照尚未准备好。",
   "openapi_addresses_attributes_description": "地址的标准数据，不包括关系。",
   "openapi_addresses_snapshot_id_description": "生成此记录的不可变地址快照。",
-  "openapi_addresses_geometry_description": "在请求且可用时，以 GeoJSON 几何表示的地址位置。",
+  "openapi_addresses_geometry_description": "在请求且可用时，以 WGS84 GeoJSON Point 表示的地址位置。",
   "openapi_addresses_bbox_description": "地址几何的边界框，顺序为西、南、东、北；如有提供。",
   "openapi_addresses_created_at_description": "SaanSeoi 首次创建此标准地址记录的时间。",
   "openapi_addresses_updated_at_description": "SaanSeoi 最后更新此标准地址记录的时间。",
