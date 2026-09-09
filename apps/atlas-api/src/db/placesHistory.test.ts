@@ -290,7 +290,10 @@ test('replays Place text and Address-derived divisions from the selected snapsho
       offset: 99,
     }
     const page = await listReplayedPlacePage(lookup)
-    expect(page.total).toBe(101)
+    expect(page.hasMore).toBe(false)
+    const firstPage = await listReplayedPlacePage({ ...lookup, offset: 0 })
+    expect(firstPage.records).toHaveLength(2)
+    expect(firstPage.hasMore).toBe(true)
     expect(page.records.map(record => record.place.id)).toEqual(
       records
         .map(record => record.place.id)
@@ -302,14 +305,14 @@ test('replays Place text and Address-derived divisions from the selected snapsho
       offset: 0,
       divisionId: 'division-district-old',
     })
-    expect(filtered.total).toBe(1)
+    expect(filtered.hasMore).toBe(false)
     expect(filtered.records[0]?.i18n.en?.name).toBe('Old Place Name')
     run(
       history,
       `UPDATE snapshotVersionChanges SET operation = 'delete', versionHash = NULL WHERE recordType = 'place' AND recordId = 'place-1'`,
     )
     const deletedPage = await listReplayedPlacePage({ ...lookup, offset: 99 })
-    expect(deletedPage.total).toBe(100)
+    expect(deletedPage.hasMore).toBe(false)
     expect(deletedPage.records).toHaveLength(1)
     expect((await listReplayedPlacePage({ ...lookup, offset: 100 })).records).toEqual(
       [],

@@ -7,12 +7,12 @@ import ReleaseSamplesSkeleton from '#lib/bits/pages/docs/components/releaseSampl
 import NestedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesNestedField.svelte'
 import SourceIdentifier from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesIdentifier.svelte'
 import {
-  getUniqueAddressSamples,
   groupAddressSamples,
   sampleValueTones,
   type AddressSample,
 } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
 import GroupedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesGroupedField.svelte'
+import { loadReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/loadReleaseSamples'
 
 type Props = {
   family: string
@@ -29,7 +29,6 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
 )
 const initialExamples = 1
 const examplesPerRequest = 4
-const candidatesPerRequest = 10
 
 let { family, onAvailabilityChange, request, sourceReleaseCode }: Props = $props()
 let samples = $state<AddressSample[]>([])
@@ -102,19 +101,8 @@ async function loadMore() {
   pendingExamples = 0
   errorMessage = null
   try {
-    const selected: AddressSample[] = []
-    for (let attempt = 0; attempt < 4 && selected.length < count; attempt += 1) {
-      const candidates = await getRandomRecords(
-        Math.min(candidatesPerRequest, count - selected.length),
-      )
-      selected.push(
-        ...getUniqueAddressSamples(candidates, [...samples, ...selected]).slice(
-          0,
-          count - selected.length,
-        ),
-      )
-      if (unavailable) return
-    }
+    const selected = await loadReleaseSamples(samples, count, getRandomRecords)
+    if (unavailable) return
     samples = [...samples, ...selected]
   } catch {
     errorMessage = m.source_record_samples_load_error()

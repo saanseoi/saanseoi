@@ -843,6 +843,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                   domainCode={currentDomainCode}
                   profile={apiProfile}
                   releaseSet={release.code}
+                  recordCount={release.stats?.find(stat => stat.dimension === 'records' && stat.metric === 'count' && stat.metricUnit === 'count' && stat.groupBy == null && stat.groupValue == null)?.value ?? null}
                   request={sampleRequest}
                 />
               {/key}
