@@ -9,6 +9,14 @@ import {
   type Digest,
 } from '@repo/core/provenance'
 import { getMetaDb } from './server'
+import { cachedAuditData } from './auditCache.server'
+import {
+  loadAuditFixtures,
+  filterAuditFixture,
+} from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureRows'
+import { auditFixtureCatalogue } from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureCatalogue'
+import { alsAuditDecisions } from '#lib/bits/pages/docs/components/releaseAudit/components/auditAlsDecisions'
+import { matchesAudit } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch'
 
 function store() {
   const bucket = getRequestEvent().platform?.env.R2_GUIDE_ASSETS
@@ -198,6 +206,77 @@ export const getRetainedBulkFixture = query(
         : manifest.bulk.find(b => b.id === input.bulkId)?.fixtures[input.index]
     if (!fixture) throw new Error('Fixture is not declared by this release.')
     return readObject(store(), fixture.object)
+  },
+)
+
+const auditScope = z.object({ releaseId: z.string(), hash: z.string() })
+
+export const getAuditFixtureCatalogue = query(
+  auditScope.extend({ releaseCode: z.string() }),
+  async input => {
+    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    return cachedAuditData(
+      `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
+      async () => {
+        const groups = await loadAuditFixtures(manifest.bulk, (id, index) => {
+          const ref = manifest.bulk.find(b => b.id === id)?.fixtures[index]
+          if (!ref) throw new Error('Fixture is not declared by this release.')
+          return readObject(store(), ref.object)
+        })
+        return auditFixtureCatalogue(groups, input.releaseCode)
+      },
+    )
+  },
+)
+
+export const getAuditFixtureGroup = query(
+  auditScope.extend({
+    bulkId: z.string(),
+    type: z.string(),
+    q: z.string().max(300).default(''),
+  }),
+  async input => {
+    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const bulk = manifest.bulk.find(b => b.id === input.bulkId)
+    if (!bulk) throw new Error('Rule is not declared by this release.')
+    const fixtures = bulk.fixtures.filter(f => f.type === input.type)
+    if (!fixtures.length) throw new Error('Fixture is not declared by this release.')
+    const groups = await loadAuditFixtures([{ id: bulk.id, fixtures }], (_id, index) =>
+      readObject(store(), fixtures[index]!.object),
+    )
+    return filterAuditFixture(groups[bulk.id]![input.type]!, input.q)
+  },
+)
+
+export const getAuditAlsDecisions = query(
+  auditScope.extend({
+    releaseCode: z.string(),
+    kind: z.string(),
+    q: z.string().max(300).default(''),
+    offset: z.number().int().min(0).default(0),
+    all: z.boolean().default(false),
+  }),
+  async input => {
+    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const decisions = await cachedAuditData(
+      `als/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
+      async () => {
+        const bulk = manifest.bulk.filter(b => b.id === 'curate-als-addresses')
+        const groups = await loadAuditFixtures(bulk, (_id, index) =>
+          readObject(store(), bulk[0]!.fixtures[index]!.object),
+        )
+        return alsAuditDecisions(
+          groups['curate-als-addresses'] ?? {},
+          input.releaseCode,
+        )
+      },
+    )
+    const rows = decisions.filter(
+      d =>
+        d.kind === input.kind &&
+        matchesAudit(input.q, d.title, d.description, d.context, d.raw),
+    )
+    return input.all ? rows : rows.slice(input.offset, input.offset + 10)
   },
 )
 
