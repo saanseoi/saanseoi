@@ -120,6 +120,28 @@ type ReleaseProcessingRules = {
   }>
 }
 
+function bulkRulesFromProcessingRules(processingRules: unknown) {
+  if (!processingRules || typeof processingRules !== 'object') return []
+  const rulesets = (processingRules as { rulesets?: unknown }).rulesets
+  if (!Array.isArray(rulesets)) return []
+
+  return rulesets.flatMap(ruleset => {
+    if (!ruleset || typeof ruleset !== 'object') return []
+    const { rules, rulesetVersion } = ruleset as {
+      rules?: unknown
+      rulesetVersion?: unknown
+    }
+    if (!Array.isArray(rules) || typeof rulesetVersion !== 'string') return []
+
+    return rules
+      .filter(
+        (rule): rule is ReleaseProcessingRules['rulesets'][number]['rules'][number] =>
+          !!rule && typeof rule === 'object' && rule.type === 'bulk',
+      )
+      .map((rule, index) => ({ rule, rulesetVersion, index }))
+  })
+}
+
 const DEFAULT_REGISTRY_LIMIT = 200
 const D1_IN_ARRAY_BATCH_SIZE = 90
 
@@ -452,18 +474,13 @@ export async function listRegistryReleases(
     const bulkActions = sourceReleases
       .filter(source => releaseSourceIds.has(source.id))
       .flatMap(source => {
-        const processingRules = source.processingRules as ReleaseProcessingRules | null
-        return (
-          processingRules?.rulesets.flatMap(ruleset =>
-            ruleset.rules
-              .filter(rule => rule.type === 'bulk')
-              .map((rule, index) => ({
-                ...rule,
-                id: `${source.id}:${ruleset.rulesetVersion}:${index}`,
-                sourceCode: source.datasetCode,
-                sourceReleaseCode: source.code,
-              })),
-          ) ?? []
+        return bulkRulesFromProcessingRules(source.processingRules).map(
+          ({ rule, rulesetVersion, index }) => ({
+            ...rule,
+            id: `${source.id}:${rulesetVersion}:${index}`,
+            sourceCode: source.datasetCode,
+            sourceReleaseCode: source.code,
+          }),
         )
       })
 

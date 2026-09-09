@@ -331,7 +331,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       INSERT INTO releases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
         ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
+        ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}');
 
       INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
