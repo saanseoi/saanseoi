@@ -1,5 +1,11 @@
 # Overture historical reconstructions
 
+Published Divisions API statistics replay retained snapshot version journals across
+annual history shards. They include unchanged inherited records, localised names and
+deletions without requiring the original monthly archive. The shared
+[division API backfill](../../families/divisions.md#api-release-statistics) rebuilds
+counts, coverage and churn for historical and current releases.
+
 Overture keeps only a limited window of full release payloads. When a monthly payload
 has expired, SaanSeoi does not synthesise feature properties from a neighbouring release
 or from a changelog: a changelog identifies changed records but does not carry their

@@ -1,5 +1,11 @@
 # Planning Department TPU and subunit areas
 
+Planning Unit and New Town API release statistics use the shared
+[division API backfill](../../families/divisions.md#api-release-statistics), including
+historical cohorts. API churn compares canonical identities across cohorts even when
+each cohort has an independent snapshot root. New Town cohort-specific IDs therefore
+count as removals and additions; names are not used to merge identities.
+
 Division release churn compares canonical IDs and division attributes with the preceding
 Planning inventory. Source feature counts count importer input cells; division totals
 exclude geometry and release provenance from their churn comparison. Geometry churn
