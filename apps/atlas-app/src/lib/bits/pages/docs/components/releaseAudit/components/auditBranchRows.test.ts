@@ -2,6 +2,41 @@ import { expect, test } from 'bun:test'
 import type { Json } from '@repo/core/provenance'
 import { retainedBranchGroups } from './auditBranchRows'
 
+test('locale mappings show the target language and scope the missing fallback', () => {
+  const groups = retainedBranchGroups({
+    branches: [
+      {
+        id: 'source',
+        group: 'Locale Normalisation: zh-hant',
+        precedence: 2,
+        condition: { field: 'zh-hk', equals: true },
+        result: 'zh-hk',
+      },
+      {
+        id: 'absent',
+        group: 'Locale Normalisation: zh-hant',
+        precedence: 6,
+        condition: { all: [] },
+        result: 'none',
+      },
+    ],
+  })
+  expect(groups[0]?.rows[0]).toMatchObject({
+    condition: 'Locale is `zh-hk`',
+    result: '`zh-hant`',
+    displayPriority: 1,
+    precedence: 2,
+    otherwise: false,
+  })
+  expect(groups[0]?.rows[1]).toMatchObject({
+    condition: 'Otherwise',
+    result: 'Leave `zh-hant` missing',
+    displayPriority: 2,
+    precedence: 6,
+    otherwise: true,
+  })
+})
+
 test('omits inactive classification groups but preserves applied and unrecorded groups', () => {
   const declaration: Json = {
     branches: [

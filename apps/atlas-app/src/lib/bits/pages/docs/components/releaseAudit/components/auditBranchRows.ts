@@ -63,6 +63,7 @@ export function retainedBranchGroups(
     Array<{
       id: string
       precedence: number
+      otherwise: boolean
       condition: string
       result: string
       matched?: number
@@ -86,11 +87,25 @@ export function retainedBranchGroups(
       seenLocaleConditions.add(key)
     }
     const rows = groups.get(branch.group) ?? []
+    const locale = branch.group.startsWith('Locale Normalisation: ')
+      ? branch.group.slice('Locale Normalisation: '.length)
+      : undefined
+    const otherwise = 'all' in branch.condition && !branch.condition.all.length
     rows.push({
       id: branch.id,
       precedence: branch.precedence,
-      condition: branchConditionText(branch.condition, areaNames),
-      result: `\`${branch.result}\``,
+      otherwise,
+      condition:
+        locale && otherwise
+          ? m.source_audit_otherwise()
+          : locale && 'equals' in branch.condition && branch.condition.equals === true
+            ? m.source_audit_locale_is({ locale: `\`${branch.condition.field}\`` })
+            : branchConditionText(branch.condition, areaNames),
+      result: locale
+        ? otherwise
+          ? m.source_audit_locale_missing({ locale: `\`${locale}\`` })
+          : `\`${locale}\``
+        : `\`${branch.result}\``,
       matched: counts?.[branch.id]?.matched,
       changed: counts?.[branch.id]?.changed,
     })
@@ -107,7 +122,14 @@ export function retainedBranchGroups(
         : undefined,
       title: branchGroupTitle(title),
       explanation: branchGroupExplanation(title),
-      rows: rows.sort((a, b) => a.precedence - b.precedence),
+      rows: rows
+        .sort((a, b) => a.precedence - b.precedence)
+        .map((row, index) => ({
+          ...row,
+          displayPriority: title.startsWith('Locale Normalisation: ')
+            ? index + 1
+            : row.precedence,
+        })),
     }))
 }
 

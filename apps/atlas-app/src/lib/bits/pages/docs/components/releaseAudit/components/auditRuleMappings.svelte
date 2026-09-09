@@ -18,6 +18,7 @@ let {
     id?: string
     locale?: string
     precedence?: number
+    displayPriority?: number
     condition: string
     result: string
     matched?: number
@@ -75,11 +76,30 @@ $effect(() => {
               </tr>
             </thead>
             <tbody>
-              {#each matchingRows as row}
+              {#each matchingRows as row, index}
+                {#if row.locale && row.locale !== matchingRows[index - 1]?.locale}
+                  <tr class="border-t border-current/15 bg-current/5">
+                    <th colspan="5" class="px-2 py-2 text-sm font-medium">
+                      {row.locale === 'en'
+                        ? m.source_locale_en()
+                        : row.locale === 'zh-hant'
+                          ? m.source_locale_zh_hant()
+                          : row.locale === 'zh-hans'
+                            ? m.source_locale_zh_hans()
+                            : row.locale}
+                    </th>
+                  </tr>
+                {/if}
                 <tr class="border-t border-current/10">
                   <td class="py-2 pr-4 text-xs">
-                    {row.id ?? m.source_audit_not_recorded()}<br>
-                    {row.precedence ?? m.source_audit_not_recorded()}
+                    <span class="inline-flex items-center gap-2">
+                      <span
+                        class="inline-flex min-w-5 shrink-0 items-center justify-center rounded bg-black px-1.5 py-0.5 text-xs text-white tabular-nums"
+                      >
+                        {row.displayPriority ?? row.precedence ?? m.source_audit_not_recorded()}
+                      </span>
+                      <span>{row.id ?? m.source_audit_not_recorded()}</span>
+                    </span>
                   </td>
                   <td class="py-2 pr-4 leading-7"><RuleText text={row.condition} /></td>
                   <td class="py-2 leading-7"><RuleText text={row.result} /></td>
