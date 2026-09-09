@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cf4bcc9dcb57362e31a4f067e59ba9f0b56778392faa51b120071420d7c5925b",
+  "versionHash": "sha256:6d9bb6665610e47ad559da3b95d8c5322581912e857f9099faa9ec4cb6052668",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "schemaVersion": "sv-place-v1",
@@ -42,6 +42,22 @@
       "sourceSchemas": {
         "ds-hk-overture-place": "1.15.0",
         "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.14.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-01-21.0",
+      "sourceSchemas": {
+        "ds-hk-overture-place": "1.15.0",
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.15.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-02-18.0",
+      "sourceSchemas": {
+        "ds-hk-overture-place": "1.16.0",
+        "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.15.0"
       }
     },
@@ -58,6 +74,14 @@
       "sourceSchemas": {
         "ds-hk-overture-place": "1.16.0",
         "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.15.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-03-18.0",
+      "sourceSchemas": {
+        "ds-hk-overture-place": "1.16.0",
+        "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.16.0"
       }
     },
@@ -65,6 +89,14 @@
       "snapshotVersion": "ss-hk-place-2026-04-15.0",
       "sourceSchemas": {
         "ds-hk-overture-place": "1.16.0",
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.16.0"
+      }
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-05-20.0",
+      "sourceSchemas": {
+        "ds-hk-overture-place": "1.17.0",
         "ds-hk-hkgov-dpo-address": "3.2",
         "ds-hk-overture-division": "1.16.0"
       }
