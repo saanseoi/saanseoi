@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { cancel, isCancel, note, outro, select } from '@clack/prompts'
+import { cancel, isCancel, log, note, outro, select } from '@clack/prompts'
 import { describeTarget, formatField } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import { colorize } from './updateFormatting.ts'
@@ -245,11 +245,17 @@ async function runApiReleaseSetDocsPublishCommand(
     'DOCS PUBLISH',
   )
   if (updates.length > 0) {
-    console.log(
+    log.message(
       [
-        `${colorize('◆', 36)}  ${colorize('API RELEASE-SET GUIDES & DOCS UPDATED', 90)}`,
+        colorize('API RELEASE-SET GUIDES & DOCS UPDATED', 90),
         ...formatApiReleaseSetDocsGrid(updates.map(update => update.code)),
-      ].join('\n'),
+      ],
+      {
+        secondarySymbol: colorize('│', 90),
+        spacing: 0,
+        symbol: colorize('◆', 36),
+        withGuide: true,
+      },
     )
   }
   outro(
@@ -418,11 +424,14 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
     'DOCS PUBLISH',
   )
   if (updates.length > 0) {
-    console.log(
-      [
-        `${colorize('◆', 36)}  ${colorize('RELEASE DOCS UPDATED', 90)}`,
-        ...formatReleaseDocsGrid(updates),
-      ].join('\n'),
+    log.message(
+      [colorize('RELEASE DOCS UPDATED', 90), ...formatReleaseDocsGrid(updates)],
+      {
+        secondarySymbol: colorize('│', 90),
+        spacing: 0,
+        symbol: colorize('◆', 36),
+        withGuide: true,
+      },
     )
   }
   outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published ✓')
