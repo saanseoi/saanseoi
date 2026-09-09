@@ -21,19 +21,19 @@ latest-release curation bounds remain explicit and do not approve an earlier bas
 The remaining 38 latest estates require hierarchy review independently of the historical
 changes.
 
-The
-[chronological review ledger](../../../../fixtures/meta/curations/hkgov-dpo-address-estate-audit.json)
-records exact release presence, baseline assertions and added/removed/changed comparison
-groups. Change fields distinguish coordinates, street components, inventory hashes and
-occurrence counts. Feature order is ignored; repeated source assertions are preserved.
-Names are not automatically linked across renames. The retained 2D audit supplies
-record/building-name counts, not a complete per-address 2D component diff.
+The chronological review ledger is a regenerated local cache at
+`.local/hkgov-dpo/estate-review/estate-audit.json`. It records exact release presence,
+baseline assertions and added/removed/changed comparison groups. Change fields
+distinguish coordinates, street components, inventory hashes and occurrence counts.
+Feature order is ignored; repeated source assertions are preserved. Names are not
+automatically linked across renames. The retained 2D audit supplies record/building-name
+counts, not a complete per-address 2D component diff.
 
-The
-[separate 2D-only inventory](../../../../fixtures/meta/curations/hkgov-dpo-address-2d-estate-inventory.json)
-contains 3,647 other names, including private developments such as 21 Borrett Road. They
-never appear in the retained 3D files and are outside this unit-inventory review.
-Unnamed 3D premises remain in a separate per-release list rather than being discarded.
+The separate 2D-only inventory is also a local cache at
+`.local/hkgov-dpo/estate-review/2d-estate-inventory.json`. It contains 3,647 other
+names, including private developments such as 21 Borrett Road. They never appear in the
+retained 3D files and are outside this unit-inventory review. Unnamed 3D premises remain
+in a separate per-release list rather than being discarded.
 
 `reviewQueue` contains 135 estate candidates with source ambiguity, current-profile
 mismatches, unresolved 2D hierarchy checks or non-coordinate historical changes. This is
@@ -46,9 +46,10 @@ Review one estate at a time in first-3D-appearance order, alphabetically within 
 release: establish its earliest baseline, then work through its deltas. Retain the
 user's decisions as source- and release-bounded curation, and only carry them forwards
 through matching evidence. Do not infer unit partitions from shared names or repeated
-inventories. `bun scripts/build-als-estate-review.ts` rebuilds the ledger; latest-only
-automatic hierarchy generation refuses this chronological format without changing
-existing relationships.
+inventories. Its schema retains the ordered `sourceReleases` list; a missing cache or a
+change to that coverage requires regeneration with
+`bun scripts/build-als-estate-review.ts`. Latest-only automatic hierarchy generation
+refuses this chronological format without changing existing relationships.
 
 Official evidence:
 
