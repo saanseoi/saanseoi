@@ -143,6 +143,10 @@ export async function resolveSupportingSnapshotsForMember(
       return snapshots
     }
 
+    // Supplementary Overture Addresses begin with the first Places cohort.
+    // Earlier Address releases must not borrow that future snapshot.
+    if (member.variant === 'overture-places') return snapshots
+
     if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
       if (snapshots.length > 0) return snapshots
 
