@@ -4,7 +4,7 @@ import { untrack, type Snippet } from 'svelte'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import { getSourceAudit, getApiAudit } from '#lib/registry/audit.remote.js'
-import { releaseNavActivationViewportFraction } from '../../releaseNav/releaseNavScroll'
+import { getReleaseNavDocumentActive } from '../../releaseNav/releaseNavScroll'
 import AuditRelease from './auditRelease.svelte'
 import Controls from './releaseAuditControls.svelte'
 import { releaseAuditHeadingId } from './releaseAuditUtils'
@@ -41,20 +41,13 @@ $effect(() => {
   const element = panel
   let visible: HTMLElement[] = []
   const updateActive = () => {
-    const offset = window.innerHeight * releaseNavActivationViewportFraction
-    activeHeadingId =
-      (
-        [...visible]
-          .reverse()
-          .find(heading => heading.getBoundingClientRect().top <= offset) ?? visible[0]
-      )?.id ?? null
+    activeHeadingId = getReleaseNavDocumentActive(visible)
   }
   const update = () => {
     const sectionElements = [...element.querySelectorAll<HTMLElement>('h3')].filter(
       heading => heading.getClientRects().length > 0,
     )
     const auditHeading = element.querySelector<HTMLElement>(`#${releaseAuditHeadingId}`)
-    visible = auditHeading ? [auditHeading, ...sectionElements] : sectionElements
     const sectionHeadings = sectionElements.map(heading => {
       const resource =
         heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
@@ -76,6 +69,10 @@ $effect(() => {
     const sourceHeadings = [
       ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading]'),
     ]
+    visible = [
+      ...(auditHeading ? [auditHeading] : []),
+      ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading], h3'),
+    ].filter(heading => heading.getClientRects().length > 0)
     const next = [
       {
         id: releaseAuditHeadingId,
@@ -107,11 +104,13 @@ $effect(() => {
     attributeFilter: ['class', 'hidden', 'open', 'data-audit-toc-title'],
   })
   window.addEventListener('scroll', updateActive, { passive: true })
+  window.addEventListener('release-nav:anchor', updateActive)
   window.addEventListener('resize', update)
   untrack(update)
   return () => {
     observer.disconnect()
     window.removeEventListener('scroll', updateActive)
+    window.removeEventListener('release-nav:anchor', updateActive)
     window.removeEventListener('resize', update)
     headings = []
     activeHeadingId = null
@@ -162,6 +161,12 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
     return
   searchStates = { ...searchStates, [releaseId]: state }
 }
+const sourceSubTypeLabels: Record<string, string> = {
+  pu: 'PU',
+  'new-town': 'New Town',
+}
+const sourceSubTypeLabel = (value?: string | null) =>
+  value ? (sourceSubTypeLabels[value.toLowerCase()] ?? value) : value
 const sourceOutlineLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherShortName?: string
@@ -170,7 +175,7 @@ const sourceOutlineLabel = (resource: {
   [
     resource.sourcePublisherShortName,
     resourceLabel(resource.resourceType),
-    resource.sourceSubType,
+    sourceSubTypeLabel(resource.sourceSubType),
   ]
     .filter(Boolean)
     .join(' · ')
@@ -182,7 +187,7 @@ const sourceHeadingLabel = (resource: {
   [
     resource.sourcePublisherName,
     resourceLabel(resource.resourceType),
-    resource.sourceSubType,
+    sourceSubTypeLabel(resource.sourceSubType),
   ]
     .filter(Boolean)
     .join(' · ')
