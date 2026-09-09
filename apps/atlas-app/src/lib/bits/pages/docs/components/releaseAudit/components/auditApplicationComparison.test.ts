@@ -5,6 +5,23 @@ import { auditApplicationComparison } from './auditApplicationComparison'
 const row = (context: IndividualAudit['context'], review?: IndividualAudit['review']) =>
   ({ context, review }) as IndividualAudit
 
+test('restoration evidence displays replacement rows without explicit review metadata', () => {
+  const replacement = {
+    id: 'area-id',
+    names: { primary: 'Hong Kong Island' },
+    type: 'division',
+  }
+  expect(auditApplicationComparison(row({ sourceRows: [], replacement }))).toEqual({
+    input: null,
+    output: replacement,
+  })
+  const sourceRows = [{ id: 'area-id', geometryType: 'Point' }]
+  expect(auditApplicationComparison(row({ sourceRows, replacement }))).toEqual({
+    input: sourceRows,
+    output: replacement,
+  })
+})
+
 test('classification evidence keeps input/output presentation without a patch filter', () => {
   expect(
     auditApplicationComparison(

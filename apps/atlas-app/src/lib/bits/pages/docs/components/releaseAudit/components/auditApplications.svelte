@@ -74,12 +74,13 @@ $effect(() => {
     {@const comparison = auditApplicationComparison(row)}
     {@const areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored'}
     {@const areaName = row.record.names[0] || row.record.id}
+    {@const areaIdentity = row.operation === 'overture_hong_kong_area_identities_restored'}
     {#if category === 'patches' || comparison}
       <PatchCard
         geometryReleaseId={areaGeometry ? releaseId : undefined}
         exclusion={areaGeometry && areaName === 'New Territories' ? row.context.geometryRule : null}
         title={row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_title() : row.operation === 'overture_hong_kong_kowloon_restored' ? m.source_audit_patch_kowloon_title() : row.record.names[0] || row.record.id}
-        reason={areaGeometry ? `Restore the missing ${areaName} area geometry from its district land geometries${areaName === 'New Territories' ? ', including Lok Ma Chau Loop, and excluding Shenzhen Bay Port' : ''}.` : row.outcome === 'applied' && row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_reason() : row.outcome === 'applied' && row.operation === 'overture_hong_kong_kowloon_restored' ? m.source_audit_patch_kowloon_reason() : row.reason}
+        reason={areaIdentity ? `Restore ${areaName} when it is missing from Overture.` : areaGeometry ? `Restore the missing ${areaName} area geometry from its district land geometries${areaName === 'New Territories' ? ', including Lok Ma Chau Loop, and excluding Shenzhen Bay Port' : ''}.` : row.outcome === 'applied' && row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified' ? m.source_audit_patch_lok_ma_chau_reason() : row.outcome === 'applied' && row.operation === 'overture_hong_kong_kowloon_restored' ? m.source_audit_patch_kowloon_reason() : row.reason}
         id={row.record.id}
         status={row.outcome}
         input={comparison?.input ?? null}
