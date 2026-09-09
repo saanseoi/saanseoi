@@ -22,9 +22,8 @@ and shared merge-ruleset references; the selected upload path retains their audi
 definitions and counts.
 
 Identity-bridge audit fixtures retain registered SaanSeoi division codes alongside
-canonical IDs. Existing retained audits remain unchanged; a code resolved from the
-current registry is identified as a current display lookup rather than retained
-evidence.
+canonical IDs. Existing audits remain unchanged; a code resolved from the current
+registry is identified as a current display lookup rather than retained evidence.
 
 `init:stats:government` restores Geographic Divisions first, including C&SD district and
 Permanent Living Quarters area-type geometry, and publishes the complete Divisions
