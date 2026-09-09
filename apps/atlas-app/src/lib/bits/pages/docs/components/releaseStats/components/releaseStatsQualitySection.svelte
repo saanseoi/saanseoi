@@ -7,12 +7,11 @@ let { quality, labels }: { quality: QualityPresentation; labels: ReleaseStatsLab
   $props()
 let placeholderCount = $derived(quality.issues.length % 2)
 </script>
-<Section
+<Section id="stats-quality-checks"
   ><div
     class="flex w-full items-center gap-1.5 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
   >
     <h2
-      id="stats-quality-checks"
       class="font-body text-caption font-medium uppercase tracking-[0.08em] text-data-alert"
     >
       {labels.qualityChecks}

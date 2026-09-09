@@ -7,12 +7,8 @@ let {
 }: { distribution: StatisticsProfilePresentation['distributions'][number] } = $props()
 </script>
 
-<Section>
-  <Header
-    id={distribution.id}
-    eyebrow={`${distribution.unit} distribution`}
-    title={distribution.title}
-  />
+<Section id={distribution.id}>
+  <Header eyebrow={`${distribution.unit} distribution`} title={distribution.title} />
   <dl
     class="grid grid-cols-[minmax(0,auto)_minmax(0,1fr)_max-content] gap-x-3 gap-y-3 px-5 py-5"
   >
