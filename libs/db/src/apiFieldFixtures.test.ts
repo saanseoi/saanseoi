@@ -15,6 +15,40 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('covers Places cohorts using the Division schema retained by their ALS snapshot', () => {
+    // Places selects the latest ALS snapshot at or before its cohort and uses
+    // that snapshot's Division reference, which can predate the Places schema.
+    const cohorts = [
+      ['2025-09-24.0', '1.12.0', '1.12.0'],
+      ['2025-10-22.0', '1.13.0', '1.12.0'],
+      ['2025-12-17.0', '1.15.0', '1.14.0'],
+      ['2026-01-21.0', '1.15.0', '1.14.0'],
+      ['2026-02-18.0', '1.16.0', '1.15.0'],
+      ['2026-03-18.0', '1.16.0', '1.15.0'],
+      ['2026-04-15.0', '1.16.0', '1.16.0'],
+      ['2026-05-20.0', '1.17.0', '1.16.0'],
+      ['2026-06-17.0', '1.17.0', '1.17.0'],
+      ['2026-07-22.0', '1.18.0', '1.18.0'],
+      ['2026-08-19.0', '1.18.0', '1.18.0'],
+    ] as const
+    for (const [cohort, placeSchema, divisionSchema] of cohorts) {
+      expect(
+        resolveApiFieldFixture({
+          apiVersion: 'api-places-v0.1',
+          domainCode: 'overture',
+          lineageSnapshotVersions: [`ss-hk-place-${cohort}`],
+          schemaVersion: 'sv-place-v1',
+          rulesetVersion: 'rs-place-merge-v1',
+          sourceSchemas: {
+            'ds-hk-hkgov-dpo-address': '3.2',
+            'ds-hk-overture-place': placeSchema,
+            'ds-hk-overture-division': divisionSchema,
+          },
+        }),
+      ).not.toBeNull()
+    }
+  })
+
   test('resolves December Places with the selected November Division schema', () => {
     const lookup = {
       apiVersion: 'api-places-v0.1',
