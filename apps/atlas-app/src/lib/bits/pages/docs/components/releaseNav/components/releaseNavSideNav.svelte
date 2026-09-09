@@ -44,7 +44,7 @@ let {
   <ReleaseNavDomainList {currentDomainCode} {domains} title={domainTitle} />
 {/snippet}
 
-<aside class="h-[var(--release-sidebar-height,100%)] [overflow-anchor:none]">
+<aside class="h-(--release-sidebar-height,100%) [overflow-anchor:none]">
   <div
     class={`grid h-full min-h-0 ${domains.length ? 'grid-rows-[var(--release-version-height,1fr)_minmax(0,1fr)]' : 'grid-rows-[minmax(0,1fr)]'}`}
   >
