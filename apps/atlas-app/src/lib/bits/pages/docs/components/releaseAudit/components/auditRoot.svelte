@@ -151,15 +151,19 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
     return
   searchStates = { ...searchStates, [releaseId]: state }
 }
-const sourceAuditHref = (resource: {
-  sourceDatasetCode?: string
-  sourcePublisherName?: string
-  sourceReleaseCode?: string
-}) =>
-  resource.sourceDatasetCode && resource.sourceReleaseCode
-    ? `/sources/${encodeURIComponent(resource.sourceDatasetCode)}/${encodeURIComponent(resource.sourceReleaseCode)}?tab=audit`
-    : undefined
 const sourceOutlineLabel = (resource: {
+  resourceType: Parameters<typeof resourceLabel>[0]
+  sourcePublisherShortName?: string
+  sourceSubType?: string | null
+}) =>
+  [
+    resource.sourcePublisherShortName,
+    resourceLabel(resource.resourceType),
+    resource.sourceSubType,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+const sourceHeadingLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherName?: string
   sourceSubType?: string | null
@@ -202,33 +206,16 @@ const sourceHeadingId = (releaseId: string) =>
         class={familyType ? 'space-y-5 border-t border-border-card/60 pt-8' : ''}
       >
         {#if familyType}
-          <div class="space-y-1">
+          <div>
             <h2
               id={sourceHeadingId(resource.releaseId)}
-              class="text-lg font-medium text-primary"
+              class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
               data-audit-source-heading
               data-audit-release-id={resource.releaseId}
               data-audit-source-label={sourceOutlineLabel(resource)}
             >
-              {sourceOutlineLabel(resource)}
+              {sourceHeadingLabel(resource)}
             </h2>
-            <p
-              class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
-            >
-              {m.reference_source_release()}
-            </p>
-            {#if sourceAuditHref(resource)}
-              <a
-                class="text-lg font-medium text-primary underline decoration-border-card underline-offset-4 transition hover:decoration-secondary"
-                href={sourceAuditHref(resource)}
-              >
-                {resource.sourceDatasetCode}
-                · {resource.sourceReleaseCode}
-              </a>
-            {/if}
-            <p class="text-sm text-foreground-alt">
-              {resourceLabel(resource.resourceType)}
-            </p>
           </div>
         {/if}
         <AuditRelease

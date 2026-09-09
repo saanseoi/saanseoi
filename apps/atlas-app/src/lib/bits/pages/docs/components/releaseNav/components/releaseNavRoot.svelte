@@ -107,7 +107,7 @@ $effect(() => {
 
 $effect(() => {
   visibleVersionCode
-  observedOutlineId = null
+  if (loading) return
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
 })
 </script>
