@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto'
+import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
@@ -139,7 +140,10 @@ export async function runHkgovPlandBackfillCommand(
         )
       : new Set<string>()
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
-  const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
+  const releases = selectInitialisationVersions(
+    kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES,
+    release => release.year,
+  )
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
   const datasetCode =
     kind === 'pu'

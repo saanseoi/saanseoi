@@ -1,5 +1,6 @@
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import { dirname, join, resolve } from 'node:path'
 
 import { isCancel, log, note, select } from '@clack/prompts'
@@ -196,8 +197,11 @@ export async function runHkgovAlsIngestCommand(
     async () =>
       resolveAlsSourceReleases(
         target,
-        resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
-          release => release.sourceVersion >= firstSourceVersion,
+        selectInitialisationVersions(
+          resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
+            release => release.sourceVersion >= firstSourceVersion,
+          ),
+          release => release.sourceVersion,
         ),
       ),
   )
