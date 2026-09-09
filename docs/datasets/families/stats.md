@@ -1,5 +1,9 @@
 # Statistics dataset family
 
+Source-shard assignments use the four-digit year of the publisher version, including
+versions with quarter or half-year suffixes. Canonical history uses each observation's
+reference-period end year independently.
+
 [Minimal initialisation](../minimal-initialisation.md) selects at most two distinct
 configured versions per source dataset, including their companion resources.
 

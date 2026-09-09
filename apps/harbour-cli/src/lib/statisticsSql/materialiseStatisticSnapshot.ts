@@ -44,7 +44,7 @@ export async function materialiseStatisticSnapshots(args: {
     'source',
     environment,
     dataset.regionCode,
-    dataset.sourceVersion,
+    dataset.sourceVersion.slice(0, 4),
   )
   if (!sourceShard) {
     throw new Error(
