@@ -16,7 +16,8 @@ if test "$initialisation_status_code" -ne 0
     exit $initialisation_status_code
 end
 if test (string trim -- (string join \n -- $initialisation_status)) = complete
-    init_run_step ./bin/saanseoi init:places:overture:skip --target $saanseoi_init_target
+    init_run_step ./bin/saanseoi init:skipped --target $saanseoi_init_target \
+        --dataset ds-hk-overture-place
     exit 0
 end
 

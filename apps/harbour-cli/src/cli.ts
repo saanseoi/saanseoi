@@ -22,7 +22,7 @@ import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
 import {
-  formatCompletedInitialisationSkip,
+  formatInitialisationSkippedDatasets,
   runInitialisationCommand,
 } from './lib/commands/init.ts'
 import { runResetDivisionsCommand } from './lib/commands/resetDivisions.ts'
@@ -161,9 +161,6 @@ async function main() {
     case 'init:addresses:saanseoi:status':
       console.log(await getOfficialAddressInitialisationStatus(target))
       return
-    case 'init:addresses:saanseoi:skip':
-      console.log(await formatCompletedInitialisationSkip('ds-hk-hkgov-dpo-address'))
-      return
     case 'init:addresses:saanseoi:complete':
       await completeOfficialAddressInitialisation(target)
       return
@@ -175,9 +172,30 @@ async function main() {
     case 'init:places:overture:status':
       console.log(await getOverturePlacesInitialisationStatus(target))
       return
-    case 'init:places:overture:skip':
-      console.log(await formatCompletedInitialisationSkip('ds-hk-overture-place'))
+    case 'init:skipped': {
+      const datasets =
+        typeof args.options.dataset === 'string'
+          ? args.options.dataset.split(',').filter(Boolean)
+          : []
+      const releases =
+        typeof args.options.release === 'string'
+          ? args.options.release.split(',').filter(Boolean)
+          : []
+      if (
+        args.positionals.length > 0 ||
+        (datasets.length === 0 && releases.length === 0)
+      ) {
+        throw new Error(
+          'Pass --dataset CODE[,CODE...] or --release CODE[,CODE...] to `init:skipped`.',
+        )
+      }
+      for (const line of await formatInitialisationSkippedDatasets(target, {
+        datasetCodes: datasets,
+        releaseCodes: releases,
+      }))
+        console.log(line)
       return
+    }
     case 'init:places:overture:complete':
       await completeOverturePlacesInitialisation(target)
       return

@@ -4,9 +4,12 @@ import { join, resolve } from 'node:path'
 import { styleText } from 'node:util'
 
 import { note, outro } from '@clack/prompts'
+import { and, eq, inArray, metaSchema } from '@repo/db'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { formatField, formatMutedValue } from '../cli/display.ts'
-import { formatSkippedDatasetLine } from './updateFormatting.ts'
+import { formatUpdateGridRow } from './updateFormatting.ts'
 import { datasetName, loadDatasetFixtures } from '../sources/sourceUpdates.ts'
+import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
 import { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
@@ -14,7 +17,7 @@ import {
   finishInitialisationGuide,
   initialisationIndent,
 } from '../cli/initialisationIndent.ts'
-import type { ParsedArgs } from '../cli/options.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
   recordInitialisationSummaryEvent,
@@ -26,19 +29,56 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 export { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
 export type { InitialisationCommand } from '../cli/initialisationCommands.ts'
 
-/** Render a completed initialiser with the standard dataset skip grid. */
-export async function formatCompletedInitialisationSkip(datasetCode: string) {
-  const [dataset] = await loadDatasetFixtures(new Set([datasetCode]))
-  if (!dataset)
-    throw new Error(`Initialisation dataset fixture not found: ${datasetCode}.`)
-  const sourceVariant = `${dataset.publisherCode}-${datasetName(dataset)
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/g, '-')
-    .replaceAll(/^-|-$/g, '')}`
-  return `\u001b[36m◆\u001b[39m  ${formatSkippedDatasetLine(
-    { ...dataset, sourceVariant },
-    'no updates',
-  )}`
+/** Render skipped initialisation datasets through the standard source grid. */
+export async function formatInitialisationSkippedDatasets(
+  target: UploadTarget,
+  input: { datasetCodes: readonly string[]; releaseCodes: readonly string[] },
+) {
+  const datasetCodes = new Set(input.datasetCodes)
+  if (input.releaseCodes.length > 0) {
+    const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
+      cacheTableProfile: 'places',
+      includeAllHistoryShardYears: true,
+      includeAllSourceShardYears: true,
+      requireExistingRemoteCache: target.remote,
+    })
+    try {
+      for (const codes of chunkArray(
+        [...new Set(input.releaseCodes)],
+        getMaxItemsPerInClause(1, 1),
+      )) {
+        const rows = await context.metaDb
+          .select({ datasetCode: metaSchema.metaDatasets.code })
+          .from(metaSchema.metaReleases)
+          .innerJoin(
+            metaSchema.metaDatasets,
+            eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+          )
+          .where(
+            and(
+              inArray(metaSchema.metaReleases.code, codes),
+              inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
+            ),
+          )
+          .all()
+        for (const row of rows) datasetCodes.add(row.datasetCode)
+      }
+    } finally {
+      context.cleanup()
+    }
+  }
+
+  const datasets = await loadDatasetFixtures(datasetCodes)
+  return datasets.map(dataset => {
+    const sourceVariant = `${dataset.publisherCode}-${datasetName(dataset)
+      .toLowerCase()
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-|-$/g, '')}`
+    return `\u001b[36m◆\u001b[39m  ${formatUpdateGridRow(
+      { ...dataset, sourceVariant },
+      'SKIPPED: no updates',
+    )}`
+  })
 }
 
 type InitialisationSubprocess = {

@@ -13,6 +13,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
@@ -140,14 +141,11 @@ export async function runHkgovPlandBackfillCommand(
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
   const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
-  const releaseColumnWidth = Math.max(
-    Number(process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH) || 0,
-    ...releases.flatMap(release =>
-      (['division', 'divisionArea'] as const).map(
-        type => buildDatasetReleaseCode('hk', source, release.year, type).length,
-      ),
-    ),
-  )
+  const datasetCode =
+    kind === 'pu'
+      ? 'ds-hk-hkgov-pland-division-pu'
+      : 'ds-hk-hkgov-pland-division-new-town'
+  let skippedReleaseCount = 0
   const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
   const preparedArtefactCacheRoot = resolve(
     dependencies.preparedArtefactCacheRoot ??
@@ -158,9 +156,7 @@ export async function runHkgovPlandBackfillCommand(
     const types = (['division', 'divisionArea'] as const).filter(type => {
       const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
       if (completedReleaseCodes.has(releaseCode)) {
-        console.log(
-          `\u001b[36m◆\u001b[39m  ${releaseCode.padEnd(releaseColumnWidth)}  SKIPPED: published or superseded`,
-        )
+        skippedReleaseCount += 1
       }
       return !completedReleaseCodes.has(releaseCode)
     })
@@ -221,6 +217,14 @@ export async function runHkgovPlandBackfillCommand(
         runUploadCommand: dependencies.runUploadCommand,
       })
     }
+  }
+
+  if (skippedReleaseCount === releases.length * 2) {
+    for (const line of await formatInitialisationSkippedDatasets(target, {
+      datasetCodes: [datasetCode],
+      releaseCodes: [],
+    }))
+      console.log(line)
   }
 }
 
