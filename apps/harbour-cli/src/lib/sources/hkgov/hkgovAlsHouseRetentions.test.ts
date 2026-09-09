@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import fixture from '../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-retentions.json'
+import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
 import { retainAlsHouses, labelAlsHouseRetentions } from './hkgovAlsHouseRetentions'
 import { readAls3dFeatures } from './hkgovAls3d'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
@@ -11,6 +11,7 @@ import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
 
 const version = (r: string) => `${r.slice(0, 4)}-${r.slice(4, 6)}-${r.slice(6, 8)}.0`
+const fixture = loadHouseRetentionFixture()
 const rules = fixture.retentions
 const csus = new Set(rules.flatMap(r => r.csus))
 const scopedCsus = new Set([...csus, '3234825793T20050430', '3238925757T20050430'])
