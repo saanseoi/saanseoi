@@ -1,25 +1,29 @@
 <script lang="ts">
 import { m } from '@repo/i18n/messages'
-import type { Json } from '@repo/core/provenance'
-import { alsAuditDecisions } from './auditAlsDecisions'
-import { matchesAudit } from './auditSearch'
+import type { AlsSearchRow } from './auditFixtureCatalogue'
+import { matchesAuditText } from './auditSearch'
 import Group from './auditAlsGroup.svelte'
 let {
-  groups,
+  rows,
   releaseId,
+  releaseCode,
+  hash,
   query = '',
-}: { groups: Record<string, Json>; releaseId: string; query?: string } = $props()
-let decisions = $derived(alsAuditDecisions(groups, releaseId))
+}: {
+  rows: AlsSearchRow[]
+  releaseId: string
+  releaseCode: string
+  hash: string
+  query?: string
+} = $props()
 let types = $derived(
-  [...new Set(decisions.map(d => d.kind))]
+  [...new Set(rows.map(d => d.kind))]
     .map(kind => {
-      const all = decisions.filter(d => d.kind === kind)
+      const all = rows.filter(d => d.kind === kind)
       return {
         kind,
         all,
-        visible: all.filter(d =>
-          matchesAudit(query, d.title, d.description, d.context, d.raw),
-        ),
+        visible: all.filter(d => matchesAuditText(query, d.text)),
       }
     })
     .filter(group => group.visible.length),
@@ -32,5 +36,12 @@ let types = $derived(
   </p>
 {/if}
 {#each types as group (group.kind)}
-  <Group all={group.all} visible={group.visible} {query} />
+  <Group
+    all={group.all}
+    visible={group.visible}
+    {query}
+    {releaseId}
+    {releaseCode}
+    {hash}
+  />
 {/each}
