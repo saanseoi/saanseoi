@@ -196,9 +196,10 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     rawProperties.properties = Object.fromEntries(
       Object.entries(rawProperties.properties).map(([field, schema]) => {
         const measure = measuresByField.get(field)
+        const description = sourceRecordFieldDescription(sourceReleaseCode, field)
+        if (description) return [field, { ...schema, description }]
         if (!measure) {
-          const description = sourceRecordFieldDescription(sourceReleaseCode, field)
-          return [field, description ? { ...schema, description } : schema]
+          return [field, schema]
         }
         return [
           field,
@@ -206,7 +207,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
             ...schema,
             description: [
               measure.name,
-              measure.definition,
+              measure.definition !== measure.name ? measure.definition : null,
               measure.unitCode !== 'publisher-unknown'
                 ? `${m.source_audit_unit()}: ${measure.unitCode.replaceAll('-', ' ')}.`
                 : null,
