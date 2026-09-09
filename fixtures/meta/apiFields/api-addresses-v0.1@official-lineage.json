@@ -1,10 +1,17 @@
 {
-  "versionHash": "sha256:3a9b37ee97b793ff1e20575e5081bb2a72a3a37c09f37d69c2091efe8cadac01",
+  "versionHash": "sha256:b9700610d980542987def75ce4a3d5526e1dc17a8d866b3cd7112349d18f267a",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "schemaVersion": "sv-address-v1",
   "rulesetVersion": "rs-address-merge-v1",
   "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-address-2024-07-25.0",
+      "sourceSchemas": {
+        "ds-hk-hkgov-dpo-address": "3.2",
+        "ds-hk-overture-division": "1.12.0"
+      }
+    },
     {
       "snapshotVersion": "ss-hk-address-2025-01-23.0",
       "sourceSchemas": {
