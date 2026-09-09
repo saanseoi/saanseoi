@@ -8,9 +8,14 @@ if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
-set -l initialisation_status (SAANSEOI_INIT_COMMAND= SAANSEOI_INIT_GUIDES= ./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target)
-if test "$initialisation_status" = complete
-    echo "Official address initialisation is already complete; no work required."
+set -l initialisation_status (SAANSEOI_INIT_COMMAND= SAANSEOI_INIT_GUIDES= ./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target 2>&1)
+set -l initialisation_status_code $status
+if test "$initialisation_status_code" -ne 0
+    string join \n -- $initialisation_status >&2
+    exit $initialisation_status_code
+end
+if test (string trim -- (string join \n -- $initialisation_status)) = complete
+    init_run_step ./bin/saanseoi init:addresses:saanseoi:skip --target $saanseoi_init_target
     exit 0
 end
 

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import {
+  formatCompletedInitialisationSkip,
   formatInitialisationSummary,
   interruptInitialisationProcess,
   resolveInitialisationCommand,
@@ -297,6 +298,21 @@ describe('initialisation commands', () => {
     expect(statusCheck).toBeLessThan(begin)
     expect(begin).toBeLessThan(ingest)
     expect(source.slice(statusCheck, begin)).toContain('exit 0')
+  })
+
+  test('renders completed initialisers through the standard dataset skip grid', async () => {
+    const [addresses, places] = await Promise.all([
+      formatCompletedInitialisationSkip('ds-hk-hkgov-dpo-address'),
+      formatCompletedInitialisationSkip('ds-hk-overture-place'),
+    ])
+
+    for (const line of [addresses, places]) {
+      expect(line).toContain('◆')
+      expect(line).toContain('SKIPPED: no updates')
+      expect(line).not.toContain('\n')
+    }
+    expect(addresses).toContain('Address Lookup Service')
+    expect(places).toContain('Place + Address')
   })
 
   test('defers family docs and publishes them once at the end of aggregate init', () => {

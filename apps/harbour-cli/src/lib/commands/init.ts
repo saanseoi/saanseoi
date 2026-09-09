@@ -5,6 +5,8 @@ import { styleText } from 'node:util'
 
 import { note, outro } from '@clack/prompts'
 import { formatField, formatMutedValue } from '../cli/display.ts'
+import { formatSkippedDatasetLine } from './updateFormatting.ts'
+import { datasetName, loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
 import { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
@@ -23,6 +25,21 @@ const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 
 export { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
 export type { InitialisationCommand } from '../cli/initialisationCommands.ts'
+
+/** Render a completed initialiser with the standard dataset skip grid. */
+export async function formatCompletedInitialisationSkip(datasetCode: string) {
+  const [dataset] = await loadDatasetFixtures(new Set([datasetCode]))
+  if (!dataset)
+    throw new Error(`Initialisation dataset fixture not found: ${datasetCode}.`)
+  const sourceVariant = `${dataset.publisherCode}-${datasetName(dataset)
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-|-$/g, '')}`
+  return `\u001b[36m◆\u001b[39m  ${formatSkippedDatasetLine(
+    { ...dataset, sourceVariant },
+    'no updates',
+  )}`
+}
 
 type InitialisationSubprocess = {
   kill(signal?: number | NodeJS.Signals): void

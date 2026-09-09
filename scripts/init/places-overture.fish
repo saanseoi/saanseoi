@@ -16,7 +16,7 @@ if test "$initialisation_status_code" -ne 0
     exit $initialisation_status_code
 end
 if test (string trim -- (string join \n -- $initialisation_status)) = complete
-    echo "Overture Places initialisation is already complete; no work required."
+    init_run_step ./bin/saanseoi init:places:overture:skip --target $saanseoi_init_target
     exit 0
 end
 
