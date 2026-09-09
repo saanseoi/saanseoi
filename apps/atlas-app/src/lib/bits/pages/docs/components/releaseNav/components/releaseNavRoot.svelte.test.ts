@@ -83,3 +83,30 @@ test('keeps a clicked section current until the user scrolls manually', async ()
     screen.container.querySelector('a[href="#second-section"]'),
   ).not.toHaveAttribute('aria-current')
 })
+
+test('continues the active stem towards the next sibling in the inactive colour', async () => {
+  const screen = await render(ReleaseNavRoot, {
+    activeOutlineId: 'active-child',
+    analyticsSurface: 'api_release',
+    currentVersionCode: 'v1',
+    hasContent: true,
+    outline: [
+      { id: 'parent', depth: 2, label: 'Parent' },
+      { id: 'active-child', depth: 3, label: 'Active child' },
+      { id: 'next-child', depth: 3, label: 'Next child' },
+    ],
+    tabs: [],
+    versionTitle: 'Versions',
+    versions: [{ code: 'v1', href: '/apis/example/v1', label: 'v1' }],
+  })
+
+  const activeLink = screen.container.querySelector('a[href="#active-child"]')
+  const activeItem = activeLink?.closest('li')
+  expect(activeItem?.querySelector('[data-release-nav-stem="active-end"]')).toHaveClass(
+    'bg-secondary',
+  )
+  expect(activeItem?.querySelector('[data-release-nav-stem-continuation]')).toHaveClass(
+    'bg-outline-variant/80',
+    '-bottom-1',
+  )
+})

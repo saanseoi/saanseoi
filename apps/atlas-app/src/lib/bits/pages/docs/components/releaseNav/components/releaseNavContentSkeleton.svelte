@@ -1,4 +1,7 @@
 <script lang="ts">
+import ReleaseSchemaSkeleton from '../../releaseSchema/components/releaseSchemaSkeleton.svelte'
+import ReleaseSamplesSkeleton from '../../releaseSamples/components/releaseSamplesSkeleton.svelte'
+
 type Props = {
   diff?: boolean
   linksVariant?: 'assembly' | 'releases'
@@ -24,12 +27,10 @@ let skeleton = $derived(
 )
 </script>
 
-{#if tab === 'samples'}
-  <div class="space-y-3" aria-busy="true">
-    {#each Array(4) as _}
-      <div class="h-28 animate-pulse bg-data-surface-container-low"></div>
-    {/each}
-  </div>
+{#if tab === 'schema'}
+  <ReleaseSchemaSkeleton />
+{:else if tab === 'samples'}
+  <ReleaseSamplesSkeleton showDescription />
 {:else}
   {#if linksSkeleton}
     {#await linksSkeleton then module}
