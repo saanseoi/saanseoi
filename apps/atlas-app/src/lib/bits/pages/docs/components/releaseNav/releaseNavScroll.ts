@@ -15,6 +15,15 @@ const isPrimaryUnmodifiedClick = (event: MouseEvent) =>
   !event.shiftKey &&
   !event.altKey
 
+const releaseNavControlsBottom = (controls: HTMLElement) => {
+  const stickyTop = Number.parseFloat(getComputedStyle(controls).top)
+  return (
+    (Number.isFinite(stickyTop) ? stickyTop : 0) +
+    controls.getBoundingClientRect().height +
+    8
+  )
+}
+
 export const getReleaseNavContentTarget = (panel?: HTMLElement) =>
   panel?.querySelector<HTMLElement>('[data-release-nav-content-body]') ?? panel
 
@@ -127,6 +136,8 @@ export async function scrollToReleaseNavAnchor({
 
   if (!target) return
 
+  const anchorOffset = target.hasAttribute('data-release-nav-box') ? 0 : 24
+
   event.preventDefault()
 
   const scrollContainer = target.closest<HTMLElement>('[data-release-nav-content-body]')
@@ -143,11 +154,10 @@ export async function scrollToReleaseNavAnchor({
 
     const targetRect = target.getBoundingClientRect()
     const containerRect = scrollContainer.getBoundingClientRect()
+    // Click navigation has fixed clearance; the scrollspy's viewport fraction
+    // only decides which section is active and must not position anchor jumps.
     const top =
-      scrollContainer.scrollTop +
-      targetRect.top -
-      containerRect.top -
-      containerRect.height * releaseNavActivationViewportFraction
+      scrollContainer.scrollTop + targetRect.top - containerRect.top - anchorOffset
 
     await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
@@ -160,15 +170,22 @@ export async function scrollToReleaseNavAnchor({
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
 
   const targetRect = target.getBoundingClientRect()
+  const pageSectionTop =
+    window.scrollY +
+    targetRect.top -
+    (controls ? releaseNavControlsBottom(controls) : 0) -
+    anchorOffset
+  const footer = document.querySelector<HTMLElement>('[data-site-footer]')
+  // Document-flow tabs have no trailing reading-panel space. Stop before the
+  // site footer enters the viewport rather than pushing the sidebar offscreen.
+  const lastContentScrollTop = footer
+    ? window.scrollY + footer.getBoundingClientRect().top - window.innerHeight
+    : Number.POSITIVE_INFINITY
   window.scrollTo({
-    top: Math.max(
-      0,
-      window.scrollY +
-        targetRect.top -
-        window.innerHeight * releaseNavActivationViewportFraction,
-    ),
+    top: Math.max(0, Math.min(lastContentScrollTop, pageSectionTop)),
     behavior: 'smooth',
   })
+  window.dispatchEvent(new Event('release-nav:anchor'))
 }
 
 export const revealReleaseNavVersion = async (
@@ -187,6 +204,31 @@ export const revealReleaseNavVersion = async (
   })
 }
 
+/** Shared by document-flow Stats, Audit, Sources and other release tabs. */
+export function getReleaseNavDocumentActive(targets: HTMLElement[]) {
+  const first = targets[0]
+  if (!first) return null
+  const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
+  const top = controls ? releaseNavControlsBottom(controls) : 0
+  const active =
+    [...targets]
+      .reverse()
+      .find(target => target.getBoundingClientRect().top <= top + 25) ?? first
+  const footer = document.querySelector<HTMLElement>('[data-site-footer]')
+  if (
+    footer &&
+    Math.abs(footer.getBoundingClientRect().top - window.innerHeight) <= 2
+  ) {
+    const selected = targets.find(target => `#${target.id}` === window.location.hash)
+    const last = targets.at(-1)
+    const candidate =
+      selected && selected.getBoundingClientRect().top >= top ? selected : last
+    if (candidate && candidate.getBoundingClientRect().top < window.innerHeight)
+      return candidate.id
+  }
+  return active.id
+}
+
 export const observeReleaseNavOutline = (
   items: ReleaseNavOutlineItem[],
   onActive: (id: string | null) => void,
@@ -197,18 +239,8 @@ export const observeReleaseNavOutline = (
   let targets: HTMLElement[] = []
 
   const update = () => {
-    const firstTarget = targets.at(0)
-
-    if (!firstTarget) return
-
-    const activationLine = window.innerHeight * releaseNavActivationViewportFraction
-    const active =
-      [...targets]
-        .reverse()
-        .find(target => target.getBoundingClientRect().top <= activationLine) ??
-      firstTarget
-
-    onActive(active.id)
+    const active = getReleaseNavDocumentActive(targets)
+    if (active) onActive(active)
   }
 
   const observeTargets = () => {
@@ -223,6 +255,7 @@ export const observeReleaseNavOutline = (
     })
     for (const target of targets) observer.observe(target)
     window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('release-nav:anchor', update)
     update()
     return true
   }
@@ -246,5 +279,6 @@ export const observeReleaseNavOutline = (
     observer?.disconnect()
     mutationObserver?.disconnect()
     window.removeEventListener('scroll', update)
+    window.removeEventListener('release-nav:anchor', update)
   }
 }

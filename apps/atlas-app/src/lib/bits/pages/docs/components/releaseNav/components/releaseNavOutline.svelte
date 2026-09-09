@@ -4,7 +4,6 @@ import { scrollToReleaseNavAnchor } from '../releaseNavScroll'
 import ReleaseNavInlineLabel from './releaseNavInlineLabel.svelte'
 
 type OutlineNode = ReleaseNavOutlineItem & { children: OutlineNode[] }
-type StemState = 'inactive' | 'active' | 'active-end'
 type Props = {
   activeId: string | null
   ariaLabel: string
@@ -31,32 +30,20 @@ const buildTree = (items: ReleaseNavOutlineItem[]) => {
   return roots
 }
 
-const containsActive = (node: OutlineNode): boolean =>
-  node.id === activeId || node.children.some(containsActive)
-
 let tree = $derived(buildTree(items))
 </script>
 
-<nav
-  class={mobile ? 'px-3 py-2' : 'px-2 pb-3 pt-2 text-primary'}
-  aria-label={ariaLabel}
->
-  {#snippet item(
-    node: OutlineNode,
-    nested: boolean,
-    isLast: boolean,
-    stem: StemState = 'inactive',
-  )}
+<nav class={mobile ? 'px-3 py-2' : 'px-2 py-3 text-primary'} aria-label={ariaLabel}>
+  {#snippet item(node: OutlineNode, nested: boolean, isLast: boolean)}
     {@const active = activeId === node.id}
-    {@const onActivePath = containsActive(node)}
     <li class:ml-2={nested} class:pl-3={nested} class="relative">
       {#if nested}
         <span
-          class={`pointer-events-none absolute -top-0.75 left-0 border-l transition-colors ${stem === 'inactive' ? 'border-outline-variant/80' : 'border-secondary'} ${stem === 'active-end' || isLast ? mobile ? 'h-5.5' : 'h-4' : '-bottom-0.75'}`}
+          class={`pointer-events-none absolute -top-1 left-0 z-1 w-px bg-outline-variant/80 ${isLast ? mobile ? 'h-6.25' : 'h-4.75' : '-bottom-1'}`}
           aria-hidden="true"
         ></span>
         <span
-          class={`pointer-events-none absolute left-0 border-t transition-colors ${mobile ? 'top-5 w-3' : 'top-3.5 w-3'} ${onActivePath ? 'border-secondary' : 'border-outline-variant/80'}`}
+          class={`pointer-events-none absolute left-0 w-3 border-t border-outline-variant/80 ${mobile ? 'top-5' : 'top-3.5'}`}
           aria-hidden="true"
         ></span>
       {/if}
@@ -71,18 +58,12 @@ let tree = $derived(buildTree(items))
         ><ReleaseNavInlineLabel label={node.label} /></a
       >
       {#if node.children.length}
-        {@const activeChildIndex = node.children.findIndex(containsActive)}
         <ol class="space-y-1 pt-1">
           {#each node.children as child, index}
             {@render item(
               child,
               true,
               index === node.children.length - 1,
-              activeChildIndex < 0 || index > activeChildIndex
-                ? 'inactive'
-                : index === activeChildIndex
-                  ? 'active-end'
-                  : 'active',
             )}
           {/each}
         </ol>
