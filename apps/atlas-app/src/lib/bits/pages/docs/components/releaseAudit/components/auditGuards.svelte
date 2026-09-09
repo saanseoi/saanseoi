@@ -6,10 +6,15 @@ import Shield from '@iconify-svelte/proicons/shield'
 import Trophy from '@iconify-svelte/proicons/trophy'
 import { guardCopy } from './auditGuardCopy'
 import RuleText from './auditRuleText.svelte'
+import SectionHeading from './auditSectionHeading.svelte'
 let { guards }: { guards: AuditGuard[] } = $props()
 </script>
 <section class="space-y-3" aria-label={m.source_audit_guards()}>
-  <h3 class="px-2 text-lg font-medium">{m.source_audit_guards()}</h3>
+  <SectionHeading
+    title={m.source_audit_guards()}
+    label={m.source_audit_guards_info()}
+    description={m.source_audit_guards_info_description()}
+  />
   {#each guards as guard (guard.id)}
     {@const copy = guardCopy(guard)}
     <article

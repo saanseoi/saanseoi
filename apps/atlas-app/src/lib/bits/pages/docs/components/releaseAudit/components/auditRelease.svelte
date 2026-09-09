@@ -11,6 +11,7 @@ import ComparisonCard from './auditPatchCard.svelte'
 import { matchesAudit } from './auditSearch'
 import { guardCopy } from './auditGuardCopy'
 import Controls from './releaseAuditControls.svelte'
+import SectionHeading from './auditSectionHeading.svelte'
 import { getAuditPage, getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
 import type { Json } from '@repo/core/provenance'
 import {
@@ -242,7 +243,11 @@ $effect(() => {
     class="hidden space-y-3 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
     aria-label={m.source_audit_patches()}
   >
-    <h3 class="px-2 text-lg font-medium">{m.source_audit_patches()}</h3>
+    <SectionHeading
+      title={m.source_audit_patches()}
+      label={m.source_audit_patches_info()}
+      description={m.source_audit_patches_info_description()}
+    />
     {#each patches as bulk (bulk.id)}
       <Bulk
         query={effectiveQuery}
@@ -305,7 +310,11 @@ $effect(() => {
     class="hidden space-y-3 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
     aria-label={m.source_audit_rules()}
   >
-    <h3 class="px-2 text-lg font-medium">{m.source_audit_rules()}</h3>
+    <SectionHeading
+      title={m.source_audit_rules()}
+      label={m.source_audit_rules_info()}
+      description={m.source_audit_rules_info_description()}
+    />
     {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
       <ComparisonCard
         {...hierarchy}

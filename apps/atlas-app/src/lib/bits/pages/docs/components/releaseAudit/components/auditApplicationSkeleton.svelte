@@ -26,7 +26,6 @@ $effect(() => {
         <div class="flex items-center justify-between gap-4 px-4 py-3">
           <div class="space-y-2">
             <div class="h-5 w-28 rounded bg-current/10"></div>
-            <div class="h-3 w-36 rounded bg-current/10"></div>
           </div>
           <div class="flex items-center gap-3">
             <div class="h-6 w-16 rounded-full bg-current/10"></div>

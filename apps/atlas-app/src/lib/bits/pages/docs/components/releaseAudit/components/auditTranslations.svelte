@@ -8,6 +8,7 @@ import Location from '@iconify-svelte/proicons/location'
 import Applications from './auditApplications.svelte'
 import Origin from './auditTranslationOrigin.svelte'
 import { matchesAudit } from './auditSearch'
+import SectionHeading from './auditSectionHeading.svelte'
 let {
   entries,
   references,
@@ -98,37 +99,42 @@ async function toggle(side: 'source' | 'target', value: string) {
 {#if searched.length}
   <section class="space-y-3" aria-label={m.source_audit_translations()}>
     {#if showHeader}
-      <header class="flex flex-wrap items-start justify-between gap-4 px-2">
-        <h3 class="text-lg font-medium">
-          {m.source_audit_translations()}
-          <span class="ml-1 text-sm font-normal opacity-45"
-            >{matching.length.toLocaleString()}</span
-          >
-        </h3>
-        <div class="flex flex-wrap gap-x-6 gap-y-3">
-          {#each [{ side: 'source' as const, title: m.source_audit_translation_source(), locales: sourceLocales, excluded: excludedSource }, { side: 'target' as const, title: m.source_audit_target(), locales: targetLocales, excluded: excludedTarget }] as control}
-            <fieldset class="flex flex-wrap items-center gap-2">
-              <legend
-                class="mr-1 text-xs font-medium uppercase tracking-wide opacity-50"
-              >
-                {control.title}
-              </legend>
-              {#each control.locales as value}
-                <button
-                  type="button"
-                  class={['cursor-pointer rounded-md border px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2', pendingToggle === `${control.side}:${value}` && 'motion-safe:animate-pulse', control.excluded.includes(value) ? 'border-current/10 bg-current/5 text-current/40 hover:text-current/65' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20']}
-                  aria-pressed={!control.excluded.includes(value)}
-                  aria-label={m.source_audit_locale_filter({ side: control.title, locale: value })}
-                  aria-busy={pendingToggle === `${control.side}:${value}`}
-                  disabled={pendingToggle !== null}
-                  onclick={event => { if (event.detail < 2) void toggle(control.side, value) }}
+      <header>
+        <SectionHeading
+          title={`${m.source_audit_translations()} (${matching.length.toLocaleString()})`}
+          label={m.source_audit_translations_info()}
+          description={m.source_audit_translations_info_description()}
+        >
+          {#snippet children()}
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
+              {#each [{ side: 'source' as const, title: m.source_audit_translation_source(), locales: sourceLocales, excluded: excludedSource }, { side: 'target' as const, title: m.source_audit_target(), locales: targetLocales, excluded: excludedTarget }] as control}
+                <fieldset
+                  class="flex flex-wrap items-center gap-2"
+                  aria-label={control.title}
                 >
-                  {value}
-                </button>
+                  <span
+                    class="mr-1 text-xs font-medium uppercase tracking-wide opacity-50"
+                  >
+                    {control.title}
+                  </span>
+                  {#each control.locales as value}
+                    <button
+                      type="button"
+                      class={['cursor-pointer rounded-md border px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2', pendingToggle === `${control.side}:${value}` && 'motion-safe:animate-pulse', control.excluded.includes(value) ? 'border-current/10 bg-current/5 text-current/40 hover:text-current/65' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20']}
+                      aria-pressed={!control.excluded.includes(value)}
+                      aria-label={m.source_audit_locale_filter({ side: control.title, locale: value })}
+                      aria-busy={pendingToggle === `${control.side}:${value}`}
+                      disabled={pendingToggle !== null}
+                      onclick={event => { if (event.detail < 2) void toggle(control.side, value) }}
+                    >
+                      {value}
+                    </button>
+                  {/each}
+                </fieldset>
               {/each}
-            </fieldset>
-          {/each}
-        </div>
+            </div>
+          {/snippet}
+        </SectionHeading>
       </header>
     {/if}
     <section
