@@ -259,6 +259,42 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(all.body.data[0]?.attributes.granularity).toBe('complex')
     expect(all.body.data[1]?.attributes.granularity).toBe('unit')
     expect(all.body.data[2]?.attributes.granularity).toBe('unknown')
+    expect(all.body.data[0]?.attributes.i18n).toEqual({
+      en: {
+        formattedAddress: 'Harbour a',
+        buildingName: 'Harbour',
+        buildingNumberExpression: '20',
+        buildingNumberFrom: '20',
+        buildingNumberTo: null,
+        buildingNumberConnector: null,
+        blockExpression: null,
+        blockType: null,
+        blockRef: null,
+        blockTypeBeforeNumber: null,
+        phaseExpression: null,
+        phaseName: null,
+        phaseRef: null,
+        estateName: null,
+        streetName: null,
+      },
+      'zh-hant': {
+        formattedAddress: 'Harbour a',
+        buildingName: 'Harbour',
+        buildingNumberExpression: '20',
+        buildingNumberFrom: '20',
+        buildingNumberTo: null,
+        buildingNumberConnector: null,
+        blockExpression: null,
+        blockType: null,
+        blockRef: null,
+        blockTypeBeforeNumber: null,
+        phaseExpression: null,
+        phaseName: null,
+        phaseRef: null,
+        estateName: null,
+        streetName: null,
+      },
+    })
     const full = await getAddressDetail({
       ...args,
       id: 'b',
@@ -279,6 +315,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(compact.status === 200 && compact.body.data.attributes).not.toHaveProperty(
       'granularityProvenance',
     )
+    expect(compact.status === 200 && compact.body.data.attributes.i18n).toEqual({
+      en: { formattedAddress: 'Harbour b' },
+      'zh-hant': { formattedAddress: 'Harbour b' },
+    })
     const page = await listAddresses({
       ...args,
       query: { 'page[limit]': 2, 'page[offset]': 1 },
