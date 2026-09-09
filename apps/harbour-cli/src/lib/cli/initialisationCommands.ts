@@ -1,4 +1,9 @@
 const initialisationCommands = {
+  'init:minimal': {
+    script: 'scripts/init/minimal.fish',
+    supportsContinue: true,
+    supportsTarget: true,
+  },
   init: {
     script: 'scripts/init/all.fish',
     supportsContinue: true,

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
 import { and, not } from 'drizzle-orm'
@@ -68,17 +69,28 @@ function targetName(target: UploadTarget): OfficialAddressInitManifest['target']
 }
 
 function manifestPath(target: UploadTarget) {
-  return resolve(MANIFEST_ROOT, `${targetName(target)}.json`)
+  return resolve(
+    MANIFEST_ROOT,
+    `${targetName(target)}${isMinimalInitialisation() ? '.minimal' : ''}.json`,
+  )
 }
 
 /** Return the durable lifecycle state without opening any D1 bindings. */
 export async function getOfficialAddressInitialisationStatus(target: UploadTarget) {
   const path = manifestPath(target)
+  if (
+    !isMinimalInitialisation() &&
+    existsSync(resolve(MANIFEST_ROOT, `${targetName(target)}.minimal.json`))
+  ) {
+    throw new Error(
+      'A minimal address initialisation exists. Resume with init:minimal; a full run requires an explicitly reviewed reset of that sample.',
+    )
+  }
   if (!existsSync(path)) {
     // A focused init can outlive a lost local manifest. Never adopt this state
     // for reset ownership, but do not attempt a second clean-baseline init
     // when the completed Address API state still proves the run succeeded.
-    if (target.remote) return 'missing' as const
+    if (target.remote || isMinimalInitialisation()) return 'missing' as const
     const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
       cacheTableProfile: 'address',
       includeAllHistoryShardYears: true,

@@ -3,6 +3,7 @@ import {
   buildDivisionApiStats,
   type DivisionHistoryTarget,
 } from './divisionApiReleaseSetStats'
+import { buildAddressApiReleaseSetChurn } from './addressApiReleaseSetStats'
 
 import {
   buildAddressApiReleaseSetStatsRows,
@@ -131,11 +132,19 @@ export async function calculateAndStoreApiReleaseSetStats(
   try {
     const rows =
       options.family === 'address'
-        ? await buildAddressApiReleaseSetStatsForSnapshot(
-            options.currentDb,
-            snapshotId,
-            options.addressQuality,
-          )
+        ? await (async () => {
+            const churn = await buildAddressApiReleaseSetChurn(
+              options.metaDb,
+              options.historyTargets ?? [],
+              apiReleaseSetId,
+            )
+            return buildAddressApiReleaseSetStatsForSnapshot(
+              options.currentDb,
+              snapshotId,
+              options.addressQuality,
+              churn,
+            )
+          })()
         : options.family === 'division'
           ? await buildDivisionApiStats(
               options.metaDb,
@@ -220,6 +229,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
   quality?: AddressDivisionQualityCounts,
+  churn?: Parameters<typeof buildAddressApiReleaseSetStatsRows>[0]['churn'],
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
   const [
     address2dCount,
@@ -325,6 +335,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     areaLinkedCount,
     byDistrict,
     componentCounts,
+    churn,
     districtLinkedCount,
     localeStats,
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),

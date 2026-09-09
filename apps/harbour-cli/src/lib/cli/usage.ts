@@ -10,6 +10,7 @@ export function printUsage() {
   saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry|places]
   saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--allow-historical-cohort] [--defer-api-release-set] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
+  saanseoi init:minimal --target local|preview|production [--continue] [--no-cache-artefacts]
   saanseoi init:local [--no-cache-artefacts] [--skip-curation-checks]
   saanseoi init:production [--no-cache-artefacts] [--skip-curation-checks]
   saanseoi init:addresses [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
