@@ -332,7 +332,7 @@ async function readUuidPivotSourceRecordPage(args: {
       : 'NULL AS sourceGeometry'
   // Overture source IDs are stored as canonical hyphenated UUIDs. Keep the
   // pivot in the same representation so SQLite compares the same key space.
-  const randomStart = crypto.randomUUID()
+  const randomStart = `${args.entry.randomSamplePrefix ?? ''}${crypto.randomUUID()}`
 
   const readRange = async (operator: '>=' | '<', limit: number) => {
     const statement = args.sourceDb

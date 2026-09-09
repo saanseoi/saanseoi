@@ -572,15 +572,29 @@ export async function getDivisionDetail(args: {
     resolvePublishedSnapshotForResourceTypeRegionCohortKey:
       dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   })
-  const replayedRecords = await replayDivisionSnapshot({
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    historyDbsByBinding: args.historyDbsByBinding,
-    metaDb: args.metaDb,
-    localeSelection: routeState.localeSelection,
-    resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
-    resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
-    listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
-  })
+  const useCurrent = await runWithD1ReadRetry(() =>
+    dependencies.hasCurrentDivisionSnapshot(
+      args.currentDb,
+      activeDivisionSnapshot.snapshotId,
+    ),
+  )
+  const replayedRecords = useCurrent
+    ? await runWithD1ReadRetry(() =>
+        dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
+          snapshotId: activeDivisionSnapshot.snapshotId,
+          divisionIds: [args.id],
+          localeSelection: routeState.localeSelection,
+        }),
+      )
+    : await replayDivisionSnapshot({
+        snapshotId: activeDivisionSnapshot.snapshotId,
+        historyDbsByBinding: args.historyDbsByBinding,
+        metaDb: args.metaDb,
+        localeSelection: routeState.localeSelection,
+        resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
+        resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
+        listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+      })
   if (args.onResolved) {
     const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
       resolveApiReleaseSetAccessAttribution(
@@ -633,6 +647,21 @@ export async function getDivisionDetail(args: {
     }
   }
 
+  if (useCurrent && requestedIncludes(args.query.include).has('hierarchy')) {
+    replayedRecords.push(
+      ...(await runWithD1ReadRetry(() =>
+        dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
+          snapshotId: activeDivisionSnapshot.snapshotId,
+          snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
+          divisionIds: buildDivisionHierarchyRelationshipData(
+            record.division.id,
+            record.division.hierarchy,
+          ).map(parent => parent.id),
+          localeSelection: routeState.localeSelection,
+        }),
+      )),
+    )
+  }
   const includedRecords = await runWithD1ReadRetry(() =>
     loadIncludedHierarchyRecords({
       includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),

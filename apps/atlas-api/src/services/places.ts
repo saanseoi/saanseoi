@@ -73,7 +73,7 @@ type PlaceDocumentMeta = ApiVersionMetadata & {
   profile: PlaceProfile
   locales: ApiDocumentLocales
   filters: PlaceFilters
-  page: { limit: number; offset: number; total: number }
+  page: { limit: number; offset: number; total?: number; hasMore?: boolean }
 }
 
 type PlaceListDocument = {
@@ -479,7 +479,8 @@ export async function listPlaces(args: {
     localeSelection: routeState.localeSelection,
   }
   let records: PlaceRecord[]
-  let total: number
+  let total: number | undefined
+  let hasMore: boolean | undefined
   const useHistory =
     args.historyDbsByBinding &&
     !(await runWithD1ReadRetry(() =>
@@ -497,7 +498,7 @@ export async function listPlaces(args: {
         snapshotId: activeSnapshot.snapshotId,
       }),
     )
-    total = selected.total
+    hasMore = selected.hasMore
     records = selected.records
   } else {
     ;[records, total] = await runWithD1ReadRetry(() =>
@@ -538,6 +539,7 @@ export async function listPlaces(args: {
       limit,
       offset,
       total,
+      hasMore,
       meta: {
         ...buildApiVersionMetadata({
           requestedApiVersion: routeState.requestedApiVersion,
@@ -556,7 +558,7 @@ export async function listPlaces(args: {
         profile: routeState.profile,
         locales: resolveApiMetaLocales(routeState.localeSelection),
         filters,
-        page: { limit, offset, total },
+        page: { limit, offset, ...(total === undefined ? { hasMore } : { total }) },
       },
       permalink: buildPlacePermalink({
         url,

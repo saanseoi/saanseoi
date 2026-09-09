@@ -34,7 +34,10 @@ import type {
   Address3dUnit,
   Address3dUnitI18n,
 } from '@repo/db/address3d'
-import { listDivisionRecordsCurrentByIds } from '../db/divisions'
+import {
+  hasCurrentDivisionSnapshot,
+  listDivisionRecordsCurrentByIds,
+} from '../db/divisions'
 import { listReplayedDivisionRecords } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
 import {
@@ -224,7 +227,10 @@ async function loadIncludedAddressHierarchy(args: {
     Awaited<ReturnType<typeof listDivisionRecordsCurrentByIds>>[number]
   >()
   for (const [snapshotId, divisionIds] of idsBySnapshot) {
-    if (args.historyDbsByBinding) {
+    if (
+      args.historyDbsByBinding &&
+      !(await hasCurrentDivisionSnapshot(args.currentDb, snapshotId))
+    ) {
       const plan = await resolveSnapshotReplayPlan(args.metaDb as never, snapshotId)
       const shards = new Map(
         Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
