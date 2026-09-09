@@ -67,7 +67,11 @@ $effect(() => {
         m.source_audit_section()
       heading.id = `audit-${encodeURIComponent(resource)}-${text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-')}`
       heading.style.scrollMarginTop = '10rem'
-      return { id: heading.id, level: 2, text: source ? `${source} · ${text}` : text }
+      return {
+        id: heading.id,
+        level: 2,
+        text: familyType && source ? `${source} · ${text}` : text,
+      }
     })
     if (JSON.stringify(headings) !== JSON.stringify(next)) headings = next
     updateActive()
@@ -169,38 +173,40 @@ const sourceAuditHref = (resource: {
     />
     {#each visibleResources as resource (resource.releaseId)}
       <section
-        class="space-y-5 border-t border-border-card/60 pt-8"
+        class={familyType ? 'space-y-5 border-t border-border-card/60 pt-8' : ''}
         data-audit-source={`${resource.sourceDatasetCode ?? resource.resourceType} ${resource.sourceReleaseCode ?? ''}`}
       >
-        <div class="space-y-1">
-          <p
-            class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
-          >
-            {m.reference_source_release()}
-          </p>
-          {#if sourceAuditHref(resource)}
-            <a
-              class="text-lg font-medium text-primary underline decoration-border-card underline-offset-4 transition hover:decoration-secondary"
-              href={sourceAuditHref(resource)}
+        {#if familyType}
+          <div class="space-y-1">
+            <p
+              class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
             >
-              {resource.sourceDatasetCode}
-              · {resource.sourceReleaseCode}
-            </a>
-          {:else}
-            <h2 class="text-lg font-medium text-primary">
+              {m.reference_source_release()}
+            </p>
+            {#if sourceAuditHref(resource)}
+              <a
+                class="text-lg font-medium text-primary underline decoration-border-card underline-offset-4 transition hover:decoration-secondary"
+                href={sourceAuditHref(resource)}
+              >
+                {resource.sourceDatasetCode}
+                · {resource.sourceReleaseCode}
+              </a>
+            {:else}
+              <h2 class="text-lg font-medium text-primary">
+                {resourceLabel(resource.resourceType)}
+              </h2>
+            {/if}
+            <p class="text-sm text-foreground-alt">
               {resourceLabel(resource.resourceType)}
-            </h2>
-          {/if}
-          <p class="text-sm text-foreground-alt">
-            {resourceLabel(resource.resourceType)}
-          </p>
-        </div>
+            </p>
+          </div>
+        {/if}
         <RetainedAuditRelease
           manifest={resource.manifest}
           hash={resource.hash}
           resourceType={resource.resourceType}
           showControls={false}
-          showResourceHeading={false}
+          showResourceHeading={!familyType && selectedResourceType === undefined}
           bind:query
           onSearchStateChange={state => updateSearchState(resource.releaseId, state)}
         />
