@@ -28,14 +28,24 @@ let {
   hash,
   resourceType,
   showResourceHeading = true,
+  showControls = true,
+  query = $bindable(''),
+  onSearchStateChange,
 }: {
   manifest: AuditManifest
   hash: string
   resourceType: string
   showResourceHeading?: boolean
+  showControls?: boolean
+  query?: string
+  onSearchStateChange?: (state: {
+    failed: boolean
+    filteredCount: number
+    loading: boolean
+    totalCount: number
+  }) => void
 } = $props()
-let input = $state('')
-let query = $state('')
+let effectiveQuery = $state('')
 let matchingActions = $state(0)
 let searchLoading = $state(false)
 let searchFailure = $state('')
@@ -76,14 +86,34 @@ $effect(() => {
   }
 })
 let matchingFixtureCount = $derived(
-  fixtureRows.filter(row => matchesFixtureRow(query, row)).length,
+  fixtureRows.filter(row => matchesFixtureRow(effectiveQuery, row)).length,
 )
 $effect(() => {
-  if (!query) return
+  const value = query.trim().slice(0, 300)
+  const timer = setTimeout(
+    () => {
+      effectiveQuery = value
+    },
+    value.length < 2 ? 0 : 200,
+  )
+  return () => clearTimeout(timer)
+})
+$effect(() => {
+  if (!effectiveQuery) {
+    matchingActions = 0
+    searchLoading = false
+    searchFailure = ''
+    return
+  }
   let current = true
   searchLoading = true
   searchFailure = ''
-  getRetainedAuditPage({ releaseId: manifest.releaseId, hash, q: query, offset: 0 })
+  getRetainedAuditPage({
+    releaseId: manifest.releaseId,
+    hash,
+    q: effectiveQuery,
+    offset: 0,
+  })
     .then(result => {
       if (!current) return
       matchingActions = result.total
@@ -98,28 +128,16 @@ $effect(() => {
     current = false
   }
 })
-$effect(() => {
-  const value = input.trim().slice(0, 300)
-  const timer = setTimeout(
-    () => {
-      if (query === value) return
-      matchingActions = 0
-      query = value
-    },
-    value.length < 2 ? 0 : 200,
-  )
-  return () => clearTimeout(timer)
-})
 const isPatch = (id: string) => /reclassified|restor|patch/.test(id)
 let divisionRulesMatching = $state(false)
 const matchesBulk = (item: AuditManifest['bulk'][number]) =>
-  !query ||
+  !effectiveQuery ||
   (item.id === 'normalise-divisions'
     ? divisionRulesMatching ||
       (!!hierarchyCount &&
-        matchesAudit(query, m.source_audit_rules(), hierarchy, hierarchyCount))
+        matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount))
     : matchesAudit(
-        query,
+        effectiveQuery,
         auditBulkTitle(item.id),
         item.id,
         item.summary,
@@ -128,7 +146,7 @@ const matchesBulk = (item: AuditManifest['bulk'][number]) =>
         item.counts.outputs,
       ) ||
       Object.values(fixtureGroups[item.id] ?? {}).some(value =>
-        fixtureHasContents(value, query),
+        fixtureHasContents(value, effectiveQuery),
       ))
 let matchingBulkCount = $derived(manifest.bulk.filter(matchesBulk).length)
 let rules = $derived(
@@ -159,9 +177,34 @@ let hierarchy = $derived({
 })
 let filteredGuards = $derived(
   manifest.guards.filter(guard =>
-    matchesAudit(query, m.source_audit_guards(), guard, guardCopy(guard)),
+    matchesAudit(effectiveQuery, m.source_audit_guards(), guard, guardCopy(guard)),
   ),
 )
+let filteredCount = $derived(
+  fixtureCountsFailed || (effectiveQuery && searchFailure)
+    ? 0
+    : (effectiveQuery
+        ? matchingActions + matchingBulkCount
+        : manifest.applicationCount + manifest.bulk.length) + matchingFixtureCount,
+)
+let totalCount = $derived(
+  fixtureCountsFailed
+    ? 0
+    : manifest.applicationCount + manifest.bulk.length + fixtureRows.length,
+)
+let searchLoadingState = $derived(
+  fixtureCountsLoading ||
+    (!!query.trim() &&
+      (searchLoading || query.trim().slice(0, 300) !== effectiveQuery)),
+)
+$effect(() => {
+  onSearchStateChange?.({
+    failed: fixtureCountsFailed || Boolean(effectiveQuery && searchFailure),
+    filteredCount,
+    loading: searchLoadingState,
+    totalCount,
+  })
+})
 </script>
 
 {#if showResourceHeading}
@@ -173,16 +216,20 @@ let filteredGuards = $derived(
   data-audit-release={manifest.releaseId}
   aria-label={m.source_audit_title()}
 >
-  <Controls
-    bind:query={input}
-    filteredCount={fixtureCountsFailed || (query && searchFailure) ? '—' : ((query ? matchingActions + matchingBulkCount : manifest.applicationCount + manifest.bulk.length) + matchingFixtureCount).toLocaleString()}
-    totalCount={fixtureCountsFailed ? '—' : (manifest.applicationCount + manifest.bulk.length + fixtureRows.length).toLocaleString()}
-    loading={fixtureCountsLoading || (!!input.trim() && (searchLoading || input.trim().slice(0, 300) !== query))}
-    infoLabel={m.source_audit_search_info()}
-    infoDescription={m.source_audit_search_info_description()}
-    placeholder={m.source_audit_search_retained_placeholder()}
-  />
-  <Translations {manifest} {hash} {query} />
+  {#if showControls}
+    <Controls
+      bind:query
+      filteredCount={fixtureCountsFailed || (effectiveQuery && searchFailure)
+          ? '—'
+          : filteredCount.toLocaleString()}
+      totalCount={fixtureCountsFailed ? '—' : totalCount.toLocaleString()}
+      loading={searchLoadingState}
+      infoLabel={m.source_audit_search_info()}
+      infoDescription={m.source_audit_search_info_description()}
+      placeholder={m.source_audit_search_retained_placeholder()}
+    />
+  {/if}
+  <Translations {manifest} {hash} query={effectiveQuery} />
   {#if fixtureCountsFailed}
     <p role="alert" class="text-sm">
       {m.source_audit_fixture_counts_error()}
@@ -191,7 +238,7 @@ let filteredGuards = $derived(
       </button>
     </p>
   {/if}
-  {#if searchFailure && query}
+  {#if searchFailure && effectiveQuery}
     <p role="alert" class="text-sm">{searchFailure}</p>
   {/if}
   <section
@@ -201,14 +248,19 @@ let filteredGuards = $derived(
     <h3 class="px-2 text-lg font-medium">{m.source_audit_patches()}</h3>
     {#each patches as bulk (bulk.id)}
       <Bulk
-        {query}
+        query={effectiveQuery}
         {bulk}
         releaseId={manifest.releaseId}
         {hash}
         groups={fixtureGroups[bulk.id]}
       />
     {/each}
-    <Applications releaseId={manifest.releaseId} {hash} category="patches" {query} />
+    <Applications
+      releaseId={manifest.releaseId}
+      {hash}
+      category="patches"
+      query={effectiveQuery}
+    />
   </section>
   <section
     class="hidden space-y-4 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
@@ -228,7 +280,7 @@ let filteredGuards = $derived(
         releaseId={manifest.releaseId}
         {hash}
         category="curations"
-        {query}
+        query={effectiveQuery}
       />
     </div>
     {#if curations.length}
@@ -242,7 +294,7 @@ let filteredGuards = $derived(
         </h3>
         {#each curations as bulk (bulk.id)}
           <Bulk
-            {query}
+            query={effectiveQuery}
             {bulk}
             releaseId={manifest.releaseId}
             {hash}
@@ -257,7 +309,7 @@ let filteredGuards = $derived(
     aria-label={m.source_audit_rules()}
   >
     <h3 class="px-2 text-lg font-medium">{m.source_audit_rules()}</h3>
-    {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(query, m.source_audit_rules(), hierarchy, hierarchyCount)}
+    {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
       <ComparisonCard
         {...hierarchy}
         status="applied"
@@ -270,12 +322,12 @@ let filteredGuards = $derived(
           {bulk}
           releaseId={manifest.releaseId}
           {hash}
-          {query}
+          query={effectiveQuery}
           bind:matching={divisionRulesMatching}
         />
       {:else}
         <Bulk
-          {query}
+          query={effectiveQuery}
           {bulk}
           releaseId={manifest.releaseId}
           {hash}
@@ -283,7 +335,12 @@ let filteredGuards = $derived(
         />
       {/if}
     {/each}
-    <Applications releaseId={manifest.releaseId} {hash} category="rules" {query} />
+    <Applications
+      releaseId={manifest.releaseId}
+      {hash}
+      category="rules"
+      query={effectiveQuery}
+    />
   </section>
   {#if filteredGuards.length}
     <Guards guards={filteredGuards} />

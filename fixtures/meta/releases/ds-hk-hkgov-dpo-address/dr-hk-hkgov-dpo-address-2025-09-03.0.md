@@ -90,6 +90,16 @@ Fields reorganised for storage, lookup, or API response shaping:
 - Exact duplicate source features and equivalent premise variants are consolidated;
   their source evidence is retained in release processing records.
 
+## Limitations
+
+### Curation policy
+
+{{addressCurationPolicy:en}}
+
+### Known Quality Issues
+
+{{addressKnownQualityIssues:en}}
+
 # ZH-HANT
 
 ## 更新紀錄
@@ -153,6 +163,16 @@ Fields reorganised for storage, lookup, or API response shaping:
 - 獨立的 ALS 公共租住房屋三維資料不會匯入二維地址資料集。
 - 完全重複的來源 feature 及等價的樓宇變體會合併，其來源證據保留於版本處理記錄。
 
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hant}}
+
+### 已知品質問題
+
+{{addressKnownQualityIssues:zh-Hant}}
+
 # ZH-HANS
 
 ## 更新记录
@@ -215,3 +235,13 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 - 独立的 ALS 公共租赁房屋三维数据不会导入二维地址数据集。
 - 完全重复的源 feature 及等价的楼宇变体会合并，其源证据保留于版本处理记录。
+
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hans}}
+
+### 已知质量问题
+
+{{addressKnownQualityIssues:zh-Hans}}

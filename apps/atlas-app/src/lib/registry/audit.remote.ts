@@ -47,6 +47,8 @@ export const getRetainedSourceAudit = query(
         releaseId: r.id,
         code: r.code,
         resourceType: r.resourceType,
+        sourceDatasetCode: d.code,
+        sourceReleaseCode: s.code,
         hash: p.manifestHash,
         byteLength: p.byteLength,
       })
@@ -88,17 +90,23 @@ export const getRetainedApiAudit = query(
       metaApiReleaseSetSnapshots: members,
       metaApiReleaseSets: sets,
       metaApiVersions: versions,
+      metaSourceReleases: sourceReleases,
+      metaDatasets: datasets,
     } = metaSchema
     const rows = await getMetaDb()
       .select({
         releaseId: r.id,
         code: r.code,
         resourceType: r.resourceType,
+        sourceDatasetCode: datasets.code,
+        sourceReleaseCode: sourceReleases.code,
         hash: p.manifestHash,
         byteLength: p.byteLength,
       })
       .from(p)
       .innerJoin(r, eq(p.releaseId, r.id))
+      .innerJoin(sourceReleases, eq(r.sourceReleaseId, sourceReleases.id))
+      .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
       .where(sql`exists (
     select 1 from ${sources}
     inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
