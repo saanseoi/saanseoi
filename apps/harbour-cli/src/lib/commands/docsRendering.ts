@@ -190,15 +190,18 @@ function renderExperimentalApiWarnings(
     'apiVersionPath',
     frontmatter,
   )
-  const warningTemplatesByFamily = {
-    divisions: {
-      en: `The <black>${apiVersionPath}</black> contract is experimental. The API contract might
+  const contractWarningTemplates = {
+    en: `The <black>${apiVersionPath}</black> contract is experimental. The API contract might
 change before the <black>v1</black> release, after which prior versions will be retired.`,
-      'zh-Hant': `<black>${apiVersionPath}</black> 合約仍屬實驗性質。API 合約可能在 v1
+    'zh-Hant': `<black>${apiVersionPath}</black> 合約仍屬實驗性質。API 合約可能在 v1
 發布前變更；屆時將淘汰舊版本。`,
-      'zh-Hans': `<black>${apiVersionPath}</black> 合约仍处于实验阶段。API 合约可能在 v1
+    'zh-Hans': `<black>${apiVersionPath}</black> 合约仍处于实验阶段。API 合约可能在 v1
 发布前变更；届时将淘汰旧版本。`,
-    },
+  }
+  const warningTemplatesByFamily = {
+    addresses: contractWarningTemplates,
+    divisions: contractWarningTemplates,
+    places: contractWarningTemplates,
     stats: {
       en: `The <black>${apiVersionPath}</black> API is experimental. Use <black>GET /stats/v0</black> to list
 statistics, or <black>GET /stats/v0/{id}</black> to retrieve one statistic by its ID.`,
@@ -207,6 +210,7 @@ statistics, or <black>GET /stats/v0/{id}</black> to retrieve one statistic by it
       'zh-Hans': `<black>${apiVersionPath}</black> API 仍处于实验阶段。使用 <black>GET /stats/v0</black> 列出
 统计数据，或使用 <black>GET /stats/v0/{id}</black> 通过 ID 获取一项统计数据。`,
     },
+    streets: contractWarningTemplates,
   } as const
   const warnings =
     warningTemplatesByFamily[

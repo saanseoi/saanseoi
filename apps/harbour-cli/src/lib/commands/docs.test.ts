@@ -323,6 +323,48 @@ Publishes revision r{{ revision }}.
     expect(rendered).not.toContain('{{experimentalApiWarning:')
   })
 
+  test('renders the Places experimental warning', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+      frontmatter: {
+        apiFamily: 'places',
+        apiVersion: 'api-places-v0.1',
+      },
+    })
+
+    expect(rendered).toContain('<black>v0.1</black> contract is experimental')
+    expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
+    expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+    expect(rendered).not.toContain('{{experimentalApiWarning:')
+  })
+
+  for (const apiFamily of ['addresses', 'streets'] as const) {
+    test(`renders the ${apiFamily} experimental warning`, async () => {
+      const rendered = await renderMarkdownFixtureBody({
+        body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+        frontmatter: {
+          apiFamily,
+          apiVersion: `api-${apiFamily}-v0.1`,
+        },
+      })
+
+      expect(rendered).toContain('<black>v0.1</black> contract is experimental')
+      expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
+      expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+      expect(rendered).not.toContain('{{experimentalApiWarning:')
+    })
+  }
+
   test('renders API profile tables from the shared profile definitions', async () => {
     const rendered = await renderMarkdownFixtureBody({
       body: '{{apiProfileTable:en}}\n\n{{apiProfileTable:zh-Hant}}\n\n{{apiProfileTable:zh-Hans}}\n',
