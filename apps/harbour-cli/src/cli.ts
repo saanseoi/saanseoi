@@ -10,6 +10,7 @@ import { runReportCommand } from './lib/commands/reports.ts'
 import { runCacheGersCommand } from './lib/commands/gers.ts'
 import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
 import { runAddressApiStatsBackfillCommand } from './lib/commands/statsBackfillAddressApi.ts'
+import { runDivisionApiStatsBackfillCommand } from './lib/commands/statsBackfillDivisionApi.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import { runBootstrapStatsReleaseSetsCommand } from './lib/commands/bootstrapStatsReleaseSets.ts'
@@ -115,6 +116,9 @@ async function main() {
       return
     case 'stats:backfill-addresses':
       await runAddressApiStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:backfill-divisions':
+      await runDivisionApiStatsBackfillCommand(args, target, printUsage)
       return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {

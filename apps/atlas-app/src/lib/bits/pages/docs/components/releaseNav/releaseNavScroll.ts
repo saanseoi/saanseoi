@@ -126,7 +126,7 @@ export async function scrollToReleaseNavAnchor({
 }: {
   event: MouseEvent
   id: string
-  items: ReleaseNavOutlineItem[]
+  items?: ReleaseNavOutlineItem[]
   mobile?: boolean
   panel?: HTMLElement
 }) {
@@ -142,11 +142,13 @@ export async function scrollToReleaseNavAnchor({
 
   const scrollContainer = target.closest<HTMLElement>('[data-release-nav-content-body]')
   const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
+  const contentPanel =
+    panel ?? target.closest<HTMLElement>('[data-release-nav-content-panel]')
 
   if (scrollContainer && releaseNavScrollsIndependently(scrollContainer)) {
-    if (panel && controls) {
+    if (contentPanel && controls) {
       const desiredPanelTop = controls.getBoundingClientRect().bottom + 8
-      const panelTop = panel.getBoundingClientRect().top
+      const panelTop = contentPanel.getBoundingClientRect().top
       if (panelTop < desiredPanelTop - 1) {
         window.scrollBy({ top: panelTop - desiredPanelTop, behavior: 'auto' })
       }
