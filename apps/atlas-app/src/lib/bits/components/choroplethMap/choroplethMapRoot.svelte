@@ -39,6 +39,8 @@ type Props = {
   paddingRatio?: number
   showValues?: boolean
   maxZoom?: number
+  compact?: boolean
+  exclusion?: Geometry | null
 }
 
 let {
@@ -50,6 +52,8 @@ let {
   paddingRatio = 0,
   showValues = true,
   maxZoom = 13,
+  compact = false,
+  exclusion = null,
 }: Props = $props()
 const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
 
@@ -171,7 +175,7 @@ function updateActiveFeature(event: {
 
 <div class="overflow-hidden bg-data-surface-container-lowest">
   <div
-    class="relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto"
+    class={compact ? 'relative h-72' : 'relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto'}
     role="img"
     aria-label={ariaLabel}
   >
@@ -205,6 +209,18 @@ function updateActiveFeature(event: {
           }}
         />
       </GeoJSONSource>
+      {#if exclusion}
+        <GeoJSONSource id="choropleth-exclusion" data={exclusion}>
+          <FillLayer
+            id="choropleth-exclusion-fill"
+            paint={{ 'fill-color': '#ef4444', 'fill-opacity': 0.55 }}
+          />
+          <LineLayer
+            id="choropleth-exclusion-outline"
+            paint={{ 'line-color': '#f87171', 'line-width': 2 }}
+          />
+        </GeoJSONSource>
+      {/if}
     </MapLibre>
 
     {#if activeFeature}
