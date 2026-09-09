@@ -52,7 +52,7 @@ test('shared guide bodies resolve variables and nested profile tables across gui
       )
     }
   }
-  expect(counts.paginationSection).toBe(135)
-  expect(counts.responseProfilesSection).toBe(75)
-  expect(counts.localeSelectionSection).toBe(42)
+  expect(counts.paginationSection).toBe(252)
+  expect(counts.responseProfilesSection).toBe(192)
+  expect(counts.localeSelectionSection).toBe(159)
 })

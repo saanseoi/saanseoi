@@ -97,6 +97,25 @@ async function loadPage(context: BrowserContext, url: URL | string) {
   return page
 }
 
+async function assertGuideAvailable(baseUrl: URL) {
+  const guideUrl = new URL(guidePath, baseUrl)
+  let response: Response
+
+  try {
+    response = await fetch(guideUrl, { signal: AbortSignal.timeout(5_000) })
+  } catch {
+    throw new Error(
+      `Atlas is not available at ${baseUrl.origin}. Start it in another terminal with \`bun run dev:atlas\`, then rerun \`bun run review:release-tabs\`.`,
+    )
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Atlas is available at ${baseUrl.origin}, but ${guidePath} returned HTTP ${response.status}. Resolve that route error before reviewing release tabs.`,
+    )
+  }
+}
+
 async function collectReleaseUrls(context: BrowserContext, baseUrl: URL) {
   const guideUrl = new URL(guidePath, baseUrl)
   const guidePage = await loadPage(context, guideUrl)
@@ -146,37 +165,47 @@ async function openTabs(context: BrowserContext, urls: string[]) {
   }
 }
 
-const options = parseOptions(process.argv.slice(2))
-if (options === 'help') {
-  console.log(usage)
-  process.exit(0)
+async function main() {
+  const options = parseOptions(process.argv.slice(2))
+  if (options === 'help') {
+    console.log(usage)
+    return
+  }
+
+  await assertGuideAvailable(options.baseUrl)
+  const browser = await chromium.launch({
+    channel: 'chrome',
+    headless: options.headless,
+  })
+  const context = await browser.newContext()
+
+  try {
+    const releaseUrls = await collectReleaseUrls(context, options.baseUrl)
+    const sourceUrls = await collectSourceUrls(context, options.baseUrl, releaseUrls)
+    const urls = [...releaseUrls, ...sourceUrls]
+
+    if (options.printOnly) {
+      console.log(
+        `Found ${releaseUrls.length} API-domain release note(s) and ${sourceUrls.length} source release page(s).`,
+      )
+      for (const url of urls) console.log(url)
+      await browser.close()
+    } else {
+      await openTabs(context, urls)
+      console.log(
+        `Opened ${releaseUrls.length} API-domain release note tab(s) and ${sourceUrls.length} source release tab(s).`,
+      )
+      await browser.disconnect()
+    }
+  } catch (error) {
+    await browser.close()
+    throw error
+  }
 }
 
-const browser = await chromium.launch({
-  channel: 'chrome',
-  headless: options.headless,
-})
-const context = await browser.newContext()
-
 try {
-  const releaseUrls = await collectReleaseUrls(context, options.baseUrl)
-  const sourceUrls = await collectSourceUrls(context, options.baseUrl, releaseUrls)
-  const urls = [...releaseUrls, ...sourceUrls]
-
-  if (options.printOnly) {
-    console.log(
-      `Found ${releaseUrls.length} API-domain release note(s) and ${sourceUrls.length} source release page(s).`,
-    )
-    for (const url of urls) console.log(url)
-    await browser.close()
-  } else {
-    await openTabs(context, urls)
-    console.log(
-      `Opened ${releaseUrls.length} API-domain release note tab(s) and ${sourceUrls.length} source release tab(s).`,
-    )
-    await browser.disconnect()
-  }
+  await main()
 } catch (error) {
-  await browser.close()
-  throw error
+  console.error(error instanceof Error ? error.message : String(error))
+  process.exitCode = 1
 }

@@ -33,7 +33,7 @@ test('renders shared time travel sections for versioned API guides', async () =>
     expect(rendered).toContain('links.permalink')
     guides++
   }
-  expect(guides).toBe(25)
+  expect(guides).toBe(64)
 })
 
 test('frontmatter overrides supply checkpoint examples and missing values fail clearly', async () => {
