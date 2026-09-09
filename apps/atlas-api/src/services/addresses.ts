@@ -380,7 +380,7 @@ function isMapAddressProfile(profile: AddressProfile) {
 function projectAddressI18n(i18n: AddressRecord['i18n'], profile: AddressProfile) {
   const entries = Object.entries(i18n).map(([locale, value]) => [
     locale,
-    profile === 'full'
+    profile !== 'compact'
       ? value
       : {
           formattedAddress: value.formattedAddress,
