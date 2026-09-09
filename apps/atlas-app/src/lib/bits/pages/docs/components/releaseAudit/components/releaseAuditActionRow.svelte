@@ -10,6 +10,7 @@ import type {
   AuditRowPresentation,
 } from './releaseAudit.types'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
+import ScrollArea from './auditScrollArea.svelte'
 type Props = {
   copied: boolean
   analyticsSurface: ReleaseAnalyticsSurface
@@ -117,12 +118,14 @@ let hasRight = $derived(
           {onFullscreen}
         />
       </div>
-      <div class="-mr-1 max-h-96 max-w-[160ch] overflow-auto pr-20">
-        <ReleaseAuditJsonEvidence
-          evidence={row.evidence}
-          viewTransitionName={transitionName}
-        />
-      </div>
+      <ScrollArea viewportClass="-mr-1 max-h-96 max-w-[160ch] overflow-auto pr-20">
+        {#snippet children()}
+          <ReleaseAuditJsonEvidence
+            evidence={row.evidence}
+            viewTransitionName={transitionName}
+          />
+        {/snippet}
+      </ScrollArea>
     </div>
   {/if}
 {/snippet}

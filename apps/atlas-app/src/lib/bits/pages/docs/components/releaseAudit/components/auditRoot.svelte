@@ -167,17 +167,25 @@ const sourceSubTypeLabels: Record<string, string> = {
   pu: 'PU',
   'new-town': 'New Town',
 }
+const sourceVariantLabels: Record<string, string> = {
+  'hkgov-censtatd-landclipped': 'Landclipped',
+  'hkgov-censtatd': 'Territory',
+}
 const sourceSubTypeLabel = (value?: string | null) =>
   value ? (sourceSubTypeLabels[value.toLowerCase()] ?? value) : value
+const sourceVariantLabel = (value?: string | null) =>
+  value ? sourceVariantLabels[value.toLowerCase()] : undefined
 const sourceOutlineLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherShortName?: string
   sourceSubType?: string | null
+  sourceVariant?: string | null
 }) =>
   [
     resourceLabel(resource.resourceType),
     resource.sourcePublisherShortName,
     sourceSubTypeLabel(resource.sourceSubType),
+    sourceVariantLabel(resource.sourceVariant),
   ]
     .filter(Boolean)
     .join(' · ')
@@ -185,11 +193,13 @@ const sourceHeadingLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherName?: string
   sourceSubType?: string | null
+  sourceVariant?: string | null
 }) =>
   [
     resource.sourcePublisherName,
     resourceLabel(resource.resourceType),
     sourceSubTypeLabel(resource.sourceSubType),
+    sourceVariantLabel(resource.sourceVariant),
   ]
     .filter(Boolean)
     .join(' · ')
@@ -223,8 +233,8 @@ const sourceHeadingId = (releaseId: string) =>
       <section
         class={familyType
           ? index === 0
-            ? 'space-y-5'
-            : 'space-y-5 border-t border-border-card/60 pt-8'
+            ? 'space-y-1'
+            : 'space-y-1 border-t border-border-card/60 pt-8'
           : ''}
       >
         {#if familyType}

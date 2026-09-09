@@ -8,6 +8,7 @@ import ReleaseAuditEvidenceActions from './releaseAuditEvidenceActions.svelte'
 import ReleaseAuditJsonEvidence from './releaseAuditJsonEvidence.svelte'
 import type { AuditEvidenceCopyHandler } from './releaseAudit.types'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
+import ScrollArea from './auditScrollArea.svelte'
 
 type Props = {
   copiedEvidenceId: string | null
@@ -70,11 +71,13 @@ let {
           </button>
         </div>
       </div>
-      <div class="overflow-auto p-5">
-        <div class="mx-auto w-full max-w-[80ch]">
-          <ReleaseAuditJsonEvidence {evidence} viewTransitionName={transitionName} />
-        </div>
-      </div>
+      <ScrollArea containerClass="flex-1" viewportClass="h-full overflow-auto p-5">
+        {#snippet children()}
+          <div class="mx-auto w-full max-w-[80ch]">
+            <ReleaseAuditJsonEvidence {evidence} viewTransitionName={transitionName} />
+          </div>
+        {/snippet}
+      </ScrollArea>
     </Dialog.Content>
   </Dialog.Portal>
 </Dialog.Root>

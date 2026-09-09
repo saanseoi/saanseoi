@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Snippet } from 'svelte'
+import ScrollArea from './auditScrollArea.svelte'
 let {
   open = $bindable(false),
   summary,
@@ -12,6 +13,10 @@ let {
     {@render summary()}
   </summary>
   {#if open}
-    <div class="mt-4 max-h-[640px] overflow-auto">{@render children()}</div>
+    <ScrollArea containerClass="mt-4" viewportClass="max-h-[640px] overflow-auto">
+      {#snippet children()}
+        {@render children()}
+      {/snippet}
+    </ScrollArea>
   {/if}
 </details>

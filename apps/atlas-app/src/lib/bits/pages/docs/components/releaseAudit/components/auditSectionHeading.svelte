@@ -15,7 +15,7 @@ let { children, description, label, title, tocTitle }: Props = $props()
 </script>
 
 <Tooltip.Provider delayDuration={200}>
-  <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-2">
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-2 pt-4">
     <h3 class="mr-auto text-lg font-medium" data-audit-toc-title={tocTitle}>{title}</h3>
     {#if children}
       <div class="ml-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3">
