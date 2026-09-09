@@ -17,6 +17,7 @@ import ReleaseSamplesIdentifier from './releaseSamplesIdentifier.svelte'
 type Props = {
   apiVersion: string
   apiFamily: string
+  domainCode: string
   profile: ApiProfileName
   releaseSet: string
   request: number
@@ -40,6 +41,7 @@ const candidatesPerRequest = 10
 let {
   apiVersion,
   apiFamily,
+  domainCode,
   profile,
   releaseSet,
   request,
@@ -63,6 +65,7 @@ function requestUrl(offset: number, limit: number) {
   if (!apiPath) throw new Error('Samples are not available for this API version.')
   const url = new URL(`${apiBaseUrl}${apiPath}`)
   url.searchParams.set('releaseSet', releaseSet)
+  url.searchParams.set('domain', domainCode)
   url.searchParams.set('profile', profile)
   url.searchParams.set('locales', profile === 'full' ? '*' : 'en,zh-hant')
   url.searchParams.set('page[limit]', String(limit))
