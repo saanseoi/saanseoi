@@ -13,6 +13,7 @@ let { children, count, id, label, title }: Props = $props()
 </script>
 
 <section
+  data-release-nav-box
   {id}
   class="overflow-hidden rounded-lg border border-data-outline-variant/60 bg-(--release-list-surface)"
   style="--release-list-surface: color-mix(in srgb, var(--data-surface-container-lowest) 75%, var(--data-surface-container-low));"
