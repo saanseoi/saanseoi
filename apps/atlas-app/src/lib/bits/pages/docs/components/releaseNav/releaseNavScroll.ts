@@ -188,6 +188,7 @@ export const observeReleaseNavOutline = (
 ) => {
   let disposed = false
   let observer: IntersectionObserver | undefined
+  let mutationObserver: MutationObserver | undefined
   let targets: HTMLElement[] = []
 
   const update = () => {
@@ -204,26 +205,38 @@ export const observeReleaseNavOutline = (
     onActive(active.id)
   }
 
-  void tick().then(() => {
-    if (disposed) return
-
+  const observeTargets = () => {
     targets = items
       .map(item => document.getElementById(item.id))
       .filter((target): target is HTMLElement => target !== null)
 
-    if (!targets.length) {
-      onActive(null)
-      return
-    }
+    if (!targets.length) return false
+
     observer = new IntersectionObserver(update, { rootMargin: '-20% 0px -65% 0px' })
     for (const target of targets) observer.observe(target)
     window.addEventListener('scroll', update, { passive: true })
     update()
+    return true
+  }
+
+  void tick().then(() => {
+    if (disposed) return
+
+    if (observeTargets()) return
+
+    mutationObserver = new MutationObserver(() => {
+      if (!disposed && observeTargets()) mutationObserver?.disconnect()
+    })
+    mutationObserver.observe(
+      document.querySelector('[data-release-nav-content-panel]') ?? document.body,
+      { childList: true, subtree: true },
+    )
   })
 
   return () => {
     disposed = true
     observer?.disconnect()
+    mutationObserver?.disconnect()
     window.removeEventListener('scroll', update)
   }
 }

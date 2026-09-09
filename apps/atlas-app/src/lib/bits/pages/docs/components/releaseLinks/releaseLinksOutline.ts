@@ -17,7 +17,7 @@ export const getReleaseLinksOutline = (
         {
           depth: 2,
           id: group.id,
-          label: group.label ? `${group.label} · ${group.title}` : group.title,
+          label: group.label ?? group.title,
         },
       ]
     }
