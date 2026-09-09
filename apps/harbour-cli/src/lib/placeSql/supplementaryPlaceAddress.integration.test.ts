@@ -19,10 +19,12 @@ import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
 import policy from './testFixtures/supplementaryAddressPolicy.json'
 import { buildPlacesResetSql, collectOwnedPlaces } from '../commands/resetPlaces.ts'
+import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
 
 test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
   const releaseId = `place-release-${crypto.randomUUID()}`
+  let withdrawnPlaceReleaseId: string | null = null
   const files = {
     DB_META: resolve(root, 'meta.sqlite'),
     DB_CURRENT: resolve(root, 'current.sqlite'),
@@ -300,6 +302,70 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(JSON.parse(dataset.resourceTypes)).toEqual(['place', 'address'])
     expect((await readdir(root)).filter(name => name.endsWith('.tmp'))).toEqual([])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
+    // The parent Places workflow normally finalises this retained receipt after
+    // both outputs succeed. This focused test invokes only the Address stage.
+    await completeSqlDeliveryRelease(root, releaseId)
+    withdrawnPlaceReleaseId = `place-release-${crypto.randomUUID()}`
+    insertFixtureRelease(meta, {
+      releaseId: withdrawnPlaceReleaseId,
+      source: 'overture',
+      regionCode: 'hk',
+      rawObjectKey: 'places-withdrawn.parquet',
+      originalFileName: 'places-withdrawn.parquet',
+      ingestedAt: '2026-09-16T00:00:00Z',
+      type: 'place',
+      cohortKey: '2026-09',
+      sourceVersion: '2026-09-16.0',
+      status: 'processing',
+      createdAt: '2026-09-16T00:00:00Z',
+      updatedAt: '2026-09-16T00:00:00Z',
+    })
+    const withdrawnPlaceSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
+      cohortKey: '2026-09',
+      datasetCode: 'ds-hk-overture-place',
+      datasetId: 'overture-hk-place',
+      regionCode: 'hk',
+      sourceReleaseId: withdrawnPlaceReleaseId,
+    })
+    const withdrawn = await prepareSupplementaryAddresses({
+      ...input,
+      places: [],
+      releaseId: withdrawnPlaceReleaseId,
+      plan: {
+        ...input.plan,
+        cohortKey: '2026-09',
+        releaseCode: 'place-release-withdrawn',
+        rowCount: 0,
+        sourceVersion: '2026-09-16.0',
+      },
+      snapshots: { ...input.snapshots, snapshotId: withdrawnPlaceSnapshot.id },
+    })
+    const generatedAddressId = first.addresses[0]?.current.id
+    expect(generatedAddressId).toBeDefined()
+    expect(withdrawn.addresses).toEqual([])
+    expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toEqual([
+      expect.objectContaining({
+        firstSeen: '2026-08-19.0',
+        revokedAt: '2026-09-16.0',
+      }),
+    ])
+    expect(
+      history
+        .query(
+          "SELECT recordType, recordId, operation, versionHash FROM snapshotVersionChanges WHERE snapshotId = ? AND recordType = 'address2d'",
+        )
+        .get(withdrawn.snapshotId),
+    ).toEqual({
+      recordType: 'address2d',
+      recordId: generatedAddressId,
+      operation: 'delete',
+      versionHash: null,
+    })
+    expect(
+      history
+        .query('SELECT isCurrent FROM address2d WHERE id = ?')
+        .get(generatedAddressId),
+    ).toEqual({ isCurrent: 0 })
     const changed = {
       ...place,
       raw: { ...place.raw, addresses: [{ freeform: 'Citygate Annex, Tat Tung Road' }] },
@@ -376,5 +442,14 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       ),
       { recursive: true, force: true },
     )
+    if (withdrawnPlaceReleaseId)
+      await rm(
+        resolve(
+          import.meta.dir,
+          '../../../../../.local/harbour-sql/deliveries/local',
+          `release-${encodeURIComponent(withdrawnPlaceReleaseId)}`,
+        ),
+        { recursive: true, force: true },
+      )
   }
 })

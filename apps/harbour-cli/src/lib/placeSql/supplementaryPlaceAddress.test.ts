@@ -591,7 +591,7 @@ describe('supplementary Place Address policy', () => {
       evidence: [],
       policyVersion: fixture.activePolicy,
       acceptanceMode: 'curated',
-      firstAcceptedSourceRelease: '2026-08-19.0',
+      firstSeen: '2026-08-19.0',
     }
     fixture.entries.push(entry)
     const analyse = createSupplementaryAddressAnalyser(

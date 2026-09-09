@@ -140,10 +140,11 @@ parameter for the snapshot and checks up to 99 references. Every owner must exis
 each section must retain exactly one match to its reviewed parent.
 
 The default Address API domain is `saanseoi`, SaanSeoi's curated Hong Kong address
-collection. It requires the authoritative ALS `address/default` member and includes the
-accepted Overture Places `address/overture-places` member when available. Supplementary
-snapshots use the latest applicable cohort reference, falling forward only when no
-earlier snapshot exists. ALS ingestion can therefore complete before Places ingestion.
+collection. It requires the authoritative ALS `address/default` member and, once the
+initial Overture Places release exists, the accepted Overture Places
+`address/overture-places` member. Supplementary snapshots use the latest applicable
+cohort reference, falling forward only when no earlier snapshot exists. ALS ingestion
+can therefore complete before Places ingestion.
 
 The `ds-hk-overture-place` dataset supplies both Place and supplementary Address
 resource releases under one publisher source release. Places ingestion publishes the

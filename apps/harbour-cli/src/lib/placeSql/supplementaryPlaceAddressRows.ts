@@ -96,7 +96,7 @@ export async function buildSupplementaryAddressRows(input: {
       curationEntry: {
         placeId: accepted.placeId,
         identityKey: accepted.identityKey,
-        firstAcceptedSourceRelease: accepted.firstAcceptedSourceRelease,
+        firstSeen: accepted.firstSeen,
         acceptanceMode: accepted.acceptanceMode,
       },
       policyVersion: accepted.policyVersion,

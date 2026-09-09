@@ -49,8 +49,8 @@ export type SupplementaryEntry = {
   score: number
   evidence: CandidateEvidence[]
   acceptanceMode: 'automatic' | 'curated'
-  firstAcceptedSourceRelease: string
-  retiredAtSourceRelease?: string
+  firstSeen: string
+  revokedAt?: string
 }
 export type SupplementaryDecision = {
   placeId: string
@@ -283,7 +283,7 @@ export function parseSupplementaryCuration(
   for (const entry of fixture.entries) {
     if (
       !entry.placeId ||
-      !entry.firstAcceptedSourceRelease ||
+      !entry.firstSeen ||
       !entry.fingerprint ||
       !Array.isArray(entry.values) ||
       entry.values.length === 0 ||
@@ -317,7 +317,7 @@ export function parseSupplementaryCuration(
       throw new Error(
         `Supplementary publisher fingerprint mismatch for ${entry.placeId}.`,
       )
-    if (!entry.retiredAtSourceRelease) {
+    if (!entry.revokedAt) {
       if (active.has(entry.placeId))
         throw new Error(`Duplicate active curation for ${entry.placeId}.`)
       active.add(entry.placeId)
@@ -450,9 +450,8 @@ function createSupplementaryAddressAnalyserInternal(
     const parsed = observation.texts.map(text => parsePlaceAddress(text, matcher))
     const entries = (byPlace.get(observation.placeId) ?? []).filter(
       entry =>
-        entry.firstAcceptedSourceRelease <= observation.sourceRelease &&
-        (!entry.retiredAtSourceRelease ||
-          entry.retiredAtSourceRelease > observation.sourceRelease),
+        entry.firstSeen <= observation.sourceRelease &&
+        (!entry.revokedAt || entry.revokedAt > observation.sourceRelease),
     )
     if (entries.length > 1)
       throw new Error(`Overlapping curation for ${observation.placeId}.`)
@@ -506,8 +505,10 @@ function createSupplementaryAddressAnalyserInternal(
       ) {
         return result('review', null, 'decision_previous_link_mismatch')
       }
-      if (decision.resolution === 'leave_unlinked')
+      if (decision.resolution === 'leave_unlinked') {
+        if (entry) entry.revokedAt = observation.sourceRelease
         return result('delayed', null, 'explicit_retirement')
+      }
       if (decision.address) {
         if (
           decision.address.baseAddressId &&
@@ -525,10 +526,10 @@ function createSupplementaryAddressAnalyserInternal(
           score: 0,
           evidence: [],
           acceptanceMode: 'curated',
-          firstAcceptedSourceRelease: observation.sourceRelease,
+          firstSeen: observation.sourceRelease,
         }
         if (entry && entry.addressId !== accepted.addressId)
-          entry.retiredAtSourceRelease = observation.sourceRelease
+          entry.revokedAt = observation.sourceRelease
         if (!entry || entry.addressId !== accepted.addressId)
           fixture.entries.push(accepted)
         byPlace.set(
@@ -603,7 +604,7 @@ function createSupplementaryAddressAnalyserInternal(
     if (
       lastDecision?.resolution === 'leave_unlinked' &&
       latestDecision === lastDecision &&
-      (!entry || entry.firstAcceptedSourceRelease <= lastDecision.sourceRelease)
+      (!entry || entry.firstSeen <= lastDecision.sourceRelease)
     ) {
       return result(
         'delayed',
@@ -874,10 +875,10 @@ function createSupplementaryAddressAnalyserInternal(
       score: best.score,
       evidence: [candidateEvidence(best)],
       acceptanceMode: 'automatic',
-      firstAcceptedSourceRelease: observation.sourceRelease,
+      firstSeen: observation.sourceRelease,
     }
     const shared = fixture.entries.find(
-      item => item.identityKey === accepted.identityKey && !item.retiredAtSourceRelease,
+      item => item.identityKey === accepted.identityKey && !item.revokedAt,
     )
     if (shared) {
       if (shared.baseAddressId !== accepted.baseAddressId)

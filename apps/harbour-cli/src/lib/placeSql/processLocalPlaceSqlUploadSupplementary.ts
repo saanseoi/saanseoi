@@ -51,7 +51,7 @@ import {
   metaSchema,
   buildDeterministicUuidV5,
 } from '@repo/db'
-import { and, eq, ne, isNotNull, lte, sql } from 'drizzle-orm'
+import { and, eq, ne, isNotNull, like, lte, sql } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import {
   executeSqlText,
@@ -373,10 +373,12 @@ async function prepareSupplementaryAddressesLocked(
   const resolutionOutput = await open(resolutionTempPath, 'w')
   const supplementaryResolutions: StagedAddressResolution[] = []
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
+  const observedPlaceIds = new Set<string>()
   let analysedRows = 0
   try {
     try {
       for await (const place of input.places) {
+        observedPlaceIds.add(place.id)
         const previous = previousById.get(place.id)
         const resolution = analyse(
           {
@@ -472,6 +474,16 @@ async function prepareSupplementaryAddressesLocked(
       `${reviewCount} Place Address identities require explicit curation; ${saved} decisions saved. Continue the initialisation to apply saved decisions. Review ${reviewPath}; --yes cannot select identities.`,
     )
   }
+  // A Places release is complete. Once a generated Address's Place no longer
+  // appears after it was first seen, retain the entry but close its lifecycle.
+  for (const entry of fixture.entries) {
+    if (
+      !entry.revokedAt &&
+      entry.firstSeen <= input.plan.sourceVersion &&
+      !observedPlaceIds.has(entry.placeId)
+    )
+      entry.revokedAt = input.plan.sourceVersion
+  }
   await writeSupplementaryEntryLedger(entryLedgerPath, {
     ...entryLedger,
     entries: fixture.entries,
@@ -558,6 +570,33 @@ async function prepareSupplementaryAddressesLocked(
     sourceVersion: input.plan.sourceVersion,
     datasetId,
   })
+  const materialisedAddressIds = new Set(addresses.map(row => row.current.id))
+  const activeAddressIds = new Set<string>()
+  for (const target of input.context.historyTargets) {
+    const rows = await (target.db as HarbourReadableDb)
+      .select({ id: historySchema.address2d.id })
+      .from(historySchema.address2d)
+      .where(
+        and(
+          eq(historySchema.address2d.isCurrent, true),
+          like(historySchema.address2d.id, 'opa-%'),
+        ),
+      )
+      .all()
+    for (const row of rows) activeAddressIds.add(row.id)
+  }
+  const revokedAddressIds = [
+    ...new Set([
+      ...[...activeAddressIds].filter(id => !materialisedAddressIds.has(id)),
+      ...fixture.entries
+        .filter(
+          entry =>
+            entry.revokedAt === input.plan.sourceVersion &&
+            !materialisedAddressIds.has(entry.addressId),
+        )
+        .map(entry => entry.addressId),
+    ]),
+  ].sort()
   const policies = Object.fromEntries(
     [
       ...new Set(
@@ -572,6 +611,7 @@ async function prepareSupplementaryAddressesLocked(
     policies,
     placeReleaseId: input.releaseId,
     addressSnapshotId: input.snapshots.addressSnapshotId,
+    revokedAddressIds,
   })
   if (snapshot.status === 'published') {
     const runs = await db
@@ -752,6 +792,21 @@ async function prepareSupplementaryAddressesLocked(
               }),
             )
           }
+        }
+        for (const id of revokedAddressIds) {
+          changes.push(
+            insertSql('snapshotVersionChanges', {
+              snapshotId: snapshot.id,
+              recordType: 'address2d',
+              recordId: id,
+              locale: '',
+              versionHash: null,
+              operation: 'delete',
+              sourceReleaseId: releaseId,
+              createdAt: now,
+              updatedAt: now,
+            }),
+          )
         }
         for (const [target, statements] of [
           [input.targets.current, currentSql],
