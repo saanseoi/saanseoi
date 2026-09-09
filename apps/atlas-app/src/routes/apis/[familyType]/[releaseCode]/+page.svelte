@@ -644,7 +644,6 @@ let hasContent = $derived.by(() => {
 
 $effect(() => {
   release.code
-  activeHeadingId = null
   activeStatsHeadingId = null
   activeAuditHeadingId = null
 })
