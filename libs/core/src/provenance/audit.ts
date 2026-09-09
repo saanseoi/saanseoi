@@ -217,11 +217,15 @@ async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
   // fixture is split across many provenance objects; the complete fixture
   // partitions remain available for exact audit reads.
   const encoder = new TextEncoder()
-  const maxSearchBytes = MAX_OBJECT_BYTES - 1024
   let bounded = ''
   for (const token of tokens) {
     const next = bounded ? `${bounded} ${token}` : token
-    if (encoder.encode(next).length > maxSearchBytes) break
+    const candidate = serialise({
+      kind: 'bulk-search',
+      schemaVersion: 1,
+      text: next,
+    })
+    if (encoder.encode(candidate).length > MAX_OBJECT_BYTES) break
     bounded = next
   }
   return bounded
