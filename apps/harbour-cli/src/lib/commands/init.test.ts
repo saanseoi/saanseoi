@@ -267,6 +267,21 @@ describe('initialisation commands', () => {
     }
   })
 
+  test('skips an already-complete official address initialisation before any work', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/addresses-hkgov-dpo.fish'),
+      'utf8',
+    )
+
+    const statusCheck = source.indexOf('init:addresses:saanseoi:status')
+    const begin = source.indexOf('init:addresses:saanseoi:begin')
+    const ingest = source.indexOf('hkgov-dpo:ingest')
+    expect(statusCheck).toBeGreaterThan(-1)
+    expect(statusCheck).toBeLessThan(begin)
+    expect(begin).toBeLessThan(ingest)
+    expect(source.slice(statusCheck, begin)).toContain('exit 0')
+  })
+
   test('retains artefact caches by default and forwards the explicit opt-out', () => {
     const common = readFileSync(resolve(repoRoot, 'scripts/init/common.fish'), 'utf8')
     expect(common).toContain('set -g saanseoi_init_cache_artefacts 1')

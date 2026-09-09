@@ -71,10 +71,21 @@ function manifestPath(target: UploadTarget) {
   return resolve(MANIFEST_ROOT, `${targetName(target)}.json`)
 }
 
+/** Return the durable lifecycle state without opening any D1 bindings. */
+export async function getOfficialAddressInitialisationStatus(target: UploadTarget) {
+  const path = manifestPath(target)
+  if (!existsSync(path)) return 'missing' as const
+
+  const manifest = await readManifest(path)
+  if (manifest.target !== targetName(target))
+    throw new Error('Official address initialisation manifest target does not match.')
+  return manifest.status
+}
+
 /** Begin the official initialiser only when addresses are genuinely absent. */
 export async function beginOfficialAddressInitialisation(
   target: UploadTarget,
-  options: { continue: boolean } = { continue: false },
+  _options: { continue: boolean } = { continue: false },
 ) {
   const path = manifestPath(target)
   if (existsSync(path)) {
@@ -86,10 +97,11 @@ export async function beginOfficialAddressInitialisation(
       note(formatField('manifest', path), 'RESUMING OFFICIAL ADDRESS INITIALISATION')
       return
     }
-    if (options.continue)
-      throw new Error(
-        'Official address initialisation is already complete; cannot continue it.',
-      )
+    note(
+      formatField('manifest', path),
+      'OFFICIAL ADDRESS INITIALISATION ALREADY COMPLETE',
+    )
+    return
   }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'address',
@@ -101,7 +113,7 @@ export async function beginOfficialAddressInitialisation(
     try {
       await assertCleanAddressBaseline(context)
     } catch (error) {
-      if (options.continue) {
+      if (_options.continue) {
         throw new Error(
           `Cannot continue official address initialisation: its manifest is missing, but address state already exists. Refusing to adopt a partial run because its reset ownership and before-images cannot be verified. ${error instanceof Error ? error.message : String(error)}`,
         )
