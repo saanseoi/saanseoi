@@ -287,6 +287,11 @@ number does not imply a separate section. Matching block numbers across building
 establish equivalence. This differs from identified High/Low sections, which retain
 separate section records.
 
+Verified Chinese block-labelled duplicates accept an optional ordinal `第` inside ASCII
+or full-width parentheses, such as `麗榮樓(第3座)`. The canonical building name remains
+`麗榮樓`, with block reference `3` and descriptor `座`; `第` is retained only in the
+original source assertion recorded as provenance.
+
 Reviewed estate-component restorations fill bounded source omissions in derived fields
 without rewriting original assertions or changing identity. Fortune Estate Carpark
 retains its estate attribution across the five-release gap, separately from the unnamed

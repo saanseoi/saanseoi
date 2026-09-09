@@ -257,6 +257,13 @@ as one unique, block-free parent and a matching unchanged 3D inventory. The cano
 address receives the verified BLK/座 components; the variant remains source provenance,
 not an alias or a second address. The release-audit decision is fingerprint-guarded.
 
+Lai On Estate's August 2026 `麗榮樓(第3座)` assertion is a permitted block-name variant
+of `麗榮樓`. The duplicate matcher accepts optional `第` before the exact verified block
+reference in ASCII or full-width parentheses. The canonical parent keeps the block-free
+building name and separate `座`/`3` components, without `第`; provenance preserves the
+original spelling. CSU, geometry, bilingual block references and all remaining premises
+components must still match.
+
 Fu Tip Estate treats estate-prefixed house strings as aliases, not repeated canonical
 building names: `FU TIP ESTATE BAN TIP HOUSE` resolves to `BAN TIP HOUSE`. The exact
 November 2024 `FU TIP ESTATES BLOCK 7` expression remains provenance for HIN TIP HOUSE

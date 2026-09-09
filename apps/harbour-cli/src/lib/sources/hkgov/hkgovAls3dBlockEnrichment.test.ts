@@ -93,51 +93,62 @@ test('rejects a mismatched bilingual block reference', () => {
   ).toThrow('matching BLK/座 references')
 })
 
-test('retains a matching block-labelled 2D assertion as provenance, not another address', () => {
-  const canonical = owner()
-  enrichAls3dParentBlock({
-    en: {
-      BuildingName: 'EXAMPLE HOUSE',
-      EngBlock: { BlockDescriptor: 'BLK', BlockNo: '6' },
-      EngEstate: { EstateName: 'EXAMPLE ESTATE' },
-      EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE ROAD' },
-    },
-    hkgovCsuId: '123',
-    owner: canonical,
-    sourceFeatureIndexOneBased: 7,
-    sourceFile: 'als_addresses_3d.geojson',
-    sourceVersion: '2026-08-19.0',
-    zh: {
-      BuildingName: '示例樓',
-      ChiBlock: { BlockDescriptor: '座', BlockNo: '6' },
-      ChiEstate: { EstateName: '示例邨' },
-      ChiStreet: { BuildingNoFrom: '1', StreetName: '示例道' },
-    },
-  })
-  const duplicate = {
-    ...owner(),
-    chiPremisesAddressJson: JSON.stringify({
-      BuildingName: '示例樓(6座)',
-      ChiBlock: { BlockDescriptor: '座', BlockNo: '6' },
-      ChiEstate: { EstateName: '示例邨' },
-      ChiStreet: { BuildingNoFrom: '1', StreetName: '示例道' },
-    }),
-    enBlockDescriptor: 'BLK',
-    enBlockNumber: '6',
-    engPremisesAddressJson: JSON.stringify({
-      BuildingName: 'EXAMPLE HOUSE (BLK 6)',
-      EngBlock: { BlockDescriptor: 'BLK', BlockNo: '6' },
-      EngEstate: { EstateName: 'EXAMPLE ESTATE' },
-      EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE ROAD' },
-    }),
-    id: 'duplicate',
-    sourceFeatureIndexOneBased: 8,
-    sourceFile: 'als_addresses.geojson',
-    zhHantBlockDescriptor: '座',
-    zhHantBlockNumber: '6',
-  }
-  suppressAls3dParentBlockDuplicate(canonical, duplicate)
-  expect(canonical.als3dParentBlockEnrichment?.suppressed2dSources).toEqual([
-    expect.objectContaining({ addressId: 'duplicate' }),
-  ])
-})
+test.each(['示例樓(6座)', '示例樓(第6座)', '示例樓（第6座）'])(
+  'retains block-labelled assertion %s as provenance with a block-free canonical name',
+  buildingName => {
+    const canonical = owner()
+    enrichAls3dParentBlock({
+      en: {
+        BuildingName: 'EXAMPLE HOUSE',
+        EngBlock: { BlockDescriptor: 'BLK', BlockNo: '6' },
+        EngEstate: { EstateName: 'EXAMPLE ESTATE' },
+        EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE ROAD' },
+      },
+      hkgovCsuId: '123',
+      owner: canonical,
+      sourceFeatureIndexOneBased: 7,
+      sourceFile: 'als_addresses_3d.geojson',
+      sourceVersion: '2026-08-19.0',
+      zh: {
+        BuildingName: '示例樓',
+        ChiBlock: { BlockDescriptor: '座', BlockNo: '6' },
+        ChiEstate: { EstateName: '示例邨' },
+        ChiStreet: { BuildingNoFrom: '1', StreetName: '示例道' },
+      },
+    })
+    const duplicate = {
+      ...owner(),
+      chiPremisesAddressJson: JSON.stringify({
+        BuildingName: buildingName,
+        ChiBlock: { BlockDescriptor: '座', BlockNo: '6' },
+        ChiEstate: { EstateName: '示例邨' },
+        ChiStreet: { BuildingNoFrom: '1', StreetName: '示例道' },
+      }),
+      enBlockDescriptor: 'BLK',
+      enBlockNumber: '6',
+      engPremisesAddressJson: JSON.stringify({
+        BuildingName: 'EXAMPLE HOUSE (BLK 6)',
+        EngBlock: { BlockDescriptor: 'BLK', BlockNo: '6' },
+        EngEstate: { EstateName: 'EXAMPLE ESTATE' },
+        EngStreet: { BuildingNoFrom: '1', StreetName: 'EXAMPLE ROAD' },
+      }),
+      id: 'duplicate',
+      sourceFeatureIndexOneBased: 8,
+      sourceFile: 'als_addresses.geojson',
+      zhHantBlockDescriptor: '座',
+      zhHantBlockNumber: '6',
+    }
+    suppressAls3dParentBlockDuplicate(canonical, duplicate)
+    expect(JSON.parse(canonical.chiPremisesAddressJson!).BuildingName).toBe('示例樓')
+    expect(canonical.zhHantBlockNumber).toBe('6')
+    expect(canonical.zhHantFormattedAddress).not.toContain('第')
+    expect(canonical.als3dParentBlockEnrichment?.suppressed2dSources).toEqual([
+      expect.objectContaining({
+        addressId: 'duplicate',
+        premises: expect.objectContaining({
+          zhHant: expect.objectContaining({ BuildingName: buildingName }),
+        }),
+      }),
+    ])
+  },
+)
