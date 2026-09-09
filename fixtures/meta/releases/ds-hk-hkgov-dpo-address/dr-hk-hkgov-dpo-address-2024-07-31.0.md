@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-23T00:00:00.000Z"
+createdAt: "2026-09-09T09:49:55.000Z"
+updatedAt: "2026-09-09T09:49:55.000Z"
 dataset: "ds-hk-hkgov-dpo-address"
-release: "dr-hk-hkgov-dpo-address-2025-01-23.0"
+release: "dr-hk-hkgov-dpo-address-2024-07-31.0"
 regionCode: "hk"
 source: "hkgov-dpo"
-sourceVersion: "2025-01-23.0"
-publisherReleaseDate: "2025-01-23"
-releaseVersion: "2025-01-23.0"
+sourceVersion: "2024-07-31.0"
+publisherReleaseDate: "2024-07-31"
+releaseVersion: "2024-07-31.0"
 sourceSchemaVersion: "3.2"
 type: "address"
-cohortKey: "2025-01-23.0"
+cohortKey: "2024-07-31.0"
 releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
 ---
 

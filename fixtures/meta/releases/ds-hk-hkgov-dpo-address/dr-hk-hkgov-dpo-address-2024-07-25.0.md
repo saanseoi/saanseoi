@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-23T00:00:00.000Z"
+createdAt: "2026-09-09T09:49:55.000Z"
+updatedAt: "2026-09-09T09:49:55.000Z"
 dataset: "ds-hk-hkgov-dpo-address"
-release: "dr-hk-hkgov-dpo-address-2025-01-23.0"
+release: "dr-hk-hkgov-dpo-address-2024-07-25.0"
 regionCode: "hk"
 source: "hkgov-dpo"
-sourceVersion: "2025-01-23.0"
-publisherReleaseDate: "2025-01-23"
-releaseVersion: "2025-01-23.0"
+sourceVersion: "2024-07-25.0"
+publisherReleaseDate: "2024-07-25"
+releaseVersion: "2024-07-25.0"
 sourceSchemaVersion: "3.2"
 type: "address"
-cohortKey: "2025-01-23.0"
+cohortKey: "2024-07-25.0"
 releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
 ---
 
@@ -18,6 +18,7 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rc
 
 ## Changelog
 
+- Initial 山水 | SaanSeoi release
 - <orange>Upstream</orange> Digital Policy Office Address Lookup Service (ALS)
   two-dimensional district GeoJSON delivery dated
   <black>{{publisherReleaseDate}}</black>
@@ -136,6 +137,7 @@ Fields which are not exposed as part of the two-dimensional
 
 ## 更新紀錄
 
+- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
   <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
@@ -238,6 +240,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 
 ## 更新记录
 
+- 山水 | SaanSeoi 初始版本
 - <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
   <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
