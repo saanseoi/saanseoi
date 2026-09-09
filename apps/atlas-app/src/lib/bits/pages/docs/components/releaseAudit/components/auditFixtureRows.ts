@@ -1,7 +1,7 @@
 import { m } from '@repo/i18n/messages'
 import type { Json } from '@repo/core/provenance'
 import { auditDivisionCode } from '@repo/core/provenance/divisionCodes'
-import { matchesAudit } from './retainedAuditSearch'
+import { matchesAudit } from './auditSearch'
 const representations = new WeakMap<object, Json[]>()
 export const auditBulkTitle = (id: string) =>
   ({

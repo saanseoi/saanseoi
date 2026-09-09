@@ -5,9 +5,9 @@ import { tick } from 'svelte'
 import { getLocale } from '@repo/i18n/runtime'
 import { translationParentName } from './translationParentName'
 import Location from '@iconify-svelte/proicons/location'
-import Applications from './retainedAuditApplications.svelte'
-import Origin from './retainedAuditTranslationOrigin.svelte'
-import { matchesAudit } from './retainedAuditSearch'
+import Applications from './auditApplications.svelte'
+import Origin from './auditTranslationOrigin.svelte'
+import { matchesAudit } from './auditSearch'
 let {
   entries,
   references,

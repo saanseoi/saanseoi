@@ -1,20 +1,20 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { auditStatus } from './retainedAuditStatus'
+import { auditStatus } from './auditStatus'
 import type { BulkAudit, Json } from '@repo/core/provenance'
 import {
   getRetainedBulkFixture,
   getRetainedRuleDeclaration,
 } from '#lib/registry/audit.remote.js'
-import RetainedAuditFixture from './retainedAuditFixture.svelte'
-import Skeleton from './retainedAuditApplicationSkeleton.svelte'
-import CopyRule from './retainedAuditCopyRule.svelte'
-import RuleParameters from './retainedAuditRuleParameters.svelte'
+import AuditFixture from './auditFixture.svelte'
+import Skeleton from './auditApplicationSkeleton.svelte'
+import CopyRule from './auditCopyRule.svelte'
+import RuleParameters from './auditRuleParameters.svelte'
 import {
   filterAuditFixture,
   auditFixtureRows,
   fixtureHasContents,
-} from './retainedAuditFixtureRows'
+} from './auditFixtureRows'
 const titles = () =>
   ({
     'curate-statistic-fields': m.source_audit_statistic_field_mappings(),
@@ -171,7 +171,7 @@ async function loadDeclaration() {
           </summary>
           <div class="mt-4 max-h-[640px] overflow-auto">
             {#if fixtures[index] !== undefined}
-              <RetainedAuditFixture value={filtered ?? fixtures[index] ?? null} />
+              <AuditFixture value={filtered ?? fixtures[index] ?? null} />
             {:else}
               {#if !failure}
                 <Skeleton />

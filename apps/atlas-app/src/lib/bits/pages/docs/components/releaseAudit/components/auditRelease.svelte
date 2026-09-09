@@ -2,19 +2,16 @@
 import type { AuditManifest } from '@repo/core/provenance'
 import { m } from '#lib/bits/internal/i18n.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
-import Bulk from './retainedAuditBulk.svelte'
-import Translations from './retainedAuditTranslationSection.svelte'
-import Applications from './retainedAuditApplications.svelte'
-import Guards from './retainedAuditGuards.svelte'
-import DivisionRules from './retainedAuditDivisionRules.svelte'
-import ComparisonCard from './retainedAuditPatchCard.svelte'
-import { matchesAudit } from './retainedAuditSearch'
-import { guardCopy } from './retainedAuditGuardCopy'
+import Bulk from './auditBulk.svelte'
+import Translations from './auditTranslationSection.svelte'
+import Applications from './auditApplications.svelte'
+import Guards from './auditGuards.svelte'
+import DivisionRules from './auditDivisionRules.svelte'
+import ComparisonCard from './auditPatchCard.svelte'
+import { matchesAudit } from './auditSearch'
+import { guardCopy } from './auditGuardCopy'
 import Controls from './releaseAuditControls.svelte'
-import {
-  getRetainedAuditPage,
-  getRetainedBulkFixture,
-} from '#lib/registry/audit.remote.js'
+import { getAuditPage, getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
 import type { Json } from '@repo/core/provenance'
 import {
   loadAuditFixtures,
@@ -22,7 +19,7 @@ import {
   matchesFixtureRow,
   fixtureHasContents,
   auditBulkTitle,
-} from './retainedAuditFixtureRows'
+} from './auditFixtureRows'
 let {
   manifest,
   hash,
@@ -108,7 +105,7 @@ $effect(() => {
   let current = true
   searchLoading = true
   searchFailure = ''
-  getRetainedAuditPage({
+  getAuditPage({
     releaseId: manifest.releaseId,
     hash,
     q: effectiveQuery,

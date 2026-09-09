@@ -1,8 +1,8 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { matchesAudit } from './retainedAuditSearch'
-import RuleText from './retainedAuditRuleText.svelte'
-import CopyRule from './retainedAuditCopyRule.svelte'
+import { matchesAudit } from './auditSearch'
+import RuleText from './auditRuleText.svelte'
+import CopyRule from './auditCopyRule.svelte'
 import type { Json } from '@repo/core/provenance'
 let {
   title,

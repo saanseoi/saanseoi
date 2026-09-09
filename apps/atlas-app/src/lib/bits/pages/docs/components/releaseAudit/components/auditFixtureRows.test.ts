@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test'
-import { mergeAuditFixtures, auditFixtureRows } from './retainedAuditFixtureRows'
+import { mergeAuditFixtures, auditFixtureRows } from './auditFixtureRows'
 import {
   filterAuditFixture,
   matchesFixtureRow,
   fixtureHasContents,
   loadAuditFixtures,
-} from './retainedAuditFixtureRows'
+} from './auditFixtureRows'
 import geographic from '../../../../../../../../../../fixtures/meta/divisionCodes/geographic.json'
 
 test('searches displayed registry codes without changing retained evidence', () => {

@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest'
 import { render } from 'vitest-browser-svelte'
-import IdentityMappings from './retainedAuditIdentityMappings.svelte'
-import FieldMappings from './retainedAuditFieldMappings.svelte'
+import IdentityMappings from './auditIdentityMappings.svelte'
+import FieldMappings from './auditFieldMappings.svelte'
 import {
   auditFixtureRows,
   filterAuditFixture,
   mergeAuditFixtures,
-} from './retainedAuditFixtureRows'
+} from './auditFixtureRows'
 import geographic from '../../../../../../../../../../fixtures/meta/divisionCodes/geographic.json'
 
 test('a registry-code search renders the older identity row with its lookup label', async () => {

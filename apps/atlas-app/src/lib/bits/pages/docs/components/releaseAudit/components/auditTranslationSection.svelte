@@ -2,7 +2,7 @@
 import { m } from '#lib/bits/internal/i18n.js'
 import type { AuditManifest, Json } from '@repo/core/provenance'
 import { getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
-import Translations from './retainedAuditTranslations.svelte'
+import Translations from './auditTranslations.svelte'
 let {
   manifest,
   hash,

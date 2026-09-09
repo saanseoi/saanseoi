@@ -3,11 +3,8 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { untrack, type Snippet } from 'svelte'
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
-import {
-  getRetainedSourceAudit,
-  getRetainedApiAudit,
-} from '#lib/registry/audit.remote.js'
-import RetainedAuditRelease from './retainedAuditRelease.svelte'
+import { getSourceAudit, getApiAudit } from '#lib/registry/audit.remote.js'
+import AuditRelease from './auditRelease.svelte'
 import Controls from './releaseAuditControls.svelte'
 let {
   datasetCode,
@@ -54,12 +51,10 @@ $effect(() => {
     visible = [...element.querySelectorAll<HTMLElement>('h3')].filter(
       heading => heading.getClientRects().length > 0,
     )
-    const next = visible.map(heading => {
+    const sectionHeadings = visible.map(heading => {
       const resource =
         heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
         ''
-      const source =
-        heading.closest<HTMLElement>('[data-audit-source]')?.dataset.auditSource ?? ''
       const text =
         heading.getAttribute('data-audit-toc-title')?.trim() ||
         heading.firstChild?.textContent?.trim() ||
@@ -69,10 +64,26 @@ $effect(() => {
       heading.style.scrollMarginTop = '10rem'
       return {
         id: heading.id,
-        level: 2,
-        text: familyType && source ? `${source} · ${text}` : text,
+        level: familyType ? 3 : 2,
+        resource,
+        text,
       }
     })
+    const sourceHeadings = [
+      ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading]'),
+    ]
+    const next = familyType
+      ? sourceHeadings.flatMap(source => [
+          {
+            id: source.id,
+            level: 2,
+            text: source.dataset.auditSourceLabel ?? m.source_audit_section(),
+          },
+          ...sectionHeadings
+            .filter(section => section.resource === source.dataset.auditReleaseId)
+            .map(({ resource: _resource, ...section }) => section),
+        ])
+      : sectionHeadings.map(({ resource: _resource, ...section }) => section)
     if (JSON.stringify(headings) !== JSON.stringify(next)) headings = next
     updateActive()
   }
@@ -97,8 +108,8 @@ $effect(() => {
 })
 let audit = $derived(
   familyType
-    ? getRetainedApiAudit({ familyType, releaseCode })
-    : getRetainedSourceAudit({ datasetCode: datasetCode ?? '', releaseCode }),
+    ? getApiAudit({ familyType, releaseCode })
+    : getSourceAudit({ datasetCode: datasetCode ?? '', releaseCode }),
 )
 $effect(() => {
   const resourceTypes = audit.ready
@@ -142,11 +153,26 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
 }
 const sourceAuditHref = (resource: {
   sourceDatasetCode?: string
+  sourcePublisherName?: string
   sourceReleaseCode?: string
 }) =>
   resource.sourceDatasetCode && resource.sourceReleaseCode
     ? `/sources/${encodeURIComponent(resource.sourceDatasetCode)}/${encodeURIComponent(resource.sourceReleaseCode)}?tab=audit`
     : undefined
+const sourceOutlineLabel = (resource: {
+  resourceType: Parameters<typeof resourceLabel>[0]
+  sourcePublisherName?: string
+  sourceSubType?: string | null
+}) =>
+  [
+    resource.sourcePublisherName,
+    resourceLabel(resource.resourceType),
+    resource.sourceSubType,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+const sourceHeadingId = (releaseId: string) =>
+  `audit-source-${encodeURIComponent(releaseId)}`
 </script>
 
 {#if audit.error}
@@ -174,10 +200,18 @@ const sourceAuditHref = (resource: {
     {#each visibleResources as resource (resource.releaseId)}
       <section
         class={familyType ? 'space-y-5 border-t border-border-card/60 pt-8' : ''}
-        data-audit-source={`${resource.sourceDatasetCode ?? resource.resourceType} ${resource.sourceReleaseCode ?? ''}`}
       >
         {#if familyType}
           <div class="space-y-1">
+            <h2
+              id={sourceHeadingId(resource.releaseId)}
+              class="text-lg font-medium text-primary"
+              data-audit-source-heading
+              data-audit-release-id={resource.releaseId}
+              data-audit-source-label={sourceOutlineLabel(resource)}
+            >
+              {sourceOutlineLabel(resource)}
+            </h2>
             <p
               class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
             >
@@ -191,17 +225,13 @@ const sourceAuditHref = (resource: {
                 {resource.sourceDatasetCode}
                 · {resource.sourceReleaseCode}
               </a>
-            {:else}
-              <h2 class="text-lg font-medium text-primary">
-                {resourceLabel(resource.resourceType)}
-              </h2>
             {/if}
             <p class="text-sm text-foreground-alt">
               {resourceLabel(resource.resourceType)}
             </p>
           </div>
         {/if}
-        <RetainedAuditRelease
+        <AuditRelease
           manifest={resource.manifest}
           hash={resource.hash}
           resourceType={resource.resourceType}
