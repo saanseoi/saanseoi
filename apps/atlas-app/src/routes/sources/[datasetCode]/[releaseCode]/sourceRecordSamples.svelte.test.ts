@@ -38,7 +38,9 @@ test('renders the first source record without fetching surplus candidates', asyn
   await expect.element(screen.getByText('division')).toBeVisible()
   await expect.element(screen.getByText('variant')).toBeVisible()
   await expect.element(screen.getByText('default')).toBeVisible()
-  await expect.element(screen.getByText('rawProperties')).toBeVisible()
+  await expect
+    .element(screen.getByRole('term').filter({ hasText: /^rawProperties$/ }))
+    .toBeVisible()
   await expect.element(screen.getByText('name')).toBeVisible()
   await expect.element(screen.getByText('Example division')).toBeVisible()
   await expect.element(screen.getByText('geometry')).toBeVisible()
