@@ -1,5 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte'
+import { prefersReducedMotion } from 'svelte/motion'
+import { fade } from 'svelte/transition'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
 import { m } from '#lib/bits/internal/i18n.js'
@@ -22,6 +24,7 @@ type Props = {
 }
 
 type SourceRecordsResponse = { records?: unknown[] }
+type SamplePresentation = 'grouped' | 'individual' | null
 
 const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(
   /\/+$/,
@@ -39,8 +42,16 @@ let errorMessage = $state<string | null>(null)
 let mounted = $state(false)
 let handledRequest = $state<number | null>(null)
 let pendingExamples = $state(0)
+let groupedPresentation = $state(false)
 
 const groupedFields = $derived(groupAddressSamples(samples))
+const samplePresentation = $derived<SamplePresentation>(
+  groupedPresentation && samples.length
+    ? 'grouped'
+    : samples.length
+      ? 'individual'
+      : null,
+)
 
 function requestUrl(limit: number) {
   const url = new URL(`${apiBaseUrl}/${family}/v0.1/sources`)
@@ -87,6 +98,7 @@ async function getRandomRecords(limit: number) {
 }
 
 function enqueueExamples(count: number) {
+  if (samples.length) groupedPresentation = true
   pendingExamples += count
   void loadMore()
 }
@@ -142,57 +154,65 @@ $effect(() => {
     <p class="font-body text-body-md text-foreground-alt">
       {m.source_record_samples_unavailable()}
     </p>
-  {:else if samples.length > 1}
-    <div class="space-y-3">
-      <dl
-        class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
-      >
-        {#each groupedFields as field (field.key)}
-          <GroupedField {field} sampleIds={samples.map(sample => sample.id)} />
-        {/each}
-      </dl>
-    </div>
-  {:else if samples.length}
-    <div class="grid gap-3">
-      {#each samples as sample, index (sample.id)}
-        <div class="overflow-x-auto rounded-md">
-          <dl
-            class="min-w-176 overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
-          >
-            <dt>
-              <button
-                class="grid w-full min-w-0 grid-cols-[minmax(13rem,0.36fr)_minmax(0,1fr)] gap-5 bg-surface-container-low px-4 py-4 text-left transition hover:bg-surface-container"
-                type="button"
-                aria-expanded={!collapsedSamples.has(sample.id)}
-                onclick={() => toggleSample(sample.id)}
-              >
-                <span class="font-mono text-label-md font-semibold text-primary"
-                  >sourceRecordId</span
-                >
-                <span class="min-w-0">
-                  <SourceIdentifier
-                    id={sample.id}
-                    marker={sampleValueTones[index % sampleValueTones.length].marker}
-                  />
-                </span>
-              </button>
-            </dt>
-            {#if !collapsedSamples.has(sample.id)}
-              {#each sample.fields as field (field.key)}
-                <NestedField {field} />
+  {:else}
+    <div>
+      {#if samplePresentation === 'grouped'}
+        <div in:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+          <div class="space-y-3">
+            <dl
+              class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
+            >
+              {#each groupedFields as field (field.key)}
+                <GroupedField {field} sampleIds={samples.map(sample => sample.id)} />
               {/each}
-            {/if}
-          </dl>
+            </dl>
+          </div>
         </div>
-      {/each}
+      {:else if samplePresentation === 'individual'}
+        <div in:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
+          <div class="grid gap-3">
+            {#each samples as sample, index (sample.id)}
+              <div class="overflow-x-auto rounded-md">
+                <dl
+                  class="min-w-176 overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
+                >
+                  <dt>
+                    <button
+                      class="grid w-full min-w-0 grid-cols-[minmax(13rem,0.36fr)_minmax(0,1fr)] gap-5 bg-surface-container-low px-4 py-4 text-left transition hover:bg-surface-container"
+                      type="button"
+                      aria-expanded={!collapsedSamples.has(sample.id)}
+                      onclick={() => toggleSample(sample.id)}
+                    >
+                      <span class="font-mono text-label-md font-semibold text-primary"
+                        >sourceRecordId</span
+                      >
+                      <span class="min-w-0">
+                        <SourceIdentifier
+                          id={sample.id}
+                          marker={sampleValueTones[index % sampleValueTones.length].marker}
+                        />
+                      </span>
+                    </button>
+                  </dt>
+                  {#if !collapsedSamples.has(sample.id)}
+                    {#each sample.fields as field (field.key)}
+                      <NestedField {field} />
+                    {/each}
+                  {/if}
+                </dl>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {:else if mounted && !loading && !errorMessage}
+        <p class="font-body text-body-md text-foreground-alt">
+          {m.source_record_samples_empty()}
+        </p>
+      {/if}
     </div>
-  {:else if mounted && !loading && !errorMessage}
-    <p class="font-body text-body-md text-foreground-alt">
-      {m.source_record_samples_empty()}
-    </p>
   {/if}
 
-  {#if !unavailable && (!mounted || loading)}
+  {#if !unavailable && (!mounted || (loading && !samples.length))}
     <ReleaseSamplesSkeleton label={m.source_record_samples_loading()} />
   {/if}
 
