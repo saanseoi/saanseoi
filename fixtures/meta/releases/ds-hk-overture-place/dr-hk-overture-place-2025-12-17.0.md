@@ -20,7 +20,7 @@ releaseNotesUrl: "https://docs.overturemaps.org/blog/2025/12/17/release-notes/#p
 - Combines changes from the upstream <black>{{sourceVersion}}<black> and the missing
   <black>2025-11-19.0<black> release.
 - <orange>Upstream</orange> Added a new <black>taxonomy</black> property
-- <orange>Upstream</orange> Added ~1,500,000 new POIs from AllThePlaces
+- <orange>Upstream</orange> Added ~5,000 new POIs from AllThePlaces
 
 ## Compatibility
 
@@ -120,7 +120,7 @@ under `rawProperties`, where the source record remains available.
 - 合併上游 <black>{{sourceVersion}}</black> 及缺少的 <black>2025-11-19.0</black>
   版本的變更。
 - <orange>上游</orange> 新增 <black>taxonomy</black> 欄位
-- <orange>上游</orange> 從 AllThePlaces 新增約 1,500,000 個興趣點
+- <orange>上游</orange> 從 AllThePlaces 新增約 ~5,000 個興趣點
 
 ## 兼容性
 
@@ -212,7 +212,7 @@ schema（`{{sourceSchemaVersion}}`）。
 - 合并上游 <black>{{sourceVersion}}</black> 及缺少的 <black>2025-11-19.0</black>
   版本的变更。
 - <orange>上游</orange> 新增 <black>taxonomy</black> 字段
-- <orange>上游</orange> 从 AllThePlaces 新增约 1,500,000 个兴趣点
+- <orange>上游</orange> 从 AllThePlaces 新增约 ~5,000 个兴趣点
 
 ## 兼容性
 
