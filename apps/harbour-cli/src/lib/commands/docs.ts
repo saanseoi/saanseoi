@@ -1,11 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { cancel, isCancel, log, note, outro, select } from '@clack/prompts'
-import { describeTarget, formatField, formatMutedValue } from '../cli/display.ts'
+import { cancel, isCancel, note, outro, select } from '@clack/prompts'
+import { describeTarget, formatField } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import { colorize } from './updateFormatting.ts'
-import { formatApiReleaseSetDocsGrid } from './releaseSetDisplay.ts'
+import {
+  formatApiReleaseSetDocsGrid,
+  formatReleaseDocsGrid,
+} from './releaseSetDisplay.ts'
 import {
   compareReleaseRows,
   compareReleaseSetRows,
@@ -244,12 +247,16 @@ async function runApiReleaseSetDocsPublishCommand(
   if (updates.length > 0) {
     console.log(
       [
-        `${colorize('◆', 36)}  ${colorize('API RELEASE-SET DOCS UPDATED', 90)}`,
+        `${colorize('◆', 36)}  ${colorize('API RELEASE-SET GUIDES & DOCS UPDATED', 90)}`,
         ...formatApiReleaseSetDocsGrid(updates.map(update => update.code)),
       ].join('\n'),
     )
   }
-  outro(dryRun ? 'API docs publish dry run complete' : 'API docs published ✓')
+  outro(
+    dryRun
+      ? 'API guides and docs publish dry run complete'
+      : 'API guides and docs published ✓',
+  )
 }
 
 async function runReleaseDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
@@ -352,6 +359,9 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
     fixturePath: string
     notes: string
     previousNotes: string
+    regionCode: string
+    source: string
+    sourceVersion: string
   }> = []
 
   for (const datasetRows of rowsByDataset.values()) {
@@ -384,6 +394,9 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
           fixturePath: effectiveFixture.path,
           notes,
           previousNotes,
+          regionCode: row.regionCode,
+          source: row.source,
+          sourceVersion: row.sourceVersion,
         })
       }
     }
@@ -404,26 +417,15 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
     ].join('\n'),
     'DOCS PUBLISH',
   )
-  for (const update of updates) {
-    log.info(`Release docs updated  ${formatReleaseCode(update.code)}`)
+  if (updates.length > 0) {
+    console.log(
+      [
+        `${colorize('◆', 36)}  ${colorize('RELEASE DOCS UPDATED', 90)}`,
+        ...formatReleaseDocsGrid(updates),
+      ].join('\n'),
+    )
   }
   outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published ✓')
-}
-
-function formatReleaseCode(code: string) {
-  const match =
-    /^dr-([a-z0-9]+)-([a-z0-9-]+)-(.+)-(\d{4}(?:-[\d.]+)?)(?:::(.+))?$/.exec(code)
-  if (!match) return colorize(code, 33)
-
-  const [, regionCode, publisherCode, dataset, sourceVersion, resourceType] = match
-  return [
-    colorize('dr', 90),
-    colorize(`-${regionCode}`, 36),
-    colorize(`-${publisherCode}`, 35),
-    colorize(`-${dataset}`, 33),
-    colorize(`-${sourceVersion}`, 32),
-    resourceType ? formatMutedValue(`::${resourceType}`) : '',
-  ].join('')
 }
 
 async function resolveSelectedValue(input: {
