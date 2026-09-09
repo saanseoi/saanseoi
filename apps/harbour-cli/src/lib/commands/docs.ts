@@ -1,9 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-import { cancel, isCancel, note, outro, select } from '@clack/prompts'
-import { describeTarget, formatField } from '../cli/display.ts'
+import { cancel, isCancel, log, note, outro, select } from '@clack/prompts'
+import { describeTarget, formatField, formatMutedValue } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
+import { colorize } from './updateFormatting.ts'
+import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
 import {
   compareReleaseRows,
   compareReleaseSetRows,
@@ -242,13 +244,12 @@ async function runApiReleaseSetDocsPublishCommand(
       ...(dryRun ? [formatField('dryRun', 'true')] : []),
       formatField('inspected', String(rows.length)),
       formatField('changed', String(updates.length)),
-      formatField(
-        'apiReleaseSets',
-        updates.length > 0 ? updates.map(update => update.code).join(', ') : '-',
-      ),
     ].join('\n'),
     'DOCS PUBLISH',
   )
+  for (const update of updates) {
+    log.info(`API release-set docs updated  ${formatApiReleaseSetCode(update.code)}`)
+  }
   outro(dryRun ? 'API docs publish dry run complete' : 'API docs published ✓')
 }
 
@@ -401,14 +402,29 @@ async function runReleaseDocsPublishCommand(args: ParsedArgs, target: UploadTarg
       ...(dryRun ? [formatField('dryRun', 'true')] : []),
       formatField('inspected', String(rows.length)),
       formatField('changed', String(updates.length)),
-      formatField(
-        'releases',
-        updates.length > 0 ? updates.map(update => update.code).join(', ') : '-',
-      ),
     ].join('\n'),
     'DOCS PUBLISH',
   )
+  for (const update of updates) {
+    log.info(`Release docs updated  ${formatReleaseCode(update.code)}`)
+  }
   outro(dryRun ? 'Release docs publish dry run complete' : 'Release docs published ✓')
+}
+
+function formatReleaseCode(code: string) {
+  const match =
+    /^dr-([a-z0-9]+)-([a-z0-9-]+)-(.+)-(\d{4}(?:-[\d.]+)?)(?:::(.+))?$/.exec(code)
+  if (!match) return colorize(code, 33)
+
+  const [, regionCode, publisherCode, dataset, sourceVersion, resourceType] = match
+  return [
+    colorize('dr', 90),
+    colorize(`-${regionCode}`, 36),
+    colorize(`-${publisherCode}`, 35),
+    colorize(`-${dataset}`, 33),
+    colorize(`-${sourceVersion}`, 32),
+    resourceType ? formatMutedValue(`::${resourceType}`) : '',
+  ].join('')
 }
 
 async function resolveSelectedValue(input: {

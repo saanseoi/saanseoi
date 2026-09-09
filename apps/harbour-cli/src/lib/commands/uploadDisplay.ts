@@ -7,6 +7,7 @@ import {
 } from './docs.ts'
 import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
 import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
+import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
 import type {
   AddressPlan,
   DivisionGeometryPlan,
@@ -112,7 +113,7 @@ export async function logApiReleaseSetPublication(
   const publications = selectPublishedApiReleaseSetPublications(result)
   for (const publication of publications) {
     log.success(
-      `Published API domain release ${rainbowWaveText(publication.apiReleaseSetCode)}.`,
+      `Published API domain release ${formatApiReleaseSetCode(publication.apiReleaseSetCode)}.`,
       {
         secondarySymbol: mutedText('│'),
         spacing: 2,

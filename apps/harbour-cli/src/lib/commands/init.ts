@@ -262,7 +262,7 @@ export async function runInitialisationCommand(
   }
 
   outro(
-    `${args.command} ${styleText('blue', 'initialisation complete')} ${formatMutedValue(`@ ${targetLabel}`)}`,
+    `${args.command} ${styleText('blue', 'complete')} ${formatMutedValue(`@ ${targetLabel}`)}`,
   )
   finishInitialisationGuide()
 }
