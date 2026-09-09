@@ -21,7 +21,7 @@
     "@iconify/svelte": "^5.2.2",
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
-    "bits-ui": "^2.19.0",
+    "bits-ui": "^2.19.1",
     "maplibre-gl": "^6.8.0",
     "svelte": "^5.57.0"
   },
@@ -33,6 +33,6 @@
     "typescript": "^6.0.3",
     "vite": "^8.2.2",
     "vitest": "^5.0.0",
-    "wrangler": "^4.129.1"
+    "wrangler": "^4.130.0"
   }
 }
