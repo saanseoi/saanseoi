@@ -94,10 +94,10 @@ describe('formatAlsDivisionQualitySummary', () => {
 })
 
 describe('completed ALS release feedback', () => {
-  test('uses the standard one-line skipped-release renderer', () => {
-    expect(formatCompletedAlsRelease('2026-08-19.0')).toBe(
-      '\u001b[36m◆\u001b[39m  dr-hk-hkgov-dpo-address-2026-08-19.0  SKIPPED: published or superseded',
-    )
+  test('uses the standard source-grid skipped renderer', async () => {
+    expect(
+      await formatCompletedAlsRelease({ environment: 'dev', remote: false }),
+    ).toEqual([expect.stringContaining('SKIPPED: no updates')])
   })
 })
 

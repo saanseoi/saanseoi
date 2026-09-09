@@ -62,23 +62,15 @@ describe('C&SD statistics ingestion idempotency', () => {
     ).toEqual(['divisionArea'])
   })
 
-  test('identifies every completed requested resource in skip output', () => {
-    const output = formatCompletedCenstatdStatisticReleases(
+  test('uses one standard source-grid row when every requested resource is complete', async () => {
+    const output = await formatCompletedCenstatdStatisticReleases(
+      { environment: 'dev', remote: false },
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      '2023-H2',
-      ['divisionStatistic', 'division', 'divisionArea'],
     )
 
-    expect(output).toContain(
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::divisionStatistic',
-    )
-    expect(output).toContain(
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::division',
-    )
-    expect(output).toContain(
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::divisionArea',
-    )
-    expect(output.split('\n')).toHaveLength(3)
-    expect(output).not.toContain('every requested resource')
+    expect(output).toHaveLength(1)
+    expect(output[0]).toContain('SKIPPED: no updates')
+    expect(output[0]).toContain('Permanent Living Quarters')
+    expect(output[0]).not.toContain('published or superseded')
   })
 })
