@@ -1,11 +1,11 @@
 <script lang="ts">
 import type { IndividualAudit } from '@repo/core/provenance'
 import { m } from '#lib/bits/internal/i18n.js'
-import { getRetainedAuditPage } from '#lib/registry/audit.remote.js'
-import ApplicationCard from './retainedAuditApplicationCard.svelte'
-import PatchCard from './retainedAuditPatchCard.svelte'
-import { auditApplicationComparison } from './retainedAuditApplicationComparison'
-import ApplicationSkeleton from './retainedAuditApplicationSkeleton.svelte'
+import { getAuditPage } from '#lib/registry/audit.remote.js'
+import ApplicationCard from './auditApplicationCard.svelte'
+import PatchCard from './auditPatchCard.svelte'
+import { auditApplicationComparison } from './auditApplicationComparison'
+import ApplicationSkeleton from './auditApplicationSkeleton.svelte'
 let {
   releaseId,
   hash,
@@ -35,7 +35,7 @@ async function load(reset = false) {
   loading = true
   onLoading?.(true)
   try {
-    const page = await getRetainedAuditPage({
+    const page = await getAuditPage({
       releaseId,
       hash,
       category,

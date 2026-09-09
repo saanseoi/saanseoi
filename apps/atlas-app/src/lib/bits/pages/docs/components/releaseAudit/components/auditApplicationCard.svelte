@@ -1,6 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { auditStatus } from './retainedAuditStatus'
+import { auditStatus } from './auditStatus'
 import { getLocale } from '@repo/i18n/runtime'
 import { translationParentName } from './translationParentName'
 import type { IndividualAudit } from '@repo/core/provenance'

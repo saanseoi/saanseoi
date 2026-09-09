@@ -1,9 +1,9 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { auditStatus } from './retainedAuditStatus'
+import { auditStatus } from './auditStatus'
 import Badge from '@iconify-svelte/proicons/badge'
 import type { Json } from '@repo/core/provenance'
-import PatchValue from './retainedAuditPatchValue.svelte'
+import PatchValue from './auditPatchValue.svelte'
 let {
   title,
   reason,

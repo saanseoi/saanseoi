@@ -1,11 +1,11 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { auditStatus } from './retainedAuditStatus'
+import { auditStatus } from './auditStatus'
 import type { AuditGuard } from '@repo/core/provenance'
 import Shield from '@iconify-svelte/proicons/shield'
 import Trophy from '@iconify-svelte/proicons/trophy'
-import { guardCopy } from './retainedAuditGuardCopy'
-import RuleText from './retainedAuditRuleText.svelte'
+import { guardCopy } from './auditGuardCopy'
+import RuleText from './auditRuleText.svelte'
 let { guards }: { guards: AuditGuard[] } = $props()
 </script>
 <section class="space-y-3" aria-label={m.source_audit_guards()}>

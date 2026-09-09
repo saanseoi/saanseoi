@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import type { IndividualAudit } from '@repo/core/provenance'
-import { auditApplicationComparison } from './retainedAuditApplicationComparison'
+import { auditApplicationComparison } from './auditApplicationComparison'
 
 const row = (context: IndividualAudit['context'], review?: IndividualAudit['review']) =>
   ({ context, review }) as IndividualAudit

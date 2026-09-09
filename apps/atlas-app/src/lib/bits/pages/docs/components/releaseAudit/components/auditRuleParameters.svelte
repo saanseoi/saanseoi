@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { Json } from '@repo/core/provenance'
 import type { Polygon, MultiPolygon } from 'geojson'
-import ExclusionMap from './retainedAuditExclusionMap.svelte'
+import ExclusionMap from './auditExclusionMap.svelte'
 let { parameters }: { parameters: Record<string, Json> } = $props()
 const label = (key: string) =>
   key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ')

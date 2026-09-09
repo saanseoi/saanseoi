@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import type { Json } from '@repo/core/provenance'
-import { retainedBranchGroups } from './retainedAuditBranchRows'
+import { retainedBranchGroups } from './auditBranchRows'
 
 test('omits inactive classification groups but preserves applied and unrecorded groups', () => {
   const declaration: Json = {

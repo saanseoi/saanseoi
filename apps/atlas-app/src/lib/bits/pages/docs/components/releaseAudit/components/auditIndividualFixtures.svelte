@@ -2,8 +2,8 @@
 import { m } from '#lib/bits/internal/i18n.js'
 import type { AuditManifest, Json } from '@repo/core/provenance'
 import { getRetainedBulkFixture } from '#lib/registry/audit.remote.js'
-import RetainedAuditFixture from './retainedAuditFixture.svelte'
-import Translations from './retainedAuditTranslations.svelte'
+import AuditFixture from './auditFixture.svelte'
+import Translations from './auditTranslations.svelte'
 let {
   manifest,
   hash,
@@ -54,7 +54,7 @@ async function load(index: number) {
               {query}
             />
           {:else}
-            <RetainedAuditFixture value={document ?? null} />
+            <AuditFixture value={document ?? null} />
           {/if}
         {:else}
           <p class="text-sm">{failure || m.source_audit_loading_fixture()}</p>

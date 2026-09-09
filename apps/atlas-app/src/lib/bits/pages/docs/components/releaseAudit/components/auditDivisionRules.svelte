@@ -2,9 +2,9 @@
 import { m } from '#lib/bits/internal/i18n.js'
 import type { BulkAudit, Json } from '@repo/core/provenance'
 import { getRetainedRuleDeclaration } from '#lib/registry/audit.remote.js'
-import Mappings from './retainedAuditRuleMappings.svelte'
-import { retainedBranchGroups } from './retainedAuditBranchRows'
-import { matchesAudit } from './retainedAuditSearch'
+import Mappings from './auditRuleMappings.svelte'
+import { retainedBranchGroups } from './auditBranchRows'
+import { matchesAudit } from './auditSearch'
 let {
   bulk,
   releaseId,

@@ -1,11 +1,11 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
 import type { Json } from '@repo/core/provenance'
-import { rowKeys } from './retainedAuditFixtureRows'
-import FieldMappings from './retainedAuditFieldMappings.svelte'
-import IdentityMappings from './retainedAuditIdentityMappings.svelte'
-import Measures from './retainedAuditMeasures.svelte'
-import Translations from './retainedAuditTranslations.svelte'
+import { rowKeys } from './auditFixtureRows'
+import FieldMappings from './auditFieldMappings.svelte'
+import IdentityMappings from './auditIdentityMappings.svelte'
+import Measures from './auditMeasures.svelte'
+import Translations from './auditTranslations.svelte'
 let { value }: { value: Json } = $props()
 const label = (key: string) =>
   key.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/[_-]/g, ' ')
