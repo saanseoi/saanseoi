@@ -1,5 +1,6 @@
 import adapter from '@sveltejs/adapter-cloudflare'
 import { resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { defineConfig } from 'vitest/config'
 import { playwright } from '@vitest/browser-playwright'
 import tailwindcss from '@tailwindcss/vite'
@@ -42,6 +43,25 @@ export default defineConfig({
         remoteFunctions: true,
       },
     }),
+    {
+      name: 'atlas-vitest-sveltekit-server',
+      async configResolved(config) {
+        if (process.env.VITEST !== 'true') return
+
+        const kitInternals = resolve(
+          import.meta.dirname,
+          '../../node_modules/@sveltejs/kit/src',
+        )
+        const [{ extract_svelte_config }, { write_server }] = await Promise.all([
+          import(pathToFileURL(resolve(kitInternals, 'core/config/index.js')).href),
+          import(
+            pathToFileURL(resolve(kitInternals, 'core/sync/write_server.js')).href
+          ),
+        ])
+        const kitConfig = extract_svelte_config(config)
+        write_server(kitConfig, resolve(kitConfig.outDir, 'generated/dev'), config.root)
+      },
+    },
   ],
   server: {
     // Tailnet-only remote development through `tailscale serve --https=8443`.
