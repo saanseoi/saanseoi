@@ -4,7 +4,7 @@
   "id": "prepare-als-addresses",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Prepare bilingual ALS premises, consolidate duplicate identities, resolve identity continuity and division context, and construct reviewed 2D and 3D Address collections.",
+  "summary": "Read the English and Chinese source addresses, resolve duplicate records and reviewed exceptions, locate each address within its district, and link floor and unit lists to their address.",
   "inputs": ["publisher-occurrences", "als-curations"],
   "outputs": ["prepared-addresses"],
   "parameters": {},

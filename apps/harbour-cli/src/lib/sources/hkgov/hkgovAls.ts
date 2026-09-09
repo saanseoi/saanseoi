@@ -3,6 +3,7 @@ import preparationFixture from '../../../../../../fixtures/meta/processing-rules
 import curationFixture from '../../../../../../fixtures/meta/processing-rules/address-curation.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { alsAuditFixtures } from './hkgovAlsAuditFixtures'
+import { createAlsAuditGuards } from './hkgovAlsAuditGuards'
 import { freezeRegisteredRule } from '../../api/retainedRule'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
@@ -139,6 +140,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  const auditGuards = createAlsAuditGuards()
   const retainedCommercialPremises = retainAlsCommercialPremises(
     sourceFeatures,
     options.sourceVersion,
@@ -280,6 +282,7 @@ async function prepareHkgovAlsAddressParquetInternal(
       aliasOwnerIds,
       writeOutput: options.writeOutput,
       skipCurationChecks: options.skipCurationChecks,
+      onGuardPassed: auditGuards.passed,
     })
     assertUniquePreparedRowIds(rows)
   }
@@ -293,8 +296,19 @@ async function prepareHkgovAlsAddressParquetInternal(
   const estateGaps = restoreAlsEstateGaps(rows, options.sourceVersion, true)
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
-  backfillAlsCoordinates(rows, options.sourceVersion, options.skipCurationChecks)
+  const coordinateChanges = backfillAlsCoordinates(
+    rows,
+    options.sourceVersion,
+    options.skipCurationChecks,
+  )
   backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
+  assertUniquePreparedRowIds(rows)
+  auditGuards.passed('unique-identities', rows.length)
+  auditGuards.passed('coordinate-source', coordinateChanges.backfilled)
+  auditGuards.passed(
+    'component-gap',
+    estateComponents.applications.length + estateGaps.applications.length,
+  )
   if (options.writeOutput !== false)
     parquetWriteFile({
       filename: outputFile,
@@ -597,6 +611,7 @@ async function prepareHkgovAlsAddressParquetInternal(
           curation: await freezeRegisteredRule(alsCurationRule.declaration),
         },
         fixtures: alsAuditFixtures,
+        guards: auditGuards.results(),
         processingActions,
       }),
     )

@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import { createAlsAuditGuards } from './hkgovAlsAuditGuards'
 
 async function delivery(duplicate: boolean) {
   const dir = await mkdtemp(join(tmpdir(), 'als-preflight-test-'))
@@ -59,6 +60,30 @@ async function delivery(duplicate: boolean) {
   )
   return { dir, rows }
 }
+
+test('guard counters describe checks actually executed, including skip mode', async () => {
+  const { dir, rows } = await delivery(false)
+  try {
+    for (const skipCurationChecks of [false, true]) {
+      const guards = createAlsAuditGuards()
+      await prepareAls3dCollections({
+        sourceDir: dir,
+        sourceVersion: '2020-01-01.0',
+        outputFile: join(dir, 'audit.parquet'),
+        rows: structuredClone(rows),
+        writeOutput: false,
+        skipCurationChecks,
+        onGuardPassed: guards.passed,
+      })
+      const results = guards.results()
+      expect(results.find(g => g.id === 'als-inventory-parent')?.checked).toBe(1)
+      expect(results.some(g => g.id === 'als-inventory-source')).toBe(false)
+      expect(results.some(g => g.id === 'als-shared-inventory-owner')).toBe(false)
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
 
 test('skip mode retains a block-free parent despite mismatched 3D block references', async () => {
   const { dir, rows } = await delivery(false)

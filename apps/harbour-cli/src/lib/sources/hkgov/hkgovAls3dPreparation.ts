@@ -3,6 +3,7 @@ import { once } from 'node:events'
 import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
+import type { AlsAuditGuardId } from './hkgovAlsAuditGuards'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
 import { assertYungShingSharedInventory } from './hkgovAlsYungShingSharedBuilding'
 import { reviewedComplexInventoryParents } from './hkgovAlsComplexPromotions'
@@ -78,6 +79,7 @@ export async function prepareAls3dCollections(options: {
   aliasOwnerIds?: ReadonlyMap<string, string>
   writeOutput?: boolean
   skipCurationChecks?: boolean
+  onGuardPassed?: (id: AlsAuditGuardId, count?: number) => void
 }) {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
@@ -180,6 +182,15 @@ export async function prepareAls3dCollections(options: {
         options.sourceVersion,
         options.skipCurationChecks,
       )
+      if (
+        !options.skipCurationChecks &&
+        (corrections.length ||
+          suppression ||
+          csuCorrection.decision ||
+          backfill ||
+          houseRetention)
+      )
+        options.onGuardPassed?.('inventory-source')
       const source = {
         kind: 'source' as const,
         sourceRecordId,
@@ -226,6 +237,7 @@ export async function prepareAls3dCollections(options: {
         ],
       }
       assertAddress3dRowBudget(source)
+      options.onGuardPassed?.('inventory-size')
       await write(source)
       sourceCount++
       if (suppression) continue
@@ -295,6 +307,7 @@ export async function prepareAls3dCollections(options: {
         )
       const parent = candidates[0]
       if (!parent) throw new Error('Missing ALS parent')
+      options.onGuardPassed?.('inventory-parent')
       if (
         parent.curatedGranularity === 'section' &&
         !ownership.has(parent.id) &&
@@ -307,6 +320,8 @@ export async function prepareAls3dCollections(options: {
         !options.skipCurationChecks
       )
         throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
+      if (parent.curatedGranularity === 'section' && !options.skipCurationChecks)
+        options.onGuardPassed?.('section-ownership')
       const owner =
         options.aliasOwnerIds?.get(parent.id) ??
         ownership.get(parent.id)?.ownerId ??
@@ -325,6 +340,8 @@ export async function prepareAls3dCollections(options: {
           `ALS 3D shared building requires curation: ${en.EngEstate?.EstateName} / ${en.BuildingName}`,
         )
       physicalOwners.set(physicalKey, owner)
+      if (priorOwner && !options.skipCurationChecks)
+        options.onGuardPassed?.('shared-inventory-owner')
       ownerSources.set(owner, [...(ownerSources.get(owner) ?? []), sourceRecordId])
     }
     for await (const { feature } of readAls3dWithBackfills(
@@ -361,6 +378,7 @@ export async function prepareAls3dCollections(options: {
       const existing = ownerHashes.get(address2dId)
       if (existing && existing !== inventory.contentHash)
         throw new Error(`ALS 3D conflicting inventories at ${address2dId}`)
+      if (existing) options.onGuardPassed?.('inventory-agreement')
       if (existing) continue
       const record: PreparedAls3dRecord = {
         kind: 'collection',
