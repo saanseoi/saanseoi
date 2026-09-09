@@ -48,7 +48,7 @@ async function deliverProducerAuditLocked(
     if (manifest.attempt.status === 'completed') {
       if (retained.identity !== input.identity)
         throw new Error(
-          'Processing inputs differ from the retained audit. Resume the exact retained preparation.',
+          'Processing inputs differ from the audit. Resume the exact retained preparation.',
         )
       await deliverProcessingResult(input.target, store, retained.ref)
       return

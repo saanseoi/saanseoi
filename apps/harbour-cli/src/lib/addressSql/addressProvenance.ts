@@ -37,7 +37,7 @@ export async function readAddressPreparationAudit(
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT')
       throw new Error(
-        'ALS preparation has no retained audit inputs. Prepare the release again before uploading.',
+        'ALS preparation has no audit inputs. Prepare the release again before uploading.',
       )
     throw error
   }

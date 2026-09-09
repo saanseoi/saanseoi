@@ -33,7 +33,7 @@
   "source_audit_search_retained": "Search processing audit",
   "source_audit_loading": "Loading audit",
   "source_audit_loading_summaries": "Loading audit summaries…",
-  "source_audit_load_retained_error": "Unable to load the retained audit.",
+  "source_audit_load_retained_error": "Unable to load the audit.",
   "source_audit_retry": "Retry",
   "source_audit_section": "Audit section",
   "source_audit_patches": "Patches",
