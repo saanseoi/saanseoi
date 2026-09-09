@@ -48,7 +48,7 @@
           "resourceType": "address",
           "variant": "overture-places",
           "role": "supporting",
-          "isRequired": false,
+          "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "address",
           "priority": 5
