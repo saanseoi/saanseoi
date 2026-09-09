@@ -16,7 +16,9 @@ The public source-record reader selects the dedicated district-density table, th
 retained district-area table for Subdivided Units, or the shared native statistics table
 for the other measure collections. It scopes shared-table records by source dataset and
 release validity. Source-shard assignments include every shard containing the release's
-assertions, independently of the shard holding canonical history.
+assertions, independently of the shard holding canonical history. For `2023-H2`, source
+delivery and snapshot registration both select the source shard for `2023` (the
+before-2025 shard), retaining the full version as release provenance.
 
 The `censtatd-source-assertion.json` rule validates prepared district assertions and
 retains publisher properties, native geometry and source references. The

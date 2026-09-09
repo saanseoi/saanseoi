@@ -10,15 +10,17 @@ import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot'
 const MIGRATIONS_DIR = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const NOW = '2026-08-20T00:00:00.000Z'
 
-test('assigns source delivery and canonical period snapshots to different shards', async () => {
-  const sqlite = new Database(':memory:')
-  sqlite.exec(
-    loadMigrationSql(MIGRATIONS_DIR, ['meta']).replaceAll(
-      '--> statement-breakpoint',
-      '',
-    ),
-  )
-  sqlite.exec(`
+test.each(['2026-Q2', '2023-H2'])(
+  'assigns source delivery for %s to its year shard',
+  async sourceVersion => {
+    const sqlite = new Database(':memory:')
+    sqlite.exec(
+      loadMigrationSql(MIGRATIONS_DIR, ['meta']).replaceAll(
+        '--> statement-breakpoint',
+        '',
+      ),
+    )
+    sqlite.exec(`
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES ('publisher', 'hkgov-censtatd', 'publisher-hash', '${NOW}', '${NOW}');
     INSERT INTO datasets (
@@ -62,59 +64,76 @@ test('assigns source delivery and canonical period snapshots to different shards
         '${NOW}', '${NOW}'
       );
   `)
-  const db = createLocalHarbourDb(sqlite)
+    const db = createLocalHarbourDb(sqlite)
+    sqlite.run('UPDATE releases SET sourceVersion = ?', [sourceVersion])
+    sqlite.run('UPDATE dataShards SET year = NULL WHERE id = ?', ['source-2026'])
+    if (sourceVersion.startsWith('2026')) {
+      sqlite.run('UPDATE dataShards SET year = ? WHERE id = ?', ['2026', 'source-2026'])
+    } else {
+      sqlite.run('UPDATE dataShards SET bindingName = ? WHERE id = ?', [
+        'DB_SOURCE_HK_BEFORE',
+        'source-2026',
+      ])
+    }
+    sqlite.exec(`INSERT INTO dataShards (id, shardType, regionCode, year, environment, databaseName, databaseId, bindingName, status, versionHash, createdAt, updatedAt)
+    VALUES ('source-2025', 'source', 'hk', '2025', 'preview', 'source-2025', 'source-2025-db', 'DB_SOURCE_HK_2025', 'active', 'hash', '${NOW}', '${NOW}')`)
 
-  const snapshots = await materialiseStatisticSnapshots({
-    datasetCode: 'dataset-statistics',
-    metaDb: db,
-    referencePeriods: [
-      { code: '2016', endYear: '2016' },
-      { code: '2024/25', endYear: '2025' },
-    ],
-    releaseId: 'release',
-    target: { environment: 'dev', remote: false },
-  })
+    const snapshots = await materialiseStatisticSnapshots({
+      datasetCode: 'dataset-statistics',
+      metaDb: db,
+      referencePeriods: [
+        { code: '2016', endYear: '2016' },
+        { code: '2024/25', endYear: '2025' },
+      ],
+      releaseId: 'release',
+      target: { environment: 'dev', remote: false },
+    })
 
-  expect(snapshots.map(snapshot => snapshot.cohortKey)).toEqual(['2016', '2024/25'])
-  expect(sqlite.query('SELECT * FROM snapshotAssembly').all()).toHaveLength(1)
-  expect(sqlite.query('SELECT * FROM snapshotAssemblySources').all()).toHaveLength(1)
-  expect(
-    sqlite
-      .query(
-        'SELECT anchorCohortKey FROM snapshotAssemblyRuns ORDER BY anchorCohortKey',
-      )
-      .all(),
-  ).toEqual([{ anchorCohortKey: '2016' }, { anchorCohortKey: '2024/25' }])
-  expect(
-    (
+    expect(snapshots.map(snapshot => snapshot.cohortKey)).toEqual(['2016', '2024/25'])
+    expect(sqlite.query('SELECT * FROM snapshotAssembly').all()).toHaveLength(1)
+    expect(sqlite.query('SELECT * FROM snapshotAssemblySources').all()).toHaveLength(1)
+    expect(
       sqlite
         .query(
-          `SELECT ds.bindingName
+          'SELECT anchorCohortKey FROM snapshotAssemblyRuns ORDER BY anchorCohortKey',
+        )
+        .all(),
+    ).toEqual([{ anchorCohortKey: '2016' }, { anchorCohortKey: '2024/25' }])
+    expect(
+      (
+        sqlite
+          .query(
+            `SELECT ds.bindingName
            FROM releaseShardAssignments rsa
            INNER JOIN dataShards ds ON ds.id = rsa.dataShardId
            WHERE rsa.releaseId = 'release'
            ORDER BY ds.bindingName`,
-        )
-        .all() as Array<{ bindingName: string }>
-    ).map(row => row.bindingName),
-  ).toEqual(['DB_HISTORY_HK_2025', 'DB_HISTORY_HK_BEFORE', 'DB_SOURCE_HK_2026'])
-  expect(
-    sqlite
-      .query(
-        `SELECT s.cohortKey, ds.bindingName
+          )
+          .all() as Array<{ bindingName: string }>
+      ).map(row => row.bindingName),
+    ).toEqual([
+      'DB_HISTORY_HK_2025',
+      'DB_HISTORY_HK_BEFORE',
+      sourceVersion.startsWith('2026') ? 'DB_SOURCE_HK_2026' : 'DB_SOURCE_HK_BEFORE',
+    ])
+    expect(
+      sqlite
+        .query(
+          `SELECT s.cohortKey, ds.bindingName
          FROM snapshotShardAssignments ssa
          INNER JOIN snapshots s ON s.id = ssa.snapshotId
          INNER JOIN dataShards ds ON ds.id = ssa.dataShardId
          ORDER BY s.cohortKey`,
-      )
-      .all() as Array<{ bindingName: string; cohortKey: string }>,
-  ).toEqual([
-    { bindingName: 'DB_HISTORY_HK_BEFORE', cohortKey: '2016' },
-    { bindingName: 'DB_HISTORY_HK_2025', cohortKey: '2024/25' },
-  ])
+        )
+        .all() as Array<{ bindingName: string; cohortKey: string }>,
+    ).toEqual([
+      { bindingName: 'DB_HISTORY_HK_BEFORE', cohortKey: '2016' },
+      { bindingName: 'DB_HISTORY_HK_2025', cohortKey: '2024/25' },
+    ])
 
-  sqlite.close()
-})
+    sqlite.close()
+  },
+)
 
 test('rejects a reference period later than the source release cohort', async () => {
   const sqlite = new Database(':memory:')
