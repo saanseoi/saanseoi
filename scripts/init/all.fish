@@ -15,9 +15,9 @@ end
 
 for command in \
     init:divisions \
+    init:stats \
     init:addresses \
-    init:places \
-    init:stats
+    init:places
     init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_opt_out_args
 end
