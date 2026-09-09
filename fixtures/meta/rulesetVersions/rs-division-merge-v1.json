@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:92f07dff838629658d1176772f721cde63857d0f3cb7119924eb8dcc6c03b207",
+  "versionHash": "sha256:82f8e27db88c610e6ba8f70d3934b479da64483395e554071cc08bc3c5ae1be5",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Includes the reviewed Hong Kong area-geometry derivation and Lok Ma Chau Loop classification correction in the division merge policy.",
+  "notes": "Includes the reviewed Hong Kong area-geometry restoration patches and Lok Ma Chau Loop classification correction in the division merge policy.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",
@@ -53,10 +53,6 @@
     {
       "operationCode": "overture_division_geometry_cn_gd_excluded",
       "ruleFixture": ["division-area-geometry", "division-boundary-geometry"]
-    },
-    {
-      "operationCode": "overture_hong_kong_area_synthesised",
-      "ruleFixture": "synthetic-hong-kong-area"
     }
   ]
 }
