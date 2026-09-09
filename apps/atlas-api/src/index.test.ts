@@ -2547,6 +2547,18 @@ describe('atlas-api', () => {
                 enum?: Array<string | number | boolean | null>
                 maxItems?: number
                 minItems?: number
+                anyOf?: Array<{
+                  description?: string
+                  properties?: Record<
+                    string,
+                    {
+                      description?: string
+                      enum?: Array<string | number | boolean | null>
+                      maxItems?: number
+                      minItems?: number
+                    }
+                  >
+                }>
               }
             >
             anyOf?: Array<{
@@ -2612,11 +2624,13 @@ describe('atlas-api', () => {
     expect(divisions.tags?.find(tag => tag.name === 'Sources')?.['x-displayName']).toBe(
       '來源',
     )
-    expect(divisions.components?.schemas?.DivisionGeometry?.description).toBe(
+    const geometry =
+      divisions.components?.schemas?.DivisionAttributes?.properties?.geometry
+    expect(geometry?.description).toBe(
       '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
     )
-    const pointGeometry = divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(
-      schema => schema.properties?.type?.enum?.includes('Point'),
+    const pointGeometry = geometry?.anyOf?.find(schema =>
+      schema.properties?.type?.enum?.includes('Point'),
     )
     expect(pointGeometry?.properties?.coordinates?.description).toBe(
       'WGS 84 座標。其巢狀層級由幾何類型決定。',
@@ -2633,14 +2647,14 @@ describe('atlas-api', () => {
       '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
     )
     expect(
-      divisions.components?.schemas?.DivisionGeometry?.anyOf
+      geometry?.anyOf
         ?.map(schema => schema.properties?.type?.enum?.[0])
+        .filter(type => type !== undefined)
         .sort(),
     ).toEqual(['MultiPolygon', 'Point', 'Polygon'])
     expect(
-      divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(schema =>
-        schema.properties?.type?.enum?.includes('Point'),
-      )?.description,
+      geometry?.anyOf?.find(schema => schema.properties?.type?.enum?.includes('Point'))
+        ?.description,
     ).toBe('單一座標位置；用於以一個位置而非區域表示的分區。')
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.find(
