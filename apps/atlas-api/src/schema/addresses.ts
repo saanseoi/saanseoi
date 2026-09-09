@@ -429,6 +429,10 @@ const AddressDetailIncludeSchema = z
   .optional()
 
 export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
+  'page[after]': z.string().max(128).optional().openapi({
+    description:
+      'Return addresses after this ID in ascending order. Totals are omitted for ID seeks.',
+  }),
   'filter[dataset]': z
     .string()
     .min(1)

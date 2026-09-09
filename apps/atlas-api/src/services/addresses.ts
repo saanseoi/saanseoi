@@ -359,6 +359,7 @@ export type AddressListQuery = {
   locales?: string
   'page[limit]'?: number
   'page[offset]'?: number
+  'page[after]'?: string
   'filter[country]'?: string
   'filter[dataset]'?: string
   'filter[area]'?: string
@@ -760,6 +761,7 @@ export async function listAddresses(args: {
   )
   const lookup = {
     snapshotIds: activeSnapshot.snapshotIds,
+    after: args.query['page[after]'],
     countryId: filters.country,
     areaId: filters.area,
     districtId: filters.district,
@@ -774,6 +776,13 @@ export async function listAddresses(args: {
       hasMore?: boolean
     }> => {
       if (useCurrent) {
+        if (lookup.after !== undefined) {
+          const rows = await listAddressRecordsCurrent(args.currentDb, {
+            ...lookup,
+            limit: limit + 1,
+          })
+          return { records: rows.slice(0, limit), hasMore: rows.length > limit }
+        }
         const [records, total] = await Promise.all([
           listAddressRecordsCurrent(args.currentDb, lookup),
           countAddressRecordsCurrent(args.currentDb, lookup),

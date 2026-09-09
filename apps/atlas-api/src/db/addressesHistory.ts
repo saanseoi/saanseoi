@@ -139,6 +139,7 @@ export async function listReplayedAddressPage(
   args: Parameters<typeof listReplayedAddressRecords>[0] & {
     limit: number
     offset: number
+    after?: string
     countryId?: string
     areaId?: string
     districtId?: string
@@ -159,7 +160,7 @@ export async function listReplayedAddressPage(
       }
   const selected: Array<{ id: string; snapshotId: string }> = []
   let skipped = 0
-  let after: string | undefined
+  let after: string | undefined = args.after
   let hasMore = false
   outer: for (;;) {
     let candidates: string[] = []

@@ -208,6 +208,15 @@ test('replays the selected address snapshot from its assigned history shard', as
     })
     expect(last.records.map(row => row.address.id)).toEqual(['z250'])
     expect(last.hasMore).toBe(false)
+    const sought = await listReplayedAddressPage({
+      ...lookup,
+      localeSelection: { mode: 'requested', locales: ['en'] },
+      limit: 1,
+      offset: 0,
+      after: 'z249',
+    })
+    expect(sought.records.map(row => row.address.id)).toEqual(['z250'])
+    expect(sought.hasMore).toBe(false)
     const filtered = await listReplayedAddressPage({
       ...lookup,
       localeSelection: { mode: 'none', locales: [] },

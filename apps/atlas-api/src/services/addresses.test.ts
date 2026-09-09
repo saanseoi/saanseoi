@@ -243,6 +243,16 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       boundedPage.status === 200 && boundedPage.body.data.map(row => row.id),
     ).toEqual(['b'])
     expect(boundedPage.status === 200 && boundedPage.body.meta.page?.total).toBe(4)
+    const soughtPage = await listAddresses({
+      ...deployedArgs,
+      query: { 'page[limit]': 1, 'page[after]': 'b' },
+    })
+    expect(
+      soughtPage.status === 200 && soughtPage.body.data.map(row => row.id),
+    ).toEqual(['c'])
+    expect(
+      soughtPage.status === 200 && soughtPage.body.meta.page?.total,
+    ).toBeUndefined()
     const boundedDetail = await getAddressDetail({
       ...deployedArgs,
       id: 'c',
