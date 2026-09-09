@@ -11,7 +11,7 @@ const names = readdirSync(fixtures)
 
 test('every authored processing rule field is retained by its registered executor', async () => {
   const ids = new Set<string>()
-  expect(names.length).toBeGreaterThanOrEqual(16)
+  expect(names.length).toBeGreaterThanOrEqual(15)
   const catalogue = resolveRuleFixtureCatalog(
     Object.fromEntries(
       await Promise.all(
@@ -38,7 +38,7 @@ test('every authored processing rule field is retained by its registered executo
 
 test('synthetic geometry consumes and validates the declared exclusion polygon', async () => {
   const fixture = await Bun.file(
-    new URL('synthetic-hong-kong-area.json', fixtures),
+    new URL('../patches/overture-hong-kong-area-geometry-restoration.json', fixtures),
   ).json()
   expect(syntheticAreaExclusion(fixture.parameters.exclusion)).toEqual(
     fixture.parameters.exclusion,

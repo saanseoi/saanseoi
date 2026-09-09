@@ -81,7 +81,7 @@ import {
   updateDbCacheProgress,
 } from './processLocalDivisionGeometrySqlUploadProgress.ts'
 import {
-  buildSyntheticOvertureHongKongAreaProcessingActions,
+  buildSyntheticOvertureHongKongAreaPatchActions,
   buildSyntheticOvertureHongKongAreaRows,
   resolveSyntheticOvertureHongKongAreas,
   selectOvertureHongKongAreasWithoutSourceGeometry,
@@ -311,6 +311,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     let normalised: Array<NonNullable<NormalisedGeometry>> = options.normalisedInput
       ? [...options.normalisedInput]
       : []
+    let syntheticRows: Array<NonNullable<NormalisedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -429,7 +430,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         ? selectOvertureHongKongAreasWithoutSourceGeometry(syntheticAreas, normalised)
         : []
     if (previewPlan.source === 'overture' && areasWithoutSourceGeometry.length > 0) {
-      const syntheticRows = buildSyntheticOvertureHongKongAreaRows(
+      syntheticRows = buildSyntheticOvertureHongKongAreaRows(
         areasWithoutSourceGeometry,
         normalised,
       )
@@ -709,7 +710,6 @@ export async function processLocalDivisionGeometrySqlUpload(
       releaseId,
       datasetCode,
       inputCount: previewPlan.rowCount,
-      outputCount: normalised.length,
       curationDocuments: curationDocumentsFor(providerBridgeRows),
       normalisation:
         previewPlan.type === 'divisionArea'
@@ -717,11 +717,15 @@ export async function processLocalDivisionGeometrySqlUpload(
           : divisionBoundaryGeometryRule.declaration,
       actions: [
         ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
-        ...buildSyntheticOvertureHongKongAreaProcessingActions(
+        ...buildSyntheticOvertureHongKongAreaPatchActions(
           previewPlan,
           areasWithoutSourceGeometry,
+          syntheticRows,
         ),
       ],
+      // Synthetic area rows are individual patches, so the bulk geometry rule
+      // reports only the source rows it normalised.
+      outputCount: normalised.length - syntheticRows.length,
     })
     await deliverProcessingResult(target, bucket, audit.ref)
     progress.complete(

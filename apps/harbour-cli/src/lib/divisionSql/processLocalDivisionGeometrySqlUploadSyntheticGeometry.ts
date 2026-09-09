@@ -1,7 +1,6 @@
-import ruleFixture from '../../../../../fixtures/meta/processing-rules/synthetic-hong-kong-area.json'
-import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
-import { registerRule } from '@repo/core/provenance'
+import type { RuleDeclaration } from '@repo/core/provenance'
+import geometryPatchFixture from '../../../../../fixtures/meta/patches/overture-hong-kong-area-geometry-restoration.json'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -30,10 +29,11 @@ type SyntheticOvertureHongKongArea = {
   code: string
   districtDivisionIds: string[]
   divisionId: string
+  names?: (typeof overtureHongKongAreas)[number]['names']
 }
 
 export function syntheticAreaExclusion(
-  value: typeof ruleFixture.parameters.exclusion,
+  value: typeof geometryPatchFixture.parameters.exclusion,
 ): GeoJsonGeometry {
   if (value.type !== 'Polygon' || !value.coordinates.length) {
     throw new Error('Synthetic area exclusion must be a non-empty Polygon.')
@@ -65,7 +65,7 @@ export function syntheticAreaExclusion(
   }
 }
 
-syntheticAreaExclusion(ruleFixture.parameters.exclusion)
+syntheticAreaExclusion(geometryPatchFixture.parameters.exclusion)
 
 export async function resolveSyntheticOvertureHongKongAreas(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
@@ -138,11 +138,27 @@ export async function resolveSyntheticOvertureHongKongAreas(
             }
             return requireDefined(ids[0])
           })
+    if (area.code === 'new-territories') {
+      const loopIds = [
+        ...new Set(
+          i18nRows
+            .filter(row => row.name === 'Lok Ma Chau Loop')
+            .map(row => row.divisionId),
+        ),
+      ]
+      if (loopIds.length !== 1)
+        throw new Error(
+          `Cannot derive New Territories geometry: expected one Lok Ma Chau Loop identity, found ${loopIds.length}.`,
+        )
+      const loopId = requireDefined(loopIds[0])
+      if (!districtDivisionIds.includes(loopId)) districtDivisionIds.push(loopId)
+    }
     return [
       {
         code: area.code,
         districtDivisionIds,
         divisionId,
+        names: area.names,
       },
     ]
   })
@@ -242,27 +258,32 @@ function unionHongKongAreaGeometries(
   return geometry
 }
 
-export const syntheticHongKongAreaRule = registerRule(
-  ruleDeclarationFromFixture(ruleFixture),
-  (
-    input: {
-      areas: readonly SyntheticOvertureHongKongArea[]
-      normalised: readonly NonNullable<NormalisedGeometry>[]
-    },
-    parameters,
-  ) =>
-    buildSyntheticAreaRows(
-      input.areas,
-      input.normalised,
-      syntheticAreaExclusion(parameters.exclusion),
-    ),
-)
+export const overtureHongKongAreaGeometryPatchDeclaration: RuleDeclaration = {
+  kind: 'processing-rule',
+  schemaVersion: 1,
+  id: geometryPatchFixture.id,
+  scope: 'individual',
+  basis: 'fixture',
+  review: { kind: 'patch' },
+  summary: geometryPatchFixture.reason,
+  inputs: ['district-land-geometries', 'exclusion-area'],
+  outputs: ['divisionAreas'],
+  parameters: geometryPatchFixture.parameters,
+  implementation: {
+    path: 'apps/harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts',
+    symbol: 'buildSyntheticOvertureHongKongAreaRows',
+  },
+}
 
 export function buildSyntheticOvertureHongKongAreaRows(
   areas: readonly SyntheticOvertureHongKongArea[],
   normalised: readonly NonNullable<NormalisedGeometry>[],
 ) {
-  return syntheticHongKongAreaRule.execute({ areas, normalised })
+  return buildSyntheticAreaRows(
+    areas,
+    normalised,
+    syntheticAreaExclusion(geometryPatchFixture.parameters.exclusion),
+  )
 }
 
 function unionBalanced(geometries: Geometry[]) {
@@ -293,31 +314,54 @@ export function isGeoJsonPolygon(value: unknown): value is GeoJsonGeometry {
 }
 
 /**
- * Records `overture_hong_kong_area_synthesised`; keep the policy and this
+ * Records `overture_hong_kong_area_geometry_restored`; keep the policy and this
  * implementation in sync.
  */
-export function buildSyntheticOvertureHongKongAreaProcessingActions(
+export function buildSyntheticOvertureHongKongAreaPatchActions(
   plan: GeometryUploadPlan,
   areas: readonly SyntheticOvertureHongKongArea[],
+  rows: readonly NonNullable<NormalisedGeometry>[],
 ): ReleaseProcessingAction[] {
   if (plan.source !== 'overture' || areas.length === 0) return []
-  return areas.map(area => ({
-    action: syntheticHongKongAreaRule.declaration.id,
-    affectedRecordCount: 1,
-    evidence: {
-      area: area.code,
-      districtDivisionIds: area.districtDivisionIds,
-      geometryRule: {
-        include: 'Lok Ma Chau Loop',
-        exclude: 'Shenzhen Bay Port border-crossing enclave',
-        exclusion: syntheticHongKongAreaRule.declaration.parameters.exclusion,
-        method: 'union-district-land-geometries-then-difference-exclusion-bbox',
+  return areas.flatMap(area => {
+    const configuredArea = overtureHongKongAreas.find(
+      candidate => candidate.code === area.code,
+    )
+    const row = rows.find(
+      candidate =>
+        'divisionId' in candidate.canonical &&
+        candidate.canonical.divisionId === area.divisionId,
+    )
+    if (!row || !('divisionId' in row.canonical)) return []
+    return [
+      {
+        action: overtureHongKongAreaGeometryPatchDeclaration.id,
+        affectedRecordCount: 1,
+        evidence: {
+          divisionId: area.divisionId,
+          names: Object.values(area.names ?? configuredArea?.names ?? {}),
+          reason: geometryPatchFixture.reason,
+          input: {
+            districtLandDivisionIds: area.districtDivisionIds,
+            exclusionArea: 'Shenzhen Bay Port border-crossing enclave',
+          },
+          output: {
+            id: row.source.sourceRecordId,
+            divisionId: row.canonical.divisionId,
+            type: 'divisionArea',
+          },
+          geometryRule: {
+            include: 'Lok Ma Chau Loop',
+            exclude: 'Shenzhen Bay Port border-crossing enclave',
+            exclusion: geometryPatchFixture.parameters.exclusion,
+            method: geometryPatchFixture.method,
+          },
+          resourceType: plan.type,
+          sourceVersion: plan.sourceVersion,
+        },
+        mode: 'automatic' as const,
+        summary: `Restored Overture Hong Kong ${configuredArea?.names.en ?? area.code} area geometry from its district geometries.`,
       },
-      resourceType: plan.type,
-      sourceVersion: plan.sourceVersion,
-      syntheticDivisionId: area.divisionId,
-    },
-    mode: 'automatic',
-    summary: `Derived Overture Hong Kong ${area.code} area geometry from its district geometries.`,
-  }))
+    ]
+  })
 }

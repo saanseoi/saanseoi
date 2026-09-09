@@ -1,7 +1,9 @@
 import { expect, test } from 'bun:test'
 import type { ProvenanceStore } from '@repo/core/provenance'
 import { retainDivisionProvenance } from './divisionProvenance'
-import { syntheticHongKongAreaRule } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
+import { readAuditPage } from '@repo/core/provenance'
+import { divisionAreaGeometryRule } from '@repo/core/pipeline/services/divisionGeometry'
+import { overtureHongKongAreaGeometryPatchDeclaration } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
 test('unknown operations cannot silently disappear into normalisation counters', async () => {
   let writes = 0
@@ -35,7 +37,7 @@ test('unknown operations cannot silently disappear into normalisation counters',
   expect(writes).toBe(0)
 })
 
-test('retains synthetic Hong Kong area inputs and outputs independently', async () => {
+test('retains synthetic Hong Kong area rows as individual patches', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -52,9 +54,15 @@ test('retains synthetic Hong Kong area inputs and outputs independently', async 
     districts.slice(4, 9),
     districts.slice(9),
   ].map((districtDivisionIds, index) => ({
-    action: syntheticHongKongAreaRule.declaration.id,
+    action: overtureHongKongAreaGeometryPatchDeclaration.id,
     affectedRecordCount: 1,
-    evidence: { districtDivisionIds },
+    evidence: {
+      divisionId: `area-${index}`,
+      names: [`Area ${index}`],
+      reason: 'Restore area geometry.',
+      input: { districtDivisionIds },
+      output: { id: `area-row-${index}`, divisionId: `area-${index}` },
+    },
     mode: 'automatic' as const,
     summary: `Synthesised area ${index}`,
   }))
@@ -63,17 +71,22 @@ test('retains synthetic Hong Kong area inputs and outputs independently', async 
     releaseId: 'release',
     datasetCode: 'overture-hk-division-area',
     inputCount: 141,
-    outputCount: 144,
+    outputCount: 141,
+    normalisation: divisionAreaGeometryRule.declaration,
     actions,
   })
 
   expect(
-    retained.manifest.bulk.find(
-      rule => rule.id === syntheticHongKongAreaRule.declaration.id,
-    )?.counts,
+    retained.manifest.bulk.find(rule => rule.id === 'normalise-division-area-geometry')
+      ?.counts,
   ).toMatchObject({
-    inputs: { 'district-land-geometries': 18, 'exclusion-area': 1 },
-    outputs: { divisionAreas: 3 },
-    recordsAffected: 3,
+    inputs: { 'source-geometry': 141 },
+    outputs: { divisionAreas: 141 },
+    recordsAffected: 141,
   })
+  expect(retained.manifest.applicationCount).toBe(3)
+  const patches = await readAuditPage(store, retained.manifest, '', 0, 50, {
+    category: 'patches',
+  })
+  expect(patches.rows).toHaveLength(3)
 })

@@ -1,5 +1,9 @@
 import { isCancel, log, outro, select } from '@clack/prompts'
 import { writeFile } from 'node:fs/promises'
+import {
+  isMinimalInitialisation,
+  selectInitialisationVersions,
+} from '../cli/minimalInitialisation.ts'
 import { describeTarget } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
@@ -55,7 +59,15 @@ export async function runUpdateCommand(
   const releaseNotesDatasetCode =
     releaseNotesUrl && requested?.size === 1 ? [...requested][0] : undefined
 
-  const datasets = await loadDatasetFixtures()
+  const datasets = (await loadDatasetFixtures()).map(dataset => ({
+    ...dataset,
+    releases: dataset.releases
+      ? selectInitialisationVersions(
+          dataset.releases,
+          release => release.sourceVersion ?? '',
+        )
+      : dataset.releases,
+  }))
   const requestedDatasets = requested
     ? datasets.filter(dataset => requested.has(dataset.code))
     : datasets
@@ -128,6 +140,11 @@ export async function runUpdateCommand(
     }
 
     if (targetVersionLookup.status === 'unknown') {
+      if (isMinimalInitialisation()) {
+        throw new Error(
+          `Cannot initialise ${dataset.code}: target release report unavailable.`,
+        )
+      }
       const row = new UpdateRow(dataset)
       row.skipped('target release report unavailable')
       continue
@@ -145,13 +162,22 @@ export async function runUpdateCommand(
       continue
     }
 
-    const updates = await lookupDatasetUpdates(
+    const discoveredUpdates = await lookupDatasetUpdates(
       dataset,
       state[dataset.code],
       targetVersions,
       // Phase scheduling has already decided that this source is due. The
       // previous single-cadence throttle must not suppress that decision.
       true,
+    )
+    const selectedVersions = new Set(
+      selectInitialisationVersions(
+        discoveredUpdates.filter(update => update.version),
+        update => update.version!,
+      ),
+    )
+    const updates = discoveredUpdates.filter(
+      update => !update.version || selectedVersions.has(update),
     )
     for (const update of updates) {
       const sourceKey = update.sourceKey ?? dataset.code

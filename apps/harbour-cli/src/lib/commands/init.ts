@@ -131,6 +131,15 @@ export async function runInitialisationCommand(
   const target = args.options.target
 
   if (
+    args.command === 'init:minimal' &&
+    (target === undefined || args.options['skip-curation-checks'] !== undefined)
+  ) {
+    throw new Error(
+      '`init:minimal` requires an explicit --target and retains curation checks.',
+    )
+  }
+
+  if (
     !command ||
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||

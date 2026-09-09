@@ -214,6 +214,7 @@ export async function processLocalAddressSqlUpload(
           updateDbCacheProgress(progress, event)
         },
         cacheTableProfile,
+        includeAllHistoryShardYears: true,
         includePreviousShardYears: shouldIncludePreviousShardYears(
           previewPlan.cohortKey,
         ),
@@ -894,6 +895,7 @@ export async function processLocalAddressSqlUpload(
     if (!options.deferApiReleaseSet) {
       await calculateAndStoreApiReleaseSetStats({
         currentDb: dbContext.currentDb as unknown as HarbourReadableDb,
+        historyTargets: dbContext.historyTargets,
         family: 'address',
         harbourClient,
         importOptions,

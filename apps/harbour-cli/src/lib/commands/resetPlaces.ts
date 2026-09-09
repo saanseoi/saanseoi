@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
+import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
 import { like, lte, not } from 'drizzle-orm'
@@ -56,12 +57,23 @@ function targetName(target: UploadTarget): PlacesInitManifest['target'] {
 }
 
 function manifestPath(target: UploadTarget) {
-  return resolve(MANIFEST_ROOT, `${targetName(target)}.json`)
+  return resolve(
+    MANIFEST_ROOT,
+    `${targetName(target)}${isMinimalInitialisation() ? '.minimal' : ''}.json`,
+  )
 }
 
 /** Return the durable lifecycle state without mutating any D1 bindings. */
 export async function getOverturePlacesInitialisationStatus(target: UploadTarget) {
   const path = manifestPath(target)
+  if (
+    !isMinimalInitialisation() &&
+    existsSync(resolve(MANIFEST_ROOT, `${targetName(target)}.minimal.json`))
+  ) {
+    throw new Error(
+      'A minimal Places initialisation exists. Resume with init:minimal; a full run requires an explicitly reviewed reset of that sample.',
+    )
+  }
   if (existsSync(path)) {
     const manifest = await readPlacesManifest(path)
     if (manifest.target !== targetName(target))
@@ -72,7 +84,7 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
   // A completed focused run can outlive its local manifest. It is not safe to
   // adopt that state for reset ownership, but it is equally unsafe to try a
   // new clean-baseline initialisation over the published Places data.
-  if (target.remote) return 'missing' as const
+  if (target.remote || isMinimalInitialisation()) return 'missing' as const
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'places',
     includeAllHistoryShardYears: true,
