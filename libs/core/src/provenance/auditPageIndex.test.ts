@@ -26,18 +26,21 @@ test('cached category and fixture search reads only page chunks and shares globa
     basis: 'fixture',
   })
   const fixture = await retainObject(store, { entries: [{ translation: '河' }] })
-  const individuals: IndividualAudit[] = Array.from({ length: 300 }, (_, i) => ({
-    id: `action-${i}`,
-    operation: 'translate',
-    basis: 'fixture',
-    outcome: 'applied',
-    summary: 'Translate a name',
-    reason: 'Reviewed translation',
-    definition,
-    fixture: { object: fixture, pointer: '/entries/0' },
-    record: { id: `division-${i}`, names: ['River'], parents: [] },
-    context: i === 280 ? { replacement: 'macrohood' } : {},
-  }))
+  const individuals: IndividualAudit[] = Array.from(
+    { length: 300 },
+    (_, i): IndividualAudit => ({
+      id: `action-${i}`,
+      operation: 'translate',
+      basis: 'fixture',
+      outcome: 'applied',
+      summary: 'Translate a name',
+      reason: 'Reviewed translation',
+      definition,
+      fixture: { object: fixture, pointer: '/entries/0' },
+      record: { id: `division-${i}`, names: ['River'], parents: [] },
+      context: i === 280 ? { replacement: 'macrohood' } : {},
+    }),
+  )
   const { manifest } = await retainAuditResult(store, {
     releaseId: 'release',
     datasetCode: 'divisions',
