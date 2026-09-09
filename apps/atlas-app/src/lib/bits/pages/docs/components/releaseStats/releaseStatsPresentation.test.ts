@@ -588,7 +588,7 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.overview?.recordCount).toBe('7')
     expect(model.genericGroups).toEqual([
       expect.objectContaining({
-        label: 'table',
+        label: 'Record types',
         rows: expect.arrayContaining([
           expect.objectContaining({ groupValue: 'divisions', value: '7' }),
           expect.objectContaining({ groupValue: 'divisionsI18n', value: '21' }),
