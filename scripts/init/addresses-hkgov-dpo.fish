@@ -22,5 +22,5 @@ init_run_step bun run --silent dataops -- hkgov-dpo:ingest \
     --defer-api-release-set --continue $saanseoi_init_curation_args
 init_run_step ./bin/saanseoi release-sets:reconcile \
     --target $saanseoi_init_target --api-family addresses --region hk
-init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
+init_publish_docs
 init_run_step ./bin/saanseoi init:addresses:saanseoi:complete --target $saanseoi_init_target

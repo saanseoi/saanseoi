@@ -19,11 +19,13 @@ for command in \
     init:addresses \
     init:places
     if test "$command" = init:stats
-        SAANSEOI_INIT_COMPLETED_PREREQUISITES=divisions:geographic \
+        SAANSEOI_INIT_DEFER_DOCS=1 SAANSEOI_INIT_COMPLETED_PREREQUISITES=divisions:geographic \
             init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
             $continuation_args $cache_artefact_opt_out_args
     else
-        init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
+        SAANSEOI_INIT_DEFER_DOCS=1 init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
             $continuation_args $cache_artefact_opt_out_args
     end
 end
+
+init_publish_docs
