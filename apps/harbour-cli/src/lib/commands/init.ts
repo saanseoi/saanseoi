@@ -4,12 +4,12 @@ import { join, resolve } from 'node:path'
 import { styleText } from 'node:util'
 
 import { note, outro } from '@clack/prompts'
-import { and, eq, inArray, metaSchema } from '@repo/db'
+import { and, eq, inArray, metaSchema, type MetaDatabase } from '@repo/db'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { formatField, formatMutedValue } from '../cli/display.ts'
 import { formatUpdateGridRow } from './updateFormatting.ts'
 import { datasetName, loadDatasetFixtures } from '../sources/sourceUpdates.ts'
-import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { withLocalMetaDb, withRemoteCachedMetaDb } from '../dbCache/localDbCache.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
 import { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
@@ -36,18 +36,12 @@ export async function formatInitialisationSkippedDatasets(
 ) {
   const datasetCodes = new Set(input.datasetCodes)
   if (input.releaseCodes.length > 0) {
-    const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
-      cacheTableProfile: 'places',
-      includeAllHistoryShardYears: true,
-      includeAllSourceShardYears: true,
-      requireExistingRemoteCache: target.remote,
-    })
-    try {
+    const readDatasetCodes = async (metaDb: MetaDatabase) => {
       for (const codes of chunkArray(
         [...new Set(input.releaseCodes)],
         getMaxItemsPerInClause(1, 1),
       )) {
-        const rows = await context.metaDb
+        const rows = await metaDb
           .select({ datasetCode: metaSchema.metaDatasets.code })
           .from(metaSchema.metaReleases)
           .innerJoin(
@@ -63,9 +57,9 @@ export async function formatInitialisationSkippedDatasets(
           .all()
         for (const row of rows) datasetCodes.add(row.datasetCode)
       }
-    } finally {
-      context.cleanup()
     }
+    if (target.remote) await withRemoteCachedMetaDb(target, readDatasetCodes)
+    else await withLocalMetaDb(readDatasetCodes)
   }
 
   const datasets = await loadDatasetFixtures(datasetCodes)

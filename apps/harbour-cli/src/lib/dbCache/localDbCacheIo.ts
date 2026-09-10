@@ -53,7 +53,7 @@ export async function exportRemoteDatabase(
   targetRecord: D1TargetRecord,
   target: 'preview' | 'production',
   outputPath: string,
-  options: { schemaOnly?: boolean } = {},
+  options: { schemaOnly?: boolean; tables?: string[] } = {},
 ) {
   await runMirrorCommand([
     'bash',
@@ -64,6 +64,7 @@ export async function exportRemoteDatabase(
     '--env',
     target,
     '--remote',
+    ...(options.tables ?? []).map(table => `--table=${table}`),
     ...(options.schemaOnly ? ['--no-data'] : []),
     '--output',
     outputPath,

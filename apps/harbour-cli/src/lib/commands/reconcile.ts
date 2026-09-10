@@ -7,7 +7,12 @@ import { logApiReleaseSetPublication } from './uploadDisplay.ts'
 import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
 import { calculateAndStoreApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
-import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  refreshRemoteMetaCache,
+  resolveLocalAddressDbContext,
+} from '../dbCache/localDbCache.ts'
+import { resolveRemoteCacheDir } from '../dbCache/localDbCacheTargets.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
@@ -44,6 +49,14 @@ export async function runReconcileDraftReleaseSetsCommand(
   if (result.publishedReleaseSetStatsTargets.length > 0) {
     const firstTarget = result.publishedReleaseSetStatsTargets[0]
     if (!firstTarget) throw new Error('Missing reconciled stats target.')
+    if (target.remote) {
+      const environment = target.environment === 'production' ? 'production' : 'preview'
+      const cacheDir = resolveRemoteCacheDir(environment)
+      await assertSqlDeliveryPlanningAllowed(cacheDir)
+      // Reconciliation publishes remotely. Stats must read that committed state,
+      // before opening SQLite handles on the previously cached draft metadata.
+      await refreshRemoteMetaCache(environment, cacheDir)
+    }
     const dbContext = await resolveLocalAddressDbContext(
       target,
       regionCode ?? 'hk',

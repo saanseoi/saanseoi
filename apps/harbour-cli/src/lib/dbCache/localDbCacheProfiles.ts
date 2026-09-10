@@ -368,6 +368,13 @@ export function resolveCachePruneOperation(
   bindingName: string,
   tableName: string,
 ): CachePruneOperation | null {
+  // Published Division statistics replay both the selected cohort and its
+  // predecessor. Their journals can reference superseded identity/name hashes.
+  if (
+    bindingName.startsWith('DB_HISTORY_') &&
+    (tableName === 'divisions' || tableName === 'divisionsI18n')
+  )
+    return null
   if (
     !/^DB_(?:HISTORY|SOURCE)_[A-Z]{2}_\d{4}$/.test(bindingName) ||
     !VERSION_TABLES_WITH_CURRENT_ROWS.has(tableName)
