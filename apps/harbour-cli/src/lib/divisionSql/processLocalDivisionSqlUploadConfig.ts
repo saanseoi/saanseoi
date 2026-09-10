@@ -15,7 +15,7 @@ export const LOCAL_SQL_WRITE_RETRY_LIMIT = 8
 
 export const REMOTE_IMPORT_BATCH_BYTES = 64 * 1024 * 1024
 
-export const SQL_STATEMENT_BYTE_TARGET = 99_000
+export const SQL_STATEMENT_BYTE_TARGET = 96 * 1024
 
 export const PRIMARY_HISTORY_OWNER_KEY = 'history-current'
 

@@ -248,6 +248,7 @@ export async function processLocalAddressSqlUpload(
       releaseId,
     },
     previewPlan,
+    { retainedDeliveryCacheDir: dbContext.state.dbCacheDir },
   )
   const remoteHarbourClient = createHarbourControlClient(target) as HarbourClient
   const harbourClient = target.remote
