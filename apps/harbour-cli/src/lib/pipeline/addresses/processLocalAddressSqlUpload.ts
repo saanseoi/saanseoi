@@ -470,6 +470,8 @@ export async function processLocalAddressSqlUpload(
           phase: 'address3d-data',
           inputs: retained3dDelivery?.context.inputs ?? {
             independentBoundTargets: true,
+            // Address2D is delivered; preserve order within each independent shard.
+            parallelTargets: true,
             digest: prepared3d.digest,
             snapshotId: versionInsertContext.snapshotId,
             sourceVersion: previewPlan.sourceVersion,
