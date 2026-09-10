@@ -105,6 +105,10 @@ release-statistics, processing-action and snapshot metadata SQL. Each phase comb
 adjacent same-database batches, records remote receipts and replays the exact retained
 payloads locally before publication.
 
+An interrupted canonical import can recover a live bookmark through a bounded lookup of
+its exact payload ETag. A matching remote receipt remains mandatory; recovery does not
+send a replacement upload or ingest request for an uncertain batch.
+
 The following C&SD datasets are registered as Stats-family sources. They preserve
 publisher releases with their published geography cohort and measures. Each source
 release writes structural release-owned facts to `meta.stats` and materialises one

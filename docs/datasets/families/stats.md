@@ -129,6 +129,10 @@ combined into bounded uploads. Receipts and separate local checkpoints allow int
 imports to resume from retained SQL without calculating replacement SQL from a partially
 updated mirror.
 
+Remote recovery can reattach to an active import by its exact payload ETag after a stale
+bookmark or storage reset. It requires the matching receipt before advancing and does
+not re-upload or re-ingest uncertain batches.
+
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
 metadata database. Its canonical record is `statsRecords`: an immutable publisher
