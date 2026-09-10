@@ -98,7 +98,7 @@ let release = $derived({
 })
 
 let seoTitle = $derived(
-  `${release.apiFamily} API ${getReleaseVersionLabel(release.code, release.apiFamily)}`,
+  `${release.apiFamily.charAt(0).toUpperCase()}${release.apiFamily.slice(1)} API · ${getReleaseVersionLabel(release.code, release.apiFamily).replace(/^v/, '')}`,
 )
 let seoDescription = $derived(`Release: ${seoTitle}.`)
 
