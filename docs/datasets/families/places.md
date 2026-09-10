@@ -8,11 +8,12 @@ replay bounded batches until the requested page and one further match are found.
 `meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
 until it is absent. Filters apply before selecting page members.
 
-Source Place records retain the complete publisher payload in `rawProperties`, alongside
-identity, provenance and release history. Normalised coordinates, names, taxonomy,
-contact details and addresses belong to canonical history/current tables; source tables
-do not duplicate those fields. Publisher record versions remain in
-`rawProperties.version`; source history uses content hashes and release validity.
+Source Place records retain publisher attributes in `rawProperties`, alongside source
+identity, original `sourceGeometry`, `sources` and release history. Normalised
+coordinates, names, taxonomy, contact details and addresses belong to canonical
+history/current tables; source tables do not duplicate those fields. Publisher record
+versions remain in `rawProperties.version`; source history uses content hashes and
+release validity.
 
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
@@ -306,3 +307,10 @@ Places collection endpoint 为
 和 Division 筛选。`compact`、`default`、`map` 和 `full`
 profile 依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是 canonical
 Place 属性；地图查询请使用 `by-cell`。
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

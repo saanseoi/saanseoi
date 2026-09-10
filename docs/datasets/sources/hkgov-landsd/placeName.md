@@ -82,3 +82,14 @@ The divisions projection is a LandsD-specific SQL concern: it selects only
 `PLACE_CLASS=Settlement` rows while retaining the full gazetteer as durable source
 evidence. This preserves the native archive provenance for both the projected division
 records and future Hydrographic/Topographic places work.
+
+## Publisher source boundary
+
+Native properties and publisher names retain their literal values, including whitespace
+and empty strings. Division resolutions reference the native publisher identity and the
+exact retained source version in the interpreting snapshot's `sourceResolutions`.
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

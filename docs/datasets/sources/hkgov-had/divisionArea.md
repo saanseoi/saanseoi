@@ -117,3 +117,10 @@ HAD district areas form a persistent geometry lineage. They may enrich an immuta
 Overture domain release using the configured at-or-before cohort rule. A later HAD
 backfill creates a new Overture domain-release revision and catalogue checkpoint rather
 than mutating the earlier publication.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

@@ -475,3 +475,16 @@ snapshots, affected Divisions API release sets and catalogue revisions, preservi
 other source inputs. Non-geographic consumers block deletion. Update readiness requires
 a published statistics release; a geometry release for the same source cohort does not
 satisfy that check.
+
+Rules that consume identity mappings retain the selected bridge fixtures alongside their
+execution counts. Audit cards can also display the same release’s retained geography
+bridge as shared evidence for those rules. Bridge tables show publisher identities and
+codes, SaanSeoi division codes and canonical identities; UUIDs use a middle ellipsis
+with the full identity available on hover.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

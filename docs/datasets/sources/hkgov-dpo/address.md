@@ -80,10 +80,19 @@ numbered source prevents duplicate insertion; changed or duplicate numbered sour
 require review. Future releases beyond 19 August 2026 carry unverified curation
 provenance.
 
-ALS Address2D and Address3D source tables retain their complete `rawProperties` payload
-with source identity, release tracking and provenance. Source identifiers, coordinates
-and bilingual components remain in that payload; canonical history/current tables own
-the extracted and normalised projections.
+ALS Address2D and Address3D source tables retain original publisher attributes in
+`rawProperties`, using documented flat field names. Original geometry is retained in
+`sourceGeometry`, with source identity, release tracking and compact acquisition
+references alongside it. Publisher CSU IDs, coordinate attributes and bilingual
+components remain literal source values; canonical history/current tables own normalised
+and corrected projections. Internal entity references and processing decisions belong to
+snapshot-scoped `sourceResolutions`.
+
+The sealed source ledger includes every uploaded 2D and 3D occurrence, including records
+combined or replaced by house retention. Inventories reconstructed from historical
+evidence belong to canonical collections and carry compact evidence references; they do
+not become additional publisher rows for the current upload. Deliveries containing only
+2D input also retain a sealed ledger.
 
 Address3D source versions are keyed by `(sourceRecordId, versionHash)` and reused when
 their publisher payload is unchanged. Collection corrections and release provenance do
@@ -628,3 +637,16 @@ ALS 3D inventories use one collection per reviewed Address2D owner. The
 official corroborating evidence, source-release coverage and outstanding decisions.
 Repeated source features remain independently traceable even when their identical unit
 inventories share one curated building owner. Source names are retained, not translated.
+
+Source-release record statistics report Address2D rows and translations, plus Address3D
+collections and collection translations when a validated 3D sidecar is present.
+Collection counts do not count the units stored within each collection. Missing 3D
+statistics are unknown rather than zero. These facts are recorded during source
+ingestion; `stats:backfill-addresses` rebuilds API release-set statistics only.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

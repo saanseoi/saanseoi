@@ -597,3 +597,16 @@ Overrides classify addresses; they do not assign parent links or modify componen
 See the [Address resource contract](../resourceType/address.md),
 [ALS processing](../internal/hkgov/address.md) and
 [supplementary curation policy](../sources/overture/places.md).
+
+Source-release record statistics report Address2D rows and translations, plus Address3D
+collections and collection translations when a validated 3D sidecar is present.
+Collection counts do not count the units stored within each collection. Missing 3D
+statistics are unknown rather than zero. These facts are recorded during source
+ingestion; `stats:backfill-addresses` rebuilds API release-set statistics only.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.
