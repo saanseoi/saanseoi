@@ -4,6 +4,20 @@ import type { ProvenanceStore } from './types'
 import { readObject } from './objects'
 
 const normalise = (text: string) => text.normalize('NFKC').toLowerCase()
+export const auditActionSearchText = (action: IndividualAudit) =>
+  normalise(
+    [
+      action.operation,
+      action.outcome,
+      action.summary,
+      action.record.id,
+      ...action.record.names,
+      ...action.record.parents.flatMap(p => [p.id, ...p.names]),
+      action.reason,
+      JSON.stringify(action.context),
+      auditActionCategory(action),
+    ].join(' '),
+  )
 type ActionSearch = {
   id: string
   chunk: number
@@ -32,19 +46,7 @@ export async function buildAuditPageIndex(
         chunk,
         category: auditActionCategory(action),
         fixture: action.fixture,
-        text: normalise(
-          [
-            action.operation,
-            action.outcome,
-            action.summary,
-            action.record.id,
-            ...action.record.names,
-            ...action.record.parents.flatMap(p => [p.id, ...p.names]),
-            action.reason,
-            JSON.stringify(action.context),
-            auditActionCategory(action),
-          ].join(' '),
-        ),
+        text: auditActionSearchText(action),
       })
   }
   const bulk = []
