@@ -16,6 +16,8 @@ import SectionHeading from './auditSectionHeading.svelte'
 import { getAuditPage, getAuditFixtureCatalogue } from '#lib/registry/audit.remote.js'
 import { catalogueGroupMatches, type FixtureCatalogue } from './auditFixtureCatalogue'
 import { auditBulkTitle } from './auditFixtureRows'
+import { provideLoadedFixtures } from './auditLoadedFixtures'
+const loadedFixtureCache = provideLoadedFixtures()
 let {
   manifest,
   hash,
@@ -41,6 +43,10 @@ let {
   }) => void
 } = $props()
 let effectiveQuery = $state('')
+$effect(() => {
+  hash
+  loadedFixtureCache.clear()
+})
 let matchingActions = $state(0)
 let searchLoading = $state(false)
 let searchFailure = $state('')
