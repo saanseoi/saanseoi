@@ -138,6 +138,16 @@ declarations and counts; bulk curations expose selected fixtures. Individual cur
 are paginated and searchable. Failed blocking guards prevent publication. Audit
 verification uses a bounded cache of verified JSON objects for shared fixture
 references, checking every individual pointer without repeatedly parsing its fixture.
+Remote provenance delivery transfers up to four verified objects concurrently and
+registers the manifest only after every dependency and the final root are acknowledged.
+Remote release-set reconciliation refreshes metadata before calculating published API
+statistics, so publication and recoverable statistics attempts use committed membership.
+History caches retain all Division identity and name versions needed by published
+snapshot journals, including superseded versions used for predecessor comparisons. Cache
+rebuilds group selected tables by data/schema export mode per binding. Binary geometry
+rows retain their separate byte-for-byte verified transfer. Post-publication statistics
+failures are recorded against their ingest stage without changing published or
+superseded source-release status.
 
 Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
 Metadata registry synchronisation assigns each code to its canonical Division and
