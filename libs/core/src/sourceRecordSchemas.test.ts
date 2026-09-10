@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  sourceRecordRawPropertyFields,
 } from './sourceRecordSchemas'
 
 describe('source record schemas', () => {
@@ -130,4 +131,26 @@ describe('source record schemas', () => {
       }),
     ).toBeNull()
   })
+})
+
+test('public raw properties exclude envelope fields without changing upload validation', () => {
+  for (const resourceType of [
+    'place',
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ] as const) {
+    const schema = resolveSourceRecordSchema({
+      resourceType,
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+    })!
+    expect(schema).toBeDefined()
+    const fields = sourceRecordRawPropertyFields(schema).map(field => field.name)
+    for (const name of ['id', 'geometry', 'sources']) {
+      expect(fields).not.toContain(name)
+      expect(schema.fields.some(field => field.name === name)).toBe(true)
+    }
+    expect(fields).toContain('bbox')
+  }
 })
