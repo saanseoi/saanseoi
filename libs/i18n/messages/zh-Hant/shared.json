@@ -3164,5 +3164,6 @@
   "source_audit_rule_hong_kong_area_summary": "將地區陸地形狀連接起來，以建立缺失的香港範圍形狀，包括落馬洲河套，然後移除深圳灣口岸。",
   "source_audit_rule_map_shapes_title": "讀取地圖形狀",
   "source_audit_rule_map_shapes_summary": "將發佈者的地圖形狀轉換為 GeoJSON。保留已可讀取的 GeoJSON，並把缺失形狀留空。",
-  "source_audit_landsd_settlements_title": "篩選聚居地"
+  "source_audit_landsd_settlements_title": "篩選聚居地",
+  "source_audit_rule_no_matches": "沒有符合項目"
 }

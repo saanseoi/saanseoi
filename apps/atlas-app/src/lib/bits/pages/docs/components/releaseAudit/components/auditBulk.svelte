@@ -1,6 +1,6 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
-import { auditStatus } from './auditStatus'
+import StatusBadge from './auditStatusBadge.svelte'
 import type { BulkAudit, Json } from '@repo/core/provenance'
 import {
   getRetainedBulkFixture,
@@ -91,11 +91,8 @@ async function loadDeclaration() {
           >{m.source_audit_als_depends_on({ rule: m.source_audit_als_prepare_title() })}</span
         >
       {/if}
-      <span
-        class={['rounded-full px-2 py-1 text-xs', bulk.outcome === 'applied' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500']}
-        title={auditStatus(bulk.outcome)}
-        >{auditStatus(bulk.outcome)}</span
-      ><CopyRule
+      <StatusBadge status={bulk.outcome} />
+      <CopyRule
         getRule={() => getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })}
       />
     </div>
