@@ -58,6 +58,28 @@ function setup(definitions = [citygate]) {
 }
 
 describe('supplementary Place Address policy', () => {
+  test('indexed decisions retain first precedence and follow ledger replacement', () => {
+    const { fixture, analyse } = setup()
+    const source = observation('Citygate, 20 Tat Tung Road')
+    const decision = {
+      placeId: source.placeId,
+      fingerprint: addressFingerprint(source.texts),
+      sourceRelease: source.sourceRelease,
+      resolution: 'link_existing' as const,
+      previousAddressId: null,
+      addressId: citygate.addressId,
+      reason: 'Selected address',
+    }
+    const retired = {
+      ...decision,
+      resolution: 'leave_unlinked' as const,
+      addressId: null,
+    }
+    fixture.decisions.push(decision, retired)
+    expect(analyse(source, null).addressId).toBe(citygate.addressId)
+    fixture.decisions = [retired, decision]
+    expect(analyse(source, null).reason).toBe('explicit_retirement')
+  })
   test('link_existing selects ALS and keep_existing requires the previous identity', () => {
     const source = observation('Citygate, 20 Tat Tung Road')
     for (const resolution of ['link_existing', 'keep_existing'] as const) {

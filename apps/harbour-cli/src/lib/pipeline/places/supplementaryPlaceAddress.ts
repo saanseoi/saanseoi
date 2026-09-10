@@ -442,6 +442,9 @@ function createSupplementaryAddressAnalyserInternal(
     entries.push(entry)
     byPlace.set(entry.placeId, entries)
   }
+  const decisionsByObservation = new Map<string, (typeof fixture.decisions)[number]>()
+  let indexedDecisions = fixture.decisions
+  let indexedDecisionCount = -1
   return (
     observation: AddressObservation,
     previous: PreviousAddressLink | null,
@@ -487,11 +490,25 @@ function createSupplementaryAddressAnalyserInternal(
         ) ===
           JSON.stringify(parsed.map(value => value.normalisedAddress2dText).sort())) &&
       (!accepted.baseAddressId || officialIds.has(accepted.baseAddressId))
-    const decision = fixture.decisions.find(
-      item =>
-        item.placeId === observation.placeId &&
-        item.fingerprint === fingerprint &&
-        item.sourceRelease === observation.sourceRelease,
+    // Reviews append decisions or replace the ledger array; keep those live edits visible.
+    if (
+      indexedDecisions !== fixture.decisions ||
+      indexedDecisionCount !== fixture.decisions.length
+    ) {
+      decisionsByObservation.clear()
+      indexedDecisions = fixture.decisions
+      indexedDecisionCount = fixture.decisions.length
+      for (const decision of fixture.decisions) {
+        const key = JSON.stringify([
+          decision.placeId,
+          decision.fingerprint,
+          decision.sourceRelease,
+        ])
+        if (!decisionsByObservation.has(key)) decisionsByObservation.set(key, decision)
+      }
+    }
+    const decision = decisionsByObservation.get(
+      JSON.stringify([observation.placeId, fingerprint, observation.sourceRelease]),
     )
     if (decision) {
       if (
