@@ -44,6 +44,102 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
   }
   return {
     hasReceipt,
+    /** Preserve sealed batch identities while amortising transport across pending writes. */
+    async deliverBoundGroup(
+      plan: SqlDeliveryPlan,
+      entries: Array<{
+        batch: SqlDeliveryBatch
+        bytes: Uint8Array
+        state: SqlDeliveryCheckpoint
+      }>,
+      save: () => Promise<void>,
+    ) {
+      const databaseId = entries[0]?.batch.target.databaseId
+      if (
+        !databaseId ||
+        entries.length > 8 ||
+        entries.some(
+          entry =>
+            entry.batch.kind !== 'bound' ||
+            entry.batch.target.databaseId !== databaseId,
+        )
+      )
+        throw new Error('Invalid bound delivery group.')
+      const decoded = entries.map(entry => ({
+        ...entry,
+        statements: JSON.parse(new TextDecoder().decode(entry.bytes)) as Array<{
+          sql: string
+          params: unknown[]
+        }>,
+      }))
+      if (
+        entries.reduce((n, entry) => n + entry.bytes.byteLength, 0) > 8 * 1024 * 1024 ||
+        decoded.reduce((n, entry) => n + entry.statements.length, 0) > 512
+      )
+        throw new Error('Bound delivery group budget exceeded.')
+      const existing = await this.confirmedReceipts(
+        plan,
+        entries.map(entry => entry.batch),
+      )
+      const pending = decoded.filter(entry => !existing.has(entry.batch.index))
+      for (const entry of pending) {
+        if (entry.state.status !== 'pending')
+          throw new Error(
+            `Bound batch ${entry.batch.index} has an uncertain outcome without a receipt; no writes were repeated.`,
+          )
+      }
+      for (const entry of entries) {
+        entry.state.status = existing.has(entry.batch.index) ? 'complete' : 'ingesting'
+      }
+      await save()
+      if (!pending.length) return
+      const startedAt = Date.now()
+      try {
+        const response = await (options.fetch ?? fetch)(
+          `https://api.cloudflare.com/client/v4/accounts/${options.accountId}/d1/database/${databaseId}/query`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${options.apiToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              batch: [
+                { sql: RECEIPT_SCHEMA_SQL, params: [] },
+                ...pending.flatMap(entry => [
+                  ...entry.statements,
+                  { sql: receiptSql(plan, entry.batch), params: [] },
+                ]),
+              ],
+            }),
+            signal: AbortSignal.timeout(30_000),
+          },
+        )
+        const body = (await response.json()) as {
+          success?: boolean
+          result?: Array<{ success?: boolean }>
+        }
+        if (
+          !response.ok ||
+          body.success !== true ||
+          !body.result?.length ||
+          body.result.some(result => !result.success)
+        )
+          throw new Error(
+            `Bound SQL delivery failed (${response.status}); retain the plan for receipt verification.`,
+          )
+        const confirmed = await this.confirmedReceipts(
+          plan,
+          pending.map(entry => entry.batch),
+        )
+        if (pending.some(entry => !confirmed.has(entry.batch.index)))
+          throw new Error('Bound SQL delivery completed without every receipt.')
+        for (const entry of pending) entry.state.status = 'complete'
+      } finally {
+        pending[0]!.state.executionMs += Date.now() - startedAt
+        await save()
+      }
+    },
     /** Positive receipts are scoped to this locked recovery invocation, never persisted as a cache. */
     async confirmedReceipts(plan: SqlDeliveryPlan, batches: SqlDeliveryBatch[]) {
       const confirmed = new Set<number>()
