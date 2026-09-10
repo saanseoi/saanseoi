@@ -3,6 +3,29 @@ import { describe, expect, test } from 'bun:test'
 import { createCloudflareD1QueryClient } from './remoteD1Client.ts'
 
 describe('remote D1 query client', () => {
+  test('retries D1 internal errors on read-only SELECT requests', async () => {
+    let calls = 0
+    const client = createCloudflareD1QueryClient({
+      accountId: 'account-id',
+      apiToken: 'token',
+      databaseId: 'database-id',
+      retryDelayMs: 0,
+      fetch: async () => {
+        calls += 1
+        return Response.json(
+          calls === 1
+            ? {
+                success: false,
+                errors: [{ message: 'internal error; reference = test' }],
+              }
+            : { success: true, result: [{ success: true, results: [{ id: 1 }] }] },
+        )
+      },
+    })
+    await expect(client.query('SELECT id FROM divisions')).resolves.toEqual([{ id: 1 }])
+    expect(calls).toBe(2)
+  })
+
   test('uses one direct API request and returns object rows', async () => {
     let request: Request | undefined
     const client = createCloudflareD1QueryClient({

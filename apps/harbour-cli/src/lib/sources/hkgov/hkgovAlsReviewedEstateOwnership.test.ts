@@ -1,3 +1,4 @@
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
@@ -106,7 +107,12 @@ test.skipIf(!existsSync(root))(
           .map(line => JSON.parse(line))
         expect(
           records.filter(r => r.kind === 'source').map(r => r.rawProperties),
-        ).toEqual(raw3d)
+        ).toEqual(
+          raw3d.map(
+            (feature: Parameters<typeof alsSourcePayload>[0]) =>
+              alsSourcePayload(feature).rawProperties,
+          ),
+        )
         expect(JSON.stringify(raw2d)).toBe(original)
         const collections = records.filter(r => r.kind === 'collection')
         for (const [name, count] of [

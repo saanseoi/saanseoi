@@ -204,6 +204,8 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ),
     ...deleteIds('snapshotVersionChanges', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotVersionChanges', 'sourceReleaseId', releaseIds),
+    ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
+    ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')
   const sourceSql = SOURCE_TABLES.flatMap(table =>
     deleteIds(table, 'releaseId', releaseIds),

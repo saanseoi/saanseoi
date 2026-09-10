@@ -1,3 +1,8 @@
+import {
+  sourceResolutionSql,
+  resolvedEntities,
+} from '@repo/core/pipeline/db/sourceResolutions'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sourcePayload'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { splitLargeInsertLiterals } from '../localPipeline/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
@@ -41,12 +46,14 @@ export async function buildDivisionSourceSqlFile(
 
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
+      if (record.isSupplemental) continue
       if (record.sourceChanged) {
         changedIds.push(record.id)
         changedBaseRows.push({
           sourceRecordId: record.id,
-          sources: jsonText(record.base.sources),
-          rawProperties: jsonText(record.raw),
+          sources: jsonText(overtureSourcePayload(record.raw).sources),
+          rawProperties: jsonText(overtureSourcePayload(record.raw).rawProperties),
+          sourceGeometry: jsonText(overtureSourcePayload(record.raw).sourceGeometry),
           versionHash: record.sourcePayloadHash,
           releaseId,
           validFromRelease: message.sourceVersion,
@@ -59,8 +66,11 @@ export async function buildDivisionSourceSqlFile(
     }
   })
 
+  const publisherIds = new Set(
+    state.records.filter(record => !record.isSupplemental).map(record => record.id),
+  )
   const missingIds = [...state.currentSourceRows.keys()].filter(
-    id => !state.seenIds.has(id),
+    id => !publisherIds.has(id),
   )
   const changedIdsInPrimary =
     groupIdsByOwnerShard(
@@ -99,6 +109,7 @@ export async function buildDivisionSourceSqlFile(
         'sourceRecordId',
         'sources',
         'rawProperties',
+        'sourceGeometry',
         'versionHash',
         'releaseId',
         'validFromRelease',
@@ -130,11 +141,24 @@ export async function buildDivisionHistorySqlFile(
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
 ) {
+  const resolutionStatements: string[] = []
   const baseRows: Record<string, SqlValue>[] = []
   const i18nRows: Record<string, SqlValue>[] = []
   const changedExistingIds: string[] = []
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
+      if (message.source === 'overture' && !record.isSupplemental)
+        resolutionStatements.push(
+          sourceResolutionSql({
+            snapshotId: state.snapshotId,
+            sourceReleaseId: message.releaseId ?? message.datasetId,
+            sourceRecordId: record.id,
+            sourceVersionHash: record.sourcePayloadHash,
+            resolutions: { entities: resolvedEntities({ division: record.id }) },
+          }),
+        )
+      if (record.sourceResolution)
+        resolutionStatements.push(sourceResolutionSql(record.sourceResolution))
       if (!record.currentChanged) {
         continue
       }
@@ -195,6 +219,7 @@ export async function buildDivisionHistorySqlFile(
     ) ?? []
   const now = new Date().toISOString()
   const statements = [
+    ...resolutionStatements,
     ...buildCloseHistoryVersionStatements(changedExistingIdsInPrimary, now),
     ...buildCloseHistoryVersionStatements(missingIdsInPrimary, now),
     ...buildInsertStatements(

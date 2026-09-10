@@ -1,3 +1,8 @@
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import {
+  recordSourceResolutions,
+  resolvedEntities,
+} from '@repo/core/pipeline/db/sourceResolutions'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import {
@@ -250,6 +255,30 @@ export async function writeGeometryRows(
     }))) {
       historyRowsById.set(row.id, row)
     }
+  await recordSourceResolutions(
+    context.historyDb as unknown as HarbourWritableDb,
+    rows.flatMap(row => {
+      const sourceVersionHash = sourceHashes.get(row.source.sourceRecordId)
+      if (!sourceVersionHash) return []
+      const canonical = row.canonical as Record<string, unknown>
+      return [
+        {
+          snapshotId: version.snapshotId,
+          sourceReleaseId: version.releaseId,
+          sourceRecordId: row.source.sourceRecordId,
+          sourceVersionHash,
+          resolutions: {
+            entities: resolvedEntities({
+              [type]: canonical.id,
+              division: canonical.divisionId,
+              leftDivision: canonical.leftDivisionId,
+              rightDivision: canonical.rightDivisionId,
+            }),
+          },
+        },
+      ]
+    }),
+  )
   const historyRows = [...historyRowsById.values()]
   const sourceRows =
     isDisplayDerivative ||
@@ -272,7 +301,7 @@ export async function writeGeometryRows(
                       censusYear: version.cohortKey,
                       sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
-                  : {}),
+                  : { sourceGeometry }),
               versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
               releaseId: version.releaseId,
               validFromRelease: version.releaseCode,
@@ -398,15 +427,13 @@ function hashGeometrySourceAssertion(
   row: NonNullable<NormalisedGeometry>['source'],
   source: GeometryUploadPlan['source'],
 ) {
-  if (source !== 'hkgov-censtatd') return hashDivisionGeometrySourceRow(row)
-
-  // The bridge-derived canonical division relationship is needed to write the
-  // canonical geometry, but it is neither C&SD evidence nor part of the
-  // source record's identity.
-  const sourceAssertion: Record<string, unknown> = { ...row }
-  delete sourceAssertion.derivation
-  delete sourceAssertion.divisionId
-  return hashDivisionGeometrySourceRow(sourceAssertion)
+  if (source === 'overture') return hashDivisionGeometrySourceRow(row)
+  return hashDivisionGeometrySourceRow(
+    nativeSourcePayloadHashInput({
+      rawProperties: row.rawProperties,
+      sourceGeometry: row.sourceGeometry,
+    }),
+  )
 }
 
 async function writeCenstatdSourceDerivatives(

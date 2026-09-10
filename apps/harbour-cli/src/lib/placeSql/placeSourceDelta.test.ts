@@ -61,13 +61,15 @@ function database() {
   db.exec(`CREATE TABLE overturePlaces (
     sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
-    sources TEXT, rawProperties TEXT, version INTEGER,
+    sources TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
     PRIMARY KEY (sourceRecordId, versionHash));`)
   return db
 }
 
 function seed(db: Database, id: string, hash = 'same', current = 1) {
-  db.query('INSERT INTO overturePlaces VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
+  db.query(
+    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sources, rawProperties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  ).run(
     id,
     hash,
     'release-old',

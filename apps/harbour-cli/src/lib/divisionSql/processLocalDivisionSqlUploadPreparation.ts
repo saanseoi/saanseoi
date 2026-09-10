@@ -1,4 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/hongKongHierarchyGuard'
 import { curationDocumentsFor } from '../curationDocuments'
 import {
@@ -137,6 +139,7 @@ export async function buildDivisionSqlState(
   snapshotId: string,
   allowTranslationGeneration: boolean,
   reportProgress: (current: number) => Promise<void>,
+  sourceDatabases: readonly HarbourReadableDb[] = [],
 ) {
   const traceDivisionIds = resolveDivisionTraceIds()
   const previousRows = new Map(currentRows)
@@ -282,7 +285,8 @@ export async function buildDivisionSqlState(
             })
           : versionHash
       const currentSource = currentSourceRows.get(normalised.base.id) ?? null
-      const sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
+      const sourceChanged =
+        !isSupplemental && currentSource?.sourcePayloadHash !== sourcePayloadHash
 
       processedRows += 1
       localisedRows += storedCanonicalI18n.length
@@ -326,7 +330,7 @@ export async function buildDivisionSqlState(
 
       if (sourceChanged) {
         sourceChangedRows += 1
-      } else if (currentSource) {
+      } else if (currentSource && !isSupplemental) {
         sourceUnchangedRows += 1
       }
 
@@ -344,6 +348,7 @@ export async function buildDivisionSqlState(
         currentExists: Boolean(current),
         id: normalised.base.id,
         i18nVersionHash,
+        isSupplemental,
         raw,
         sourceChanged,
         sourcePayloadHash,
@@ -354,6 +359,18 @@ export async function buildDivisionSqlState(
     if (!isSupplemental) {
       await reportProgress(processedRows)
     }
+  }
+
+  if (message.source === 'hkgov-landsd') {
+    const resolutions = await landsdPlaceNameResolutions(
+      sourceDatabases,
+      message.sourceVersion,
+      snapshotId,
+      records,
+      message.releaseId ?? message.datasetId,
+    )
+    for (const [index, resolution] of resolutions.entries())
+      records[index]!.sourceResolution = resolution
   }
 
   logDivisionTraceGroup(

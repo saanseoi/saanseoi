@@ -1,3 +1,4 @@
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
@@ -186,7 +187,9 @@ test.skipIf(!existsSync(rawPath))(
           .split('\n')
           .map(line => JSON.parse(line))
         const sources = records.filter(record => record.kind === 'source')
-        expect(sources.map(record => record.rawProperties)).toEqual(features)
+        expect(sources.map(record => record.rawProperties)).toEqual(
+          features.map(feature => alsSourcePayload(feature).rawProperties),
+        )
         expect(
           sources.filter(record =>
             record.sources.some(

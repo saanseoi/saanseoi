@@ -2,6 +2,10 @@ import { createWriteStream, globSync } from 'node:fs'
 import { once } from 'node:events'
 import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
+import {
+  alsSourcePayload,
+  type AlsPublisherSource,
+} from '@repo/core/pipeline/services/alsSourcePayload'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import type { AlsAuditGuardId } from './hkgovAlsAuditGuards'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'
@@ -29,11 +33,13 @@ import {
 const COLLECTION_NAMESPACE = '72a46f2d-4110-5ce2-b94b-1ed9320ab83e'
 const SOURCE_NAMESPACE = 'b1bfe2bf-c40f-5f0b-945f-a390bdd72d03'
 export type PreparedAls3dRecord =
+  | (AlsPublisherSource & { kind: 'source2d' })
   | {
       kind: 'source'
       sourceRecordId: string
       versionHash: string
       rawProperties: unknown
+      sourceGeometry: unknown
       sources: unknown[]
     }
   | ({
@@ -42,6 +48,7 @@ export type PreparedAls3dRecord =
       address2dId: string
       unresolvedSectionIds: string[]
       sourceRecordIds: string[]
+      processingSources?: Array<Record<string, unknown>>
     } & ReturnType<typeof normaliseAls3dInventory>)
   | {
       kind: 'manifest'
@@ -49,6 +56,7 @@ export type PreparedAls3dRecord =
       collectionCount: number
       unitCount: number
       sourceCount: number
+      source2dCount?: number
     }
 
 const value = (input: unknown) => (input == null ? null : String(input).trim() || null)
@@ -76,6 +84,7 @@ export async function prepareAls3dCollections(options: {
   sourceVersion: string
   outputFile: string
   rows: PreparedHkgovAlsRow[]
+  publisherSources?: Iterable<AlsPublisherSource>
   aliasOwnerIds?: ReadonlyMap<string, string>
   writeOutput?: boolean
   skipCurationChecks?: boolean
@@ -84,6 +93,10 @@ export async function prepareAls3dCollections(options: {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
   ).sort()
+  if (input.length === 0 && options.publisherSources !== undefined) {
+    await writeAls2dSourceLedger(options)
+    return { collectionCount: 0, unitCount: 0, sourceCount: 0 }
+  }
   if (input.length !== 1)
     throw new Error(`Expected one ALS 3D delivery, found ${input.length}`)
   const ownership = applyAlsAddressHierarchies(options.rows, options.sourceVersion)
@@ -131,8 +144,14 @@ export async function prepareAls3dCollections(options: {
   const ownerHashes = new Map<string, string>()
   const physicalOwners = new Map<string, string>()
   const ownerSources = new Map<string, string[]>()
+  const ownerProcessingSources = new Map<string, Array<Record<string, unknown>>>()
   let unitCount = 0
   let sourceCount = 0
+  let source2dCount = 0
+  for (const source of options.publisherSources ?? []) {
+    await write({ kind: 'source2d', ...source })
+    source2dCount += 1
+  }
   const sourceOccurrences = new Map<string, number>()
   const file = input[0]
   if (!file) throw new Error('Missing ALS 3D file')
@@ -166,16 +185,7 @@ export async function prepareAls3dCollections(options: {
           candidateAddressIds,
         })
       const csuCorrection = resolveAlsCsuCorrection(feature, options.sourceVersion)
-      const rawKey = parentKey(p.BuildingCsuInformation?.CsuId, en, zh)
       const key = parentKey(csuCorrection.csu, en, zh)
-      const occurrence = (sourceOccurrences.get(rawKey) ?? 0) + 1
-      sourceOccurrences.set(rawKey, occurrence)
-      const sourceRecordId = buildDeterministicUuidV5(
-        SOURCE_NAMESPACE,
-        JSON.stringify(
-          backfill ? [rawKey, occurrence, backfill.id] : [rawKey, occurrence],
-        ),
-      )
       const { corrections } = applyAls3dCorrections(feature, options.sourceVersion)
       const suppression = als3dSuppression(
         feature,
@@ -191,55 +201,83 @@ export async function prepareAls3dCollections(options: {
           houseRetention)
       )
         options.onGuardPassed?.('inventory-source')
-      const source = {
-        kind: 'source' as const,
-        sourceRecordId,
-        // Curated collection decisions do not create new publisher payload versions.
-        versionHash: als3dHash(feature),
-        rawProperties: feature,
-        sources: [
-          ...(houseRetention
-            ? [{ dataset: 'saanseoi-address-house-retention', ...houseRetention }]
-            : []),
-          ...(csuCorrection.decision
-            ? [
-                {
-                  dataset: 'saanseoi-address-csu-correction',
-                  ...csuCorrection.decision,
-                },
-              ]
-            : []),
-          ...(suppression ? [suppression] : []),
-          {
-            dataset: 'hkgov-dpo-als-3d',
-            sourceFile: basename(file),
-            ...(houseRetention ? {} : { featureIndexOneBased }),
-            sourceVersion:
-              houseRetention?.evidenceSourceVersion ??
-              backfill?.evidenceSourceVersion ??
-              options.sourceVersion,
-          },
-          ...(backfill
-            ? [
-                {
-                  dataset: 'saanseoi-address3d-backfill',
-                  sourceFile: 'hkgov-dpo-address-3d-backfills.json',
-                  ...backfill,
-                },
-              ]
-            : []),
-          ...corrections.map(correction => ({
-            dataset: 'saanseoi-address3d-correction',
-            fixtureVersion: 1,
-            sourceFile: 'hkgov-dpo-address-3d-corrections.json',
-            ...correction,
-          })),
-        ],
+      const processingSources: Array<Record<string, unknown>> = [
+        ...(houseRetention
+          ? [
+              {
+                dataset: 'saanseoi-address-house-retention',
+                id: houseRetention.id,
+                sourceFile: houseRetention.curationFile,
+                evidenceSourceVersion: houseRetention.evidenceSourceVersion,
+              },
+            ]
+          : []),
+        ...(backfill
+          ? [
+              {
+                dataset: 'saanseoi-address3d-backfill',
+                id: backfill.id,
+                sourceFile: 'hkgov-dpo-address-3d-backfills.json',
+                evidenceSourceVersion: backfill.evidenceSourceVersion,
+                featureIndexOneBased: backfill.featureIndexOneBased,
+              },
+            ]
+          : []),
+      ]
+      const decisions = [
+        ...processingSources,
+        ...(csuCorrection.decision
+          ? [{ dataset: 'saanseoi-address-csu-correction', ...csuCorrection.decision }]
+          : []),
+        ...(suppression ? [suppression] : []),
+        ...corrections.map(correction => ({
+          dataset: 'saanseoi-address3d-correction',
+          fixtureVersion: 1,
+          sourceFile: 'hkgov-dpo-address-3d-corrections.json',
+          ...correction,
+        })),
+      ]
+      // Retention may replace or combine current occurrences; a backfill may create
+      // an inventory absent from this upload. Only actual uploaded occurrences
+      // become publisher rows. Reconstruction evidence belongs to the collection.
+      const originals =
+        houseRetention?.originalAssertions ??
+        (backfill ? [] : [{ feature, featureIndexOneBased }])
+      const sourceRecordIds: string[] = []
+      for (const original of originals) {
+        const native = original.feature.properties.Address.PremisesAddress
+        const rawKey = parentKey(
+          native.BuildingCsuInformation?.CsuId,
+          native.EngPremisesAddress ?? {},
+          native.ChiPremisesAddress ?? {},
+        )
+        const occurrence = (sourceOccurrences.get(rawKey) ?? 0) + 1
+        sourceOccurrences.set(rawKey, occurrence)
+        const sourceRecordId = buildDeterministicUuidV5(
+          SOURCE_NAMESPACE,
+          JSON.stringify([rawKey, occurrence]),
+        )
+        const source = {
+          kind: 'source' as const,
+          sourceRecordId,
+          versionHash: als3dHash(original.feature),
+          ...alsSourcePayload(original.feature),
+          sources: [
+            {
+              dataset: 'hkgov-dpo-als-3d',
+              sourceFile: basename(file),
+              featureIndexOneBased: original.featureIndexOneBased,
+              sourceVersion: options.sourceVersion,
+            },
+            ...decisions,
+          ],
+        }
+        assertAddress3dRowBudget(source)
+        options.onGuardPassed?.('inventory-size')
+        await write(source)
+        sourceRecordIds.push(sourceRecordId)
+        sourceCount++
       }
-      assertAddress3dRowBudget(source)
-      options.onGuardPassed?.('inventory-size')
-      await write(source)
-      sourceCount++
       if (suppression) continue
       if (!(en.Eng3dAddress?.length || zh.Chi3dAddress?.length)) continue
       let candidates = byKey.get(key) ?? []
@@ -342,7 +380,12 @@ export async function prepareAls3dCollections(options: {
       physicalOwners.set(physicalKey, owner)
       if (priorOwner && !options.skipCurationChecks)
         options.onGuardPassed?.('shared-inventory-owner')
-      ownerSources.set(owner, [...(ownerSources.get(owner) ?? []), sourceRecordId])
+      ownerSources.set(owner, [...(ownerSources.get(owner) ?? []), ...sourceRecordIds])
+      if (processingSources.length)
+        ownerProcessingSources.set(owner, [
+          ...(ownerProcessingSources.get(owner) ?? []),
+          ...processingSources,
+        ])
     }
     for await (const { feature } of readAls3dWithBackfills(
       file,
@@ -386,6 +429,9 @@ export async function prepareAls3dCollections(options: {
         address2dId,
         unresolvedSectionIds: mapping?.unresolvedSectionIds ?? [],
         sourceRecordIds: [...new Set(ownerSources.get(address2dId))].sort(),
+        ...(ownerProcessingSources.has(address2dId)
+          ? { processingSources: ownerProcessingSources.get(address2dId) }
+          : {}),
         ...inventory,
       }
       assertAddress3dRowBudget({ ...record, locales: undefined })
@@ -401,6 +447,7 @@ export async function prepareAls3dCollections(options: {
       collectionCount: ownerHashes.size,
       unitCount,
       sourceCount,
+      source2dCount,
     })
     if (writer) {
       writer.end()
@@ -417,4 +464,42 @@ export async function prepareAls3dCollections(options: {
     writer?.destroy()
   }
   return { collectionCount: ownerHashes.size, unitCount, sourceCount }
+}
+
+/** Retain the complete publisher ledger even when the release has no 3D delivery. */
+async function writeAls2dSourceLedger(options: {
+  outputFile: string
+  sourceVersion: string
+  publisherSources?: Iterable<AlsPublisherSource>
+  writeOutput?: boolean
+}) {
+  if (options.writeOutput === false) return
+  const writer = createWriteStream(`${options.outputFile}.address3d.jsonl`)
+  let streamError: Error | undefined
+  writer.on('error', error => {
+    streamError = error
+  })
+  const write = async (record: PreparedAls3dRecord) => {
+    if (streamError) throw streamError
+    if (!writer.write(`${JSON.stringify(record)}\n`)) await once(writer, 'drain')
+  }
+  try {
+    let source2dCount = 0
+    for (const source of options.publisherSources ?? []) {
+      await write({ kind: 'source2d', ...source })
+      source2dCount++
+    }
+    await write({
+      kind: 'manifest',
+      sourceVersion: options.sourceVersion,
+      source2dCount,
+      sourceCount: 0,
+      collectionCount: 0,
+      unitCount: 0,
+    })
+    writer.end()
+    await once(writer, 'finish')
+  } finally {
+    writer.destroy()
+  }
 }

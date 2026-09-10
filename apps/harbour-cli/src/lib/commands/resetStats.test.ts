@@ -162,9 +162,22 @@ describe('all-statistics reset', () => {
     expect(await statsResetBlockers(context)).toEqual([])
     const plan = await collectStatsResetPlan(context)
     expect(plan.releases).toHaveLength(1)
+    insert(history, 'sourceResolutions', {
+      scopeId: 'release:divisionStatistic',
+      snapshotId: null,
+      sourceReleaseId: 'divisionStatistic',
+    })
+    insert(history, 'sourceResolutions', {
+      scopeId: 'snapshot:place',
+      snapshotId: 'place',
+      sourceReleaseId: 'place',
+    })
     const sql = buildStatsResetSql(plan)
     source.exec(sql.sourceSql)
     history.exec(sql.historySql)
+    expect(history.query('SELECT scopeId FROM sourceResolutions').all()).toEqual([
+      { scopeId: 'snapshot:place' },
+    ])
     current.exec(sql.currentSql)
     meta.exec(sql.metaSql)
     for (const db of [current, history]) {

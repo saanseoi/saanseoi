@@ -7,6 +7,7 @@ import {
   assertBinaryGeometryRow,
   geometrySha256,
   partitionRemoteGeometryRows,
+  remoteGeometryKeyRangeSql,
   reassembleHexChunks,
   type BinaryGeometryRow,
 } from './binaryGeometryMirror.ts'
@@ -80,7 +81,12 @@ export async function mirrorBinaryGeometryTable(
   )?.retainedRowsWhereSql
   const rows: BinaryGeometryRow[] = []
 
-  for (let offset = 0; ; offset += REMOTE_GEOMETRY_PAGE_SIZE) {
+  let lastKey: Record<string, unknown> | undefined
+  for (;;) {
+    const pagePredicates = [
+      retainedRowsWhereSql,
+      lastKey ? remoteGeometryKeyRangeSql(primaryKeyColumns, lastKey) : undefined,
+    ].filter((predicate): predicate is string => Boolean(predicate))
     const remoteRows = await remoteD1Client.query(
       [
         `SELECT ${selectedColumns.join(', ')},`,
@@ -88,9 +94,11 @@ export async function mirrorBinaryGeometryTable(
         `length(${quoteSqlIdentifier(binaryColumn)}) AS "__geometryLength",`,
         `length(CAST(${quoteSqlIdentifier(binaryColumn)} AS BLOB)) AS "__geometryByteLength"`,
         `FROM ${quoteSqlIdentifier(tableName)}`,
-        ...(retainedRowsWhereSql ? [`WHERE ${retainedRowsWhereSql}`] : []),
+        ...(pagePredicates.length
+          ? [`WHERE ${pagePredicates.map(p => `(${p})`).join(' AND ')}`]
+          : []),
         `ORDER BY ${orderBy}`,
-        `LIMIT ${REMOTE_GEOMETRY_PAGE_SIZE} OFFSET ${offset}`,
+        `LIMIT ${REMOTE_GEOMETRY_PAGE_SIZE}`,
       ].join(' '),
     )
 
@@ -177,10 +185,14 @@ export async function mirrorBinaryGeometryTable(
             `SELECT ${primaryKeyColumns.map(quoteSqlIdentifier).join(', ')},`,
             chunkColumns.join(', '),
             `FROM ${quoteSqlIdentifier(tableName)}`,
-            ...(retainedRowsWhereSql ? [`WHERE ${retainedRowsWhereSql}`] : []),
+            `WHERE ${remoteGeometryKeyRangeSql(
+              primaryKeyColumns,
+              pageRows[task.batch.start]!.values,
+              pageRows[task.batch.start + task.batch.count - 1]!.values,
+            )}`,
+            ...(retainedRowsWhereSql ? [`AND (${retainedRowsWhereSql})`] : []),
             `ORDER BY ${orderBy}`,
             `LIMIT ${task.batch.count}`,
-            `OFFSET ${offset + task.batch.start}`,
           ].join(' '),
         )
 
@@ -234,6 +246,7 @@ export async function mirrorBinaryGeometryTable(
     }
 
     if (remoteRows.length < REMOTE_GEOMETRY_PAGE_SIZE) break
+    lastKey = pageRows.at(-1)!.values
   }
 
   const binaryRowsPath = resolve(

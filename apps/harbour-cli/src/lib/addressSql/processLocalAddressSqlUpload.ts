@@ -151,6 +151,11 @@ export async function processLocalAddressSqlUpload(
       ? await validateAddress3dPreparation(address3dPath, previewPlan.sourceVersion)
       : undefined
   if (prepared3d) {
+    if (!prepared3d.source2dCount) {
+      throw new Error(
+        'ALS preparation has no original 2D publisher ledger; prepare the release again.',
+      )
+    }
     const seal = JSON.parse(
       await readFile(`${preparedUpload.filePath}.address3d.meta.json`, 'utf8'),
     )
@@ -416,6 +421,7 @@ export async function processLocalAddressSqlUpload(
         })
       }
       const directory = resolve(releaseRoot, 'sql-delivery-address3d')
+      const retained3dDelivery = await readDeliveryPlan(directory)
       if (!target.remote) {
         const files = dbContext.state.files
         if (!files) throw new Error('Missing native Address database paths.')
@@ -425,7 +431,7 @@ export async function processLocalAddressSqlUpload(
           ownershipDirectory: dbContext.state.dbCacheDir,
           releaseId,
           phase: 'address3d-data',
-          inputs: {
+          inputs: retained3dDelivery?.context.inputs ?? {
             independentBoundTargets: true,
             // Address2D prerequisites are already delivered. These three D1
             // projections share no cross-database write dependencies.
@@ -457,13 +463,12 @@ export async function processLocalAddressSqlUpload(
         return
       }
       if (!writeOptions.isLocal) {
-        const retained3dDelivery = await readDeliveryPlan(directory)
         await prepareReleaseSqlDelivery({
           directory,
           context: dbContext,
           releaseId,
           phase: 'address3d-data',
-          inputs: {
+          inputs: retained3dDelivery?.context.inputs ?? {
             independentBoundTargets: true,
             digest: prepared3d.digest,
             snapshotId: versionInsertContext.snapshotId,
@@ -734,7 +739,12 @@ export async function processLocalAddressSqlUpload(
           await replaceDatasetStats(
             dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
             releaseId,
-            buildAddressReleaseStatsRows({ ...addressStats, quality: options.quality }),
+            buildAddressReleaseStatsRows({
+              ...addressStats,
+              address3dCount: prepared3d?.collectionCount,
+              address3dI18nCount: prepared3d?.localisedCollectionCount,
+              quality: options.quality,
+            }),
           )
           return writeAddressReleaseMetaSqlFile(dbContext.metaDb, bucket, finalMessage)
         })()
@@ -778,11 +788,6 @@ export async function processLocalAddressSqlUpload(
           releaseId,
           phase: 'address-data',
           inputs: retainedDelivery?.context.inputs ?? {
-            ...(retained3dDelivery
-              ? retained3dDelivery.context.inputs.parallelTargets === true
-                ? { parallelTargets: true }
-                : {}
-              : { parallelTargets: true }),
             preparedSha256,
             address3dSha256: prepared3d?.digest ?? null,
             message: finalMessageWithMeta,

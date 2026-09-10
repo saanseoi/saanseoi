@@ -44,6 +44,7 @@ test('writes large bound collections, replays idempotently and journals removed 
     createTable(databases.current, currentSchema.address3dI18n)
     createTable(databases.history, historySchema.address3d)
     createTable(databases.history, historySchema.address3dI18n)
+    createTable(databases.history, historySchema.sourceResolutions)
     createTable(databases.history, historySchema.snapshotVersionChanges)
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses3d)
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses2d)
@@ -89,7 +90,15 @@ test('writes large bound collections, replays idempotently and journals removed 
         sourceRecordId: 'source-1',
         versionHash: 'source-hash',
         rawProperties: { source: true },
-        sources: [{ dataset: 'ALS' }],
+        sourceGeometry: { type: 'Point', coordinates: [114, 22, 8] },
+        sources: [
+          { dataset: 'hkgov-dpo-als-3d', sourceFile: 'original.json' },
+          {
+            dataset: 'reviewed-ownership',
+            method: 'reviewed',
+            address2dId: 'building',
+          },
+        ],
       },
       collection,
       {
@@ -98,10 +107,32 @@ test('writes large bound collections, replays idempotently and journals removed 
         collectionCount: 1,
         unitCount: 1440,
         sourceCount: 1,
+        source2dCount: 2,
       },
     ]
+    const original2d = ['merged-occurrence', 'suppressed-occurrence'].map(
+      (sourceRecordId, index) => ({
+        kind: 'source2d' as const,
+        sourceRecordId,
+        versionHash: `original-${index}`,
+        rawProperties: { hkgovCsuId: '001', enBuildingName: ' ORIGINAL ' },
+        sourceGeometry: { type: 'Point', coordinates: [114 + index, 22] },
+        sources: [
+          {
+            dataset: 'hkgov-dpo-als-2d',
+            sourceFile: 'original.json',
+            featureIndexOneBased: index + 1,
+            sourceVersion: '2026-08-19.0',
+          },
+        ],
+      }),
+    )
+    const manifest = records[2]!
+    records.splice(2, 0, ...original2d)
     await writeFile(path, records.map(row => JSON.stringify(row)).join('\n'))
     const validation = await validateAddress3dPreparation(path, '2026-08-19.0')
+    expect(validation.collectionCount).toBe(1)
+    expect(validation.localisedCollectionCount).toBe(2)
     const execute = async (
       target: keyof typeof databases,
       statements: Array<{ sql: string; params: unknown[] }>,
@@ -178,6 +209,39 @@ test('writes large bound collections, replays idempotently and journals removed 
     await runNativeSqlDelivery(planDirectory, { files })
     await importAddress3dCollections(args)
     expect(
+      databases.source
+        .query(
+          'SELECT sourceRecordId, rawProperties, sourceGeometry FROM hkgovAlsAddresses2d ORDER BY sourceRecordId',
+        )
+        .all(),
+    ).toEqual(
+      original2d.map(record => ({
+        sourceRecordId: record.sourceRecordId,
+        rawProperties: JSON.stringify(record.rawProperties),
+        sourceGeometry: JSON.stringify(record.sourceGeometry),
+      })),
+    )
+    expect(
+      databases.source
+        .query('SELECT rawProperties, sourceGeometry, sources FROM hkgovAlsAddresses3d')
+        .get(),
+    ).toEqual({
+      rawProperties: JSON.stringify({ source: true }),
+      sourceGeometry: JSON.stringify({ type: 'Point', coordinates: [114, 22, 8] }),
+      sources: JSON.stringify([
+        { dataset: 'hkgov-dpo-als-3d', sourceFile: 'original.json' },
+      ]),
+    })
+    const interpretation = databases.history
+      .query('SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?')
+      .get('source-1') as { resolutions: string }
+    expect(JSON.parse(interpretation.resolutions)).toEqual({
+      entities: { address3d: ['collection'], address2d: ['building'] },
+      decisions: [
+        { dataset: 'reviewed-ownership', method: 'reviewed', address2dId: 'building' },
+      ],
+    })
+    expect(
       databases.current.query('SELECT count(*) AS n FROM address3d').get(),
     ).toEqual({ n: 1 })
     const row = databases.current
@@ -201,7 +265,7 @@ test('writes large bound collections, replays idempotently and journals removed 
         ? [
             { ...records[0], versionHash: hash, rawProperties: { hash } },
             collection,
-            { ...records[2], sourceVersion },
+            { ...manifest, sourceVersion, source2dCount: 0 },
           ]
         : [
             {
@@ -222,6 +286,11 @@ test('writes large bound collections, replays idempotently and journals removed 
       })
     }
     await runSourceRelease('2026-09-01.0', 'source-hash')
+    expect(
+      databases.source
+        .query('SELECT count(*) AS n FROM hkgovAlsAddresses2d WHERE isCurrent = 1')
+        .get(),
+    ).toEqual({ n: 0 })
     expect(
       databases.source.query('SELECT count(*) AS n FROM hkgovAlsAddresses3d').get(),
     ).toEqual({ n: 1 })

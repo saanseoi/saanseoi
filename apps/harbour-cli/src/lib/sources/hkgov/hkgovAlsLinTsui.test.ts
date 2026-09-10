@@ -1,3 +1,4 @@
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -91,7 +92,12 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
         .map(line => JSON.parse(line))
       expect(
         records.filter(r => r.kind === 'source').map(r => r.rawProperties),
-      ).toEqual(inventory)
+      ).toEqual(
+        inventory.map(
+          (feature: Parameters<typeof alsSourcePayload>[0]) =>
+            alsSourcePayload(feature).rawProperties,
+        ),
+      )
     } finally {
       await rm(temporary, { recursive: true, force: true })
     }

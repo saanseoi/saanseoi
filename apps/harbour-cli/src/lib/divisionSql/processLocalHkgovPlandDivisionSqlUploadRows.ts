@@ -1,4 +1,7 @@
 import { and, eq, inArray } from 'drizzle-orm'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { recordSourceResolutions } from '@repo/core/pipeline/db/sourceResolutions'
+import type { NewSourceResolution } from '@repo/db/historySchema'
 import type { HarbourWritableDb } from '@repo/core/db/types'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import {
@@ -160,6 +163,29 @@ export async function insertHistoryRows(
   now: string,
   reportProgress: (current: number) => void,
 ) {
+  const resolutions = new Map<string, NewSourceResolution>()
+  for (const record of records) {
+    for (const source of [
+      ...record.cells,
+      ...(record.newTown ? [record.newTown] : []),
+    ]) {
+      let resolution = resolutions.get(source.sourceRecordId)
+      if (!resolution) {
+        resolution = {
+          snapshotId,
+          sourceReleaseId: releaseId,
+          sourceRecordId: source.sourceRecordId,
+          sourceVersionHash: await createHash(nativeSourcePayloadHashInput(source)),
+          resolutions: { entities: { division: [] } },
+        }
+        resolutions.set(source.sourceRecordId, resolution)
+      }
+      resolution.resolutions.entities.division = [
+        ...new Set([...resolution.resolutions.entities.division!, record.base.id]),
+      ].sort()
+    }
+  }
+  await recordSourceResolutions(db, [...resolutions.values()])
   let processedRecords = 0
   for (const chunk of chunkArray(records, 4)) {
     await db
@@ -286,7 +312,7 @@ export async function insertSourceRows(
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
         sources: [{ dataset: 'hkgov-pland-pu', layer: 'TPUSU' }],
-        versionHash: await createHash(cell),
+        versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
         releaseId,
         validFromRelease: releaseCode,
         validToRelease: null,
@@ -323,7 +349,7 @@ export async function insertSourceRows(
       wasGeometryRepaired: town.wasGeometryRepaired,
       repairedGeometry: town.repairedGeometry,
       sources: [{ dataset: 'hkgov-pland-new-town' }],
-      versionHash: await createHash(town),
+      versionHash: await createHash(nativeSourcePayloadHashInput(town)),
       releaseId,
       validFromRelease: releaseCode,
       validToRelease: null,

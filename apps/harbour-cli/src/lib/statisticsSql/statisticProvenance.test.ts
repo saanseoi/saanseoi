@@ -1,3 +1,4 @@
+import { censtatdDistrictIdentityRule } from './censtatdDistrictBridge'
 import { expect, test } from 'bun:test'
 import { requireDefined } from '@repo/core/requireDefined'
 import { readObject, type ProvenanceStore } from '@repo/core/provenance'
@@ -68,10 +69,52 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
     source,
     canonical,
     fieldMetadata,
+    geographyFixtures: [
+      {
+        type: 'identity-mappings',
+        document: {
+          mappings: [
+            {
+              externalId: 'A',
+              externalCode: '11',
+              divisionCode: 'CW',
+              canonicalId: 'district-id',
+            },
+          ],
+        },
+      },
+    ],
     additionalRules: [
+      { declaration: censtatdDistrictIdentityRule.declaration, count: 18 },
       { declaration: censtatdSourceAssertionRule.declaration, count: source.length },
     ],
   })
+  const districtRule = requireDefined(
+    result.manifest.bulk.find(
+      rule => rule.id === censtatdDistrictIdentityRule.declaration.id,
+    ),
+  )
+  const geographyRule = requireDefined(
+    result.manifest.bulk.find(rule => rule.id === 'resolve-geography-identities'),
+  )
+  expect(districtRule.fixtures).toEqual(geographyRule.fixtures)
+  expect(
+    await readObject(store, requireDefined(districtRule.fixtures[0]).object),
+  ).toMatchObject({
+    mappings: [
+      {
+        externalId: 'A',
+        externalCode: '11',
+        divisionCode: 'CW',
+        canonicalId: 'district-id',
+      },
+    ],
+  })
+  expect(
+    result.manifest.bulk.find(
+      rule => rule.id === censtatdSourceAssertionRule.declaration.id,
+    )?.fixtures,
+  ).toEqual([])
   expect(result.manifest.kind).toBe('processing-audit')
   expect(
     result.manifest.bulk.find(

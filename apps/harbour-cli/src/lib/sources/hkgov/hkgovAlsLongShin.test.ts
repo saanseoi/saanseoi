@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -105,7 +106,7 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
       })
       expect(result.collectionCount).toBe(3)
       expect(result.unitCount).toBe(939)
-      expect(result.sourceCount).toBe(version.startsWith('2024') ? 6 : 3)
+      expect(result.sourceCount).toBe(source.length)
       expect(parents).toHaveLength(4)
       const complex = requireDefined(
         parents.find(r => r.curatedGranularity === 'complex'),
@@ -121,6 +122,9 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
         .trim()
         .split('\n')
         .map(s => JSON.parse(s))
+      expect(
+        records.filter(r => r.kind === 'source').map(r => r.rawProperties),
+      ).toEqual(source.map(feature => alsSourcePayload(feature).rawProperties))
       for (const c of records.filter(r => r.kind === 'collection')) {
         expect(c.address2dId).not.toBe(complex.id)
         expect(c.unresolvedSectionIds).toEqual([])

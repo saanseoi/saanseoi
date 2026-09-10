@@ -46,17 +46,17 @@ export async function runReconcileDraftReleaseSetsCommand(
   }
 
   const result = await reconcileDraftReleaseSets(target, { apiFamily, regionCode })
+  if (target.remote) {
+    const environment = target.environment === 'production' ? 'production' : 'preview'
+    const cacheDir = resolveRemoteCacheDir(environment)
+    await assertSqlDeliveryPlanningAllowed(cacheDir)
+    // Reconciliation writes DB_META only, including draft composition changes.
+    // Refresh it even when no release set became current; retain data mirrors.
+    await refreshRemoteMetaCache(environment, cacheDir)
+  }
   if (result.publishedReleaseSetStatsTargets.length > 0) {
     const firstTarget = result.publishedReleaseSetStatsTargets[0]
     if (!firstTarget) throw new Error('Missing reconciled stats target.')
-    if (target.remote) {
-      const environment = target.environment === 'production' ? 'production' : 'preview'
-      const cacheDir = resolveRemoteCacheDir(environment)
-      await assertSqlDeliveryPlanningAllowed(cacheDir)
-      // Reconciliation publishes remotely. Stats must read that committed state,
-      // before opening SQLite handles on the previously cached draft metadata.
-      await refreshRemoteMetaCache(environment, cacheDir)
-    }
     const dbContext = await resolveLocalAddressDbContext(
       target,
       regionCode ?? 'hk',

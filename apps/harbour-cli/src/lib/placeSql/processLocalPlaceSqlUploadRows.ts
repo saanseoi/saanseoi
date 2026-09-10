@@ -1,3 +1,5 @@
+import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sourcePayload'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 import { historySchema, sourceSchema } from '@repo/db'
@@ -120,6 +122,23 @@ export async function buildPlaceSql(
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
+    historyStatements(input.activeHistoryBindingName).push(
+      sourceResolutionSql({
+        snapshotId: input.snapshots.snapshotId,
+        sourceReleaseId: input.message.releaseId!,
+        sourceRecordId: place.id,
+        sourceVersionHash: row.sourcePayloadHash,
+        resolutions: {
+          entities: {
+            place: [place.id],
+            ...(row.divisionIds.length ? { division: row.divisionIds } : {}),
+            ...(row.address2dId ? { address2d: [row.address2dId] } : {}),
+            ...(row.address3dId ? { address3d: [row.address3dId] } : {}),
+            ...(row.address3dUnitId ? { address3dUnit: [row.address3dUnitId] } : {}),
+          },
+        },
+      }),
+    )
     const lng = row.effectiveLng ?? place.lng
     const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
@@ -145,8 +164,9 @@ export async function buildPlaceSql(
       sourceStatements(input.activeSourceBindingName).push(
         insertSql('overturePlaces', {
           sourceRecordId: place.id,
-          sources: place.sources,
-          rawProperties: place.raw,
+          sources: overtureSourcePayload(place.raw).sources,
+          rawProperties: overtureSourcePayload(place.raw).rawProperties,
+          sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
           versionHash: row.sourcePayloadHash,
           releaseId: input.message.releaseId,
           validFromRelease: input.message.sourceVersion,

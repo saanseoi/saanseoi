@@ -12,7 +12,9 @@ import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
 
 const version = (r: string) => `${r.slice(0, 4)}-${r.slice(4, 6)}-${r.slice(6, 8)}.0`
 const fixture = loadHouseRetentionFixture()
-const rules = fixture.retentions
+const rules = fixture.retentions.filter(
+  rule => rule.estate === 'QUEENS HILL ESTATE' || rule.estate === 'SHEK YAM ESTATE',
+)
 const csus = new Set(rules.flatMap(r => r.csus))
 const scopedCsus = new Set([...csus, '3234825793T20050430', '3238925757T20050430'])
 const normalise = (s: HkgovAlsSourceFeature, v: string) =>
@@ -100,7 +102,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         const provenance = retainAlsHouses(source, v)
         const rows = source.map(s => normalise(s, v))
         labelAlsHouseRetentions(rows, provenance)
-        expect(rows.filter(r => csus.has(requireDefined(r.hkgovCsuId)))).toHaveLength(9)
+        expect(rows.filter(r => csus.has(r.hkgovCsuId ?? ''))).toHaveLength(9)
         for (const r of rows) {
           if (ids.has(requireDefined(r.hkgovCsuId)))
             expect(r.id).toBe(requireDefined(ids.get(requireDefined(r.hkgovCsuId))))
@@ -133,7 +135,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           .split('\n')
           .map(line => JSON.parse(line))
         const targetIds = new Set(
-          rows.filter(r => csus.has(requireDefined(r.hkgovCsuId))).map(r => r.id),
+          rows.filter(r => csus.has(r.hkgovCsuId ?? '')).map(r => r.id),
         )
         const collections = records.filter(
           r => r.kind === 'collection' && targetIds.has(r.address2dId),
@@ -143,7 +145,10 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
         for (const row of rows.filter(r => targetIds.has(r.id))) {
           const collection = collections.find(c => c.address2dId === row.id)
           expect(collection).toBeDefined()
-          expect(collection.sourceRecordIds.length).toBeGreaterThan(0)
+          expect(
+            collection.sourceRecordIds.length +
+              (collection.processingSources?.length ?? 0),
+          ).toBeGreaterThan(0)
           const rule = requireDefined(rules.find(r => r.csus[0] === row.hkgovCsuId))
           expect(collection.unitCount).toBe(
             requireDefined(rule.evidence3d[0]).feature.properties.Address

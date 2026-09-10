@@ -8,6 +8,10 @@ import {
   type AddressSqlImportStageOptions,
 } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
 import type { PreparedAls3dRecord } from '../sources/hkgov/hkgovAls3dPreparation'
+import {
+  sourceResolutionSql,
+  resolvedEntities,
+} from '@repo/core/pipeline/db/sourceResolutions'
 import { als3dHash, assertAddress3dRowBudget } from '../sources/hkgov/hkgovAls3d'
 import { validateAddress3dOwners } from './address3dOwners'
 
@@ -37,15 +41,22 @@ export async function validateAddress3dPreparation(
   const owners = new Set<string>()
   const unitIds = new Set<string>()
   const sourceIds = new Set<string>()
+  const source2dIds = new Set<string>()
   let manifest: Extract<PreparedAls3dRecord, { kind: 'manifest' }> | undefined
   let units = 0
+  let localisedCollectionCount = 0
   for await (const row of records(path)) {
     if (manifest) throw new Error('Address3D manifest must be the final record')
     if (row.kind === 'manifest') {
       manifest = row
       continue
     }
-    if (row.kind === 'source') {
+    if (row.kind === 'source2d') {
+      if (source2dIds.has(row.sourceRecordId))
+        throw new Error(`Duplicate ALS 2D source occurrence ${row.sourceRecordId}`)
+      source2dIds.add(row.sourceRecordId)
+      assertAddress3dRowBudget(row)
+    } else if (row.kind === 'source') {
       if (sourceIds.has(row.sourceRecordId))
         throw new Error(`Duplicate source occurrence ${row.sourceRecordId}`)
       sourceIds.add(row.sourceRecordId)
@@ -53,7 +64,7 @@ export async function validateAddress3dPreparation(
     } else if (row.kind === 'collection') {
       if (
         Object.keys(row.locales).sort().join(',') !== 'en,zh-hant' ||
-        row.sourceRecordIds.length === 0
+        (row.sourceRecordIds.length === 0 && !row.processingSources?.length)
       )
         throw new Error(
           'Address3D requires paired ALS locales and retained source occurrences',
@@ -83,6 +94,7 @@ export async function validateAddress3dPreparation(
           throw new Error('Address3D locale membership mismatch')
         assertAddress3dRowBudget(localised)
       }
+      localisedCollectionCount += Object.keys(row.locales).length
       ids.add(row.id)
       owners.add(row.address2dId)
       units += row.unitCount
@@ -93,12 +105,13 @@ export async function validateAddress3dPreparation(
     manifest.sourceVersion !== sourceVersion ||
     manifest.collectionCount !== ids.size ||
     manifest.sourceCount !== sourceIds.size ||
+    (manifest.source2dCount ?? 0) !== source2dIds.size ||
     manifest.unitCount !== units
   )
     throw new Error(
       'Incomplete or stale Address3D preparation; prepare the ALS release again',
     )
-  return { ...manifest, ids, digest: await fileSha256(path) }
+  return { ...manifest, localisedCollectionCount, ids, digest: await fileSha256(path) }
 }
 
 /** Small SQL text with one bound row per statement; batches stay collection-sized. */
@@ -207,11 +220,20 @@ export function collectionStatements(
   releaseId: string,
   now: string,
 ) {
-  const { kind: _kind, locales, sourceRecordIds, ...base } = collection
-  const sources = sourceRecordIds.map(sourceRecordId => ({
-    dataset: 'hkgov-dpo-als-3d',
-    sourceRecordId,
-  }))
+  const {
+    kind: _kind,
+    locales,
+    sourceRecordIds,
+    processingSources,
+    ...base
+  } = collection
+  const sources = [
+    ...sourceRecordIds.map(sourceRecordId => ({
+      dataset: 'hkgov-dpo-als-3d',
+      sourceRecordId,
+    })),
+    ...(processingSources ?? []),
+  ]
   const versionHash = als3dHash({ ...base, sources })
   const history = {
     ...base,
@@ -313,6 +335,7 @@ export async function importAddress3dCollections(args: {
   if (validated.digest !== args.expectedDigest)
     throw new Error('Address3D preparation changed after validation')
   const now = args.timestamp ?? new Date().toISOString()
+  const sourceVersions = new Map<string, string>()
   await validateAddress3dOwners(
     args.snapshotId,
     ownerReferences(args.path),
@@ -327,14 +350,40 @@ export async function importAddress3dCollections(args: {
     { sql: 'DELETE FROM address3d WHERE snapshotId = ?', params: [args.snapshotId] },
   ])
   for await (const record of records(args.path)) {
-    if (record.kind === 'source') {
+    if (record.kind === 'source' || record.kind === 'source2d') {
+      const sourceTable =
+        record.kind === 'source2d' ? 'hkgovAlsAddresses2d' : 'hkgovAlsAddresses3d'
+      const publisherSources = record.sources.filter(
+        value =>
+          value &&
+          typeof value === 'object' &&
+          (value as { dataset?: string }).dataset?.startsWith('hkgov-dpo-als-'),
+      )
+      const decisions = record.sources.filter(
+        value => !publisherSources.includes(value),
+      ) as Array<Record<string, unknown>>
+      if (record.kind === 'source') {
+        sourceVersions.set(record.sourceRecordId, record.versionHash)
+        await args.execute('history', [
+          {
+            sql: sourceResolutionSql({
+              snapshotId: args.snapshotId,
+              sourceReleaseId: args.releaseId,
+              sourceRecordId: record.sourceRecordId,
+              sourceVersionHash: record.versionHash,
+              resolutions: { entities: {}, ...(decisions.length ? { decisions } : {}) },
+            }),
+            params: [],
+          },
+        ])
+      }
       await args.execute('source', [
         {
-          sql: 'UPDATE hkgovAlsAddresses3d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?',
+          sql: `UPDATE ${sourceTable} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?`,
           params: [args.sourceVersion, now, record.sourceRecordId, record.versionHash],
         },
         insert(
-          'hkgovAlsAddresses3d',
+          sourceTable,
           {
             sourceRecordId: record.sourceRecordId,
             versionHash: record.versionHash,
@@ -343,7 +392,8 @@ export async function importAddress3dCollections(args: {
             validToRelease: null,
             isCurrent: 1,
             rawProperties: record.rawProperties,
-            sources: record.sources,
+            sourceGeometry: record.sourceGeometry,
+            sources: publisherSources,
             createdAt: now,
             updatedAt: now,
           },
@@ -351,6 +401,28 @@ export async function importAddress3dCollections(args: {
         ),
       ])
     } else if (record.kind === 'collection') {
+      for (const sourceRecordId of record.sourceRecordIds) {
+        const sourceVersionHash = sourceVersions.get(sourceRecordId)
+        if (!sourceVersionHash)
+          throw new Error(`Missing ALS source version for collection ${record.id}`)
+        await args.execute('history', [
+          {
+            sql: "UPDATE sourceResolutions SET resolutions = json_set(resolutions, '$.entities', json(?)) WHERE snapshotId = ? AND sourceReleaseId = ? AND sourceRecordId = ? AND sourceVersionHash = ?",
+            params: [
+              JSON.stringify(
+                resolvedEntities({
+                  address3d: record.id,
+                  address2d: record.address2dId,
+                }),
+              ),
+              args.snapshotId,
+              args.releaseId,
+              sourceRecordId,
+              sourceVersionHash,
+            ],
+          },
+        ])
+      }
       const { currentStatements, historyStatements } = collectionStatements(
         record,
         args.snapshotId,
@@ -362,6 +434,14 @@ export async function importAddress3dCollections(args: {
     }
   }
   await args.execute('source', [
+    ...(validated.source2dCount !== undefined
+      ? [
+          {
+            sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
+            params: [args.sourceVersion, now, args.releaseId],
+          },
+        ]
+      : []),
     {
       sql: 'UPDATE hkgovAlsAddresses3d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
       params: [args.sourceVersion, now, args.releaseId],
