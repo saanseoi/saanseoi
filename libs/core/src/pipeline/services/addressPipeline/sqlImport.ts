@@ -1,3 +1,5 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
+import { sourceResolutionSql } from '../../db/sourceResolutions'
 import type { DatasetProcessingMessage } from '../../../types'
 import { buildDeterministicUuidV5 } from '@repo/db'
 
@@ -78,6 +80,8 @@ const NORMALIZED_ROW_COLUMNS = [
   'identifiers',
   'sources',
   'rawProperties',
+  'sourceGeometry',
+  'sourceSources',
 ] as const
 
 const NORMALIZED_I18N_COLUMNS = [
@@ -196,7 +200,7 @@ export function buildAddressSourceSqlImportFiles(
     options.changedSourceRecordIds
       ? artefact.rows.filter(row => options.changedSourceRecordIds?.has(row.sourceId))
       : artefact.rows
-  ).filter(row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json')
+  ).filter(row => readAlsPublisherSource(row.raw) !== null)
   const statements = [
     buildAddressNormalisedStagingSchemaSql(),
     `DELETE FROM ${NORMALIZED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
@@ -241,7 +245,9 @@ export function buildAddressSourceSqlImportFiles(
         sources: jsonText(row.base.sources),
         parentAddressId: row.base.parentAddressId,
         granularity: row.base.granularity,
-        rawProperties: jsonText(row.raw),
+        rawProperties: jsonText(readAlsPublisherSource(row.raw)!.rawProperties),
+        sourceGeometry: jsonText(readAlsPublisherSource(row.raw)!.sourceGeometry),
+        sourceSources: jsonText(readAlsPublisherSource(row.raw)!.sources),
       })),
       options.maxStatementBytes,
     ),
@@ -356,6 +362,9 @@ export function buildAddressHistorySqlImportFile(
 ): AddressSqlImportFile {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const historyStatements = [
+    ...artefact.rows.flatMap(row =>
+      row.sourceResolution ? [sourceResolutionSql(row.sourceResolution)] : [],
+    ),
     buildAddressResolvedStagingSchemaSql(),
     ...(artefact.rowStart === 0
       ? [
@@ -617,6 +626,8 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   parentAddressId TEXT,
   granularity TEXT NOT NULL,
   rawProperties TEXT,
+  sourceGeometry TEXT,
+  sourceSources TEXT,
   PRIMARY KEY (runId, sourceRecordId)
 );
 CREATE INDEX IF NOT EXISTS ${NORMALIZED_ROWS_TABLE}_run_row_idx ON ${NORMALIZED_ROWS_TABLE} (runId, rowNumber);
@@ -807,16 +818,11 @@ WHERE isCurrent = 1
   );
 INSERT INTO hkgovAlsAddresses2d (
   sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  sources, rawProperties
+  sources, rawProperties, sourceGeometry
 )
 SELECT
   r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
-  CASE
-    WHEN json_type(r.sources) = 'array' AND json_array_length(r.sources) > 0 THEN r.sources
-    WHEN json_type(r.sources, '$.hkgovAls') = 'array' AND json_array_length(r.sources, '$.hkgovAls') > 0 THEN json_extract(r.sources, '$.hkgovAls')
-    ELSE NULL
-  END,
-  r.rawProperties
+  r.sourceSources, r.rawProperties, r.sourceGeometry
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = r.runId AND changed.sourceRecordId = r.sourceRecordId)

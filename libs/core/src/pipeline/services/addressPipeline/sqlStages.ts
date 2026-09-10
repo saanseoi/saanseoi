@@ -1,3 +1,4 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
 import type { DatasetProcessingMessage } from '../../../types'
 import { readSnapshotAssemblySql } from '../../db/snapshotAssembly'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
@@ -89,7 +90,7 @@ export async function writeAddressSourceSqlChunkStage(
     pipelineMessage.artefactKey,
   )
   const sourceRows = dedupeNormalisedAddressRows(artefact.rows).filter(
-    row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json',
+    row => readAlsPublisherSource(row.raw) !== null,
   )
   const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
     sourceDb,

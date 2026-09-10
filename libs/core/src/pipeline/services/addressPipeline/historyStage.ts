@@ -1,3 +1,5 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
+import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
 import type { DatasetProcessingMessage } from '../../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import { resolveLatestPublishedSnapshotForLineage } from '../../../lib/db/metaRegistry'
@@ -61,6 +63,10 @@ export async function writeAddressHistoryChunkStage(
     versionInsertContext,
     changedVersionRows,
     changedI18nVersionRows,
+  )
+  await recordSourceResolutions(
+    historyRepoDb,
+    artefact.rows.flatMap(row => (row.sourceResolution ? [row.sourceResolution] : [])),
   )
 
   const resolvedArtefactKey = buildPipelineArtefactKey(
@@ -196,8 +202,31 @@ export async function buildResolvedAddressChunkArtefact(
         .sort((left, right) => left.locale.localeCompare(right.locale)),
     })
     const changed = matchedCurrent?.churnHash !== versionHash
+    const publisherSource = readAlsPublisherSource(row.raw)
 
     resolvedRowsByAddressId.set(addressId, {
+      ...(publisherSource
+        ? {
+            sourceResolution: {
+              snapshotId: versionInsertContext.snapshotId,
+              sourceReleaseId: versionInsertContext.releaseId,
+              sourceRecordId: publisherSource.sourceRecordId,
+              sourceVersionHash: publisherSource.versionHash,
+              resolutions: {
+                entities: resolvedEntities({
+                  address2d: addressId,
+                  district: base.districtId,
+                  area: base.areaId,
+                  country: base.countryId,
+                  parentAddress: base.parentAddressId,
+                }),
+                ...(typeof row.raw.identityMatchMethod === 'string'
+                  ? { methods: { identity: row.raw.identityMatchMethod } }
+                  : {}),
+              },
+            },
+          }
+        : {}),
       addressId,
       base,
       changed,

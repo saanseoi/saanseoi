@@ -211,7 +211,7 @@ describe('address SQL import staging cleanup', () => {
 })
 
 describe('HKGov ALS source SQL', () => {
-  test('persists SQL NULL for missing evidence and retains publisher references', () => {
+  test('stores acquisition references independently of canonical provenance', () => {
     const db = new Database(':memory:')
     try {
       db.exec(
@@ -235,7 +235,11 @@ describe('HKGov ALS source SQL', () => {
           sourcePayloadHash: `hash-${index}`,
           i18n: [],
           matchKey: null,
-          raw: { publisherField: index },
+          raw: publisherEvidence(
+            { publisherField: index },
+            `source-${index}`,
+            evidence,
+          ),
           source: {},
         })) as unknown as NormalisedAddressChunkArtefact['rows'],
       })
@@ -246,7 +250,7 @@ describe('HKGov ALS source SQL', () => {
           .all(),
       ).toEqual(
         inputs.map((_, index) => ({
-          sources: index < 4 ? null : JSON.stringify(evidence),
+          sources: JSON.stringify(evidence),
         })),
       )
     } finally {
@@ -286,7 +290,7 @@ describe('HKGov ALS source SQL', () => {
             canonicalId: 'address-unchanged',
             i18n: [],
             matchKey: null,
-            raw: { marker: 'unchanged-payload' },
+            raw: publisherEvidence({ marker: 'unchanged-payload' }, 'source-unchanged'),
             sourceId: 'source-unchanged',
             sourcePayloadHash: 'unchanged-hash',
           },
@@ -295,7 +299,7 @@ describe('HKGov ALS source SQL', () => {
             canonicalId: 'address-changed',
             i18n: [],
             matchKey: null,
-            raw: { marker: 'changed-payload' },
+            raw: publisherEvidence({ marker: 'changed-payload' }, 'source-changed'),
             sourceId: 'source-changed',
             sourcePayloadHash: 'changed-hash',
           },
@@ -432,7 +436,7 @@ describe('address SQL string literals', () => {
           {
             base: {},
             i18n: [],
-            raw: { text: '香港'.repeat(20_000) },
+            raw: publisherEvidence({ text: '香港'.repeat(20_000) }),
             sourceId: 'source',
             sourcePayloadHash: 'hash',
           },
@@ -472,7 +476,7 @@ describe('address SQL string literals', () => {
           coverageComponents: [],
           i18n: [],
           matchKey: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d::GRAHAM STREET::46\0',
-          raw: {},
+          raw: publisherEvidence({}, 'source-1'),
           sourceId: 'source-1',
           sourcePayloadHash: 'hash',
         },
@@ -529,3 +533,19 @@ describe('HKGov ALS division cohort selection', () => {
     ).toBe('2026-02-18.0')
   })
 })
+
+function publisherEvidence(
+  rawProperties: Record<string, unknown>,
+  sourceRecordId = 'source',
+  sources: unknown[] = [],
+) {
+  return {
+    publisherSource: {
+      sourceRecordId,
+      versionHash: 'source-hash',
+      rawProperties,
+      sourceGeometry: null,
+      sources,
+    },
+  }
+}

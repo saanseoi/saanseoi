@@ -14,6 +14,24 @@ import type { NormalisedAddressChunkArtefact } from './types'
 
 // Transcribed from the retained 20250903-1043 Islands district ALS record.
 const source = {
+  publisherSource: {
+    sourceRecordId: 'source-theme-village',
+    versionHash: 'source-hash',
+    rawProperties: {
+      enBuildingName: 'NGONG PING THEME VILLAGE',
+      zhHantBuildingName: '昂平市集',
+      hkgovCsuId: '0810113017T20060614',
+    },
+    sourceGeometry: { type: 'Point', coordinates: [113.90307, 22.25639] },
+    sources: [
+      {
+        dataset: 'hkgov-dpo-als-2d',
+        sourceFile: 'islands.geojson',
+        sourceVersion: '2025-09-03.0',
+        featureIndexOneBased: 1,
+      },
+    ],
+  },
   id: 'source-theme-village',
   canonicalId: 'canonical-theme-village',
   divisionSnapshotId: 'divisions-2025-09',
@@ -162,7 +180,7 @@ test.each(['sql', 'direct'] as const)(
       db.exec(`CREATE TABLE hkgovAlsAddresses2d (
       sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
       validToRelease TEXT, isCurrent INTEGER, sources TEXT,
-      rawProperties TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
+      rawProperties TEXT, sourceGeometry TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
       PRIMARY KEY (sourceRecordId, versionHash)
     )`)
       if (mode === 'sql') {
@@ -190,7 +208,9 @@ test.each(['sql', 'direct'] as const)(
       const saved = db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get() as {
         rawProperties: string
       }
-      expect(JSON.parse(saved.rawProperties)).toEqual(source)
+      expect(JSON.parse(saved.rawProperties)).toEqual(
+        source.publisherSource.rawProperties,
+      )
     } finally {
       db.close()
     }

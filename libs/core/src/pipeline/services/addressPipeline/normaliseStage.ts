@@ -1,3 +1,4 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
 import type { DatasetProcessingMessage } from '../../../types'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
@@ -66,9 +67,24 @@ export async function normaliseAddressChunkStage(
     },
   })) {
     for (const row of batch) {
+      if (!Object.hasOwn(row, 'publisherSource')) {
+        throw new Error(
+          'ALS preparation is missing the publisher source envelope; prepare the release again.',
+        )
+      }
       const normalised = normaliseAddressRowForPipeline(row, message.sourceVersion)
       const i18n = dedupeAddressI18nRows(normalised.i18n, normalised.sourceId)
-      const sourcePayloadHash = await createHash(buildHkgovAlsSourceHashInput(row))
+      const sourcePayloadHash = readAlsPublisherSource(row)
+        ? await createHash(buildHkgovAlsSourceHashInput(row))
+        : ''
+      if (
+        readAlsPublisherSource(row)?.versionHash &&
+        readAlsPublisherSource(row)!.versionHash !== sourcePayloadHash
+      ) {
+        throw new Error(
+          'ALS publisher source hash mismatch; prepare the release again.',
+        )
+      }
 
       rows.push({
         ...normalised,
