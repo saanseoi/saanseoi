@@ -1341,6 +1341,16 @@ function insertOvertureHongKongAreaIntoHierarchy(input: {
   if (hongKongSarIndex === -1) return { assignment: null, hierarchy }
 
   const areaEntry = buildOvertureHongKongAreaHierarchyEntry(area)
+  // The source point for a recognised Area may sit inside one of its own
+  // districts. Its canonical identity is the Area, so retain only its SAR
+  // ancestors instead of inserting that same Area into its own ancestry.
+  if (
+    input.division.id === areaEntry.division_id &&
+    input.division.type === 'area' &&
+    input.division.level === 1
+  ) {
+    return { assignment: area, hierarchy: hierarchy.slice(0, hongKongSarIndex + 1) }
+  }
   const withoutArea = hierarchy.filter(
     entry => entry.division_id !== areaEntry.division_id,
   )
@@ -1453,7 +1463,7 @@ export function buildOvertureHongKongAreaHierarchyProcessingActions(
           },
         },
         mode: 'automatic',
-        summary: `Assigned ${affectedRecordCount} divisions to the ${area.names.en} hierarchy area.`,
+        summary: `Normalised the ${area.names.en} hierarchy for ${affectedRecordCount} divisions.`,
       },
     ]
   })
