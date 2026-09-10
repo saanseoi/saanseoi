@@ -483,7 +483,7 @@ async function retainNativeSourceAudit(
       datasetCode: input.datasetCode,
       rowCount: input.rowCount,
       sourceVersion: input.sourceVersion,
-      selectionRules,
+      ...(selectionRules.length ? { selectionRules } : {}),
       tables: input.tables.map(table => ({
         name: table.name,
         rows: table.rows.length,

@@ -4,6 +4,10 @@ Address preparation verifies geographic prerequisite rows in the target database
 Missing retained divisions and translations are restored before address delivery;
 presence in a local cache alone does not establish production readiness.
 
+Remote history finalisation uses delivery batches of at most 4,096 staged addresses.
+Previous versions are retired before replacement ranges are applied, and staging is
+removed only after all ranges complete. Each delivery retains its own receipt.
+
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.
 

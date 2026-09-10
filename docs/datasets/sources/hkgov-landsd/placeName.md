@@ -21,6 +21,20 @@ The projection retains registered normalisation declarations and counts in the
 translation context are retained separately from bulk rules, with available parent
 division names for search. D1 registers the R2 manifest and attempt status.
 
+The `select-landsd-settlements` Bulk Rule records the native input count, selected
+Settlement count and excluded count, with separate Hydrographic, Topographic, missing
+class and unexpected class counters. These measure selection eligibility; downstream
+materialisation is a separate operation. All native publisher records remain retained.
+
+For published local releases, `bun scripts/backfill-landsd-selection-audit.ts --local`
+previews counts reconstructed from the release's retained native source records. Add
+`--apply` to append the rule to the registered audit. This explicit maintenance
+operation preserves existing audit entries and objects, retains a rollback reference
+under `.local/audit-backfills/landsd-selection/`, verifies the complete audit and search
+index, and updates the registration only if its previous reference still matches.
+Repeating it checks the existing counts and skips the write. It does not write to remote
+storage.
+
 The divisions API uses the source as the primary collection in the `hkgov-landsd`
 domain. Only `PLACE_CLASS=Settlement` is eligible for that projection. Each eligible
 source row is a point division identified by `GEO_NAME_ID`, with `PLACE_TYPE` as the

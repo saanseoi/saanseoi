@@ -131,7 +131,22 @@ export async function retainDivisionProvenance(
     input.actionDeclarations ?? {},
     patchDefinitions,
   )
-  for (const action of input.actions) actionKind(action.action)
+  for (const action of input.actions) {
+    const kind = actionKind(action.action)
+    if (kind !== 'bulk' || action.action === normalisation.id) continue
+    const declaration = requireDefined(input.actionDeclarations?.[action.action])
+    const counts = input.actionCounts?.[action.action]
+    for (const side of ['inputs', 'outputs'] as const) {
+      for (const name of declaration[side]) {
+        const count = counts?.[side]?.[name]
+        if (count === undefined || !Number.isSafeInteger(count) || count < 0) {
+          throw new Error(
+            `Division audit operation ${action.action} requires an explicit ${side} count for ${name}.`,
+          )
+        }
+      }
+    }
+  }
   if (input.branchCounts) {
     const ids = new Set(normalisation.branches?.map(branch => branch.id))
     if (Object.keys(input.branchCounts).some(id => !ids.has(id)))
