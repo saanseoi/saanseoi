@@ -101,7 +101,7 @@ describe('source records', () => {
       CREATE TABLE releases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
       CREATE TABLE releaseShardAssignments(releaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatistics(sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease);
+      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -132,13 +132,16 @@ describe('source records', () => {
         'published',
       ])
     }
-    sqlite.run('INSERT INTO hkgovCenstatdStatistics VALUES(?, ?, ?, ?, ?, NULL)', [
-      'record',
-      'hash',
-      '{"population":42}',
-      '{"type":"Point","coordinates":[114,22]}',
-      `${code}::divisionStatistic`,
-    ])
+    sqlite.run(
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease) VALUES(?, ?, ?, ?, ?, NULL)',
+      [
+        'record',
+        'hash',
+        '{"population":42}',
+        '{"type":"Point","coordinates":[114,22]}',
+        `${code}::divisionStatistic`,
+      ],
+    )
     const binding = {
       prepare(query: string) {
         return {
@@ -183,12 +186,12 @@ describe('source records', () => {
   test('uses full source codes for areas and inventories every record without leaking another dataset', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
-      sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
       validFromRelease TEXT, validToRelease TEXT
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
-      'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, ?)',
     )
     insert.run('old', 'v1', '{"obsolete":true}', code.replace('2021', '2016'), code)
     insert.run('a', 'v1', '{"name":"One","value":1,"optional":null}', code, null)
@@ -249,7 +252,7 @@ describe('source records', () => {
   test('reads and streams exact Places source versions with pagination and geometry', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE overturePlaces (
-      sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      sourceGeometry TEXT, sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
       validFromRelease TEXT, validToRelease TEXT
     )`)
     const geometry = { type: 'Point', coordinates: [114.1, 22.3] }
@@ -260,13 +263,17 @@ describe('source records', () => {
       ['place-c', 'future', '2026-08-19.0', null, 'Future place'],
     ]) {
       sqlite
-        .query('INSERT INTO overturePlaces VALUES (?, ?, ?, ?, ?)')
+        .query(
+          'INSERT INTO overturePlaces (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease, sourceGeometry, sources) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        )
         .run(
           requireDefined(id),
           requireDefined(hash),
-          JSON.stringify({ id, names: { primary: name }, geometry }),
+          JSON.stringify({ names: { primary: name } }),
           requireDefined(from),
           to ?? null,
+          JSON.stringify(geometry),
+          JSON.stringify([{ dataset: 'publisher' }]),
         )
     }
     const sourceDb = {
@@ -328,7 +335,8 @@ describe('source records', () => {
         includeGeometry: false,
       })
       expect(withoutGeometry?.records[0]).not.toHaveProperty('geometry')
-      expect(withoutGeometry?.records[0]?.rawProperties?.geometry).toEqual(geometry)
+      expect(withoutGeometry?.records[0]?.rawProperties).not.toHaveProperty('geometry')
+      expect(withoutGeometry?.records[0]?.sources).toEqual([{ dataset: 'publisher' }])
       expect(await listSourceRecords({ ...args, family: 'divisions' })).toBeNull()
       expect(
         await listSourceRecords({
@@ -452,6 +460,7 @@ describe('source records', () => {
           rawProperties: { class: 'administrative', id: 'division-1' },
           resourceType: 'division',
           sourceRecordId: 'division-1',
+          sources: null,
           variant: 'overture',
         },
       ],
@@ -566,14 +575,14 @@ describe('source records', () => {
     expect(result?.records.map(record => record.sourceRecordId)).toEqual(['division-1'])
   })
 
-  test('samples ALS using its prefixed UUID index', async () => {
+  test('samples ALS using publisher occurrence UUIDs', async () => {
     let query = ''
     const sourceDb = {
       prepare(value: string) {
         query = value
         return {
           bind(...values: unknown[]) {
-            expect(values[3]).toMatch(/^ss-[0-9a-f-]{36}$/)
+            expect(values[3]).toMatch(/^[0-9a-f-]{36}$/)
             return {
               all: async () => ({
                 results: [
@@ -695,7 +704,7 @@ describe('source records', () => {
     ).rejects.toBeInstanceOf(SourceRecordRequestError)
   })
 
-  test('returns Overture geometry retained in the raw source properties', async () => {
+  test('returns Overture geometry from its sibling source column', async () => {
     const geometry = {
       coordinates: [114.1, 22.3],
       type: 'Point',
@@ -705,7 +714,8 @@ describe('source records', () => {
         DB_SOURCE_HK_2025: sourceDatabase([]),
         DB_SOURCE_HK_2026: sourceDatabase([
           {
-            rawProperties: JSON.stringify({ geometry, id: 'division-1' }),
+            rawProperties: JSON.stringify({ class: 'administrative' }),
+            sourceGeometry: JSON.stringify(geometry),
             sourceRecordId: 'division-1',
             versionHash: 'version-1',
           },
@@ -768,6 +778,7 @@ describe('source records', () => {
         rawProperties: { dc: 1, dc_eng: 'Central and Western' },
         resourceType: 'divisionArea',
         sourceRecordId: 'CENSTATD:A',
+        sources: null,
         variant: 'hkgov-censtatd:2016',
       },
     ])
@@ -816,6 +827,7 @@ describe('source records', () => {
         resourceType: 'division',
         sourceRecordId: 'division-1',
         variant: 'overture',
+        sources: null,
       })}\n`,
     )
   })

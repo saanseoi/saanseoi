@@ -5,7 +5,8 @@ export type SourceRecordCatalogueEntry = {
   releaseKey?: 'version' | 'code'
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
-  geometryProperty?: string
+  sourcesColumn?: boolean
+  nativeNamesColumn?: 'placeNames'
   randomSampleStrategy?: 'uuid-pivot'
   randomSamplePrefix?: string
   tableName: string
@@ -17,6 +18,7 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     tableName: 'hkgovHadDivisionAreas',
   },
   'ds-hk-hkgov-landsd-division': {
+    nativeNamesColumn: 'placeNames',
     geometryColumn: 'sourceGeometry',
     tableName: 'hkgovLandsdPlaceNames',
   },
@@ -30,17 +32,17 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
   },
   'ds-hk-overture-division': {
     releaseKey: 'version',
-    geometryProperty: 'geometry',
+    geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisions',
   },
   'ds-hk-overture-division-area': {
-    geometryProperty: 'geometry',
+    geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisionAreas',
   },
   'ds-hk-overture-division-boundary': {
-    geometryProperty: 'geometry',
+    geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisionBoundaries',
   },
@@ -50,10 +52,10 @@ const ADDRESS_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-hkgov-dpo-address': {
     releaseKey: 'version',
     randomSampleStrategy: 'uuid-pivot',
-    randomSamplePrefix: 'ss-',
-    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties
+    geometryColumn: 'sourceGeometry',
+    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry, sources
       FROM hkgovAlsAddresses2d UNION ALL
-      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties
+      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry, sources
       FROM hkgovAlsAddresses3d)`,
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
@@ -90,7 +92,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
 const PLACE_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-overture-place': {
     releaseKey: 'version',
-    geometryProperty: 'geometry',
+    geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overturePlaces',
   },
@@ -132,17 +134,26 @@ export function sourceCatalogueFor(
 ): Record<string, SourceRecordCatalogueEntry> {
   switch (family) {
     case 'addresses':
-      return ADDRESS_SOURCE_RECORD_CATALOGUE
+      return withSourceEnvelope(ADDRESS_SOURCE_RECORD_CATALOGUE)
     case 'divisions':
-      return {
+      return withSourceEnvelope({
         ...DIVISION_SOURCE_RECORD_CATALOGUE,
         ...STATISTIC_SOURCE_RECORD_CATALOGUE,
-      }
+      })
     case 'places':
-      return PLACE_SOURCE_RECORD_CATALOGUE
+      return withSourceEnvelope(PLACE_SOURCE_RECORD_CATALOGUE)
     case 'stats':
-      return STATISTIC_SOURCE_RECORD_CATALOGUE
+      return withSourceEnvelope(STATISTIC_SOURCE_RECORD_CATALOGUE)
     case 'streets':
       return STREET_SOURCE_RECORD_CATALOGUE
   }
+}
+
+function withSourceEnvelope(entries: Record<string, SourceRecordCatalogueEntry>) {
+  return Object.fromEntries(
+    Object.entries(entries).map(([code, entry]) => [
+      code,
+      { ...entry, sourcesColumn: true },
+    ]),
+  )
 }

@@ -13,14 +13,14 @@ test('source catalogues include every retained family and preserve both ALS dime
     for (const table of ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']) {
       database.exec(`CREATE TABLE ${table} (
         sourceRecordId TEXT, versionHash TEXT, validFromRelease TEXT,
-        validToRelease TEXT, rawProperties TEXT
+        validToRelease TEXT, rawProperties TEXT, sourceGeometry TEXT, sources TEXT
       )`)
     }
     database
-      .query('INSERT INTO hkgovAlsAddresses2d VALUES (?, ?, ?, NULL, ?)')
+      .query('INSERT INTO hkgovAlsAddresses2d VALUES (?, ?, ?, NULL, ?, NULL, NULL)')
       .run('2d-record', 'v1', '2026-01-01.0', '{"name":"Premises"}')
     database
-      .query('INSERT INTO hkgovAlsAddresses3d VALUES (?, ?, ?, NULL, ?)')
+      .query('INSERT INTO hkgovAlsAddresses3d VALUES (?, ?, ?, NULL, ?, NULL, NULL)')
       .run('3d-occurrence', 'v2', '2026-01-01.0', '{"properties":{"floor":"1"}}')
     const entry = sourceCatalogueFor('addresses')['ds-hk-hkgov-dpo-address']!
     const rows = database
@@ -67,7 +67,7 @@ test('Planning projections share their source pin and paginate across assigned s
   try {
     for (const database of databases) {
       database.exec(`CREATE TABLE hkgovPlandPlanningCells (
-        sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+        sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
         validFromRelease TEXT, validToRelease TEXT
       )`)
     }
@@ -77,7 +77,7 @@ test('Planning projections share their source pin and paginate across assigned s
     ].entries()) {
       for (const id of ids)
         databases[index]!.query(
-          'INSERT INTO hkgovPlandPlanningCells VALUES (?, ?, ?, ?, NULL)',
+          'INSERT INTO hkgovPlandPlanningCells (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, NULL)',
         ).run(id, 'v1', JSON.stringify({ [id]: id }), sourceCode)
     }
     const args = {

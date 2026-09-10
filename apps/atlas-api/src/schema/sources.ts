@@ -26,6 +26,8 @@ const SourceRecordSchema = z
     resourceType: z.string(),
     variant: z.string(),
     rawProperties: z.object({}).loose().nullable(),
+    sources: z.array(z.object({}).loose()).nullable().optional(),
+    placeNames: z.array(z.object({}).loose()).nullable().optional(),
     geometry: z.unknown().optional(),
   })
   .openapi('SourceRecord')
