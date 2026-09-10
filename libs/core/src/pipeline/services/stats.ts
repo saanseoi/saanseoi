@@ -68,6 +68,8 @@ export type AddressApiReleaseSetStatsInput = {
  * public API snapshot.
  */
 export type AddressReleaseStatsInput = {
+  address3dCount?: number
+  address3dI18nCount?: number
   addedRows: number
   changedRows: number
   componentCounts: Record<string, number>
@@ -509,6 +511,40 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
 
   const rows = [
     ...buildChurnMetricRows(churn, createdAt, null),
+    buildReleaseStatsRow('records', 'count', 'count', recordedRows, createdAt, {
+      groupBy: 'table',
+      groupValue: 'address2d',
+    }),
+    ...(input.address3dCount === undefined
+      ? []
+      : [
+          buildReleaseStatsRow(
+            'detail_records',
+            'count',
+            'count',
+            input.address3dCount,
+            createdAt,
+            {
+              groupBy: 'table',
+              groupValue: 'address3d',
+            },
+          ),
+        ]),
+    ...(input.address3dI18nCount === undefined
+      ? []
+      : [
+          buildReleaseStatsRow(
+            'localised_detail_records',
+            'count',
+            'count',
+            input.address3dI18nCount,
+            createdAt,
+            {
+              groupBy: 'table',
+              groupValue: 'address3dI18n',
+            },
+          ),
+        ]),
     ...buildAddressLocaleStatsRows(input.localeCounts, recordedRows, createdAt),
     ...buildAddressComponentStatsRows(input.componentCounts, recordedRows, createdAt),
     ...buildDistrictDistributionStatsRows(input.districtCounts, createdAt),

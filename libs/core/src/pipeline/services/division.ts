@@ -1,3 +1,7 @@
+import { recordSourceResolutions, resolvedEntities } from '../db/sourceResolutions'
+import { landsdPlaceNameResolutions } from '../db/landsdPlaceNameSources'
+import type { NewSourceResolution } from '@repo/db/historySchema'
+import { overtureSourcePayload } from './sourcePayload'
 import {
   createBranchCounts,
   selectBranch,
@@ -423,6 +427,7 @@ export async function processDivisionDataset(
   }
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
+  const seenPublisherIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
 
   let processedRows = 0
@@ -495,6 +500,22 @@ export async function processDivisionDataset(
     processingActions: fixtureActions,
   } of readDivisionRowsWithFixtures(file, message, DIVISION_BATCH_SIZE)) {
     processingActions.push(...fixtureActions)
+    const sourceResolutionRows: NewSourceResolution[] = []
+    if (message.source === 'hkgov-landsd') {
+      if (!sourceDb)
+        throw new Error(
+          'LandsD division resolution requires retained publisher source storage.',
+        )
+      sourceResolutionRows.push(
+        ...(await landsdPlaceNameResolutions(
+          [sourceDb as never],
+          message.sourceVersion,
+          versionInsertContext.snapshotId,
+          batch.map(raw => ({ id: String(raw.id), raw })),
+          buildSourceReleaseId(message),
+        )),
+      )
+    }
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
@@ -599,9 +620,17 @@ export async function processDivisionDataset(
       })
       let sourceChanged: boolean | null = null
 
-      if (sourceDb && message.source === 'overture') {
+      if (sourceDb && message.source === 'overture' && !isSupplemental) {
+        seenPublisherIds.add(normalised.base.id)
         const releaseId = buildSourceReleaseId(message)
         const sourcePayloadHash = await createHash(row)
+        sourceResolutionRows.push({
+          snapshotId: versionInsertContext.snapshotId,
+          sourceReleaseId: releaseId,
+          sourceRecordId: normalised.base.id,
+          sourceVersionHash: sourcePayloadHash,
+          resolutions: { entities: resolvedEntities({ division: normalised.base.id }) },
+        })
         const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
 
@@ -615,8 +644,9 @@ export async function processDivisionDataset(
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
-            sources: normaliseOvertureSourceReferences(row.sources),
-            rawProperties: row,
+            sources: overtureSourcePayload(row).sources,
+            rawProperties: overtureSourcePayload(row).rawProperties,
+            sourceGeometry: overtureSourcePayload(row).sourceGeometry,
           })
         } else if (currentSource) {
           sourceUnchangedRows += 1
@@ -843,6 +873,7 @@ export async function processDivisionDataset(
         }),
       )
     }
+    await recordSourceResolutions(historyRepoDb, sourceResolutionRows)
 
     if (reportProgress && !isSupplemental) {
       await reportProgress({
@@ -939,7 +970,7 @@ export async function processDivisionDataset(
 
   if (sourceDb && message.source === 'overture' && currentSourceRows) {
     const missingSourceIds = [...currentSourceRows.keys()].filter(
-      id => !seenIds.has(id),
+      id => !seenPublisherIds.has(id),
     )
     const missingSourceIdsByOwner = groupIdsByOwnerShard(
       currentSourceRows,
