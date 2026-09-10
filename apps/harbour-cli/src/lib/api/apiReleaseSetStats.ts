@@ -1,3 +1,4 @@
+import { buildStatisticsApiStats } from './statisticsApiReleaseSetStats'
 import { createHash } from 'node:crypto'
 import {
   buildDivisionApiStats,
@@ -60,7 +61,7 @@ export type ApiReleaseSetStatsTarget = {
 type CalculateApiReleaseSetStatsOptions = {
   currentDb: HarbourReadableDb
   historyTargets?: DivisionHistoryTarget[]
-  family: 'address' | 'division' | 'place'
+  family: 'address' | 'division' | 'place' | 'statistics'
   harbourClient: HarbourClient
   importOptions: ApiReleaseSetStatsImportOptions
   metaDb: HarbourReadableDb & HarbourWritableDb
@@ -131,31 +132,37 @@ export async function calculateAndStoreApiReleaseSetStats(
 
   try {
     const rows =
-      options.family === 'address'
-        ? await (async () => {
-            const churn = await buildAddressApiReleaseSetChurn(
-              options.metaDb,
-              options.historyTargets ?? [],
-              apiReleaseSetId,
-            )
-            return buildAddressApiReleaseSetStatsForSnapshot(
-              options.currentDb,
-              snapshotId,
-              options.addressQuality,
-              churn,
-            )
-          })()
-        : options.family === 'division'
-          ? await buildDivisionApiStats(
-              options.metaDb,
-              options.historyTargets ?? [],
-              apiReleaseSetId,
-            )
-          : await buildPlaceStatsRows(
-              options.currentDb,
-              snapshotId,
-              await readPlaceLocaleConflicts(options.metaDb, options.releaseId),
-            )
+      options.family === 'statistics'
+        ? await buildStatisticsApiStats(
+            options.metaDb,
+            options.historyTargets ?? [],
+            apiReleaseSetId,
+          )
+        : options.family === 'address'
+          ? await (async () => {
+              const churn = await buildAddressApiReleaseSetChurn(
+                options.metaDb,
+                options.historyTargets ?? [],
+                apiReleaseSetId,
+              )
+              return buildAddressApiReleaseSetStatsForSnapshot(
+                options.currentDb,
+                snapshotId,
+                options.addressQuality,
+                churn,
+              )
+            })()
+          : options.family === 'division'
+            ? await buildDivisionApiStats(
+                options.metaDb,
+                options.historyTargets ?? [],
+                apiReleaseSetId,
+              )
+            : await buildPlaceStatsRows(
+                options.currentDb,
+                snapshotId,
+                await readPlaceLocaleConflicts(options.metaDb, options.releaseId),
+              )
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),

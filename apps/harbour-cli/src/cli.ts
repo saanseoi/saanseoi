@@ -1,3 +1,4 @@
+import { runStatisticsApiStatsBackfillCommand } from './lib/commands/statsBackfillStatisticsApi.ts'
 import { cancel } from '@clack/prompts'
 
 import { recordInitialisationSummaryEvent } from './lib/commands/initialisationSummary.ts'
@@ -116,6 +117,9 @@ async function main() {
       return
     case 'stats:backfill-addresses':
       await runAddressApiStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:backfill-statistics':
+      await runStatisticsApiStatsBackfillCommand(args, target, printUsage)
       return
     case 'stats:backfill-divisions':
       await runDivisionApiStatsBackfillCommand(args, target, printUsage)

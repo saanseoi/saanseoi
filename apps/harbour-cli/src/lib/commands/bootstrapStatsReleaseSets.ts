@@ -1,3 +1,4 @@
+import { runReconcileDraftReleaseSetsCommand } from './reconcile'
 import { note, outro } from '@clack/prompts'
 
 import { formatField } from '../cli/display.ts'
@@ -39,6 +40,11 @@ export async function runBootstrapStatsReleaseSetsCommand(
       apiReleaseSetCode,
     })),
   })
+  await runReconcileDraftReleaseSetsCommand(
+    { ...args, options: { ...args.options, 'api-family': 'stats' } },
+    target,
+    printUsage,
+  )
   const draftedPaths: string[] = []
   for (const code of result.createdReleaseSetCodes) {
     try {
