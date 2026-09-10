@@ -144,6 +144,7 @@ export async function processLocalPlaceSqlUpload(
         metaDb as never,
         { datasetCode, rawObjectKey, releaseCode, releaseId },
         message,
+        { retainedDeliveryCacheDir: context.state.dbCacheDir },
       ),
     )
 

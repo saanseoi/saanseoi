@@ -1,6 +1,10 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { resolve } from 'node:path'
+import { resolve, join } from 'node:path'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { prepareSqlDelivery } from '../localPipeline/sqlDeliveryFiles.ts'
+import { registerPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
 
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 
@@ -77,6 +81,55 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     UPDATE releases SET status = 'processing' WHERE id = '${releaseId}';
     UPDATE sourceReleases SET status = 'processing';
   `)
+  const recoveryRoot = await mkdtemp(join(tmpdir(), 'staged-sync-recovery-'))
+  try {
+    const releaseCode =
+      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2'
+    const directory = join(recoveryRoot, 'delivery')
+    await prepareSqlDelivery(
+      directory,
+      {
+        releaseId,
+        environment: 'production',
+        phase: 'data',
+        cacheDir: recoveryRoot,
+        cachePreparedAt: 'fixture',
+        inputs: { version: { releaseCode } },
+      },
+      async append => {
+        await append(
+          { databaseId: 'meta', bindingName: 'DB_META' },
+          new TextEncoder().encode('SELECT 1;'),
+        )
+      },
+    )
+    await registerPendingSqlDelivery(recoveryRoot, releaseId, directory)
+    const before = sqlite.query('SELECT * FROM releases WHERE id = ?').get(releaseId)
+    await syncStagedReleaseIntoLocalMetaCache(
+      metaDb as never,
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
+        releaseCode,
+        releaseId,
+      },
+      {
+        cohortKey: '2023-H2',
+        regionCode: 'hk',
+        source: 'hkgov-censtatd',
+        sourceVersion: '2023-H2',
+        theme: 'stats',
+        type: 'divisionStatistic',
+      },
+      { retainedDeliveryCacheDir: recoveryRoot },
+    )
+    expect(sqlite.query('SELECT * FROM releases WHERE id = ?').get(releaseId)).toEqual(
+      before,
+    )
+  } finally {
+    await rm(recoveryRoot, { recursive: true, force: true })
+  }
   await expect(
     syncStagedReleaseIntoLocalMetaCache(
       metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
