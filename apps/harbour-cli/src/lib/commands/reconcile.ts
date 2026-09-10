@@ -63,6 +63,7 @@ export async function runReconcileDraftReleaseSetsCommand(
       firstTarget.cohortKey.slice(0, 4),
       {
         cacheTableProfile,
+        includeAllHistoryShardYears: true,
         includePreviousShardYears: true,
         requireExistingRemoteCache: target.remote,
       },
