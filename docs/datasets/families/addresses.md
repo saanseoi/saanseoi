@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
+envelope. Schema validation permits adding this envelope only when every other field
+retains its name, type and nullability.
+
 Address preparation verifies geographic prerequisite rows in the target database.
 Missing retained divisions and translations are restored before address delivery;
 presence in a local cache alone does not establish production readiness.
