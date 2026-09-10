@@ -308,6 +308,8 @@ async function createFixture() {
     | 'poll'
     | 'reattach'
     | 'reset-reattach'
+    | 'reset-always'
+    | 'cancelled-reattach'
     | 'cleared' = 'none'
   let pendingSql = ''
   let activeEtag = ''
@@ -343,14 +345,14 @@ async function createFixture() {
     events.push(body.action)
     if (body.action === 'init') {
       activeEtag = body.etag
-      if (pendingSql && failure === 'reset-reattach') {
-        failure = 'reattach'
+      if (pendingSql && ['reset-reattach', 'reset-always'].includes(failure)) {
+        if (failure === 'reset-reattach') failure = 'reattach'
         return Response.json({
           success: true,
           result: { success: false, error: '{"D1_RESET_DO":true}' },
         })
       }
-      if (pendingSql && failure === 'reattach') {
+      if (pendingSql && ['reattach', 'cancelled-reattach'].includes(failure)) {
         failure = 'none'
         return Response.json({
           success: true,
@@ -365,7 +367,16 @@ async function createFixture() {
     if (body.action === 'ingest') {
       if (failure === 'before-commit')
         throw new Error('connection lost before a known outcome')
-      if (['poll', 'cleared', 'reattach', 'reset-reattach'].includes(failure)) {
+      if (
+        [
+          'poll',
+          'cleared',
+          'reattach',
+          'reset-reattach',
+          'reset-always',
+          'cancelled-reattach',
+        ].includes(failure)
+      ) {
         pendingSql = uploads.get(body.etag) ?? ''
         return Response.json({
           success: true,
@@ -381,7 +392,15 @@ async function createFixture() {
     }
     if (body.action === 'poll') {
       if (failure === 'poll') throw new Error('poll connection lost')
-      if (['cleared', 'reattach', 'reset-reattach'].includes(failure))
+      if (failure === 'cancelled-reattach')
+        return Response.json({
+          success: true,
+          result: {
+            success: false,
+            error: 'Cancelled due to no poll() received in 15000ms.',
+          },
+        })
+      if (['cleared', 'reattach', 'reset-reattach', 'reset-always'].includes(failure))
         return Response.json({
           success: true,
           result: { success: false, error: 'Not currently importing anything.' },
@@ -796,7 +815,7 @@ test('a cleared import without a receipt is not accepted as success', () =>
     expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
   }))
 
-for (const failure of ['reattach', 'reset-reattach'] as const)
+for (const failure of ['reattach', 'reset-reattach', 'cancelled-reattach'] as const)
   test(`a stale bookmark recovers by exact ETag without another upload or ingest: ${failure}`, () =>
     fixture(async f => {
       await f.prepare()
@@ -808,6 +827,19 @@ for (const failure of ['reattach', 'reset-reattach'] as const)
       await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
       expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
     }))
+
+test('repeated storage resets exhaust bounded lookups without repeating writes', () =>
+  fixture(async f => {
+    await f.prepare()
+    f.fail('reset-always')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+    ).rejects.toThrow('exact-content recovery exhausted')
+    expect(f.events.filter(event => event === 'init')).toHaveLength(4)
+    expect(f.events.filter(event => event === 'ingest')).toHaveLength(1)
+    expect(f.events.filter(event => event === 'upload')).toHaveLength(1)
+    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
+  }))
 
 test('bound rows retain their parameters and recover a lost commit acknowledgement', () =>
   fixture(async f => {

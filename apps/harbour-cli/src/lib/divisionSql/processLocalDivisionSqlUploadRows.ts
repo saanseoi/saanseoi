@@ -1,4 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
+import { splitLargeInsertLiterals } from '../localPipeline/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import type {
@@ -611,6 +612,15 @@ export function buildInsertStatements(
 
   for (const row of rows) {
     const valueSql = `(${columns.map(column => sqlLiteral(row[column])).join(', ')})`
+    const single = `${prefix}${valueSql}${suffix};`
+    if (Buffer.byteLength(single) > maxStatementBytes) {
+      if (currentValues.length) {
+        statements.push(`${prefix}${currentValues.join(', ')}${suffix};`)
+        currentValues = []
+      }
+      statements.push(...splitLargeInsertLiterals(single, maxStatementBytes))
+      continue
+    }
     const candidate = `${prefix}${[...currentValues, valueSql].join(', ')}${suffix};`
 
     if (
