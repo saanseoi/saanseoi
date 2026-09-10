@@ -131,16 +131,18 @@ export async function deliverProcessingResult(
   const remote: ProvenanceStore = {
     async get(key) {
       const bytes = acknowledged.get(key)
+      acknowledged.delete(key)
       return bytes ? { arrayBuffer: async () => bytes } : null
     },
     async put(key, bytes) {
       if (bytes.byteLength > MAX_OBJECT_BYTES)
         throw new Error('Provenance object exceeds byte limit.')
       await destination.put(key, bytes)
-      acknowledged.clear()
       acknowledged.set(key, bytes)
     },
   }
-  const manifest = await transferProcessingResult(source, remote, ref)
+  const manifest = await transferProcessingResult(source, remote, ref, {
+    concurrency: 4,
+  })
   await registerProvenanceResult(baseUrl, headers, manifest.releaseId, ref)
 }
