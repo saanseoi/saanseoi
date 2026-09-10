@@ -21,7 +21,8 @@
     "test:browser": "svelte-kit sync && vitest run --project client",
     "test:watch": "bun test --watch",
     "test:coverage": "bun test --coverage",
-    "review:release-tabs": "bun ./scripts/open-release-review-tabs.ts"
+    "review:release-tabs": "bun ./scripts/open-release-review-tabs.ts",
+    "test:audit-page": "bun ./scripts/test-audit-page.ts"
   },
   "dependencies": {
     "@better-auth/core": "1.7.3",
