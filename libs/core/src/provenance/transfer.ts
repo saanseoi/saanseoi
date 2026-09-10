@@ -4,7 +4,8 @@ import {
   verifyProcessingResult,
 } from './bundle'
 import { cachedProvenanceStore } from './cache'
-import { readObject, retainObject } from './objects'
+import { readObject } from './objects'
+import { transferObjects } from './transferObjects'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { transferAuditResult, validateAuditManifest } from './audit'
@@ -14,6 +15,7 @@ export async function transferProcessingResult(
   source: ProvenanceStore,
   destination: ProvenanceStore,
   ref: ObjectRef,
+  options: { concurrency?: number } = {},
 ) {
   source = cachedProvenanceStore(source)
   const manifest = await readObject(source, ref)
@@ -24,21 +26,15 @@ export async function transferProcessingResult(
     manifest.kind === 'processing-audit'
   ) {
     validateAuditManifest(manifest)
-    return transferAuditResult(source, destination, ref, manifest)
+    return transferAuditResult(source, destination, ref, manifest, options)
   }
   validateManifest(manifest)
   await verifyProcessingResult(source, manifest)
-  const copied = new Set<string>()
-  async function copy(object: ObjectRef) {
-    if (copied.has(object.hash)) return
-    const retained = await retainObject(destination, await readObject(source, object))
-    if (retained.hash !== object.hash || retained.byteLength !== object.byteLength)
-      throw new Error('Transferred provenance reference mismatch.')
-    copied.add(object.hash)
-  }
+  const dependencies: ObjectRef[] = []
   for await (const application of readApplications(source, manifest))
-    for (const dependency of applicationReferences(application)) await copy(dependency)
-  for (const chunk of manifest.chunks) await copy(chunk)
-  await copy(ref)
+    dependencies.push(...applicationReferences(application))
+  dependencies.push(...manifest.chunks)
+  await transferObjects(source, destination, dependencies, options.concurrency ?? 1)
+  await transferObjects(source, destination, [ref], 1)
   return manifest
 }

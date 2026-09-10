@@ -13,6 +13,7 @@ import type { BulkAudit } from './auditTypes'
 import { auditActionCategory } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
 import { validateShape } from './schema'
+import { transferObjects } from './transferObjects'
 
 const text = (v: unknown) => typeof v === 'string' && v.length > 0
 const count = (v: unknown) => Number.isSafeInteger(v) && Number(v) >= 0
@@ -495,34 +496,29 @@ export async function transferAuditResult(
   destination: ProvenanceStore,
   ref: ObjectRef,
   manifest: AuditManifest,
+  options: { concurrency?: number } = {},
 ) {
   await verifyAuditResult(source, manifest)
-  const copied = new Set<string>()
-  async function copy(r: ObjectRef) {
-    if (copied.has(r.hash)) return
-    const result = await retainObject(destination, await readObject(source, r))
-    if (result.hash !== r.hash || result.byteLength !== r.byteLength)
-      throw new Error('Audit transfer mismatch.')
-    copied.add(r.hash)
-  }
+  const dependencies: ObjectRef[] = []
   for (const b of manifest.bulk) {
-    await copy(b.definition)
-    if (b.search) await copy(b.search)
-    for (const f of b.fixtures) await copy(f.object)
+    dependencies.push(b.definition)
+    if (b.search) dependencies.push(b.search)
+    for (const f of b.fixtures) dependencies.push(f.object)
   }
-  for (const fixture of manifest.individualFixtures ?? []) await copy(fixture.object)
-  if (manifest.apiFields) await copy(manifest.apiFields)
+  for (const fixture of manifest.individualFixtures ?? [])
+    dependencies.push(fixture.object)
+  if (manifest.apiFields) dependencies.push(manifest.apiFields)
   for (const c of manifest.chunks) {
     const chunk = (await readObject(source, c)) as unknown as {
       actions: IndividualAudit[]
     }
     for (const a of chunk.actions) {
-      await copy(a.definition)
-      if (a.fixture) await copy(a.fixture.object)
+      dependencies.push(a.definition)
+      if (a.fixture) dependencies.push(a.fixture.object)
     }
-    await copy(c.index)
-    await copy(c)
+    dependencies.push(c.index, c)
   }
-  await copy(ref)
+  await transferObjects(source, destination, dependencies, options.concurrency ?? 1)
+  await transferObjects(source, destination, [ref], 1)
   return manifest
 }

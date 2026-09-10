@@ -121,7 +121,20 @@ test('individual search reads indexes and only matching action chunks; transfer 
     'not declared',
   )
   const destination = memoryStore()
-  await transferProcessingResult(store, destination.store, result.ref)
+  const transferred: string[] = []
+  await transferProcessingResult(
+    store,
+    {
+      get: destination.store.get,
+      async put(key, bytes) {
+        await destination.store.put(key, bytes)
+        transferred.push(key)
+      },
+    },
+    result.ref,
+    { concurrency: 4 },
+  )
+  expect(transferred.at(-1)).toBe(objectKey(result.ref.hash))
   const fixtureText = new TextDecoder().decode(
     destination.objects.get(objectKey(fixture.hash)),
   )

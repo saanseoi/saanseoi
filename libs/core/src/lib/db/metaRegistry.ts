@@ -2529,7 +2529,11 @@ export async function updateDatasetStatus(
   const releaseStatusCondition =
     status === 'published'
       ? eq(metaReleases.id, releaseId)
-      : and(eq(metaReleases.id, releaseId), ne(metaReleases.status, 'published'))
+      : and(
+          eq(metaReleases.id, releaseId),
+          ne(metaReleases.status, 'published'),
+          ne(metaReleases.status, 'superseded'),
+        )
 
   await db
     .update(metaReleases)
@@ -2547,6 +2551,7 @@ export async function updateDatasetStatus(
         : and(
             eq(metaSourceReleases.id, sourceReleaseId),
             ne(metaSourceReleases.status, 'published'),
+            ne(metaSourceReleases.status, 'superseded'),
           )
     await db
       .update(metaSourceReleases)

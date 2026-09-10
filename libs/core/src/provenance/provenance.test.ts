@@ -380,7 +380,9 @@ describe('retained processing effects', () => {
       applications: [f.a],
     })
     const destination = memoryStore()
-    await transferProcessingResult(f.store, destination.store, result.ref)
+    await transferProcessingResult(f.store, destination.store, result.ref, {
+      concurrency: 4,
+    })
     f.objects.clear()
     const replayed = await reapplyProcessingResult(
       destination.store,
