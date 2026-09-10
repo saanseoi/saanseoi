@@ -102,6 +102,12 @@ function init_prepare_completed_releases
             # Rebuild that cache before using release status to skip work.
             set -l cache_dir "$saanseoi_init_repo/.local/harbour-sql/db-cache/$saanseoi_init_target"
             if test -f "$cache_dir/invalidated.json"; or not test -f "$cache_dir/manifest.json"
+                if test -f "$cache_dir/invalidated.json"
+                    echo "Rebuilding $saanseoi_init_target cache: invalidation marker present at $cache_dir/invalidated.json" >&2
+                    jq -r '.reason // "No invalidation reason recorded"' "$cache_dir/invalidated.json" >&2
+                else
+                    echo "Rebuilding $saanseoi_init_target cache: manifest missing at $cache_dir/manifest.json" >&2
+                end
                 set -l cache_profile_args
                 if set -q saanseoi_init_cache_table_profile
                     set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
@@ -275,15 +281,8 @@ function init_reconcile_draft_release_sets
         return $command_status
     end
 
-    # Deferred uploads keep the local mirror current with small publish deltas.
-    # Reconciliation is the validation boundary for the whole domain.
-    if test "$saanseoi_init_target" != local
-        set -l cache_profile_args
-        if set -q saanseoi_init_cache_table_profile
-            set cache_profile_args --table-profile $saanseoi_init_cache_table_profile
-        end
-        init_run_step ./bin/saanseoi cache:rebuild --target $saanseoi_init_target $cache_profile_args
-    end
+    # The reconciliation command refreshes DB_META. Dataset mirrors are already
+    # maintained by upload replay and are unchanged by release-set composition.
 
     set -l published_after (init_published_api_release_set_count)
     if test "$published_after" -gt "$published_before"
