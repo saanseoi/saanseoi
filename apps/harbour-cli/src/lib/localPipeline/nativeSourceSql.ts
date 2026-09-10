@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
 import type { UploadInspection } from '@repo/core'
+import type { ProvenanceStore, RuleDeclaration } from '@repo/core/provenance'
 import {
   buildSourceReleaseCode,
   getDatasetById,
@@ -10,17 +11,26 @@ import {
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
+import { prepareDivisionVersionInsertContext } from '@repo/core/pipeline/db/division'
+import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
+import type { DatasetProcessingMessage } from '@repo/core'
+import { eq, metaSchema } from '@repo/db'
+import type { MetaDatabase } from '@repo/db'
 
 import {
   invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
   type LocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { deliverProducerAudit } from '../api/producerAuditDelivery.ts'
+import { retainProducerAudit } from '../api/producerAudit.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from './localControlClient.ts'
 import { executeSqlText, type SqlImportTargetContext } from './sqlImport.ts'
 import { dispatchUpload } from '../upload/upload.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from './syncStagedRelease.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
@@ -29,6 +39,24 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
+const RELEASE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
+
+/** The native source ledger is an audited import, even when no curation runs. */
+export const nativeSourceImportRule: RuleDeclaration = {
+  kind: 'processing-rule',
+  schemaVersion: 1,
+  id: 'saanseoi.native-source-import.v1',
+  scope: 'bulk',
+  basis: 'code',
+  summary: 'Import validated publisher assertions into the native source ledger.',
+  inputs: ['publisher-records'],
+  outputs: ['native-source-records'],
+  parameters: { sqlChunkByteLimit: SQL_CHUNK_BYTE_LIMIT },
+  implementation: {
+    path: 'apps/harbour-cli/src/lib/localPipeline/nativeSourceSql.ts',
+    symbol: 'nativeSourceImportRule',
+  },
+}
 
 export type NativeSourceRow = Record<string, unknown> & {
   sourceRecordId: string
@@ -108,8 +136,28 @@ export async function processNativeSourceSqlRelease(
         },
       })
   let localCacheMutationStarted = false
+  let published = false
+  let publishResult: unknown
 
   try {
+    localCacheMutationStarted = true
+    await syncStagedReleaseIntoLocalMetaCache(
+      metaDb as unknown as MetaDatabase,
+      {
+        datasetCode: input.datasetCode,
+        releaseCode,
+        releaseId,
+        rawObjectKey: input.archiveObjectKey,
+      },
+      {
+        cohortKey: input.cohortKey,
+        regionCode: 'hk',
+        source: input.source,
+        sourceVersion: input.sourceVersion,
+        theme: input.theme,
+        type: input.type,
+      },
+    )
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -124,7 +172,16 @@ export async function processNativeSourceSqlRelease(
     const remoteReplay = target.remote
       ? resolveNativeRemoteReplay(target, context, shardYear)
       : null
-    localCacheMutationStarted = true
+    const nativeMetaSql = await prepareNativeDivisionMetaSql(
+      metaDb,
+      input,
+      releaseId,
+      releaseCode,
+      resolvePipelineEnvironment(target),
+    )
+    const remoteMetaReplay = target.remote
+      ? resolveNativeMetaReplay(target, context)
+      : null
     await executeSqlChunks(
       { binding: context.sourceBinding, databaseId: null, name: 'source' },
       sql,
@@ -138,6 +195,24 @@ export async function processNativeSourceSqlRelease(
         isLocal: false,
       })
     }
+
+    if (remoteMetaReplay) {
+      await executeSqlChunks(remoteMetaReplay.target, nativeMetaSql, {
+        accountId: remoteMetaReplay.accountId,
+        apiToken: remoteMetaReplay.apiToken,
+        isLocal: false,
+      })
+    }
+
+    await retainNativeSourceAudit(target, {
+      archiveSha256: input.archiveSha256,
+      datasetCode: input.datasetCode,
+      releaseCode,
+      releaseId,
+      rowCount: input.rowCount,
+      sourceVersion: input.sourceVersion,
+      tables: input.tables,
+    })
 
     await client.stageCompleted(
       releaseId,
@@ -153,7 +228,8 @@ export async function processNativeSourceSqlRelease(
       },
       releaseCode,
     )
-    return await client.publishDataset(releaseId, releaseCode)
+    publishResult = await client.publishDataset(releaseId, releaseCode)
+    published = true
   } catch (error) {
     if (target.remote && localCacheMutationStarted) {
       await invalidateRemoteDbCache(
@@ -175,6 +251,250 @@ export async function processNativeSourceSqlRelease(
   } finally {
     context.cleanup()
   }
+
+  if (published && target.remote) {
+    await refreshRemoteMetaCache(
+      target.environment === 'production' ? 'production' : 'preview',
+      context.state.dbCacheDir,
+    )
+  }
+
+  return publishResult
+}
+
+async function prepareNativeDivisionMetaSql(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  input: NativeSourceRelease,
+  releaseId: string,
+  releaseCode: string,
+  environment: 'preview' | 'production',
+) {
+  const message: DatasetProcessingMessage = {
+    datasetId: releaseId,
+    datasetCode: input.datasetCode,
+    releaseId,
+    releaseCode,
+    rawObjectKey: input.archiveObjectKey,
+    regionCode: 'hk',
+    cohortKey: input.cohortKey,
+    source: input.source,
+    sourceVersion: input.sourceVersion,
+    theme: input.theme,
+    type: 'division',
+  }
+  const prepared = await prepareDivisionVersionInsertContext(
+    metaDb,
+    message,
+    environment,
+  )
+  const snapshot = await metaDb
+    .select()
+    .from(metaSchema.metaSnapshots)
+    .where(eq(metaSchema.metaSnapshots.id, prepared.snapshotId))
+    .limit(1)
+    .get()
+  if (!snapshot)
+    throw new Error(`Native division snapshot is missing: ${prepared.snapshotId}.`)
+
+  if (!snapshot.snapshotLineageId) {
+    throw new Error(
+      `Native division snapshot lineage is missing: ${prepared.snapshotId}.`,
+    )
+  }
+  const snapshotLineageId = String(snapshot.snapshotLineageId)
+  const [lineages, sources, releaseAssignments, snapshotAssignments] =
+    await Promise.all([
+      metaDb
+        .select()
+        .from(metaSchema.metaSnapshotLineages)
+        .where(eq(metaSchema.metaSnapshotLineages.id, snapshotLineageId))
+        .all(),
+      metaDb
+        .select()
+        .from(metaSchema.metaSnapshotSources)
+        .where(eq(metaSchema.metaSnapshotSources.snapshotId, prepared.snapshotId))
+        .all(),
+      metaDb
+        .select()
+        .from(metaSchema.metaReleaseShardAssignments)
+        .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, releaseId))
+        .all(),
+      metaDb
+        .select()
+        .from(metaSchema.metaSnapshotShardAssignments)
+        .where(
+          eq(metaSchema.metaSnapshotShardAssignments.snapshotId, prepared.snapshotId),
+        )
+        .all(),
+    ])
+  if (
+    lineages.length !== 1 ||
+    !sources.some(row => row.resourceReleaseId === releaseId) ||
+    releaseAssignments.length === 0 ||
+    snapshotAssignments.length === 0
+  ) {
+    throw new Error(`Native division snapshot metadata is incomplete for ${releaseId}.`)
+  }
+
+  const assemblySql = await readSnapshotAssemblySql(metaDb, prepared.snapshotId, true)
+  return chunkSql([
+    ...buildMetaInsertStatements(
+      'snapshotLineages',
+      [
+        'id',
+        'code',
+        'regionCode',
+        'resourceType',
+        'variant',
+        'identityMode',
+        'primaryDatasetId',
+        'versionHash',
+        'createdAt',
+        'updatedAt',
+      ],
+      lineages,
+      ['id'],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshots',
+      [
+        'id',
+        'snapshotLineageId',
+        'parentSnapshotId',
+        'resourceType',
+        'code',
+        'cohortKey',
+        'geometryStatus',
+        'revision',
+        'status',
+        'publishedAt',
+        'validFrom',
+        'validTo',
+        'notes',
+        'createdAt',
+        'updatedAt',
+      ],
+      [snapshot],
+      ['id'],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshotSources',
+      [
+        'snapshotId',
+        'datasetId',
+        'resourceReleaseId',
+        'role',
+        'selectedByRule',
+        'selectionMode',
+        'anchorReleaseId',
+        'sourceCohortKey',
+        'createdAt',
+      ],
+      sources,
+      ['snapshotId', 'resourceReleaseId'],
+    ),
+    ...assemblySql,
+    ...buildMetaInsertStatements(
+      'releaseShardAssignments',
+      ['releaseId', 'dataShardId'],
+      releaseAssignments,
+      [],
+    ),
+    ...buildMetaInsertStatements(
+      'snapshotShardAssignments',
+      ['snapshotId', 'dataShardId'],
+      snapshotAssignments,
+      [],
+    ),
+  ])
+}
+
+function buildMetaInsertStatements(
+  table: string,
+  columns: readonly string[],
+  rows: readonly Record<string, unknown>[],
+  conflictColumns: readonly string[],
+) {
+  if (rows.length === 0) return []
+  const suffix = conflictColumns.length
+    ? ` ON CONFLICT (${conflictColumns.map(quoteIdentifier).join(', ')}) DO UPDATE SET ${columns
+        .filter(column => !conflictColumns.includes(column))
+        .map(
+          column => `${quoteIdentifier(column)} = excluded.${quoteIdentifier(column)}`,
+        )
+        .join(', ')}`
+    : ' ON CONFLICT DO NOTHING'
+  return rows.map(
+    row =>
+      `INSERT INTO ${quoteIdentifier(table)} (${columns.map(quoteIdentifier).join(', ')}) VALUES (${columns.map(column => sqlValue(row[column])).join(', ')})${suffix};`,
+  )
+}
+
+function quoteIdentifier(value: string) {
+  return `"${value.replaceAll('"', '""')}"`
+}
+
+async function retainNativeSourceAudit(
+  target: UploadTarget,
+  input: {
+    archiveSha256: string
+    datasetCode: string
+    releaseCode: string
+    releaseId: string
+    rowCount: number
+    sourceVersion: string
+    tables: NativeSourceTable[]
+  },
+) {
+  const directory = resolve(
+    RELEASE_ROOT,
+    target.remote ? 'remote' : 'local',
+    input.releaseCode,
+    'provenance-native-source',
+  )
+  await deliverProducerAudit({
+    target,
+    directory,
+    identity: JSON.stringify({
+      archiveSha256: input.archiveSha256,
+      datasetCode: input.datasetCode,
+      rowCount: input.rowCount,
+      sourceVersion: input.sourceVersion,
+      tables: input.tables.map(table => ({
+        name: table.name,
+        rows: table.rows.length,
+      })),
+    }),
+    retain: (store: ProvenanceStore) =>
+      retainProducerAudit(store, {
+        releaseId: input.releaseId,
+        datasetCode: input.datasetCode,
+        rules: [
+          {
+            declaration: nativeSourceImportRule,
+            inputs: { 'publisher-records': input.rowCount },
+            outputs: { 'native-source-records': input.rowCount },
+            recordsAffected: input.rowCount,
+            decisions: Object.fromEntries(
+              input.tables.map(table => [`table:${table.name}`, table.rows.length]),
+            ),
+          },
+        ],
+        guards: [
+          {
+            id: 'native-source-row-count',
+            summary:
+              'Every validated publisher record is imported into the source ledger.',
+            consequence: 'block-ingestion',
+            status: 'passed',
+            checked: input.rowCount,
+            failed: 0,
+            reason: `Imported ${input.rowCount} validated publisher records across ${input.tables.length} source table(s).`,
+          },
+        ],
+        individuals: [],
+      }),
+  })
 }
 
 async function resolveNativeSourceRelease(
@@ -229,6 +549,24 @@ function resolveNativeRemoteReplay(
   if (!remoteTarget.databaseId || !accountId || !apiToken) {
     throw new Error(
       'Native source D1 import requires source.databaseId, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_D1_TOKEN.',
+    )
+  }
+  return { accountId, apiToken, target: remoteTarget }
+}
+
+function resolveNativeMetaReplay(
+  target: UploadTarget,
+  context: Pick<LocalAddressDbContext, 'state'>,
+) {
+  const remoteTarget: SqlImportTargetContext = {
+    databaseId: context.state.bindings.DB_META?.databaseId ?? null,
+    name: 'meta',
+  }
+  const accountId = resolveCloudflareAccountId(target)
+  const apiToken = process.env.CLOUDFLARE_D1_TOKEN?.trim()
+  if (!remoteTarget.databaseId || !accountId || !apiToken) {
+    throw new Error(
+      'Native source DB_META import requires meta.databaseId, CLOUDFLARE_ACCOUNT_ID, and CLOUDFLARE_D1_TOKEN.',
     )
   }
   return { accountId, apiToken, target: remoteTarget }

@@ -55,7 +55,9 @@ and writes the complete 2,706-record source ledger through the SQLite/D1 SQL pip
 Each source record includes its native `PLACE_NAME` relationship as paired English and
 Traditional Chinese labels with the publisher's `Official` or `Alias` status; it does
 not create locale-normalised source child rows. There is no GeoJSON or Parquet
-preparation/upload boundary.
+preparation/upload boundary. The import retains a completed bulk processing audit
+covering the verified archive hash, source tables and imported row counts before the
+release can publish.
 
 For the Divisions projection, the official English and Traditional Chinese labels form
 the canonical names. A missing Simplified Chinese name is created only by the reviewable

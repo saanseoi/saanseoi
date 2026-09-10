@@ -139,6 +139,11 @@ export async function processLocalAddressSqlUpload(
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
+  const dataShardEnvironment =
+    target.remote && target.environment === 'production' ? 'production' : 'preview'
+  // The shared address stages resolve their shard environment from this
+  // process variable. Keep CLI processing aligned with the selected target.
+  process.env.DATA_SHARD_ENV = dataShardEnvironment
   const address3dPath = `${preparedUpload.filePath}.address3d.jsonl`
   const prepared3d =
     previewPlan.source === 'hkgov-dpo'
@@ -362,7 +367,7 @@ export async function processLocalAddressSqlUpload(
     const versionInsertContext = await prepareAddressVersionInsertContext(
       dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
       initialMessage,
-      'preview',
+      dataShardEnvironment,
     )
     const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
       dbContext.metaDb as unknown as HarbourReadableDb,
