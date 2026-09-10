@@ -121,7 +121,7 @@ test('reviewed replacements defer only the intermediate hierarchy guard', () => 
     hierarchies: [
       [
         { division_id: sar.division_id, subtype: 'dependency', name: 'Hong Kong SAR' },
-        { division_id: 'district', subtype: 'region', name: 'Yau Tsim Mong District' },
+        { division_id: 'district', subtype: 'region', name: 'Unreviewed District' },
       ],
     ],
   }
@@ -178,4 +178,33 @@ test('registered QA corrections are patches, while area assignment remains a cod
       action('overture_division_hong_kong_area_hierarchy_assigned', 'code'),
     ),
   ).toBe('rules')
+})
+
+test('a recognised Area point is not inserted into its own district ancestry', () => {
+  const raw = {
+    id: '17009785-57fd-4e5b-af86-2d27352e4718',
+    country: 'HK',
+    subtype: 'locality',
+    names: { common: { en: 'Kowloon' } },
+    hierarchies: [
+      [
+        { division_id: sar.division_id, subtype: 'dependency', name: 'Hong Kong SAR' },
+        {
+          division_id: 'yau-tsim-mong',
+          subtype: 'region',
+          name: 'Yau Tsim Mong District',
+        },
+      ],
+    ],
+  }
+  const original = structuredClone(raw)
+  const result = normaliseDivisionRow(raw)
+  expect(result.base.hierarchy).toEqual([
+    expect.objectContaining({ division_id: sar.division_id, type: 'sar', level: 0 }),
+  ])
+  expect(result.base).toMatchObject({ id: raw.id, type: 'area', level: 1 })
+  expect(result.overtureHongKongAreaHierarchyAssignment).toMatchObject({
+    code: 'kowloon',
+  })
+  expect(raw).toEqual(original)
 })
