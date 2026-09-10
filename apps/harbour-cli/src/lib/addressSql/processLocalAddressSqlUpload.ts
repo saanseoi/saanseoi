@@ -427,6 +427,9 @@ export async function processLocalAddressSqlUpload(
           phase: 'address3d-data',
           inputs: {
             independentBoundTargets: true,
+            // Address2D prerequisites are already delivered. These three D1
+            // projections share no cross-database write dependencies.
+            parallelTargets: true,
             digest: prepared3d.digest,
             snapshotId: versionInsertContext.snapshotId,
             sourceVersion: previewPlan.sourceVersion,
@@ -454,6 +457,7 @@ export async function processLocalAddressSqlUpload(
         return
       }
       if (!writeOptions.isLocal) {
+        const retained3dDelivery = await readDeliveryPlan(directory)
         await prepareReleaseSqlDelivery({
           directory,
           context: dbContext,
@@ -774,7 +778,11 @@ export async function processLocalAddressSqlUpload(
           releaseId,
           phase: 'address-data',
           inputs: retainedDelivery?.context.inputs ?? {
-            parallelTargets: true,
+            ...(retained3dDelivery
+              ? retained3dDelivery.context.inputs.parallelTargets === true
+                ? { parallelTargets: true }
+                : {}
+              : { parallelTargets: true }),
             preparedSha256,
             address3dSha256: prepared3d?.digest ?? null,
             message: finalMessageWithMeta,

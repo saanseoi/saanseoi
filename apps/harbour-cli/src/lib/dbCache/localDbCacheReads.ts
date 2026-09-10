@@ -70,7 +70,7 @@ export async function readRemoteCachedCompletedReleaseCodes(
   })
 }
 
-async function findIncompletePublishedReleases(
+export async function findIncompletePublishedReleases(
   cacheDir: string,
   files: Record<string, string>,
   metaSqlite: SQLiteDatabase,
@@ -111,10 +111,19 @@ async function findIncompletePublishedReleases(
             WHERE ss.resourceReleaseId = ?
               AND ss.datasetId = ?
               AND s.resourceType = ?
-              AND s.status = 'published'
               AND (
-                s.snapshotLineageId IS NULL
-                OR (sl.resourceType = ? AND sl.primaryDatasetId = ?)
+                (s.status = 'published' AND (
+                  s.snapshotLineageId IS NULL
+                  OR (sl.resourceType = ? AND sl.primaryDatasetId = ?)
+                ))
+                OR (
+                  s.status IN ('draft', 'published')
+                  AND s.resourceType IN ('divisionArea', 'divisionBoundary')
+                  AND sl.resourceType = s.resourceType
+                  AND ss.selectionMode IN ('contributed_geometry', 'verified_identical_geometry')
+                  AND ss.selectedByRule = 'snapshot-assembly-division-geometry-v1'
+                  AND ss.anchorReleaseId = ss.resourceReleaseId
+                )
               )
             ORDER BY s.revision DESC
             LIMIT 1

@@ -9,6 +9,9 @@ ALS history application is bounded by staged row ranges, including translations,
 building-number lookups and snapshot-version changes. Small SQL text does not imply
 small database work: each remote apply batch covers at most 4,096 addresses.
 
+Address3D delivery preserves batch order within each database and runs independent
+source, history and current projections concurrently after Address2D delivery.
+
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
 filtering. Each selected delivery is processed in full.

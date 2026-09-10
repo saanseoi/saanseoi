@@ -8,6 +8,9 @@ Remote history finalisation uses delivery batches of at most 4,096 staged addres
 Previous versions are retired before replacement ranges are applied, and staging is
 removed only after all ranges complete. Each delivery retains its own receipt.
 
+Address3D delivers its independent source, history and current projections concurrently
+after Address2D prerequisites complete. Writes within each database remain ordered.
+
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.
 
