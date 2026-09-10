@@ -3,6 +3,7 @@ import type { AuditManifest } from '@repo/core/provenance'
 import { m } from '#lib/bits/internal/i18n.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import Bulk from './auditBulk.svelte'
+import { auditBulkEvidence } from './auditBulkEvidence'
 import AlsCurations from './auditAlsCurations.svelte'
 import Translations from './auditTranslationSection.svelte'
 import Applications from './auditApplications.svelte'
@@ -148,9 +149,9 @@ const matchesBulk = (item: AuditManifest['bulk'][number]) =>
         item.counts.outputs,
       ) ||
       matchingBulkIds.includes(item.id) ||
-      Object.values(catalogue.groups[item.id] ?? {}).some(value =>
-        catalogueGroupMatches(value, effectiveQuery),
-      ))
+      Object.values(
+        catalogue.groups[auditBulkEvidence(item, manifest.bulk).id] ?? {},
+      ).some(value => catalogueGroupMatches(value, effectiveQuery)))
 let countableBulk = $derived(
   manifest.bulk.filter(item => item.id !== 'curate-als-addresses'),
 )
@@ -268,7 +269,8 @@ $effect(() => {
         {bulk}
         releaseId={manifest.releaseId}
         {hash}
-        groups={catalogue.groups[bulk.id]}
+        evidence={auditBulkEvidence(bulk, manifest.bulk)}
+        groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
       />
     {/each}
     <Applications
@@ -321,7 +323,8 @@ $effect(() => {
             {bulk}
             releaseId={manifest.releaseId}
             {hash}
-            groups={catalogue.groups[bulk.id]}
+            evidence={auditBulkEvidence(bulk, manifest.bulk)}
+            groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
           />
         {/each}
       </div>
@@ -359,7 +362,8 @@ $effect(() => {
             {bulk}
             releaseId={manifest.releaseId}
             {hash}
-            groups={catalogue.groups[bulk.id]}
+            evidence={auditBulkEvidence(bulk, manifest.bulk)}
+            groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
           />
         {/if}
       {/each}

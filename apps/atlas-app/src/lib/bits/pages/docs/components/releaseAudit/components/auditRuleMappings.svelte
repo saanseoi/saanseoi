@@ -66,7 +66,7 @@ $effect(() => {
         </summary>
         <ScrollArea containerClass="mt-3" viewportClass="max-h-[640px] overflow-auto">
           {#snippet children()}
-            <table class="w-full text-left text-sm">
+            <table class="w-full border-separate border-spacing-0 text-left text-sm">
               <thead
                 class="sticky top-0 z-10 bg-background text-xs uppercase tracking-wide [&_th]:text-foreground/50"
               >
@@ -85,7 +85,7 @@ $effect(() => {
               <tbody>
                 {#each matchingRows as row, index}
                   {#if row.locale && row.locale !== matchingRows[index - 1]?.locale}
-                    <tr class="border-t border-current/15 bg-current/5">
+                    <tr class="bg-current/5 [&_th]:border-t [&_th]:border-current/15">
                       <th colspan="5" class="px-2 py-2 text-sm font-medium">
                         {row.locale === 'en'
                         ? m.source_locale_en()
@@ -97,7 +97,7 @@ $effect(() => {
                       </th>
                     </tr>
                   {/if}
-                  <tr class="border-t border-current/10">
+                  <tr class="[&_td]:border-t [&_td]:border-current/10">
                     <td class="py-2 pr-4 text-xs">
                       <span class="inline-flex items-center gap-2">
                         <span
