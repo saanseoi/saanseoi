@@ -816,6 +816,50 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
+  test('allows only the ALS publisher envelope addition without concealing other drift', async () => {
+    const tempDir = createTempDir()
+    const sqlite = initDb(join(tempDir, 'als-envelope.sqlite'))
+    const db = createLocalHarbourDb(sqlite)
+    const filePath = createAddressFixturePath(tempDir)
+    try {
+      await registerUpload(db, {
+        filePath,
+        cohortKey: '2026-06',
+        source: 'hkgov-dpo',
+        sourceVersion: '2026-06-04.0',
+        inspection: addressFixtureInspection,
+        rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
+      })
+      sqlite.exec("UPDATE releases SET status = 'published'")
+      const added = { name: 'publisherSource', type: 'utf8', nullable: true }
+      const plan = (schema: UploadInspection['schema']) =>
+        planUpload(db, {
+          filePath,
+          cohortKey: '2026-06',
+          source: 'hkgov-dpo',
+          sourceVersion: '2026-06-05.0',
+          inspection: { ...addressFixtureInspection, schema },
+          resolveSchemaFingerprint: async () =>
+            createSchemaFingerprint(addressFixtureInspection),
+        })
+      await expect(
+        plan([...addressFixtureInspection.schema, added]),
+      ).resolves.toBeDefined()
+      await expect(
+        plan([...addressFixtureInspection.schema, { ...added, type: 'int64' }]),
+      ).rejects.toThrow('Schema drift')
+      await expect(
+        plan([
+          ...addressFixtureInspection.schema,
+          added,
+          { name: 'unexpected', type: 'utf8', nullable: true },
+        ]),
+      ).rejects.toThrow('Schema drift')
+    } finally {
+      sqlite.close()
+    }
+  })
+
   test('registers hkgov ALS address uploads', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-hkgov-address.sqlite')
