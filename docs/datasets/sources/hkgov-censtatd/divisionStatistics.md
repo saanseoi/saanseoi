@@ -109,6 +109,10 @@ An interrupted canonical import can recover a live bookmark through a bounded lo
 its exact payload ETag. A matching remote receipt remains mandatory; recovery does not
 send a replacement upload or ingest request for an uncertain batch.
 
+Housing Market Area Division companions use bounded canonical Division statements. Large
+geometry text is assembled before insertion, without simplifying publisher geometry or
+changing immutable-version conflict rules.
+
 The following C&SD datasets are registered as Stats-family sources. They preserve
 publisher releases with their published geography cohort and measures. Each source
 release writes structural release-owned facts to `meta.stats` and materialises one
