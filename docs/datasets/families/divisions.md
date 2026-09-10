@@ -173,7 +173,7 @@ checksummed workflow outputs. Retries skip those baseline reads and normalisatio
 report the original counts even after partial replay. Snapshot lineage preparation
 remains a separate stage.
 
-Canonical Division inserts stay below 99 KB per SQL statement. Oversized text is
+Canonical Division inserts stay below 96 KiB per SQL statement. Oversized text is
 assembled in payload-scoped staging tables before the original insert executes, so
 geometry, Unicode text, constraints and conflict-update rules retain their full values.
 The staging tables are removed before the delivery receipt is written.

@@ -10,6 +10,21 @@ including deferred publication. Missing audits and failed attempts block publica
 regardless of publisher or resource type. Producers without audit capture must add it
 before their releases can be published.
 
+Audit registration also retains a versioned search index under
+`provenance/search/v1/<audit-sha256>.json`. This pointer identifies bounded,
+content-addressed search objects containing action categories, normalised search text,
+fixture pointers, deduplicated fixture counts and ALS decision summaries. ALS decision
+evidence is retained in small pages. The pointer is written only after all referenced
+objects are verified. Search requests read these artefacts; they do not reconstruct an
+index from evidence. Complete datasets already loaded in the browser are filtered
+locally, and searches requiring another page keep existing content visible.
+
+To inspect missing indexes in the local registered audit collection, run
+`bun scripts/backfill-audit-search.ts --local`. Add `--apply` to retain the missing
+indexes. The backfill preserves audit hashes, release references and original evidence;
+it only adds derived search artefacts. Repeating it skips existing indexes. The script
+does not write to remote storage.
+
 Division audit operations use an explicit registry of translations, patches, bulk
 declarations and normalisation counters. Unknown operations fail retention before any
 objects are written; operation-name patterns do not establish audit coverage.
