@@ -17,6 +17,8 @@ import {
 } from '../cli/options.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resumePendingSqlDeliveryForUpload } from '../upload/upload.ts'
+import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
+import { resolveSharedRemoteDbCacheDir } from '../dbCache/localDbCacheTargets.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import {
   assertRetainableSourceReleaseInput,
@@ -273,6 +275,13 @@ ${mutedBar}  `)
       await resumePendingSqlDeliveryForUpload(target, options.invocationCwd)
     }
 
+    const resumeSqlDeliveryReleaseId = target.remote
+      ? await findPendingSqlDeliveryReleaseId(
+          resolveSharedRemoteDbCacheDir(target),
+          previewResult.plan.releaseCode,
+        )
+      : undefined
+
     if (
       processingStrategy.mode === 'local-address-sql' ||
       processingStrategy.mode === 'local-division-geometry-sql'
@@ -296,6 +305,7 @@ ${mutedBar}  `)
               },
               cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
               includePreviousShardYears: true,
+              resumeSqlDeliveryReleaseId,
             },
           )
           dbContext.cleanup()
