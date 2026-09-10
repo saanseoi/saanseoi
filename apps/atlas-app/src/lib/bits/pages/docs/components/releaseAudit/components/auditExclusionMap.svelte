@@ -23,8 +23,9 @@ let bounds = $derived.by(() => {
 
 <ChoroplethMap.Root
   ariaLabel={m.source_audit_exclusion_area()}
-  features={[{ id: 'exclusion', label: m.source_audit_exclusion_area(), geometry }]}
-  values={[{ id: 'exclusion', value: 1 }]}
+  features={[]}
+  values={[]}
+  exclusion={geometry}
   {bounds}
   paddingRatio={0.25}
   showValues={false}
