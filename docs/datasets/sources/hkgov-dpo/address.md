@@ -204,6 +204,12 @@ within a 512-data-statement and 8 MB retained-payload budget. This includes the 
 2D publisher ledger. Grouping preserves each sealed batch's receipt, statement order and
 bound parameters; committed batches are not resubmitted on recovery.
 
+Source-version retirement is bounded to 1,024 rows per transaction. For a uniform
+publisher-upsert batch, prior-release rows can be retired before its upserts because
+those upserts restore every retained current-release version using the same sealed
+timestamps. Interrupted retirement resumes by selecting only still-current prior rows;
+the original receipt remains the completion marker for the full source batch.
+
 ALS supplies bilingual premise addresses. The
 [import specification](../../internal/hkgov/address.md) describes source preparation,
 identity curation and ingestion. The [Addresses family](../../families/addresses.md)

@@ -97,9 +97,69 @@ export async function runSqlDelivery(
             }
           }
         }
+        if (options.mode === 'remote') {
+          for (const index of confirmed) {
+            progress.remote[index] = {
+              ...(progress.remote[index] ?? { uploadMs: 0, executionMs: 0 }),
+              status: 'complete',
+            }
+          }
+        }
+        const localConfirmed = new Set<number>()
+        if (options.mode === 'local') {
+          const bindings = new Set(plan.batches.map(batch => batch.target.bindingName))
+          for (const binding of bindings) {
+            const path = localFiles?.[binding]
+            if (!path) throw new Error(`Missing local mirror for ${binding}.`)
+            const db = new Database(path, { readonly: true, create: false })
+            try {
+              const exists = db
+                .query(
+                  "SELECT 1 FROM sqlite_master WHERE type='table' AND name='harbourSqlDeliveryReceipts'",
+                )
+                .get()
+              const rows = exists
+                ? (db
+                    .query(
+                      'SELECT batchIndex,sha256 FROM harbourSqlDeliveryReceipts WHERE planId = ?',
+                    )
+                    .all(plan.id) as Array<{ batchIndex: number; sha256: string }>)
+                : []
+              const receipts = new Map(rows.map(row => [row.batchIndex, row]))
+              for (const batch of plan.batches.filter(
+                batch => batch.target.bindingName === binding,
+              )) {
+                const receipt = receipts.get(batch.index)
+                if (checkReceipt(receipt ? [receipt] : [], batch)) {
+                  localConfirmed.add(batch.index)
+                  progress.local[batch.index] ??= {
+                    completedAt: new Date().toISOString(),
+                    durationMs: 0,
+                  }
+                } else if (progress.local[batch.index]) {
+                  throw new Error(
+                    `Local receipt disappeared for batch ${batch.index}; the mirror must be reconciled.`,
+                  )
+                }
+              }
+            } finally {
+              db.close()
+            }
+          }
+        }
         await save()
         let completed = 0
         const executeBatch = async (batch: SqlDeliveryPlan['batches'][number]) => {
+          // readDeliveryPlan already checked every sealed payload. Receipt-confirmed
+          // batches need neither another payload read nor two durable checkpoint writes.
+          if (
+            (options.mode === 'remote' && confirmed.has(batch.index)) ||
+            (options.mode === 'local' && localConfirmed.has(batch.index))
+          ) {
+            completed += 1
+            await options.onProgress?.(completed, plan.batches.length)
+            return
+          }
           const bytes = await readFile(join(directory, batch.file))
           if (sha256(bytes) !== batch.sha256)
             throw new Error(
@@ -113,10 +173,7 @@ export async function runSqlDelivery(
             }
             progress.remote[batch.index] = state
             await save()
-            if (confirmed.has(batch.index)) {
-              state.status = 'complete'
-              await save()
-            } else await remote.deliver(plan, batch, bytes, state, save)
+            await remote.deliver(plan, batch, bytes, state, save)
           } else {
             const path = localFiles?.[batch.target.bindingName]
             if (!path)

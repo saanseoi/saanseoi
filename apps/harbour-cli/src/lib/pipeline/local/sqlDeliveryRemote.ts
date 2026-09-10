@@ -5,6 +5,7 @@ import {
   type D1ImportPollResult,
 } from '@repo/core/d1ImportApi'
 import { createCloudflareD1QueryClient } from '../../dbCache/remoteD1Client.ts'
+import { preRetireAddressSources } from './addressSourceRetirement.ts'
 import {
   RECEIPT_SCHEMA_SQL,
   RECEIPT_TABLE,
@@ -29,6 +30,19 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
   const tables = new Set<string>()
   const query = (databaseId: string) =>
     createCloudflareD1QueryClient({ ...options, databaseId })
+  const prepareSourceRetirement = async (
+    plan: SqlDeliveryPlan,
+    batch: SqlDeliveryBatch,
+    statements: Array<{ sql: string; params: unknown[] }>,
+  ) => {
+    if (
+      plan.context.phase === 'address3d-data' &&
+      batch.target.bindingName.startsWith('DB_SOURCE_')
+    )
+      await preRetireAddressSources(statements, sql =>
+        query(batch.target.databaseId).query(sql),
+      )
+  }
   const hasReceipt = async (plan: SqlDeliveryPlan, batch: SqlDeliveryBatch) => {
     if (!tables.has(batch.target.databaseId)) {
       const rows = await query(batch.target.databaseId).query(
@@ -88,6 +102,8 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             `Bound batch ${entry.batch.index} has an uncertain outcome without a receipt; no writes were repeated.`,
           )
       }
+      for (const entry of pending)
+        await prepareSourceRetirement(plan, entry.batch, entry.statements)
       for (const entry of entries) {
         entry.state.status = existing.has(entry.batch.index) ? 'complete' : 'ingesting'
       }
@@ -201,6 +217,7 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
           sql: string
           params: unknown[]
         }>
+        await prepareSourceRetirement(plan, batch, statements)
         state.status = 'ingesting'
         await save()
         const startedAt = Date.now()
