@@ -219,10 +219,36 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             )
           }
         }
+        let recoveryLookups = 0
         for (let attempt = 0; ; attempt++) {
-          if (result?.status === 'complete' || (result?.success && !result.status))
-            break
-          if (result?.error === 'Not currently importing anything.') break
+          const terminal =
+            result?.status === 'complete' || (result?.success && !result.status)
+          const interrupted =
+            result?.error === 'Not currently importing anything.' ||
+            /D1_RESET_DO|Cancelled due to no poll\(\)/.test(result?.error ?? '')
+          if (terminal || interrupted) {
+            if (await hasReceipt(plan, batch)) break
+            // A stale bookmark can outlive the import worker. Reattach by the
+            // exact payload ETag, never by re-uploading or re-ingesting SQL.
+            // Keep polling the returned bookmark: D1 cancels idle imports.
+            if (recoveryLookups++ >= 3)
+              throw new Error(
+                `D1 reported completion without the expected receipt for batch ${batch.index}; exact-content recovery exhausted. ${result?.error ?? ''}`,
+              )
+            const recovered = await client.init(etag)
+            if (recovered.uploadUrl || recovered.filename)
+              throw new Error(
+                `D1 reported completion without the expected receipt for batch ${batch.index}; refusing to upload or ingest again.`,
+              )
+            result = { ...recovered, success: recovered.success ?? false }
+            state.bookmark = recovered.atBookmark?.trim() || state.bookmark
+            await save()
+            if (recovered.atBookmark || /D1_RESET_DO/.test(recovered.error ?? ''))
+              continue
+            throw new Error(
+              `D1 reported completion without the expected receipt for batch ${batch.index}; recovery returned no active bookmark. ${recovered.error ?? ''}`,
+            )
+          }
           if (result?.error && !/long-running import/i.test(result.error)) {
             throw new Error(
               `D1 SQL delivery failed; no automatic replay: ${result.error}`,
