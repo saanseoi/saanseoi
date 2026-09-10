@@ -12,13 +12,15 @@ import type { UploadTarget } from '../cli/options'
 
 const PROVENANCE_UPLOAD_RETRY_LIMIT = 3
 const PROVENANCE_UPLOAD_RETRY_DELAY_MS = 250
+const PROVENANCE_REQUEST_TIMEOUT_MS = 60_000
 
 function isRetryableProvenanceUploadError(error: unknown) {
   return (
     error instanceof Error &&
-    /database is locked|sqlite_busy|internal error|network connection lost|fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|HTTP (408|429|500|502|503|504)\b/i.test(
-      error.message,
-    )
+    (error.name === 'TimeoutError' ||
+      /database is locked|sqlite_busy|internal error|network connection lost|fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|HTTP (408|429|500|502|503|504)\b/i.test(
+        error.message,
+      ))
   )
 }
 
@@ -52,6 +54,7 @@ async function uploadProvenanceObject(
         method: 'PUT',
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: bytes,
+        signal: AbortSignal.timeout(PROVENANCE_REQUEST_TIMEOUT_MS),
       })
       const result = (await readProvenanceResponse(response)) as {
         hash?: string
@@ -99,6 +102,7 @@ async function registerProvenanceResult(
           method: 'POST',
           headers: { ...headers, 'Content-Type': 'application/json' },
           body: serialise(ref),
+          signal: AbortSignal.timeout(PROVENANCE_REQUEST_TIMEOUT_MS),
         },
       )
       const result = (await readProvenanceResponse(response)) as {
@@ -131,9 +135,11 @@ export async function deliverProcessingResult(
   target: UploadTarget,
   source: ProvenanceStore,
   ref: ObjectRef,
+  onProgress?: (message: string) => void,
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const headers = getAuthHeaders()
+  let uploaded = 0
   const destination: ProvenanceStore = {
     // Uploads are idempotent at the content-addressed endpoint. No remote HEAD required.
     async get() {
@@ -142,6 +148,8 @@ export async function deliverProcessingResult(
     async put(_key, bytes) {
       const hash = await hashBytes(new Uint8Array(bytes))
       await uploadProvenanceObject(baseUrl, headers, hash, bytes)
+      uploaded++
+      onProgress?.(`Provenance objects retained: ${uploaded}`)
     },
   }
   // retainObject verifies readback, so provide a bounded cache of acknowledged uploads.
@@ -162,5 +170,6 @@ export async function deliverProcessingResult(
   const manifest = await transferProcessingResult(source, remote, ref, {
     concurrency: 4,
   })
+  onProgress?.(`Registering provenance after ${uploaded} objects`)
   await registerProvenanceResult(baseUrl, headers, manifest.releaseId, ref)
 }

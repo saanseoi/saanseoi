@@ -39,7 +39,9 @@ test('retries a transient provenance object upload', async () => {
   const { store, ref } = await processingResult()
   process.env.HARBOUR_API_KEY = 'test-api-key'
   let objectUploads = 0
+  const progress: string[] = []
   globalThis.fetch = (async (input, init) => {
+    expect(init?.signal).toBeInstanceOf(AbortSignal)
     if (String(input).includes('/objects/')) {
       objectUploads += 1
       return objectUploads === 1
@@ -54,9 +56,18 @@ test('retries a transient provenance object upload', async () => {
   }) as typeof fetch
 
   await expect(
-    deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
+    deliverProcessingResult(
+      { environment: 'dev', remote: false },
+      store,
+      ref,
+      message => progress.push(message),
+    ),
   ).resolves.toBeUndefined()
   expect(objectUploads).toBe(2)
+  expect(progress).toEqual([
+    'Provenance objects retained: 1',
+    'Registering provenance after 1 objects',
+  ])
 })
 
 test('does not retry a non-transient provenance object upload', async () => {
@@ -97,7 +108,7 @@ test('retries a transient provenance registration', async () => {
 })
 
 for (const endpoint of ['objects', 'releases']) {
-  for (const failure of ['text', 'network']) {
+  for (const failure of ['text', 'network', 'timeout']) {
     test(`retries ${failure} failure at provenance ${endpoint}`, async () => {
       const { store, ref } = await processingResult()
       process.env.HARBOUR_API_KEY = 'test-api-key'
@@ -106,6 +117,10 @@ for (const endpoint of ['objects', 'releases']) {
         if (String(input).includes(`/${endpoint}/`)) {
           attempts += 1
           if (attempts === 1) {
+            if (failure === 'timeout')
+              throw Object.assign(new Error('request timed out'), {
+                name: 'TimeoutError',
+              })
             if (failure === 'network')
               throw new TypeError('fetch failed: Network connection lost.')
             return new Response('Error inside ProxyWorker: Network connection lost.', {

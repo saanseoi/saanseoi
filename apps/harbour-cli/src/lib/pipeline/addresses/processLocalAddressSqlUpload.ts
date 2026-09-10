@@ -755,6 +755,7 @@ export async function processLocalAddressSqlUpload(
         deliverProducerAudit({
           target,
           directory: resolve(releaseRoot, 'provenance-address'),
+          onProgress: message => progress.message(message),
           identity: JSON.stringify({ preparedSha256, preparationAudit }),
           retain: store =>
             retainAddressProvenance(store, {

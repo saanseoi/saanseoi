@@ -84,6 +84,22 @@ test('the full mirror includes every Address table in current and history storag
   }
 })
 
+test('the full mirror covers the Places planning profile across all storage families', () => {
+  for (const binding of [
+    'DB_CURRENT',
+    'DB_HISTORY_HK_BEFORE',
+    'DB_HISTORY_HK_2025',
+    'DB_HISTORY_HK_2026',
+    'DB_SOURCE_HK_BEFORE',
+    'DB_SOURCE_HK_2025',
+    'DB_SOURCE_HK_2026',
+  ]) {
+    const full = resolveCacheTablesForBinding(binding)
+    for (const table of resolveCacheTablesForBinding(binding, 'places'))
+      expect(full).toContain(table)
+  }
+})
+
 test('omits the rebuilt Address full-text index from the mirror profile', () => {
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'address')
   expect(tables).not.toContain('addressesFts')
@@ -116,9 +132,9 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(142)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(157)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(40)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(101)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(104)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(56)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(50)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(

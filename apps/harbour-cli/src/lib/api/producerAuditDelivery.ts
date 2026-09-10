@@ -21,6 +21,7 @@ export async function deliverProducerAudit(input: {
   directory: string
   identity: string
   allowFailed?: boolean
+  onProgress?: (message: string) => void
   retain: (
     store: LocalPipelineBucket,
   ) => Promise<{ ref: ObjectRef; manifest: AuditManifest }>
@@ -50,7 +51,7 @@ async function deliverProducerAuditLocked(
         throw new Error(
           'Processing inputs differ from the audit. Resume the exact retained preparation.',
         )
-      await deliverProcessingResult(input.target, store, retained.ref)
+      await deliverProcessingResult(input.target, store, retained.ref, input.onProgress)
       return
     }
   }
@@ -60,7 +61,7 @@ async function deliverProducerAuditLocked(
     'audit.json',
     JSON.stringify({ identity: input.identity, ref: result.ref }),
   )
-  await deliverProcessingResult(input.target, store, result.ref)
+  await deliverProcessingResult(input.target, store, result.ref, input.onProgress)
   if (result.manifest.attempt.status === 'failed' && !input.allowFailed)
     throw new Error('Publication is blocked by the retained processing audit.')
 }
