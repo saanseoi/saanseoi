@@ -27,6 +27,7 @@ export function createStatisticsProfile(
   const observations = count('observations')
   const fields = count('fields')
   const measures = count('measures')
+  const datasets = count('datasets')
   const periods = count('reference_periods')
   const referencePeriods = take(
     row =>
@@ -61,6 +62,8 @@ export function createStatisticsProfile(
         label: 'Statistical fields',
         value: fields ?? measures ?? (coverageRows.length || undefined),
       },
+      { label: 'Statistical measures', value: measures },
+      { label: 'Datasets', value: datasets },
       { label: 'Observations', value: observations },
       {
         label: 'Reference periods',
@@ -122,7 +125,7 @@ export function createStatisticsProfile(
       }).format(percentage / 100),
       description:
         tone === 'published'
-          ? 'A numeric value is provided.'
+          ? 'A value is provided.'
           : tone === 'suppressed'
             ? 'The publisher withholds the value (**).'
             : tone === 'unavailable'
@@ -135,6 +138,9 @@ export function createStatisticsProfile(
   profile.availability.sort((a, b) => order.indexOf(a.tone) - order.indexOf(b.tone))
   for (const [group, title, dimension, unit] of [
     ['sourceLayer', 'Geographic coverage', 'records', 'records'],
+    ['geographyKind', 'Geography types', 'records', 'records'],
+    ['divisionLinkage', 'Canonical division linkage', 'records', 'records'],
+    ['valueKind', 'Value types', 'observations', 'observations'],
     ['referencePeriod', 'Reference periods', 'observations', 'observations'],
     ['statisticKind', 'Statistical kinds', 'fields', 'fields'],
     ['unitCode', 'Units', 'fields', 'fields'],
