@@ -4,6 +4,8 @@ import { matchesAudit } from './auditSearch'
 import RuleText from './auditRuleText.svelte'
 import CopyRule from './auditCopyRule.svelte'
 import ScrollArea from './auditScrollArea.svelte'
+import StatusBadge from './auditStatusBadge.svelte'
+import { ruleGroupStatus } from './auditRuleStatus'
 import type { Json } from '@repo/core/provenance'
 let {
   title,
@@ -48,7 +50,10 @@ $effect(() => {
       class="flex min-h-14 items-center justify-between gap-4 bg-current/2.5 px-4 py-3"
     >
       <h4 class="text-base font-medium">{title}</h4>
-      <CopyRule {getRule} />
+      <div class="flex items-center gap-2">
+        <StatusBadge status={ruleGroupStatus(rows)} />
+        <CopyRule {getRule} />
+      </div>
     </header>
     <p class="border-t border-current/10 px-4 py-3 leading-relaxed opacity-65">
       {explanation}
