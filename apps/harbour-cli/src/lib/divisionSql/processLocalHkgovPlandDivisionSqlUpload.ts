@@ -165,7 +165,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           context.metaDb,
           { datasetCode, rawObjectKey, releaseCode, releaseId },
           previewPlan,
-          { retainedDeliveryCacheDir: context.state.dbCacheDir },
+          {
+            retainedDeliveryCacheDir: target.remote
+              ? resolveRemoteCacheDir(
+                  target.environment === 'production' ? 'production' : 'preview',
+                )
+              : context.state.dbCacheDir,
+          },
         )
         await client.stageRunning(
           releaseId,
