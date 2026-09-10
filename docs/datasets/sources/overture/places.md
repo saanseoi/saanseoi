@@ -3,6 +3,12 @@
 [Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
 2025-10-22.0 in full, with a separate completion manifest for the bounded sample.
 
+The full remote mirror includes the Places current, history and source tables, including
+the current search indexes and Street–Address links. Decision analysis uses an exact
+Place-ID, address-fingerprint and source-release index over the retained ledger. Review
+appends and ledger replacement refresh that index while retaining first-match decision
+precedence.
+
 The source table stores publisher attributes in `rawProperties`, with publisher
 identity, original `sourceGeometry`, `sources` and version/release tracking alongside
 it. Each publisher value is retained once. Normalised names, coordinates, categories,

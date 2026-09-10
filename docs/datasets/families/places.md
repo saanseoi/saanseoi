@@ -253,6 +253,10 @@ instead of repeating the parse for every candidate. The required matcher tiers, 
 artefacts, provenance, materialisation order, and publication stops are specified in the
 [Overture Places source instructions](../sources/overture/places.md#supplementary-address-materialisation).
 
+Decision lookup is indexed by Place ID, address fingerprint and source release. The
+index retains first-match precedence and refreshes when review appends decisions or
+replaces the ledger. Scoring and acceptance thresholds follow the declared policy.
+
 Interactive review opens candidates and **New Address** in the same English component
 editor, including building number start and end, with **Save**, **Save & Override
 Lat/Lng**, and **Back**. The override is available only for an existing ALS candidate
