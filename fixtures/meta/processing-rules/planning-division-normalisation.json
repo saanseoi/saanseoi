@@ -9,7 +9,7 @@
   "outputs": ["divisions"],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/divisionSql/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
     "symbol": "planningDivisionRule"
   }
 }

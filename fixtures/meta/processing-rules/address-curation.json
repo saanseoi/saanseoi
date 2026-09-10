@@ -9,7 +9,7 @@
   "outputs": ["prepared-addresses"],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/sources/hkgov/hkgovAls.ts",
+    "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts",
     "symbol": "alsCurationRule"
   }
 }

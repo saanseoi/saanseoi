@@ -17,7 +17,7 @@ import {
 } from '../cli/options.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resumePendingSqlDeliveryForUpload } from '../upload/upload.ts'
-import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
+import { findPendingSqlDeliveryReleaseId } from '../pipeline/local/sqlDeliveryPending.ts'
 import { resolveSharedRemoteDbCacheDir } from '../dbCache/localDbCacheTargets.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import {
@@ -32,12 +32,12 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   discardDerivedReleaseArtefacts,
   shouldCacheArtefacts,
-} from '../localPipeline/releaseArtefacts.ts'
+} from '../pipeline/local/releaseArtefacts.ts'
 import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
 import {
   prepareHkgovCenstatdGmlUpload,

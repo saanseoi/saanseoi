@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { parseQianfanOcrOutput, QIANFAN_MODEL, QIANFAN_REVISION } from './qianfanOcr.ts'
 import { qianfanMarkdownToLayout } from './qianfanLayout.ts'
-import { parseLandsdGovernmentNoticePdfText } from './sources/landsd/street/landsdStreet.ts'
-import { isGovernmentNoticePostamble } from './sources/landsd/street/landsdStreetPdf.ts'
+import { parseLandsdGovernmentNoticePdfText } from './sources/hkgov/landsd/street/landsdStreet.ts'
+import { isGovernmentNoticePostamble } from './sources/hkgov/landsd/street/landsdStreetPdf.ts'
 
 const page = {
   engine: 'Qianfan-OCR',

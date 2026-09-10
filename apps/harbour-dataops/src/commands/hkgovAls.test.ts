@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 
 import { describe, expect, test } from 'bun:test'
 
-import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
+import { parseHkgovAlsIdentityDecisions } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift.ts'
 import {
   formatCompletedAlsRelease,
   formatAlsDivisionQualitySummary,

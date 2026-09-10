@@ -15,7 +15,7 @@ It also reflects the currently implemented ingest flow in:
 
 - `libs/core/src/lib/services/upload.ts`
 - `apps/harbour-api/src/lib/services/control.ts`
-- `apps/harbour-cli/src/lib/localPipeline/`
+- `apps/harbour-cli/src/lib/pipeline/local/`
 
 Geometry companions and provider variants follow the source-neutral contract in
 [`divisions-geometry.md`](./divisions-geometry.md). Source-specific catalogue facts,

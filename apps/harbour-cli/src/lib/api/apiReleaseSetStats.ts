@@ -33,7 +33,7 @@ import {
   formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 
 type D1ExecBinding = {
   exec?(sql: string): Promise<unknown>

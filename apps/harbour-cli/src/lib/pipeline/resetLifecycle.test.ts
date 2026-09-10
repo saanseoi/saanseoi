@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createLocalExecBinding } from '../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
-import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
+import { withDeliveryLock } from './local/sqlDeliveryFiles.ts'
 import { executeResetSqlArtefacts } from './resetLifecycle.ts'
 
 test('scoped reset SQL rechecks pending ownership and excludes active delivery writers', async () => {

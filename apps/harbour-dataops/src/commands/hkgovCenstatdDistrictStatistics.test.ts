@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { zipSync } from 'fflate'
 
-import type { PreparedHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
-import type { PreparedHkgovCenstatdDistrictStatistic } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
+import type { PreparedHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatd.ts'
+import type { PreparedHkgovCenstatdDistrictStatistic } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdDistrictStatistics.ts'
 import {
   assertSourceArchiveIdentity,
   runHkgovCenstatdDistrictStatisticIngestCommand,

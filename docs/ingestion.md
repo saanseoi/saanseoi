@@ -24,7 +24,7 @@ publisher evidence
 
 Each API family may have different parsing and canonicalisation, but it must expose the
 same phase boundaries and feedback. Use the shared progress helpers in
-`apps/harbour-cli/src/lib/localPipeline/orchestrator.ts` for bounded work, report real
+`apps/harbour-cli/src/lib/pipeline/local/orchestrator.ts` for bounded work, report real
 units where they are known, and fail the active phase before propagating an error.
 Source-specific processors should describe _what_ is happening; the shared helper owns
 timing, count formatting, clamping and completion behaviour.
@@ -124,9 +124,16 @@ make that release published.
 ## 4. Write the source record
 
 The local processor belongs under the relevant resource directory in
-`apps/harbour-cli/src/lib/`, for example `divisionSql/`, `streetSql/`, `statisticsSql/`
-or `localPipeline/`. Keep the top-level processor linear and move only genuinely reused
-mechanics into shared helpers.
+`apps/harbour-cli/src/lib/pipeline/`: `addresses/`, `divisions/`, `places/`,
+`statistics/` or `streets/`. Shared local execution and SQL delivery mechanics belong in
+`pipeline/local/`; shared lifecycle helpers live directly in `pipeline/`. Keep the
+top-level processor linear and move only reused mechanics into shared helpers.
+
+Publisher-specific readers and preparation belong in
+`apps/harbour-cli/src/lib/sources/`. Hong Kong government sources are grouped by
+department under `sources/hkgov/`: `dpo/` (ALS), `censtatd/`, `had/`, `hyd/`, `landsd/`
+and `pland/`. Shared archive, asset and source-update utilities live directly in
+`sources/`. Keep tests beside their modules.
 
 The first database mutation retains the publisher source record in the source shard. A
 new source shape normally requires:

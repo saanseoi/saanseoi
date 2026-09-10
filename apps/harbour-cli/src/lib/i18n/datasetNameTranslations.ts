@@ -13,7 +13,7 @@ import {
   AZURE_TRANSLATION_REGION,
   translateAzureTexts,
   type AzureTranslationLocale,
-} from '../sources/landsd/street/landsdStreetTranslation.ts'
+} from '../sources/hkgov/landsd/street/landsdStreetTranslation.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/datasets')

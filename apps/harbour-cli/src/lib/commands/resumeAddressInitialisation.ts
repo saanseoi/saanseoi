@@ -5,13 +5,13 @@ import {
   resolveD1Targets,
   resolveSharedRemoteDbCacheDir,
 } from '../dbCache/localDbCacheTargets.ts'
-import { readDeliveryPlan } from '../localPipeline/sqlDelivery.ts'
+import { readDeliveryPlan } from '../pipeline/local/sqlDelivery.ts'
 import {
   readPendingSqlDelivery,
   assertSqlDeliveryPlanningAllowed,
-} from '../localPipeline/sqlDeliveryPending.ts'
+} from '../pipeline/local/sqlDeliveryPending.ts'
 import { runSqlDeliveryCommand } from './sqlDelivery.ts'
-import { processLocalAddressSqlUpload } from '../addressSql/processLocalAddressSqlUpload.ts'
+import { processLocalAddressSqlUpload } from '../pipeline/addresses/processLocalAddressSqlUpload.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const recoveryDependencies = {

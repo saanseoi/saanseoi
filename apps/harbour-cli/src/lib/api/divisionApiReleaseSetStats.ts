@@ -14,7 +14,7 @@ import {
   type StatsLocaleGroup,
 } from '@repo/core/pipeline/services/stats'
 import { resolveDistrictId } from '@repo/core/pipeline/services/division'
-import { planningDivisionContentHash } from '../divisionSql/planningDivisionChurn'
+import { planningDivisionContentHash } from '../pipeline/divisions/planningDivisionChurn'
 
 export type DivisionHistoryTarget = { bindingName: string; db: unknown }
 type Division = typeof historySchema.divisions.$inferSelect

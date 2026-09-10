@@ -12,7 +12,7 @@
     "excludedClasses": ["Hydrographic", "Topographic"]
   },
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/sources/landsd/settlementSelection.ts",
+    "path": "apps/harbour-cli/src/lib/sources/hkgov/landsd/settlementSelection.ts",
     "symbol": "landsdSettlementSelectionRule"
   }
 }

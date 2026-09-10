@@ -3,7 +3,7 @@ import { readIdentityCurations, resolveIdentityCuration } from './identityCurati
 import {
   resolveHkgovCenstatdDistrictBridge,
   resolveHkgovCenstatdNewTownBridge,
-} from './statisticsSql/censtatdDistrictBridge'
+} from './pipeline/statistics/censtatdDistrictBridge'
 
 test('reviewed identity curations retain all 85 mappings without a database', async () => {
   const fixtures = readIdentityCurations()

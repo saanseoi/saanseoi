@@ -9,7 +9,7 @@
   "outputs": ["source-statistic-assertions"],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/statisticsSql/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts",
     "symbol": "censtatdSourceAssertionRule"
   }
 }

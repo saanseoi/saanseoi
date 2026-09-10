@@ -1,6 +1,6 @@
 import { readFile, rm } from 'node:fs/promises'
 import { basename, dirname } from 'node:path'
-import { sha256, writeDeliveryFile } from '../localPipeline/sqlDeliveryFiles.ts'
+import { sha256, writeDeliveryFile } from '../pipeline/local/sqlDeliveryFiles.ts'
 import type { Region, VersionEntry, VersionsIndex } from './tilesTypes.ts'
 
 export type TilesCatalogueIntent = {

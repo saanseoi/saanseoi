@@ -9,7 +9,7 @@
   "outputs": ["statsFields"],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/statisticsSql/statisticFieldCurationRule.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticFieldCurationRule.ts",
     "symbol": "statisticFieldCurationRule"
   },
   "review": {

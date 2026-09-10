@@ -11,7 +11,7 @@ import { readFileGeodatabaseArchive } from './fileGeodatabase.ts'
 import {
   HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
   readHkgovTdPedestrianStreetArchive,
-} from './hkgov/hkgovHyd.ts'
+} from './hkgov/hyd/hkgovHyd.ts'
 import { readSafeZipArchive } from './zipArchive.ts'
 
 const SOURCE_ARCHIVE_ROOT = 'by-source'

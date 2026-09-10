@@ -5,7 +5,7 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatRunningPhaseLabel,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 import type { LocalDbCacheProgressEvent } from './localDbCacheTypes.ts'
 
 export function updateDbCacheProgress(

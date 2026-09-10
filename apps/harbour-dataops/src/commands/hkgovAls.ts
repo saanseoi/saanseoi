@@ -19,16 +19,16 @@ import {
   type HkgovAlsIdentityDecisions,
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift.ts'
 import {
   prepareHkgovAlsAddressParquet,
   type HkgovAlsDivisionQuality,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts'
 import {
   serialiseHkgovAlsEstateCurationFixture,
   updateHkgovAlsEstateCurationApplication,
   type HkgovAlsEstateCurationFixture,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsCurationLifecycle.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'

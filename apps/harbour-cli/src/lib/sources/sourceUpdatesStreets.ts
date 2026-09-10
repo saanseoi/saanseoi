@@ -1,16 +1,16 @@
 import { resolve } from 'node:path'
 
-import { LANDSD_STREET_NAMING_URL } from './landsd/street/landsdStreet.ts'
+import { LANDSD_STREET_NAMING_URL } from './hkgov/landsd/street/landsdStreet.ts'
 import {
   loadLandsdStreetBaselineRegistry,
   validateLandsdStreetCurrentRelease,
-} from './landsd/street/landsdStreetBaselineRegistry.ts'
+} from './hkgov/landsd/street/landsdStreetBaselineRegistry.ts'
 import {
   DEFAULT_BASELINE_REGISTRY_PATH,
   LANDSD_STREET_DATASET_CODE,
-} from './landsd/street/landsdStreetIngestConfig.ts'
-import { ingestLandsdStreetSource } from './landsd/street/landsdStreetIngest.ts'
-import { publishLandsdStreetReleasePayloads } from './landsd/street/landsdStreetPublish.ts'
+} from './hkgov/landsd/street/landsdStreetIngestConfig.ts'
+import { ingestLandsdStreetSource } from './hkgov/landsd/street/landsdStreetIngest.ts'
+import { publishLandsdStreetReleasePayloads } from './hkgov/landsd/street/landsdStreetPublish.ts'
 import { REPO_ROOT } from './sourceUpdatesConfig.ts'
 import type { DatasetUpdate, LookupContext } from './sourceUpdatesTypes.ts'
 import { safeFilePart } from './sourceUpdatesVersions.ts'

@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, readdir, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsReviewIssue'
+import { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewIssue'
 import { queueAlsCurationReview } from './alsCurationReviewQueue'
 
 test('review queue preserves exact evidence and deduplicates identical failures', async () => {

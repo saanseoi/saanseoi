@@ -14,7 +14,7 @@
     "domain": "administrative"
   },
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/statisticsSql/censtatdDistrictBridge.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/censtatdDistrictBridge.ts",
     "symbol": "censtatdDistrictIdentityRule"
   }
 }

@@ -2,7 +2,7 @@ import { Database } from 'bun:sqlite'
 import {
   planningDivisionChurn,
   planningDivisionContentHash,
-} from '../src/lib/divisionSql/planningDivisionChurn'
+} from '../src/lib/pipeline/divisions/planningDivisionChurn'
 
 // Explicit local SQLite paths only. Dry-run by default; validates all release
 // inventories before changing only their aggregate churn statistics atomically.

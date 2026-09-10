@@ -9,7 +9,7 @@ import {
   AZURE_TRANSLATION_REGION,
   translateAzureTexts,
   type AzureTranslationLocale,
-} from '../sources/landsd/street/landsdStreetTranslation.ts'
+} from '../sources/hkgov/landsd/street/landsdStreetTranslation.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/source-releases')

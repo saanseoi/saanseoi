@@ -6,12 +6,12 @@ import {
   type ObjectRef,
   type AuditManifest,
 } from '@repo/core/provenance'
-import { LocalPipelineBucket } from '../localPipeline/localBucket'
+import { LocalPipelineBucket } from '../pipeline/local/localBucket'
 import {
   writeDeliveryFile,
   sha256,
   withDeliveryLock,
-} from '../localPipeline/sqlDeliveryFiles'
+} from '../pipeline/local/sqlDeliveryFiles'
 import { deliverProcessingResult } from './provenance'
 import type { UploadTarget } from '../cli/options'
 

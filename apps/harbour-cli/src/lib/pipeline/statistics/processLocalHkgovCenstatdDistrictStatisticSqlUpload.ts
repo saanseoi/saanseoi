@@ -1,0 +1,814 @@
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { retainProcessingFailure } from '../../api/processingFailureAudit'
+import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
+import { curationDocumentsFor } from '../../curationDocuments'
+import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
+import {
+  buildCenstatdGeographyLinkAuditActions,
+  buildCenstatdFieldCurationAuditActions,
+  buildCenstatdNormalisationAuditActions,
+  buildCenstatdReleaseStats,
+  buildCenstatdStructuralChurnStats,
+  censtatdReleaseStatsProfileFor,
+} from '@repo/core/pipeline/services/censtatdReleaseStats'
+import { createHash as createNodeHash } from 'node:crypto'
+import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
+import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
+import { retainStatisticProvenance } from './statisticProvenance.ts'
+import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { deliverProcessingResult } from '../../api/provenance.ts'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
+import {
+  sqlDeliveryPhaseDirectory,
+  type SqlDeliveryPhase,
+} from '../local/sqlDeliveryPhase.ts'
+import { prepareCachedArtefact } from '../local/preparedArtefact.ts'
+import {
+  completeSqlDeliveryRelease,
+  readPendingSqlDelivery,
+} from '../local/sqlDeliveryPending.ts'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
+import {
+  buildHkgovCenstatdDistrictStatisticHistoryRecord,
+  type ResolvedHkgovCenstatdDistrict,
+} from '@repo/core/pipeline/services/divisionStatistics'
+import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
+import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+
+import { createHarbourControlClient } from '../../api/harbourControl.ts'
+import {
+  invalidateRemoteDbCache,
+  applyPublishMetadataDeltaToRemoteCache,
+  refreshRemoteMetaCache,
+  resolveLocalAddressDbContext,
+  updateDbCacheProgress,
+} from '../../dbCache/localDbCache.ts'
+import type { UploadTarget } from '../../cli/options.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
+import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
+import { OperationProgress } from '../../cli/operationProgress.ts'
+import {
+  buildStatisticSqlBatches,
+  replayStatisticSqlBatches,
+} from './statisticSqlReplay.ts'
+import {
+  buildCanonicalStatsSqlBatches,
+  replayCanonicalStatsSqlBatches,
+} from './canonicalStatsSql.ts'
+import {
+  resolveHkgovCenstatdDistrictBridge,
+  censtatdDistrictIdentityRule,
+} from './censtatdDistrictBridge.ts'
+import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  loadCenstatdMeasureMetadata,
+  resolveCenstatdFieldMetadata,
+} from './censtatdMeasureCuration.ts'
+import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
+import { loadDatasetFixtures } from '../../sources/sourceUpdates.ts'
+import {
+  replayReleaseStatsMetaToRemote,
+  replayStatisticSnapshotMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
+import {
+  completeStatisticCache,
+  runStatisticProgressStep,
+} from './statisticProgress.ts'
+import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot.ts'
+
+type Plan = {
+  cohortKey: string
+  datasetCode: string
+  regionCode: 'hk'
+  releaseCode: string
+  rowCount: number
+  source: 'hkgov-censtatd'
+  sourceVersion: string
+  theme: 'stats'
+  type: 'divisionStatistic'
+}
+type UploadResult = {
+  datasetCode?: string
+  rawObjectKey?: string
+  releaseCode?: string
+  releaseId?: string
+}
+
+type SourceStatisticRow = {
+  createdAt: string
+  districtCode: number
+  districtEn: string
+  districtZhHant: string
+  isCurrent: boolean
+  landAreaSqKm: number
+  midYearPopulation: number
+  midYearPopulationDensityPerSqKm: number
+  rawProperties: unknown
+  referencePeriodCode: string
+  referencePeriodEnd: string | null
+  referencePeriodEndYear: string
+  referencePeriodGranularity: string
+  referencePeriodStart: string | null
+  releaseId: string
+  sourceGeometry: unknown
+  sourceRecordId: string
+  sources: unknown
+  updatedAt: string
+  validFromRelease: string
+  validToRelease: null
+  version: number
+  versionHash: string
+}
+
+type HistoryStatisticRow = {
+  createdAt: string
+  districtCode: string
+  divisionId: string
+  id: string
+  isCurrent: boolean
+  landAreaSqKm: number
+  midYearPopulation: number
+  midYearPopulationDensityPerSqKm: number
+  referenceYear: string
+  sourceReleaseId: string
+  sources: unknown
+  updatedAt: string
+  versionHash: string
+}
+
+/**
+ * Persists raw C&SD source records, then publishes their canonical
+ * Division Statistics history observations. Source rows never contain a
+ * canonical district code or division ID.
+ */
+export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
+  target: UploadTarget,
+  plan: Plan,
+  uploadResult: UploadResult,
+  preparedUpload: PreparedUploadFile,
+  options: {
+    deferStatsReleaseSet?: boolean
+    deferSourcePublish?: boolean
+    promptForCuration: boolean
+    reuseExistingRelease?: boolean
+  },
+) {
+  const [dataset] = await loadDatasetFixtures(new Set([plan.datasetCode]))
+  if (!dataset) throw new Error(`Missing dataset fixture: ${plan.datasetCode}.`)
+  const releaseId = required(uploadResult.releaseId, 'releaseId')
+  const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
+  const progress = new OperationProgress()
+  const cacheStartedAt = Date.now()
+  progress.beginPhase('Prepare statistic processing cache', { max: null })
+  let context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  try {
+    context = await resolveLocalAddressDbContext(
+      target,
+      plan.regionCode,
+      plan.sourceVersion.slice(0, 4),
+      {
+        cacheTableProfile: 'divisionStatistic',
+        resumeSqlDeliveryReleaseId: releaseId,
+        includeAllHistoryShardYears: true,
+        onProgress(event) {
+          updateDbCacheProgress(progress, event)
+        },
+      },
+    )
+  } catch (error) {
+    progress.fail()
+    throw error
+  }
+  if (progress.hasActivePhase()) {
+    completeStatisticCache(progress, {
+      durationMs: Date.now() - cacheStartedAt,
+      remote: target.remote,
+    })
+  }
+  const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const datasetCode = required(uploadResult.datasetCode, 'datasetCode')
+  if (datasetCode !== plan.datasetCode) {
+    throw new Error(
+      `Registered dataset ${datasetCode} does not match upload plan ${plan.datasetCode}.`,
+    )
+  }
+  await syncStagedReleaseIntoLocalMetaCache(
+    context.metaDb,
+    {
+      datasetCode,
+      rawObjectKey: required(uploadResult.rawObjectKey, 'rawObjectKey'),
+      releaseCode,
+      releaseId,
+    },
+    plan,
+    {
+      reuseExistingRelease: options.reuseExistingRelease,
+      retainedDeliveryCacheDir: context.state.dbCacheDir,
+    },
+  )
+  const client = target.remote
+    ? (createHarbourControlClient(target) as HarbourClient)
+    : createLocalControlClient(metaDb, {
+        publishClient: createHarbourControlClient(target) as HarbourClient,
+      })
+
+  let processingStarted = false
+  let cacheMutationStarted = false
+  const preparedSha256 = await deliveryFileSha256(preparedUpload.filePath)
+  let canonicalSha256: string | undefined
+  const delivery = (phase: string): SqlDeliveryPhase => ({
+    nativeLocal: true,
+    context,
+    releaseId,
+    phase,
+    inputs: {
+      preparedSha256,
+      sourceVersion: plan.sourceVersion,
+      releaseCode,
+      datasetCode,
+      canonicalSha256,
+    },
+    onProgress: (completed, total) =>
+      progress.message(`SQL delivery: ${completed}/${total} batches`),
+  })
+  try {
+    const resolutionBySourceDistrictCode = await runStatisticProgressStep(
+      progress,
+      { action: 'Prepare', count: 18, subject: 'canonical districts' },
+      () => resolveHkgovCenstatdDistrictBridge('2021'),
+    )
+    const sourceRows = await runStatisticProgressStep(
+      progress,
+      { action: 'Prepare', count: plan.rowCount, subject: 'statistic rows' },
+      () =>
+        prepareCachedArtefact({
+          directory: sqlDeliveryPhaseDirectory(
+            delivery('statistics-source-preparation'),
+          ),
+          inputs: {
+            contract: 'censtatd-district-source-v2',
+            preparedSha256,
+            releaseId,
+            releaseCode,
+            datasetCode,
+            sourceVersion: plan.sourceVersion,
+            rowCount: plan.rowCount,
+          },
+          generate: () =>
+            readSourceRows(
+              preparedUpload.filePath,
+              releaseId,
+              releaseCode,
+              plan.sourceVersion,
+            ),
+        }),
+    )
+    if (sourceRows.length !== 18 || sourceRows.length !== plan.rowCount) {
+      throw new Error(
+        `Expected 18 C&SD district statistic rows; imported ${sourceRows.length}.`,
+      )
+    }
+    assertUniqueDistrictAssertions(sourceRows)
+    const historyRows = await runStatisticProgressStep(
+      progress,
+      { action: 'Normalise', count: sourceRows.length, subject: 'records' },
+      () =>
+        Promise.all(
+          sourceRows.map(row =>
+            normaliseHistoryRow(row, resolutionBySourceDistrictCode, releaseId),
+          ),
+        ),
+    )
+    const canonicalInput = sourceRows.map(row => {
+      const resolution = resolutionBySourceDistrictCode.get(row.districtCode)
+      return {
+        datasetCode: plan.datasetCode,
+        divisionId: resolution?.divisionId ?? null,
+        geography: resolution
+          ? { code: resolution.districtCode, kind: 'district' }
+          : undefined,
+        areaCompanionByReferencePeriod: dataset.areaCompanionByReferencePeriod,
+        properties: object(row.rawProperties, 'rawProperties'),
+        sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
+        sourceReleaseId: releaseId,
+        sourceVersion: plan.sourceVersion,
+      }
+    })
+    let canonical = await normaliseCachedStatistics(
+      sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+      canonicalInput,
+    )
+    const fieldMetadata = await runStatisticProgressStep(
+      progress,
+      { action: 'Review', count: canonical.fields.length, subject: 'fields' },
+      () =>
+        resolveCenstatdFieldMetadata({
+          fields: canonical.fields,
+          promptForCuration: options.promptForCuration,
+        }),
+    )
+    const measureMetadata = await loadCenstatdMeasureMetadata()
+    canonical = await runStatisticProgressStep(
+      progress,
+      { action: 'Curate', count: canonical.fields.length, subject: 'fields' },
+      () =>
+        normaliseCachedStatistics(
+          sqlDeliveryPhaseDirectory(delivery('statistics-normalisation')),
+          canonicalInput,
+          {
+            fieldMetadata,
+            measureMetadata,
+          },
+        ),
+    )
+    canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const batches = () =>
+      buildStatisticSqlBatches({
+        history: { rows: historyRows, table: 'divisionStatistics' },
+        releaseCode,
+        releaseId,
+        source: {
+          rows: sourceRows.map(sourceStatisticAssertion),
+          table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+        },
+      })
+    const canonicalBatches = () =>
+      buildCanonicalStatsSqlBatches({
+        resolutions: statisticSourceResolutions(
+          canonical.records,
+          new Map(
+            sourceRows.map(row => [
+              `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
+              { sourceRecordId: row.sourceRecordId, versionHash: row.versionHash },
+            ]),
+          ),
+          releaseId,
+        ),
+        current: canonicalCurrentRows(canonical),
+        history: canonicalHistoryRows(canonical, releaseId),
+        dictionaries: canonicalDictionaries(canonical, releaseId),
+      })
+    await client.stageRunning(
+      releaseId,
+      'processDataset',
+      { resourceType: plan.type, sourceRows: plan.rowCount },
+      releaseCode,
+    )
+    processingStarted = true
+    await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Import SQL',
+        subject: 'batches',
+      },
+      () =>
+        replayStatisticSqlBatches(
+          target,
+          context,
+          plan.sourceVersion.slice(0, 4),
+          batches,
+          {
+            delivery: delivery('statistics-source'),
+            onProgress(event) {
+              if (event.phase === 'local-replay') cacheMutationStarted = true
+              progress.update(event.completedBatches, {
+                max: event.totalBatches,
+                label: `Import SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+              })
+            },
+          },
+        ),
+    )
+    await runStatisticProgressStep(
+      progress,
+      {
+        action: 'Import canonical SQL',
+        subject: 'batches',
+      },
+      () =>
+        replayCanonicalStatsSqlBatches(target, context, canonicalBatches, {
+          delivery: delivery('statistics-canonical'),
+          onProgress(event) {
+            progress.update(event.completedBatches, {
+              max: event.totalBatches,
+              label: `Import canonical SQL: ${event.phase} (${event.completedBatches}/${event.totalBatches})`,
+            })
+          },
+        }),
+    )
+    const statsProfile = censtatdReleaseStatsProfileFor(
+      plan.datasetCode,
+      plan.sourceVersion,
+    )
+    const structuralStats = buildCenstatdReleaseStats(
+      sourceRows.map(row => ({
+        featureId: String(row.districtCode),
+        layerName: `Density_${plan.sourceVersion}`,
+      })),
+      canonical,
+      statsProfile,
+    )
+    const previousStats = await findPreviousComparableCenstatdReleaseStats(
+      metaDb,
+      releaseId,
+    )
+    const { materialisedStats } = await runStatisticProgressStep(
+      progress,
+      { action: 'Calculate', count: structuralStats.length, subject: 'stats' },
+      async () => {
+        const materialisedStats = await replaceDatasetStatsAndReturnRows(
+          metaDb,
+          releaseId,
+          [
+            ...structuralStats,
+            ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
+          ],
+        )
+        await replayReleaseStatsMetaToRemote(
+          target,
+          context,
+          releaseId,
+          materialisedStats,
+          { delivery: delivery('statistics-meta-stats') },
+        )
+        return { materialisedStats }
+      },
+    )
+    await client.stageCompleted(
+      releaseId,
+      'processDataset',
+      {
+        historyRows: historyRows.length,
+        importedRows: sourceRows.length,
+        statsRows: materialisedStats.length,
+      },
+      releaseCode,
+    )
+    const snapshots = await materialiseStatisticSnapshots({
+      datasetCode: plan.datasetCode,
+      metaDb,
+      referencePeriods: uniqueReferencePeriods(canonical.records),
+      releaseId,
+      target,
+    })
+    await replayStatisticSnapshotMetaToRemote(
+      target,
+      context,
+      metaDb,
+      releaseId,
+      snapshots.map(snapshot => snapshot.id),
+      { delivery: delivery('statistics-meta-snapshots') },
+    )
+    await runStatisticProgressStep(
+      progress,
+      { action: 'Retain', subject: 'processing provenance' },
+      async () => {
+        const store = new LocalPipelineBucket(
+          sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
+        )
+        const result = await retainStatisticProvenance(store, {
+          releaseId,
+          datasetCode: plan.datasetCode,
+          source: canonicalInput,
+          canonical,
+          fieldMetadata,
+          measureMetadata,
+          geographyFixtures: curationDocumentsFor(resolutionBySourceDistrictCode),
+          additionalRules: [
+            {
+              declaration: censtatdSourceAssertionRule.declaration,
+              count: canonicalInput.length,
+            },
+            {
+              declaration: censtatdDistrictIdentityRule.declaration,
+              count: resolutionBySourceDistrictCode.size,
+            },
+          ],
+        })
+        await deliverProcessingResult(target, store, result.ref)
+      },
+    )
+    const published = await runStatisticProgressStep(
+      progress,
+      { action: 'Publish', subject: 'statistic release' },
+      async () => {
+        const published = await client.publishDataset(releaseId, releaseCode, {
+          deferStatsReleaseSet: options.deferStatsReleaseSet,
+          deferSourcePublish: options.deferSourcePublish,
+        })
+        if (target.remote) {
+          const targetName =
+            target.environment === 'production' ? 'production' : 'preview'
+          if (
+            (options.deferStatsReleaseSet || options.deferSourcePublish) &&
+            published
+          ) {
+            await applyPublishMetadataDeltaToRemoteCache(
+              targetName,
+              context.state.dbCacheDir,
+              published,
+            )
+          } else {
+            await refreshRemoteMetaCache(targetName, context.state.dbCacheDir)
+          }
+        }
+        return published
+      },
+    )
+    await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
+    return published
+  } catch (error) {
+    await retainProcessingFailure({
+      error,
+      target,
+      releaseId,
+      datasetCode,
+      store: new LocalPipelineBucket(
+        sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
+      ),
+    })
+    progress.fail()
+    if (
+      target.remote &&
+      cacheMutationStarted &&
+      !(await readPendingSqlDelivery(context.state.dbCacheDir))
+    ) {
+      await invalidateRemoteDbCache(
+        target.environment === 'production' ? 'production' : 'preview',
+        context.state.dbCacheDir,
+        error instanceof Error ? error.message : String(error),
+      ).catch(() => undefined)
+    }
+    if (processingStarted) {
+      await client
+        .stageFailed(
+          releaseId,
+          'processDataset',
+          error instanceof Error ? error.message : String(error),
+          undefined,
+          releaseCode,
+        )
+        .catch(() => undefined)
+    }
+    throw error
+  } finally {
+    context.cleanup()
+  }
+}
+
+async function readSourceRows(
+  filePath: string,
+  releaseId: string,
+  releaseCode: string,
+  sourceVersion: string,
+) {
+  const rows: SourceStatisticRow[] = []
+  for await (const batch of readParquetObjectsInBatches(
+    await asyncBufferFromFile(filePath),
+    18,
+  )) {
+    rows.push(
+      ...(await Promise.all(
+        batch.map(row =>
+          normaliseSourceRow(row, releaseId, releaseCode, sourceVersion),
+        ),
+      )),
+    )
+  }
+  return rows
+}
+
+export const censtatdSourceAssertionRule = registerRule(
+  ruleDeclarationFromFixture(sourceAssertionFixture),
+  (args: Parameters<typeof normaliseSourceRowInternal>) =>
+    normaliseSourceRowInternal(...args),
+)
+
+function normaliseSourceRow(...args: Parameters<typeof normaliseSourceRowInternal>) {
+  return censtatdSourceAssertionRule.execute(args)
+}
+
+async function normaliseSourceRowInternal(
+  value: Record<string, unknown>,
+  releaseId: string,
+  releaseCode: string,
+  sourceVersion: string,
+): Promise<SourceStatisticRow> {
+  const sourceRecordId = string(value.id, 'id')
+  const referencePeriodCode = string(
+    value.reference_period_code,
+    'reference_period_code',
+  )
+  if (referencePeriodCode !== sourceVersion) {
+    throw new Error(`Expected reference_period_code=${sourceVersion}.`)
+  }
+  const payload = {
+    districtCode: integer(value.district_code, 'district_code'),
+    districtEn: string(value.name_en, 'name_en'),
+    districtZhHant: string(value.name_zh_hant, 'name_zh_hant'),
+    landAreaSqKm: number(value.land_area_sq_km, 'land_area_sq_km'),
+    midYearPopulationDensityPerSqKm: integer(
+      value.mid_year_population_density_per_sq_km,
+      'mid_year_population_density_per_sq_km',
+    ),
+    midYearPopulation: integer(value.mid_year_population, 'mid_year_population'),
+    rawProperties: json(value.raw_properties, 'raw_properties'),
+    referencePeriodCode,
+    referencePeriodEnd: optionalString(value.reference_period_end),
+    referencePeriodEndYear: string(
+      value.reference_period_end_year,
+      'reference_period_end_year',
+    ),
+    referencePeriodGranularity: string(
+      value.reference_period_granularity,
+      'reference_period_granularity',
+    ),
+    referencePeriodStart: optionalString(value.reference_period_start),
+    sourceGeometry: json(value.source_geometry, 'source_geometry'),
+    sourceRecordId,
+    sources: json(value.sources, 'sources'),
+  }
+  const now = new Date().toISOString()
+  return {
+    ...payload,
+    createdAt: now,
+    isCurrent: true,
+    releaseId,
+    updatedAt: now,
+    validFromRelease: releaseCode,
+    validToRelease: null,
+    version: 1,
+    versionHash: await createHash(
+      stableJsonStringify(nativeSourcePayloadHashInput(payload)),
+    ),
+  }
+}
+
+async function normaliseHistoryRow(
+  source: SourceStatisticRow,
+  resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
+  sourceReleaseId: string,
+): Promise<HistoryStatisticRow> {
+  const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
+  if (!resolved) {
+    throw new Error(
+      `No reviewed canonical district identity for C&SD districtCode=${source.districtCode}.`,
+    )
+  }
+  const payload = buildHkgovCenstatdDistrictStatisticHistoryRecord(
+    {
+      districtCode: source.districtCode,
+      id: source.sourceRecordId,
+      landAreaSqKm: source.landAreaSqKm,
+      midYearPopulation: source.midYearPopulation,
+      midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
+      nameEn: source.districtEn,
+      nameZhHant: source.districtZhHant,
+      referenceYear: source.referencePeriodCode,
+      sources: source.sources,
+    },
+    resolved,
+  )
+  const now = new Date().toISOString()
+  return {
+    ...payload,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: await createHash(stableJsonStringify(payload)),
+  }
+}
+
+function assertUniqueDistrictAssertions(rows: SourceStatisticRow[]) {
+  const sourceRecordIds = new Set(rows.map(row => row.sourceRecordId))
+  const districtCodes = new Set(rows.map(row => row.districtCode))
+  if (sourceRecordIds.size !== rows.length || districtCodes.size !== rows.length) {
+    throw new Error('C&SD district statistic input contains duplicate DC records.')
+  }
+}
+
+function json(value: unknown, field: string) {
+  if (typeof value !== 'string') throw new Error(`Expected ${field} JSON string.`)
+  try {
+    return JSON.parse(value)
+  } catch {
+    throw new Error(`Invalid ${field} JSON.`)
+  }
+}
+
+function string(value: unknown, field: string) {
+  if (typeof value !== 'string' || !value.trim()) throw new Error(`Expected ${field}.`)
+  return value.trim()
+}
+
+function optionalString(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function number(value: unknown, field: string) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) throw new Error(`Expected numeric ${field}.`)
+  return parsed
+}
+
+function integer(value: unknown, field: string) {
+  const parsed = number(value, field)
+  if (!Number.isInteger(parsed)) throw new Error(`Expected integer ${field}.`)
+  return parsed
+}
+
+function required(value: string | undefined, field: string) {
+  if (!value) throw new Error(`Expected ${field}.`)
+  return value
+}
+
+function object(value: unknown, field: string) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`Expected ${field} object.`)
+  }
+  return value as Record<string, unknown>
+}
+
+function canonicalCurrentRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+) {
+  const now = new Date().toISOString()
+  return [
+    {
+      rows: canonical.records.map(row => ({
+        ...row,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      table: 'statsRecords' as const,
+    },
+  ]
+}
+
+function canonicalHistoryRows(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+  sourceReleaseId: string,
+) {
+  const now = new Date().toISOString()
+  const version = (row: Record<string, unknown>) => ({
+    ...row,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: createNodeHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
+  })
+  return [{ rows: canonical.records.map(version), table: 'statsRecords' as const }]
+}
+
+function canonicalDictionaries(
+  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
+  sourceReleaseId: string,
+) {
+  const now = new Date().toISOString()
+  const version = (row: Record<string, unknown>) => ({
+    ...row,
+    createdAt: now,
+    isCurrent: true,
+    sourceReleaseId,
+    updatedAt: now,
+    versionHash: createNodeHash('sha256')
+      .update(stableJsonStringify(row) ?? JSON.stringify(row))
+      .digest('hex'),
+  })
+  return [
+    { rows: canonical.fields.map(version), table: 'statsFields' as const },
+    { rows: canonical.fieldsI18n.map(version), table: 'statsFieldsI18n' as const },
+    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
+    {
+      rows: canonical.measuresI18n.map(version),
+      table: 'statsMeasuresI18n' as const,
+    },
+    { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
+  ]
+}
+
+function uniqueReferencePeriods(
+  records: ReturnType<typeof normaliseHkgovCenstatdStatistics>['records'],
+) {
+  return [
+    ...new Map(
+      records.map(record => [
+        record.referencePeriodCode,
+        {
+          code: record.referencePeriodCode,
+          endYear: record.referencePeriodEndYear,
+        },
+      ]),
+    ).values(),
+  ]
+}
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
+import { statisticSourceResolutions } from './sourceResolutions'

@@ -4,7 +4,7 @@ import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/opti
 import type {
   SqlImportExecutionOptions,
   SqlImportTargetContext,
-} from '../localPipeline/sqlImport.ts'
+} from '../pipeline/local/sqlImport.ts'
 import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')

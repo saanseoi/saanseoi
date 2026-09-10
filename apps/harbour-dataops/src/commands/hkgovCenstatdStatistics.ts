@@ -11,12 +11,12 @@ import {
   prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
   type CenstatdStatisticDatasetCode,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdStatistics.ts'
 import {
   hkgovCenstatdDistrictLayerName,
   prepareHkgovCenstatdDistrictUpload,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
-import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdGml.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatd.ts'
+import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdGml.ts'
 import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 import {
   datasetName,

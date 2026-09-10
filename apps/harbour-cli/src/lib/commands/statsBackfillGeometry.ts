@@ -19,7 +19,7 @@ import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
-import { executeSqlText } from '../localPipeline/sqlImport.ts'
+import { executeSqlText } from '../pipeline/local/sqlImport.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'

@@ -20,7 +20,7 @@ import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/opti
 import {
   executeSqlText,
   type SqlImportExecutionOptions,
-} from '../localPipeline/sqlImport.ts'
+} from '../pipeline/local/sqlImport.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import {
@@ -30,7 +30,7 @@ import {
   formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 import {
   invalidateRemoteDbCache,
   resolveLocalAddressDbContext,

@@ -11,7 +11,7 @@ import {
   type Digest,
   type ProvenanceStore,
 } from '@repo/core/provenance'
-import { landsdSettlementSelectionAudit } from '../apps/harbour-cli/src/lib/sources/landsd/settlementSelection'
+import { landsdSettlementSelectionAudit } from '../apps/harbour-cli/src/lib/sources/hkgov/landsd/settlementSelection'
 import { retainRegisteredRule } from '../apps/harbour-cli/src/lib/api/retainedRule'
 
 // Explicit maintenance operation: normal publication/registration remains immutable.

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { resolveSharedRemoteDbCacheDir } from '../dbCache/localDbCacheTargets.ts'
-import type { SqlDeliveryPlan } from '../localPipeline/sqlDeliveryTypes.ts'
+import type { SqlDeliveryPlan } from '../pipeline/local/sqlDeliveryTypes.ts'
 import { resumeAddressInitialisation } from './resumeAddressInitialisation.ts'
 
 const target = { remote: true, environment: 'preview' } as const

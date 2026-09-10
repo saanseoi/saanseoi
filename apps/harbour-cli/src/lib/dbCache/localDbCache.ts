@@ -47,8 +47,8 @@ import {
 import { retryRemoteCacheExport } from './localDbCacheReplay.ts'
 import { exportRemoteDatabase, importDatabaseDumpsToSqlite } from './localDbCacheIo.ts'
 import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts'
-import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
-import { executeNativeSqlStatements } from '../localPipeline/nativeSqlStatements.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../pipeline/local/sqlDeliveryPending.ts'
+import { executeNativeSqlStatements } from '../pipeline/local/nativeSqlStatements.ts'
 
 export async function resolveLocalAddressDbContext(
   target: UploadTarget,

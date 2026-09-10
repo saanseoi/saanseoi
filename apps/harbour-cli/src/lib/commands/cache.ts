@@ -13,7 +13,7 @@ import {
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 
 export async function runCacheRebuildCommand(
   args: ParsedArgs,

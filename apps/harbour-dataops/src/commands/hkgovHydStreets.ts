@@ -12,11 +12,11 @@ import {
   readHkgovHydStreetArchive,
   readHkgovTdPedestrianStreetArchive,
   type HkgovHydStreetArchiveKind,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovHyd.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/hyd/hkgovHyd.ts'
 import {
   processNativeSourceSqlRelease,
   type NativeSourceRow,
-} from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
+} from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const DATASETS = {

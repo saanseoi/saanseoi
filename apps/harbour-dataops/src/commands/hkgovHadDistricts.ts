@@ -7,7 +7,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import { readHkgovHadDistrictArchive } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovHad.ts'
+import { readHkgovHadDistrictArchive } from '../../../harbour-cli/src/lib/sources/hkgov/had/hkgovHad.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')

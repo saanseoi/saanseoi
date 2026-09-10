@@ -10,7 +10,7 @@ import {
   formatCompletedPhaseLabel,
   formatCount,
   formatRunningPhaseLabel,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 import type { LocalDbCacheProgressEvent } from '../dbCache/localDbCache.ts'
 import type {
   ReleaseRecord,
