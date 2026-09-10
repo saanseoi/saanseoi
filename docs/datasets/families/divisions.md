@@ -338,6 +338,11 @@ division domain. Its Hydrographic and Topographic records remain source data for
 future government place-name projection; they should not be forced into the divisions
 taxonomy.
 
+The LandsD selection Bulk Rule retains counts for all native inputs, selected
+settlements and exclusions by publisher class, including missing or unexpected classes.
+The [source documentation](../sources/hkgov-landsd/placeName.md#divisions-projection)
+describes the retained audit and local backfill.
+
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
 normalised geometry. Canonical geometry and bbox are persisted only in history and
 current; source records include publisher evidence, while named source derivatives

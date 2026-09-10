@@ -90,3 +90,68 @@ test('retains synthetic Hong Kong area rows as individual patches', async () => 
   })
   expect(patches.rows).toHaveLength(3)
 })
+
+test('bulk geometry rules require explicit counts before retaining audit objects', async () => {
+  const objects = new Map<string, ArrayBuffer>()
+  const store: ProvenanceStore = {
+    async get(key) {
+      const value = objects.get(key)
+      return value ? { arrayBuffer: async () => value } : null
+    },
+    async put(key, value) {
+      objects.set(key, value)
+    },
+  }
+  const declaration = {
+    ...divisionAreaGeometryRule.declaration,
+    id: 'derive-area-geometry',
+  }
+  const input = {
+    releaseId: 'release',
+    datasetCode: 'overture-hk-division-area',
+    inputCount: 170,
+    outputCount: 170,
+    normalisation: divisionAreaGeometryRule.declaration,
+    actionDeclarations: { [declaration.id]: declaration },
+    actions: [
+      {
+        action: declaration.id,
+        affectedRecordCount: 1,
+        evidence: null,
+        mode: 'automatic' as const,
+        summary: 'Derive an area geometry.',
+      },
+    ],
+  }
+  for (const outputs of [{}, { divisionAreas: -1 }, { divisionAreas: 0.5 }]) {
+    await expect(
+      retainDivisionProvenance(store, {
+        ...input,
+        actionCounts: {
+          [declaration.id]: {
+            inputs: { 'source-geometry': 18 },
+            outputs,
+          },
+        },
+      }),
+    ).rejects.toThrow('requires an explicit outputs count for divisionAreas')
+    expect(objects.size).toBe(0)
+  }
+  for (const count of [0, 1, 3]) {
+    const retained = await retainDivisionProvenance(store, {
+      ...input,
+      actionCounts: {
+        [declaration.id]: {
+          inputs: { 'source-geometry': 18 },
+          outputs: { divisionAreas: count },
+        },
+      },
+    })
+    expect(
+      retained.manifest.bulk.find(rule => rule.id === declaration.id)?.counts,
+    ).toMatchObject({
+      inputs: { 'source-geometry': 18 },
+      outputs: { divisionAreas: count },
+    })
+  }
+})

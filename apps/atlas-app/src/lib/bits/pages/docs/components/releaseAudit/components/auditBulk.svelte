@@ -10,10 +10,12 @@ import LazyFixture from './auditLazyFixture.svelte'
 import Skeleton from './auditApplicationSkeleton.svelte'
 import CopyRule from './auditCopyRule.svelte'
 import RuleParameters from './auditRuleParameters.svelte'
+import BulkDecisions from './auditBulkDecisions.svelte'
 import { catalogueGroupMatches, type FixtureSearchGroup } from './auditFixtureCatalogue'
 import { auditRuleCopy } from './auditRuleCopy'
 const titles = () =>
   ({
+    'select-landsd-settlements': m.source_audit_landsd_settlements_title(),
     'prepare-als-addresses': m.source_audit_als_prepare_title(),
     'normalise-als-addresses': m.source_audit_als_normalise_title(),
     'curate-statistic-fields': m.source_audit_statistic_field_mappings(),
@@ -122,6 +124,7 @@ async function loadDeclaration() {
       </div>
     {/each}
   </div>
+  <BulkDecisions counts={bulk.counts.decisions} {label} />
   {#if parameters && typeof parameters === 'object' && !Array.isArray(parameters) && Object.keys(parameters).length}
     <details
       class="border-t border-current/10 px-4 py-3 text-sm"

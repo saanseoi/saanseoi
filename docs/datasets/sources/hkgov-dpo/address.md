@@ -5,6 +5,10 @@ remote targets, it checks division and translation keys directly in D1 and deliv
 missing rows before accepting the local projection as ready. Restoration inserts only
 missing rows and verifies their presence after delivery.
 
+ALS history application is bounded by staged row ranges, including translations,
+building-number lookups and snapshot-version changes. Small SQL text does not imply
+small database work: each remote apply batch covers at most 4,096 addresses.
+
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
 filtering. Each selected delivery is processed in full.

@@ -3160,5 +3160,6 @@
   "source_audit_rule_hong_kong_area_title": "Build Hong Kong’s area shape",
   "source_audit_rule_hong_kong_area_summary": "Build the missing Hong Kong area shape by joining district land shapes, including Lok Ma Chau Loop, then remove Shenzhen Bay Port.",
   "source_audit_rule_map_shapes_title": "Read map shapes",
-  "source_audit_rule_map_shapes_summary": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty."
+  "source_audit_rule_map_shapes_summary": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty.",
+  "source_audit_landsd_settlements_title": "Filter for Settlements"
 }
