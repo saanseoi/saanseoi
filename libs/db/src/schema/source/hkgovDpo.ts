@@ -9,6 +9,7 @@ export const sourceHkgovAlsAddresses3d = sqliteTable(
   {
     ...sourceAssertionColumns(),
     rawProperties: jsonText('rawProperties').notNull(),
+    sourceGeometry: jsonText('sourceGeometry'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -21,6 +22,7 @@ export const sourceHkgovAlsAddresses2d = sqliteTable(
   'hkgovAlsAddresses2d',
   {
     ...sourceAssertionColumns(),
+    sourceGeometry: jsonText('sourceGeometry'),
   },
   table => [
     primaryKey({
