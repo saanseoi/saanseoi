@@ -5,6 +5,7 @@
   "reason": "Restore a missing Hong Kong area geometry from its district land geometries, including Lok Ma Chau Loop where applicable, and remove Shenzhen Bay Port.",
   "method": "union-district-land-geometries-then-difference-exclusion-bbox",
   "parameters": {
+    "newTerritoriesAdditionalDivisionId": "222b7818-970a-491d-98b6-b88d8c6f0161",
     "exclusion": {
       "coordinates": [
         [

@@ -202,7 +202,9 @@ Shenzhen Bay Port exclusion, and is returned by the Divisions API with
 
 The New Territories geometry union includes Lok Ma Chau Loop as an additional land
 geometry input alongside its nine statutory districts. Its identity and land geometry
-must both resolve before restoration can complete; the audit records all ten inputs.
+must both resolve before restoration can complete; the audit records all ten inputs. The
+geometry patch selects the reviewed identity `222b7818-970a-491d-98b6-b88d8c6f0161`; a
+same-named lower-level locality is not an alternative geometry input.
 
 The division ingestion audit retains Kowloon restoration and the Hong Kong Island and
 New Territories identity restorations as individual applications of their patch
