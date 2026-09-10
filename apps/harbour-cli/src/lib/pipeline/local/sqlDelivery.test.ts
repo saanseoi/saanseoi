@@ -114,66 +114,69 @@ test('batched receipt checks reject mismatches and missing receipts before local
     expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
   }))
 
-test('parallel remote targets overlap without reordering batches within a target', () =>
-  fixture(async f => {
-    await prepareSqlDelivery(
-      f.directory,
-      {
-        ...f.context,
-        inputs: { parallelTargets: true },
-      },
-      async append => {
-        for (let index = 0; index < 4; index++) {
-          await append(
-            index % 2 === 0
-              ? { bindingName: 'DB_CURRENT', databaseId: 'db' }
-              : { bindingName: 'DB_HISTORY', databaseId: 'history' },
-            new TextEncoder().encode(
-              JSON.stringify([
-                { sql: 'UPDATE counter SET n = n + ?;', params: [index + 1] },
-              ]),
-            ),
-            'bound',
-          )
-        }
-      },
-    )
-    const active = new Set<string>()
-    const order = new Map<string, number[]>()
-    let peak = 0
-    const fetch: D1ImportFetch = async (input, init) => {
-      const body = JSON.parse(init?.body as string)
-      if (!body.batch) return f.options.fetch(input, init)
-      const target = String(input)
-      expect(active.has(target)).toBe(false)
-      active.add(target)
-      peak = Math.max(peak, active.size)
-      const sequence = order.get(target) ?? []
-      sequence.push(
-        body.batch.find((statement: { params: unknown[] }) => statement.params.length)
-          ?.params[0],
+for (const grouped of [false, true])
+  test(`parallel remote targets retain order with grouped transport=${grouped}`, () =>
+    fixture(async f => {
+      await prepareSqlDelivery(
+        f.directory,
+        {
+          ...f.context,
+          phase: 'address3d-data',
+          inputs: { parallelTargets: true, independentBoundTargets: grouped },
+        },
+        async append => {
+          for (let index = 0; index < 4; index++) {
+            await append(
+              index % 2 === 0
+                ? { bindingName: 'DB_CURRENT', databaseId: 'db' }
+                : { bindingName: 'DB_HISTORY', databaseId: 'history' },
+              new TextEncoder().encode(
+                JSON.stringify([
+                  { sql: 'UPDATE counter SET n = n + ?;', params: [index + 1] },
+                ]),
+              ),
+              'bound',
+            )
+          }
+        },
       )
-      order.set(target, sequence)
-      await Bun.sleep(10)
-      try {
-        return await f.options.fetch(input, init)
-      } finally {
-        active.delete(target)
+      const active = new Set<string>()
+      const order = new Map<string, number[]>()
+      let peak = 0
+      const fetch: D1ImportFetch = async (input, init) => {
+        const body = JSON.parse(init?.body as string)
+        if (!body.batch) return f.options.fetch(input, init)
+        const target = String(input)
+        expect(active.has(target)).toBe(false)
+        active.add(target)
+        peak = Math.max(peak, active.size)
+        const sequence = order.get(target) ?? []
+        sequence.push(
+          ...body.batch
+            .filter((statement: { params: unknown[] }) => statement.params.length)
+            .map((statement: { params: number[] }) => statement.params[0]),
+        )
+        order.set(target, sequence)
+        await Bun.sleep(10)
+        try {
+          return await f.options.fetch(input, init)
+        } finally {
+          active.delete(target)
+        }
       }
-    }
-    await runSqlDelivery(f.directory, {
-      ...f.options,
-      fetch,
-      mode: 'remote',
-      targets: { DB_CURRENT: 'db', DB_HISTORY: 'history' },
-    })
-    expect(peak).toBe(2)
-    expect([...order.values()].sort((a, b) => a[0]! - b[0]!)).toEqual([
-      [1, 3],
-      [2, 4],
-    ])
-    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 10 })
-  }))
+      await runSqlDelivery(f.directory, {
+        ...f.options,
+        fetch,
+        mode: 'remote',
+        targets: { DB_CURRENT: 'db', DB_HISTORY: 'history' },
+      })
+      expect(peak).toBe(2)
+      expect([...order.values()].sort((a, b) => a[0]! - b[0]!)).toEqual([
+        [1, 3],
+        [2, 4],
+      ])
+      expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 10 })
+    }))
 
 for (const acknowledgementLost of [false, true])
   test(`Address3D groups sealed bound batches and recovers each receipt: lost acknowledgement=${acknowledgementLost}`, () =>
