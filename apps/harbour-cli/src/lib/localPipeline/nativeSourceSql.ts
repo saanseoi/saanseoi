@@ -26,6 +26,7 @@ import {
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { deliverProducerAudit } from '../api/producerAuditDelivery.ts'
 import { retainProducerAudit } from '../api/producerAudit.ts'
+import { landsdSettlementSelectionAudit } from '../sources/landsd/settlementSelection'
 import { resolvePipelineEnvironment, type UploadTarget } from '../cli/options.ts'
 import { createLocalControlClient } from './localControlClient.ts'
 import { executeSqlText, type SqlImportTargetContext } from './sqlImport.ts'
@@ -446,6 +447,28 @@ async function retainNativeSourceAudit(
     tables: NativeSourceTable[]
   },
 ) {
+  const selectionRules =
+    input.datasetCode === 'ds-hk-hkgov-landsd-division'
+      ? [
+          landsdSettlementSelectionAudit(
+            input.tables.flatMap(table =>
+              table.name === 'hkgovLandsdPlaceNames'
+                ? table.rows.map(row => {
+                    if (
+                      !row.rawProperties ||
+                      typeof row.rawProperties !== 'object' ||
+                      Array.isArray(row.rawProperties)
+                    )
+                      throw new Error(
+                        'LandsD selection audit requires native publisher properties.',
+                      )
+                    return row.rawProperties as Record<string, unknown>
+                  })
+                : [],
+            ),
+          ),
+        ]
+      : []
   const directory = resolve(
     RELEASE_ROOT,
     target.remote ? 'remote' : 'local',
@@ -460,6 +483,7 @@ async function retainNativeSourceAudit(
       datasetCode: input.datasetCode,
       rowCount: input.rowCount,
       sourceVersion: input.sourceVersion,
+      selectionRules,
       tables: input.tables.map(table => ({
         name: table.name,
         rows: table.rows.length,
@@ -470,6 +494,7 @@ async function retainNativeSourceAudit(
         releaseId: input.releaseId,
         datasetCode: input.datasetCode,
         rules: [
+          ...selectionRules,
           {
             declaration: nativeSourceImportRule,
             inputs: { 'publisher-records': input.rowCount },

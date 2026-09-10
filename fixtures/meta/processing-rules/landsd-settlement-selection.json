@@ -1,0 +1,18 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "select-landsd-settlements",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Select publisher Settlement records for the Divisions domain. Retain all other classes in the native source ledger.",
+  "inputs": ["native-place-name-records"],
+  "outputs": ["selected-settlements", "excluded-from-divisions"],
+  "parameters": {
+    "includedClass": "Settlement",
+    "excludedClasses": ["Hydrographic", "Topographic"]
+  },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/sources/landsd/settlementSelection.ts",
+    "symbol": "landsdSettlementSelectionRule"
+  }
+}

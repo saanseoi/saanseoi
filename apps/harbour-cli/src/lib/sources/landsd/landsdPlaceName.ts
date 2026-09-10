@@ -5,6 +5,7 @@ import { parquetWriteFile } from 'hyparquet-writer'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { readFileGeodatabaseArchive } from '../fileGeodatabase.ts'
+import { landsdSettlementSelectionRule } from './settlementSelection'
 
 const LANDSD_PLACE_NAME_SOURCE = 'hkgov-landsd'
 const LANDSD_PLACE_NAME_SOURCE_SCHEMA_VERSION = '1.0'
@@ -128,7 +129,7 @@ export function prepareLandsdSettlementFeatureCollection(
     const feature = requireFeature(value, index)
     const properties = feature.properties
 
-    if (properties.PLACE_CLASS !== 'Settlement') return []
+    if (landsdSettlementSelectionRule.execute(properties) !== 'selected') return []
 
     const geoNameId = requireGeoNameId(properties.GEO_NAME_ID, index)
     requirePointGeometry(feature.geometry, index)
