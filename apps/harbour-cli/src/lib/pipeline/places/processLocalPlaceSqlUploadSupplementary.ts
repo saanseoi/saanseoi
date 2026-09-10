@@ -9,6 +9,10 @@ import {
 } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { reviewPlaceAddressCurations } from './placeAddressCurationUi.ts'
+import {
+  deferPlaceAddressTrialReview,
+  permitsPlaceAddressTrialDeferral,
+} from './placeAddressTrialDeferral'
 import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
@@ -372,6 +376,11 @@ async function prepareSupplementaryAddressesLocked(
   const resolutionTempPath = temporaryPath(resolutionPath)
   const resolutionOutput = await open(resolutionTempPath, 'w')
   const supplementaryResolutions: StagedAddressResolution[] = []
+  const deferTrialReviews = permitsPlaceAddressTrialDeferral(
+    process.env.SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS,
+    input.targets.environment,
+    input.plan.sourceVersion,
+  )
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
   const observedPlaceIds = new Set<string>()
   let analysedRows = 0
@@ -402,7 +411,10 @@ async function prepareSupplementaryAddressesLocked(
               }
             : null,
         )
-        const stagedResolution = compactAddressResolution(resolution)
+        const stagedResolution = deferPlaceAddressTrialReview(
+          compactAddressResolution(resolution),
+          deferTrialReviews,
+        )
         await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
         resolutionCounts.set(
           resolution.tier,
@@ -454,7 +466,11 @@ async function prepareSupplementaryAddressesLocked(
     throw new Error('Place Address defaults changed during analysis; retry.')
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
-  if (reviewCount) {
+  if (reviewCount && deferTrialReviews)
+    input.onStage?.(
+      `Deferred ${reviewCount} trial Address reviews; links remain null; evidence retained at ${reviewPath}`,
+    )
+  if (reviewCount && !deferTrialReviews) {
     const saved = await reviewPlaceAddressCurations({
       rows: readStagedJsonLines<StagedAddressResolution>(resolutionPath),
       definitions,
@@ -678,6 +694,7 @@ async function prepareSupplementaryAddressesLocked(
         }),
         addressSnapshotId: input.snapshots.addressSnapshotId,
         reviewRequired: 0,
+        trialReviewsDeferred: deferTrialReviews ? reviewCount : 0,
         rowCount: addresses.length,
       },
     })
@@ -947,7 +964,7 @@ async function writeSupplementaryReviewArtefact(input: {
       for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
         input.resolutionPath,
       )) {
-        if (resolution.tier !== 'review') continue
+        if (resolution.tier !== 'review' && !resolution.trialDeferral) continue
         await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
         first = false
       }

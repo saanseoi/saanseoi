@@ -47,6 +47,7 @@ export async function retainPlaceProvenance(
   const observedPlaces = new Set<string>()
   let duplicatePlaces = 0
   let linked = 0
+  const trialDeferred: StagedAddressResolution[] = []
   for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
     input.addresses.resolutionPath,
   )) {
@@ -54,13 +55,15 @@ export async function retainPlaceProvenance(
     observedPlaces.add(resolution.placeId)
     counts[resolution.tier] = (counts[resolution.tier] ?? 0) + 1
     if (resolution.addressId) linked++
+    if (resolution.trialDeferral) trialDeferred.push(resolution)
     const index = input.addresses.fixture.decisions.findIndex(
       d =>
         d.placeId === resolution.placeId &&
         d.sourceRelease === input.addresses.sourceVersion &&
         d.fingerprint === resolution.fingerprint,
     )
-    if (index >= 0 && resolution.tier !== 'review') selectedDecisions.add(index)
+    if (index >= 0 && resolution.tier !== 'review' && !resolution.trialDeferral)
+      selectedDecisions.add(index)
   }
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
   const decisions = input.addresses.fixture.decisions.filter((_, index) =>
@@ -148,6 +151,18 @@ export async function retainPlaceProvenance(
       decisions: counts,
       fixtures: [
         { type: 'place-address-curations', document: fixture, arrayKey: 'entries' },
+        ...(trialDeferred.length
+          ? [
+              {
+                type: 'place-address-trial-deferrals',
+                document: {
+                  sourceVersion: input.addresses.sourceVersion,
+                  entries: trialDeferred,
+                },
+                arrayKey: 'entries',
+              },
+            ]
+          : []),
       ],
     },
   ]
