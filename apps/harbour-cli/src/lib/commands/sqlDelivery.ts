@@ -7,12 +7,19 @@ import {
 } from '../dbCache/localDbCacheTargets.ts'
 import { runNativeSqlDelivery } from '../localPipeline/nativeSqlDelivery.ts'
 import { refreshRemoteMetaCache } from '../dbCache/localDbCacheReplay.ts'
-import { readDeliveryPlan, runSqlDelivery } from '../localPipeline/sqlDelivery.ts'
+import {
+  readDeliveryPlan,
+  runSqlDelivery,
+  resolveDeliveryMirrorFiles,
+} from '../localPipeline/sqlDelivery.ts'
 import {
   readDeliveryProgress,
   withDeliveryLock,
 } from '../localPipeline/sqlDeliveryFiles.ts'
 import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
+import { registerPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
+import { assertSqlDeliveryGeneration } from '../localPipeline/sqlDeliveryGeneration.ts'
+import { sqlDeliveryRecoveryStatusSql } from '../localPipeline/sqlDeliveryRecoveryStatus.ts'
 import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import {
   resolveCloudflareAccountId,
@@ -105,6 +112,54 @@ export async function runSqlDeliveryCommand(
       record.databaseId ? [[record.bindingName, record.databaseId]] : [],
     ),
   )
+  if (mode !== 'local') {
+    await withDeliveryLock(
+      join(plan.context.cacheDir, 'sql-delivery-lock'),
+      async () => {
+        await assertSqlDeliveryGeneration(
+          plan.context.cacheDir,
+          plan.context.releaseId,
+          plan.context.inputs.resetGeneration,
+        )
+        for (const batch of plan.batches) {
+          if (targets[batch.target.bindingName] !== batch.target.databaseId)
+            throw new Error(
+              `SQL delivery target changed for ${batch.target.bindingName}.`,
+            )
+        }
+        await resolveDeliveryMirrorFiles(plan)
+        await registerPendingSqlDelivery(
+          plan.context.cacheDir,
+          plan.context.releaseId,
+          directory,
+        )
+        const databaseId = targets.DB_META
+        if (!databaseId)
+          throw new Error('SQL recovery requires the configured DB_META target.')
+        const client = createCloudflareD1QueryClient({
+          accountId,
+          apiToken,
+          databaseId,
+        })
+        const resumed = await client.query(
+          sqlDeliveryRecoveryStatusSql(plan.context.releaseId),
+        )
+        const rows = await client.query(
+          `SELECT status FROM releases WHERE id = '${plan.context.releaseId.replaceAll("'", "''")}';`,
+        )
+        if (!rows.length || rows[0]?.status === 'failed')
+          throw new Error(
+            'SQL recovery cannot reopen this missing or published-snapshot release.',
+          )
+        // Audit SQL requires an editable release. Synchronise only metadata before
+        // local replay; data-shard baselines and the mirror generation stay frozen.
+        if (plan.batches.some(batch => batch.target.bindingName === 'DB_META'))
+          await refreshRemoteMetaCache(environment, plan.context.cacheDir)
+        if (resumed.length)
+          console.log(`Resumed failed release ${plan.context.releaseId} as processing.`)
+      },
+    )
+  }
   for (const operation of mode === 'both'
     ? (['remote', 'local'] as const)
     : [mode as 'remote' | 'local']) {
