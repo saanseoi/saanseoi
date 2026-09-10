@@ -84,7 +84,7 @@ export type ReconcileDraftReleaseSetsResult = {
   publishedReleaseSetStatsTargets: Array<{
     apiReleaseSetId: string
     cohortKey: string
-    family: 'address' | 'division' | 'place'
+    family: 'address' | 'division' | 'place' | 'statistics'
     releaseCode: string
     releaseId: string
     snapshotId: string

@@ -104,7 +104,8 @@ export async function handleReconcileDraftReleaseSets(
           releaseSet.cohortKey &&
           (request.apiFamily === 'divisions' ||
             request.apiFamily === 'addresses' ||
-            request.apiFamily === 'places')
+            request.apiFamily === 'places' ||
+            request.apiFamily === 'stats')
         ) {
           publishedReleaseSetStatsTargets.push({
             apiReleaseSetId: result.apiReleaseSetId,
@@ -114,7 +115,9 @@ export async function handleReconcileDraftReleaseSets(
                 ? 'address'
                 : request.apiFamily === 'divisions'
                   ? 'division'
-                  : 'place',
+                  : request.apiFamily === 'stats'
+                    ? 'statistics'
+                    : 'place',
             releaseCode: result.releaseCode,
             releaseId: result.releaseId,
             snapshotId: result.snapshotId,
@@ -218,7 +221,8 @@ async function listCurrentReleaseSetStatsTargets(
   if (
     request.apiFamily !== 'addresses' &&
     request.apiFamily !== 'divisions' &&
-    request.apiFamily !== 'places'
+    request.apiFamily !== 'places' &&
+    request.apiFamily !== 'stats'
   ) {
     return []
   }
@@ -250,7 +254,7 @@ async function listCurrentReleaseSetStatsTargets(
     .innerJoin(metaReleases, eq(metaSnapshotSources.resourceReleaseId, metaReleases.id))
     .where(
       and(
-        request.apiFamily === 'divisions'
+        request.apiFamily === 'divisions' || request.apiFamily === 'stats'
           ? or(
               eq(metaApiReleaseSets.status, 'current'),
               eq(metaApiReleaseSets.status, 'archived'),
@@ -262,7 +266,9 @@ async function listCurrentReleaseSetStatsTargets(
             ? 'addresses'
             : request.apiFamily === 'divisions'
               ? 'divisions'
-              : 'places',
+              : request.apiFamily === 'stats'
+                ? 'stats'
+                : 'places',
         ),
         request.regionCode
           ? eq(metaApiReleaseSets.regionCode, request.regionCode)
@@ -307,7 +313,9 @@ async function listCurrentReleaseSetStatsTargets(
           ? 'address'
           : request.apiFamily === 'divisions'
             ? 'division'
-            : 'place',
+            : request.apiFamily === 'stats'
+              ? 'statistics'
+              : 'place',
       releaseCode: row.releaseCode,
       releaseId: row.releaseId,
       snapshotId: row.snapshotId,
