@@ -19,6 +19,57 @@ import {
   listRegistrySourceVersions,
 } from './metaRegistry'
 import type { UploadPlan } from '../../types'
+import { recordDatasetStage } from '../../pipeline/datasetStages'
+import { insertFixtureRelease } from '../../testing/metaFixtures'
+
+test('post-publication statistics failures retain superseded source release status', async () => {
+  const sqlite = new Database(':memory:')
+  sqlite.exec(
+    loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), [
+      'meta',
+    ]).replaceAll('--> statement-breakpoint', ''),
+  )
+  try {
+    const db = createLocalHarbourDb(sqlite)
+    sqlite.run(
+      "INSERT INTO publishers (id, code, versionHash) VALUES ('publisher', 'overture', 'hash')",
+    )
+    sqlite.run(
+      "INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, resourceTypes, versionHash) VALUES ('dataset', 'publisher', 'ds-hk-overture-division', 'hk', 'static', 'monthly', 'divisions', '[\"division\"]', 'hash')",
+    )
+    const { releaseId } = insertFixtureRelease(sqlite, {
+      releaseId: 'published-division',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-09-24.0',
+      type: 'division',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'superseded',
+      ingestedAt: '2026-09-09T00:00:00Z',
+      createdAt: '2026-09-09T00:00:00Z',
+      updatedAt: '2026-09-09T00:00:00Z',
+    })
+    await recordDatasetStage(
+      db,
+      {
+        releaseId,
+        phase: 'calculateApiReleaseSetStats',
+        error: 'Missing cached history',
+      },
+      'error',
+    )
+    expect(
+      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+    ).toEqual({ status: 'superseded' })
+    expect(
+      sqlite.query('SELECT status FROM ingestRuns WHERE releaseId = ?').get(releaseId),
+    ).toEqual({ status: 'error' })
+  } finally {
+    sqlite.close()
+  }
+})
 
 const datasetCode =
   'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
