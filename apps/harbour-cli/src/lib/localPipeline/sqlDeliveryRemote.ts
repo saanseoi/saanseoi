@@ -235,6 +235,7 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
               throw new Error(
                 `D1 reported completion without the expected receipt for batch ${batch.index}; exact-content recovery exhausted. ${result?.error ?? ''}`,
               )
+            await Bun.sleep(interval * 2 ** (recoveryLookups - 1))
             const recovered = await client.init(etag)
             if (recovered.uploadUrl || recovered.filename)
               throw new Error(
