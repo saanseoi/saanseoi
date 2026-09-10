@@ -1,6 +1,6 @@
 import { prepareHkgovAlsRelease } from '../commands/hkgovAls.ts'
 import { resolve } from 'node:path'
-import { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsReviewIssue'
+import { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewIssue'
 import { queueAlsCurationReview } from './alsCurationReviewQueue'
 
 const [request, output] = process.argv.slice(2)

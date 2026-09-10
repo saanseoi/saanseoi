@@ -6,7 +6,7 @@ import {
   createApiReleaseSetRevisionDraft,
 } from './docs.ts'
 import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
-import { formatDurationMs } from '../localPipeline/progressFormatting.ts'
+import { formatDurationMs } from '../pipeline/local/progressFormatting.ts'
 import { formatApiReleaseSetCode } from './releaseSetDisplay.ts'
 import type {
   AddressPlan,

@@ -9,7 +9,7 @@
   "outputs": ["included-places"],
   "parameters": { "excludedCountries": ["CN", "MO"] },
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/placeSql/processLocalPlaceSqlUploadPreparation.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
     "symbol": "placeCountryRule"
   }
 }

@@ -21,7 +21,7 @@ import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
 import {
   findPendingSqlDeliveryReleaseId,
   readPendingSqlDelivery,
-} from '../localPipeline/sqlDeliveryPending.ts'
+} from '../pipeline/local/sqlDeliveryPending.ts'
 import { runSqlDeliveryCommand } from '../commands/sqlDelivery.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>

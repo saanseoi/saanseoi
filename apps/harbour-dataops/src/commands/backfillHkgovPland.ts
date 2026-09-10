@@ -7,8 +7,8 @@ import { tmpdir } from 'node:os'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { prepareHkgovPlandTpuNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
-import { prepareHkgovPlandNewTownNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import { prepareHkgovPlandTpuNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts'
+import { prepareHkgovPlandNewTownNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPlandNewTown.ts'
 import type {
   ParsedArgs,
   UploadTarget,

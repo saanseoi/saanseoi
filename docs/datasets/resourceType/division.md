@@ -19,7 +19,7 @@ There is no second division source in the current pipeline.
 - Division uploads run locally from `saanseoi upload`, generate SQL artefacts, and
   import those artefacts into the target D1 databases.
 - The local division SQL runner is
-  `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
+  `apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUpload.ts`.
 - Processing creates or reuses a resourceType-scoped draft snapshot via
   `ensureDraftSnapshotForRelease`.
 - If an earlier published division snapshot exists for the same region, its current rows

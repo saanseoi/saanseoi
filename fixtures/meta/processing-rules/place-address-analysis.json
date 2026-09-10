@@ -9,7 +9,7 @@
   "outputs": ["place-address-links", "supplementary-addresses"],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/placeSql/supplementaryPlaceAddress.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts",
     "symbol": "placeAddressAnalysisRule"
   }
 }

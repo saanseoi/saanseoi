@@ -12,7 +12,7 @@ import {
   resolveLocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
 import { resolveRemoteCacheDir } from '../dbCache/localDbCacheTargets.ts'
-import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../pipeline/local/sqlDeliveryPending.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'

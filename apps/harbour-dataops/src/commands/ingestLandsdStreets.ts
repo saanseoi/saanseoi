@@ -9,7 +9,7 @@ import {
   assignLandsdStreetBaselineIds,
   landsdStreetBaselineCandidatesFromRecords,
   type LandsdStreetRecord,
-} from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetIngest.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetIngest.ts'
 import {
   createLandsdStreetBaselineRegistry,
   loadLandsdStreetBaselineRegistry,
@@ -17,9 +17,9 @@ import {
   sameLandsdStreetBaselineRegistry,
   validateLandsdStreetCurrentRelease,
   writeLandsdStreetBaselineRegistry,
-} from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetBaselineRegistry.ts'
-import { DEFAULT_BASELINE_REGISTRY_PATH } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetIngestConfig.ts'
-import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetPublish.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetBaselineRegistry.ts'
+import { DEFAULT_BASELINE_REGISTRY_PATH } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetIngestConfig.ts'
+import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetPublish.ts'
 import {
   fetchTargetVersions,
   requirePublishedTargetVersion,

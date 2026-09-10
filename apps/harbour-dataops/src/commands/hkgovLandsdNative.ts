@@ -5,24 +5,24 @@ import { and, desc, eq } from 'drizzle-orm'
 
 import { currentSchema, metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { decodeStoredGeoJsonGeometry } from '../../../harbour-cli/src/lib/divisionSql/processLocalDivisionGeometrySqlUploadStatistics.ts'
+import { decodeStoredGeoJsonGeometry } from '../../../harbour-cli/src/lib/pipeline/divisions/processLocalDivisionGeometrySqlUploadStatistics.ts'
 
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
-import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
-import { readLandsdPlaceNameArchive } from '../../../harbour-cli/src/lib/sources/landsd/landsdPlaceName.ts'
+import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts'
+import { readLandsdPlaceNameArchive } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/landsdPlaceName.ts'
 import {
   normaliseRoadCentrelineFeatures,
   readLandsdRoadCentrelineArchive,
   requireResolvedRoadCentrelines,
   type RoadCentrelineDistrict,
   type RoadCentrelineStreet,
-} from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentreline.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
-import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
+import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentrelineReview.ts'
 import {
   applyRoadReview,
   loadRoadReview,

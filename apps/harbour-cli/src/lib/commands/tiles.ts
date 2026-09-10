@@ -39,7 +39,7 @@ import {
 import { prepareImportedRegionClip } from './tilesSources.ts'
 import { buildRegionalCoastline } from './tilesGeometry.ts'
 import { capture, commandSucceeds, run } from './tilesExecution.ts'
-import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
+import { withDeliveryLock } from '../pipeline/local/sqlDeliveryFiles.ts'
 
 export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () => void) {
   const input = resolveTilesInput(args, printUsage, 'refresh')

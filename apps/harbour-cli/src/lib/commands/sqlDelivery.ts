@@ -5,26 +5,26 @@ import {
   resolveD1Targets,
   mapLocalTargetPaths,
 } from '../dbCache/localDbCacheTargets.ts'
-import { runNativeSqlDelivery } from '../localPipeline/nativeSqlDelivery.ts'
+import { runNativeSqlDelivery } from '../pipeline/local/nativeSqlDelivery.ts'
 import { refreshRemoteMetaCache } from '../dbCache/localDbCacheReplay.ts'
 import {
   readDeliveryPlan,
   runSqlDelivery,
   resolveDeliveryMirrorFiles,
-} from '../localPipeline/sqlDelivery.ts'
+} from '../pipeline/local/sqlDelivery.ts'
 import {
   readDeliveryProgress,
   withDeliveryLock,
-} from '../localPipeline/sqlDeliveryFiles.ts'
-import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
-import { registerPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
-import { assertSqlDeliveryGeneration } from '../localPipeline/sqlDeliveryGeneration.ts'
-import { sqlDeliveryRecoveryStatusSql } from '../localPipeline/sqlDeliveryRecoveryStatus.ts'
+} from '../pipeline/local/sqlDeliveryFiles.ts'
+import { completeSqlDeliveryRelease } from '../pipeline/local/sqlDeliveryPending.ts'
+import { registerPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+import { assertSqlDeliveryGeneration } from '../pipeline/local/sqlDeliveryGeneration.ts'
+import { sqlDeliveryRecoveryStatusSql } from '../pipeline/local/sqlDeliveryRecoveryStatus.ts'
 import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import {
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,
-} from '../addressSql/processLocalAddressSqlUploadImport.ts'
+} from '../pipeline/addresses/processLocalAddressSqlUploadImport.ts'
 
 export async function runSqlDeliveryCommand(
   args: ParsedArgs,

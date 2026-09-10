@@ -20,7 +20,7 @@ import {
   mapLocalTargetPaths,
   resolveD1Targets,
 } from '../dbCache/localDbCacheTargets.ts'
-import { findPendingSqlDeliveryReleaseId } from '../localPipeline/sqlDeliveryPending.ts'
+import { findPendingSqlDeliveryReleaseId } from '../pipeline/local/sqlDeliveryPending.ts'
 
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
   const cohortYear = cohortKey.slice(0, 4)

@@ -4,7 +4,7 @@ import {
   parseLandsdStreetNoticePage,
   parseLandsdStreetPdfText,
   parseLandsdStreetSourcePage,
-} from './landsd/street/landsdStreet.ts'
+} from './hkgov/landsd/street/landsdStreet.ts'
 import {
   buildOverturistCommand,
   buildOverturistReleasesCommand,

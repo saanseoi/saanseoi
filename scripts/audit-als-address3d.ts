@@ -4,7 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import {
   als3dHash,
   readAls3dFeatures,
-} from '../apps/harbour-cli/src/lib/sources/hkgov/hkgovAls3d'
+} from '../apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls3d'
 
 const root = resolve(process.argv[2] ?? 'data/hkgov/dpo/ALS')
 const output = resolve(process.argv[3] ?? '.local/hkgov-dpo/address3d-audit.json')

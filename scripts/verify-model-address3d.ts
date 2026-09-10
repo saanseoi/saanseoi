@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process'
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { prepareAls3dCollections } from '../apps/harbour-cli/src/lib/sources/hkgov/hkgovAls3dPreparation'
-import { readAls3dFeatures } from '../apps/harbour-cli/src/lib/sources/hkgov/hkgovAls3d'
-import { validateAddress3dPreparation } from '../apps/harbour-cli/src/lib/addressSql/address3dImport'
+import { prepareAls3dCollections } from '../apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls3dPreparation'
+import { readAls3dFeatures } from '../apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls3d'
+import { validateAddress3dPreparation } from '../apps/harbour-cli/src/lib/pipeline/addresses/address3dImport'
 import { normaliseAddressRowForPipeline } from '../libs/core/src/pipeline/services/addressPipeline/normalisation'
 
 const output = resolve('.local/hkgov-dpo/model-address3d-verification')

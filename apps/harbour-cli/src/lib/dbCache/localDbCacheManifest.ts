@@ -20,7 +20,7 @@ import {
   REMOTE_CACHE_PARTIAL_DIR,
 } from './localDbCacheConfig.ts'
 import { hasExpectedTables } from './localDbCacheProfiles.ts'
-import { assertSqlDeliveryPlanningAllowed } from '../localPipeline/sqlDeliveryPending.ts'
+import { assertSqlDeliveryPlanningAllowed } from '../pipeline/local/sqlDeliveryPending.ts'
 
 export async function ensureRemoteCachePaths(
   target: 'preview' | 'production',

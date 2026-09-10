@@ -4,7 +4,7 @@ import { dirname, basename, join } from 'node:path'
 import {
   withDeliveryLock,
   writeDeliveryFile,
-} from '../localPipeline/sqlDeliveryFiles.ts'
+} from '../pipeline/local/sqlDeliveryFiles.ts'
 import { archiveMetadata } from './tilesStorage.ts'
 
 /** Reuse only a fully built, checksummed archive with identical build inputs. */

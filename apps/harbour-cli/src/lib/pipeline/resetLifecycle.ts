@@ -1,20 +1,17 @@
 import { rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
-import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
+import { withDeliveryLock } from './local/sqlDeliveryFiles.ts'
 import {
   assertSqlDeliveryPlanningAllowed,
   discardAbandonedSqlDelivery,
-} from '../localPipeline/sqlDeliveryPending.ts'
-import { invalidateSqlDeliveryReleases } from '../localPipeline/sqlDeliveryGeneration.ts'
+} from './local/sqlDeliveryPending.ts'
+import { invalidateSqlDeliveryReleases } from './local/sqlDeliveryGeneration.ts'
 
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import { invalidateRemoteDbCache } from '../dbCache/localDbCache.ts'
 import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
-import {
-  executeSqlText,
-  type SqlImportTargetContext,
-} from '../localPipeline/sqlImport.ts'
+import { executeSqlText, type SqlImportTargetContext } from './local/sqlImport.ts'
 
 export type ResetSqlArtefact = {
   sql: string

@@ -1,10 +1,10 @@
 import { createCloudflareD1QueryClient } from '../../../harbour-cli/src/lib/dbCache/remoteD1Client.ts'
-import { executeSqlText } from '../../../harbour-cli/src/lib/localPipeline/sqlImport.ts'
-import { sqlLiteral } from '../../../harbour-cli/src/lib/divisionSql/processLocalHkgovPlandDivisionSqlUploadSql.ts'
+import { executeSqlText } from '../../../harbour-cli/src/lib/pipeline/local/sqlImport.ts'
+import { sqlLiteral } from '../../../harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadSql.ts'
 import {
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,
-} from '../../../harbour-cli/src/lib/addressSql/processLocalAddressSqlUploadImport.ts'
+} from '../../../harbour-cli/src/lib/pipeline/addresses/processLocalAddressSqlUploadImport.ts'
 import type { UploadTarget } from '../../../harbour-cli/src/lib/cli/options.ts'
 
 /** Restore immutable prerequisite rows remotely, even when the local mirror has them. */

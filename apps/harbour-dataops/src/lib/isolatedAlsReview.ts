@@ -3,8 +3,8 @@ import { createReadStream } from 'node:fs'
 import { mkdir, readdir, rename, rm, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
-import { loadDivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDivisions.ts'
-import type { DivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsTypes.ts'
+import { loadDivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDivisions.ts'
+import type { DivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsTypes.ts'
 import type { prepareHkgovAlsRelease } from '../commands/hkgovAls.ts'
 
 type Input = Parameters<typeof prepareHkgovAlsRelease>[0]

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { mkdir, rename } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsReviewIssue'
+import type { AlsCurationReviewError } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewIssue'
 
 export async function queueAlsCurationReview(
   error: AlsCurationReviewError,

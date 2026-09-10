@@ -16,7 +16,7 @@
   ],
   "parameters": {},
   "implementation": {
-    "path": "apps/harbour-cli/src/lib/statisticsSql/normaliseHkgovCenstatdStatistics.ts",
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
     "symbol": "statisticNormalisationRule"
   }
 }

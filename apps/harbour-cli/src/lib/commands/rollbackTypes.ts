@@ -1,5 +1,5 @@
 import type { resolveDatasetRecord } from '@repo/core/db/metaRegistry'
-import type { SqlImportTargetContext } from '../localPipeline/sqlImport.ts'
+import type { SqlImportTargetContext } from '../pipeline/local/sqlImport.ts'
 
 export type ReleaseRecord = Awaited<ReturnType<typeof resolveDatasetRecord>>
 

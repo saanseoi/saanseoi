@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 import { note, select, text } from '@clack/prompts'
-import type { RoadCentrelineStreet } from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
-import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/landsd/roadCentrelineReview.ts'
+import type { RoadCentrelineStreet } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentreline.ts'
+import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentrelineReview.ts'
 import { terminalSafeText } from './terminal.ts'
 
 type Group = ReturnType<typeof groupRoadCentrelineIssues>[number]

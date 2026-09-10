@@ -28,9 +28,9 @@ import {
   validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
-import { supplementaryEntryLedgerPath } from '../placeSql/processLocalPlaceSqlUploadConfig.ts'
+import { supplementaryEntryLedgerPath } from '../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
-import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../placeSql/supplementaryPlaceAddressRows.ts'
+import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../pipeline/places/supplementaryPlaceAddressRows.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')

@@ -4,7 +4,7 @@ import {
   normaliseAddressText,
   parsePlaceAddress,
   type PlaceAddressDefinition,
-} from '../apps/harbour-cli/src/lib/placeSql/placeAddressMatcher.ts'
+} from '../apps/harbour-cli/src/lib/pipeline/places/placeAddressMatcher.ts'
 
 // Read-only diagnostic: raw CSU identifiers are reference evidence, not API IDs.
 const source =

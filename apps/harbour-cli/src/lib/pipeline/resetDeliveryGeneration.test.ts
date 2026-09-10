@@ -8,12 +8,12 @@ import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
-} from '../localPipeline/nativeSqlDelivery.ts'
-import { completeSqlDeliveryRelease } from '../localPipeline/sqlDeliveryPending.ts'
-import { prepareReleaseSqlDelivery } from '../localPipeline/releaseSqlDelivery.ts'
-import { runSqlDelivery } from '../localPipeline/sqlDelivery.ts'
-import { withDeliveryLock } from '../localPipeline/sqlDeliveryFiles.ts'
-import { invalidateSqlDeliveryReleases } from '../localPipeline/sqlDeliveryGeneration.ts'
+} from './local/nativeSqlDelivery.ts'
+import { completeSqlDeliveryRelease } from './local/sqlDeliveryPending.ts'
+import { prepareReleaseSqlDelivery } from './local/releaseSqlDelivery.ts'
+import { runSqlDelivery } from './local/sqlDelivery.ts'
+import { withDeliveryLock } from './local/sqlDeliveryFiles.ts'
+import { invalidateSqlDeliveryReleases } from './local/sqlDeliveryGeneration.ts'
 import { executeResetSqlArtefacts } from './resetLifecycle.ts'
 
 test('scoped reset invalidates only owned release plans and fresh plans cannot reuse old receipts', async () => {

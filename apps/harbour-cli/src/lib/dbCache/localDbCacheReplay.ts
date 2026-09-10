@@ -13,7 +13,7 @@ import {
 import { exportRemoteDatabase, importDatabaseDumpsToSqlite } from './localDbCacheIo.ts'
 import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts'
 import type { RemoteCacheReplayJournal } from './localDbCacheTypes.ts'
-import { readPendingSqlDelivery } from '../localPipeline/sqlDeliveryPending.ts'
+import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 
 export async function refreshRemoteMetaCache(
   target: 'preview' | 'production',
