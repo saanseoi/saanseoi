@@ -167,6 +167,11 @@ eight batches, 512 data statements and 8 MB of retained payload per request. Eac
 batch keeps its own receipt; recovery checks every receipt before advancing and does not
 replay uncertain writes. Individual statements retain the 100-parameter limit.
 
+Publisher-source retirement uses repeat-safe transactions of at most 1,024 rows before
+the sealed source upserts are applied. The upserts restore this release's retained
+source versions, and the original batch receipt is written only after the full batch
+finishes. This bounds database work as well as request size.
+
 SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
 relationships before remote delivery. History and current stages each generate their own
 SQL artefact. Insert statements are bounded by escaped UTF-8 bytes, with oversized
