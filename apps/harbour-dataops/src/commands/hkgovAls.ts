@@ -50,6 +50,7 @@ import type {
 import { terminalSafeText } from '../lib/terminal.ts'
 import { progressPhase } from '../lib/progressPhase.ts'
 import { isolatedAlsReview } from '../lib/isolatedAlsReview.ts'
+import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -690,6 +691,24 @@ async function materialiseDivisionSnapshotForAddressRelease(
     const presentI18nKeys = new Set(
       presentI18n.map(row => `${row.divisionId}\u0000${row.locale}`),
     )
+    const now = toIsoTimestamp()
+    await deliverDivisionPrerequisite({
+      target,
+      databaseId: context.state.bindings.DB_CURRENT?.databaseId,
+      snapshotId: snapshot.id,
+      divisions: divisions.map(row => ({
+        ...row,
+        snapshotId: snapshot.id,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      i18n: materialisedI18n.map(row => ({
+        ...row,
+        snapshotId: snapshot.id,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    })
     if (
       expectedDivisionIds.size === presentDivisionIds.size &&
       [...expectedDivisionIds].every(id => presentDivisionIds.has(id)) &&
@@ -699,7 +718,6 @@ async function materialiseDivisionSnapshotForAddressRelease(
       return
     }
 
-    const now = toIsoTimestamp()
     for (const rows of chunk(divisions, 8)) {
       await context.currentDb
         .insert(currentSchema.divisions)

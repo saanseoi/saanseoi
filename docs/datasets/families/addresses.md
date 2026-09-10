@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Address preparation verifies geographic prerequisite rows in the target database.
+Missing retained divisions and translations are restored before address delivery;
+presence in a local cache alone does not establish production readiness.
+
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.
 

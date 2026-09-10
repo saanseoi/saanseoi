@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+ALS preparation restores its selected geographic snapshot from immutable history. For
+remote targets, it checks division and translation keys directly in D1 and delivers
+missing rows before accepting the local projection as ready. Restoration inserts only
+missing rows and verifies their presence after delivery.
+
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
 filtering. Each selected delivery is processed in full.
