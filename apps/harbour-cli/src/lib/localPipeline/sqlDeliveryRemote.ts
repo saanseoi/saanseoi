@@ -202,10 +202,20 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
           state.bookmark = result.atBookmark
           state.status = 'polling'
           await save()
-        } else if (state.status === 'ingesting' && !state.bookmark) {
+        } else if (
+          (state.status === 'ingesting' || state.status === 'polling') &&
+          !state.bookmark
+        ) {
           // init is a lookup by the exact upload ETag. Never upload or ingest again here.
           const init = await client.init(etag)
-          if (init.atBookmark) {
+          if (
+            !init.uploadUrl &&
+            !init.filename &&
+            (init.atBookmark ||
+              init.status === 'complete' ||
+              /D1_RESET_DO/.test(init.error ?? ''))
+          ) {
+            result = { ...init, success: init.success ?? false }
             state.bookmark = init.atBookmark
             state.status = 'polling'
             await save()
