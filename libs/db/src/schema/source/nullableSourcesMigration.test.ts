@@ -2,9 +2,9 @@ import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readFileSync, readdirSync } from 'node:fs'
 
-test('nullable sources migration preserves source rows and permits SQL NULL', () => {
+test('geometry migration preserves nullable attribution and retained source rows', () => {
   const root = new URL('../../../migrations/source/', import.meta.url)
-  const name = '20260908041314_purple_bucky'
+  const name = '20260910102821_next_bloodscream'
   const db = new Database(':memory:')
   try {
     for (const entry of readdirSync(root)
@@ -13,7 +13,7 @@ test('nullable sources migration preserves source rows and permits SQL NULL', ()
       db.exec(readFileSync(new URL(`${entry}/migration.sql`, root), 'utf8'))
     }
     const migration = readFileSync(new URL(`${name}/migration.sql`, root), 'utf8')
-    const tables = [...migration.matchAll(/CREATE TABLE `__new_([^`]+)`/g)].map(
+    const tables = [...migration.matchAll(/ALTER TABLE `([^`]+)`/g)].map(
       match => match[1]!,
     )
     const before = new Map<string, unknown[]>()
@@ -37,11 +37,17 @@ test('nullable sources migration preserves source rows and permits SQL NULL', ()
           }),
         )
       }
-      before.set(table, db.query(`SELECT * FROM "${table}" ORDER BY versionHash`).all())
+      before.set(
+        table,
+        db
+          .query(`SELECT * FROM "${table}" ORDER BY versionHash`)
+          .all()
+          .map(row => ({ ...(row as Record<string, unknown>), sourceGeometry: null })),
+      )
     }
     db.exec(migration)
     for (const table of tables) {
-      expect(db.query(`SELECT * FROM "${table}" ORDER BY versionHash`).all()).toEqual(
+      expect(db.prepare(`SELECT * FROM "${table}" ORDER BY versionHash`).all()).toEqual(
         before.get(table),
       )
       db.exec(`UPDATE "${table}" SET sources = NULL`)
@@ -50,7 +56,7 @@ test('nullable sources migration preserves source rows and permits SQL NULL', ()
         { sources: null },
       ])
     }
-    expect(tables.length).toBeGreaterThan(10)
+    expect(tables.length).toBe(6)
   } finally {
     db.close()
   }

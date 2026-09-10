@@ -3,27 +3,16 @@ import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 
-for (const migrationName of [
-  '20260907151522_huge_kree',
-  '20260908035020_smooth_purple_man',
-]) {
+for (const migrationName of ['20260910102821_next_bloodscream']) {
   test(`${migrationName} preserves every retained value and version row`, () => {
     const db = new Database(':memory:')
     const migrationRoot = new URL('../../../migrations/source/', import.meta.url)
     db.exec(
       readFileSync(
-        new URL('20260907083011_blue_jack_flag/migration.sql', migrationRoot),
+        new URL('20260908055252_awesome_overlord/migration.sql', migrationRoot),
         'utf8',
       ),
     )
-    if (migrationName === '20260908035020_smooth_purple_man') {
-      db.exec(
-        readFileSync(
-          new URL('20260907151522_huge_kree/migration.sql', migrationRoot),
-          'utf8',
-        ),
-      )
-    }
     const migration = readFileSync(
       new URL(`${migrationName}/migration.sql`, migrationRoot),
       'utf8',
@@ -68,20 +57,26 @@ for (const migrationName of [
         .prepare(`SELECT * FROM "${table}" ORDER BY versionHash`)
         .all() as Record<string, unknown>[]
       expect(after).toHaveLength(2)
-      if (migrationName === '20260908035020_smooth_purple_man') {
-        expect(Object.keys(requireDefined(after[0]))).not.toContain('version')
-      }
       for (const [index, row] of after.entries()) {
+        expect(row.sourceGeometry).toBeNull()
         for (const [key, value] of Object.entries(row))
-          expect(value).toEqual(
-            requireDefined(requireDefined(before.get(table))[index])[key],
-          )
+          if (key !== 'sourceGeometry')
+            expect(value).toEqual(
+              requireDefined(requireDefined(before.get(table))[index])[key],
+            )
         expect(row.rawProperties).toBe(
           requireDefined(requireDefined(before.get(table))[index]).rawProperties,
         )
       }
     }
-    expect(tables.length).toBeGreaterThan(10)
+    expect(tables.sort()).toEqual([
+      'hkgovAlsAddresses2d',
+      'hkgovAlsAddresses3d',
+      'overtureDivisionAreas',
+      'overtureDivisionBoundaries',
+      'overtureDivisions',
+      'overturePlaces',
+    ])
     db.close()
   })
 }
