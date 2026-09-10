@@ -43,6 +43,10 @@ source and metadata bindings. The release can resume retained payloads after
 interruption; publication follows successful local delivery and releases database
 ownership.
 
+Planning Unit and New Town source SQL derives its columns from the source schema.
+Publisher codes and names remain in `rawProperties`; delivery preserves the complete
+source geometry and does not synthesise redundant source columns.
+
 Planning Division normalisation, comparison and materialisation run inside delivery-plan
 preparation. Retained local and remote plans skip those stages and reuse sealed payloads
 and completion counts. Local preparation uses disposable WAL-safe database copies;

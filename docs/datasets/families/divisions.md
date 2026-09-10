@@ -16,10 +16,12 @@ counts its inventory as added. Identity, hierarchy, attributes and names partici
 change detection; geometry and ingestion provenance do not.
 
 Both general and Planning division publication calculate these API statistics.
-Reconciled division release sets use the same calculation and recover missing churn for
-both current and archived cohorts. Draft API sets wait for their required companion
-snapshots before calculating statistics. To rebuild local statistics for all published
-division domains, run:
+
+Planning source SQL uses schema-derived column lists and retains publisher attributes in
+`rawProperties` alongside the complete source geometry. Reconciled division release sets
+use the same calculation and recover missing churn for both current and archived
+cohorts. Draft API sets wait for their required companion snapshots before calculating
+statistics. To rebuild local statistics for all published division domains, run:
 
 ```sh
 ./bin/saanseoi stats:backfill-divisions --target local --dry-run
