@@ -463,6 +463,16 @@ Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 
 ## Publisher source boundary
 
+### Trial imports with incomplete ALS coverage
+
+`SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS` accepts exact comma-separated
+`environment:sourceVersion` scopes for explicitly authorised trials. Unresolved Address
+reviews retain their source text, candidates and original reason in the release-owned
+review file and provenance fixtures, but publish no Address link. Reviewed identity
+decisions remain unchanged and are not reported as applied to deferred rows. This option
+does not change existing ALS snapshots or backfill later premises into earlier history.
+Without the scoped option, identity review blocks publication.
+
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
