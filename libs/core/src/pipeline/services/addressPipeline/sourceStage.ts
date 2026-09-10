@@ -1,3 +1,4 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
 import type { DatasetProcessingMessage } from '../../../types'
 import type { sourceSchema, SourceDatabase } from '@repo/db'
 
@@ -43,7 +44,7 @@ export async function writeAddressSourceChunkStage(
   }
 
   const uniqueRows = dedupeNormalisedAddressRows(artefact.rows).filter(
-    row => row.raw.sourceFile !== 'hkgov-dpo-address-hierarchies.json',
+    row => readAlsPublisherSource(row.raw) !== null,
   )
   const sourceRecordIds = uniqueRows.map(row => row.sourceId)
   const currentSourceRows = await getCurrentSourceHkgovAlsAddress2dRecords(
@@ -116,8 +117,9 @@ async function writeHkgovSourceRows(
       validFromRelease: message.sourceVersion,
       validToRelease: null,
       isCurrent: true,
-      sources: normaliseSourceReferences(row.base.sources),
-      rawProperties: row.raw,
+      sources: readAlsPublisherSource(row.raw)!.sources,
+      rawProperties: readAlsPublisherSource(row.raw)!.rawProperties,
+      sourceGeometry: readAlsPublisherSource(row.raw)!.sourceGeometry,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 
     versionRows.push(hkgovSourceRow)

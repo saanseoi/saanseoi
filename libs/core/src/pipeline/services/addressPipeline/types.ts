@@ -84,6 +84,7 @@ export type NormalisedAddressChunkArtefact = {
 }
 
 export type ResolvedAddressRecord = {
+  sourceResolution?: import('@repo/db/historySchema').NewSourceResolution
   addressId: string
   base: AddressRow
   changed: boolean

@@ -36,8 +36,9 @@ test('ALS history preserves distinct source owners at one street address and exa
       createdAt: timestamp,
       updatedAt: timestamp,
     })
-    const rows = ['ban-tip', 'social-service', 'reviewed-alias'].map(id =>
-      normaliseAddressRowForPipeline({
+    const rows = ['ban-tip', 'social-service', 'reviewed-alias'].map(id => ({
+      raw: {},
+      ...normaliseAddressRowForPipeline({
         id,
         canonicalId: id === 'reviewed-alias' ? 'reviewed-owner' : id,
         divisionSnapshotId: 'division-snapshot',
@@ -47,7 +48,7 @@ test('ALS history preserves distinct source owners at one street address and exa
         enStreetName: 'CHUNG NGA ROAD',
         enStreetNumberFrom: '11',
       }),
-    )
+    }))
     expect(new Set(rows.map(row => row.matchKey)).size).toBe(1)
     expect(requireDefined(rows[0]).matchKey).not.toBeNull()
     const message = {

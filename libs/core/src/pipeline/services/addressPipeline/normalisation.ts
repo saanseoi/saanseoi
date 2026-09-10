@@ -1,3 +1,4 @@
+import { readAlsPublisherSource } from '../alsSourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/address-normalisation.json'
 import {
@@ -6,7 +7,7 @@ import {
   ProcessingGuardError,
 } from '../../../provenance'
 
-import { asNonEmptyString, asString, createHash } from '../../utils'
+import { asNonEmptyString, asString } from '../../utils'
 import type { NormalisedAddressRecord } from './types'
 import { correctHkgovAddressComponents } from './componentCorrections'
 import { establishAddressGranularity } from './granularity'
@@ -65,77 +66,26 @@ function normaliseAddressRowForPipelineInternal(
   return normalised
 }
 
-/**
- * Returns the publisher source record fields used to version an ALS source row.
- *
- * Prepared ALS rows include release and ingestion bookkeeping alongside the
- * publisher data. Those values naturally change on every upload and must not
- * create a new source record when the address itself is unchanged.
- */
+/** Only the captured publisher assertion determines a source version. */
 export function buildHkgovAlsSourceHashInput(row: Record<string, unknown>) {
-  return Object.fromEntries(
-    Object.entries(row).filter(([key]) => !HKGOV_ALS_SOURCE_HASH_OMITTED_KEYS.has(key)),
-  )
+  const source = readAlsPublisherSource(row)
+  if (!source)
+    throw new Error('ALS publisher evidence is missing; prepare the release again.')
+  return { rawProperties: source.rawProperties, sourceGeometry: source.sourceGeometry }
 }
 
-/**
- * Compares a prepared row with a current source record.
- *
- * Existing rows may retain the earlier whole-row hash. Rehashing their stored
- * raw properties with the source record-only input lets the new comparison take
- * effect without first rewriting every source-row primary key.
- */
 export async function isUnchangedHkgovAlsSourcePayload(
   current:
     | {
-        rawProperties?: Record<string, unknown> | null
         sourcePayloadHash: string | null
+        rawProperties?: Record<string, unknown> | null
       }
     | null
     | undefined,
   sourcePayloadHash: string,
 ) {
-  if (!current) return false
-
-  if (current.rawProperties) {
-    return (
-      (await createHash(buildHkgovAlsSourceHashInput(current.rawProperties))) ===
-      sourcePayloadHash
-    )
-  }
-
-  return current.sourcePayloadHash === sourcePayloadHash
+  return Boolean(current && current.sourcePayloadHash === sourcePayloadHash)
 }
-
-const HKGOV_ALS_SOURCE_HASH_OMITTED_KEYS = new Set([
-  'parentAddressId',
-  'curatedGranularity',
-  'hierarchyCuration',
-  'areaId',
-  'canonicalId',
-  'cohortKey',
-  'country',
-  'countryId',
-  'divisionSnapshotId',
-  'districtId',
-  'id',
-  'identityAlias',
-  'identityBuildingId',
-  'identityContinuityKey',
-  'identityKey',
-  'identityMatchMethod',
-  'identityNumberFrom',
-  'identityNumberTo',
-  'identityRouteNames',
-  'identitySummary',
-  'region',
-  'sourceFeatureIndexOneBased',
-  'sourceFile',
-  'sources',
-  'sourceVersion',
-  'theme',
-  'type',
-])
 
 export function dedupeNormalisedAddressRows(rows: NormalisedAddressRecord[]) {
   return [
@@ -170,7 +120,9 @@ function normalisePreparedHkgovAddressRow(
   sourceVersion: unknown,
   componentCorrections: Array<{ id: string; revision: number }>,
 ) {
-  const sourceId = requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
+  const sourceId =
+    readAlsPublisherSource(row)?.sourceRecordId ??
+    requireText(row.id, 'Prepared HKGov ALS row is missing `id`.')
   const canonicalId = requireText(
     row.canonicalId ?? row.id,
     'Prepared HKGov ALS row is missing `canonicalId`.',

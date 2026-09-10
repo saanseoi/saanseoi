@@ -64,63 +64,55 @@ test('excludes release-specific source provenance from the address content hash'
   expect(await createHash(firstRelease)).toBe(await createHash(nextRelease))
 })
 
-test('excludes ALS release and ingestion bookkeeping from source record hashes', async () => {
-  const sourceAssertion = {
-    easting: 836_000,
-    enFormattedAddress: '1 Example Road, Hong Kong',
-    engPremisesAddressJson: '{"BuildingName":"Example House"}',
-    geoAddress: 'ABC123',
-    geometry: '{"coordinates":[114.1,22.3],"type":"Point"}',
-    hkgovCsuId: 'CSU-1',
-    northing: 819_000,
-    zhHantFormattedAddress: '香港示例道1號',
+test('source hashes use captured publisher values, independent of resolutions and acquisition', async () => {
+  const publisherSource = {
+    sourceRecordId: 'source-1',
+    versionHash: 'hash',
+    rawProperties: { hkgovCsuId: '000123', enBuildingName: 'EXAMPLE III' },
+    sourceGeometry: { type: 'Point', coordinates: [114, 22] },
+    sources: [],
   }
-  const firstRelease = {
-    ...sourceAssertion,
-    areaId: 'area-hk',
+  const before = {
+    publisherSource,
     canonicalId: 'address-1',
-    cohortKey: '2026-06',
-    divisionSnapshotId: 'division-snapshot-2026-06',
-    id: 'address-1',
-    identityKey: 'first-identity-key',
-    sourceFeatureIndexOneBased: 17,
-    sourceFile: 'als_addresses_(central_district).geojson',
-    sourceVersion: '2026-06-01.0',
-    sources: '{"hkgovAls":{"cohortKey":"2026-06"}}',
+    enBuildingName: 'EXAMPLE 3',
   }
-  const nextRelease = {
-    ...firstRelease,
-    cohortKey: '2026-07',
-    divisionSnapshotId: 'division-snapshot-2026-07',
-    identityKey: 'second-identity-key',
-    sourceFeatureIndexOneBased: 91,
-    sourceFile: 'als_addresses_(central-and-western_district).geojson',
-    sourceVersion: '2026-07-01.0',
-    sources: '{"hkgovAls":{"cohortKey":"2026-07"}}',
+  const after = {
+    ...before,
+    canonicalId: 'address-2',
+    enBuildingName: 'CURATED',
+    publisherSource: {
+      ...publisherSource,
+      sources: [{ dataset: 'als', sourceVersion: 'next' }],
+    },
   }
-
-  expect(await createHash(buildHkgovAlsSourceHashInput(firstRelease))).toBe(
-    await createHash(buildHkgovAlsSourceHashInput(nextRelease)),
-  )
-
+  const hash = await createHash(buildHkgovAlsSourceHashInput(before))
+  expect(await createHash(buildHkgovAlsSourceHashInput(after))).toBe(hash)
   expect(
     await createHash(
       buildHkgovAlsSourceHashInput({
-        ...nextRelease,
-        enFormattedAddress: '2 Example Road, Hong Kong',
+        publisherSource: {
+          ...publisherSource,
+          rawProperties: {
+            ...publisherSource.rawProperties,
+            enBuildingName: 'UPSTREAM CHANGE',
+          },
+        },
       }),
     ),
-  ).not.toBe(await createHash(buildHkgovAlsSourceHashInput(nextRelease)))
-
+  ).not.toBe(hash)
+  expect(
+    await isUnchangedHkgovAlsSourcePayload({ sourcePayloadHash: hash }, hash),
+  ).toBe(true)
   expect(
     await isUnchangedHkgovAlsSourcePayload(
-      {
-        rawProperties: firstRelease,
-        sourcePayloadHash: await createHash(firstRelease),
-      },
-      await createHash(buildHkgovAlsSourceHashInput(nextRelease)),
+      { sourcePayloadHash: 'old-prepared-row-hash' },
+      hash,
     ),
-  ).toBe(true)
+  ).toBe(false)
+  expect(() => buildHkgovAlsSourceHashInput({ id: 'old-prepared-row' })).toThrow(
+    'publisher evidence is missing',
+  )
 })
 
 test('derives only justified members of explicit building-number ranges', () => {
