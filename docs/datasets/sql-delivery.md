@@ -107,6 +107,19 @@ mirror ownership before restoring a failed resource to `processing`. A resource 
 to a published snapshot cannot be reopened. Metadata is refreshed before retained audit
 SQL runs locally; data-shard baselines and sealed payloads are unchanged.
 
+Upload registration recognises the exact retained owner only after checking every sealed
+plan against the requested release code. That retry permits staged or processing
+resources, not published resources.
+
+The owning processor preserves its cached processing-release metadata when the exact
+release, dataset, source version and sealed plans match. It does not replace that
+metadata with a newly staged record during a retained replay.
+
+Local cache dumps execute one prepared statement at a time inside the existing import
+transaction. This avoids repeated parsing of large remaining SQL tails, finalises each
+statement promptly and rolls back the dump on an error. Dumps containing trigger
+definitions retain SQLite's complete-script parser.
+
 If a bookmark becomes inactive, reports a storage reset or completes without a receipt,
 recovery uses the exact payload ETag with up to three backoff retries. A saved polling
 state without a bookmark also uses this lookup. A returned active bookmark is polled
