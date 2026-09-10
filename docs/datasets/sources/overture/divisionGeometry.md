@@ -206,13 +206,13 @@ must both resolve before restoration can complete; the audit records all ten inp
 geometry patch selects the reviewed identity `222b7818-970a-491d-98b6-b88d8c6f0161`; a
 same-named lower-level locality is not an alternative geometry input.
 
-The division ingestion audit retains Kowloon restoration and the Hong Kong Island and
-New Territories identity restorations as individual applications of their patch
-fixtures. The geometry audit retains one individual
-`overture_hong_kong_area_geometry_restored` application for each missing area geometry.
-The bulk normalisation count remains the source-row count; patched rows are not added to
-that rule's output count. No application is inferred for historical releases without
-recorded ingestion evidence.
+When an Overture cohort omits Kowloon, the division ingestion audit retains its
+restoration as an individual application of the patch fixture; the Hong Kong Island and
+New Territories identity restorations follow the same rule. The geometry audit retains
+one individual `overture_hong_kong_area_geometry_restored` application for each missing
+area geometry. The bulk normalisation count remains the source-row count; patched rows
+are not added to that rule's output count. No application is inferred for historical
+releases without recorded ingestion evidence.
 
 ## Scoped parent fixture
 

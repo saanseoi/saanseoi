@@ -16,26 +16,30 @@ const districts = overtureHongKongAreas.flatMap(area =>
   area.districtNames.map(name => ({ id: name, names: name })),
 )
 
-test('restoration captures absent and point identities, but not existing polygons', () => {
-  for (const geometry of [null, { type: 'Point', coordinates: [114, 22] }]) {
-    const rows = geometry
-      ? [
-          ...districts,
-          { id: kowloonRestorationFixture.divisionId, names: 'Kowloon', geometry },
-        ]
-      : districts
-    const actions = kowloonRestorationActions(
-      rows,
-      missingOvertureHongKongAreaRows(message, rows),
-    )
-    expect(actions).toHaveLength(1)
-    expect(actions[0]?.evidence).toMatchObject({
-      decision: geometry
-        ? 'replace-non-polygonal-source-row'
-        : 'restore-missing-source-row',
-      divisionId: kowloonRestorationFixture.divisionId,
-    })
-  }
+test('restoration applies only when Kowloon is absent from the source release', () => {
+  const actions = kowloonRestorationActions(
+    districts,
+    missingOvertureHongKongAreaRows(message, districts),
+  )
+  expect(actions).toHaveLength(1)
+  expect(actions[0]?.evidence).toMatchObject({
+    decision: 'restore-missing-source-row',
+    divisionId: kowloonRestorationFixture.divisionId,
+  })
+
+  const pointRows = [
+    ...districts,
+    {
+      id: kowloonRestorationFixture.divisionId,
+      names: 'Kowloon',
+      geometry: { type: 'Point', coordinates: [114, 22] },
+    },
+  ]
+  expect(missingOvertureHongKongAreaRows(message, pointRows)).not.toContainEqual(
+    expect.objectContaining({ id: kowloonRestorationFixture.divisionId }),
+  )
+  expect(kowloonRestorationActions(pointRows, [])).toEqual([])
+
   const rows = [
     ...districts,
     { id: kowloonRestorationFixture.divisionId, geometry: { type: 'Polygon' } },

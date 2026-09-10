@@ -285,7 +285,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     expect(rows.map(row => row.names.primary)).not.toContain('Kowloon')
   })
 
-  test('replaces an Overture area point with the canonical synthetic area', () => {
+  test('preserves Kowloon when Overture supplies its area identity as a point', () => {
     const rows = missingOvertureHongKongAreaRows(
       { regionCode: 'hk', source: 'overture', type: 'division' },
       [
@@ -299,12 +299,34 @@ describe('missingOvertureHongKongAreaRows', () => {
       ],
     )
 
-    expect(
-      rows.find(row => row.id === '17009785-57fd-4e5b-af86-2d27352e4718'),
-    ).toMatchObject({
+    expect(rows).not.toContainEqual(
+      expect.objectContaining({ id: '17009785-57fd-4e5b-af86-2d27352e4718' }),
+    )
+  })
+
+  test('replaces a non-Kowloon Overture area point with the canonical synthetic area', () => {
+    const hongKongIsland = overtureHongKongAreas.find(
+      area => area.code === 'hong-kong-island',
+    )
+    if (!hongKongIsland) throw new Error('Hong Kong Island fixture is missing.')
+    const divisionId = overtureHongKongAreaDivisionId(hongKongIsland.code)
+    const rows = missingOvertureHongKongAreaRows(
+      { regionCode: 'hk', source: 'overture', type: 'division' },
+      [
+        ...sourceRows,
+        {
+          geometry: { coordinates: [114.1768, 22.3116], type: 'Point' },
+          id: divisionId,
+          names: { primary: hongKongIsland.names.en },
+          subtype: 'locality',
+        },
+      ],
+    )
+
+    expect(rows.find(row => row.id === divisionId)).toMatchObject({
       geometry: null,
-      names: { primary: 'Kowloon' },
-      wikidata: 'Q239143',
+      names: { primary: hongKongIsland.names.en },
+      wikidata: hongKongIsland.wikidata,
     })
   })
 })

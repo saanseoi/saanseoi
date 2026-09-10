@@ -9,7 +9,7 @@ import { resolveDivisionNameTranslations } from './processLocalDivisionSqlUpload
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
 import { overtureHongKongAreas } from '@repo/core/pipeline/services/overtureHongKongAreas'
 
-test('Parquet batches resolve replacement identities before emitting source rows', async () => {
+test('Parquet batches preserve an existing Kowloon identity without a patch', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'division-replacement-order-'))
   const filename = join(directory, 'division.parquet')
   const kowloonId = '17009785-57fd-4e5b-af86-2d27352e4718'
@@ -29,8 +29,8 @@ test('Parquet batches resolve replacement identities before emitting source rows
         { name: 'names', type: 'JSON', data: names.map(name => ({ primary: name })) },
       ],
     })
-    let originalSeen = false
-    let replacementSeen = false
+    let sourceSeen = false
+    let supplementalSeen = false
     for await (const batch of readDivisionRowsWithFixtures(
       await asyncBufferFromFile(filename),
       {
@@ -42,19 +42,17 @@ test('Parquet batches resolve replacement identities before emitting source rows
     )) {
       if (!batch.rows.some(row => row.id === kowloonId)) continue
       if (batch.isSupplemental) {
-        expect(originalSeen).toBe(true)
         expect(batch.replacedDivisionIds.size).toBe(0)
-        expect(batch.processingActions[0]?.evidence).toMatchObject({
-          decision: 'replace-non-polygonal-source-row',
-        })
-        replacementSeen = true
+        expect(batch.processingActions).toEqual([])
+        supplementalSeen = true
       } else {
-        expect(batch.replacedDivisionIds.has(kowloonId)).toBe(true)
+        expect(batch.replacedDivisionIds.has(kowloonId)).toBe(false)
         expect(batch.replacedDivisionIds.has('North District')).toBe(false)
-        originalSeen = true
+        sourceSeen = true
       }
     }
-    expect(replacementSeen).toBe(true)
+    expect(sourceSeen).toBe(true)
+    expect(supplementalSeen).toBe(false)
   } finally {
     await rm(directory, { recursive: true, force: true })
   }
