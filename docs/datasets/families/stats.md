@@ -320,3 +320,36 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## API release statistics
+
+The Stats tab describes each API release's selected Statistics sources at its exact
+reference period. Counts come from the retained history rows selected by the API,
+including its current-version filter within those sources. Supporting geometry and
+lookup sources do not contribute statistical records. Duplicate shard copies count once;
+conflicting versions, missing contributing datasets and missing field definitions stop
+calculation.
+
+Metrics include geographic records, observations, dataset-qualified fields and measures,
+datasets, reference periods, geography types, canonical division linkage, field
+coverage, published/suppressed/unavailable values, numeric/categorical values,
+statistical kinds, aggregations and units. Field-label coverage uses the fields present
+in that cohort as its denominator; unverified labels remain explicit. Unlinked geography
+is a coverage fact, not an assertion that a match is incorrect. Publisher values remain
+strings and are never summed to produce these metrics.
+
+Structural changes count added, removed and retained field, measure and geography
+identities against the preceding release with the same API version, domain, region and
+period granularity. They do not compare numerical values. The first comparable release
+has no change baseline.
+
+Publication and reconciliation calculate these presentation facts. To rebuild all local
+published releases without re-ingestion or changing snapshot membership:
+
+```fish
+bun apps/harbour-cli/src/cli.ts stats:backfill-statistics --target local --dry-run
+bun apps/harbour-cli/src/cli.ts stats:backfill-statistics --target local
+```
+
+Use `--release CODE[,CODE...]` to select API releases. The backfill prepares and
+validates every selected release before replacing any saved presentation statistics.
