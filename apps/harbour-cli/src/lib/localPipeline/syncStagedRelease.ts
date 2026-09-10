@@ -19,6 +19,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import type { MetaDatabase } from '@repo/db'
+import { findPendingSqlDeliveryReleaseId } from './sqlDeliveryPending.ts'
 
 type StagedReleaseSyncPlan = {
   cohortKey: string
@@ -38,7 +39,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     releaseId: string
   },
   plan: StagedReleaseSyncPlan,
-  options: { reuseExistingRelease?: boolean } = {},
+  options: { reuseExistingRelease?: boolean; retainedDeliveryCacheDir?: string } = {},
 ) {
   const dataset =
     ((await metaDb
@@ -67,7 +68,13 @@ export async function syncStagedReleaseIntoLocalMetaCache(
   }
 
   const existingRelease = await metaDb
-    .select({ status: metaReleases.status, resourceType: metaReleases.resourceType })
+    .select({
+      id: metaReleases.id,
+      datasetId: metaReleases.datasetId,
+      sourceVersion: metaReleases.sourceVersion,
+      status: metaReleases.status,
+      resourceType: metaReleases.resourceType,
+    })
     .from(metaReleases)
     .where(eq(metaReleases.code, release.releaseCode))
     .limit(1)
@@ -77,6 +84,18 @@ export async function syncStagedReleaseIntoLocalMetaCache(
       `Resource release ${release.releaseCode} belongs to ${existingRelease.resourceType}, not ${plan.type}.`,
     )
   }
+  if (
+    existingRelease?.status === 'processing' &&
+    existingRelease.id === release.releaseId &&
+    existingRelease.datasetId === dataset.id &&
+    existingRelease.sourceVersion === plan.sourceVersion &&
+    options.retainedDeliveryCacheDir &&
+    (await findPendingSqlDeliveryReleaseId(
+      options.retainedDeliveryCacheDir,
+      release.releaseCode,
+    )) === release.releaseId
+  )
+    return
   if (
     existingRelease &&
     existingRelease.status !== 'staged' &&

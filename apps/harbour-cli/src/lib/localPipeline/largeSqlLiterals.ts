@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 /** Keep generated INSERT semantics, including its conflict clause, while staging large text. */
-export function splitLargeInsertLiterals(statement: string, maxBytes = 99_000) {
+export function splitLargeInsertLiterals(statement: string, maxBytes = 96 * 1024) {
   if (Buffer.byteLength(statement) <= maxBytes) return [statement]
   if (!/^INSERT(?: OR \w+)? INTO\b/i.test(statement.trimStart()))
     throw new Error('Only generated INSERT statements support staged SQL literals.')

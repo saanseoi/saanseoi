@@ -151,7 +151,10 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       releaseId,
     },
     plan,
-    { reuseExistingRelease: options.reuseExistingRelease },
+    {
+      reuseExistingRelease: options.reuseExistingRelease,
+      retainedDeliveryCacheDir: context.state.dbCacheDir,
+    },
   )
   const client = target.remote
     ? (createHarbourControlClient(target) as HarbourClient)
