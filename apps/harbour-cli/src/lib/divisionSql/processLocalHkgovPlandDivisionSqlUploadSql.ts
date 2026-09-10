@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, getTableColumns } from 'drizzle-orm'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import {
@@ -115,7 +115,7 @@ async function writePlandSqlArtefact(
   await writeTextArtefact(bucket, key, contents, 'application/sql; charset=utf-8')
 }
 
-async function buildPlandSourceSql(
+export async function buildPlandSourceSql(
   context: LocalAddressDbContext,
   plan: HkgovPlandDivisionUploadPlan,
   state: PlandSqlState,
@@ -159,48 +159,7 @@ async function buildPlandSourceSql(
             ),
           )
         ).flat()
-  const columns =
-    plan.source === 'hkgov-pland-new-town'
-      ? [
-          'sourceRecordId',
-          'sources',
-          'rawProperties',
-          'version',
-          'versionHash',
-          'releaseId',
-          'validFromRelease',
-          'validToRelease',
-          'isCurrent',
-          'createdAt',
-          'updatedAt',
-          'sourceGeometry',
-          'newTownId',
-          'nameEn',
-          'nameZhHant',
-          'nameZhHans',
-          'wasGeometryRepaired',
-          'repairedGeometry',
-        ]
-      : [
-          'sourceRecordId',
-          'sources',
-          'rawProperties',
-          'version',
-          'versionHash',
-          'releaseId',
-          'validFromRelease',
-          'validToRelease',
-          'isCurrent',
-          'createdAt',
-          'updatedAt',
-          'sourceGeometry',
-          'ppuCode',
-          'spuCode',
-          'tpuCode',
-          'subunitCode',
-          'wasGeometryRepaired',
-          'repairedGeometry',
-        ]
+  const columns = plandSourceSqlColumns(plan.source)
   const sourceInsert = prepareRowsForSql(
     affectedRows,
     columns,
@@ -216,6 +175,16 @@ async function buildPlandSourceSql(
   ]
 
   return sqlFile(statements)
+}
+
+export function plandSourceSqlColumns(source: string) {
+  return Object.values(
+    getTableColumns(
+      source === 'hkgov-pland-new-town'
+        ? sourceSchema.sourceHkgovPlandNewTowns
+        : sourceSchema.sourceHkgovPlandPlanningCells,
+    ),
+  ).map(column => column.name)
 }
 
 async function buildPlandHistorySql(
