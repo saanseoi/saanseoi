@@ -486,3 +486,13 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+A recognised Hong Kong Area identity supplied as a point can have source ancestry
+through one of its own districts. When that district belongs to the same reviewed Area,
+canonical ancestry ends at the Hong Kong SAR. The Area is never inserted into its own
+ancestry. The original source row, identity, names and geometry remain retained, and the
+hierarchy normalisation is recorded in the release audit.
+
+Initialisation stops at the first failed upload so a retained SQL delivery keeps
+exclusive ownership until its release is recovered. If audit delivery also fails, the
+log includes both the original guard reason and the delivery error.

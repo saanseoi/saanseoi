@@ -199,6 +199,11 @@ bounded requests. Each database retains generation order and each collection sta
 within one transaction. The local mirror replays the same retained statements after
 remote confirmation.
 
+Remote transport groups up to eight consecutive pending batches on the same database
+within a 512-data-statement and 8 MB retained-payload budget. This includes the retained
+2D publisher ledger. Grouping preserves each sealed batch's receipt, statement order and
+bound parameters; committed batches are not resubmitted on recovery.
+
 ALS supplies bilingual premise addresses. The
 [import specification](../../internal/hkgov/address.md) describes source preparation,
 identity curation and ingestion. The [Addresses family](../../families/addresses.md)
