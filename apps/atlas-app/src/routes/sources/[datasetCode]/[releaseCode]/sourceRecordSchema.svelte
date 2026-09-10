@@ -2,6 +2,7 @@
 import {
   resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  sourceRecordRawPropertyFields,
   type SourceRecordSchema,
   type SourceRecordSchemaField,
   type ResourceType,
@@ -159,7 +160,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     ? {
         description: m.source_record_schema_raw_properties_description(),
         properties: Object.fromEntries(
-          sourceSchema.fields.map(field => [
+          sourceRecordRawPropertyFields(sourceSchema).map(field => [
             field.name,
             {
               ...sourceFieldSchema(sourceSchema, field),
@@ -243,6 +244,17 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
           ? rawProperties.description
           : m.source_record_schema_unavailable(),
       },
+      ...(sourceSchema?.fields.some(field => field.name === 'sources')
+        ? {
+            sources: {
+              ...sourceFieldSchema(
+                sourceSchema,
+                sourceSchema.fields.find(field => field.name === 'sources')!,
+              ),
+              nullable: true,
+            },
+          }
+        : {}),
       geometry: {
         description: m.source_record_schema_geometry_description(),
         type: 'object',

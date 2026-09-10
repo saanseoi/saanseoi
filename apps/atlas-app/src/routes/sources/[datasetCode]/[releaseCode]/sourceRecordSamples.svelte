@@ -76,6 +76,7 @@ function toSourceSample(value: unknown) {
     variant: record.variant,
     rawProperties: record.rawProperties,
     geometry: record.geometry,
+    sources: record.sources,
   }
 }
 

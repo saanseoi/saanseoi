@@ -36,6 +36,7 @@ test('renders the first source record without fetching surplus candidates', asyn
         records: [
           {
             rawProperties: { name: 'Example division' },
+            sources: [{ dataset: 'OpenStreetMap' }],
             resourceType: 'division',
             sourceRecordId: 'record-1',
             variant: 'default',
@@ -62,6 +63,8 @@ test('renders the first source record without fetching surplus candidates', asyn
     .toBeVisible()
   await expect.element(screen.getByText('name')).toBeVisible()
   await expect.element(screen.getByText('Example division')).toBeVisible()
+  await expect.element(screen.getByText('sources', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('OpenStreetMap')).toBeVisible()
   await expect.element(screen.getByText('fields')).not.toBeInTheDocument()
   expect(fetch).toHaveBeenCalledWith(
     expect.objectContaining({
