@@ -2,6 +2,7 @@ import { readFile, rm } from 'node:fs/promises'
 import { basename } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
+import { executeSqliteDump } from './sqliteDumpExecution.ts'
 
 import {
   assertBinaryGeometryRow,
@@ -93,7 +94,7 @@ async function importDatabaseDumpsToSqlite(
 
       if (dumpSql.trim().length > 0) {
         try {
-          sqlite.exec(dumpSql)
+          executeSqliteDump(sqlite, dumpSql)
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error)
           throw new Error(`Failed to import ${basename(dumpPath)}: ${message}`)
@@ -153,7 +154,7 @@ async function replaceCachedTableRows(
       const importSql = await readFile(tableImport.sqlPath, 'utf8')
 
       if (importSql.trim().length > 0) {
-        sqlite.exec(importSql)
+        executeSqliteDump(sqlite, importSql)
       }
     }
 

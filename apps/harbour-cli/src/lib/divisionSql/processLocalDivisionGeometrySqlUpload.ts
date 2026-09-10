@@ -216,7 +216,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         dbContext.metaDb,
         { datasetCode, rawObjectKey, releaseCode, releaseId },
         previewPlan,
-        { reuseExistingRelease: options.reuseExistingRelease },
+        {
+          reuseExistingRelease: options.reuseExistingRelease,
+          retainedDeliveryCacheDir: dbContext.state.dbCacheDir,
+        },
       )
     }
 

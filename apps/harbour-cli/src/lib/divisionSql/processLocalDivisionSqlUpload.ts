@@ -203,7 +203,10 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
     },
     previewPlan,
-    { reuseExistingRelease: options.reuseExistingRelease },
+    {
+      reuseExistingRelease: options.reuseExistingRelease,
+      retainedDeliveryCacheDir: dbContext.state.dbCacheDir,
+    },
   )
   if (!target.remote) {
     progress.update(4, {
