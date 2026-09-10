@@ -114,6 +114,28 @@ test('batched receipt checks reject mismatches and missing receipts before local
     expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
   }))
 
+for (const corrupt of [false, true])
+  test(`completed local replay rejects ${corrupt ? 'mismatched' : 'missing'} receipts`, () =>
+    fixture(async f => {
+      await f.prepare()
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+      const db = new Database(f.localPath)
+      try {
+        db.exec(
+          corrupt
+            ? "UPDATE harbourSqlDeliveryReceipts SET sha256='wrong' WHERE batchIndex=1"
+            : 'DELETE FROM harbourSqlDeliveryReceipts WHERE batchIndex=1',
+        )
+      } finally {
+        db.close()
+      }
+      await expect(
+        runSqlDelivery(f.directory, { ...f.options, mode: 'local' }),
+      ).rejects.toThrow(corrupt ? 'receipt mismatch' : 'Local receipt disappeared')
+      expect(f.localValue()).toEqual({ n: 111 })
+    }))
+
 for (const grouped of [false, true])
   test(`parallel remote targets retain order with grouped transport=${grouped}`, () =>
     fixture(async f => {
