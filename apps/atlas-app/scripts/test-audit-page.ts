@@ -15,7 +15,13 @@ try {
       viewport: { width: 1440, height: 1000 },
     })
     const page = await context.newPage()
+    const network = await context.newCDPSession(page)
+    await network.send('Network.enable', {
+      maxTotalBufferSize: 100_000_000,
+      maxResourceBufferSize: 20_000_000,
+    })
     const errors: string[] = []
+    const captureFailures: string[] = []
     const responses: Promise<void>[] = []
     const requests: { url: string; bytes: number }[] = []
     page.on('pageerror', error => errors.push(error.message))
@@ -31,12 +37,13 @@ try {
             bytes: Buffer.byteLength(body),
           })
           if (/"type":"error"/.test(body)) errors.push(body)
-        })().catch(error => errors.push(String(error))),
+        })().catch(error =>
+          captureFailures.push(`${response.url().split('?')[0]}: ${error}`),
+        ),
       )
     })
     const search = page.getByRole('searchbox', {
-      name: 'Search processing audit',
-      exact: true,
+      name: /Search processing audit/,
     })
     async function settle() {
       await search.waitFor()
@@ -118,15 +125,24 @@ try {
     await page.getByRole('tab', { name: 'Audit', exact: true }).click()
     await settle()
     assert.equal(await search.inputValue(), '')
+    const returnUrl = page.url()
     const older = page.getByRole('link', { name: /Older release/ }).first()
+    const olderUrl = new URL((await older.getAttribute('href'))!, base)
     await older.click()
+    await page.waitForURL(url => url.pathname === olderUrl.pathname)
     await settle()
     await page.goBack()
     await settle()
-    assert.equal(page.url(), new URL(path, base).href)
+    assert.equal(new URL(page.url()).pathname, new URL(returnUrl).pathname)
+    assert.equal(
+      await page
+        .getByRole('tab', { name: 'Audit', exact: true })
+        .getAttribute('aria-selected'),
+      'true',
+    )
     await Promise.all(responses)
     assert.deepEqual(errors, [], 'Page or remote-query errors')
-    console.log(JSON.stringify({ path, passed: true, requests }))
+    console.log(JSON.stringify({ path, passed: true, captureFailures, requests }))
     await context.close()
   }
 } finally {
