@@ -95,3 +95,46 @@ test('retries a transient provenance registration', async () => {
   ).resolves.toBeUndefined()
   expect(registrations).toBe(2)
 })
+
+for (const endpoint of ['objects', 'releases']) {
+  for (const failure of ['text', 'network']) {
+    test(`retries ${failure} failure at provenance ${endpoint}`, async () => {
+      const { store, ref } = await processingResult()
+      process.env.HARBOUR_API_KEY = 'test-api-key'
+      let attempts = 0
+      globalThis.fetch = (async input => {
+        if (String(input).includes(`/${endpoint}/`)) {
+          attempts += 1
+          if (attempts === 1) {
+            if (failure === 'network')
+              throw new TypeError('fetch failed: Network connection lost.')
+            return new Response('Error inside ProxyWorker: Network connection lost.', {
+              status: 502,
+            })
+          }
+        }
+        return String(input).includes('/objects/')
+          ? Response.json({ hash: ref.hash, byteLength: ref.byteLength })
+          : Response.json({ manifestHash: ref.hash })
+      }) as typeof fetch
+      await expect(
+        deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
+      ).resolves.toBeUndefined()
+      expect(attempts).toBe(2)
+    })
+  }
+}
+
+test('preserves a non-JSON terminal HTTP error without retrying', async () => {
+  const { store, ref } = await processingResult()
+  process.env.HARBOUR_API_KEY = 'test-api-key'
+  let attempts = 0
+  globalThis.fetch = (async (_input: Parameters<typeof fetch>[0]) => {
+    attempts += 1
+    return new Response('Unauthorised', { status: 401 })
+  }) as typeof fetch
+  await expect(
+    deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
+  ).rejects.toThrow('HTTP 401')
+  expect(attempts).toBe(1)
+})
