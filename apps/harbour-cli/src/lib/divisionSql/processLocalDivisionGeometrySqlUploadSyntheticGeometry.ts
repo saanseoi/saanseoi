@@ -128,7 +128,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
         : null
     const districtDivisionIds =
       Array.isArray(correctionDistrictIds) && correctionDistrictIds.every(isString)
-        ? correctionDistrictIds
+        ? [...correctionDistrictIds]
         : area.districtNames.map(name => {
             const ids = districtIdsByName.get(name) ?? []
             if (ids.length !== 1) {
@@ -142,13 +142,19 @@ export async function resolveSyntheticOvertureHongKongAreas(
       const loopIds = [
         ...new Set(
           i18nRows
-            .filter(row => row.name === 'Lok Ma Chau Loop')
+            .filter(
+              row =>
+                row.name === 'Lok Ma Chau Loop' &&
+                row.divisionId ===
+                  geometryPatchFixture.parameters.newTerritoriesAdditionalDivisionId &&
+                byId.has(row.divisionId),
+            )
             .map(row => row.divisionId),
         ),
       ]
       if (loopIds.length !== 1)
         throw new Error(
-          `Cannot derive New Territories geometry: expected one Lok Ma Chau Loop identity, found ${loopIds.length}.`,
+          `Cannot derive New Territories geometry: expected the reviewed Lok Ma Chau Loop identity ${geometryPatchFixture.parameters.newTerritoriesAdditionalDivisionId}, found ${loopIds.length}.`,
         )
       const loopId = requireDefined(loopIds[0])
       if (!districtDivisionIds.includes(loopId)) districtDivisionIds.push(loopId)
