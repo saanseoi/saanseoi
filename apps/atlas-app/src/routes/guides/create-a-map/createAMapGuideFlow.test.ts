@@ -1,8 +1,10 @@
 import { describe, expect, mock, test } from 'bun:test'
 
+mock.module('cloudflare:workers', () => ({ env: {}, waitUntil: () => {} }))
+
 mock.module('$app/server', () => ({
   command: (_schema: unknown, handler: unknown) => handler,
-  getRequestEvent: () => ({ locals: {}, platform: undefined }),
+  getRequestEvent: () => ({ locals: {} }),
 }))
 
 const {

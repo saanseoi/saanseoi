@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import { command, getRequestEvent } from '$app/server'
 import { z } from 'zod'
 
@@ -15,7 +16,7 @@ const createApiKeySchema = z.object({
 const getIdentity = () => {
   const event = getRequestEvent()
   const userId = event.locals.user?.id
-  const binding = event.platform?.env.DB_META
+  const binding = env.DB_META
 
   if (!userId || !binding) return null
 

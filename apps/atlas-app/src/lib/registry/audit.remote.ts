@@ -1,4 +1,5 @@
-import { query, getRequestEvent } from '$app/server'
+import { env } from 'cloudflare:workers'
+import { query } from '$app/server'
 import { z } from 'zod'
 import { and, eq, sql, metaSchema } from '@repo/db'
 import {
@@ -20,7 +21,7 @@ import { alsAuditDecisions } from '#lib/bits/pages/docs/components/releaseAudit/
 import { matchesAudit } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch.js'
 
 function store() {
-  const bucket = getRequestEvent().platform?.env.R2_GUIDE_ASSETS
+  const bucket = env.R2_GUIDE_ASSETS
   if (!bucket) throw new Error('Release audit storage is unavailable.')
   return bucket
 }

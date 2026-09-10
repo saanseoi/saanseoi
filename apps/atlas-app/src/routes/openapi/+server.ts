@@ -1,8 +1,8 @@
 import { error, type RequestHandler } from '@sveltejs/kit'
 import { atlasApiBaseUrl } from '#lib/server/atlasApi.js'
 
-export const GET: RequestHandler = async ({ fetch, platform, request, url }) => {
-  const openApiUrl = new URL(`${atlasApiBaseUrl(url, platform)}/openapi`)
+export const GET: RequestHandler = async ({ fetch, request, url }) => {
+  const openApiUrl = new URL(`${atlasApiBaseUrl(url)}/openapi`)
   openApiUrl.search = url.search
 
   const response = await fetch(openApiUrl, {

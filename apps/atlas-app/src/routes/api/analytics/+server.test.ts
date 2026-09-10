@@ -1,13 +1,17 @@
-import { describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, mock, test } from 'bun:test'
 
-import { POST } from './+server'
-
-const makePlatform = (events: unknown[]) => ({
+const events: unknown[] = []
+mock.module('cloudflare:workers', () => ({
+  waitUntil: () => {},
   env: {
     PRODUCT_USAGE: {
       writeDataPoint: (event: unknown) => events.push(event),
     },
   },
+}))
+const { POST } = await import('./+server')
+beforeEach(() => {
+  events.length = 0
 })
 
 describe('product usage fallback endpoint', () => {
@@ -20,14 +24,12 @@ describe('product usage fallback endpoint', () => {
           surface: 'api',
         }),
       }),
-      platform: makePlatform([]),
     } as never)
 
     expect(response.status).toBe(400)
   })
 
   test('sanitises identifiers and never records copied text', async () => {
-    const events: unknown[] = []
     const response = await POST({
       request: new Request('http://localhost/api/analytics', {
         method: 'POST',
@@ -40,7 +42,6 @@ describe('product usage fallback endpoint', () => {
           entityId2: 'copied text should never be sent',
         }),
       }),
-      platform: makePlatform(events),
     } as never)
 
     expect(response.status).toBe(204)

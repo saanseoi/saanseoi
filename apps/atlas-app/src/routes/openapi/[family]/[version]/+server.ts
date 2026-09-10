@@ -10,13 +10,7 @@ const apiFamilies = new Set([
   'streets',
 ])
 
-export const GET: RequestHandler = async ({
-  fetch,
-  params,
-  platform,
-  request,
-  url,
-}) => {
+export const GET: RequestHandler = async ({ fetch, params, request, url }) => {
   const family = params.family
   const version = params.version
   if (
@@ -29,8 +23,8 @@ export const GET: RequestHandler = async ({
 
   const openApiUrl = new URL(
     family === 'registry'
-      ? `${atlasApiBaseUrl(url, platform)}/openapi/registry/${version}`
-      : `${atlasApiBaseUrl(url, platform)}/openapi/${family}/${version}`,
+      ? `${atlasApiBaseUrl(url)}/openapi/registry/${version}`
+      : `${atlasApiBaseUrl(url)}/openapi/${family}/${version}`,
   )
   openApiUrl.search = url.search
 

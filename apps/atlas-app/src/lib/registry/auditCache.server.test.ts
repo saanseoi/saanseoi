@@ -7,24 +7,33 @@ mock.module('$app/server', () => ({
     get url(): never {
       throw new Error('Cannot access event.url in a query')
     },
-    platform: {
-      caches: {
-        async open() {
-          return {
-            async match(request: Request) {
-              return entries.get(request.url)?.clone()
-            },
-            async put(request: Request, response: Response) {
-              entries.set(request.url, response)
-            },
-          }
-        },
-      },
-      ctx: { waitUntil: (write: Promise<unknown>) => writes.push(write) },
-    },
   }),
 }))
-afterAll(() => mock.restore())
+mock.module('cloudflare:workers', () => ({
+  env: {},
+  waitUntil: (write: Promise<unknown>) => writes.push(write),
+}))
+const originalCaches = Object.getOwnPropertyDescriptor(globalThis, 'caches')
+Object.defineProperty(globalThis, 'caches', {
+  configurable: true,
+  value: {
+    async open() {
+      return {
+        async match(request: Request) {
+          return entries.get(request.url)?.clone()
+        },
+        async put(request: Request, response: Response) {
+          entries.set(request.url, response)
+        },
+      }
+    },
+  },
+})
+afterAll(() => {
+  if (originalCaches) Object.defineProperty(globalThis, 'caches', originalCaches)
+  else Reflect.deleteProperty(globalThis, 'caches')
+  mock.restore()
+})
 const { cachedAuditData } = await import('./auditCache.server')
 
 test('remote queries populate and reuse the cache without accessing event.url', async () => {

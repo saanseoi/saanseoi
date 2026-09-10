@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import { redirect } from '@sveltejs/kit'
 import { command, getRequestEvent, query } from '$app/server'
 import { z } from 'zod'
@@ -20,7 +21,7 @@ const revokeApiKeySchema = z.object({
 const getIdentity = () => {
   const event = getRequestEvent()
   const userId = event.locals.user?.id
-  const binding = event.platform?.env.DB_META
+  const binding = env.DB_META
 
   if (!userId) redirect(303, '/sign-in?next=/api-keys')
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
