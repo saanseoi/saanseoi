@@ -169,8 +169,11 @@ describe('division geometry normalisation', () => {
     for (const field of ['isLand', 'isTerritorial', 'subtype', 'class']) {
       expect(normalised.source).not.toHaveProperty(field)
     }
+    expect<unknown>(normalised.source.sourceGeometry).toEqual(polygon)
+    expect(normalised.source.rawProperties).not.toHaveProperty('geometry')
+    expect(normalised.source.rawProperties).not.toHaveProperty('sources')
+    expect(normalised.source.rawProperties).not.toHaveProperty('id')
     expect(normalised.source.rawProperties).toMatchObject({
-      geometry: polygon,
       bbox: [99, 99, 100, 100],
       class: 'land',
     })

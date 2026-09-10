@@ -1,3 +1,4 @@
+import { overtureSourcePayload } from './sourcePayload'
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
 import { registerRule, ProcessingGuardError } from '../../provenance'
 import { ruleDeclarationFromFixture } from '../../provenance/ruleFixture'
@@ -161,7 +162,10 @@ function normaliseDivisionAreaGeometry(
     },
     source: {
       rawProperties: sourceRawProperties(row, source),
-      sources: normaliseSourceReferences(row.sources),
+      sources:
+        source === 'overture'
+          ? overtureSourcePayload(row).sources
+          : normaliseSourceReferences(row.sources),
       sourceRecordId: id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
@@ -220,8 +224,12 @@ function normaliseDivisionBoundaryGeometry(
     },
     source: {
       rawProperties: sourceRawProperties(row, source),
-      sources: normaliseSourceReferences(row.sources),
+      sources:
+        source === 'overture'
+          ? overtureSourcePayload(row).sources
+          : normaliseSourceReferences(row.sources),
       sourceRecordId: id,
+      sourceGeometry: geometry,
     },
   }
 }
@@ -372,6 +380,7 @@ function normaliseSources(value: unknown, source: string) {
 }
 
 function sourceRawProperties(row: Record<string, unknown>, source: string) {
+  if (source === 'overture') return overtureSourcePayload(row).rawProperties
   if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return { ...row }
 
   const properties = row.source_properties
@@ -382,6 +391,7 @@ function sourceRawProperties(row: Record<string, unknown>, source: string) {
 }
 
 function sourceGeometry(row: Record<string, unknown>, source: string) {
+  if (source === 'overture') return parseWkbGeometry(row.geometry) ?? undefined
   if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return undefined
   return requireGeometry(
     row.source_geometry,

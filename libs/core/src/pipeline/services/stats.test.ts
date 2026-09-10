@@ -203,6 +203,8 @@ describe('stats rows', () => {
 
   test('builds address source-release lifecycle stats', () => {
     const rows = buildAddressReleaseStatsRows({
+      address3dCount: 3,
+      address3dI18nCount: 6,
       addedRows: 2,
       changedRows: 3,
       componentCounts: { street_name: 10, village_name: 10 },
@@ -221,6 +223,16 @@ describe('stats rows', () => {
       unchangedRows: 5,
     })
 
+    expect(
+      rows.filter(row => row.groupBy === 'table' && row.metric === 'count'),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ groupValue: 'address2d', value: 10 }),
+        expect.objectContaining({ groupValue: 'address2dI18n', value: 18 }),
+        expect.objectContaining({ groupValue: 'address3d', value: 3 }),
+        expect.objectContaining({ groupValue: 'address3dI18n', value: 6 }),
+      ]),
+    )
     expect(rows).toContainEqual(
       expect.objectContaining({
         dimension: 'added_count',
