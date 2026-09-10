@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { StatisticsProfilePresentation } from '../releaseStats.types'
+import Summary from './releaseStatsStatisticsSummary.svelte'
 import Distribution from './releaseStatsProfileDistribution.svelte'
 import Availability from './releaseStatsProfileAvailability.svelte'
 
@@ -22,6 +23,8 @@ let distributionColumns = $derived.by(() => {
   return columns
 })
 </script>
+
+<Summary metrics={profile.metrics} />
 
 {#if profile.coverage}
   <section class="py-6">

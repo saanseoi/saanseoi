@@ -129,7 +129,12 @@ export function createReleaseStatsPresentation({
                 ? '—'
                 : formatReleaseStat(locale, churnValue(dimension)),
           }))
-          addHeading('stats-overview', copy.labels.overview ?? copy.labels.dataset)
+          addHeading(
+            'stats-overview',
+            statistics
+              ? 'Statistics overview'
+              : (copy.labels.overview ?? copy.labels.dataset),
+          )
           if (statistics) headings.unshift(...headings.splice(headings.length - 1, 1))
           return {
             recordCount: formatReleaseStat(

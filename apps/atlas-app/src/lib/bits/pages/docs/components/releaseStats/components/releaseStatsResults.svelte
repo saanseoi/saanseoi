@@ -31,7 +31,7 @@ let {
 } = $props()
 </script>
 <div class="grid gap-6">
-  {#if presentation.overview}
+  {#if presentation.overview && !presentation.statisticsProfile}
     <Overview overview={presentation.overview} {labels} />
   {/if}
   {#if presentation.placeProfile}
