@@ -3,11 +3,13 @@ import type { Json } from '@repo/core/provenance'
 import { untrack } from 'svelte'
 import { m } from '#lib/bits/internal/i18n.js'
 import { getAuditFixtureGroup } from '#lib/registry/audit.remote.js'
-import type { FixtureSearchGroup } from './auditFixtureCatalogue'
+import { filterIndexedFixture, type FixtureSearchGroup } from './auditFixtureCatalogue'
 import { matchesAuditText } from './auditSearch'
 import FixtureDisclosure from './auditFixtureDisclosure.svelte'
 import AuditFixture from './auditFixture.svelte'
 import Skeleton from './auditApplicationSkeleton.svelte'
+import { loadedFixtures } from './auditLoadedFixtures'
+const retained = loadedFixtures()
 
 let {
   releaseId,
@@ -33,14 +35,25 @@ let value = $state<Json>()
 let failure = $state(false)
 let retry = $state(0)
 let count = $derived(group.rows.filter(text => matchesAuditText(query, text)).length)
+let filtered = $derived(
+  value === undefined ? undefined : filterIndexedFixture(value, group, query),
+)
 $effect(() => {
   if (!open) return
   retry
+  const key = JSON.stringify([releaseId, hash, bulkId, type])
+  const cached = retained.get(key)
+  if (cached !== undefined) {
+    value = cached
+    failure = false
+    return
+  }
   let current = true
   value = undefined
   failure = false
-  getAuditFixtureGroup({ releaseId, hash, bulkId, type, q: query })
+  getAuditFixtureGroup({ releaseId, hash, bulkId, type, q: '' })
     .then(result => {
+      retained.set(key, result)
       if (current) value = result
     })
     .catch(() => {
@@ -60,8 +73,8 @@ $effect(() => {
       / {group.rows.length}</span
     >
   {/snippet}
-  {#if value !== undefined}
-    <AuditFixture {value} />
+  {#if filtered !== undefined}
+    <AuditFixture value={filtered} />
   {:else if failure}
     <p role="alert">{m.source_audit_load_actions_error()}</p>
     <button type="button" class="text-sm underline" onclick={() => retry++}>

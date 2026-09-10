@@ -1,5 +1,8 @@
 <script lang="ts">
 import type { IndividualAudit } from '@repo/core/provenance'
+import { auditActionSearchText } from '@repo/core/provenance/auditPageIndex'
+import { untrack } from 'svelte'
+import { matchesAuditText } from './auditSearch'
 import { m } from '#lib/bits/internal/i18n.js'
 import { getAuditPage } from '#lib/registry/audit.remote.js'
 import ApplicationCard from './auditApplicationCard.svelte'
@@ -30,8 +33,38 @@ let nextOffset = $state<number | null>(0)
 let loading = $state(false)
 let failure = $state('')
 let generation = 0
+let scope = ''
+let complete: Array<{ row: IndividualAudit; text: string }> | undefined
+let resolved = $state(false)
 async function load(reset = false) {
   const request = ++generation
+  const currentScope = JSON.stringify([
+    releaseId,
+    hash,
+    category,
+    fixtureIndex,
+    entryIndex,
+  ])
+  if (currentScope !== scope) {
+    scope = currentScope
+    complete = undefined
+    rows = []
+    resolved = false
+  }
+  const offset = reset ? 0 : (nextOffset ?? 0)
+  const currentQuery = query
+  if (complete) {
+    const matching = complete.filter(entry =>
+      matchesAuditText(currentQuery, entry.text),
+    )
+    rows = matching.slice(0, offset + 50).map(entry => entry.row)
+    nextOffset = rows.length < matching.length ? rows.length : null
+    loading = false
+    failure = ''
+    onLoading?.(false)
+    onResult?.({ total: matching.length, bulkIds: [] })
+    return
+  }
   loading = true
   onLoading?.(true)
   try {
@@ -41,13 +74,16 @@ async function load(reset = false) {
       category,
       fixtureIndex,
       entryIndex,
-      q: query,
-      offset: reset ? 0 : (nextOffset ?? 0),
+      q: currentQuery,
+      offset,
     })
     if (request !== generation) return
     rows = reset ? page.rows : [...rows, ...page.rows]
     nextOffset = page.nextOffset
     failure = ''
+    resolved = true
+    if (!currentQuery && page.nextOffset === null)
+      complete = rows.map(row => ({ row, text: auditActionSearchText(row) }))
     onResult?.({ total: page.total, bulkIds: page.bulkIds })
   } catch {
     if (request === generation) failure = m.source_audit_load_actions_error()
@@ -62,14 +98,19 @@ $effect(() => {
   query
   releaseId
   hash
-  void load(true)
+  category
+  fixtureIndex
+  entryIndex
+  untrack(() => {
+    void load(true)
+  })
   return () => {
     generation++
   }
 })
 </script>
 
-<div class="space-y-5">
+<div class="space-y-5" aria-busy={loading}>
   {#each rows as row (row.id)}
     {@const comparison = auditApplicationComparison(row)}
     {@const areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored'}
@@ -96,11 +137,11 @@ $effect(() => {
       {m.source_audit_retry_actions()}
     </button>
   {/if}
-  {#if loading}
+  {#if loading && !resolved}
     {#key query}
       <ApplicationSkeleton />
     {/key}
-  {:else if nextOffset !== null && rows.length}
+  {:else if !loading && nextOffset !== null && rows.length}
     <button
       type="button"
       class="rounded-lg border border-current/20 px-3 py-2 text-sm"

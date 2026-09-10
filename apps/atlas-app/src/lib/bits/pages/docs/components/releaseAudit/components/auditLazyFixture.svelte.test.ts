@@ -35,4 +35,11 @@ test('closed fixture groups use search metadata without requesting evidence', as
     type: 'entries',
     q: '',
   })
+  await screen.rerender({ query: 'absent' })
+  await expect
+    .poll(() => screen.getByText('Lazy evidence', { exact: true }).elements())
+    .toHaveLength(0)
+  await screen.rerender({ query: 'lazy' })
+  await expect.element(screen.getByText('Lazy evidence', { exact: true })).toBeVisible()
+  expect(getAuditFixtureGroup).toHaveBeenCalledTimes(1)
 })

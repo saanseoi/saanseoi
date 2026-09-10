@@ -26,6 +26,8 @@ let decisions = $state<AlsDecision[]>([])
 let loading = $state(false)
 let failure = $state(false)
 let generation = 0
+let scope = ''
+const retained = new Map<string, AlsDecision>()
 const read = (offset = 0, copy = false) =>
   getAuditAlsDecisions({
     releaseId,
@@ -40,10 +42,28 @@ async function load(reset = false) {
   const request = ++generation
   loading = true
   failure = false
-  if (reset) decisions = []
+  const currentScope = JSON.stringify([releaseId, hash, all[0]?.kind])
+  if (scope !== currentScope) {
+    scope = currentScope
+    retained.clear()
+    decisions = []
+  }
+  const offset = reset ? 0 : decisions.length
+  const wanted = visible.slice(0, offset + 10)
+  if (wanted.every(row => retained.has(row.id))) {
+    decisions = wanted.flatMap(row => {
+      const decision = retained.get(row.id)
+      return decision ? [decision] : []
+    })
+    loading = false
+    return
+  }
   try {
-    const page = await read(decisions.length)
-    if (request === generation) decisions = [...decisions, ...page]
+    const page = await read(offset)
+    if (request === generation) {
+      for (const row of page) retained.set(row.id, row)
+      decisions = reset ? page : [...decisions, ...page]
+    }
   } catch {
     if (request === generation) failure = true
   } finally {

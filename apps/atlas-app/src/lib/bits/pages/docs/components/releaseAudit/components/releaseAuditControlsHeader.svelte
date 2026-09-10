@@ -19,6 +19,10 @@ let {
   loading = false,
   totalCount,
 }: Props = $props()
+let resolved = $state(false)
+$effect(() => {
+  if (!loading) resolved = true
+})
 </script>
 
 <div class="flex flex-wrap items-center justify-between gap-4">
@@ -53,14 +57,17 @@ let {
         </Tooltip.Content>
       </Tooltip.Portal>
     </Tooltip.Root>
-    {#if loading}
+    {#if loading && !resolved}
       <span
         class="h-4 w-14 rounded-full bg-data-surface-container-high motion-safe:animate-pulse"
         aria-hidden="true"
       ></span>
       <span class="sr-only">{m.source_audit_loading_count()}</span>
     {:else}
-      <p class="font-mono text-label-md tabular-nums text-foreground-alt">
+      <p
+        class="font-mono text-label-md tabular-nums text-foreground-alt"
+        aria-busy={loading}
+      >
         {filteredCount}
         / {totalCount}
       </p>
