@@ -703,6 +703,7 @@ describe('shouldCompressCanonicalGeometry', () => {
     expect(shouldCompressCanonicalGeometry('hkgov-censtatd', undefined)).toBeTrue()
     expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', undefined)).toBeTrue()
     expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', 'simplified')).toBeTrue()
+    expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', 'simplified')).toBeTrue()
   })
 
   test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {

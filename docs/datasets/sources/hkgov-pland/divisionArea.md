@@ -45,7 +45,9 @@ ownership.
 
 Planning Unit and New Town source SQL derives its columns from the source schema.
 Publisher codes and names remain in `rawProperties`; delivery preserves the complete
-source geometry and does not synthesise redundant source columns.
+source geometry and does not synthesise redundant source columns. Planning canonical and
+simplified geometry is stored as Brotli JSON so large cells remain within D1 row limits;
+decompression restores the same geometry value.
 
 Planning Division normalisation, comparison and materialisation run inside delivery-plan
 preparation. Retained local and remote plans skip those stages and reuse sealed payloads
