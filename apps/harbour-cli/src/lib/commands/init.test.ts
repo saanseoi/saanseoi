@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 
 import {
@@ -613,4 +614,36 @@ describe('initialisation commands', () => {
       ].join('\n'),
     )
   })
+})
+
+test('a failed upload stops the coordinator before another release can claim SQL ownership', () => {
+  const directory = mkdtempSync(resolve(tmpdir(), 'init-stop-on-failure-'))
+  try {
+    mkdirSync(resolve(directory, 'bin'))
+    writeFileSync(resolve(directory, 'bin/saanseoi'), '#!/bin/sh\nexit 7\n', {
+      mode: 0o755,
+    })
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+      source scripts/init/common.fish
+      cd "$argv[1]"
+      function init_skip_completed_release
+        return 1
+      end
+      init_run_upload dr-failing input.parquet
+      echo incorrectly-continued
+    `,
+        directory,
+      ],
+      cwd: resolve(import.meta.dir, '../../../../..'),
+    })
+    expect(result.exitCode).toBe(7)
+    expect(result.stdout.toString()).not.toContain('incorrectly-continued')
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
 })
