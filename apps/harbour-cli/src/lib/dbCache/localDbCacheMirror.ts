@@ -27,7 +27,6 @@ import {
   checkpointSqliteDatabase,
   createRemoteD1QueryClient,
   exportRemoteDatabase,
-  exportRemoteTable,
   importDatabaseDumpsToSqlite,
   replaceCachedTableRows,
   runMirrorCommand,
@@ -44,6 +43,23 @@ import {
   shouldMirrorBinaryGeometryTable,
 } from './localDbCacheGeometry.ts'
 import { quoteSqlIdentifier } from './localDbCacheReads.ts'
+
+export function groupCacheExportTables(
+  bindingName: string,
+  tables: string[],
+  profile?: CacheTableProfile,
+) {
+  return [false, true]
+    .map(schemaOnly => ({
+      schemaOnly,
+      tables: tables.filter(
+        table =>
+          (shouldMirrorTableSchemaOnly(bindingName, table, profile) ||
+            shouldMirrorBinaryGeometryTable(table)) === schemaOnly,
+      ),
+    }))
+    .filter(group => group.tables.length > 0)
+}
 
 export async function refreshRemoteCacheTables(
   target: 'preview' | 'production',
@@ -287,6 +303,30 @@ export async function mirrorRemoteTargetToLocal(
           dumpPaths.push(dumpPath)
           currentUnit += 1
         } else {
+          for (const group of groupCacheExportTables(
+            targetRecord.bindingName,
+            tables,
+            options.cacheTableProfile,
+          )) {
+            const dumpPath = resolve(
+              workDir,
+              `${targetRecord.bindingName}-${group.schemaOnly ? 'schema' : 'data'}.sql`,
+            )
+            const event: LocalDbCacheProgressEvent = {
+              action: 'export-binding',
+              bindingName: targetRecord.bindingName,
+              current: currentUnit,
+              tableName: group.tables[0],
+              target,
+              total: options.totalUnits,
+            }
+            await runWithProgressHeartbeat(options.onProgress, event, () =>
+              retryRemoteCacheExport(() =>
+                exportRemoteDatabase(targetRecord, target, dumpPath, group),
+              ),
+            )
+            dumpPaths.push(dumpPath)
+          }
           for (const tableName of tables) {
             const exportEvent: LocalDbCacheProgressEvent = {
               action: 'export-binding',
@@ -298,23 +338,6 @@ export async function mirrorRemoteTargetToLocal(
             }
 
             await options.onProgress?.(exportEvent)
-            const dumpPath = resolve(
-              workDir,
-              `${targetRecord.bindingName}-${tableName}.sql`,
-            )
-            await runWithProgressHeartbeat(options.onProgress, exportEvent, () =>
-              retryRemoteCacheExport(() =>
-                exportRemoteTable(targetRecord, target, tableName, dumpPath, {
-                  schemaOnly:
-                    shouldMirrorTableSchemaOnly(
-                      targetRecord.bindingName,
-                      tableName,
-                      options.cacheTableProfile,
-                    ) || shouldMirrorBinaryGeometryTable(tableName),
-                }),
-              ),
-            )
-            dumpPaths.push(dumpPath)
             if (shouldMirrorBinaryGeometryTable(tableName)) {
               binaryTableImports.push({
                 ...(await mirrorBinaryGeometryTable(

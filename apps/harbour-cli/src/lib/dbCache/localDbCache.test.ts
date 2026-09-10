@@ -12,7 +12,25 @@ import {
   resolveCacheTablesForBinding,
   resolveShardBindingName,
 } from './localDbCache.ts'
-import { countRemoteCacheWorkUnits } from './localDbCacheMirror.ts'
+import {
+  countRemoteCacheWorkUnits,
+  groupCacheExportTables,
+} from './localDbCacheMirror.ts'
+
+test('groups regular exports while keeping binary geometry schema-only', () => {
+  expect(
+    groupCacheExportTables('DB_HISTORY_HK_2025', [
+      'divisions',
+      'divisionAreas',
+      'snapshotVersionChanges',
+      'divisionBoundaries',
+    ]),
+  ).toEqual([
+    { schemaOnly: false, tables: ['snapshotVersionChanges'] },
+    { schemaOnly: true, tables: ['divisions', 'divisionAreas', 'divisionBoundaries'] },
+  ])
+  expect(groupCacheExportTables('DB_HISTORY_HK_2025', [])).toEqual([])
+})
 
 const cacheRoot = resolve(
   import.meta.dir,
@@ -34,11 +52,8 @@ test('uses the annual D1 shard for a dated release version', () => {
 })
 
 test('mirrors only rows retained by annual shard cache pruning', () => {
-  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisions')).toEqual({
-    retainedRowsWhereSql: '"isCurrent" = 1',
-    tableName: 'divisions',
-    whereSql: '"isCurrent" <> 1',
-  })
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisions')).toBeNull()
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionsI18n')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'divisions')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
 })
