@@ -162,6 +162,11 @@ Local and remote grouped Address3D delivery batch independent database targets
 separately, retaining per-database statement order and whole-collection transaction
 boundaries. See [SQL delivery](../sql-delivery.md) for receipts and recovery.
 
+Remote Address3D transport combines consecutive pending batches for one database, up to
+eight batches, 512 data statements and 8 MB of retained payload per request. Each sealed
+batch keeps its own receipt; recovery checks every receipt before advancing and does not
+replay uncertain writes. Individual statements retain the 100-parameter limit.
+
 SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
 relationships before remote delivery. History and current stages each generate their own
 SQL artefact. Insert statements are bounded by escaped UTF-8 bytes, with oversized

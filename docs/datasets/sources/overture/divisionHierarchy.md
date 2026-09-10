@@ -88,3 +88,9 @@ SaanSeoi 会将 Overture 嵌套的 <black>hierarchies</black> 数据解包为只
 - 原始 Overture 数据会保留在 <black>overture.hierarchies</black> 下。
 - 对于地区，以及层级中有地区祖先的每个区划，SaanSeoi 会在香港特别行政区之后立即加入香港岛、九龙或新界。发布审计会为每个地区记录一项自动操作及其获指派的区划数目。因此，每个完整的 Overture
   cohort 快照都包含这三个标准地区身份；不可变历史可能会从其父项继承未变更的身份，而不会在 cohort 增量中重复记录。
+
+A recognised Hong Kong Area identity supplied as a point can have source ancestry
+through one of its own districts. When that district belongs to the same reviewed Area,
+canonical ancestry ends at the Hong Kong SAR. The Area is never inserted into its own
+ancestry. The original source row, identity, names and geometry remain retained, and the
+hierarchy normalisation is recorded in the release audit.
