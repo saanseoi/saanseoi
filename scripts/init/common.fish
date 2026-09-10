@@ -227,9 +227,11 @@ function init_run_upload
     end
     SAANSEOI_INIT_RELEASE_CODE=$release_code ./bin/saanseoi upload \
         --target $saanseoi_init_target $argv $retry_args $cache_artefact_args
-    if test $status -ne 0
+    set -l upload_status $status
+    if test $upload_status -ne 0
         set -g saanseoi_init_upload_failures 1
-        return 1
+        # A failed release can own retained SQL; later uploads must not compete.
+        init_fail $upload_status
     end
     set -g saanseoi_init_last_upload_processed 1
 end
