@@ -1,3 +1,4 @@
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
 import { retainProcessingFailure } from '../api/processingFailureAudit'
 import { curationDocumentsFor } from '../curationDocuments'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -190,7 +191,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-general-source-v1',
+            contract: 'censtatd-general-source-v2',
             preparedSha256,
             releaseId,
             releaseCode,
@@ -315,6 +316,19 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       })
     const canonicalBatches = () =>
       buildCanonicalStatsSqlBatches({
+        resolutions: statisticSourceResolutions(
+          canonical.records,
+          new Map(
+            rows.map(row => [
+              `hkgov-censtatd/${datasetCode}/${plan.sourceVersion}/${row.layerName}:${row.featureId}`,
+              {
+                sourceRecordId: String(row.sourceRecordId),
+                versionHash: String(row.versionHash),
+              },
+            ]),
+          ),
+          releaseId,
+        ),
         current: canonicalCurrentRows(canonical),
         history: canonicalHistoryRows(canonical, releaseId),
         dictionaries: canonicalDictionaries(canonical, releaseId),
@@ -562,14 +576,7 @@ async function* readRows(filePath: string, releaseId: string, releaseCode: strin
         isCurrent: true,
         version: 1,
         versionHash: createHash('sha256')
-          .update(
-            JSON.stringify({
-              sourceRecordId,
-              rawProperties: payload.rawProperties,
-              sourceGeometry: payload.sourceGeometry,
-              sources: payload.sources,
-            }),
-          )
+          .update(stableJsonStringify(nativeSourcePayloadHashInput(payload))!)
           .digest('hex'),
         createdAt: now,
         updatedAt: now,
@@ -753,3 +760,4 @@ function uniqueReferencePeriods(
     ).values(),
   ]
 }
+import { statisticSourceResolutions } from './sourceResolutions'

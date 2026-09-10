@@ -147,6 +147,8 @@ export type HkgovLocalisedPremisesAddress = {
 }
 
 export type PreparedHkgovAlsRow = {
+  /** Untouched upstream assertion, assigned from the acquisition before writing. */
+  publisherSource?: string | null
   als3dParentBlockEnrichment?: HkgovAls3dParentBlockEnrichment
   parentAddressId?: string
   curatedGranularity?: 'complex' | 'building' | 'section'

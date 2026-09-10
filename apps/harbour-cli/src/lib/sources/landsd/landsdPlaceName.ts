@@ -88,7 +88,7 @@ export async function readLandsdPlaceNameArchive(
   return placeFeatures.features.map((value, index) => {
     const feature = requireFeature(value, index)
     const geoNameId = requireGeoNameId(feature.properties.GEO_NAME_ID, index)
-    const placeClass = requireText(feature.properties.PLACE_CLASS, 'PLACE_CLASS', index)
+    requireText(feature.properties.PLACE_CLASS, 'PLACE_CLASS', index)
     requireText(feature.properties.PLACE_TYPE, 'PLACE_TYPE', index)
     requirePointGeometry(feature.geometry, index)
     const placeNames = namesByGeoNameId.get(geoNameId) ?? []
@@ -101,10 +101,7 @@ export async function readLandsdPlaceNameArchive(
       ...feature,
       id: geoNameId,
       placeNames,
-      properties: {
-        ...feature.properties,
-        PLACE_CLASS: placeClass,
-      },
+      properties: feature.properties,
     }
   })
 }
@@ -347,11 +344,12 @@ function sourceNames(properties: Record<string, unknown>) {
 }
 
 function decodePublisherText(value: unknown) {
-  const text = optionalString(value)
-  if (!text) return null
+  if (value == null) return null
+  if (typeof value !== 'string')
+    throw new Error('LandsD publisher name must be text or null.')
   // `fgdb` decodes FileGDB UTF-8 strings as Latin-1. ASCII values are
   // unchanged; non-ASCII publisher labels are recovered losslessly here.
-  return Buffer.from(text, 'latin1').toString('utf8')
+  return Buffer.from(value, 'latin1').toString('utf8')
 }
 
 function requireText(value: unknown, field: string, index: number) {

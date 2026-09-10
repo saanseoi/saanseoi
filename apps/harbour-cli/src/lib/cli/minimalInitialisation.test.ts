@@ -6,6 +6,29 @@ import { resolve } from 'node:path'
 
 const previous = process.env.SAANSEOI_INIT_MINIMAL
 const repo = resolve(import.meta.dir, '../../../../..')
+test('reconciliation does not rebuild unchanged remote dataset mirrors', () => {
+  const result = Bun.spawnSync({
+    cmd: [
+      'fish',
+      '--no-config',
+      '-c',
+      `
+      source scripts/init/common.fish
+      set -g saanseoi_init_target production
+      set -gx SAANSEOI_INIT_SUMMARY_PATH unused-test-path
+      function init_published_api_release_set_count; echo 0; end
+      function init_run_step; string join ' ' -- $argv; end
+      init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target production
+    `,
+    ],
+    cwd: repo,
+  })
+  expect(result.exitCode).toBe(0)
+  expect(result.stdout.toString().trim()).toBe(
+    './bin/saanseoi release-sets:reconcile --target production',
+  )
+})
+
 test('CLI dispatches minimal initialisation to its explicit-target validation', () => {
   const result = Bun.spawnSync({
     cmd: [process.execPath, 'apps/harbour-cli/src/cli.ts', 'init:minimal'],

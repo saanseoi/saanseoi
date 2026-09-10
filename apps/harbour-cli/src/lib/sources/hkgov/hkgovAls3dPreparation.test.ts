@@ -1,3 +1,7 @@
+import {
+  alsSourcePayload,
+  captureAlsPublisherSources,
+} from '@repo/core/pipeline/services/alsSourcePayload'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -5,6 +9,49 @@ import { join } from 'node:path'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { createAlsAuditGuards } from './hkgovAlsAuditGuards'
+import { validateAddress3dPreparation } from '../../addressSql/address3dImport'
+
+test('2D-only deliveries seal every original occurrence without requiring 3D input', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'als-2d-ledger-'))
+  try {
+    const sourceVersion = '2020-01-01.0'
+    const source = await captureAlsPublisherSources(
+      [1, 2].map(featureIndexOneBased => ({
+        feature: {
+          properties: {
+            Address: { PremisesAddress: { BuildingCsuInformation: { CsuId: '001' } } },
+          },
+          geometry: { type: 'Point', coordinates: [114, 22] },
+        },
+        sourceFile: 'original.geojson',
+        featureIndexOneBased,
+      })),
+      sourceVersion,
+    )
+    const outputFile = join(dir, 'prepared.parquet')
+    await prepareAls3dCollections({
+      sourceDir: dir,
+      sourceVersion,
+      outputFile,
+      rows: [],
+      publisherSources: source.values(),
+    })
+    const path = `${outputFile}.address3d.jsonl`
+    const manifest = await validateAddress3dPreparation(path, sourceVersion)
+    expect(manifest.source2dCount).toBe(2)
+    expect(manifest.sourceCount).toBe(0)
+    expect(manifest.collectionCount).toBe(0)
+    const records = (await readFile(path, 'utf8'))
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    expect(records.slice(0, 2)).toEqual(
+      [...source.values()].map(value => ({ kind: 'source2d', ...value })),
+    )
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
 
 async function delivery(duplicate: boolean) {
   const dir = await mkdtemp(join(tmpdir(), 'als-preflight-test-'))
@@ -121,10 +168,10 @@ test('skip mode retains a block-free parent despite mismatched 3D block referenc
     expect(records.find(record => record.kind === 'collection').address2dId).toBe(
       'parent-0',
     )
-    expect(
-      records.find(record => record.kind === 'source').rawProperties.properties.Address
-        .PremisesAddress,
-    ).toEqual(premises)
+    expect(records.find(record => record.kind === 'source').rawProperties).toEqual(
+      alsSourcePayload({ properties: { Address: { PremisesAddress: premises } } })
+        .rawProperties,
+    )
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

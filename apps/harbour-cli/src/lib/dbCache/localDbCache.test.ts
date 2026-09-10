@@ -70,6 +70,20 @@ test('includes the Places full-text index in the current cache profile', () => {
   expect(historyTables).toContain('address2dBuildingNumberLookup')
 })
 
+test('the full mirror includes every Address table in current and history storage', () => {
+  for (const binding of ['DB_CURRENT', 'DB_HISTORY_HK_BEFORE', 'DB_HISTORY_HK_2026']) {
+    const full = resolveCacheTablesForBinding(binding)
+    for (const table of [
+      'address2d',
+      'address2dI18n',
+      'address2dBuildingNumberLookup',
+      'address3d',
+      'address3dI18n',
+    ])
+      expect(full).toContain(table)
+  }
+})
+
 test('omits the rebuilt Address full-text index from the mirror profile', () => {
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'address')
   expect(tables).not.toContain('addressesFts')
@@ -80,6 +94,7 @@ test('omits the rebuilt Address full-text index from the mirror profile', () => 
     'address2dBuildingNumberLookup',
     'address3d',
     'address3dI18n',
+    'sourceResolutions',
     'snapshotVersionChanges',
   ])
 })
@@ -101,18 +116,21 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(127)
-  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(37)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(98)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(53)
-  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(47)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(142)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(40)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(101)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(56)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(50)
+  expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
+    'sourceResolutions',
+  )
   expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
     'divisions',
     'divisionsI18n',
     'divisionAreas',
     'divisionBoundaries',
   ])
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(48)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(51)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {

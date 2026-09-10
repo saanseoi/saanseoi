@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
 import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -602,6 +603,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   releaseId: string,
   releaseCode: string,
   hashPublisherContentOnly = false,
+  separatePublisherEnvelope = false,
 ) {
   const now = new Date().toISOString()
   return Promise.all(
@@ -617,11 +619,16 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         validToRelease: null,
         // Archive provenance changes between releases even for identical features.
         versionHash: await createHash(
-          hashPublisherContentOnly
-            ? Object.fromEntries(
-                Object.entries(payload).filter(([key]) => key !== 'sources'),
-              )
-            : payload,
+          separatePublisherEnvelope
+            ? nativeSourcePayloadHashInput({
+                ...payload,
+                rawProperties: payload.rawProperties,
+              })
+            : hashPublisherContentOnly
+              ? Object.fromEntries(
+                  Object.entries(payload).filter(([key]) => key !== 'sources'),
+                )
+              : payload,
         ),
       }
     }),
@@ -641,6 +648,14 @@ export async function buildNativeSourceSql(
       releaseId,
       releaseCode,
       table.name === 'hkgovLandsdRoadCentrelines',
+      [
+        'hkgovLandsdPlaceNames',
+        'hkgovPlandPlanningCells',
+        'hkgovPlandNewTowns',
+        'hkgovHadDivisionAreas',
+        'hkgovCenstatdStatistics',
+        'hkgovCenstatdDistrictLandAreaPopulationDensities',
+      ].includes(table.name),
     )
     const ids = [...new Set(rows.map(row => row.sourceRecordId))]
     const currentRowScopes = table.replaceCurrentRows ? [[]] : chunk(ids, 250)

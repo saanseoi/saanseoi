@@ -152,7 +152,7 @@ describe('Places SQL materialisation', () => {
     sqlite.exec(`
       PRAGMA foreign_keys = ON;
       CREATE TABLE overturePlaces (
-        sourceRecordId TEXT, sources TEXT, rawProperties TEXT, version INTEGER,
+        sourceRecordId TEXT, sources TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
         versionHash TEXT, releaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
         isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
@@ -178,6 +178,7 @@ describe('Places SQL materialisation', () => {
 
     const history = new Database(':memory:')
     history.exec(`
+      CREATE TABLE sourceResolutions (scopeId TEXT, snapshotId TEXT, sourceReleaseId TEXT, sourceRecordId TEXT, sourceVersionHash TEXT, resolutions TEXT, PRIMARY KEY(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash));
       CREATE TABLE places (
         id TEXT, releaseId TEXT, addressSnapshotId TEXT, address2dId TEXT,
         address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT, operatingStatus TEXT,
@@ -352,11 +353,13 @@ describe('Places SQL materialisation', () => {
         isLocaleInferred: false,
       }),
     })
-    expect(sqlite.query('SELECT rawProperties FROM overturePlaces').get()).toEqual({
-      rawProperties: JSON.stringify({
-        id: 'place-1',
-        geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
-        names: { en: 'Example' },
+    expect(
+      sqlite.query('SELECT rawProperties, sourceGeometry FROM overturePlaces').get(),
+    ).toEqual({
+      rawProperties: JSON.stringify({ names: { en: 'Example' } }),
+      sourceGeometry: JSON.stringify({
+        type: 'Point',
+        coordinates: [114.1694, 22.3193],
       }),
     })
     history.close()

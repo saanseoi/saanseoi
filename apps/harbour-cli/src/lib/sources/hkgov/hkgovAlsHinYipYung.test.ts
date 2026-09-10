@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { requireDefined } from '@repo/core/requireDefined'
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
@@ -155,10 +156,37 @@ test('future Yip Wong retains four collections until revoked with unverified pro
       sourceVersion: '2030-01-01.0',
       outputFile: join(dir, 'prepared.parquet'),
       rows,
-      writeOutput: false,
     })
     expect(result.collectionCount).toBe(4)
     expect(result.unitCount).toBe(3288)
+    const retained = (
+      await Bun.file(join(dir, 'prepared.parquet.address3d.jsonl')).text()
+    )
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    const publisherRows = retained.filter(row => row.kind === 'source')
+    expect(publisherRows).toHaveLength(1)
+    expect(publisherRows[0].rawProperties).toEqual(
+      alsSourcePayload(requireDefined(wo.evidence3d.at(-1)).feature).rawProperties,
+    )
+    expect(publisherRows[0].sources).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ originalAssertions: expect.anything() }),
+      ]),
+    )
+    const reconstructed = retained.filter(
+      row => row.kind === 'collection' && row.sourceRecordIds.length === 0,
+    )
+    expect(reconstructed).toHaveLength(3)
+    expect(
+      reconstructed.every(row =>
+        row.processingSources.some(
+          (source: { dataset: string }) =>
+            source.dataset === 'saanseoi-address-house-retention',
+        ),
+      ),
+    ).toBe(true)
     const changed = structuredClone(source)
     requireDefined(
       changed.find(

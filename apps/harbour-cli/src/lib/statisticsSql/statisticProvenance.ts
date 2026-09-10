@@ -142,6 +142,14 @@ export async function retainStatisticProvenance(
       throw new Error(`Duplicate audit rule: ${declaration.id}.`)
     await add(declaration, count)
     const rule = requireDefined(bulk.at(-1))
+    if (declaration.inputs.includes('identity-mappings')) {
+      rule.fixtures = await Promise.all(
+        identities.map(async document => ({
+          type: document.type,
+          object: await retainObject(store, document.document),
+        })),
+      )
+    }
     rule.outcome = count ? 'applied' : 'not-applicable'
     rule.counts.inputs = { [requireDefined(declaration.inputs[0])]: count }
     rule.counts.outputs = { [requireDefined(declaration.outputs[0])]: count }

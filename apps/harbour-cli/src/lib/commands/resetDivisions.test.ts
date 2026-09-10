@@ -162,9 +162,22 @@ describe('all-divisions reset', () => {
     expect(await divisionResetBlockers(context)).toEqual([])
     const plan = await collectDivisionResetPlan(context)
     expect(plan.releases).toHaveLength(3)
+    insert(history, 'sourceResolutions', {
+      scopeId: 'snapshot:division',
+      snapshotId: 'division',
+      sourceReleaseId: 'division',
+    })
+    insert(history, 'sourceResolutions', {
+      scopeId: 'snapshot:place',
+      snapshotId: 'place',
+      sourceReleaseId: 'place',
+    })
     const sql = buildDivisionResetSql(plan)
     source.exec(sql.sourceSql)
     history.exec(sql.historySql)
+    expect(history.query('SELECT scopeId FROM sourceResolutions').all()).toEqual([
+      { scopeId: 'snapshot:place' },
+    ])
     current.exec(sql.currentSql)
     meta.exec(sql.metaSql)
     for (const db of [current, history]) {

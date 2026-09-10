@@ -14,6 +14,19 @@ test('Kwong Yan retains its reviewed original point until revoked with raw prove
             hkgovCsuId: d.csu,
             enEstateName: d.estate,
             enBuildingName: d.enBuildingName,
+            ...('expectedPremises' in d && d.expectedPremises
+              ? {
+                  engPremisesAddressJson: JSON.stringify(
+                    d.expectedPremises.EngPremisesAddress,
+                  ),
+                  chiPremisesAddressJson: JSON.stringify(
+                    d.expectedPremises.ChiPremisesAddress,
+                  ),
+                  geoAddress: d.expectedPremises.GeoAddress,
+                  enBlockNumber: null,
+                  zhHantBlockNumber: null,
+                }
+              : {}),
             geometry: JSON.stringify({
               type: 'Point',
               coordinates: d.previousCoordinates,

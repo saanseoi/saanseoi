@@ -937,6 +937,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`,
+    `DELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${placeReleases});`,
   ].join('\n')
   const sourceSql = `DELETE FROM overturePlaces WHERE releaseId IN (${placeReleases});`
   const metaSql = [

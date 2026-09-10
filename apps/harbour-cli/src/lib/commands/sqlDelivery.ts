@@ -174,7 +174,7 @@ export async function runSqlDeliveryCommand(
     console.log(JSON.stringify({ mode: operation, ...result }))
   }
   if (mode !== 'remote') {
-    await withDeliveryLock(
+    const published = await withDeliveryLock(
       join(plan.context.cacheDir, 'sql-delivery-lock'),
       async () => {
         await refreshRemoteMetaCache(environment, plan.context.cacheDir)
@@ -188,18 +188,18 @@ export async function runSqlDeliveryCommand(
         }).query(
           `SELECT status FROM releases WHERE id = '${plan.context.releaseId.replaceAll("'", "''")}';`,
         )
-        const complete =
-          rows[0]?.status === 'published' &&
-          (await completeSqlDeliveryRelease(
-            plan.context.cacheDir,
-            plan.context.releaseId,
-          ))
-        if (!complete)
-          console.log(
-            'Mirror ownership retained: the release must be published and every SQL plan reconciled before another release can use this mirror.',
-          )
+        return rows[0]?.status === 'published'
       },
     )
+    // Completion acquires this lock itself and rechecks ownership and every
+    // plan's receipts. Calling it inside the refresh lock deadlocks SQLite.
+    const complete =
+      published &&
+      (await completeSqlDeliveryRelease(plan.context.cacheDir, plan.context.releaseId))
+    if (!complete)
+      console.log(
+        'Mirror ownership retained: the release must be published and every SQL plan reconciled before another release can use this mirror.',
+      )
   }
   console.log(
     'Prepared SQL delivery recovered. This command does not publish a release or rerun source preparation; resume the release workflow to finish its remaining stages.',

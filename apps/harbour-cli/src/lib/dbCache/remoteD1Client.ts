@@ -89,7 +89,12 @@ export function createCloudflareD1QueryClient(options: {
           (result?.error ? JSON.stringify(result.error) : response.statusText)
         const error = new Error(`D1 query failed: ${message}`)
         lastError = error
-        if (!isRetryableStatus(response.status) || attempt >= retryLimit) {
+        const retryableReadError =
+          /^\s*SELECT\b/i.test(sql) && /\binternal error\b/i.test(message)
+        if (
+          (!isRetryableStatus(response.status) && !retryableReadError) ||
+          attempt >= retryLimit
+        ) {
           throw error
         }
 

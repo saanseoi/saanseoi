@@ -460,6 +460,7 @@ export async function processLocalDivisionSqlUpload(
                   releaseCode,
                 )
               },
+              dbContext.sourceTargets.map(target => target.db as never),
             ),
         )
         await harbourClient.stageCompleted(

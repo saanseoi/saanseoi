@@ -1,3 +1,4 @@
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
 import { retainProcessingFailure } from '../api/processingFailureAudit'
 import sourceAssertionFixture from '../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
@@ -249,7 +250,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-district-source-v1',
+            contract: 'censtatd-district-source-v2',
             preparedSha256,
             releaseId,
             releaseCode,
@@ -337,6 +338,16 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       })
     const canonicalBatches = () =>
       buildCanonicalStatsSqlBatches({
+        resolutions: statisticSourceResolutions(
+          canonical.records,
+          new Map(
+            sourceRows.map(row => [
+              `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
+              { sourceRecordId: row.sourceRecordId, versionHash: row.versionHash },
+            ]),
+          ),
+          releaseId,
+        ),
         current: canonicalCurrentRows(canonical),
         history: canonicalHistoryRows(canonical, releaseId),
         dictionaries: canonicalDictionaries(canonical, releaseId),
@@ -632,12 +643,7 @@ async function normaliseSourceRowInternal(
     validToRelease: null,
     version: 1,
     versionHash: await createHash(
-      stableJsonStringify({
-        sourceRecordId,
-        rawProperties: payload.rawProperties,
-        sourceGeometry: payload.sourceGeometry,
-        sources: payload.sources,
-      }),
+      stableJsonStringify(nativeSourcePayloadHashInput(payload)),
     ),
   }
 }
@@ -805,3 +811,4 @@ function uniqueReferencePeriods(
   ]
 }
 import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
+import { statisticSourceResolutions } from './sourceResolutions'

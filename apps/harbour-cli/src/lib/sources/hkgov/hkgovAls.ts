@@ -1,4 +1,8 @@
 import { globSync } from 'node:fs'
+import {
+  captureAlsPublisherSources,
+  alsSourceLocator,
+} from '@repo/core/pipeline/services/alsSourcePayload'
 import preparationFixture from '../../../../../../fixtures/meta/processing-rules/address-preparation.json'
 import curationFixture from '../../../../../../fixtures/meta/processing-rules/address-curation.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
@@ -140,6 +144,10 @@ async function prepareHkgovAlsAddressParquetInternal(
     throw new Error(`No address features found in ${sourceDir}.`)
   }
   const sourceFeatureCount = sourceFeatures.length
+  const publisherSources = await captureAlsPublisherSources(
+    sourceFeatures,
+    options.sourceVersion,
+  )
   const auditGuards = createAlsAuditGuards()
   const retainedCommercialPremises = retainAlsCommercialPremises(
     sourceFeatures,
@@ -272,20 +280,18 @@ async function prepareHkgovAlsAddressParquetInternal(
   )
 
   await mkdir(dirname(outputFile), { recursive: true })
-  const has3d = globSync(resolve(sourceDir, 'als_addresses_3d_*.geojson')).length > 0
-  if (has3d) {
-    await prepareAls3dCollections({
-      sourceDir,
-      sourceVersion: options.sourceVersion,
-      outputFile,
-      rows,
-      aliasOwnerIds,
-      writeOutput: options.writeOutput,
-      skipCurationChecks: options.skipCurationChecks,
-      onGuardPassed: auditGuards.passed,
-    })
-    assertUniquePreparedRowIds(rows)
-  }
+  await prepareAls3dCollections({
+    publisherSources: publisherSources.values(),
+    sourceDir,
+    sourceVersion: options.sourceVersion,
+    outputFile,
+    rows,
+    aliasOwnerIds,
+    writeOutput: options.writeOutput,
+    skipCurationChecks: options.skipCurationChecks,
+    onGuardPassed: auditGuards.passed,
+  })
+  assertUniquePreparedRowIds(rows)
   if (aliasOwnerIds.size) {
     rows.splice(0, rows.length, ...rows.filter(row => !aliasOwnerIds.has(row.id)))
     assertUniquePreparedRowIds(rows)
@@ -314,6 +320,19 @@ async function prepareHkgovAlsAddressParquetInternal(
       filename: outputFile,
       rowGroupSize: 5000,
       columnData: [
+        jsonColumn(
+          'publisherSource',
+          rows.map(row =>
+            JSON.stringify(
+              publisherSources.get(
+                alsSourceLocator({
+                  sourceFile: row.sourceFile,
+                  featureIndexOneBased: row.sourceFeatureIndexOneBased,
+                }),
+              ) ?? null,
+            ),
+          ),
+        ),
         stringColumn(
           'parentAddressId',
           rows.map(row => row.parentAddressId ?? null),
@@ -580,7 +599,7 @@ async function prepareHkgovAlsAddressParquetInternal(
       ],
     })
 
-  if (options.writeOutput !== false && has3d) {
+  if (options.writeOutput !== false) {
     await writeFile(
       `${outputFile}.address3d.meta.json`,
       JSON.stringify({

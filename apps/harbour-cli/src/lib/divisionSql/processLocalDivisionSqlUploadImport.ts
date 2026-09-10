@@ -202,13 +202,21 @@ export function buildExtraSourceSqlOperations(
   importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
 ) {
   const changedIds = state.records
-    .filter(record => record.sourceChanged)
+    .filter(record => !record.isSupplemental && record.sourceChanged)
     .map(record => record.id)
   const unchangedIds = state.records
-    .filter(record => !record.sourceChanged && state.currentSourceRows.has(record.id))
+    .filter(
+      record =>
+        !record.isSupplemental &&
+        !record.sourceChanged &&
+        state.currentSourceRows.has(record.id),
+    )
     .map(record => record.id)
+  const publisherIds = new Set(
+    state.records.filter(record => !record.isSupplemental).map(record => record.id),
+  )
   const missingIds = [...state.currentSourceRows.keys()].filter(
-    id => !state.seenIds.has(id),
+    id => !publisherIds.has(id),
   )
   const changedIdsByOwner = groupIdsByOwnerShard(
     state.currentSourceRows,

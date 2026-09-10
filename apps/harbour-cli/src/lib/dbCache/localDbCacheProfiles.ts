@@ -91,6 +91,9 @@ export function resolveCacheTablesForBinding(
       'streetsI18n',
       'address2d',
       'address2dI18n',
+      'address2dBuildingNumberLookup',
+      'address3d',
+      'address3dI18n',
       'divisionAreas',
       'divisionBoundaries',
       'statsRecords',
@@ -105,6 +108,7 @@ export function resolveCacheTablesForBinding(
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
       return [
+        'sourceResolutions',
         'divisionStatistics',
         'statsRecords',
         'statsFields',
@@ -117,6 +121,7 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'statistics') {
       return [
+        'sourceResolutions',
         'statsRecords',
         'statsFields',
         'statsFieldsI18n',
@@ -131,7 +136,12 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'division') {
-      return ['divisions', 'divisionsI18n', 'snapshotVersionChanges']
+      return [
+        'divisions',
+        'divisionsI18n',
+        'sourceResolutions',
+        'snapshotVersionChanges',
+      ]
     }
 
     if (cacheTableProfile === 'places') {
@@ -141,6 +151,7 @@ export function resolveCacheTablesForBinding(
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
+        'sourceResolutions',
         'snapshotVersionChanges',
       ]
     }
@@ -152,6 +163,7 @@ export function resolveCacheTablesForBinding(
         'address2dBuildingNumberLookup',
         'address3d',
         'address3dI18n',
+        'sourceResolutions',
         'snapshotVersionChanges',
       ]
     }
@@ -166,9 +178,15 @@ export function resolveCacheTablesForBinding(
             'divisionsI18n',
             'divisionAreas',
             'divisionBoundaries',
+            'sourceResolutions',
             'snapshotVersionChanges',
           ]
-        : ['divisionAreas', 'divisionBoundaries', 'snapshotVersionChanges']
+        : [
+            'divisionAreas',
+            'divisionBoundaries',
+            'sourceResolutions',
+            'snapshotVersionChanges',
+          ]
     }
 
     return [
@@ -176,6 +194,9 @@ export function resolveCacheTablesForBinding(
       'divisionsI18n',
       'address2d',
       'address2dI18n',
+      'address2dBuildingNumberLookup',
+      'address3d',
+      'address3dI18n',
       'divisionAreas',
       'divisionBoundaries',
       'divisionStatistics',
@@ -185,6 +206,7 @@ export function resolveCacheTablesForBinding(
       'statsMeasures',
       'statsMeasuresI18n',
       'statsValuesI18n',
+      'sourceResolutions',
       'snapshotVersionChanges',
     ]
   }

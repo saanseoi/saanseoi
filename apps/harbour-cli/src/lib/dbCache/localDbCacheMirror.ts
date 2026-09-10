@@ -459,7 +459,7 @@ export function countRemoteCacheRefreshWorkUnits(
   }, 0)
 }
 
-async function validateMirroredCacheBinding(input: {
+export async function validateMirroredCacheBinding(input: {
   bindingName: string
   cacheTableProfile?: CacheTableProfile
   destinationPath: string

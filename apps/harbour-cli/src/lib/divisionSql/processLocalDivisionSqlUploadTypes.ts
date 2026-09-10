@@ -1,4 +1,5 @@
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
+import type { NewSourceResolution } from '@repo/db/historySchema'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { CurrentSourceRecord } from '@repo/core/pipeline/db/source'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -32,6 +33,8 @@ export type DivisionPreparedRecord = {
   currentExists: boolean
   id: string
   i18nVersionHash: string
+  isSupplemental?: boolean
+  sourceResolution?: NewSourceResolution
   raw: Record<string, unknown>
   sourceChanged: boolean
   sourcePayloadHash: string

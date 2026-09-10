@@ -1,4 +1,6 @@
 import { readFileSync } from 'node:fs'
+import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
+import type { NewSourceResolution } from '@repo/db/historySchema'
 import { resolve } from 'node:path'
 import {
   deliverSqlPhase,
@@ -55,6 +57,7 @@ export type CanonicalStatsSqlReplayProgress = {
 }
 
 export function buildCanonicalStatsSqlBatches(input: {
+  resolutions?: Array<{ shardYear: string; row: NewSourceResolution }>
   current: Array<{ rows: Row[]; table: CanonicalStatsTable }>
   history: Array<{
     rows: Row[]
@@ -112,6 +115,9 @@ export function buildCanonicalStatsSqlBatches(input: {
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([shardYear, groups]) => ({
         batches: chunkSql([
+          ...(input.resolutions ?? [])
+            .filter(resolution => resolution.shardYear === shardYear)
+            .map(resolution => sourceResolutionSql(resolution.row)),
           ...groups.flatMap(group => [
             ...buildCloseHistoryStatements(group.table, group.rows),
             ...buildUpsertStatements(group.table, group.rows, [

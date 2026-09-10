@@ -1,3 +1,4 @@
+import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
@@ -98,7 +99,9 @@ test('Luen Yan CSU backfill keeps one identity and collection while preserving p
       .trim()
       .split('\n')
       .map(line => JSON.parse(line))
-    expect(records.find(r => r.kind === 'source').rawProperties).toEqual(feature)
+    expect(records.find(r => r.kind === 'source').rawProperties).toEqual(
+      alsSourcePayload(feature).rawProperties,
+    )
     expect(records.find(r => r.kind === 'collection').address2dId).toBe(oldRow.id)
   } finally {
     await rm(temporary, { recursive: true, force: true })

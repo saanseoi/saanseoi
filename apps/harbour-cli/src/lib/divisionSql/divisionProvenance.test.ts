@@ -123,7 +123,12 @@ test('bulk geometry rules require explicit counts before retaining audit objects
       },
     ],
   }
-  for (const outputs of [{}, { divisionAreas: -1 }, { divisionAreas: 0.5 }]) {
+  const invalidOutputs: Record<string, number>[] = [
+    {},
+    { divisionAreas: -1 },
+    { divisionAreas: 0.5 },
+  ]
+  for (const outputs of invalidOutputs) {
     await expect(
       retainDivisionProvenance(store, {
         ...input,
