@@ -69,7 +69,9 @@ try {
       !release.code.startsWith('dr-hk-overture-division-area-') ||
       !['published', 'superseded'].includes(release.status)
     )
-      throw new Error('Unexpected release identity or status.')
+      throw new Error(
+        `Unexpected release identity or status: ${JSON.stringify(release)}`,
+      )
     const oldRef = { hash: release.manifestHash, byteLength: release.byteLength }
     const manifest = await readObject(store, oldRef)
     validateAuditManifest(manifest)
