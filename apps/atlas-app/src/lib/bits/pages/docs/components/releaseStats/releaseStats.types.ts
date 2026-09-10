@@ -97,7 +97,11 @@ export type ChurnMetricPresentation = {
 }
 export type OverviewPresentation = {
   recordCount: string
-  churn?: { baseline: boolean; metrics: ChurnMetricPresentation[] }
+  churn?: {
+    unavailable?: boolean
+    baseline: boolean
+    metrics: ChurnMetricPresentation[]
+  }
 }
 export type DistrictDistributionPresentation = {
   features: Array<{ id: string; geometry: Polygon | MultiPolygon; label: string }>
@@ -192,6 +196,7 @@ export type GenericStatGroupPresentation = {
   }>
 }
 export type ReleaseStatsPresentation = {
+  placeProfile?: import('./placeProfile').PlaceProfile
   statisticsProfile?: StatisticsProfilePresentation
   headings: ReleaseContentHeading[]
   overview?: OverviewPresentation

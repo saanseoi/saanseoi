@@ -4,6 +4,23 @@ import Distribution from './releaseStatsProfileDistribution.svelte'
 import Availability from './releaseStatsProfileAvailability.svelte'
 
 let { profile }: { profile: StatisticsProfilePresentation } = $props()
+
+let distributionColumns = $derived.by(() => {
+  const columns: StatisticsProfilePresentation['distributions'][] = [[], []]
+  const heights = [0, 0]
+  const tallestFirst = [...profile.distributions].sort(
+    (a, b) => b.rows.length - a.rows.length,
+  )
+
+  for (const distribution of tallestFirst) {
+    const column = heights[0] <= heights[1] ? 0 : 1
+    columns[column].push(distribution)
+    // Include the shared header, padding and gap as well as the data rows.
+    heights[column] += 120 + distribution.rows.length * 32
+  }
+
+  return columns
+})
 </script>
 
 {#if profile.coverage}
@@ -61,10 +78,12 @@ let { profile }: { profile: StatisticsProfilePresentation } = $props()
   <Availability rows={profile.availability} />
 {/if}
 
-<div class="columns-1 gap-6 md:columns-2">
-  {#each profile.distributions as distribution}
-    <div class="mb-6 break-inside-avoid">
-      <Distribution {distribution} />
+<div class="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
+  {#each distributionColumns as column}
+    <div class="grid min-w-0 gap-6">
+      {#each column as distribution}
+        <Distribution {distribution} />
+      {/each}
     </div>
   {/each}
 </div>

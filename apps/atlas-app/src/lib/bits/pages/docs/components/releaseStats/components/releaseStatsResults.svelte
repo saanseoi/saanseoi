@@ -4,6 +4,7 @@ import type {
   ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
+import PlacesProfile from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsPlacesProfile.svelte'
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
 import DivisionLinkage from './releaseStatsDivisionLinkageSection.svelte'
 import District from './releaseStatsDistrictSection.svelte'
@@ -32,6 +33,9 @@ let {
 <div class="grid gap-6">
   {#if presentation.overview}
     <Overview overview={presentation.overview} {labels} />
+  {/if}
+  {#if presentation.placeProfile}
+    <PlacesProfile profile={presentation.placeProfile} />
   {/if}
   {#if presentation.statisticsProfile}
     <StatisticsProfile profile={presentation.statisticsProfile} />

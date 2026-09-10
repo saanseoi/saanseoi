@@ -1,4 +1,5 @@
 import { formatReleaseStat } from './releaseStatsFormat'
+import { createPlaceProfile } from './placeProfile'
 import { createStatisticsProfile } from './statisticsProfile'
 import type {
   ReleaseStat,
@@ -43,7 +44,16 @@ export function createReleaseStatsPresentation({
     resourceType === 'divisionStatistic' && stats?.length
       ? createStatisticsProfile(stats, locale, copy)
       : undefined
-  const rows = (statistics?.remainingStats ?? stats ?? []).map((stat, index) => ({
+  const places =
+    resourceType === 'place' && stats?.length
+      ? createPlaceProfile(stats, locale, copy)
+      : undefined
+  const rows = (
+    places?.remainingStats ??
+    statistics?.remainingStats ??
+    stats ??
+    []
+  ).map((stat, index) => ({
     ...stat,
     index,
   }))
@@ -78,7 +88,7 @@ export function createReleaseStatsPresentation({
   const churn = matching(row => row.metric === 'churn' && !row.groupBy)
   const total = valueFor(churn, 'count', 'churn')
   const baselineRecords =
-    statistics && isFirstRelease && total === undefined
+    isFirstRelease && total === undefined
       ? stats?.find(
           row => row.dimension === 'records' && row.metric === 'count' && !row.groupBy,
         )?.value
@@ -100,7 +110,8 @@ export function createReleaseStatsPresentation({
       ? (() => {
           if (total !== undefined) claim(churn)
           if (primaryRecords) claim([primaryRecords])
-          if (fallback && !primaryRecords) claim([fallback])
+          if (fallback && !primaryRecords && fallback.groupBy !== 'table')
+            claim([fallback])
           const metrics = (
             [
               ['added_count', 'added', copy.labels.added],
@@ -112,7 +123,11 @@ export function createReleaseStatsPresentation({
             key,
             label,
             value: churnValue(dimension),
-            formattedValue: formatReleaseStat(locale, churnValue(dimension)),
+            formattedValue:
+              valueFor(churn, dimension, 'churn') === undefined &&
+              baselineRecords === undefined
+                ? '—'
+                : formatReleaseStat(locale, churnValue(dimension)),
           }))
           addHeading('stats-overview', copy.labels.overview ?? copy.labels.dataset)
           if (statistics) headings.unshift(...headings.splice(headings.length - 1, 1))
@@ -130,19 +145,27 @@ export function createReleaseStatsPresentation({
                 )?.value ??
                 0,
             ),
-            ...(total === undefined && baselineRecords === undefined
-              ? {}
-              : {
-                  churn: {
-                    baseline:
-                      (metrics[0]?.value ?? 0) > 0 &&
-                      metrics.slice(1).every(metric => metric.value === 0),
-                    metrics,
-                  },
-                }),
+            churn: {
+              unavailable:
+                total === undefined &&
+                baselineRecords === undefined &&
+                churn.length === 0,
+              baseline:
+                baselineRecords !== undefined ||
+                ((metrics[0]?.value ?? 0) > 0 &&
+                  metrics.slice(1).every(metric => metric.value === 0)),
+              metrics,
+            },
           }
         })()
       : undefined
+
+  if (places) {
+    if (places.profile.metrics.length)
+      addHeading('stats-place-overview', 'Place coverage')
+    if (places.profile.fields.length)
+      addHeading('stats-place-languages', 'Language coverage')
+  }
 
   const districtRows = matching(
     row =>
@@ -709,6 +732,7 @@ export function createReleaseStatsPresentation({
       }
     })
   return {
+    placeProfile: places?.profile,
     statisticsProfile: statistics?.profile,
     headings,
     overview,
