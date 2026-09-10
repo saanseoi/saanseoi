@@ -73,6 +73,7 @@ type DispatchUploadOptions = {
   /** Allow an explicitly identified independent historical cohort. */
   allowHistoricalCohort?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
+  resolvePendingReleaseId?: typeof findPendingSqlDeliveryReleaseId
 }
 
 type UploadSqlRecoveryDependencies = {
@@ -284,10 +285,9 @@ async function requestRemoteRegistration(
     previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
-  const retainedReleaseId = await findPendingSqlDeliveryReleaseId(
-    resolveSharedRemoteDbCacheDir(target),
-    previewResult.plan.releaseCode,
-  )
+  const retainedReleaseId = await (
+    options.resolvePendingReleaseId ?? findPendingSqlDeliveryReleaseId
+  )(resolveSharedRemoteDbCacheDir(target), previewResult.plan.releaseCode)
   const response = await fetch(
     buildRegisterUploadEndpoint(resolveHarbourApiUrl(target)),
     {

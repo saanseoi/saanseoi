@@ -174,6 +174,32 @@ describe('upload helpers', () => {
     ).rejects.toThrow('Schema drift detected.')
   })
 
+  test('re-registers an exact retained owner with staged/processing-only reuse', async () => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    let requested = false
+    globalThis.fetch = (async (_input, init) => {
+      requested = true
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        force: true,
+        reuseExistingRelease: true,
+      })
+      return Response.json({ status: 'staged' })
+    }) as typeof fetch
+    await dispatchUpload(
+      target,
+      { filePath: 'division.parquet' } as never,
+      previewResult(),
+      'schema-version-1',
+      {
+        resolvePendingReleaseId: async (_cacheDir, releaseCode) => {
+          expect(releaseCode).toBe('dr-hk-overture-division-2025-09-24.0')
+          return 'retained-owner'
+        },
+      },
+    )
+    expect(requested).toBe(true)
+  })
+
   test('schedules post-publication snapshot cleanup separately', async () => {
     process.env.HARBOUR_API_KEY = 'test-api-key'
     globalThis.fetch = (async (input, init) => {
