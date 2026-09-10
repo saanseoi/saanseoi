@@ -12,6 +12,11 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./provenance/auditPageIndex": "./src/provenance/auditPageIndex.ts",
+    "./provenance/auditAlsDecisions": "./src/provenance/auditAlsDecisions.ts",
+    "./provenance/auditSearch": "./src/provenance/auditSearch.ts",
+    "./provenance/auditFixtureRows": "./src/provenance/auditFixtureRows.ts",
+    "./provenance/auditFixtureCatalogue": "./src/provenance/auditFixtureCatalogue.ts",
     "./provenance": "./src/provenance/index.ts",
     "./provenance/divisionCodes": "./src/provenance/divisionCodes.ts",
     "./provenance/ruleFixture": "./src/provenance/ruleFixture.ts",

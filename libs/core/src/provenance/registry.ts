@@ -5,6 +5,7 @@ import { verifyProcessingResult } from './bundle'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { validateAuditManifest, verifyAuditResult } from './audit'
+import { retainAuditSearchIndex } from './auditSearchIndex'
 
 /** Verify new R2 closures first; identical registered manifests are idempotent. */
 export async function registerProcessingResult(
@@ -29,7 +30,11 @@ export async function registerProcessingResult(
   const table = metaSchema.releaseProvenance
   const releases = metaSchema.metaReleases
   const release = await db
-    .select({ status: releases.status, type: releases.resourceType })
+    .select({
+      status: releases.status,
+      type: releases.resourceType,
+      code: releases.code,
+    })
     .from(releases)
     .where(eq(releases.id, releaseId))
     .get()
@@ -46,12 +51,17 @@ export async function registerProcessingResult(
     .from(table)
     .where(eq(table.releaseId, releaseId))
     .get()
-  if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength)
+  if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength) {
+    if (result.kind === 'processing-audit')
+      await retainAuditSearchIndex(store, ref, result, release.code)
     return existing
+  }
   if (result.kind === 'processing-audit') await verifyAuditResult(store, result)
   else await verifyProcessingResult(store, result)
   if (!['staged', 'processing'].includes(release.status))
     throw new Error('Published provenance is immutable.')
+  if (result.kind === 'processing-audit')
+    await retainAuditSearchIndex(store, ref, result, release.code)
   // A release has one processing result. Multiple outputs are declared in its collections.
   await db
     .insert(table)
