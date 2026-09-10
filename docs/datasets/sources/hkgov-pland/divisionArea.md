@@ -285,3 +285,10 @@ cohorts do not require a matching Overture release. Planning Units use persisten
 identity; New Town identity is cohort-scoped. Enriching an already published historical
 cohort creates the next immutable domain-release revision and a new catalogue
 checkpoint.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

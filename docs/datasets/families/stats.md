@@ -307,3 +307,16 @@ artefact is C&SD geometry contributes both its geometry and its Statistics perio
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
 statistical-geography cohort.
+
+Rules that consume identity mappings retain the selected bridge fixtures alongside their
+execution counts. Audit cards can also display the same release’s retained geography
+bridge as shared evidence for those rules. Bridge tables show publisher identities and
+codes, SaanSeoi division codes and canonical identities; UUIDs use a middle ellipsis
+with the full identity available on hover.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

@@ -8,10 +8,14 @@ replacement is used. Both direct normalisation and hierarchy lookup execute the 
 registered guarded rule. The [processing audit](../../processing-provenance.md) retains
 the fixture and individual decision; bulk normalisation retains declarations and counts.
 
-Source Divisions retain the complete publisher record in `rawProperties`, alongside
-identity, provenance and release history. Names, admin level, subtype, class, Wikidata,
-hierarchies and cartography have no duplicate source columns; canonical history/current
-tables own the normalised projection.
+Source Divisions retain publisher attributes in `rawProperties`, alongside source
+identity, original `sourceGeometry`, `sources` and release history. Names, admin level,
+subtype, class, Wikidata, hierarchies and cartography have no duplicate source columns;
+canonical history/current tables own the normalised projection.
+
+Supplemental division fixtures belong to canonical snapshots and do not create publisher
+source rows. Source resolutions reference only actual retained publisher assertions,
+following the [source record storage contract](../../source-records.md).
 
 Canonical Division ingestion records its exact source-selection recipe and run under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).

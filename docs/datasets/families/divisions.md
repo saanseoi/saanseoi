@@ -479,3 +479,10 @@ Only a local import may create a missing fixture entry. A non-local import can u
 existing fixture but fails clearly when an entry is absent. A source that provides codes
 without a name is not translated. Locale statistics distinguish publisher-provided,
 inferred, AI-translated, and human-translated names as four exclusive categories.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

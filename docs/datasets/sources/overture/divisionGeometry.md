@@ -24,9 +24,10 @@ planning mirror. If an interrupted owning release needs to be re-entered directl
 prerequisite lookup recognises only sealed plans owned by the pending release; it does
 not clear ownership or allow another release to bypass unfinished work.
 
-Source areas and boundaries retain the complete publisher record, including geometry, in
-`rawProperties`. Source columns track identity, provenance and release validity;
-classification and land/territorial flags are projected only into canonical tables.
+Source areas and boundaries retain publisher attributes in `rawProperties`, original
+geometry in `sourceGeometry` and attribution in `sources`. Source columns track identity
+and release validity; classification and land/territorial flags are projected only into
+canonical tables.
 
 Geometry snapshots retain effective source rules, lookup selections and assembly runs.
 Replay includes recipe parents under the
@@ -125,9 +126,10 @@ Hong Kong clipping artefact.
 
 Source rows preserve the Overture `id` as `sourceRecordId`, publisher `sources`,
 `version`, `subtype`, `class`, and land/territorial flags. `rawProperties` retains the
-complete decoded source row, including the native ordered `division_ids`/`division_id`
+decoded publisher attributes, including the native ordered `division_ids`/`division_id`
 relationships and dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`,
-and `perspectives`). Source tables do not duplicate canonical relationships.
+and `perspectives`). Publisher geometry is retained once in `sourceGeometry`, and
+attribution once in `sources`. Source tables do not duplicate canonical relationships.
 
 Overture Division IDs are validated against the Overture GERS Registry rather than being
 classified from their UUID shape. The local `cache:gers` command caches the registry
@@ -150,10 +152,10 @@ flags. Boundary rows require exactly two distinct division IDs and null `perspec
 | `names`                                             | drop as redundant with the referenced division      | —                                                     |
 | `is_disputed`, `perspectives`                       | —                                                   | drop; `perspectives` must be null in preflight        |
 
-The source schema and canonical schema use the same shared source-versioning,
-history-versioning, current-snapshot and `rawProperties` fragments as `division`. Each
-geometry release is assigned to both its source and history shards, allowing the source
-record API to resolve its retained publisher records. Stats include accepted counts,
+Source tables use shared source-versioning columns; canonical tables use
+history-versioning and current-snapshot columns as for `division`. Each geometry release
+is assigned to both its source and history shards, allowing the source record API to
+resolve its retained publisher records. Stats include accepted counts,
 land/maritime/mixed type, land/territorial combinations, and source or canonical change
 counts. Geographic exclusions and rejected rows remain visible in CLI diagnostics rather
 than persisted release stats; `CN-GD` exclusions are also retained as release audit
@@ -162,13 +164,13 @@ actions.
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
-source rows retain the original source array, Overture version and source-only fields
-inside `rawProperties`, with provenance and release tracking alongside it. The publisher
-version is accessible as `rawProperties.version`. Canonical rows expose normalised
-left/right or division references, `type` (`land`, `maritime`, or `mixed`), geometry,
-bbox, and land/territorial flags. `mixed` is derived when both source flags are true,
-including the known upstream Overture records where the source class alone would
-otherwise suggest `land` or `maritime`.
+source rows retain Overture version and source-only attributes inside `rawProperties`,
+with original attribution in `sources`, geometry in `sourceGeometry` and release
+tracking alongside them. The publisher version is accessible as `rawProperties.version`.
+Canonical rows expose normalised left/right or division references, `type` (`land`,
+`maritime`, or `mixed`), geometry, bbox, and land/territorial flags. `mixed` is derived
+when both source flags are true, including the known upstream Overture records where the
+source class alone would otherwise suggest `land` or `maritime`.
 
 Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
 include nullable integer `admin_level`. It is accepted by preflight and retained in
@@ -234,3 +236,10 @@ Overture division, area, and boundary snapshots belong to persistent snapshot li
 A complete monthly Overture composition is published as an immutable `overture` domain
 release. HAD area geometry may be selected at or before the Overture cohort, but
 planning domains are published separately and are never mixed into this release.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

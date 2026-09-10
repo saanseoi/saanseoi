@@ -316,3 +316,10 @@ baseline: its 18 district areas are additions, not removals from another cohort.
 geographic snapshots, including parent-derived and lookup-dependent geometry. Affected
 Divisions API release sets and catalogue revisions are included in the confirmation
 plan. Independent source releases, assertions and snapshots remain available.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.

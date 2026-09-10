@@ -3,11 +3,12 @@
 [Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
 2025-10-22.0 in full, with a separate completion manifest for the bounded sample.
 
-The source table stores the complete publisher record only in `rawProperties`, plus
-source identity, provenance and version/release tracking. Names, coordinates,
-categories, brand, contacts and addresses are projected only into canonical
-history/current tables. The publisher's integer record version is retained only in
-`rawProperties.version`; `versionHash` identifies the stored payload.
+The source table stores publisher attributes in `rawProperties`, with publisher
+identity, original `sourceGeometry`, `sources` and version/release tracking alongside
+it. Each publisher value is retained once. Normalised names, coordinates, categories,
+brand, contacts and addresses are projected only into canonical history/current tables.
+The publisher's integer record version is retained only in `rawProperties.version`;
+`versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records already in the active shard update release
@@ -453,3 +454,10 @@ Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 `zh-hant`；这代表繁体中文脚本，不代表粤语。冲突的语言标签及源值会记录在发布审核动作中，混合脚本不会自行拆分。公开 Place 不再提供
 `addresses`，自由格式地址会放在 PlaceI18n 的
 `freeformAddress`；选定的 ALS 关系仍然独立且具权威性。地点名称、品牌及自由格式地址均不使用机器翻译。
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`rawProperties`.
