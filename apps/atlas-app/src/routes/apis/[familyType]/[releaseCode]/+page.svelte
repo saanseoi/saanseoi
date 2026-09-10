@@ -817,6 +817,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {#await statsRoot then module}
               {@const ReleaseStatsRoot = module.default}
               <ReleaseStatsRoot
+                resourceType={api.familyType === 'stats' ? 'divisionStatistic' : undefined}
                 stats={release.stats}
                 {districtAreas}
                 {locale}
