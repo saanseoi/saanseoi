@@ -205,6 +205,11 @@ function buildHistoryRollbackSql(
 ) {
   return joinStatements([
     `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ...(input.type === 'street'
+      ? []
+      : [
+          `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
+        ]),
     ...plan.historyTables.map(
       ({ table }) =>
         `UPDATE ${table} SET isCurrent = 0 WHERE snapshotId = ${literal(input.snapshotId)};`,
@@ -215,6 +220,11 @@ function buildHistoryRollbackSql(
 function buildPurgeHistorySql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
   return joinStatements([
     `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
+    ...(input.type === 'street'
+      ? []
+      : [
+          `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
+        ]),
     ...plan.historyTables.map(
       ({ table }) =>
         `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)} AND sourceReleaseId = ${literal(input.releaseId)};`,
