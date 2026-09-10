@@ -158,6 +158,7 @@ export function readAlsPublisherSource(
     typeof row.publisherSource === 'string'
       ? JSON.parse(row.publisherSource)
       : row.publisherSource
+  if (value === null) return null
   if (
     !value ||
     typeof value !== 'object' ||
