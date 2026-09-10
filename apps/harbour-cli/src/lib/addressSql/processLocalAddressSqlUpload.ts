@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
+import { boundedHistoryApply } from './boundedHistoryApply.ts'
 import {
   getReplayedAddressVersionMap,
   prepareAddressVersionInsertContext,
@@ -788,7 +789,13 @@ export async function processLocalAddressSqlUpload(
               dbContext.metaDb,
               bucket,
               finalMessageWithMeta,
-              { ...importOptions, captureSql },
+              {
+                ...importOptions,
+                captureSql: async (destination, bytes) => {
+                  for (const part of boundedHistoryApply(bytes, previewPlan.rowCount))
+                    await captureSql(destination, part)
+                },
+              },
             ),
         }),
       )
