@@ -887,6 +887,32 @@ function isAllowedKnownSchemaTransition(
 ) {
   const previousSchema = parseSchemaFingerprint(previousFingerprint)
 
+  // ALS preparation retains the untouched publisher payload in this envelope.
+  // Its addition must not conceal any change to the other prepared fields.
+  if (
+    latestDataset.datasetCode === 'ds-hk-hkgov-dpo-address' &&
+    nextPlan.datasetCode === latestDataset.datasetCode &&
+    latestDataset.source === 'hkgov-dpo' &&
+    nextPlan.source === 'hkgov-dpo' &&
+    latestDataset.type === 'address' &&
+    nextPlan.type === 'address' &&
+    previousSchema &&
+    !previousSchema.some(field => field.name === 'publisherSource')
+  ) {
+    const envelopes = nextInspection.schema.filter(
+      field => field.name === 'publisherSource',
+    )
+    if (
+      envelopes.length === 1 &&
+      envelopes[0]?.type === 'utf8' &&
+      envelopes[0]?.nullable === true &&
+      createSchemaFingerprintFromSchema(
+        nextInspection.schema.filter(field => field.name !== 'publisherSource'),
+      ) === previousFingerprint
+    )
+      return true
+  }
+
   if (
     latestDataset.datasetCode ===
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
