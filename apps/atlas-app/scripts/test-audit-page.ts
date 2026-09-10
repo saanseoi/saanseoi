@@ -53,7 +53,15 @@ try {
       const start = performance.now()
       const before = requests.length
       await action()
-      await settle()
+      await settle().catch(async error => {
+        console.error({
+          label,
+          url: page.url(),
+          errors,
+          body: (await page.locator('body').innerText()).slice(-5000),
+        })
+        throw error
+      })
       await Promise.all(responses)
       const cdp = await context.newCDPSession(page)
       await cdp.send('HeapProfiler.collectGarbage')
