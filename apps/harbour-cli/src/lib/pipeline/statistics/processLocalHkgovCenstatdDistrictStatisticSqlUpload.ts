@@ -1,3 +1,8 @@
+import {
+  calculateAndStoreApiReleaseSetStats,
+  isApiReleaseSetStatsReady,
+  resolveApiReleaseSetStatsTarget,
+} from '../../api/apiReleaseSetStats'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
@@ -519,6 +524,26 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         return published
       },
     )
+    if (!options.deferStatsReleaseSet && isApiReleaseSetStatsReady(published)) {
+      await calculateAndStoreApiReleaseSetStats({
+        historyTargets: context.historyTargets,
+        currentDb: context.currentDb as unknown as HarbourReadableDb,
+        family: 'statistics',
+        harbourClient: client,
+        importOptions: {
+          accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+          apiToken: process.env.CLOUDFLARE_D1_TOKEN,
+          isLocal: !target.remote,
+          metaBinding: context.metaBinding,
+          metaDatabaseId: context.state.bindings.DB_META?.databaseId ?? null,
+        },
+        metaDb,
+        progress,
+        releaseCode,
+        releaseId,
+        target: resolveApiReleaseSetStatsTarget(published),
+      })
+    }
     await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     return published
   } catch (error) {
