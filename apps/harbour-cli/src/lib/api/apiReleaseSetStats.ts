@@ -1,4 +1,8 @@
-import { buildStatisticsApiStats } from './statisticsApiReleaseSetStats'
+import {
+  buildStatisticsApiStats,
+  listStatisticsStatsReleases,
+} from './statisticsApiReleaseSetStats'
+import { listApiReleaseSetSnapshots } from '@repo/core/db/metaRegistry'
 import { createHash } from 'node:crypto'
 import {
   buildDivisionApiStats,
@@ -97,6 +101,37 @@ export function isApiReleaseSetStatsReady(
       result.snapshotId &&
       result.apiReleaseSetStatus !== 'draft',
   )
+}
+
+/** A compilation upload can publish several reference periods at once. */
+export async function calculateAndStorePublishedStatisticsStats(
+  options: Omit<CalculateApiReleaseSetStatsOptions, 'family' | 'target'>,
+  published: PublishDatasetResult | void,
+) {
+  if (!published) return
+  const codes = new Set(
+    published.apiReleaseSetPublications?.map(row => row.apiReleaseSetCode) ?? [],
+  )
+  if (isApiReleaseSetStatsReady(published) && published.apiReleaseSetCode)
+    codes.add(published.apiReleaseSetCode)
+  const releases = (await listStatisticsStatsReleases(options.metaDb)).filter(
+    row =>
+      codes.has(row.code) ||
+      (isApiReleaseSetStatsReady(published) && row.id === published.apiReleaseSetId),
+  )
+  for (const release of releases) {
+    const snapshots = (
+      await listApiReleaseSetSnapshots(options.metaDb, release.id)
+    ).filter(row => row.snapshotResourceType === 'divisionStatistic')
+    const snapshot =
+      snapshots.find(row => row.snapshotId === published.snapshotId) ?? snapshots[0]
+    if (!snapshot) throw new Error(`No Statistics snapshot for ${release.code}`)
+    await calculateAndStoreApiReleaseSetStats({
+      ...options,
+      family: 'statistics',
+      target: { apiReleaseSetId: release.id, snapshotId: snapshot.snapshotId },
+    })
+  }
 }
 
 export async function calculateAndStoreApiReleaseSetStats(

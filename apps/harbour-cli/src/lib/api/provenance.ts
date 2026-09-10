@@ -16,8 +16,26 @@ const PROVENANCE_UPLOAD_RETRY_DELAY_MS = 250
 function isRetryableProvenanceUploadError(error: unknown) {
   return (
     error instanceof Error &&
-    /database is locked|sqlite_busy|internal error/i.test(error.message)
+    /database is locked|sqlite_busy|internal error|network connection lost|fetch failed|ECONNRESET|ECONNREFUSED|ETIMEDOUT|HTTP (408|429|500|502|503|504)\b/i.test(
+      error.message,
+    )
   )
+}
+
+async function readProvenanceResponse(response: Response) {
+  const body = await response.text()
+  if (!response.ok) {
+    throw new Error(
+      `Provenance request failed (HTTP ${response.status}): ${body.slice(0, 1000)}`,
+    )
+  }
+  try {
+    return JSON.parse(body)
+  } catch {
+    throw new Error(
+      `Invalid provenance response (HTTP ${response.status}): expected JSON.`,
+    )
+  }
 }
 
 async function uploadProvenanceObject(
@@ -35,7 +53,7 @@ async function uploadProvenanceObject(
         headers: { ...headers, 'Content-Type': 'application/json' },
         body: bytes,
       })
-      const result = (await response.json()) as {
+      const result = (await readProvenanceResponse(response)) as {
         hash?: string
         byteLength?: number
         error?: string
@@ -83,7 +101,7 @@ async function registerProvenanceResult(
           body: serialise(ref),
         },
       )
-      const result = (await response.json()) as {
+      const result = (await readProvenanceResponse(response)) as {
         manifestHash?: string
         error?: string
       }

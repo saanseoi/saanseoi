@@ -26,9 +26,10 @@ export async function retainProcessingFailure(input: {
   try {
     await deliverProcessingResult(input.target, input.store, result.ref)
   } catch (error) {
-    throw new AggregateError(
-      [input.error, error],
-      'Processing guard failed; the audit is retained locally but could not be registered. Retry delivery before resetting this attempt.',
+    // Delivery failure must not prevent the caller from recording stageFailed.
+    // The original guard remains the error that terminates processing.
+    console.warn(
+      `${input.error.message} Audit delivery failed: ${error instanceof Error ? error.message : String(error)}. The audit is retained locally; retry delivery before resetting this attempt.`,
     )
   }
 }
