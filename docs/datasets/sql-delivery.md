@@ -103,9 +103,10 @@ without a receipt or recoverable bookmark stops; an inactive import alone is not
 of success and does not authorise another ingest request.
 
 If a bookmark becomes inactive, reports a storage reset or completes without a receipt,
-recovery makes at most three lookups using the exact payload ETag. A returned active
-bookmark is polled continuously. Recovery never follows a replacement upload URL or
-sends another ingest request, and only a matching database receipt permits advancement.
+recovery uses the exact payload ETag with up to three backoff retries. A saved polling
+state without a bookmark also uses this lookup. A returned active bookmark is polled
+continuously. Recovery never follows a replacement upload URL or sends another ingest
+request, and only a matching database receipt permits advancement.
 
 Local recovery verifies remote receipts and skips locally committed batches. It never
 repeats remote writes. Independent Address 2D database groups may execute concurrently,

@@ -815,6 +815,23 @@ test('a cleared import without a receipt is not accepted as success', () =>
     expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
   }))
 
+test('a polling checkpoint without a bookmark recovers by exact ETag', () =>
+  fixture(async f => {
+    await f.prepare()
+    f.fail('poll')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+    ).rejects.toThrow('poll connection lost')
+    const path = join(f.directory, 'progress.json')
+    const progress = JSON.parse(await readFile(path, 'utf8'))
+    delete progress.remote[0].bookmark
+    await writeFile(path, JSON.stringify(progress))
+    f.fail('reattach')
+    await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+    expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
+    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 111 })
+  }))
+
 for (const failure of ['reattach', 'reset-reattach', 'cancelled-reattach'] as const)
   test(`a stale bookmark recovers by exact ETag without another upload or ingest: ${failure}`, () =>
     fixture(async f => {
