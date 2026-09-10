@@ -390,6 +390,11 @@ Non-overlapping rows are recorded as `contributed_geometry` and merged into the
 companion. This distinction is per complete materialisation, not a source-level
 duplicate.
 
+Completed-release validation recognises these recorded geometry contributions while
+their shared composition is draft. It verifies the source membership, shard assignments
+and materialised rows independently of API activation; it does not require the
+contributing dataset to own the composition lineage.
+
 For API-field provenance, Population and Household Statistics is the canonical C&SD
 district relationship whenever it is available. Permanent Living Quarters may still
 contribute geometry to that companion. District Land Area, Population and Density
