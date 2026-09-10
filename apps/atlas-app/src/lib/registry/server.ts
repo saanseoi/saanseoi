@@ -1,22 +1,21 @@
+import { env } from 'cloudflare:workers'
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
-import { getRequestEvent } from '$app/server'
 
 import { writeServerProductUsage } from '../analytics/productUsage.js'
 
 export function getMetaDb() {
-  const binding = getRequestEvent().platform?.env.DB_META
+  const binding = env.DB_META
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
   return createMetaDb(binding)
 }
 
 export function getCurrentDb() {
-  const binding = getRequestEvent().platform?.env.DB_CURRENT
+  const binding = env.DB_CURRENT
   if (!binding) throw new Error('D1 binding "DB_CURRENT" not found.')
   return createCurrentDb(binding)
 }
 
 export function getHistoryDb(bindingName: string) {
-  const env = getRequestEvent().platform?.env
   const bindings = {
     DB_HISTORY_HK_BEFORE: env?.DB_HISTORY_HK_BEFORE,
     DB_HISTORY_HK_2025: env?.DB_HISTORY_HK_2025,

@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import { sequence, type Handle } from '@sveltejs/kit/hooks'
 import { building } from '$app/env'
 import { paraglideMiddleware } from '@repo/i18n/server'
@@ -42,14 +43,10 @@ const handleI18n: Handle = async ({ event, resolve }) =>
   paraglideMiddleware(event.request, () => resolve(event))
 
 const handleBetterAuth: Handle = async ({ event, resolve }) => {
-  if (!event.platform?.env?.DB_META)
+  if (!env.DB_META)
     throw new Error('D1 binding "DB_META" not found - are you running with wrangler?')
 
-  event.locals.auth = createAuth(
-    event.platform.env.DB_META,
-    event.url.origin,
-    event.platform.env,
-  )
+  event.locals.auth = createAuth(env.DB_META, event.url.origin, env)
 
   const { auth } = event.locals
   const session = await auth.api.getSession({ headers: event.request.headers })
@@ -73,7 +70,7 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
             : path.includes('callback')
               ? 'social_callback'
               : 'other'
-    recordProductUsage(event.platform?.env.PRODUCT_USAGE, {
+    recordProductUsage(env.PRODUCT_USAGE, {
       event: 'auth.outcome',
       producer: 'atlas-app',
       surface: 'auth',

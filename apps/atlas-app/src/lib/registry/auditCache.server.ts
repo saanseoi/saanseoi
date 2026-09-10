@@ -1,12 +1,11 @@
-import { getRequestEvent } from '$app/server'
+import { waitUntil } from 'cloudflare:workers'
 
 /** Content-addressed, environment-local derived data; never cache a failed build. */
 export async function cachedAuditData<T>(
   key: string,
   build: () => Promise<T>,
 ): Promise<T> {
-  const event = getRequestEvent()
-  const cache = await event.platform?.caches?.open('audit-presentation')
+  const cache = await caches.open('audit-presentation')
   if (!cache) return build()
   // Remote queries prohibit event.url access. This URL names a cache entry only;
   // it is never fetched, and the named cache belongs to the current environment.
@@ -20,7 +19,6 @@ export async function cachedAuditData<T>(
   const write = cache.put(request, response).catch(error => {
     console.warn('Unable to cache audit presentation data', error)
   })
-  if (event.platform?.ctx) event.platform.ctx.waitUntil(write)
-  else await write
+  waitUntil(write)
   return value
 }

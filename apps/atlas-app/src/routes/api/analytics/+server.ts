@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import { json, type RequestHandler } from '@sveltejs/kit'
 import {
   isClientProductUsageEventName,
@@ -26,7 +27,7 @@ const isAllowedValue = <T extends readonly string[]>(
   value: unknown,
 ): value is T[number] => isString(value) && values.includes(value)
 
-export const POST: RequestHandler = async ({ request, platform }) => {
+export const POST: RequestHandler = async ({ request }) => {
   let payload: ClientPayload
   try {
     payload = (await request.json()) as ClientPayload
@@ -49,7 +50,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
     return json({ error: 'invalid_analytics_event' }, { status: 400 })
   }
 
-  recordProductUsage(platform?.env.PRODUCT_USAGE, {
+  recordProductUsage(env.PRODUCT_USAGE, {
     event: payload.event,
     producer: 'atlas-client',
     surface: payload.surface as ProductUsageSurface,
