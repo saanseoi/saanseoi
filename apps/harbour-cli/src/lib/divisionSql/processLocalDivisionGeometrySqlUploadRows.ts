@@ -201,7 +201,9 @@ export async function writeGeometryRows(
         shouldCompressCanonicalGeometry(version.source, version.transform)
           ? compressJsonBrotli(
               row.canonical.geometry,
-              version.source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined,
+              version.source === 'hkgov-pland-pu' && version.transform === undefined
+                ? MAX_BROTLI_QUALITY
+                : undefined,
             )
           : row.canonical.geometry,
       )
