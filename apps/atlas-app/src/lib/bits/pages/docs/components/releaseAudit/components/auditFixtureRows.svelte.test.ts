@@ -41,3 +41,16 @@ test('reviewed localisation finds exactly one selected field row', async () => {
   await expect.element(screen.getByText('POP', { exact: true })).toBeVisible()
   expect(screen.getByRole('row').elements()).toHaveLength(2)
 })
+
+test('UUIDs retain both ends and expose the complete identity on hover', async () => {
+  const canonicalId = '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d'
+  const screen = await render(IdentityMappings, {
+    mappings: [
+      { externalId: 'A', externalCode: '11', divisionCode: 'CW', canonicalId },
+    ],
+  })
+  await expect
+    .element(screen.getByText('8d17afe0…5d4b2f9d', { exact: true }))
+    .toHaveAttribute('title', canonicalId)
+  await expect.element(screen.getByText('A', { exact: true })).toBeVisible()
+})

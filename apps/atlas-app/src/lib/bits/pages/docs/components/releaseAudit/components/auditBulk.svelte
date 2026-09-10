@@ -47,8 +47,10 @@ let {
   hash,
   query = '',
   groups,
+  evidence = bulk,
 }: {
   bulk: BulkAudit
+  evidence?: BulkAudit
   releaseId: string
   hash: string
   query?: string
@@ -156,15 +158,15 @@ async function loadDeclaration() {
       </div>
     </details>
   {/if}
-  {#each bulk.fixtures as fixture, index}
+  {#each evidence.fixtures as fixture, index}
     {@const group = groups?.[fixture.type]}
-    {#if bulk.fixtures.findIndex(part => part.type === fixture.type) === index && group && catalogueGroupMatches(group, query)}
+    {#if evidence.fixtures.findIndex(part => part.type === fixture.type) === index && group && catalogueGroupMatches(group, query)}
       <div class="relative border-t border-current/10">
         <div class="absolute right-4 top-2 z-10">
           <CopyRule
             kind="fixture"
             getRule={async () => {
-          const documents = await Promise.all(bulk.fixtures.flatMap((part, partIndex) => part.type === fixture.type ? [getRetainedBulkFixture({releaseId, hash, bulkId: bulk.id, index: partIndex})] : []))
+          const documents = await Promise.all(evidence.fixtures.flatMap((part, partIndex) => part.type === fixture.type ? [getRetainedBulkFixture({releaseId, hash, bulkId: evidence.id, index: partIndex})] : []))
           return documents.length === 1 ? documents[0] : documents
         }}
           />
@@ -174,7 +176,7 @@ async function loadDeclaration() {
           {hash}
           {query}
           {group}
-          bulkId={bulk.id}
+          bulkId={evidence.id}
           type={fixture.type}
           label={fixture.type === 'statistic-fields' ? m.source_audit_statistical_fields() : fixture.type === 'statistic-measures' ? m.source_audit_statistical_measures() : fixture.type === 'identity-mappings' ? m.source_audit_identity_bridge() : label(fixture.type)}
         />

@@ -113,7 +113,10 @@ describe('address release samples', () => {
     expect(supportsReleaseSamples('api-addresses-v0.1')).toBe(true)
     expect(supportsReleaseSamples('api-divisions-v0.1')).toBe(true)
     expect(getSampleApiPath('api-divisions-v0.1')).toBe('/divisions/v0')
-    expect(getSampleApiPath('api-stats-v0.1')).toBeNull()
+    expect(supportsReleaseSamples('api-stats-v0.1')).toBe(true)
+    expect(getSampleApiPath('api-stats-v0.1')).toBe('/stats/v0')
+    expect(supportsReleaseSamples('api-stats-v9.9')).toBe(false)
+    expect(getSampleApiPath('api-stats-v9.9')).toBeNull()
   })
 
   test('puts compactable sample ids first and collapses matching values', () => {

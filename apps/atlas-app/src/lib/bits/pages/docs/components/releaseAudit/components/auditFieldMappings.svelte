@@ -14,10 +14,10 @@ let rows = $derived(
 
 <div class="contents">
   <table
-    class="w-full table-fixed text-left text-sm [&_td]:wrap-break-word [&_code]:wrap-anywhere"
+    class="w-full table-fixed border-separate border-spacing-0 text-left text-sm [&_td]:wrap-break-word [&_code]:wrap-anywhere"
   >
     <thead
-      class="sticky top-0 z-10 border-b border-current/20 bg-background text-xs uppercase [&_th]:text-foreground/60"
+      class="sticky top-0 z-10 bg-background [&_th]:border-b [&_th]:border-current/20 text-xs uppercase [&_th]:text-foreground/60"
     >
       <tr>
         <th class="w-[18%] p-2">{m.source_audit_source_field()}</th>
@@ -28,7 +28,7 @@ let rows = $derived(
     </thead>
     <tbody>
       {#each rows as row}
-        <tr class="border-b border-current/10 align-top">
+        <tr class="[&_td]:border-b [&_td]:border-current/10 align-top">
           <td class="p-2">
             <code class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500"
               >{String(row.sourceField ?? '—')}</code

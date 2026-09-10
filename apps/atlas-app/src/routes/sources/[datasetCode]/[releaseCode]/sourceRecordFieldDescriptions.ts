@@ -14,6 +14,34 @@ const planningUnitFields: Record<string, string> = {
 // References: docs/datasets/sources/hkgov-had/divisionArea.md,
 // hkgov-landsd/placeName.md and hkgov-hyd/streetNamePlate.md.
 const datasetFields: Record<string, Record<string, string>> = {
+  // C&SD simplified data specification, BG_21C and HMA_21C:
+  // https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a
+  'hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
+    bg: 'Publisher building group code.',
+    bg_chi: 'Building group name in Traditional Chinese.',
+    bg_eng: 'Building group name in English.',
+    bg_ind:
+      'Building group indicator: B represents building groups; O represents records of other buildings in the area.',
+    hma: 'Publisher housing market area code.',
+    hma_chi: 'Housing market area name in Traditional Chinese.',
+    hma_eng: 'Housing market area name in English.',
+  },
+  // C&SD simplified data specification, DC_21C_SDU:
+  // https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54
+  'hkgov-censtatd-division-statistic-subdivided-units-district': {
+    OBJECTID: 'Publisher feature object identifier.',
+    SHAPE_Area: 'Area calculated in the publisher’s source coordinate system.',
+    SHAPE_Length:
+      'Boundary length calculated in the publisher’s source coordinate system.',
+    dc: 'Publisher District Council district code.',
+    dc_chi: 'District Council district name in Traditional Chinese.',
+    dc_class: 'Publisher classification of the District Council district.',
+    dc_eng: 'District Council district name in English.',
+    sdu_dh: 'Number of domestic households living in subdivided units.',
+    sdu_n: 'Number of occupied subdivided units.',
+    sdu_oq: 'Number of occupied quarters with subdivided units.',
+    sdu_pop: 'Number of persons living in subdivided units.',
+  },
   'hkgov-censtatd-division-statistic-permanent-living-quarters': {
     AREA_CHI: 'Geographic area name in Traditional Chinese.',
     AREA_ENG:
