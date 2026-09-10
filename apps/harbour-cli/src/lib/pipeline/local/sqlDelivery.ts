@@ -8,6 +8,7 @@ import {
   sha256,
   withDeliveryLock,
   writeDeliveryFile,
+  readBoundDeliveryStatements,
 } from './sqlDeliveryFiles.ts'
 import { registerPendingSqlDelivery } from './sqlDeliveryPending.ts'
 import { assertSqlDeliveryGeneration } from './sqlDeliveryGeneration.ts'
@@ -160,6 +161,62 @@ export async function runSqlDelivery(
           completed += 1
           await options.onProgress?.(completed, plan.batches.length)
         }
+        const executeBatches = async (batches: SqlDeliveryPlan['batches']) => {
+          for (let index = 0; index < batches.length; ) {
+            const first = batches[index]!
+            const entries: Array<{
+              batch: typeof first
+              bytes: Uint8Array
+              state: import('./sqlDeliveryTypes.ts').SqlDeliveryCheckpoint
+            }> = []
+            let totalBytes = 0
+            let totalStatements = 0
+            // Only the explicitly independent Address3D producer opts into transport grouping.
+            if (
+              options.mode === 'remote' &&
+              plan.context.phase === 'address3d-data' &&
+              plan.context.inputs.independentBoundTargets === true
+            ) {
+              for (const batch of batches.slice(index, index + 8)) {
+                if (
+                  batch.kind !== 'bound' ||
+                  batch.target.databaseId !== first.target.databaseId ||
+                  (progress.remote[batch.index]?.status ?? 'pending') !== 'pending' ||
+                  totalBytes + batch.bytes > 8 * 1024 * 1024
+                )
+                  break
+                const bytes = await readFile(join(directory, batch.file))
+                if (sha256(bytes) !== batch.sha256)
+                  throw new Error(
+                    `SQL delivery batch ${batch.index} changed during execution.`,
+                  )
+                const statements = readBoundDeliveryStatements(bytes)
+                if (totalStatements + statements.length > 512) break
+                totalBytes += bytes.byteLength
+                totalStatements += statements.length
+                const state = progress.remote[batch.index] ?? {
+                  status: 'pending' as const,
+                  uploadMs: 0,
+                  executionMs: 0,
+                }
+                entries.push({ batch, bytes, state })
+              }
+            }
+            if (entries.length < 2) {
+              await executeBatch(first)
+              index++
+              continue
+            }
+            for (const entry of entries)
+              progress.remote[entry.batch.index] = entry.state
+            await remote.deliverBoundGroup(plan, entries, save)
+            for (const _entry of entries) {
+              completed++
+              await options.onProgress?.(completed, plan.batches.length)
+            }
+            index += entries.length
+          }
+        }
         if (options.mode === 'remote' && plan.context.inputs.parallelTargets === true) {
           const groups = new Map<string, SqlDeliveryPlan['batches']>()
           for (const batch of plan.batches) {
@@ -168,13 +225,11 @@ export async function runSqlDelivery(
             groups.set(batch.target.databaseId, group)
           }
           const results = await Promise.allSettled(
-            [...groups.values()].map(async batches => {
-              for (const batch of batches) await executeBatch(batch)
-            }),
+            [...groups.values()].map(executeBatches),
           )
           for (const result of results)
             if (result.status === 'rejected') throw result.reason
-        } else for (const batch of plan.batches) await executeBatch(batch)
+        } else await executeBatches(plan.batches)
         return {
           planId: plan.id,
           batches: plan.batches.length,

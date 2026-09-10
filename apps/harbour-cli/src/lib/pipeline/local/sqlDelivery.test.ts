@@ -1,9 +1,8 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { createHash } from 'node:crypto'
+import { fixture } from './sqlDeliveryTestFixture.ts'
 import { prepareSqlDelivery, runSqlDelivery } from './sqlDelivery.ts'
 import { withDeliveryLock } from './sqlDeliveryFiles.ts'
 import { prepareReleaseSqlDelivery } from './releaseSqlDelivery.ts'
@@ -20,18 +19,6 @@ import {
   completeSqlDeliveryRelease,
 } from './sqlDeliveryPending.ts'
 import type { D1ImportFetch } from '@repo/core/d1ImportApi'
-
-async function fixture(
-  work: (f: Awaited<ReturnType<typeof createFixture>>) => Promise<void>,
-) {
-  const f = await createFixture()
-  try {
-    await work(f)
-  } finally {
-    f.remote.close()
-    await rm(f.root, { recursive: true, force: true })
-  }
-}
 
 test('captured family SQL seals once and replays exact bytes remotely then locally', () =>
   fixture(async f => {
@@ -125,6 +112,140 @@ test('batched receipt checks reject mismatches and missing receipts before local
     ).rejects.toThrow('receipt disappeared')
     expect(f.localValue()).toEqual({ n: 0 })
     expect(f.events.filter(event => event === 'ingest')).toHaveLength(3)
+  }))
+
+test('parallel remote targets overlap without reordering batches within a target', () =>
+  fixture(async f => {
+    await prepareSqlDelivery(
+      f.directory,
+      {
+        ...f.context,
+        inputs: { parallelTargets: true },
+      },
+      async append => {
+        for (let index = 0; index < 4; index++) {
+          await append(
+            index % 2 === 0
+              ? { bindingName: 'DB_CURRENT', databaseId: 'db' }
+              : { bindingName: 'DB_HISTORY', databaseId: 'history' },
+            new TextEncoder().encode(
+              JSON.stringify([
+                { sql: 'UPDATE counter SET n = n + ?;', params: [index + 1] },
+              ]),
+            ),
+            'bound',
+          )
+        }
+      },
+    )
+    const active = new Set<string>()
+    const order = new Map<string, number[]>()
+    let peak = 0
+    const fetch: D1ImportFetch = async (input, init) => {
+      const body = JSON.parse(init?.body as string)
+      if (!body.batch) return f.options.fetch(input, init)
+      const target = String(input)
+      expect(active.has(target)).toBe(false)
+      active.add(target)
+      peak = Math.max(peak, active.size)
+      const sequence = order.get(target) ?? []
+      sequence.push(
+        body.batch.find((statement: { params: unknown[] }) => statement.params.length)
+          ?.params[0],
+      )
+      order.set(target, sequence)
+      await Bun.sleep(10)
+      try {
+        return await f.options.fetch(input, init)
+      } finally {
+        active.delete(target)
+      }
+    }
+    await runSqlDelivery(f.directory, {
+      ...f.options,
+      fetch,
+      mode: 'remote',
+      targets: { DB_CURRENT: 'db', DB_HISTORY: 'history' },
+    })
+    expect(peak).toBe(2)
+    expect([...order.values()].sort((a, b) => a[0]! - b[0]!)).toEqual([
+      [1, 3],
+      [2, 4],
+    ])
+    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 10 })
+  }))
+
+for (const acknowledgementLost of [false, true])
+  test(`Address3D groups sealed bound batches and recovers each receipt: lost acknowledgement=${acknowledgementLost}`, () =>
+    fixture(async f => {
+      await prepareSqlDelivery(
+        f.directory,
+        {
+          ...f.context,
+          phase: 'address3d-data',
+          inputs: { independentBoundTargets: true },
+        },
+        async append => {
+          for (let index = 0; index < 10; index++)
+            await append(
+              { bindingName: 'DB_CURRENT', databaseId: 'db' },
+              new TextEncoder().encode(
+                JSON.stringify([{ sql: 'UPDATE counter SET n = n + ?;', params: [1] }]),
+              ),
+              'bound',
+            )
+        },
+      )
+      const sealed = await readFile(join(f.directory, 'plan.json'), 'utf8')
+      if (acknowledgementLost) {
+        f.fail('after-commit')
+        await expect(
+          runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+        ).rejects.toThrow('connection lost')
+        expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 8 })
+        f.fail('none')
+      }
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+      expect(f.events.filter(event => event === 'bound')).toHaveLength(2)
+      expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 10 })
+      expect(await readFile(join(f.directory, 'plan.json'), 'utf8')).toBe(sealed)
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
+      await runSqlDelivery(f.directory, { ...f.options, mode: 'remote' })
+      expect(f.localValue()).toEqual({ n: 10 })
+      expect(f.events.filter(event => event === 'bound')).toHaveLength(2)
+    }))
+
+test('grouped bound batches with no receipts refuse an uncertain replay', () =>
+  fixture(async f => {
+    await prepareSqlDelivery(
+      f.directory,
+      {
+        ...f.context,
+        phase: 'address3d-data',
+        inputs: { independentBoundTargets: true },
+      },
+      async append => {
+        for (let index = 0; index < 2; index++)
+          await append(
+            { bindingName: 'DB_CURRENT', databaseId: 'db' },
+            new TextEncoder().encode(
+              JSON.stringify([{ sql: 'UPDATE counter SET n = n + 1;', params: [] }]),
+            ),
+            'bound',
+          )
+      },
+    )
+    const fetch: D1ImportFetch = async (input, init) => {
+      if (JSON.parse(init?.body as string).batch) throw new Error('uncertain transport')
+      return f.options.fetch(input, init)
+    }
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, fetch, mode: 'remote' }),
+    ).rejects.toThrow('uncertain transport')
+    await expect(
+      runSqlDelivery(f.directory, { ...f.options, mode: 'remote' }),
+    ).rejects.toThrow('uncertain outcome')
+    expect(f.remote.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
   }))
 
 test('bound preparation rejects invalid statement budgets before sealing', () =>
@@ -272,185 +393,6 @@ test('status command reads a sealed plan without credentials or network access',
     expect(code).toBe(0)
     expect(JSON.parse(stdout).plan.id).toBe(plan.id)
   }))
-
-async function createFixture() {
-  const root = await mkdtemp(join(tmpdir(), 'sql-delivery-test-'))
-  const directory = join(root, 'delivery')
-  const localPath = join(root, 'current.sqlite')
-  const local = new Database(localPath)
-  const remote = new Database(':memory:')
-  for (const db of [local, remote])
-    db.exec('CREATE TABLE counter (n INTEGER); INSERT INTO counter VALUES (0);')
-  local.close()
-  await writeFile(
-    join(root, 'manifest.json'),
-    JSON.stringify({
-      target: 'preview',
-      preparedAt: 'generation-1',
-      files: { DB_CURRENT: localPath },
-    }),
-  )
-  const context = {
-    releaseId: 'release',
-    environment: 'preview' as const,
-    phase: 'data',
-    inputs: { snapshotId: 'snapshot' },
-    cacheDir: root,
-    cachePreparedAt: 'generation-1',
-  }
-  const uploads = new Map<string, string>()
-  const events: string[] = []
-  let failure:
-    | 'none'
-    | 'after-commit'
-    | 'before-commit'
-    | 'upload'
-    | 'poll'
-    | 'reattach'
-    | 'reset-reattach'
-    | 'reset-always'
-    | 'cancelled-reattach'
-    | 'cleared' = 'none'
-  let pendingSql = ''
-  let activeEtag = ''
-  const fetch: D1ImportFetch = async (input, init) => {
-    if (init?.method === 'PUT') {
-      if (failure === 'upload') throw new Error('fixture upload rejected')
-      const sql = new TextDecoder().decode(init.body as ArrayBuffer)
-      uploads.set(activeEtag, sql)
-      events.push('upload')
-      return new Response(null, {
-        headers: { ETag: createHash('md5').update(sql).digest('hex') },
-      })
-    }
-    const body = JSON.parse(init?.body as string)
-    if (String(input).endsWith('/query')) {
-      if (body.batch) {
-        events.push('bound')
-        remote.transaction(() => {
-          for (const statement of body.batch)
-            remote.query(statement.sql).run(...statement.params)
-        })()
-        if (failure === 'after-commit') throw new Error('connection lost after commit')
-        return Response.json({
-          success: true,
-          result: body.batch.map(() => ({ success: true, results: [] })),
-        })
-      }
-      return Response.json({
-        success: true,
-        result: [{ success: true, results: remote.query(body.sql).all() }],
-      })
-    }
-    events.push(body.action)
-    if (body.action === 'init') {
-      activeEtag = body.etag
-      if (pendingSql && ['reset-reattach', 'reset-always'].includes(failure)) {
-        if (failure === 'reset-reattach') failure = 'reattach'
-        return Response.json({
-          success: true,
-          result: { success: false, error: '{"D1_RESET_DO":true}' },
-        })
-      }
-      if (pendingSql && ['reattach', 'cancelled-reattach'].includes(failure)) {
-        failure = 'none'
-        return Response.json({
-          success: true,
-          result: { success: true, status: 'active', at_bookmark: 'bookmark-2' },
-        })
-      }
-      return Response.json({
-        success: true,
-        result: { filename: body.etag, upload_url: 'https://upload.example/sql' },
-      })
-    }
-    if (body.action === 'ingest') {
-      if (failure === 'before-commit')
-        throw new Error('connection lost before a known outcome')
-      if (
-        [
-          'poll',
-          'cleared',
-          'reattach',
-          'reset-reattach',
-          'reset-always',
-          'cancelled-reattach',
-        ].includes(failure)
-      ) {
-        pendingSql = uploads.get(body.etag) ?? ''
-        return Response.json({
-          success: true,
-          result: { success: false, at_bookmark: 'bookmark-1' },
-        })
-      }
-      remote.transaction(() => remote.exec(uploads.get(body.etag) ?? ''))()
-      if (failure === 'after-commit') throw new Error('connection lost after commit')
-      return Response.json({
-        success: true,
-        result: { success: true, status: 'complete' },
-      })
-    }
-    if (body.action === 'poll') {
-      if (failure === 'poll') throw new Error('poll connection lost')
-      if (failure === 'cancelled-reattach')
-        return Response.json({
-          success: true,
-          result: {
-            success: false,
-            error: 'Cancelled due to no poll() received in 15000ms.',
-          },
-        })
-      if (['cleared', 'reattach', 'reset-reattach', 'reset-always'].includes(failure))
-        return Response.json({
-          success: true,
-          result: { success: false, error: 'Not currently importing anything.' },
-        })
-      expect(['bookmark-1', 'bookmark-2']).toContain(body.current_bookmark)
-      remote.transaction(() => remote.exec(pendingSql))()
-      return Response.json({
-        success: true,
-        result: { success: true, status: 'complete' },
-      })
-    }
-    throw new Error(`Unexpected action ${body.action}`)
-  }
-  const options = {
-    accountId: 'account',
-    apiToken: 'token',
-    fetch,
-    pollIntervalMs: 0,
-    targets: { DB_CURRENT: 'db' },
-  }
-  return {
-    root,
-    directory,
-    context,
-    localPath,
-    remote,
-    events,
-    options,
-    fail(value: typeof failure) {
-      failure = value
-    },
-    async prepare() {
-      return prepareSqlDelivery(directory, context, async append => {
-        for (const n of [1, 10, 100])
-          await append(
-            { bindingName: 'DB_CURRENT', databaseId: 'db' },
-            new TextEncoder().encode(`UPDATE counter SET n = n + ${n};`),
-          )
-      })
-    },
-    localValue() {
-      const db = new Database(localPath)
-      try {
-        return db.query('SELECT n FROM counter').get()
-      } finally {
-        db.close()
-      }
-    },
-  }
-}
 
 test('generated Places and search recover in phase order against the current schema', () =>
   fixture(async f => {
