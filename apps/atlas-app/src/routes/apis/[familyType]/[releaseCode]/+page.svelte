@@ -62,7 +62,9 @@ let contentResource = createDeferredRemoteResource({
   createQuery: input => getApiReleasePageData(input),
   getInput: () => ({
     familyType: params.familyType,
-    releaseCode: params.releaseCode,
+    releaseCode:
+      resolveReleaseSetRef(shell?.releases, params.releaseCode)?.code ??
+      params.releaseCode,
   }),
   getKey: input => `${input.familyType}/${input.releaseCode}`,
   hasShell: () => Boolean(shell),

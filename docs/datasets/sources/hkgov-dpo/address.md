@@ -3,7 +3,9 @@
 The prepared `publisherSource` envelope carries untouched publisher provenance. Its
 nullable UTF-8 addition is permitted by schema validation only when all other prepared
 fields match the recorded schema. Other additions, removals and type changes remain
-subject to schema-drift rejection.
+subject to schema-drift rejection. An absent publisher envelope may be encoded as native
+null or JSON null. Both mean that the prepared row carries no publisher assertion;
+neither creates source evidence.
 
 ALS preparation restores its selected geographic snapshot from immutable history. For
 remote targets, it checks division and translation keys directly in D1 and delivers

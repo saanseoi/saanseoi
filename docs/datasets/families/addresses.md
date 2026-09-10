@@ -2,7 +2,8 @@
 
 ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
 envelope. Schema validation permits adding this envelope only when every other field
-retains its name, type and nullability.
+retains its name, type and nullability. Native null and JSON null both denote an absent
+envelope and create no publisher provenance; malformed non-null envelopes are rejected.
 
 Address preparation verifies geographic prerequisite rows in the target database.
 Missing retained divisions and translations are restored before address delivery;
