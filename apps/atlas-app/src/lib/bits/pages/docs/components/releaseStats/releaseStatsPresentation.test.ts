@@ -98,7 +98,9 @@ describe('createReleaseStatsPresentation', () => {
       3495, 0, 0, 0,
     ])
     expect(baseline.overview?.churn?.baseline).toBe(true)
-    expect(createReleaseStatsPresentation(input).overview?.churn).toBeUndefined()
+    expect(createReleaseStatsPresentation(input).overview?.churn?.unavailable).toBe(
+      true,
+    )
   })
   test('keeps statistical release churn ahead of the profile', () => {
     const model = createReleaseStatsPresentation({
@@ -188,7 +190,7 @@ describe('createReleaseStatsPresentation', () => {
       value: '2021',
     })
     expect(model.headings.map(row => row.id)).not.toContain('stats-field')
-    expect(model.overview?.churn).toBeUndefined()
+    expect(model.overview?.churn?.unavailable).toBe(true)
     expect(model.overview).toBeDefined()
     expect(model.measures).toBeUndefined()
     expect(model.genericGroups[0]?.rows).toContainEqual(
@@ -551,7 +553,7 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.quality?.issues).toHaveLength(1)
   })
 
-  test('uses a source/table record count fallback without showing its supporting table row', () => {
+  test('keeps the table count visible when it supplies the overview total', () => {
     const model = present([
       {
         dimension: 'records',
@@ -562,9 +564,11 @@ describe('createReleaseStatsPresentation', () => {
       },
     ])
     expect(model.overview?.recordCount).toBe('7')
-    expect(model.overview?.churn).toBeUndefined()
+    expect(model.overview?.churn?.unavailable).toBe(true)
     expect(model.districtDistribution).toBeUndefined()
-    expect(model.genericGroups).toHaveLength(0)
+    expect(model.genericGroups[0]?.rows).toEqual([
+      expect.objectContaining({ groupValue: 'addresses', value: '7' }),
+    ])
   })
 
   test('keeps primary and localised table counts together when the primary total is available', () => {
@@ -863,4 +867,123 @@ describe('createReleaseStatsPresentation', () => {
       ]),
     )
   })
+})
+
+test('Places consolidates localised metrics, retains zero coverage and leaves unknown metrics inspectable', () => {
+  const model = createReleaseStatsPresentation({
+    resourceType: 'place',
+    locale: 'en',
+    copy,
+    stats: [
+      { dimension: 'records', metric: 'count', value: 100 },
+      { dimension: 'reference_name_count', metric: 'count', value: 100 },
+      {
+        dimension: 'reference_name_coverage',
+        metric: 'percentage',
+        value: 100,
+        groupBy: 'field',
+        groupValue: 'referenceName',
+      },
+      ...[
+        'coverage',
+        'value_count',
+        'provided_coverage',
+        'inferred_coverage',
+        'ai_translated_coverage',
+        'human_translated_coverage',
+        'missing_value_count',
+        'conflict_count',
+      ].map(suffix => ({
+        dimension: `localisation_${suffix}`,
+        metric: suffix.endsWith('coverage') ? 'percentage' : 'count',
+        value: suffix === 'missing_value_count' ? 100 : 0,
+        groupBy: 'field_locale',
+        groupValue: 'name:ja',
+      })),
+      {
+        dimension: 'future_metric',
+        metric: 'count',
+        value: 4,
+        groupBy: 'field_locale',
+        groupValue: 'name:ja',
+      },
+    ],
+  })
+  expect(model.overview?.recordCount).toBe('100')
+  expect(model.placeProfile?.metrics[0]).toEqual({
+    label: 'Reference names',
+    value: '100',
+    coverage: '100%',
+  })
+  expect(model.placeProfile?.fields[0].rows[0]).toMatchObject({
+    coverage: 0,
+    coverageLabel: '0%',
+    missing: '100',
+    conflicts: '0',
+  })
+  expect(
+    model.genericGroups.flatMap(group => group.rows).map(row => row.dimension),
+  ).toEqual(['future_metric'])
+  expect(model.headings.map(heading => heading.id)).toContain('stats-place-languages')
+})
+
+test('Places Any name coverage uses the distinct reference count rather than adding overlapping locales', () => {
+  const model = createReleaseStatsPresentation({
+    resourceType: 'place',
+    locale: 'en',
+    copy,
+    stats: [
+      { dimension: 'records', metric: 'count', value: 100 },
+      { dimension: 'reference_name_count', metric: 'count', value: 90 },
+      {
+        dimension: 'reference_name_coverage',
+        metric: 'percentage',
+        value: 90,
+        groupBy: 'field',
+        groupValue: 'referenceName',
+      },
+      ...['en', 'zh-hant'].map(locale => ({
+        dimension: 'localisation_coverage',
+        metric: 'percentage',
+        value: 70,
+        groupBy: 'field_locale',
+        groupValue: `name:${locale}`,
+      })),
+      {
+        dimension: 'localisation_coverage',
+        metric: 'percentage',
+        value: 10,
+        groupBy: 'field_locale',
+        groupValue: 'brandName:en',
+      },
+    ],
+  })
+  expect(
+    model.placeProfile?.fields.find(field => field.code === 'name')?.any,
+  ).toMatchObject({ count: '90', coverageLabel: '90%', available: true })
+  expect(
+    model.placeProfile?.fields.find(field => field.code === 'brandName')?.any,
+  ).toMatchObject({ count: '—', coverageLabel: '—', available: false })
+  expect(model.overview?.churn?.metrics.map(metric => metric.formattedValue)).toEqual([
+    '—',
+    '—',
+    '—',
+    '—',
+  ])
+})
+
+test('a first Places release uses an all-added baseline', () => {
+  const model = createReleaseStatsPresentation({
+    resourceType: 'place',
+    isFirstRelease: true,
+    locale: 'en',
+    copy,
+    stats: [{ dimension: 'records', metric: 'count', value: 100 }],
+  })
+  expect(model.overview?.churn?.metrics.map(metric => metric.formattedValue)).toEqual([
+    '100',
+    '0',
+    '0',
+    '0',
+  ])
 })

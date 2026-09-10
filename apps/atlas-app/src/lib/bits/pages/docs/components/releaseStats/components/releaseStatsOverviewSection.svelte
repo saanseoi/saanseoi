@@ -26,12 +26,17 @@ let {
       <span class="ml-auto"
         ><InfoTooltip
           label={labels.changeSummary}
-          description={overview.churn.baseline ? labels.comparisonBaseline : labels.comparisonPrevious}
+          description={overview.churn.unavailable ? "Change counts are not available for this release." : overview.churn.baseline ? labels.comparisonBaseline : labels.comparisonPrevious}
         /></span
       >
     {/if}
   </div>
   {#if overview.churn}
+    {#if overview.churn.unavailable}
+      <p class="px-5 py-3 text-caption text-foreground-alt">
+        Change counts are not available for this release.
+      </p>
+    {/if}
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
       {#each overview.churn.metrics as metric}
         <ChurnMetric {metric} />
