@@ -1,3 +1,4 @@
+import { handleReconcileDraftReleaseSets } from './controlReconciliation'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import {
@@ -339,6 +340,28 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
       .get(),
   ).toEqual({ count: 1 })
+
+  const statsRecovery = await handleReconcileDraftReleaseSets(db, {
+    apiFamily: 'stats',
+    regionCode: 'hk',
+  })
+  expect(statsRecovery.publishedReleaseSetStatsTargets).toEqual([
+    expect.objectContaining({ family: 'statistics', cohortKey: '2026-Q2' }),
+  ])
+  sqlite
+    .query(
+      "UPDATE apiReleaseSets SET status = 'archived' WHERE code = 'data-hk-stats-2026-q2'",
+    )
+    .run()
+  expect(
+    (await handleReconcileDraftReleaseSets(db, { apiFamily: 'stats' }))
+      .publishedReleaseSetStatsTargets,
+  ).toEqual(statsRecovery.publishedReleaseSetStatsTargets)
+  sqlite
+    .query(
+      "UPDATE apiReleaseSets SET status = 'current' WHERE code = 'data-hk-stats-2026-q2'",
+    )
+    .run()
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],
