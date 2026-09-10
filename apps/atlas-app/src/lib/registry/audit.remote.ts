@@ -4,7 +4,9 @@ import { z } from 'zod'
 import { and, eq, sql, metaSchema } from '@repo/db'
 import {
   readObject,
-  buildAuditPageIndex,
+  readAuditPageIndex,
+  readAuditFixtureCatalogue,
+  readAuditAlsDecisions,
   readIndexedAuditPage,
   readAuditDecision,
   validateAuditManifest,
@@ -16,9 +18,7 @@ import {
   loadAuditFixtures,
   filterAuditFixture,
 } from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureRows.js'
-import { auditFixtureCatalogue } from '#lib/bits/pages/docs/components/releaseAudit/components/auditFixtureCatalogue.js'
-import { alsAuditDecisions } from '#lib/bits/pages/docs/components/releaseAudit/components/auditAlsDecisions.js'
-import { matchesAudit } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch.js'
+import { matchesAuditText } from '#lib/bits/pages/docs/components/releaseAudit/components/auditSearch.js'
 
 function store() {
   const bucket = env.R2_GUIDE_ASSETS
@@ -187,7 +187,7 @@ export const getAuditPage = query(
       throw new Error('Translation fixture is not declared by this release.')
     const bucket = store()
     const index = await cachedAuditData(`actions/${input.hash}`, () =>
-      buildAuditPageIndex(bucket, manifest),
+      readAuditPageIndex(bucket, input.hash),
     )
     return readIndexedAuditPage(bucket, manifest, index, input.q, input.offset, 50, {
       countOnly: input.countOnly,
@@ -222,17 +222,10 @@ const auditScope = z.object({ releaseId: z.string(), hash: z.string() })
 export const getAuditFixtureCatalogue = query(
   auditScope.extend({ releaseCode: z.string() }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    await manifestFor(input.releaseId, input.hash)
     return cachedAuditData(
       `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
-      async () => {
-        const groups = await loadAuditFixtures(manifest.bulk, (id, index) => {
-          const ref = manifest.bulk.find(b => b.id === id)?.fixtures[index]
-          if (!ref) throw new Error('Fixture is not declared by this release.')
-          return readObject(store(), ref.object)
-        })
-        return auditFixtureCatalogue(groups, input.releaseCode)
-      },
+      () => readAuditFixtureCatalogue(store(), input.hash),
     )
   },
 )
@@ -272,28 +265,20 @@ export const getAuditAlsDecisions = query(
     all: z.boolean().default(false),
   }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
-    const decisions = await cachedAuditData(
-      `als/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
-      async () => {
-        const bulk = manifest.bulk.filter(b => b.id === 'curate-als-addresses')
-        const groups = await loadAuditFixtures(bulk, (_id, index) => {
-          const fixture = bulk[0]?.fixtures[index]
-          if (!fixture) throw new Error('Fixture is not declared by this release.')
-          return readObject(store(), fixture.object)
-        })
-        return alsAuditDecisions(
-          groups['curate-als-addresses'] ?? {},
-          input.releaseCode,
-        )
-      },
+    await manifestFor(input.releaseId, input.hash)
+    const catalogue = await cachedAuditData(
+      `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
+      () => readAuditFixtureCatalogue(store(), input.hash),
     )
-    const rows = decisions.filter(
-      d =>
-        d.kind === input.kind &&
-        matchesAudit(input.q, d.title, d.description, d.context, d.raw),
+    const rows = catalogue.als.filter(
+      d => d.kind === input.kind && matchesAuditText(input.q, d.text),
     )
-    return input.all ? rows : rows.slice(input.offset, input.offset + 10)
+    const page = input.all ? rows : rows.slice(input.offset, input.offset + 10)
+    return readAuditAlsDecisions(
+      store(),
+      input.hash,
+      page.map(row => row.id),
+    )
   },
 )
 
