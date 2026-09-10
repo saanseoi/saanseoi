@@ -17,6 +17,11 @@ import {
 if (!process.argv.includes('--local'))
   throw new Error('Pass --local. Remote backfill is not supported.')
 const apply = process.argv.includes('--apply')
+const releaseId =
+  process.argv
+    .find(arg => arg.startsWith('--release-id='))
+    ?.slice('--release-id='.length) ?? '5395feb9-cad3-5bcd-86cb-27ecbbefcdc0'
+if (!/^[a-f0-9-]{36}$/.test(releaseId)) throw new Error('Invalid release ID.')
 type Db = {
   prepare(sql: string): {
     bind(...values: unknown[]): ReturnType<Db['prepare']>
@@ -42,9 +47,10 @@ try {
     SELECT r.id, s.code, r.status, r.sourceReleaseId, p.manifestHash, p.byteLength, p.applicationCount, p.attemptStatus
     FROM releases r JOIN sourceReleases s ON s.id = r.sourceReleaseId JOIN datasets d ON d.id = s.datasetId
     LEFT JOIN releaseProvenance p ON p.releaseId = r.id
-    WHERE r.id = '5395feb9-cad3-5bcd-86cb-27ecbbefcdc0'
+    WHERE r.id = ?
     ORDER BY r.code
   `)
+    .bind(releaseId)
     .all<{
       id: string
       code: string
@@ -60,8 +66,8 @@ try {
     if (!release.manifestHash || release.attemptStatus !== 'completed')
       throw new Error(`${release.code} requires an existing completed audit.`)
     if (
-      release.code !== 'dr-hk-overture-division-area-2025-09-24.0' ||
-      release.status !== 'superseded'
+      !release.code.startsWith('dr-hk-overture-division-area-') ||
+      !['published', 'superseded'].includes(release.status)
     )
       throw new Error('Unexpected release identity or status.')
     const oldRef = { hash: release.manifestHash, byteLength: release.byteLength }
@@ -132,7 +138,7 @@ try {
       UPDATE releaseProvenance SET manifestHash = ?, byteLength = ?
       WHERE releaseId = ? AND manifestHash = ? AND byteLength = ?
       AND applicationCount = ? AND attemptStatus = 'completed'
-      AND EXISTS (SELECT 1 FROM releases WHERE id = ? AND status = 'superseded')
+      AND EXISTS (SELECT 1 FROM releases WHERE id = ? AND status = ?)
     `)
       .bind(
         ref.hash,
@@ -142,6 +148,7 @@ try {
         oldRef.byteLength,
         release.applicationCount,
         release.id,
+        release.status,
       )
       .run()
     if (result.meta.changes !== 1)
