@@ -51,7 +51,9 @@ Planning Division normalisation, comparison and materialisation run inside deliv
 preparation. Retained local and remote plans skip those stages and reuse sealed payloads
 and completion counts. Local preparation uses disposable WAL-safe database copies;
 remote preparation uses its isolated release mirror. Completion is reported after
-delivery, before publication.
+delivery, before publication. Retained-plan ownership is checked in the shared target
+mirror even when preparation uses a per-release cache; exact-owner continuation
+preserves processing metadata.
 
 Local geometry materialisation uses WAL-safe SQLite planning copies to retain exact
 mutations and churn outputs. Native receipts protect interrupted replay; the existing

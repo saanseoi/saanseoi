@@ -25,8 +25,11 @@ export function kowloonRestorationActions(
   supplementalRows: readonly Record<string, unknown>[],
 ): ReleaseProcessingAction[] {
   const restored = supplementalRows.find(row => row.id === fixture.divisionId)
-  if (!restored) return []
   const originals = sourceRows.filter(row => row.id === fixture.divisionId)
+  // A non-polygon Overture row is still an existing identity. Its missing area
+  // geometry is handled by the divisionArea pipeline, so identity restoration
+  // applies only when Kowloon is absent from the source release.
+  if (!restored || originals.length > 0) return []
   return [
     {
       action: fixture.id,

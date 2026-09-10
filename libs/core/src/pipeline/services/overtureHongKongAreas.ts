@@ -133,13 +133,19 @@ export function missingOvertureHongKongAreaRows(
 
   return (
     overtureHongKongAreas
-      // An Overture locality point is an identity record, not an area record. Add
-      // our corrective row unless that exact canonical identity has an actual
-      // polygonal geometry. The supplemental row is emitted after source rows,
-      // so it deliberately replaces an identically keyed point record such as
-      // historic Kowloon while retaining its established Overture ID.
+      // An Overture locality point is an identity record, not an area record.
+      // Add corrective rows for area identities that are absent or, except for
+      // historic Kowloon, represented only by a non-area geometry. The
+      // supplemental row is emitted after source rows when it is needed.
       .filter(area => {
         const id = overtureHongKongAreaDivisionId(area.code)
+        // Kowloon's historic Overture point is still a supplied identity. Do
+        // not turn a present identity into a restoration patch merely because
+        // its geometry is not polygonal; divisionArea processing handles the
+        // missing area geometry separately.
+        if (area.code === 'kowloon' && sourceRows.some(row => row.id === id)) {
+          return false
+        }
         return !sourceRows.some(
           row => row.id === id && hasOvertureAreaGeometry(row.geometry),
         )
