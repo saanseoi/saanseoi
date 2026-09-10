@@ -49,8 +49,8 @@ export function shouldCompressCanonicalGeometry(
   transform: GeometryUploadPlan['transform'],
 ) {
   return (
-    (source === 'hkgov-censtatd' || source === 'hkgov-pland-pu') &&
-    transform === undefined
+    source === 'hkgov-pland-pu' ||
+    (source === 'hkgov-censtatd' && transform === undefined)
   )
 }
 
