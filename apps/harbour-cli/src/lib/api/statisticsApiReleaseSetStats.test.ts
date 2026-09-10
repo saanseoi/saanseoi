@@ -59,7 +59,7 @@ test('counts dataset-qualified fields, literal availability and localisation wit
       {
         datasetCode: 'a',
         fieldName: 'population',
-        locale: 'en',
+        locale: 'zh-Hant',
         name: 'Population',
         isTranslationVerified: false,
       },
@@ -72,8 +72,8 @@ test('counts dataset-qualified fields, literal availability and localisation wit
   expect(value(rows, 'observations', 'observationStatus', 'published')).toBe(2)
   expect(value(rows, 'observations', 'observationStatus', 'suppressed')).toBe(1)
   expect(value(rows, 'observations', 'observationStatus', 'unavailable')).toBe(1)
-  expect(value(rows, 'field_label_coverage', 'locale', 'en')).toBe(25)
-  expect(value(rows, 'unverified_field_labels', 'locale', 'en')).toBe(1)
+  expect(value(rows, 'field_label_coverage', 'locale', 'zh-hant')).toBe(25)
+  expect(value(rows, 'unverified_field_labels', 'locale', 'zh-hant')).toBe(1)
   expect(rows.some(row => row.metric === 'churn')).toBe(false)
   expect(() => buildStatisticsStatsRows({ ...data, fields: [] })).toThrow(
     'Missing definition',

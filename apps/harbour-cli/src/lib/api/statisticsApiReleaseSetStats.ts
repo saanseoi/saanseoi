@@ -245,7 +245,7 @@ export function buildStatisticsStatsRows(
     row => fields.has(key(row.datasetCode, row.fieldName)) && row.name.trim(),
   )
   for (const locale of ['en', 'zh-hant', 'zh-hans']) {
-    const selected = labels.filter(row => row.locale === locale)
+    const selected = labels.filter(row => row.locale.toLowerCase() === locale)
     add('field_labels', selected.length, 'locale', locale)
     add(
       'field_label_coverage',
