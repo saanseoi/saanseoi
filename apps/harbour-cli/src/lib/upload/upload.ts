@@ -284,15 +284,23 @@ async function requestRemoteRegistration(
     previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
+  const retainedReleaseId = await findPendingSqlDeliveryReleaseId(
+    resolveSharedRemoteDbCacheDir(target),
+    previewResult.plan.releaseCode,
+  )
   const response = await fetch(
     buildRegisterUploadEndpoint(resolveHarbourApiUrl(target)),
     {
       body: JSON.stringify({
         fileName: previewResult.plan.fileName,
-        force: Boolean(options.force),
+        // Both flags together permit only staged/processing registration on
+        // Harbour. The sealed local plans must identify this exact release.
+        force: Boolean(options.force || retainedReleaseId),
         allowHistoricalCohort: Boolean(options.allowHistoricalCohort),
         resumeStagedRelease: Boolean(options.resumeStagedRelease),
-        reuseExistingRelease: Boolean(options.reuseExistingRelease),
+        reuseExistingRelease: Boolean(
+          options.reuseExistingRelease || retainedReleaseId,
+        ),
         inspection: previewResult.inspection,
         plan: {
           cohortKey: previewResult.plan.cohortKey,

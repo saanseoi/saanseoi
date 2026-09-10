@@ -102,6 +102,11 @@ lost. Active imports resume polling their retained bookmarks. An ambiguous outco
 without a receipt or recoverable bookmark stops; an inactive import alone is not proof
 of success and does not authorise another ingest request.
 
+Remote recovery validates the sealed plan, configured targets, reset generation and
+mirror ownership before restoring a failed resource to `processing`. A resource linked
+to a published snapshot cannot be reopened. Metadata is refreshed before retained audit
+SQL runs locally; data-shard baselines and sealed payloads are unchanged.
+
 If a bookmark becomes inactive, reports a storage reset or completes without a receipt,
 recovery uses the exact payload ETag with up to three backoff retries. A saved polling
 state without a bookmark also uses this lookup. A returned active bookmark is polled

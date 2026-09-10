@@ -195,7 +195,7 @@ export async function runSqlDelivery(
   })
 }
 
-async function resolveDeliveryMirrorFiles(plan: SqlDeliveryPlan) {
+export async function resolveDeliveryMirrorFiles(plan: SqlDeliveryPlan) {
   try {
     await readFile(join(plan.context.cacheDir, 'invalidated.json'))
     throw new Error(
