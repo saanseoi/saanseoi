@@ -489,7 +489,7 @@
   "source_record_schema_upstream_specification_link": "上游规范（{version}）",
   "source_record_schema_examples": "如需示例记录，请参阅",
   "source_record_schema_samples_tab": "示例分页中查看",
-  "source_record_schema_raw_properties_description": "此记录未经修改的来源有效负载，已根据此发布版本专用的来源架构验证。",
+  "source_record_schema_raw_properties_description": "此记录保留的发布者属性。来源标识符、几何数据及来源说明会在来源记录的独立字段中呈现。",
   "source_record_schema_field_type": "Overture 来源类型：`{type}`。",
   "source_record_schema_record_description": "此已发布来源版本的原始记录。`rawProperties` 包含保留的发布者值。",
   "source_record_schema_source_record_id_description": "来源专用的记录标识符。",

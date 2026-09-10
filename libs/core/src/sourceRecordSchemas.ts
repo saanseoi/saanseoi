@@ -40,6 +40,13 @@ export type SourceRecordSchema = {
   validToRelease?: string
 }
 
+/** Publisher columns represented by the public source-record envelope. */
+export function sourceRecordRawPropertyFields(schema: SourceRecordSchema) {
+  return schema.fields.filter(
+    field => !['id', 'geometry', 'sources'].includes(field.name),
+  )
+}
+
 const overtureDivisionAreaFields: SourceRecordSchemaField[] = [
   { name: 'id', type: 'utf8', nullable: true },
   { name: 'geometry', type: 'type', nullable: true },
