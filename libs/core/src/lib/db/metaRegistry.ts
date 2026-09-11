@@ -1946,7 +1946,7 @@ const releaseRecordSelection = {
   cohortKey: metaReleases.cohortKey,
   geometryStatus: metaReleases.geometryStatus,
   theme: metaDatasets.theme,
-  type: metaReleases.resourceType,
+  resourceType: metaReleases.resourceType,
   sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
@@ -2129,7 +2129,7 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   return (
     ((await db
       .select({
-        type: metaReleases.resourceType,
+        resourceType: metaReleases.resourceType,
         source: metaPublishers.code,
         datasetId: metaDatasets.id,
         datasetCode: metaDatasets.code,

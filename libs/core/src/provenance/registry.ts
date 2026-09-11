@@ -32,14 +32,14 @@ export async function registerProcessingResult(
   const release = await db
     .select({
       status: releases.status,
-      type: releases.resourceType,
+      resourceType: releases.resourceType,
       code: releases.code,
     })
     .from(releases)
     .where(eq(releases.id, releaseId))
     .get()
   if (!release) throw new Error('Unknown provenance release.')
-  if (release.type === 'street')
+  if (release.resourceType === 'street')
     throw new Error('Streets provenance is outside this implementation.')
   if (
     result.kind === 'processing-result' &&

@@ -114,17 +114,17 @@ publication state; table counts alone do not prove a broken published snapshot.
 `snapshots.notes` is optional free-text annotation. Validity closure updates `validTo`
 and does not automatically populate notes.
 
-`stats.kind` classifies facts as `release`, `processing` or `apiReleaseSet`. Facts
-belong to a resource release or an API release set. Presentation calculations can read a
-snapshot while retaining ownership on the API release set. There is no snapshot-owned
-stats producer or `stats.snapshotId` column.
+Statistics have exactly one owner: `releaseId` or `apiReleaseSetId`. The owner is
+independent of `metric`, which describes the measurement. Processing-action counts use
+`metric: processing`; replacing ordinary release measurements preserves those counts.
+There is no `stats.kind` or snapshot-owned statistics producer.
 
 ## Auditing and metadata repair
 
 Run `bun scripts/audit-meta-schema.ts /path/to/META.sqlite /path/to/repair.sql` from the
 repository root. The command opens the target read-only, prints JSON findings and
-optionally writes reviewable repair SQL. It supports the schema before and after the
-`kind` migration. Run it again after repair and check remaining unknown metadata.
+optionally writes reviewable repair SQL. It audits the current schema. Run it again
+after repair and check remaining unknown metadata.
 
 The repair plan fills missing source keys only when all child resource keys agree,
 copies processing rules only from retained related-release evidence, and normalises

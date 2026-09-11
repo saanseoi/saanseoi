@@ -6,8 +6,6 @@ if (!databasePath)
   throw new Error('Usage: bun scripts/audit-meta-schema.ts META.sqlite [repair.sql]')
 const db = new Database(databasePath, { readonly: true })
 const rows = (sql: string) => db.query(sql).all()
-const columns = rows('PRAGMA table_info(stats)') as Array<{ name: string }>
-const kind = columns.some(column => column.name === 'kind') ? 'kind' : 'type'
 const repairs = [
   // A single shared child key is unambiguous. A multi-resource publisher archive
   // must never be replaced by one arbitrarily selected prepared resource file.
@@ -32,8 +30,6 @@ const repairs = [
     SELECT 1 FROM sourceReleases s WHERE s.id = r.sourceReleaseId
       AND s.processingRules IS NOT NULL
   );`,
-  `UPDATE stats SET "${kind}" = 'release' WHERE "${kind}" = 'division'
-    AND releaseId IS NOT NULL AND apiReleaseSetId IS NULL;`,
 ]
 const report = {
   datasets: rows(
@@ -42,15 +38,10 @@ const report = {
   missingSnapshotAssignments:
     rows(`SELECT s.code, s.status, s.publishedAt FROM snapshots s
     WHERE NOT EXISTS (SELECT 1 FROM snapshotShardAssignments a WHERE a.snapshotId = s.id)`),
-  statsKinds: rows(
-    `SELECT "${kind}" AS kind, count(*) AS count FROM stats GROUP BY "${kind}"`,
-  ),
+  statsMetrics: rows('SELECT metric, count(*) AS count FROM stats GROUP BY metric'),
   invalidStatsOwners: rows(
     `SELECT id FROM stats WHERE (releaseId IS NOT NULL) + (apiReleaseSetId IS NOT NULL) != 1`,
   ),
-  snapshotStats: columns.some(column => column.name === 'snapshotId')
-    ? rows('SELECT count(*) AS count FROM stats WHERE snapshotId IS NOT NULL')
-    : [],
   missingSourceMetadata: rows(`SELECT s.code, s.rawObjectKey IS NULL AS missingRawKey,
     s.processingRules IS NULL AS missingProcessingRules FROM sourceReleases s
     WHERE s.rawObjectKey IS NULL OR s.processingRules IS NULL ORDER BY s.code`),
