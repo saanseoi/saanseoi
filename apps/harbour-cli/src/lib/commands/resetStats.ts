@@ -193,12 +193,13 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
   const sourceReleaseIds = [
     ...new Set(plan.releases.map(row => String(row.sourceReleaseId))),
   ]
-  const currentSql = [
+  const canonicalSql = [
     ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
     ...GEOMETRY_TABLES.flatMap(table => deleteIds(table, 'snapshotId', snapshotIds)),
   ].join('\n')
+  const currentSql = `DELETE FROM statsPublicationState;\n${canonicalSql}`
   const historySql = [
-    currentSql,
+    canonicalSql,
     ...GEOMETRY_TABLES.flatMap(table =>
       deleteIds(table, 'sourceReleaseId', releaseIds),
     ),
