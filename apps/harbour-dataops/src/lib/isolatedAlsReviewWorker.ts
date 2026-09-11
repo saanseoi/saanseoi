@@ -8,11 +8,16 @@ if (!request || !output)
   throw new Error('ALS review worker requires request and output paths')
 const input = await Bun.file(request).json()
 try {
-  const result = await prepareHkgovAlsRelease({ ...input, writeOutput: false })
+  const result = await prepareHkgovAlsRelease({
+    ...input,
+    writeOutput: false,
+    membershipFile: `${output}.membership.json`,
+  })
   await Bun.write(
     output,
     JSON.stringify({
       identityRecords: result.identityRecords,
+      membership: result.membership,
       driftCandidates: result.driftCandidates,
       curationApplications: result.curationApplications,
       divisionQuality: result.divisionQuality,
