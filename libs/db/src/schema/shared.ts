@@ -498,6 +498,8 @@ export const canonicalAddress3d = {
 export const canonicalPlace = {
   id: text('id').notNull(),
   releaseId: text('releaseId').notNull(),
+  /** Content identity of the referenced Address base and selected unit. */
+  addressDependencyHash: text('addressDependencyHash'),
   addressSnapshotId: text('addressSnapshotId'),
   address2dId: text('address2dId'),
   address3dId: text('address3dId'),
@@ -526,6 +528,13 @@ export const canonicalPlace = {
 }
 
 export const canonicalPlaceI18n = {
+  /** Exact dependency text and revision evidence resolved during local preparation. */
+  searchDependencyText: jsonText<{
+    addressSnapshotId: string | null
+    addressText: string
+    divisionText: string
+    streetText: string
+  }>('searchDependencyText'),
   placeId: text('placeId').notNull(),
   locale: text('locale').notNull(),
   name: text('name'),
