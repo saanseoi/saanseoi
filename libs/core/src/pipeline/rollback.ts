@@ -185,11 +185,16 @@ function buildPurgeHistorySql(input: DraftReleasePurgeInput, plan: RollbackPlan)
 }
 
 function buildPurgeSourceSql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
-  return joinStatements(
-    plan.sourceTables.map(
+  return joinStatements([
+    ...plan.sourceTables.map(
       table => `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)};`,
     ),
-  )
+    ...(input.resourceType === 'place'
+      ? [
+          `UPDATE overturePlaces SET isCurrent = 1, validToRelease = NULL WHERE isCurrent = 0 AND validToRelease = ${literal(input.sourceVersion)};`,
+        ]
+      : []),
+  ])
 }
 
 function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
