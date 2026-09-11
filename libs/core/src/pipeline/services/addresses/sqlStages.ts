@@ -1,6 +1,7 @@
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import type { DatasetProcessingMessage } from '../../../types'
 import { readSnapshotAssemblySql } from '../../db/snapshotAssembly'
+import { recordSnapshotLookupDependency } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
   eq,
@@ -201,6 +202,22 @@ export async function writeAddressCurrentSqlChunkStage(
     pipelineMessage.addressCurrentScopeId ?? artefact.rows[0]?.base.snapshotId
   const selectedDivisionSnapshotId =
     pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
+  if (
+    artefact.rowStart === 0 &&
+    artefact.rows[0]?.base.snapshotId &&
+    selectedDivisionSnapshotId
+  ) {
+    await recordSnapshotLookupDependency(
+      metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      {
+        snapshotId: artefact.rows[0].base.snapshotId,
+        lookupSnapshotId: selectedDivisionSnapshotId,
+        anchorReleaseId: message.releaseId ?? message.datasetId,
+        selectedByRule: 'api-composition:address/default->division/overture',
+        selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
+      },
+    )
+  }
   const currentDivisionScopeId = selectedDivisionSnapshotId
     ? await resolvePreparedPublicationScope(
         currentDb as unknown as HarbourReadableDb,

@@ -353,7 +353,7 @@ test('base materialisation ignores reference publication churn but tracks depend
   })
   expect(changed).not.toBe(first)
   place.i18n[0]!.name = 'Changed translation'
-  place.sources = { revised: 'publisher assertion' }
+  place.sources = { overture: ['revised publisher assertion'] }
   place.lastSeenMonth = '2027-01'
   expect(
     await hashPlaceMaterialisation(place, {
