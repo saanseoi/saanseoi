@@ -5,6 +5,10 @@ Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
 Same-release replay leaves open source assertions untouched; a year-shard rollover
 materialises the new shard copy and closes the old shard assertion.
 
+Canonical comparison follows the serving predecessor's exact snapshot journals and
+owning history shards, including after a published rollback. Retained publisher versions
+remain available without determining which canonical content is served or inherited.
+
 Unchanged records also reuse local normalisation, Address analysis and enrichment across
 releases. The cache checks source content, official reference data, applicable curation
 and processing implementations; changed dependencies require fresh work. Observation
@@ -452,12 +456,29 @@ snapshots and their resource releases. It removes supplementary Address current 
 historical rows, rebuilds Address search, and preserves the ALS snapshots used as
 derivation evidence.
 
-Supplementary snapshots are complete, including when there are no accepted rows. Their
-assembly records retain a materialisation hash, combined policy/entry-ledger hash and
-policy versions. Address history and `snapshotVersionChanges` reproduce each snapshot
-independently. An existing published supplementary snapshot must reproduce its recorded
-materialisation; an incompatible fixture edit requires a source-release revision. The
-initializer does not discover or upload the supplementary dataset separately.
+Supplementary snapshots are complete and parentless, including when there are no
+accepted rows. Full membership journals are retained deliberately to bound replay
+ancestry; each edition journals the accepted base, locale and evidence selections,
+together with explicit withdrawals. Building-number lookups are reproducible from those
+locales. Its assembly records retain a materialisation hash, combined
+policy/entry-ledger hash and policy versions.
+
+Canonical base, locale and building-number lookup payloads have independent hashes.
+Edition assertions and resolution provenance are versioned separately in
+`address2dEvidence`: Place source releases and IDs, policy decisions, localisation
+provenance and selected ALS and Division evidence remain available for exact replay.
+Multiple supporting Places share canonical components while retaining every supporting
+assertion. Source-only evidence changes do not create new canonical component versions;
+locale-only changes replace only the affected locale content. Repeated components remain
+in their original history shard, including across year boundaries, and every snapshot
+records the shards containing its selected versions. Current Address `sources` and
+historical API replay expose the complete selected edition provenance, including release
+references.
+
+Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
+existing published supplementary snapshot must reproduce its recorded materialisation;
+an incompatible fixture edit requires a source-release revision. The initializer does
+not discover or upload the supplementary dataset separately.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded

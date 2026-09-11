@@ -7,6 +7,11 @@ changes. Source assertions, history and published compositions remain retained.
 Readiness and search finalisation follow the shared
 [rollback and recovery contract](../publication-state-plan.md#reset-and-reingest).
 
+Forward releases compare against the restored predecessor's exact journals and owning
+shards. Retained versions from a revoked publication remain reusable content; their
+history flags do not select the next release's baseline or suppress its required
+journal.
+
 ## Classification and stored ancestry
 
 Geographic divisions expose `category`, `class` and `level`. Administrative classes are
@@ -676,11 +681,40 @@ includes name provenance independently of base content.
 Area and boundary projections use separate lineage/cohort scopes and publication
 receipts. Provider variants retain their own lineages. A revision updates only changed
 geometry in its scope; a different retained cohort requires its own materialisation.
+Area and Boundary history stores immutable versions keyed by record ID and content hash.
+`snapshotVersionChanges` and the selected parent ancestry define membership within each
+lineage/cohort/variant scope. Complete uploads record removals only for members of their
+selected parent; a root snapshot starts with empty membership. A version shared by
+another provider, cohort or variant keeps its content and original provenance. The
+stored history `isCurrent` field does not define geometry membership or availability.
+
+Parent replay follows the recorded shard assignments, including earlier annual shards.
+Retained historical parents remain usable after their serving current scope advances.
+Remote replay exports content by the exact journal record/hash keys and inserts missing
+versions without rewriting existing content. Snapshot deletion journals affect
+membership only; they do not close or delete retained geometry versions.
+
 Geometry uses the same local candidate compiler for native delivery and remote replay.
 C&SD companion contributions merge within their cohort; ordinary complete geometry
 releases replace membership within their own scope. Ingestion resolves the exact
 selected Division dependency through a completed receipt or immutable history, without
 restoring historical Division rows into serving current storage.
+
+Parented area and boundary snapshots replay the complete parent ancestry and validate
+its shard assignments, owning history content and selected current projection before
+inheriting membership. An identical selected version adds neither another history
+payload nor a child upsert journal, including across annual history shards. Changed and
+reappearing features receive explicit upserts; removals come from the selected parent's
+membership rather than mutable history `isCurrent` flags. Companion contributions
+preserve inherited members outside their input. Parentless checkpoints retain full
+membership journals, and each distinct retained cohort still receives its own current
+projection. Removed versions in arbitrary older shards are not searched for reuse.
+
+Geometry source assertions, release assignments and processing-audit delivery have
+separate lifecycles. Native delivery retains the geometry writer's `sourceResolutions`
+rows. The remote geometry SQL exporter does not deliver that table; R2 processing-audit
+delivery does not populate it either. Remote per-record source-resolution parity remains
+an independent delivery limitation and is outside geometry journal savings.
 
 Delivery validates canonical and localisation counts, and each current mutation batch
 checks its sealed publication token. Completion records preparation; metadata

@@ -50,14 +50,15 @@ Replay SQL streams from mirror-table iterators during plan preparation. Bounded
 statement packing preserves row order and oversized-geometry append semantics. Retained
 plans reuse payloads without reading the replay tables again.
 
-Replay carries history closures referenced by the snapshot change journal and source
-closures made by the release, including their timestamps. Updates match record and
-version keys and do not retransmit historical geometry.
+Replay selects immutable canonical content through the snapshot's upsert journal keys.
+Delete journals determine removed membership. Source closures made by the release use
+exact record and version keys, including their timestamps, without retransmitting
+historical source geometry.
 
 Local area and boundary materialisation runs on WAL-safe SQLite planning copies and
 retains exact current, history and source mutations with checksummed churn counts.
 Receipt-backed replay resumes interrupted writes without recalculating the mutations or
-losing superseded-row closures. Normalisation remains a separate stage.
+losing snapshot membership removals. Normalisation remains a separate stage.
 
 Geometry SQL uses [sealed delivery phases](../../sql-delivery.md) with source-file and
 snapshot identities. Remote delivery and exact mirror replay must complete before
@@ -315,6 +316,21 @@ Complete source membership replaces only its lineage/cohort scope. Unchanged geo
 and source assertions generate no content mutations; a new independent cohort requires
 its initial materialisation. Binary geometry travels as bounded hexadecimal parameters
 without splitting one changed row into assembly writes.
+
+Parented area and boundary snapshots inherit identical selected versions and their
+owning history shards without another payload or child upsert journal. Preparation
+validates complete ancestry, shard assignments, retained content and the selected
+parent's current projection before omitting inherited writes. Missing or inconsistent
+parent evidence blocks preparation. Removals are explicit delete journals derived from
+the parent's membership; changed and reappearing features receive upserts. Parentless
+checkpoints retain full membership, including when their content matches another cohort.
+Arbitrary removed versions in older annual shards are not reused.
+
+Source-release assertions and shard assignments retain their separate lifecycle. Native
+geometry plans retain `sourceResolutions`; remote geometry SQL does not export that
+table, and the separately delivered R2 processing audit does not populate it. Remote
+per-record source-resolution delivery requires separate work; its rows are excluded from
+savings attributed to sparse canonical journals.
 
 CLI Division history compares the base and each locale independently, retaining
 unchanged component versions and their original owning shards. A publication-version
