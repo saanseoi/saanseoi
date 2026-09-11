@@ -70,7 +70,7 @@ function excluded(column: string) {
 function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
   const paths = (hierarchy as import('@repo/db').DivisionHierarchies | null)?.full ?? []
   const ids = [...new Set(paths.flatMap(path => path.at(-1)?.id ?? []))].sort()
-  return ids.length ? JSON.stringify(ids) : null
+  return ids.length === 1 ? ids[0]! : ids.length ? JSON.stringify(ids) : null
 }
 
 export async function getMergedCurrentDivisionVersionMap(
