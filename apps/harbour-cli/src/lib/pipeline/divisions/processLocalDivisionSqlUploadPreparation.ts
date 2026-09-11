@@ -68,8 +68,9 @@ export async function assertDivisionCurrentSnapshotComplete(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   currentRows: Map<string, DivisionVersionSnapshot>,
   parentSnapshotId: string | null,
+  scopeId = parentSnapshotId,
 ) {
-  if (!parentSnapshotId) return
+  if (!parentSnapshotId || !scopeId) return
   await assertPublishedSnapshotMaterialised(
     currentDb as unknown as HarbourReadableDb,
     'divisionPublicationState',
@@ -78,8 +79,8 @@ export async function assertDivisionCurrentSnapshotComplete(
 
   const traceDivisionIds = resolveDivisionTraceIds()
   const [activeSnapshotRowCount, activeSnapshotI18nRowCount] = await Promise.all([
-    countDivisionCurrentSnapshotRows(currentDb as never, parentSnapshotId),
-    countDivisionCurrentSnapshotI18nRows(currentDb as never, parentSnapshotId),
+    countDivisionCurrentSnapshotRows(currentDb as never, scopeId),
+    countDivisionCurrentSnapshotI18nRows(currentDb as never, scopeId),
   ])
   const expectedI18nRowCount = [...currentRows.values()].reduce(
     (total, row) => total + row.localisedRows.length,
@@ -88,7 +89,7 @@ export async function assertDivisionCurrentSnapshotComplete(
 
   const traceState = await getDivisionCurrentSnapshotTraceState(
     currentDb as never,
-    parentSnapshotId,
+    scopeId,
     [...traceDivisionIds],
   )
 

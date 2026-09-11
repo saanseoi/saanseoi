@@ -10,8 +10,8 @@ test('Places search indexes only the selected unit of an Address3D collection', 
     db.exec(`
       CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       INSERT INTO placeSearchScopes VALUES ('hk:overture:places', 'p');
-      CREATE TABLE placePublicationState(snapshotId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT);
-      INSERT INTO placePublicationState VALUES ('p','current','token','prepared'),('next','current','next-token','prepared');
+      CREATE TABLE placePublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT);
+      INSERT INTO placePublicationState VALUES ('place-scope','p','current','token','prepared');
       CREATE TABLE places(snapshotId, id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy);
       CREATE TABLE placesI18n(snapshotId, placeId, locale, name, nameAlts, brandName, brandNameAlts);
       CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE,status TEXT DEFAULT 'current',preparedAt TEXT DEFAULT 'prepared');
@@ -22,8 +22,8 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       CREATE TABLE streetsI18n(snapshotId, streetId, locale, name);
       CREATE TABLE placesDivision(placeSnapshotId, placeId, divisionSnapshotId, divisionId);
       CREATE TABLE divisionsI18n(snapshotId, divisionId, locale, name);
-      INSERT INTO places VALUES ('p', 'shop', 'a', 'building', 'collection', 'chosen', '', '', '');
-      INSERT INTO placesI18n VALUES ('p', 'shop', 'en', 'Shop', '', '', '');
+      INSERT INTO places VALUES ('place-scope', 'shop', 'address-scope', 'building', 'collection', 'chosen', '', '', '');
+      INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'Shop', '', '', '');
       INSERT INTO address2dI18n VALUES ('address-scope', 'building', 'en', 'Main Street');
     `)
     db.query('INSERT INTO address3dI18n VALUES (?, ?, ?, ?)').run(
@@ -45,11 +45,9 @@ test('Places search indexes only the selected unit of an Address3D collection', 
     db.exec(sql)
     const original = db.query('SELECT rowid, * FROM placeSearchFts').all()
     db.exec(
-      "INSERT INTO places SELECT 'next', id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy FROM places",
+      "UPDATE placePublicationState SET snapshotId='next',publicationToken='next-token'",
     )
-    db.exec(
-      "INSERT INTO placesI18n SELECT 'next', placeId, locale, name, nameAlts, brandName, brandNameAlts FROM placesI18n",
-    )
+    const baseRows = db.query('SELECT rowid,* FROM places').all()
     const sync = () =>
       db.transaction(() => {
         for (const statement of buildPlaceSearchSyncSql([
@@ -61,6 +59,7 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       n: number
     }
     sync()
+    expect(db.query('SELECT rowid,* FROM places').all()).toEqual(baseRows)
     expect(db.query('SELECT rowid, * FROM placeSearchFts').all()).toEqual(original)
     expect(db.query('SELECT total_changes() AS n').get()).toEqual({
       n: beforePromotion.n + 1,

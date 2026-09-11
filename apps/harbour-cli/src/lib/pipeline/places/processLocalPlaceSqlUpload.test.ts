@@ -205,6 +205,7 @@ describe('Places SQL materialisation', () => {
     `)
 
     const result = await buildPlaceSql({
+      referenceScopes: new Map([['supplementary-snapshot', 'supplementary-lineage']]),
       activeHistoryBindingName: 'history',
       activeSourceBindingName: 'source',
       sourceBindingNames: ['source'],
@@ -323,7 +324,8 @@ describe('Places SQL materialisation', () => {
       expect(
         db.query('SELECT addressSnapshotId, address2dId FROM places').get(),
       ).toEqual({
-        addressSnapshotId: 'supplementary-snapshot',
+        addressSnapshotId:
+          db === sqlite ? 'supplementary-lineage' : 'supplementary-snapshot',
         address2dId: 'supplementary-address',
       })
     }

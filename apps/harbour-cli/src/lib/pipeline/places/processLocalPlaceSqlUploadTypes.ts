@@ -62,6 +62,9 @@ export type PlaceHistoryState = {
 }
 
 export type BuildPlaceSqlInput = {
+  publicationPrevious?: import('@repo/core/pipeline/services/publication/sql.ts').PublicationPreparation['previous']
+  /** Physical current scopes selected by logical Address and Division snapshots. */
+  referenceScopes?: ReadonlyMap<string, string>
   /** Current publisher hashes from the prepared source mirrors, indexed by ID. */
   sourceRows?: ReadonlyMap<string, { bindingName: string; versionHash: string }>
   activeHistoryBindingName: string

@@ -14,6 +14,7 @@ import type {
   BuildPlaceSqlInput,
   EnrichedPlace,
 } from './processLocalPlaceSqlUploadTypes.ts'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 
 function place(id: string, hash = 'same'): EnrichedPlace {
   const normalised = normaliseOverturePlace(
@@ -191,6 +192,50 @@ test('unchanged source SQL is compact and bounded', async () => {
     bytes(full.sourceSqlByBinding) / 10,
   )
   expect(delta.currentSql).toEqual(full.currentSql)
+})
+
+test('unchanged canonical Places retain their content provenance across release observations', async () => {
+  const db = new Database(':memory:')
+  try {
+    db.exec(
+      loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
+        'current',
+      ]),
+    )
+    const row = place('retained')
+    const previous = {
+      bindingName: 'history',
+      row: {
+        id: row.place.id,
+        versionHash: row.versionHash,
+        firstSeenMonth: '2026-07',
+        lastSeenMonth: '2026-08',
+        releaseId: 'release-original',
+        createdAt: 'original',
+        address2dId: null,
+        addressSnapshotId: null,
+        addresses: null,
+      },
+    }
+    const data = { ...input([row]), historyRows: [previous] }
+    db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
+    expect(
+      db.query('SELECT releaseId,firstSeenMonth,lastSeenMonth FROM places').get(),
+    ).toEqual({
+      releaseId: 'release-original',
+      firstSeenMonth: '2026-07',
+      lastSeenMonth: '2026-08',
+    })
+    row.versionHash = 'changed'
+    row.place.operatingStatus = 'temporarily_closed'
+    db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
+    expect(db.query('SELECT releaseId,lastSeenMonth FROM places').get()).toEqual({
+      releaseId: 'release-new',
+      lastSeenMonth: '2026-09',
+    })
+  } finally {
+    db.close()
+  }
 })
 
 test('streamed source finalisation runs after all chunks even without removed history and for empty releases', async () => {

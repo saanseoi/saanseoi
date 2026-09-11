@@ -1,9 +1,13 @@
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
+import {
+  upsertDivisionCurrentStates,
+  replaceDivisionCurrentI18n,
+} from '@repo/core/pipeline/db/division'
 import { and, eq, inArray } from 'drizzle-orm'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordSourceResolutions } from '@repo/core/pipeline/db/sourceResolutions'
 import type { NewSourceResolution } from '@repo/db/historySchema'
-import type { HarbourWritableDb } from '@repo/core/db/types'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import {
   compressJsonBrotli,
@@ -30,9 +34,8 @@ export async function replaceCurrentSnapshot(
   now: string,
   reportProgress: (current: number) => void,
 ) {
-  const providerIds = [
-    ...new Set([...previousProviderIds, ...records.map(record => record.base.id)]),
-  ]
+  const incomingIds = new Set(records.map(record => record.base.id))
+  const providerIds = previousProviderIds.filter(id => !incomingIds.has(id))
   for (const chunk of chunkArray(providerIds, getMaxItemsPerInClause(1, 1))) {
     if (chunk.length === 0) continue
     await db
@@ -47,21 +50,19 @@ export async function replaceCurrentSnapshot(
   }
   let processedRecords = 0
   for (const chunk of chunkArray(records, 6)) {
-    await db
-      .insert(currentSchema.divisions)
-      .values(
-        chunk.map(record => ({
-          ...record.base,
-          geometry: requireCompressedPlanningDivisionGeometry(
-            compressedGeometryByDivisionId,
-            record.base.id,
-          ),
-          snapshotId,
-          createdAt: now,
-          updatedAt: now,
-        })),
-      )
-      .run()
+    await upsertDivisionCurrentStates(
+      db,
+      snapshotId,
+      chunk.map(record => ({
+        ...record.base,
+        geometry: requireCompressedPlanningDivisionGeometry(
+          compressedGeometryByDivisionId,
+          record.base.id,
+        ),
+        createdAt: now,
+        updatedAt: now,
+      })),
+    )
     processedRecords += chunk.length
     reportProgress(processedRecords)
   }
@@ -110,7 +111,7 @@ function requireCompressedPlanningDivisionGeometry(
 }
 
 export async function replaceCurrentI18n(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   records: PreparedDivision[],
   previousProviderIds: string[],
@@ -120,21 +121,8 @@ export async function replaceCurrentI18n(
   const ids = [
     ...new Set([...previousProviderIds, ...records.map(record => record.base.id)]),
   ]
-  for (const chunk of chunkArray(ids, getMaxItemsPerInClause(1, 1))) {
-    if (chunk.length === 0) continue
-    await db
-      .delete(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          inArray(currentSchema.divisionsI18n.divisionId, chunk),
-        ),
-      )
-      .run()
-  }
   const rows = records.flatMap(record =>
     record.i18n.map(item => ({
-      snapshotId,
       divisionId: record.base.id,
       locale: item.locale,
       name: item.name,
@@ -146,12 +134,8 @@ export async function replaceCurrentI18n(
       updatedAt: now,
     })),
   )
-  let processedRows = 0
-  for (const chunk of chunkArray(rows, 8)) {
-    await db.insert(currentSchema.divisionsI18n).values(chunk).run()
-    processedRows += chunk.length
-    reportProgress(processedRows)
-  }
+  await replaceDivisionCurrentI18n(db, snapshotId, ids, rows)
+  reportProgress(rows.length)
 }
 
 export async function insertHistoryRows(
