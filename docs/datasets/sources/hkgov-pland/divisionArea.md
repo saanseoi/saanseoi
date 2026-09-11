@@ -317,3 +317,21 @@ selecting or continuing this mode.
 New Town and Planning Unit dataset metadata declares the registered geography identity
 bridge and planning division normalisation. Releases retain the resolved policy at
 creation. Source geometry uses EPSG:4326.
+
+## Retained fields and provenance
+
+Retained Planning properties use camelCase names without changing source values.
+Provenance cites original planning-cell codes or New Town name fields and records
+normalisation, geometry processing and canonical identity derivation. Prepared fields
+such as `planning_level`, `i18n` and `hierarchy` are intermediate inputs, not publisher
+properties. New Town localisations cover English, Traditional and Simplified Chinese.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

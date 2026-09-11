@@ -562,3 +562,20 @@ statistics use the `release` kind.
 Ancestor hierarchy names retain source localisations when translation fixtures add
 missing locales. An empty translation result preserves every source name used for Hong
 Kong Area assignment and hierarchy validation.
+
+## Retained source fields
+
+Publisher properties use collision-checked camelCase keys. Provenance preserves each
+original publisher path and its retained location. HAD source records use `OBJECTID` as
+`sourceRecordId`, independently of canonical area IDs. Bounding boxes are derived from
+processed geometry; publisher attribution is wrapped under its publisher key.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

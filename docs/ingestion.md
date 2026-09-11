@@ -29,6 +29,23 @@ units where they are known, and fail the active phase before propagating an erro
 Source-specific processors should describe _what_ is happening; the shared helper owns
 timing, count formatting, clamping and completion behaviour.
 
+## API-field compatibility preflight
+
+The upload command checks the inspected dataset's publisher schema against the API
+domain's reviewed `publisherSchemaRanges` before confirmation, source-asset upload or
+canonical processing. Dry runs, non-interactive uploads and deferred publication use the
+same check. Domains without API-field fixtures, including Streets, remain outside this
+check's scope.
+
+An unsupported schema stops the upload and lists the dataset, detected schema and
+reviewed mapping ranges. Review the publisher changes: extend the range on the same
+mapping version when retained paths, inputs and transformations remain compatible;
+otherwise create a new mapping version. The command never widens ranges automatically.
+
+This source-level preflight does not select the final release composition or validate
+its lineage. Publication independently checks the complete selected source signature,
+lineage and pinned processing rules.
+
 ## 1. Define the source and release before processing it
 
 Decide the durable identities first:

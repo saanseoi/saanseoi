@@ -265,3 +265,15 @@ selecting or continuing this mode.
 
 Overture division, division-area and division-boundary dataset metadata declares
 EPSG:4326 for source geometry.
+
+## Retained field locations
+
+Publisher attributes are retained with camelCase keys, including `divisionId`,
+`divisionIds`, `isLand` and `isTerritorial`. Original Overture paths remain in API
+provenance. Source geometry stays in its envelope; public bounding boxes are derived
+from processed geometry. Canonical attribution is wrapped under `overture`.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.

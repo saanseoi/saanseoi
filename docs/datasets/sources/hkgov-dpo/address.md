@@ -705,3 +705,13 @@ Dataset processing metadata declares the registered ALS preparation, normalisati
 curation rules. Releases retain the resolved policy at creation. Source GeoJSON geometry
 uses EPSG:4326; publisher easting and northing properties retain their separate
 coordinate evidence.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

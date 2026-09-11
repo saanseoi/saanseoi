@@ -520,3 +520,17 @@ selected ALS snapshot. Local ownership-manifest completion opens only metadata.
 ## Registry metadata
 
 Overture Places dataset metadata declares EPSG:4326 for source geometry.
+
+## Retained fields and attribution
+
+Retained publisher properties use camelCase names, including nested attribution fields,
+while language dictionary keys and source values remain intact. API field provenance
+pairs original Overture paths with retained locations. Canonical Places attribution is
+wrapped as `{ "overture": [...] }`; the full profile exposes this publisher object.
+Localisation and reviewed address decisions are processing inputs rather than direct
+copies of publisher objects.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.

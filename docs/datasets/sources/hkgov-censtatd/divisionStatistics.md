@@ -567,3 +567,22 @@ Release statistics use `metric` for measurement classification. Exactly one of
 `releaseId` and `apiReleaseSetId` identifies the owner. Processing-audit counts use
 `metric: processing` and are preserved when ordinary measurement statistics are
 replaced.
+
+## Retained property mapping
+
+Source persistence converts publisher property keys to camelCase and rejects collisions.
+Canonical preparation and curation use the original publisher keys; field provenance
+pairs each original path with the retained key. Population/household periods use `year`,
+area quarters use `PERIOD`, district quarters combine `YEAR` and `QUARTER`, and census
+products use release context. Registry dataset/release IDs and reviewed field metadata
+have explicit origins. Value-kind classification is derived from parsed observations.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.
