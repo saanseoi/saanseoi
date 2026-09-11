@@ -5,10 +5,6 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
-import {
-  resolveLocalAddressDbContext,
-  updateDbCacheProgress,
-} from '../dbCache/localDbCache.ts'
 import { loadDatasetFixtures } from '../sources/sourceUpdates.ts'
 import { describeTarget, formatSummary, formatUploadResult } from '../cli/display.ts'
 import {
@@ -18,8 +14,6 @@ import {
 } from '../cli/options.ts'
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resumePendingSqlDeliveryForUpload } from '../upload/upload.ts'
-import { findPendingSqlDeliveryReleaseId } from '../pipeline/local/sqlDeliveryPending.ts'
-import { resolveSharedRemoteDbCacheDir } from '../dbCache/localDbCacheTargets.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
 import {
   assertRetainableSourceReleaseInput,
@@ -39,7 +33,6 @@ import {
   discardDerivedReleaseArtefacts,
   shouldCacheArtefacts,
 } from '../pipeline/local/releaseArtefacts.ts'
-import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
 import {
   prepareHkgovCenstatdGmlUpload,
   prepareHkgovHadGeoJsonUpload,
@@ -287,13 +280,6 @@ ${mutedBar}  `)
       await resumePendingSqlDeliveryForUpload(target, options.invocationCwd)
     }
 
-    const resumeSqlDeliveryReleaseId = target.remote
-      ? await findPendingSqlDeliveryReleaseId(
-          resolveSharedRemoteDbCacheDir(target),
-          previewResult.plan.releaseCode,
-        )
-      : undefined
-
     if (
       processingStrategy.mode === 'local-address-sql' ||
       processingStrategy.mode === 'local-division-geometry-sql'
@@ -301,40 +287,6 @@ ${mutedBar}  `)
       const prerequisiteProgress = new OperationProgress()
 
       try {
-        if (target.remote) {
-          const dbCacheStartedAt = Date.now()
-          let reusedDbCache = false
-          const dbContext = await resolveLocalAddressDbContext(
-            target,
-            previewResult.plan.regionCode,
-            previewResult.plan.sourceVersion.slice(0, 4),
-            {
-              onProgress(event) {
-                reusedDbCache ||= event.action === 'reuse-cache'
-                updateDbCacheProgress(prerequisiteProgress, event, {
-                  completeOnReuse: false,
-                })
-              },
-              cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
-              includePreviousShardYears: true,
-              resumeSqlDeliveryReleaseId,
-            },
-          )
-          dbContext.cleanup()
-
-          if (prerequisiteProgress.hasActivePhase()) {
-            prerequisiteProgress.complete(
-              appendPhaseDetails(
-                formatCompletedPhaseLabel(
-                  colorTeal(reusedDbCache ? 'Use cache' : 'Clone cache'),
-                  colorRed(target.environment),
-                ),
-                [formatDurationMs(Date.now() - dbCacheStartedAt)],
-              ),
-            )
-          }
-        }
-
         const prerequisiteStartedAt = Date.now()
         prerequisiteProgress.beginPhase('Check prerequisites', {
           current: 0,

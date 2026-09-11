@@ -163,7 +163,7 @@ test.each([false, true])(
       expect(published.metadataDelta?.snapshots).toEqual([
         expect.objectContaining({ id: first.id, status: 'published' }),
       ])
-      const retainedFirst = f.meta
+      let retainedFirst = f.meta
         .query('SELECT * FROM snapshots WHERE id=?')
         .get(first.id)
       expect(
@@ -179,6 +179,7 @@ test.each([false, true])(
         n: 0,
       })
       if (catalogued) await handleBootstrapStatsReleaseSets(f.db)
+      retainedFirst = f.meta.query('SELECT * FROM snapshots WHERE id=?').get(first.id)
       const catalogueBefore = f.meta.query('SELECT * FROM apiCatalogRevisions').all()
 
       const second = await f.snapshot('second')
