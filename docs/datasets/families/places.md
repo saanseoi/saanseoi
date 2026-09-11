@@ -339,9 +339,14 @@ and keeps a dry-run and confirmation boundary:
 ./bin/saanseoi reset:places:overture --target local --dry-run
 ```
 
-The generic `rollback:release` command requires its predecessor's current projection to
-be ready. It refuses to undo an advanced mutable scope when restoring the predecessor
-from history is required; that restoration is not automated by the command.
+`rollback:release` reconstructs the published predecessor from retained base and locale
+versions. It rebuilds H3 cells and replays Place ancestry to recover each Division
+link's exact definition and original logical snapshot pointer. Localised search text
+retains its own historical Address identity, including when the Place base has since
+been linked to a different Address with identical text. Missing dependency evidence
+stops preparation. The shared sealed delivery emits only changed current rows and
+updates readiness with the incremental search index; published source/history evidence
+remains retained.
 
 ## ZH-HANT
 

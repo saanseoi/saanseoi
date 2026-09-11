@@ -205,12 +205,12 @@ against the API release set. The standard rows are:
 
 ## Latest Release Rollback
 
-`saanseoi rollback:release --release <release-id|code>` can generate and import rollback
-SQL for the active latest division release only. The rollback SQL removes the latest
-release's current snapshot rows, deletes source/history rows inserted for that release,
-reopens rows that were closed by that release, resets the previous published release
-metadata, and removes the latest release metadata. A non-dry-run import requires
-confirmation; automation must opt in explicitly with `--yes`.
+`saanseoi rollback:release --release <release-id|code>` restores the selected published
+Division predecessor from independent base/locale history across its exact owning
+shards. Delivery writes only the current differences, restores search and readiness, and
+publishes a new catalogue selection. Source/history evidence and old catalogues remain
+retained. `--dry-run` prepares a preview; execution requires confirmation or `--yes`.
+Interrupted delivery resumes the same sealed plan with `sql:resume --plan <directory>`.
 
 ## API Support
 

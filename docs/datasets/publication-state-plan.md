@@ -187,10 +187,32 @@ reingest creates receipts through normal validated delivery and publication. The
 inferred backfill or compatibility path that marks existing rows ready from their
 presence.
 
-Generic release rollback requires a ready predecessor projection before it changes any
-database. Automatic restoration of an advanced mutable scope from history is not
-implemented by that command. A draft that never acquired a current scope can still be
-purged; a draft that replaced its predecessor requires restoration first.
+Published release rollback reconstructs predecessor projections from the exact retained
+history ancestry and owning shards. It validates the complete candidate before sealing
+keyed changes, gates the affected current scopes during delivery, publishes a new
+catalogue selection and restores readiness with the incremental search update. Published
+source rows, history, snapshot membership and old catalogues remain retained; rollback
+records revocation rather than deleting published evidence. The first release has an
+explicit scope-removal path. Unrelated families, domains, geometry cohorts and
+Statistics periods remain intact.
+
+A sealed plan contains the exact SQL payloads, checksums, target database identities,
+publication ownership and terminal selection. Recovery replays those payloads and checks
+receipts, without rerunning reconstruction or refreshing away its metadata baseline.
+`rollback:release --dry-run` produces a reviewable preview; an executing rollback seals
+its plan before confirmation. `sql:resume --plan <directory>` completes an interrupted
+delivery. Missing history, ambiguous composition, stale ownership or invalid dependent
+references stop preparation before data changes are emitted.
+
+Address restoration requires exact prepared Division/Street dependencies and the
+retained ALS membership sidecar. Places rebuilds cells and Division links through the
+full Place ancestry, preserving each original logical dependency pointer and
+localisation's retained search text. Statistics restores only the affected dataset and
+exact period, with its referenced immutable definitions. Its tokenless period gate uses
+`restoring` during rollback so ordinary publication cannot acquire that selection. Draft
+purge remains a separate operation: an unowned draft can be purged; a draft that
+replaced its predecessor requires that predecessor's ready projection and any pending
+delivery to be resolved.
 
 ## Local scale evidence
 
@@ -214,9 +236,12 @@ in the [Streets family](families/streets.md). Publication state preserves publis
 payloads, street identity and notice evidence.
 
 Current delivery uses the shared compiler across CLI families. History optimisation has
-a narrower component contract: Address, Places and CLI Division/Planning reuse
-independent unchanged base and locale versions. Streets retains its complete logical
-version timeline, including the locales belonging to each version. Independently
-inherited Street locales, sparse area/boundary source-resolution assertions and the
-exported core Division processor's history/provenance optimisation remain follow-up
-work. They do not prevent unchanged current rows from being reused.
+a narrower component contract: Address, Places and Division/Planning reuse independent
+unchanged base and locale versions. Streets retains its complete logical version
+timeline, including the locales belonging to each version. Independently inherited
+Street locales and sparse area/boundary source-resolution assertions remain follow-up
+work tracked with the Streets implementation tasks in
+[issue #64](https://github.com/saanseoi/saanseoi/issues/64). They do not prevent
+unchanged current rows from being reused. The exported core Division processor uses
+independent component history and sparse source assertions, including exact named owning
+shards.
