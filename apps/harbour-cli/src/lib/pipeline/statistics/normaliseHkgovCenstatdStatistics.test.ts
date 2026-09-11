@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  loadCenstatdFieldCuration,
+  loadCenstatdMeasureMetadata,
+  resolveCenstatdFieldCuration,
+} from './censtatdMeasureCuration.ts'
 
 describe('normaliseHkgovCenstatdStatistics', () => {
   test('retains a compilation row’s own annual reference period', () => {
@@ -148,7 +153,6 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.records).toEqual([
       expect.objectContaining({
         geography: { code: 'CW', kind: 'district' },
-        dimensions: {},
         values: expect.objectContaining({
           LA: '12.4',
           MYPOPN_LAND: '243300',
@@ -259,7 +263,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     )
   })
 
-  test('packs a feature’s values and dimensions into one canonical record', () => {
+  test('packs a feature’s dimension-qualified values into one canonical record', () => {
     const [record] = normaliseHkgovCenstatdStatistics([
       {
         datasetCode:
@@ -279,14 +283,13 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
     expect(record).toMatchObject({
       referencePeriodCode: '2024',
-      dimensions: {},
       values: {
         LA: '12.4',
       },
     })
   })
 
-  test('groups fields only when their curated analytical dimensions match', () => {
+  test('packs all curated analytical dimensions together and preserves field definitions', () => {
     const rows = normaliseHkgovCenstatdStatistics(
       [
         {
@@ -327,7 +330,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
             'ds-hk-hkgov-censtatd-division-statistic-example\u0000MALE',
             {
               aggregation: 'total' as const,
-              dimensions: { sex: 'female' },
+              dimensions: { sex: 'male' },
               fieldName: 'populationMale',
               measureCode: 'population',
               localisations: [],
@@ -339,18 +342,187 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       },
     )
 
-    expect(rows.records).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          dimensions: { sex: 'all' },
-          values: { populationAll: '10' },
-        }),
-        expect.objectContaining({
-          dimensions: { sex: 'female' },
-          values: { populationFemale: '6', populationMale: '4' },
-        }),
-      ]),
+    expect(rows.records).toEqual([
+      expect.objectContaining({
+        values: { populationAll: '10', populationFemale: '6', populationMale: '4' },
+      }),
+    ])
+    expect(rows.records[0]).not.toHaveProperty('dimensions')
+    expect(rows.fields.map(field => field.dimensions)).toEqual([
+      { sex: 'all' },
+      { sex: 'female' },
+      { sex: 'male' },
+    ])
+    for (const field of rows.fields) {
+      expect(rows.records[0]?.fieldDefinitionHashes[field.fieldName]).toBe(
+        field.versionHash,
+      )
+      expect(rows.records[0]?.fieldSources[field.fieldName]).toEqual({
+        sourceFeatureRef: 'hkgov-censtatd/example/2024/Example:1',
+        sourceReleaseId: 'release-example',
+      })
+    }
+  })
+
+  test('packs the 69 reviewed building-group dimension combinations into one geography/period record', async () => {
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    const registry = await loadCenstatdFieldCuration()
+    const curated = registry.fields.filter(field => field.datasetCode === datasetCode)
+    expect(new Set(curated.map(field => JSON.stringify(field.dimensions))).size).toBe(
+      69,
     )
-    expect(rows.records).toHaveLength(2)
+    const input = [
+      {
+        datasetCode,
+        properties: {
+          hma: '01',
+          bg: '01',
+          bg_ind: 'A',
+          ...Object.fromEntries(curated.map(field => [field.sourceField, '12'])),
+        },
+        sourceFeatureRef: 'hkgov-censtatd/building-groups/2021/BG:01',
+        sourceReleaseId: 'release-2021',
+        sourceVersion: '2021',
+      },
+    ]
+    const discovery = normaliseHkgovCenstatdStatistics(input)
+    const { metadata } = resolveCenstatdFieldCuration({
+      registry,
+      fields: discovery.fields,
+    })
+    const canonical = normaliseHkgovCenstatdStatistics(input, {
+      fieldMetadata: metadata,
+      measureMetadata: await loadCenstatdMeasureMetadata(),
+    })
+    expect(canonical.records).toHaveLength(1)
+    expect(canonical.observations).toHaveLength(curated.length)
+    expect(Object.keys(canonical.records[0]?.values ?? {})).toHaveLength(curated.length)
+    expect(canonical.records[0]?.geography).toEqual({
+      kind: 'building-group',
+      code: '01',
+      class: 'A',
+      namespace: 'housing-market-area:01',
+    })
+  })
+
+  test('record identity excludes publication versions and geometry companion vintages', () => {
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+    const row = {
+      datasetCode,
+      properties: { dc: '11', dc_class: 'A', year: '2021', my_lp: '123' },
+      sourceFeatureRef: `hkgov-censtatd/${datasetCode}/2024/DC:11`,
+      sourceReleaseId: 'release-2024',
+      sourceVersion: '2024',
+      geography: {
+        kind: 'district',
+        code: 'CW',
+        areaCompanion: {
+          cohortKey: '2021',
+          domainCode: 'administrative',
+          variant: 'hkgov-censtatd',
+        },
+      },
+    }
+    const first = normaliseHkgovCenstatdStatistics([row]).records[0]
+    const revised = normaliseHkgovCenstatdStatistics([
+      {
+        ...row,
+        geography: {
+          ...row.geography,
+          areaCompanion: { ...row.geography.areaCompanion, cohortKey: '2022' },
+        },
+        properties: { ...row.properties, my_lp: '124' },
+        sourceFeatureRef: `hkgov-censtatd/${datasetCode}/2026-Q2/DC_GHS:11`,
+        sourceReleaseId: 'release-2026',
+        sourceVersion: '2026-Q2',
+      },
+    ]).records[0]
+    expect(revised?.id).toBe(first?.id)
+    expect(revised?.referencePeriodCode).toBe('2021')
+    expect(revised?.fieldSources).not.toEqual(first?.fieldSources)
+  })
+
+  test('separates semantic geography, dataset, exact period and parent namespace', () => {
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+    const base = {
+      datasetCode,
+      properties: { AREA_ENG: 'District', PERIOD: '2024-Q1', LQ: '12' },
+      sourceFeatureRef: 'publisher/ref',
+      sourceReleaseId: 'release',
+      sourceVersion: '2024',
+      geography: { kind: 'district', code: '11', class: 'A', namespace: 'first' },
+    }
+    const inputs = [
+      base,
+      { ...base, geography: { ...base.geography, kind: 'area' } },
+      { ...base, geography: { ...base.geography, code: '12' } },
+      { ...base, geography: { ...base.geography, class: 'B' } },
+      { ...base, geography: { ...base.geography, namespace: 'second' } },
+      { ...base, properties: { ...base.properties, PERIOD: '2024-Q2' } },
+      { ...base, datasetCode: 'another-dataset' },
+    ]
+    const ids = inputs.map(
+      input => normaliseHkgovCenstatdStatistics([input]).records[0]?.id,
+    )
+    expect(new Set(ids).size).toBe(inputs.length)
+  })
+
+  test('merges disjoint source fields but rejects conflicting duplicate source variants', () => {
+    const base = {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      properties: { population: '12' },
+      sourceFeatureRef: 'publisher/first',
+      sourceReleaseId: 'release',
+      sourceVersion: '2024',
+      geography: { kind: 'district', code: '11' },
+    }
+    const second = {
+      ...base,
+      sourceFeatureRef: 'publisher/second',
+      properties: { households: '4' },
+    }
+    const rows = normaliseHkgovCenstatdStatistics([base, second])
+    expect(rows.records).toHaveLength(1)
+    expect(rows.observations).toHaveLength(2)
+    expect(rows.records[0]?.values).toEqual({ population: '12', households: '4' })
+    expect(rows.records[0]?.fieldSources.households?.sourceFeatureRef).toBe(
+      'publisher/second',
+    )
+    expect(() =>
+      normaliseHkgovCenstatdStatistics([
+        base,
+        { ...second, properties: { population: '13' } },
+      ]),
+    ).toThrow('duplicate field population')
+    expect(() =>
+      normaliseHkgovCenstatdStatistics([
+        base,
+        { ...second, divisionId: 'different-division' },
+      ]),
+    ).toThrow('conflicting geography metadata')
+  })
+
+  test('suppression does not revise numeric field definitions', () => {
+    const base = {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      properties: { population: '12' },
+      sourceFeatureRef: 'publisher/first',
+      sourceReleaseId: 'release',
+      sourceVersion: '2024',
+      geography: { kind: 'district', code: '11' },
+    }
+    const original = normaliseHkgovCenstatdStatistics([base])
+    const suppressed = normaliseHkgovCenstatdStatistics([
+      {
+        ...base,
+        properties: { population: '**' },
+        sourceReleaseId: 'correction',
+      },
+    ])
+    expect(suppressed.fields[0]?.valueKind).toBe('numeric')
+    expect(suppressed.fields[0]?.versionHash).toBe(original.fields[0]?.versionHash)
   })
 })

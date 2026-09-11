@@ -24,6 +24,10 @@ import type {
   StatsStatisticKind,
 } from '@repo/db'
 import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statistics/statisticsReferencePeriod'
+import {
+  hashStatisticContent,
+  versionStatisticsDefinitions,
+} from './statisticsRecordIdentity.ts'
 
 import type {
   CenstatdFieldMetadata,
@@ -57,7 +61,8 @@ type CanonicalSeries = {
 }
 
 type CanonicalRecord = CanonicalSeries & {
-  dimensions: Record<string, string>
+  fieldDefinitionHashes: Record<string, string>
+  fieldSources: Record<string, { sourceFeatureRef: string; sourceReleaseId: string }>
   values: Record<string, string>
 }
 
@@ -87,9 +92,9 @@ type CanonicalDimensionValue = CenstatdCanonicalDimensionValue & {
 export type CanonicalStatsRows = {
   auditGuards?: AuditGuard[]
   dimensions: CanonicalDimension[]
-  fields: CanonicalField[]
+  fields: Array<CanonicalField & { measureVersionHash: string; versionHash: string }>
   fieldsI18n: Row[]
-  measures: CanonicalMeasure[]
+  measures: Array<CanonicalMeasure & { versionHash: string }>
   measuresI18n: Row[]
   observations: CanonicalObservation[]
   records: CanonicalRecord[]
@@ -160,7 +165,14 @@ function normaliseStatistics(
     })
     const geography = guards.check('statistic-area-companion', () =>
       withAreaCompanion(
-        row.geography ?? geographyFor(profile.dimensions, row.sourceFeatureRef),
+        row.geography ??
+          geographyFor(
+            profile.dimensions,
+            row.sourceFeatureRef.replace(
+              `hkgov-censtatd/${row.datasetCode}/${row.sourceVersion}/`,
+              '',
+            ),
+          ),
         row.areaCompanionByReferencePeriod,
         referencePeriod.endYear,
       ),
@@ -212,7 +224,15 @@ function normaliseStatistics(
       recordObservations.push(observation)
       observationsBySeries.set(seriesId, recordObservations)
       const fieldKey = [row.datasetCode, fieldName].join('\u0000')
-      fields.set(fieldKey, {
+      const existingField = fields.get(fieldKey)
+      const valueKind =
+        parsed.numericValue !== null ||
+        parsed.observationStatus !== 'published' ||
+        metadata ||
+        existingField?.valueKind === 'numeric'
+          ? 'numeric'
+          : 'categorical'
+      const field: CanonicalField = {
         aggregation: metadata?.aggregation ?? 'unreviewed',
         aggregationPercentile: metadata?.aggregationPercentile ?? null,
         comparability: metadata?.comparability ?? null,
@@ -225,9 +245,16 @@ function normaliseStatistics(
         sourceField,
         sourceNullOption: metadata?.sourceNullOption ?? null,
         statisticKind: metadata?.statisticKind ?? 'unreviewed',
-        valueKind: parsed.numericValue === null ? 'categorical' : 'numeric',
+        valueKind,
         unitCode: metadata?.unitCode ?? unitFor(row.datasetCode, sourceField),
+      }
+      guards.check('statistic-dimension-field-uniqueness', () => {
+        if (existingField && existingField.sourceField !== sourceField)
+          throw new Error(
+            `C&SD ${row.datasetCode} field ${fieldName} has conflicting definitions across publisher features.`,
+          )
       })
+      fields.set(fieldKey, field)
       const fieldLocalisations = metadata?.localisations ?? [
         {
           description: null,
@@ -298,44 +325,68 @@ function normaliseStatistics(
       )
   }
 
-  return {
-    dimensions: [],
+  const definitions = versionStatisticsDefinitions({
     fields: [...fields.values()],
     fieldsI18n: [...fieldsI18n.values()],
     measures: [...measures.values()],
     measuresI18n: [...measuresI18n.values()],
-    observations,
-    records: [...series.values()].flatMap(seriesRow => {
-      const recordsByDimensions = new Map<string, CanonicalRecord>()
-      for (const observation of observationsBySeries.get(seriesRow.id) ?? []) {
-        const field = fields.get(
-          `${seriesRow.datasetCode}\u0000${observation.fieldName}`,
+  })
+  const records = new Map<string, CanonicalRecord>()
+  for (const seriesRow of [...series.values()].sort((left, right) =>
+    left.sourceFeatureRef.localeCompare(right.sourceFeatureRef),
+  )) {
+    const id = recordIdentifier(seriesRow)
+    const record = records.get(id) ?? {
+      ...seriesRow,
+      id,
+      fieldDefinitionHashes: {},
+      fieldSources: {},
+      values: {},
+    }
+    guards.check('statistic-dimension-field-uniqueness', () => {
+      if (
+        record.divisionId !== seriesRow.divisionId ||
+        hashStatisticContent(record.geography) !==
+          hashStatisticContent(seriesRow.geography)
+      )
+        throw new Error(
+          `C&SD ${seriesRow.datasetCode} record ${id} has conflicting geography metadata across publisher features.`,
         )
-        const dimensions = field?.dimensions ?? {}
-        const id = recordIdentifier({
-          dimensions,
-          referencePeriodCode: seriesRow.referencePeriodCode,
-          sourceFeatureRef: seriesRow.sourceFeatureRef,
-        })
-        const record = recordsByDimensions.get(id) ?? {
-          ...seriesRow,
-          dimensions,
-          id,
-          values: {},
+    })
+    for (const observation of observationsBySeries.get(seriesRow.id) ?? []) {
+      guards.check('statistic-dimension-field-uniqueness', () => {
+        if (Object.hasOwn(record.values, observation.fieldName)) {
+          throw new Error(
+            `C&SD ${seriesRow.datasetCode} record ${id} has duplicate field ${observation.fieldName} across publisher features.`,
+          )
         }
-        guards.check('statistic-dimension-field-uniqueness', () => {
-          if (Object.hasOwn(record.values, observation.fieldName)) {
-            throw new Error(
-              `C&SD ${seriesRow.datasetCode} record ${record.id} has duplicate field ${observation.fieldName}.`,
-            )
-          }
-        })
-        record.values[observation.fieldName] =
-          observation.numericValue ?? observation.valueCode ?? observation.sourceValue
-        recordsByDimensions.set(id, record)
+      })
+      record.values[observation.fieldName] =
+        observation.numericValue ?? observation.valueCode ?? observation.sourceValue
+      record.fieldSources[observation.fieldName] = {
+        sourceFeatureRef: seriesRow.sourceFeatureRef,
+        sourceReleaseId: seriesRow.sourceReleaseId,
       }
-      return [...recordsByDimensions.values()]
-    }),
+      const definitionHash = definitions.fieldDefinitionHashes.get(
+        `${seriesRow.datasetCode}\u0000${observation.fieldName}`,
+      )
+      if (!definitionHash)
+        throw new Error(
+          `Missing statistics field definition: ${observation.fieldName}.`,
+        )
+      record.fieldDefinitionHashes[observation.fieldName] = definitionHash
+    }
+    if (Object.keys(record.values).length) records.set(id, record)
+  }
+
+  return {
+    dimensions: [],
+    fields: definitions.fields,
+    fieldsI18n: definitions.fieldsI18n,
+    measures: definitions.measures,
+    measuresI18n: definitions.measuresI18n,
+    observations,
+    records: [...records.values()],
     values: [],
     valuesI18n: [],
     auditGuards: guards.snapshot(),
@@ -623,25 +674,42 @@ function seriesIdentifier(input: {
   return `stats-series:${createHash('sha256').update(basis).digest('hex')}`
 }
 
-function recordIdentifier(input: {
-  dimensions: Record<string, string>
+export function recordIdentifier(input: {
+  datasetCode: string
+  geography: CanonicalStatsGeography
   referencePeriodCode: string
-  sourceFeatureRef: string
 }) {
-  const dimensions = Object.fromEntries(
-    Object.entries(input.dimensions).sort(([left], [right]) =>
-      left.localeCompare(right),
-    ),
-  )
   return `stats:${createHash('sha256')
     .update(
       JSON.stringify({
-        dimensions,
+        datasetCode: input.datasetCode,
         referencePeriodCode: input.referencePeriodCode,
-        sourceFeatureRef: input.sourceFeatureRef,
+        geography: {
+          kind: input.geography.kind,
+          code: input.geography.code,
+          class: input.geography.class ?? null,
+          namespace: input.geography.namespace ?? null,
+        },
       }),
     )
     .digest('hex')}`
+}
+
+/** Identity-only recovery uses retained publisher properties, never recuration. */
+export function statisticSourceGeography(input: {
+  datasetCode: string
+  properties: Record<string, unknown>
+  sourceFeatureRef: string
+  sourceVersion: string
+}) {
+  const profile = profileFor(input.datasetCode, input.properties, input.sourceVersion)
+  return geographyFor(
+    profile.dimensions,
+    input.sourceFeatureRef.replace(
+      `hkgov-censtatd/${input.datasetCode}/${input.sourceVersion}/`,
+      '',
+    ),
+  )
 }
 
 function geographyFor(
@@ -656,9 +724,14 @@ function geographyFor(
   const geographyClass = dimensions.find(
     dimension => dimension.code === `${geography.code}-class`,
   )
+  const parent =
+    geography.code === 'building-group'
+      ? dimensions.find(dimension => dimension.code === 'housing-market-area')
+      : undefined
   return {
     code: geography.valueCode,
     ...(geographyClass ? { class: geographyClass.valueCode } : {}),
+    ...(parent ? { namespace: `${parent.code}:${parent.valueCode}` } : {}),
     kind: geography.code,
   }
 }

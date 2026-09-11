@@ -35,7 +35,7 @@ test('source assertions validate periods and retain native evidence', async () =
     land_area_sq_km: 1,
     mid_year_population_density_per_sq_km: 10,
     mid_year_population: 10,
-    raw_properties: '{"test":1}',
+    properties: '{"test":1}',
     source_geometry: 'null',
     reference_period_end_year: '2021',
     reference_period_granularity: 'year',
@@ -47,9 +47,13 @@ test('source assertions validate periods and retain native evidence', async () =
     'release-code',
     '2021',
   ])
-  expect(result.rawProperties).toEqual({ test: 1 })
+  expect(result.properties).toEqual({ test: 1 })
   expect(result.sourceRecordId).toBe('fixture-record')
   expect(result.releaseId).toBe('release-id')
+  const { properties: _, ...incomplete } = row
+  await expect(
+    censtatdSourceAssertionRule.execute([incomplete, 'r', 'r', '2021']),
+  ).rejects.toThrow('source properties are missing; prepare the release again')
   await expect(
     censtatdSourceAssertionRule.execute([row, 'r', 'r', '2022']),
   ).rejects.toThrow('reference_period_code')

@@ -22,9 +22,6 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
-// SQLite represents an OR chain as a nested expression. Keep composite
-// identities well below D1's maximum expression depth of 100.
-const MAX_COMPOSITE_IDENTITY_PREDICATES_PER_STATEMENT = 48
 
 export type CanonicalStatsDictionaryTable =
   | 'statsFields'
@@ -33,7 +30,10 @@ export type CanonicalStatsDictionaryTable =
   | 'statsMeasuresI18n'
   | 'statsValuesI18n'
 export type CanonicalStatsRecordTable = 'statsRecords'
-type CanonicalStatsTable = CanonicalStatsRecordTable | CanonicalStatsDictionaryTable
+type CanonicalStatsTable =
+  | CanonicalStatsRecordTable
+  | CanonicalStatsDictionaryTable
+  | 'snapshotVersionChanges'
 
 type Row = Record<string, unknown>
 
@@ -54,6 +54,7 @@ export type CanonicalStatsSqlReplayProgress = {
 }
 
 export function buildCanonicalStatsSqlBatches(input: {
+  changes?: Array<{ shardYear: string; row: Row }>
   resolutions?: Array<{ shardYear: string; row: NewSourceResolution }>
   current: Array<{ rows: Row[]; table: CanonicalStatsTable }>
   history: Array<{
@@ -84,6 +85,11 @@ export function buildCanonicalStatsSqlBatches(input: {
     }
   }
   const historyYears = [...historyGroupsByYear.keys()]
+  for (const change of input.changes ?? []) {
+    const groups = historyGroupsByYear.get(change.shardYear) ?? []
+    groups.push({ rows: [change.row], table: 'snapshotVersionChanges' })
+    historyGroupsByYear.set(change.shardYear, groups)
+  }
   for (const group of input.dictionaries) {
     for (const shardYear of historyYears) {
       const groups = historyGroupsByYear.get(shardYear)
@@ -92,14 +98,9 @@ export function buildCanonicalStatsSqlBatches(input: {
   }
   const currentGroups: Array<{ rows: Row[]; table: CanonicalStatsTable }> = [
     ...input.current,
-    ...input.dictionaries.map(group => ({
-      rows: group.rows.map(stripHistoryDictionaryVersion),
-      table: group.table,
-    })),
   ]
   return {
     current: chunkSql([
-      ...buildReplaceCurrentDictionaryStatements(currentGroups),
       ...currentGroups.flatMap(group =>
         buildUpsertStatements(
           group.table,
@@ -116,11 +117,15 @@ export function buildCanonicalStatsSqlBatches(input: {
             .filter(resolution => resolution.shardYear === shardYear)
             .map(resolution => sourceResolutionSql(resolution.row)),
           ...groups.flatMap(group => [
-            ...buildCloseHistoryStatements(group.table, group.rows),
-            ...buildUpsertStatements(group.table, group.rows, [
-              ...historyIdentityColumns(group.table),
-              'versionHash',
-            ]),
+            ...buildUpsertStatements(
+              group.table,
+              group.rows,
+              [
+                ...historyIdentityColumns(group.table),
+                ...(group.table === 'snapshotVersionChanges' ? [] : ['versionHash']),
+              ],
+              true,
+            ),
           ]),
         ]),
         shardYear,
@@ -266,60 +271,11 @@ function resolveRemoteReplay(
   return { accountId, apiToken, currentDatabaseId }
 }
 
-function buildCloseHistoryStatements(table: CanonicalStatsTable, rows: Row[]) {
-  if (!rows.length) return []
-  const identity = historyIdentityColumns(table)
-  const updatedAt = requiredString(rows[0]?.updatedAt, 'updatedAt')
-  const identities = uniqueTuples(rows, identity)
-  if (identity.length === 1) {
-    const [column] = identity
-    if (!column) return []
-    return buildSingleColumnCloseStatements(
-      table,
-      column,
-      identities.map(([value]) => value),
-      updatedAt,
-    )
-  }
-  const conditions = identities.map(
-    tuple =>
-      `(${identity.map((column, index) => `${identifier(column)} = ${sqlValue(tuple[index])}`).join(' AND ')})`,
-  )
-  return chunk(conditions, MAX_COMPOSITE_IDENTITY_PREDICATES_PER_STATEMENT).map(
-    group =>
-      `UPDATE ${identifier(table)} SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND (${group.join(' OR ')});`,
-  )
-}
-
-function buildSingleColumnCloseStatements(
-  table: CanonicalStatsTable,
-  column: string,
-  identities: unknown[],
-  updatedAt: string,
-) {
-  const statement = (values: unknown[]) =>
-    `UPDATE ${identifier(table)} SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND ${identifier(column)} IN (${values.map(sqlValue).join(', ')});`
-  const statements: string[] = []
-  let values: unknown[] = []
-  for (const identity of identities) {
-    const candidate = statement([...values, identity])
-    if (Buffer.byteLength(candidate) > SQL_STATEMENT_BYTE_LIMIT) {
-      if (!values.length)
-        throw new Error('A canonical statistic SQL statement exceeds the D1 limit.')
-      statements.push(statement(values))
-      values = [identity]
-      continue
-    }
-    values.push(identity)
-  }
-  if (values.length) statements.push(statement(values))
-  return statements
-}
-
 function buildUpsertStatements(
   table: CanonicalStatsTable,
   rows: Row[],
   conflictColumns: string[],
+  immutable = false,
 ) {
   const rowsByColumns = new Map<string, Row[]>()
   for (const row of rows) {
@@ -333,14 +289,16 @@ function buildUpsertStatements(
   return [...rowsByColumns.entries()].flatMap(([key, groupedRows]) => {
     const columns = key.split('\u0000')
     const prefix = `INSERT INTO ${identifier(table)} (${columns.map(identifier).join(', ')}) VALUES `
-    const suffix = [
-      `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO UPDATE SET`,
-      columns
-        .filter(column => !conflictColumns.includes(column))
-        .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
-        .join(', '),
-      ';',
-    ].join(' ')
+    const suffix = immutable
+      ? `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO NOTHING;`
+      : [
+          `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO UPDATE SET`,
+          columns
+            .filter(column => !conflictColumns.includes(column))
+            .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
+            .join(', '),
+          ';',
+        ].join(' ')
     const statements: string[] = []
     let values: string[] = []
 
@@ -365,13 +323,15 @@ function buildUpsertStatements(
 }
 
 function currentConflictColumns(table: CanonicalStatsTable) {
-  return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
+  if (table === 'statsRecords') return ['id']
+  if (table === 'snapshotVersionChanges') return historyIdentityColumns(table)
+  return [...dictionaryIdentityColumns(table), 'versionHash']
 }
 
 function historyIdentityColumns(table: CanonicalStatsTable) {
-  return table === 'statsRecords'
-    ? ['id']
-    : [...dictionaryIdentityColumns(table), 'sourceReleaseId']
+  if (table === 'snapshotVersionChanges')
+    return ['snapshotId', 'recordType', 'recordId', 'locale']
+  return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
 }
 
 function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
@@ -387,37 +347,6 @@ function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
     case 'statsValuesI18n':
       return ['datasetCode', 'dimensionCode', 'valueCode', 'locale']
   }
-}
-
-function stripHistoryDictionaryVersion(row: Row) {
-  const {
-    isCurrent: _isCurrent,
-    sourceReleaseId: _sourceReleaseId,
-    versionHash: _versionHash,
-    ...current
-  } = row
-  return current
-}
-
-function buildReplaceCurrentDictionaryStatements(
-  groups: Array<{ rows: Row[]; table: CanonicalStatsTable }>,
-) {
-  const scopes = uniqueTuples(
-    groups.filter(group => group.table !== 'statsRecords').flatMap(group => group.rows),
-    ['datasetCode'],
-  )
-  if (scopes.length === 0) return []
-  const condition = scopes
-    .map(([datasetCode]) => `"datasetCode" = ${sqlValue(datasetCode)}`)
-    .join(' OR ')
-  const tables: CanonicalStatsDictionaryTable[] = [
-    'statsFieldsI18n',
-    'statsMeasuresI18n',
-    'statsValuesI18n',
-    'statsFields',
-    'statsMeasures',
-  ]
-  return tables.map(table => `DELETE FROM ${identifier(table)} WHERE ${condition};`)
 }
 
 async function replay(
@@ -451,15 +380,6 @@ async function replay(
   })
 }
 
-function uniqueTuples(rows: Row[], columns: string[]) {
-  const tuples = new Map<string, unknown[]>()
-  for (const row of rows) {
-    const tuple = columns.map(column => row[column])
-    tuples.set(JSON.stringify(tuple), tuple)
-  }
-  return [...tuples.values()]
-}
-
 function chunkSql(statements: string[]) {
   const output: string[] = []
   let current = ''
@@ -474,13 +394,6 @@ function chunkSql(statements: string[]) {
     current += `${statement}\n`
   }
   if (current) output.push(current)
-  return output
-}
-
-function chunk<T>(items: T[], size: number) {
-  const output: T[][] = []
-  for (let index = 0; index < items.length; index += size)
-    output.push(items.slice(index, index + size))
   return output
 }
 
