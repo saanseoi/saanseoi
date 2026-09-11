@@ -147,6 +147,7 @@ export async function buildDivisionSqlState(
   allowTranslationGeneration: boolean,
   reportProgress: (current: number) => Promise<void>,
   sourceDatabases: readonly HarbourReadableDb[] = [],
+  nativeRows?: Record<string, unknown>[],
 ) {
   const traceDivisionIds = resolveDivisionTraceIds()
   const previousRows = new Map(currentRows)
@@ -160,8 +161,10 @@ export async function buildDivisionSqlState(
   const records: DivisionPreparedRecord[] = []
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
-  const file = await createAsyncBufferFromR2(bucket, message.rawObjectKey)
-  if (message.source === 'overture' && message.regionCode === 'hk')
+  const file = nativeRows
+    ? { rows: nativeRows }
+    : await createAsyncBufferFromR2(bucket, message.rawObjectKey)
+  if (message.source === 'overture' && message.regionCode === 'hk' && !('rows' in file))
     await assertOvertureHongKongDivisionSourceAssumptions(file)
   const hierarchyLookup = await buildDivisionHierarchyLookup(file, message)
   const sourceRelease = message.releaseCode
