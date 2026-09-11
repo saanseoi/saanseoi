@@ -8,7 +8,7 @@ import {
 import { invalidateSqlDeliveryReleases } from './local/sqlDeliveryGeneration.ts'
 
 import type { LocalAddressDbContext } from '../dbCache/localDbCache.ts'
-import { invalidateRemoteDbCache } from '../dbCache/localDbCache.ts'
+import { invalidateRemoteDbCacheLocked } from '../dbCache/localDbCacheReplay.ts'
 import { withRemoteCacheMutation } from '../dbCache/remoteCacheMutation.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { executeSqlText, type SqlImportTargetContext } from './local/sqlImport.ts'
@@ -94,7 +94,7 @@ async function executeResetSqlArtefactsLocked(
         await executeSqlText(artefact.target, artefact.sql, { isLocal: true })
       }
     } catch (error) {
-      await invalidateRemoteDbCache(
+      await invalidateRemoteDbCacheLocked(
         options.target.environment === 'production' ? 'production' : 'preview',
         options.context.state.dbCacheDir,
         `${options.remoteCacheErrorMessage}: ${error instanceof Error ? error.message : String(error)}`,
