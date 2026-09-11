@@ -6,7 +6,6 @@ import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types
 import {
   and,
   eq,
-  currentSchema,
   metaSchema,
   type CurrentDatabase,
   type HistoryDatabase,
@@ -14,12 +13,8 @@ import {
   type SourceDatabase,
 } from '@repo/db'
 
-import {
-  buildAlignAddressCurrentDivisionSnapshotSql,
-  prepareAddressVersionInsertContext,
-} from '../../db/address'
+import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import { getCurrentSourceHkgovAlsAddress2dRecords } from '../../db/source'
-import { resolveDataShardEnvironment } from '../runtime'
 import type { HarbourWorkerBucket } from '../divisions/division'
 import {
   buildPipelineArtefactKey,

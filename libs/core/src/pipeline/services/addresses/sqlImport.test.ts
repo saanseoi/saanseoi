@@ -238,7 +238,7 @@ describe('address SQL import staging cleanup', () => {
         snapshotId: 'address-revision',
         divisionSnapshotId: 'division-revision',
       })
-      expect(artefact.rows[0]!.base.divisionSnapshotId).toBe('division-revision')
+      expect(artefact.rows[0]?.base.divisionSnapshotId).toBe('division-revision')
     } finally {
       db.close()
     }
@@ -346,7 +346,7 @@ describe('HKGov ALS source SQL', () => {
           )
           .all(),
       ).toEqual(
-        inputs.map((_, index) => ({
+        inputs.map(() => ({
           sourceLocator: JSON.stringify({ sourceFile: 'addresses.geojson' }),
         })),
       )

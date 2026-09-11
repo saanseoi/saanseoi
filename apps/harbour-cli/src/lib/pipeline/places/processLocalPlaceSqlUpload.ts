@@ -24,8 +24,8 @@ import { createHarbourControlClient } from '../../api/harbourControl.ts'
 import {
   replayRemoteCacheWithRetry,
   refreshRemoteMetaCache,
-  resolveLocalAddressDbContext,
 } from '../../dbCache/localDbCache.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { executeSqlText, type SqlImportExecutionOptions } from '../local/sqlImport.ts'
 import { createLocalControlClient } from '../local/localControlClient.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
@@ -94,7 +94,7 @@ export async function processLocalPlaceSqlUpload(
   const bucket = new LocalPipelineBucket(releaseRoot)
   const progress = new OperationProgress()
   let recordCache: PlaceRecordCache | undefined
-  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
+  let dbContext: Awaited<ReturnType<typeof resolveCurrentWriteContext>> | undefined
   let dependencies: PlaceDependencyView | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
@@ -120,10 +120,8 @@ export async function processLocalPlaceSqlUpload(
       'Open local D1',
       'Places data',
       () =>
-        resolveLocalAddressDbContext(target, previewPlan.regionCode, shardYear, {
+        resolveCurrentWriteContext(target, previewPlan.regionCode, shardYear, {
           resumeSqlDeliveryReleaseId: releaseId,
-          includePreviousShardYears: true,
-          refreshRemoteTables: false,
         }),
     )
     const context = dbContext
