@@ -131,6 +131,10 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     tags: ['Addresses'],
     request: { query: AddressSearchQuerySchema },
     responses: {
+      400: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'Search is available only for the latest published release.',
+      },
       200: {
         content: {
           'application/json': {
@@ -239,6 +243,7 @@ export const addressRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (result.status === 400) return c.json(result.body, 400)
         if (isUnpublishedMacao(c.req.valid('query').region, result))
           return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)

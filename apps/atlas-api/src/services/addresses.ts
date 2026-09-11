@@ -425,6 +425,10 @@ async function canReadCurrentAddresses(args: {
 export type AddressSearchResult =
   | { status: 200; body: AddressListDocument }
   | {
+      status: 400
+      body: { httpStatus: 400; error: 'historical_search_unavailable'; message: string }
+    }
+  | {
       status: 503
       body: AddressSearchUnavailableResponse | SnapshotNotReadyResponse<'address'>
     }
@@ -864,6 +868,21 @@ export async function searchAddresses(args: {
   const activeSnapshot = await getActiveAddressSnapshot(args.metaDb, args.query)
   if (!activeSnapshot) {
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  }
+  const latest = await getActiveAddressSnapshot(args.metaDb, {
+    region: args.query.region,
+    'filter[dataset]': args.query['filter[dataset]'],
+  })
+  if (!latest || latest.apiReleaseSet !== activeSnapshot.apiReleaseSet) {
+    return {
+      status: 400,
+      body: {
+        httpStatus: 400,
+        error: 'historical_search_unavailable',
+        message:
+          'Address search supports only the latest published release. Historical addresses remain available through list and detail endpoints.',
+      },
+    }
   }
   if (args.onResolved) {
     const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>

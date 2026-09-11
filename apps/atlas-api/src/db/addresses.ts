@@ -10,6 +10,7 @@ const {
   address2dI18n,
   addressesFts,
   addressesFtsMatch,
+  addressSearchScopes,
 } = currentSchema
 
 export type AddressLocaleValue = {
@@ -456,6 +457,12 @@ export async function searchAddressIdsCurrent(
   const ftsQuery = buildAddressFtsQuery(lookup)
   if (!ftsQuery) return { addressIds: [], total: 0 }
   try {
+    const scopes = await db
+      .select({ snapshotId: addressSearchScopes.snapshotId })
+      .from(addressSearchScopes)
+      .all()
+    if (lookup.snapshotIds.some(id => !scopes.some(scope => scope.snapshotId === id)))
+      throw new Error('FTS index is not initialised for the selected latest snapshots.')
     const conditions = and(
       addressesFtsMatch(ftsQuery),
       ...buildAddressConditions(lookup),
@@ -465,9 +472,13 @@ export async function searchAddressIdsCurrent(
         .selectDistinct({ addressId: addressesFts.addressId })
         .from(addressesFts)
         .innerJoin(
+          addressSearchScopes,
+          eq(addressSearchScopes.scopeId, addressesFts.scopeId),
+        )
+        .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, addressesFts.snapshotId),
+            eq(address2d.snapshotId, addressSearchScopes.snapshotId),
             eq(address2d.id, addressesFts.addressId),
           ),
         )
@@ -480,9 +491,13 @@ export async function searchAddressIdsCurrent(
         .select({ count: sql<number>`count(distinct ${addressesFts.addressId})` })
         .from(addressesFts)
         .innerJoin(
+          addressSearchScopes,
+          eq(addressSearchScopes.scopeId, addressesFts.scopeId),
+        )
+        .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, addressesFts.snapshotId),
+            eq(address2d.snapshotId, addressSearchScopes.snapshotId),
             eq(address2d.id, addressesFts.addressId),
           ),
         )
@@ -496,7 +511,9 @@ export async function searchAddressIdsCurrent(
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message.includes('no such table: addressesFts')
+      /no such table: (addressesFts|addressSearchFts|addressSearchScopes)/.test(
+        error.message,
+      )
     ) {
       throw new Error(
         'FTS index is not initialised. Rebuild addressesFts before using search.',
