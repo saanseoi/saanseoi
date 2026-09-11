@@ -266,10 +266,10 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       ...pendingGeographyResources,
     ])
     let resourceLifecycleIndex = 0
-    const nextResourceLifecycle = (type: CenstatdCombinedResourceType) => {
+    const nextResourceLifecycle = (resourceType: CenstatdCombinedResourceType) => {
       const step = resourceLifecycle[resourceLifecycleIndex]
-      if (!step || step.type !== type) {
-        throw new Error(`C&SD resource lifecycle is out of order at ${type}.`)
+      if (!step || step.type !== resourceType) {
+        throw new Error(`C&SD resource lifecycle is out of order at ${resourceType}.`)
       }
       resourceLifecycleIndex += 1
       return step
@@ -316,7 +316,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
             'source-version': sourceVersion,
             'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
             theme: 'stats',
-            type: 'divisionStatistic',
+            'resource-type': 'divisionStatistic',
             // Preserve the caller's explicit automation choice. New publisher
             // measures must be reviewed interactively before their canonical
             // metadata is admitted, so this command cannot force --yes.
@@ -377,7 +377,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
               'source-version': sourceVersion,
               'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
               theme: 'divisions',
-              type,
+              'resource-type': type,
               yes: true,
             },
           },

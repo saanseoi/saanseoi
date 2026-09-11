@@ -28,7 +28,7 @@ const previewResult: PreparedUploadResult = {
     schemaFingerprint: 'test-schema',
     inferredFrom: {
       theme: 'path',
-      type: 'path',
+      resourceType: 'path',
       regionCode: 'path',
       cohortKey: 'path',
       source: 'path',

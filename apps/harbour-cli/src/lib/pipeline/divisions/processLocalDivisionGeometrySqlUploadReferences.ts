@@ -239,7 +239,7 @@ async function restoreDivisionSnapshotFromHistory(
 }
 
 export function divisionReferenceIds(
-  type: GeometryUploadPlan['resourceType'],
+  resourceType: GeometryUploadPlan['resourceType'],
   row: NonNullable<NormalisedGeometry>,
 ) {
   const canonical = row.canonical as {
@@ -247,7 +247,7 @@ export function divisionReferenceIds(
     leftDivisionId?: string
     rightDivisionId?: string
   }
-  return type === 'divisionArea'
+  return resourceType === 'divisionArea'
     ? canonical.divisionId
       ? [canonical.divisionId]
       : []

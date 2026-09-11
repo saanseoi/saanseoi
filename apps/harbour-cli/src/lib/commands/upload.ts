@@ -150,7 +150,7 @@ ${mutedBar}  `)
         sourceVersion:
           registerOptions.sourceVersion ?? hkgovHadPreparation.sourceVersion,
         theme: registerOptions.theme ?? hkgovHadPreparation.theme,
-        type: registerOptions.resourceType ?? hkgovHadPreparation.type,
+        resourceType: registerOptions.resourceType ?? hkgovHadPreparation.resourceType,
       })
       log.message('Prepared Home Affairs Department District Boundary GeoJSON.')
     }
@@ -172,7 +172,8 @@ ${mutedBar}  `)
         source: hkgovCenstatdPreparation.source,
         sourceVersion: hkgovCenstatdPreparation.sourceVersion,
         theme: registerOptions.theme ?? hkgovCenstatdPreparation.theme,
-        type: registerOptions.resourceType ?? hkgovCenstatdPreparation.type,
+        resourceType:
+          registerOptions.resourceType ?? hkgovCenstatdPreparation.resourceType,
       })
       log.message('Prepared Census and Statistics Department District Council GML.')
     }
@@ -191,7 +192,8 @@ ${mutedBar}  `)
         sourceVersion:
           registerOptions.sourceVersion ?? landsdPlaceNamePreparation.sourceVersion,
         theme: registerOptions.theme ?? landsdPlaceNamePreparation.theme,
-        type: registerOptions.resourceType ?? landsdPlaceNamePreparation.type,
+        resourceType:
+          registerOptions.resourceType ?? landsdPlaceNamePreparation.resourceType,
       })
       log.message('Prepared LandsD Settlement Place Name GeoJSON.')
     }

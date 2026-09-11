@@ -20,7 +20,7 @@ function buildOvertureDivisionPlan(
       source: 'path',
       sourceVersion: 'cohortKey',
       theme: 'path',
-      type: 'path',
+      resourceType: 'path',
     },
     originalFileName: `${resourceType}.parquet`,
     regionCode: 'hk',

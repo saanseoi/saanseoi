@@ -121,7 +121,7 @@ export function createGeometryChurnCounts(
 
 export async function getGeometryChurnBaseline(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  type: GeometryUploadPlan['resourceType'],
+  resourceType: GeometryUploadPlan['resourceType'],
   parentSnapshotId: string | null,
 ) {
   if (!parentSnapshotId) {
@@ -129,7 +129,7 @@ export async function getGeometryChurnBaseline(
   }
 
   const parentRows =
-    type === 'divisionArea'
+    resourceType === 'divisionArea'
       ? await currentDb
           .select()
           .from(currentSchema.divisionAreas)
@@ -404,7 +404,7 @@ export function decodeStoredGeoJsonGeometry(value: unknown): GeoJsonGeometry {
 }
 
 function buildGeometryDistrictDistributionRows(
-  type: GeometryUploadPlan['resourceType'],
+  resourceType: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   districtsByDivisionId: Map<string, string>,
 ) {
@@ -412,7 +412,7 @@ function buildGeometryDistrictDistributionRows(
 
   for (const row of rows) {
     const districts = new Set(
-      divisionReferenceIds(type, row)
+      divisionReferenceIds(resourceType, row)
         .map(id => districtsByDivisionId.get(id))
         .filter((id): id is string => Boolean(id)),
     )

@@ -42,7 +42,7 @@ export async function publishLandsdStreetReleasePayloads(
           region: 'hk',
           source: 'hkgov-landsd',
           theme: 'streets',
-          type: 'street',
+          'resource-type': 'street',
           yes: true,
         },
       },

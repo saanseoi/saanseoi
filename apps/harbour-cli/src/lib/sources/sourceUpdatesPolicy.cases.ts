@@ -34,7 +34,7 @@ test('selects the English dataset name', () => {
       publisherCode: 'example',
       regionCode: 'hk',
       theme: 'places',
-      type: 'place',
+      resourceType: 'place',
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
       i18n: [
         { locale: 'zh-hant', name: '例子' },
@@ -51,7 +51,7 @@ test('detects an upstream version not present in local state', () => {
       publisherCode: 'example',
       regionCode: 'hk',
       theme: 'places',
-      type: 'place',
+      resourceType: 'place',
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'upstream' },
     },
     status: 'new',
@@ -69,7 +69,7 @@ test('throttles update checks according to the fixture policy', () => {
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     updatePolicy: { allowUpdates: true, checkFrequency: 'monthly' as const },
   } satisfies DatasetFixture
@@ -92,7 +92,7 @@ test('schedules each update phase from its own policy state', () => {
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     releasePolicy: {
       series: 'rolling',
@@ -151,7 +151,7 @@ test('runs initial-only phases only before the target has a release', () => {
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     releasePolicy: {
       series: 'cohort',
@@ -192,7 +192,7 @@ test('checks a newly configured release even when another source was checked', (
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     updatePolicy: { allowUpdates: true, checkFrequency: 'monthly' as const },
     releasePolicy: {
@@ -228,7 +228,7 @@ test('records check state independently for each source release', () => {
       publisherCode: 'example',
       regionCode: 'hk',
       theme: 'places',
-      type: 'place',
+      resourceType: 'place',
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     } satisfies DatasetFixture,
     status: 'current',
@@ -257,7 +257,7 @@ test('keeps archive custody separate from a completed database import', () => {
       publisherCode: 'example',
       regionCode: 'hk',
       theme: 'streets',
-      type: 'street',
+      resourceType: 'street',
       versionPolicy: { scheme: 'quarterly', correctionSuffixSource: 'generated' },
     } satisfies DatasetFixture,
     mirroredArchive: {

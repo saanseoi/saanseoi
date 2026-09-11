@@ -58,7 +58,7 @@ export async function runHkgovHadDistrictArchiveIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'divisions',
-          type: 'divisionArea',
+          'resource-type': 'divisionArea',
           yes: true,
         },
       },

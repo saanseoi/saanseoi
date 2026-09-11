@@ -154,7 +154,7 @@ export type DatasetFixture = {
   releaseLastRevisedAt?: string
   metadataLastRevisedAt?: string
   lastUpdated?: string
-  type?: string
+  resourceType?: string
   resourceTypes?: readonly string[]
   sourceVariant?: string
   /**

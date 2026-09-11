@@ -472,12 +472,12 @@ async function resolveSnapshotShard(
 async function findSnapshotRows(
   targets: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyTargets'],
   snapshotId: string,
-  type: 'division' | GeometryResourceType,
+  resourceType: 'division' | GeometryResourceType,
 ) {
   const table =
-    type === 'division'
+    resourceType === 'division'
       ? historySchema.divisions
-      : type === 'divisionArea'
+      : resourceType === 'divisionArea'
         ? historySchema.divisionAreas
         : historySchema.divisionBoundaries
   for (const target of targets) {
@@ -489,7 +489,7 @@ async function findSnapshotRows(
     if (rows.length) return rows
   }
   throw new Error(
-    `Snapshot ${snapshotId} has no ${type} rows in its assigned history shard.`,
+    `Snapshot ${snapshotId} has no ${resourceType} rows in its assigned history shard.`,
   )
 }
 

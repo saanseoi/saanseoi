@@ -376,7 +376,7 @@ export async function runHkgovAlsIngestCommand(
           source: 'hkgov-dpo',
           'source-version': sourceVersion,
           theme: 'addresses',
-          type: 'address',
+          'resource-type': 'address',
           yes: true,
         },
       },

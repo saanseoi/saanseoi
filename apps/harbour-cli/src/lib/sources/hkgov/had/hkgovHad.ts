@@ -21,7 +21,7 @@ export type PreparedHkgovHadDistrictUpload = {
   sourceSchemaVersion: typeof HKGOV_HAD_SOURCE_SCHEMA_VERSION
   sourceVersion: string
   theme: 'divisions'
-  type: 'divisionArea'
+  resourceType: 'divisionArea'
 }
 
 type HkgovHadFeatureCollection = {
@@ -58,7 +58,7 @@ type PreparedHkgovHadDistrictRow = {
   source_properties: Record<string, unknown>
   sources: Array<Record<string, string>>
   theme: 'divisions'
-  type: 'divisionArea'
+  resourceType: 'divisionArea'
 }
 
 /**
@@ -117,7 +117,7 @@ export async function prepareHkgovHadDistrictUpload(
       ),
       stringColumn(
         'type',
-        rows.map(row => row.type),
+        rows.map(row => row.resourceType),
         false,
       ),
       stringColumn(
@@ -186,7 +186,7 @@ export async function prepareHkgovHadDistrictUpload(
     sourceSchemaVersion: HKGOV_HAD_SOURCE_SCHEMA_VERSION,
     sourceVersion,
     theme: 'divisions',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
   }
 }
 
@@ -301,7 +301,7 @@ function normaliseHkgovHadDistrictFeature(
       },
     ],
     theme: 'divisions',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
   }
 }
 

@@ -743,3 +743,49 @@ test('forces area and Kowloon city unions but preserves existing Hong Kong city 
     definitions,
   )
 })
+
+test('Kowloon city and area use identical district-union polygons', async () => {
+  const { buildSyntheticOvertureHongKongAreaRows } = await import(
+    './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
+  )
+  const district = normaliseDivisionAreaGeometryRow(
+    {
+      id: 'district-area',
+      division_id: 'district',
+      class: 'land',
+      is_land: true,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [114, 22],
+            [114.1, 22],
+            [114.1, 22.1],
+            [114, 22],
+          ],
+        ],
+      },
+    },
+    'overture',
+  )
+  if (!district) throw new Error('Missing district fixture')
+  const rows = buildSyntheticOvertureHongKongAreaRows(
+    [
+      {
+        code: 'kowloon',
+        divisionId: 'kowloon-area',
+        districtDivisionIds: ['district'],
+        reconstruct: true,
+      },
+      {
+        code: 'kowloon-city',
+        divisionId: 'kowloon-city',
+        districtDivisionIds: ['district'],
+        reconstruct: true,
+      },
+    ],
+    [district],
+  )
+  expect(rows[0]?.canonical.geometry).toEqual(rows[1]?.canonical.geometry)
+  expect(rows[0]?.canonical.id).not.toBe(rows[1]?.canonical.id)
+})

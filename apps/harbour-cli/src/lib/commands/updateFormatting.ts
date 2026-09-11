@@ -87,7 +87,8 @@ export function datasetLabel(
   const remainder = dataset.code.startsWith(prefix)
     ? dataset.code.slice(prefix.length)
     : dataset.code
-  const resourceTypes = dataset.resourceTypes ?? (dataset.type ? [dataset.type] : [])
+  const resourceTypes =
+    dataset.resourceTypes ?? (dataset.resourceType ? [dataset.resourceType] : [])
   const primaryType = resourceTypes[0] ?? 'resource'
   const typeSlug = primaryType.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   const suffix = remainder.startsWith(`${typeSlug}-`)
@@ -396,7 +397,8 @@ function datasetLabelParts(dataset: DatasetFixture) {
   const remainder = dataset.code.startsWith(prefix)
     ? dataset.code.slice(prefix.length)
     : dataset.code
-  const resourceTypes = dataset.resourceTypes ?? (dataset.type ? [dataset.type] : [])
+  const resourceTypes =
+    dataset.resourceTypes ?? (dataset.resourceType ? [dataset.resourceType] : [])
   const primaryType = resourceTypes[0] ?? 'resource'
   const typeSlug = primaryType.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
   const codeSubtype = remainder.startsWith(`${typeSlug}-`)

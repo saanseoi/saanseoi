@@ -115,7 +115,7 @@ export async function processNativeSourceSqlRelease(
     source: input.source,
     sourceVersion: input.sourceVersion,
     theme: input.theme,
-    type: input.resourceType,
+    resourceType: input.resourceType,
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
   const releaseId = requireString(registered.releaseId, 'releaseId')
