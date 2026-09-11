@@ -342,3 +342,11 @@ and provenance objects are retained in production R2, with registrations kept in
 D1. Follow the
 [storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
 selecting or continuing this mode.
+
+## Published Division search
+
+Housing Market Area Division search selects the latest published default in
+`hkgov-censtatd-hma`. It indexes names, aliases and curated codes and participates in
+the shared deferred, incremental search finalisation. District geometry variants do not
+create duplicate search documents. See
+[Division text search](../../families/divisions.md#text-search).

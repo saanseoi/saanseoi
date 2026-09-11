@@ -339,3 +339,11 @@ spelling; demographic measures about language are not locale-bearing labels.
 Planning Unit releases select `rs-division-hkgov-pland-pu-merge-v1`; New Town releases
 select `rs-division-hkgov-pland-new-town-merge-v1`. Both rulesets reference the shared
 geography identity, Planning normalisation and area geometry processing definitions.
+
+## Published Division search
+
+Planning Unit and New Town Division search selects the latest published default within
+each domain. Names, aliases and curated codes are searchable alongside geographic
+divisions, or independently with a domain filter. Division publication participates in
+the shared deferred, incremental search finalisation; area geometry is not indexed. See
+[Division text search](../../families/divisions.md#text-search).

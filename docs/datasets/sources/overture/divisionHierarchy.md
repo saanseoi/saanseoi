@@ -51,3 +51,11 @@ district；聚落路径包含最近的聚落及最多三个 hood 祖先，也允
 `zh-hant` 及 `en`
 组合，中间加一个空格；相同字符串只显示一次，只有一种语言则使用该值，两者皆无则为 null。API 直接返回已储存的路径，不在加载时重建。`include=hierarchy`
 可附带祖先资源，包括城市。原始层级保留于 `rawProperties`。
+
+## Published search
+
+Latest-release Division search indexes localised names, aliases, name-rule values and
+curated codes. Stored ancestor names participate only when the request sets
+`ancestors=true`; all correlated hierarchy paths are retained. Finalisation compares the
+stored projection after the upload sequence, so unchanged snapshot promotion writes only
+its scope mapping. See [Division text search](../../families/divisions.md#text-search).

@@ -602,6 +602,14 @@ Every basemap and style reference reads the public key from
 https://saanseoi.hk/api-keys, then ask them to provide the resulting \`pk.\` key so you
 can configure the local environment. Never log or commit it.
 
+## Division discovery
+
+For Division discovery, request /divisions/v0.1/search?q=水埗. It searches all domains
+unless domain is specified, using names, aliases and codes. English partial text and
+Chinese substrings are supported. Set ancestors=true to also match stored ancestor
+names. Optional locale restricts the matching localisation. This endpoint searches the
+latest published releases; retry HTTP 503 fts_not_ready after finalisation completes.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include
