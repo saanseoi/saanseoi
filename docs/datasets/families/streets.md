@@ -8,13 +8,13 @@ one publisher ID remain current when all are present in the incoming release.
 
 - [ ] When Streets work resumes, review moving parsed publisher attributes from
       `hkgovLandsdStreetBaselineRecords` and `hkgovLandsdStreetNotices` into
-      `rawProperties`. The baseline stores names and district codes directly; notices
-      store names, descriptions, dates, classifications, notice references and district
-      codes directly. These are structured PDF extractions, so define the retained raw
-      payload before removing columns. Preserve source identity, provenance, document
-      evidence, parser diagnostics and notice-application decisions. Update ingestion
-      and readers, generate the migration, and verify retained evidence and lifecycle
-      behaviour. This review is deferred until Streets work starts.
+      `properties`. The baseline stores names and district codes directly; notices store
+      names, descriptions, dates, classifications, notice references and district codes
+      directly. These are structured PDF extractions, so define the retained raw payload
+      before removing columns. Preserve source identity, provenance, document evidence,
+      parser diagnostics and notice-application decisions. Update ingestion and readers,
+      generate the migration, and verify retained evidence and lifecycle behaviour. This
+      review is deferred until Streets work starts.
 
 ## TODO: API-family contract unification
 
@@ -43,7 +43,7 @@ not create new versions of unchanged publisher properties and geometry.
 Street ingestion records its selected release, source rule and effective recipe under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 
-Native feature source tables retain publisher attributes in `rawProperties`, native
+Native feature source tables retain publisher attributes in `properties`, native
 geometry separately, and identity, release history and provenance in the source
 envelope. Retained source-property keys use the shared camelCase convention while
 publisher values remain unchanged. TD's layer kind identifies the source collection.

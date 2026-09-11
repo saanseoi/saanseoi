@@ -712,7 +712,7 @@ ingestion; `stats:backfill-addresses` rebuilds API release-set statistics only.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Source record response
 
@@ -752,10 +752,10 @@ geometry, components, granularity and parent relationships include preparation a
 reviewed curation inputs. Supplementary Place addresses reference the captured
 `resolve-place-addresses` rule and the retained address decisions.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

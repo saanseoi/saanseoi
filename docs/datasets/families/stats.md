@@ -82,11 +82,11 @@ metadata.
 Merge ruleset entries for scaling and field curation reference these same definitions;
 their resolved hashes include the declarations rather than only the reference names.
 
-Publisher attributes are retained in `rawProperties` with source identity, release
-history, provenance and native geometry. Extracted measures, period labels and
-geographic codes are materialised in canonical history/current records rather than
-duplicated in source columns. Separately versioned geometry derivatives retain their
-exact input hash and transformation evidence.
+Publisher attributes are retained in `properties` with source identity, release history,
+provenance and native geometry. Extracted measures, period labels and geographic codes
+are materialised in canonical history/current records rather than duplicated in source
+columns. Separately versioned geometry derivatives retain their exact input hash and
+transformation evidence.
 
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can
@@ -373,7 +373,7 @@ with the full identity available on hover.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## API release statistics
 
@@ -446,10 +446,10 @@ curation entries. Retained property keys use camelCase, with original field spel
 preserved in provenance and curation. Processing-rule references are pinned to the
 definitions captured by the selected releases.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

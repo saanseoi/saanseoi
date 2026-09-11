@@ -53,8 +53,8 @@ geometry delivery. Native planning retains each ownership check beside the mutat
 guards; publication alone grants permission to serve either snapshot.
 
 Planning Unit and New Town source SQL derives its columns from the source schema.
-Publisher codes and names remain in `rawProperties`; delivery preserves the complete
-source geometry and does not synthesise redundant source columns. Planning canonical and
+Publisher codes and names remain in `properties`; delivery preserves the complete source
+geometry and does not synthesise redundant source columns. Planning canonical and
 simplified geometry is stored as Brotli JSON so large cells remain within D1 row limits;
 decompression restores the same geometry value.
 
@@ -142,7 +142,7 @@ feature properties and original geometry remain in `hkgovPlandPlanningCells`; ca
 division IDs, hierarchy, aggregate geometry and canonical relationship rows do not enter
 the source schema.
 
-Planning-level codes and New Town labels remain only in `rawProperties`; source tables
+Planning-level codes and New Town labels remain only in `properties`; source tables
 retain feature identity, release history, provenance and native geometry. Explicit
 geometry-repair evidence is keyed to the source version independently of canonical
 division fields.
@@ -300,7 +300,7 @@ checkpoint.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 
@@ -331,10 +331,10 @@ normalisation, geometry processing and canonical identity derivation. Prepared f
 such as `planning_level`, `i18n` and `hierarchy` are intermediate inputs, not publisher
 properties. New Town localisations cover English, Traditional and Simplified Chinese.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

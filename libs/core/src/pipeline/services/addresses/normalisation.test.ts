@@ -68,7 +68,7 @@ test('source hashes use captured publisher values, independent of resolutions an
   const publisherSource = {
     sourceRecordId: 'source-1',
     versionHash: 'hash',
-    rawProperties: { hkgovCsuId: '000123', enBuildingName: 'EXAMPLE III' },
+    properties: { hkgovCsuId: '000123', enBuildingName: 'EXAMPLE III' },
     sourceGeometry: { type: 'Point', coordinates: [114, 22] },
     sources: [],
   }
@@ -93,8 +93,8 @@ test('source hashes use captured publisher values, independent of resolutions an
       buildHkgovAlsSourceHashInput({
         publisherSource: {
           ...publisherSource,
-          rawProperties: {
-            ...publisherSource.rawProperties,
+          properties: {
+            ...publisherSource.properties,
             enBuildingName: 'UPSTREAM CHANGE',
           },
         },

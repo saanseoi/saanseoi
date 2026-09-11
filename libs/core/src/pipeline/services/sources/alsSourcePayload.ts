@@ -1,6 +1,7 @@
 import { retainedLocalePropertyName } from './retainedProperties'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { createHash } from '../../utils'
+import { publisherSourceHashInput } from './sourcePayload'
 
 const premise = '/Address/PremisesAddress'
 
@@ -105,7 +106,7 @@ export function alsSourcePayload(feature: {
   properties?: unknown
   geometry?: unknown
 }) {
-  const rawProperties: Record<string, unknown> = {}
+  const properties: Record<string, unknown> = {}
   const visit = (value: unknown, path: string) => {
     if (
       value &&
@@ -119,9 +120,9 @@ export function alsSourcePayload(feature: {
       return
     }
     const key = alsSourcePropertyName(path)
-    if (Object.hasOwn(rawProperties, key))
+    if (Object.hasOwn(properties, key))
       throw new Error(`Duplicate ALS source property mapping: ${key}`)
-    rawProperties[key] = structuredClone(value)
+    properties[key] = structuredClone(value)
   }
   if (feature.properties != null) {
     if (typeof feature.properties !== 'object' || Array.isArray(feature.properties)) {
@@ -132,7 +133,7 @@ export function alsSourcePayload(feature: {
     }
   }
   return {
-    rawProperties: feature.properties == null ? null : rawProperties,
+    properties: feature.properties == null ? null : properties,
     sourceGeometry: structuredClone(feature.geometry ?? null),
   }
 }
@@ -163,8 +164,8 @@ export async function captureAlsPublisherSources(
     const payload = alsSourcePayload(input.feature)
     const nativeKey = JSON.stringify([
       input.sourceFile,
-      payload.rawProperties?.hkgovCsuId ?? null,
-      payload.rawProperties?.geoAddress ?? null,
+      payload.properties?.hkgovCsuId ?? null,
+      payload.properties?.geoAddress ?? null,
     ])
     const occurrence = (occurrences.get(nativeKey) ?? 0) + 1
     occurrences.set(nativeKey, occurrence)
@@ -174,7 +175,7 @@ export async function captureAlsPublisherSources(
         '1d778e6c-54ba-5c7c-945e-18e9ad885e6a',
         JSON.stringify([nativeKey, occurrence]),
       ),
-      versionHash: await createHash(payload),
+      versionHash: await createHash(publisherSourceHashInput(payload)),
       sources: [
         {
           dataset: 'hkgov-dpo-als-2d',
@@ -211,7 +212,7 @@ export function readAlsPublisherSource(
     typeof value.sourceRecordId !== 'string' ||
     typeof value.versionHash !== 'string' ||
     !Array.isArray(value.sources) ||
-    !Object.hasOwn(value, 'rawProperties') ||
+    !Object.hasOwn(value, 'properties') ||
     !Object.hasOwn(value, 'sourceGeometry')
   ) {
     throw new Error('Invalid ALS publisher source envelope; prepare the release again.')

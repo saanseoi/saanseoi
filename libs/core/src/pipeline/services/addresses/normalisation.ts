@@ -1,4 +1,5 @@
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
+import { publisherSourceHashInput } from '../sources/sourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/address-normalisation.json'
 import {
@@ -71,14 +72,14 @@ export function buildHkgovAlsSourceHashInput(row: Record<string, unknown>) {
   const source = readAlsPublisherSource(row)
   if (!source)
     throw new Error('ALS publisher evidence is missing; prepare the release again.')
-  return { rawProperties: source.rawProperties, sourceGeometry: source.sourceGeometry }
+  return publisherSourceHashInput(source)
 }
 
 export async function isUnchangedHkgovAlsSourcePayload(
   current:
     | {
         sourcePayloadHash: string | null
-        rawProperties?: Record<string, unknown> | null
+        properties?: Record<string, unknown> | null
       }
     | null
     | undefined,

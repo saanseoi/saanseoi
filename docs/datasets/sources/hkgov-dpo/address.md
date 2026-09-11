@@ -146,7 +146,7 @@ require review. Future releases beyond 19 August 2026 carry unverified curation
 provenance.
 
 ALS Address2D and Address3D source tables retain original publisher attributes in
-`rawProperties`, using documented flat field names. Original geometry is retained in
+`properties`, using documented flat field names. Original geometry is retained in
 `sourceGeometry`, with source identity, release tracking and compact acquisition
 references alongside it. Publisher CSU IDs, coordinate attributes and bilingual
 components remain literal source values; canonical history/current tables own normalised
@@ -323,7 +323,7 @@ correction revision when changing a reviewed decision.
 
 The correction moves the existing bilingual building labels into `estateName` and clears
 `buildingName`. It preserves publisher spelling and formatted address text. Source
-`rawProperties` and source-content hashes retain the publisher classification. Canonical
+`properties` and source-content hashes retain the publisher classification. Canonical
 `sources.hkgovAlsComponentCorrections` records the fixture version and applied
 correction IDs/revisions; this provenance participates in canonical content versioning.
 Canonical IDs, street numbers and geometry are not overridden.
@@ -725,7 +725,7 @@ ingestion; `stats:backfill-addresses` rebuilds API release-set statistics only.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 
@@ -760,10 +760,10 @@ curation rules. Releases retain the resolved policy at creation. Source GeoJSON 
 uses EPSG:4326; publisher easting and northing properties retain their separate
 coordinate evidence.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

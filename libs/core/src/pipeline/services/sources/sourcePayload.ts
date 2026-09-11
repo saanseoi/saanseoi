@@ -5,7 +5,7 @@ import { retainSourceProperties } from './retainedProperties'
  * neither corrected nor inferred here.
  */
 export function overtureSourcePayload(row: Record<string, unknown>) {
-  const { id: _id, geometry, ...rawProperties } = row
+  const { id: _id, geometry, ...properties } = row
   const { sources } = row
   if (
     sources != null &&
@@ -20,7 +20,7 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
     )
   }
   return {
-    rawProperties: retainSourceProperties(rawProperties) as Record<string, unknown>,
+    properties: retainSourceProperties(properties) as Record<string, unknown>,
     sourceGeometry:
       geometry instanceof Uint8Array
         ? {
@@ -37,15 +37,31 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
   }
 }
 
+/**
+ * Source fingerprints retain their original serialised field key. This key is
+ * part of the hash contract only; stored and prepared payloads use properties.
+ */
+export function publisherSourceHashInput(row: {
+  properties: unknown
+  sourceGeometry?: unknown
+}) {
+  return {
+    rawProperties: row.properties,
+    sourceGeometry: row.sourceGeometry ?? null,
+  }
+}
+
 /** Native properties and geometry are versioned independently of acquisition or repair. */
 export function nativeSourcePayloadHashInput(row: {
-  rawProperties: unknown
+  properties: unknown
   sourceGeometry?: unknown
   placeNames?: unknown
 }) {
   return {
-    rawProperties: retainSourceProperties(row.rawProperties),
-    sourceGeometry: row.sourceGeometry ?? null,
+    ...publisherSourceHashInput({
+      properties: retainSourceProperties(row.properties),
+      sourceGeometry: row.sourceGeometry,
+    }),
     ...(row.placeNames === undefined ? {} : { placeNames: row.placeNames }),
   }
 }

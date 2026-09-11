@@ -78,7 +78,7 @@ const NORMALIZED_ROW_COLUMNS = [
   'bbox',
   'identifiers',
   'sources',
-  'rawProperties',
+  'properties',
   'sourceGeometry',
   'sourceLocator',
 ] as const
@@ -233,7 +233,7 @@ export function buildAddressSourceSqlImportFiles(
         sources: jsonText(row.base.sources),
         parentAddressId: row.base.parentAddressId,
         granularity: row.base.granularity,
-        rawProperties: jsonText(readAlsPublisherSource(row.raw)!.rawProperties),
+        properties: jsonText(readAlsPublisherSource(row.raw)!.properties),
         sourceGeometry: jsonText(readAlsPublisherSource(row.raw)!.sourceGeometry),
         sourceLocator: jsonText(
           sourceLocatorFromReferences(readAlsPublisherSource(row.raw)!.sources),
@@ -674,7 +674,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   sources TEXT,
   parentAddressId TEXT,
   granularity TEXT NOT NULL,
-  rawProperties TEXT,
+  properties TEXT,
   sourceGeometry TEXT,
   sourceLocator TEXT,
   PRIMARY KEY (runId, sourceRecordId)
@@ -843,11 +843,11 @@ WHERE isCurrent = 1
   );
 INSERT INTO hkgovAlsAddresses2d (
   sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
-  sourceLocator, rawProperties, sourceGeometry
+  sourceLocator, properties, sourceGeometry
 )
 SELECT
   r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
-  r.sourceLocator, r.rawProperties, r.sourceGeometry
+  r.sourceLocator, r.properties, r.sourceGeometry
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = r.runId AND changed.sourceRecordId = r.sourceRecordId)

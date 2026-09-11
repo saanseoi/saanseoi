@@ -58,7 +58,7 @@ change detection; geometry and ingestion provenance do not.
 Both general and Planning division publication calculate these API statistics.
 
 Planning source SQL uses schema-derived column lists and retains publisher attributes in
-`rawProperties` alongside the complete source geometry. Reconciled division release sets
+`properties` alongside the complete source geometry. Reconciled division release sets
 use the same calculation and recover missing churn for both current and archived
 cohorts. Draft API sets wait for their required companion snapshots before calculating
 statistics. To rebuild local statistics for all published division domains, run:
@@ -152,17 +152,17 @@ Recorded zero means no selected matches or changes in that execution. Missing br
 definitions or counters mean **not recorded**. Audit presents only retained policy and
 never substitutes the current implementation for a historical declaration.
 
-Overture attribution remains in `rawProperties.sources`, including explicit nulls or
-empty arrays supplied by the publisher. Private acquisition locators do not repeat
-publisher attribution or canonical identifiers.
+Overture attribution remains in `properties.sources`, including explicit nulls or empty
+arrays supplied by the publisher. Private acquisition locators do not repeat publisher
+attribution or canonical identifiers.
 
 Local geometry prerequisite checks may read a pending delivery only when its sealed
 plans prove ownership by the exact release being resumed. Other releases remain blocked
 until that owner completes publication and releases the database.
 
-Source records retain publisher payloads in `rawProperties`, with identity, provenance
-and release history alongside them. Publisher record versions remain in
-`rawProperties.version`; content hashes and release validity track source history.
+Source records retain publisher payloads in `properties`, with identity, provenance and
+release history alongside them. Publisher record versions remain in
+`properties.version`; content hashes and release validity track source history.
 Extracted names, classifications, hierarchy, cartography and geometry flags belong to
 canonical history/current tables, not duplicate source columns. Native geometry may be
 retained separately when the publisher delivers it outside the attribute payload.
@@ -532,7 +532,7 @@ inferred, AI-translated, and human-translated names as four exclusive categories
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 A recognised Hong Kong Area identity supplied as a point can have source ancestry
 through one of its own districts. When that district belongs to the same reviewed Area,
@@ -578,10 +578,10 @@ original publisher path and its retained location. HAD source records use `OBJEC
 `sourceRecordId`, independently of canonical area IDs. Bounding boxes are derived from
 processed geometry; publisher attribution is wrapped under its publisher key.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

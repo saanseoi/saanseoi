@@ -273,7 +273,7 @@ describe('HKGov ALS source SQL', () => {
       totalRows: 0,
     })[0]
 
-    expect(sourceFile?.sql).toContain('sourceLocator, rawProperties')
+    expect(sourceFile?.sql).toContain('sourceLocator, properties')
     expect(sourceFile?.sql).not.toContain('addressEn')
     expect(sourceFile?.sql).not.toContain('addressZhHant')
     expect(sourceFile?.sql).not.toContain('hkgovAlsAddress2dI18n')
@@ -538,7 +538,7 @@ describe('HKGov ALS division cohort selection', () => {
 })
 
 function publisherEvidence(
-  rawProperties: Record<string, unknown>,
+  properties: Record<string, unknown>,
   sourceRecordId = 'source',
   sources: unknown[] = [],
 ) {
@@ -546,7 +546,7 @@ function publisherEvidence(
     publisherSource: {
       sourceRecordId,
       versionHash: 'source-hash',
-      rawProperties,
+      properties,
       sourceGeometry: null,
       sources,
     },

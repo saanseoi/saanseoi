@@ -34,7 +34,7 @@ test('offline ALS rename SQL is guarded and exactly reversible', async () => {
   const db = new Database(path)
   try {
     db.exec(
-      'CREATE TABLE hkgovAlsAddresses2d (sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT)',
+      'CREATE TABLE hkgovAlsAddresses2d (sourceRecordId TEXT, versionHash TEXT, properties TEXT)',
     )
     const original = JSON.stringify({
       '/Address/PremisesAddress/EngPremisesAddress/EngStreet/LocationName':
@@ -61,18 +61,18 @@ test('offline ALS rename SQL is guarded and exactly reversible', async () => {
     )
     const error = await new Response(child.stderr).text()
     expect(await child.exited, error).toBe(0)
-    expect(db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get()).toEqual({
-      rawProperties: original,
+    expect(db.query('SELECT properties FROM hkgovAlsAddresses2d').get()).toEqual({
+      properties: original,
     })
     db.exec(await readFile(output, 'utf8'))
     expect(db.query('SELECT * FROM hkgovAlsAddresses2d').get()).toEqual({
       sourceRecordId: 'record',
       versionHash: 'hash',
-      rawProperties: '{"streetLocationNameEn":" Original "}',
+      properties: '{"streetLocationNameEn":" Original "}',
     })
     db.exec(await readFile(output + '.rollback.sql', 'utf8'))
-    expect(db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get()).toEqual({
-      rawProperties: original,
+    expect(db.query('SELECT properties FROM hkgovAlsAddresses2d').get()).toEqual({
+      properties: original,
     })
   } finally {
     db.close()

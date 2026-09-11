@@ -82,7 +82,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         const sourceRecordId = `TD:PEDESTRIAN:${kind}:${objectId}`
         baseRows.push({
           kind,
-          rawProperties: feature.properties,
+          properties: feature.properties,
           sourceGeometry: feature.geometry === null ? 'null' : feature.geometry,
           sourceRecordId,
           sources: [{ ...provenance, layerName: layer }],
@@ -128,7 +128,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       const properties = feature.properties
       const sourceRecordId = await hydSourceRecordId(profile.kind, feature)
       const common = {
-        rawProperties: properties,
+        properties: properties,
         sourceGeometry: feature.geometry,
         sourceRecordId,
         sources: [{ ...provenance, layerName: hydLayer(profile.kind) }],

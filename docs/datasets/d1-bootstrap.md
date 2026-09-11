@@ -93,8 +93,8 @@ python3 scripts/d1-bootstrap.py status
 Stop local ingestion and Workers before preparation. Preparation takes write
 reservations on every local database while making WAL-safe SQLite backups, so a
 concurrent writer would fail. `--writers-stopped` acknowledges this requirement. The
-source databases receive no data changes. Allow disk space for all SQL exports plus two
-copies of the largest SQLite shard during restore verification.
+source databases receive no data changes. Allow disk space for all SQL exports, the
+retained SQLite copy of every shard and a temporary restored copy of the largest shard.
 
 ```fish
 python3 scripts/d1-bootstrap.py prepare \
@@ -103,8 +103,12 @@ python3 scripts/d1-bootstrap.py prepare \
   --output .local/d1-bootstrap/initial
 ```
 
-Preparation refuses incomplete metadata, missing shards, nonempty staging tables, SQLite
-integrity failures and foreign-key violations. It preserves row IDs, autoincrement
+Preparation refuses incomplete metadata, pending SQL delivery ownership, missing shards,
+nonempty staging tables, SQLite integrity failures and foreign-key violations. Current
+publication records must be complete, and Address rows must belong to a prepared scope
+with nonempty display content. Each ALS scope requires its acknowledged
+`address-membership/<scopeId>/<snapshotId>.json` beside the local database set; its IDs
+must match the current Address projection. It preserves row IDs, autoincrement
 high-water marks, persistent tables, indexes, triggers, views and migration rows. Empty
 staging tables and SQL delivery receipts are omitted. Triggers are installed after data
 to avoid replaying their side effects. Oversized payloads are assembled using statements
@@ -113,9 +117,12 @@ smaller than 90,000 bytes.
 The exported metadata uses production database names and IDs while retaining internal
 shard IDs referenced by release and snapshot assignments. Each SQL file is restored into
 a fresh SQLite database with foreign keys enabled; integrity and table counts must pass
-before the manifest is sealed. This is local SQLite validation, not evidence that a
-large import has succeeded on D1. D1's current import-file, database-size and row-size
-limits still apply.
+before the manifest is sealed. The bundle also retains each cleaned `<binding>.sqlite`
+file, its checksum and the acknowledged Address membership files. These SQLite files
+seed the subsequent production mirror; they are not uploaded directly to D1. Keep the
+complete bundle, including SQL, SQLite files, membership files and manifest, together.
+This is local SQLite validation, not evidence that a large import has succeeded on D1.
+D1's import-file, database-size and row-size limits still apply.
 
 A failed preparation leaves an unsealed directory for diagnosis. Use a new output
 directory after resolving the failure; do not import its partial files.
@@ -164,7 +171,9 @@ cat .local/d1-bootstrap/import.fish
 Keep writers away from the destination set for the entire import. The generated script
 checks SQL checksums and pinned target mappings, verifies that all targets are empty,
 imports source/history shards followed by current and metadata, and checks table counts,
-foreign keys and SQLite integrity after each import.
+foreign keys and SQLite integrity after each import. A successful `check-import` records
+the binding's sealed SQL checksum in `verified-imports.json`. These checks establish
+counts and structural integrity, not a full remote row-by-row content hash comparison.
 
 ```fish
 fish .local/d1-bootstrap/import.fish
@@ -174,13 +183,40 @@ The script stops at the first failure. Retain Wrangler's output and import statu
 not rerun the complete script over successfully imported shards: empty-target checks
 deliberately reject them. After a lost acknowledgement, inspect the D1 import status and
 run the generated verification command for that shard before considering any retry. This
-workflow does not provide automatic import resume.
+workflow does not provide automatic import resume. Retain `verified-imports.json` with
+the bundle; do not create or edit verification entries manually.
 
 For an additional offline restore check:
 
 ```fish
 python3 scripts/d1-bootstrap.py verify --output .local/d1-bootstrap/initial
 ```
+
+## Seed the acknowledged production mirror
+
+After every generated remote verification passes, configure the production D1 binding
+IDs to match the sealed destination set. Keep the local SQLite bundle unchanged and run:
+
+```fish
+python3 scripts/d1-bootstrap.py seed-mirror \
+  --output .local/d1-bootstrap/initial
+```
+
+The default destination is `.local/harbour-sql/db-cache/production`. `--cache-dir` can
+select a different new directory; subsequent ingestion must use that same mirror. The
+command verifies bundle SQL/SQLite/membership checksums, configured destination IDs and
+every shard's entry in `verified-imports.json`. It copies the retained files into a
+temporary sibling directory, writes the cache manifest and atomically installs the
+completed directory. An existing destination is rejected; there is no replacement or
+reset flag. This step makes no remote export and does not deploy Worker bindings.
+
+The verified initial database set and this mirror form the baseline for subsequent
+resolved Address uploads. Retain both the mirror and its acknowledged membership
+history. All later writers must use the same local controller. The complete Places
+adapter and historical Address dependency hydration for Places preparation/search still
+require implementation; bootstrap does not add that capability.
+
+## Verify the API and switch bindings
 
 Before changing live Worker bindings, point an isolated API environment at the new
 complete database set and prepared R2 bucket. Verify published release sets and

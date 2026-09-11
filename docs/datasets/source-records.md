@@ -20,7 +20,7 @@ canonical entity to which it resolves.
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `sourceRecordId`                                  | Publisher record or deterministic occurrence identity.                                                      |
 | `versionHash`                                     | Publisher content fingerprint, independent of acquisition bookkeeping and canonical resolutions.            |
-| `rawProperties`                                   | Upstream attribute values with documented field mappings.                                                   |
+| `properties`                                      | Upstream attribute values with documented field mappings.                                                   |
 | `sourceGeometry`                                  | Original publisher geometry, retained once outside the properties. Non-spatial assertions use null.         |
 | `sourceLocator`                                   | Optional private acquisition locator (asset, file, layer or feature position); never publisher attribution. |
 | `releaseId`                                       | Release association.                                                                                        |
@@ -38,7 +38,7 @@ transforms are explicitly named derivative evidence; they are not substituted fo
 `sourceGeometry`. C&SD's native geometry retains its existing compressed representation.
 
 Overture's publisher `id` and `geometry` map to source identity and native geometry.
-Publisher-authored `sources` remains inside `rawProperties`, including its property
+Publisher-authored `sources` remains inside `properties`, including its property
 pointers and attribution entries. It participates in source content versioning.
 `sourceLocator` contains only acquisition coordinates such as `sourceFile`,
 `featureIndexOneBased`, `assetId`, `layer`, `layerName` or `sourceFeatureRef`. Dataset,
@@ -50,12 +50,12 @@ source content hashes.
 
 Addresses, Divisions, Places and Statistics return `sourceRecordId`, `properties` and
 optional `geometry`. LandsD also retains its distinct native `placeNames` relationship.
-`properties` exposes the stored `rawProperties` object; the storage column name is
-internal. The shared source endpoint also uses `properties` for Streets. The response
-pin identifies the dataset and source release. Resource types and variants describe
-contributions and canonical outputs, not publisher rows; they are absent from this
-public record envelope. The private `sourceLocator` is not returned as publisher data.
-Streets retains its separate envelope and source storage.
+`properties` exposes the stored object under the same name. The shared source endpoint
+also uses `properties` for Streets. The response pin identifies the dataset and source
+release. Resource types and variants describe contributions and canonical outputs, not
+publisher rows; they are absent from this public record envelope. The private
+`sourceLocator` is not returned as publisher data. Streets retains its separate envelope
+and source storage.
 
 `include=geometry` returns the retained native geometry, never a GeoJSON Feature or
 FeatureCollection generated from the canonical entity. Coordinate values and the
@@ -76,7 +76,7 @@ them into an invented GeometryCollection.
 
 `prepare-source-contract-rewrite.ts` reads an offline source database and produces
 guarded conversion SQL, exact rollback SQL and a JSON report. It restores Overture
-attribution to `rawProperties` and compacts acquisition references before the generated
+attribution to `properties` and compacts acquisition references before the generated
 `sources` to `sourceLocator` column-renaming migration. It excludes Streets tables.
 Unknown provenance shapes, supplemental assertions and enriched/nested ALS payloads are
 reported for upstream replay. HAD and LandsD Place Names geometry retained as

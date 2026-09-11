@@ -13,7 +13,7 @@ test('Overture envelope retains publisher values once and leaves the input untou
   }
   const before = structuredClone(input)
   const result = overtureSourcePayload(input)
-  expect(result.rawProperties).toEqual({
+  expect(result.properties).toEqual({
     version: 4,
     names: { primary: ' Raw name ' },
     sources: [{ dataset: 'publisher', recordId: 'original' }],
@@ -25,7 +25,7 @@ test('Overture envelope retains publisher values once and leaves the input untou
   }
   expect({
     id: input.id,
-    ...result.rawProperties,
+    ...result.properties,
     geometry: result.sourceGeometry,
   }).toEqual(expected)
   expect(input).toEqual(before)
@@ -58,7 +58,7 @@ test('ALS flattening retains literal values and unknown fields without enriched 
     },
   }
   const result = alsSourcePayload(feature)
-  expect(result.rawProperties).toEqual({
+  expect(result.properties).toEqual({
     easting: 123,
     geoAddress: 'geo',
     hkgovCsuId: '000123',
@@ -78,7 +78,7 @@ test('ALS flattening retains literal values and unknown fields without enriched 
   })
   feature.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId = 'corrected'
   feature.geometry.coordinates[0] = 0
-  expect(result.rawProperties?.hkgovCsuId).toBe('000123')
+  expect(result.properties?.hkgovCsuId).toBe('000123')
   expect(result.sourceGeometry).toEqual({ type: 'Point', coordinates: [114, 22] })
 })
 
@@ -113,7 +113,7 @@ test('ALS source identity and versions are independent of canonical curation and
   ]
   expect(changed[0]!.sourceRecordId).toBe(first[0]!.sourceRecordId)
   expect(changed[0]!.versionHash).not.toBe(first[0]!.versionHash)
-  expect(first[0]!.rawProperties?.buildingNameEn).toBe('Original')
+  expect(first[0]!.properties?.buildingNameEn).toBe('Original')
 })
 
 test('source geometry retains exact WKB bytes rather than a GeoJSON derivative', () => {
@@ -121,7 +121,7 @@ test('source geometry retains exact WKB bytes rather than a GeoJSON derivative',
   const input = backing.subarray(1, 4)
   const result = overtureSourcePayload({ id: 'native', geometry: input })
   expect(result.sourceGeometry).toEqual({ encoding: 'wkb-base64', data: 'AQID' })
-  expect(result.rawProperties).not.toHaveProperty('geometry')
+  expect(result.properties).not.toHaveProperty('geometry')
   expect([...input]).toEqual([1, 2, 3])
 })
 

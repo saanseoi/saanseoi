@@ -62,7 +62,7 @@ only its recorded properties and geometry; an absent relationship table contribu
 `placeNames` entries. Recovery retains the archive hash as provenance and does not
 recalculate canonical divisions or replace the registered source asset.
 
-The parent feature attributes are retained only in `rawProperties`, alongside native
+The parent feature attributes are retained only in `properties`, alongside native
 geometry and the source identity, provenance and release history. `placeNames` retains
 the separate `PLACE_NAME` relationship, which is absent from the parent properties.
 Canonical names and classifications belong to the divisions projection.
@@ -96,7 +96,7 @@ exact retained source version in the interpreting snapshot's `sourceResolutions`
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 

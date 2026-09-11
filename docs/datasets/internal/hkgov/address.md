@@ -175,7 +175,7 @@ identifiers, and projected address fields, so an actual ALS record change create
 version.
 
 The source record includes the original bilingual ALS properties unchanged in
-`rawProperties`, alongside source identity, release history and provenance. Extracted
+`properties`, alongside source identity, release history and provenance. Extracted
 identifiers, coordinate projections and bilingual address components are materialised
 only in canonical address snapshots.
 
@@ -419,7 +419,7 @@ address:
   interior numeric range.
 - `bbox` is derived from the retained point geometry; it is not copied from ALS.
 
-The unchanged bilingual ALS premise JSON remains in `rawProperties`. These projections,
+The unchanged bilingual ALS premise JSON remains in `properties`. These projections,
 including the expression fields, are therefore reproducible from that raw evidence and
 are listed as derived or resolver-input fields in API provenance.
 
