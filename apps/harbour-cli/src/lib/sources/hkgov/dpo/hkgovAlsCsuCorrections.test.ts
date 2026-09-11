@@ -99,8 +99,8 @@ test('Luen Yan CSU backfill keeps one identity and collection while preserving p
       .trim()
       .split('\n')
       .map(line => JSON.parse(line))
-    expect(records.find(r => r.kind === 'source').rawProperties).toEqual(
-      alsSourcePayload(feature).rawProperties,
+    expect(records.find(r => r.kind === 'source').properties).toEqual(
+      alsSourcePayload(feature).properties,
     )
     expect(records.find(r => r.kind === 'collection').address2dId).toBe(oldRow.id)
   } finally {

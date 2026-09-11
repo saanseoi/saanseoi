@@ -53,7 +53,7 @@ export type NormalisedRoadCentreline = {
   streetCode: string
   streetType: string | null
   /** Exact native feature attributes, including the publisher's labels. */
-  rawProperties: Record<string, unknown>
+  properties: Record<string, unknown>
   nameEn: string | null
   nameZhHant: string | null
   sourceGeometry: GeoJsonGeometry
@@ -209,7 +209,7 @@ export function normaliseRoadCentrelineFeatures(input: {
         geometry,
         bbox: calculateGeoJsonBbox(geometry),
         derivedDistrictIds,
-        rawProperties: feature.properties,
+        properties: feature.properties,
         nameEn: fields.englishName,
         nameZhHant: fields.chineseName,
       })
@@ -232,7 +232,7 @@ export function normaliseRoadCentrelineFeatures(input: {
         geometry,
         bbox: calculateGeoJsonBbox(geometry),
         derivedDistrictIds,
-        rawProperties: feature.properties,
+        properties: feature.properties,
         nameEn: fields.englishName,
         nameZhHant: fields.chineseName,
       })
@@ -256,7 +256,7 @@ export function normaliseRoadCentrelineFeatures(input: {
       geometry,
       bbox: calculateGeoJsonBbox(geometry),
       derivedDistrictIds,
-      rawProperties: feature.properties,
+      properties: feature.properties,
       nameEn: fields.englishName,
       nameZhHant: fields.chineseName,
     })

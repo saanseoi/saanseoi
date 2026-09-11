@@ -198,9 +198,9 @@ test('skip mode retains a block-free parent despite mismatched 3D block referenc
     expect(records.find(record => record.kind === 'collection').address2dId).toBe(
       'parent-0',
     )
-    expect(records.find(record => record.kind === 'source').rawProperties).toEqual(
+    expect(records.find(record => record.kind === 'source').properties).toEqual(
       alsSourcePayload({ properties: { Address: { PremisesAddress: premises } } })
-        .rawProperties,
+        .properties,
     )
   } finally {
     await rm(dir, { recursive: true, force: true })
