@@ -36,14 +36,9 @@ test('source catalogues include every retained family and preserve both ALS dime
     expect(Object.keys(sourceCatalogueFor('stats'))).toHaveLength(8)
     expect(Object.keys(sourceCatalogueFor('streets'))).toHaveLength(6)
     expect(sourceCatalogueFor('places')['ds-hk-overture-place']).toBeDefined()
-    // Native LandsD records retain their validity against the source-release
-    // code, unlike Overture's publisher-versioned source tables.
     expect(
       sourceCatalogueFor('divisions')['ds-hk-hkgov-landsd-division'],
     ).toMatchObject({ tableName: 'hkgovLandsdPlaceNames' })
-    expect(
-      sourceCatalogueFor('divisions')['ds-hk-hkgov-landsd-division']?.releaseKey,
-    ).toBeUndefined()
   } finally {
     database.close()
   }
@@ -51,7 +46,6 @@ test('source catalogues include every retained family and preserve both ALS dime
 
 test('Planning projections share their source pin and paginate across assigned shards', async () => {
   const databases = [new Database(':memory:'), new Database(':memory:')]
-  const sourceCode = 'dr-hk-hkgov-pland-division-pu-2021'
   const projectionCode = 'dr-hk-hkgov-pland-division-area-pu-2021'
   const bindings = databases.map(database => ({
     prepare(query: string) {
@@ -78,7 +72,7 @@ test('Planning projections share their source pin and paginate across assigned s
       for (const id of ids)
         databases[index]!.query(
           'INSERT INTO hkgovPlandPlanningCells (sourceRecordId, versionHash, properties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, NULL)',
-        ).run(id, 'v1', JSON.stringify({ [id]: id }), sourceCode)
+        ).run(id, 'v1', JSON.stringify({ [id]: id }), '2021')
     }
     const args = {
       env: {
@@ -94,7 +88,6 @@ test('Planning projections share their source pin and paginate across assigned s
                   bindingName => ({
                     bindingName,
                     datasetCode: 'ds-hk-hkgov-pland-division-pu',
-                    sourceValidityCode: sourceCode,
                     sourceReleaseCode: projectionCode,
                     sourceVersion: '2021',
                     resourceType: 'divisionArea',

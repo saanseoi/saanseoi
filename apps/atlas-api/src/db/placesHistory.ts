@@ -83,14 +83,15 @@ async function loadPlaceRows(versions: Iterable<PlaceVersionRef>) {
     const expected = new Set(
       shardVersions.map(version => `${version.recordId}\u0000${version.versionHash}`),
     )
-    const hashes = [...new Set(shardVersions.map(version => version.versionHash))]
     const found = (
       await Promise.all(
-        chunkArray(hashes, getMaxItemsPerInClause()).map(versionHashes =>
+        chunkArray(shardVersions, 256).map(versions =>
           first.shard.db
             .select()
             .from(historySchema.places)
-            .where(inArray(historySchema.places.versionHash, versionHashes))
+            .where(sql`(${historySchema.places.id}, ${historySchema.places.versionHash}) in
+              (select json_extract(value, '$[0]'), json_extract(value, '$[1]')
+               from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash]))}))`)
             .all(),
         ),
       )
@@ -115,14 +116,15 @@ async function loadPlaceI18nRows(versions: Iterable<PlaceVersionRef>) {
           `${version.recordId}\u0000${version.locale}\u0000${version.versionHash}`,
       ),
     )
-    const hashes = [...new Set(shardVersions.map(version => version.versionHash))]
     const found = (
       await Promise.all(
-        chunkArray(hashes, getMaxItemsPerInClause()).map(versionHashes =>
+        chunkArray(shardVersions, 256).map(versions =>
           first.shard.db
             .select()
             .from(historySchema.placesI18n)
-            .where(inArray(historySchema.placesI18n.versionHash, versionHashes))
+            .where(sql`(${historySchema.placesI18n.placeId}, ${historySchema.placesI18n.versionHash}, ${historySchema.placesI18n.locale}) in
+              (select json_extract(value, '$[0]'), json_extract(value, '$[1]'), json_extract(value, '$[2]')
+               from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash, version.locale]))}))`)
             .all(),
         ),
       )
