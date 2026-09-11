@@ -3,6 +3,7 @@ import { expect, test } from 'bun:test'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { listRetainedGeometrySnapshotIds } from '../../lib/db/geometrySnapshotRetention'
 import { resolvePublicationSelections } from './publicationSelections'
+import { publicationScopeId } from './publication/scope'
 import {
   finalisePublishedResources,
   type PublicationDatabase,
@@ -23,8 +24,8 @@ function fixture() {
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,effectiveFrom TEXT,effectiveTo TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT);
     CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT,apiReleaseSetId TEXT,domainCode TEXT,cohortKey TEXT,isDefault INTEGER);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT,variant TEXT,role TEXT);
-    CREATE TABLE divisionAreaPublicationState(snapshotId TEXT PRIMARY KEY,scopeId TEXT,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
-    CREATE TABLE divisionBoundaryPublicationState(snapshotId TEXT PRIMARY KEY,scopeId TEXT,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+    CREATE TABLE divisionAreaPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+    CREATE TABLE divisionBoundaryPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
     INSERT INTO publishers VALUES ('publisher','overture');
     INSERT INTO datasets VALUES ('geometry','publisher','ds-hk-overture-division-area','hk','overture');
     INSERT INTO snapshotLineages VALUES ('overture','overture');
@@ -38,6 +39,7 @@ function fixture() {
       cohort?: string
       parent?: string
       publishedAt?: string
+      receipt?: boolean
     } = {},
   ) {
     const type = options.type ?? 'divisionArea'
@@ -59,11 +61,12 @@ function fixture() {
     sqlite
       .query("INSERT INTO snapshotSources VALUES (?,'geometry',?,'primary')")
       .run(id, id)
-    sqlite
-      .query(
-        `INSERT INTO ${type}PublicationState VALUES (?,'overture','publishing',?,'complete','2026-09-01')`,
-      )
-      .run(id, id)
+    if (options.receipt !== false)
+      sqlite
+        .query(
+          `INSERT INTO ${type}PublicationState VALUES (?,?,'publishing',?,'complete','2026-09-01')`,
+        )
+        .run(id, publicationScopeId(type, 'overture', options.cohort ?? '2026-08'), id)
   }
   function catalogue(
     id: string,
@@ -133,9 +136,13 @@ function fixture() {
 test('API-pinned companions survive source supersession until the serving selection advances', async () => {
   const f = fixture()
   try {
-    f.geometry('old-area', { sourceStatus: 'superseded' })
+    f.geometry('old-area', { sourceStatus: 'superseded', receipt: false })
     f.geometry('new-area', { parent: 'old-area', publishedAt: '2026-09-02' })
-    f.geometry('old-boundary', { sourceStatus: 'superseded', type: 'divisionBoundary' })
+    f.geometry('old-boundary', {
+      sourceStatus: 'superseded',
+      type: 'divisionBoundary',
+      receipt: false,
+    })
     f.geometry('new-boundary', {
       parent: 'old-boundary',
       type: 'divisionBoundary',
@@ -145,9 +152,10 @@ test('API-pinned companions survive source supersession until the serving select
     f.geometry('future-area', {
       parent: 'new-area',
       sourceStatus: 'processing',
+      receipt: false,
       publishedAt: '2026-09-03',
     })
-    f.geometry('independent-branch', { sourceStatus: 'superseded' })
+    f.geometry('independent-branch', { sourceStatus: 'superseded', receipt: false })
     f.catalogue('serving', 'divisions')
     f.member('serving', 'selected', ['old-area', 'old-boundary'])
     expect([...(await listRetainedGeometrySnapshotIds(f.meta))].sort()).toEqual([
@@ -171,14 +179,14 @@ test('API-pinned companions survive source supersession until the serving select
     expect(
       f.sqlite
         .query(
-          "SELECT status FROM divisionAreaPublicationState WHERE snapshotId='old-area'",
+          "SELECT status FROM divisionAreaPublicationState WHERE snapshotId='new-area'",
         )
         .get(),
     ).toEqual({ status: 'current' })
     expect(
       f.sqlite
         .query(
-          "SELECT status FROM divisionBoundaryPublicationState WHERE snapshotId='old-boundary'",
+          "SELECT status FROM divisionBoundaryPublicationState WHERE snapshotId='new-boundary'",
         )
         .get(),
     ).toEqual({ status: 'current' })
@@ -194,12 +202,7 @@ test('API-pinned companions survive source supersession until the serving select
           'SELECT snapshotId FROM divisionAreaPublicationState ORDER BY snapshotId',
         )
         .all(),
-    ).toEqual([
-      { snapshotId: 'future-area' },
-      { snapshotId: 'independent-branch' },
-      { snapshotId: 'independent-census' },
-      { snapshotId: 'new-area' },
-    ])
+    ).toEqual([{ snapshotId: 'independent-census' }, { snapshotId: 'new-area' }])
     expect(
       f.sqlite.query('SELECT snapshotId FROM divisionBoundaryPublicationState').all(),
     ).toEqual([{ snapshotId: 'new-boundary' }])
@@ -217,7 +220,7 @@ test('Statistics protects all periods in the serving catalogue and excludes draf
       'stale-catalogue-area',
       'draft-catalogue-area',
     ])
-      f.geometry(id, { sourceStatus: 'superseded' })
+      f.geometry(id, { sourceStatus: 'superseded', receipt: false })
     f.catalogue('old-catalogue', 'stats', { publishedAt: '2026-08-01' })
     f.member('old-catalogue', 'old-selection', ['stale-catalogue-area'], {
       domain: 'government',
