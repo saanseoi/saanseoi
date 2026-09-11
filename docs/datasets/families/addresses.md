@@ -215,7 +215,11 @@ required, and replaced geometry is retained in curation provenance.
 Address ingestion records the effective assembly recipe, selected source releases and
 lookup dependencies under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Draft
-enrichment refreshes the run; SQL replay includes recipe, input and run records.
+enrichment refreshes the run; SQL replay includes recipe, input and run records. The
+assembly summary records the exact logical Division lookup in
+`lookupSnapshotIds.division`. Dependent Places preparation uses that revision when
+replaying historical Address definitions, including independently versioned locales; a
+newer current Division selection cannot replace the recorded lookup.
 
 Processing uses retained `processing-audit` manifests in R2. Bulk preparation and
 normalisation retain registered declarations and counts; reviewed ALS fixtures and

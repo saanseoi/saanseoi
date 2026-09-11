@@ -33,13 +33,19 @@ history/current tables. The publisher's integer record version is retained only 
 `properties.version`; `versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
-prepared source shard. Unchanged records already in the active shard update release
-membership through bounded ID batches without resending `properties`. New, changed,
-returning and shard-rollover records send full payloads to the active shard so each
-release remains readable from its assigned source shard; changed assertions are closed
-in their original shard. After all input chunks, finalisation closes current assertions
-not marked with the incoming release ID, including source-only removals and empty
-releases. The generated SQL is retained for identical remote delivery and local replay.
+prepared source shard. Unchanged records already in the active shard remain untouched.
+New, changed, returning and shard-rollover records send full payloads to the active
+shard; changed assertions close in their original shard. Finalisation compares incoming
+membership with the selected predecessor's source resolutions, including source-only
+removals and empty releases. Other datasets' source assertions remain outside this
+membership boundary. The sealed plan contains final keyed differences and is reused
+unchanged for remote delivery, local replay and interrupted recovery.
+
+Canonical base and locale history versions inherit independently. Unchanged reissues add
+no history versions, journal entries or source resolutions. Changed interpretations and
+explicit `source_omission` entries override inherited snapshot ancestry. Snapshot
+journal assignments point to the owning history shard. Source copies at a year-shard
+boundary are the accepted exception to unchanged-source write economy.
 
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their
@@ -75,9 +81,18 @@ Address data across retries.
 
 Places search uses `placeSearchFts` with stable region/domain/lineage scopes mapped to
 the latest published snapshots in `placeSearchScopes`. Finalisation compares names,
-brands, taxonomy and linked Address, unit, Street and Division text. Unchanged documents
-cause no FTS writes, including across snapshot promotion. Division names are ordered
+brands, taxonomy and retained dependency text resolved during Place preparation.
+Address, unit, Street and Division text therefore follows the exact selected revision in
+both incremental finalisation and a fresh FTS rebuild. Unchanged documents cause no FTS
+writes, including across snapshot promotion. Division names are ordered
 deterministically before aggregation.
+
+Selected historical Address and Division definitions are replayed in a disposable
+dependency view, including independently owned locale versions. The Address assembly
+must record its exact Division lookup revision. Place Address references advance only
+when relevant dependency content changes. Division links retain their logical revision
+and level/localisation definition. Hydrated lookup rows never enter delivered current
+tables.
 
 Standalone publication finalises Place and supplementary Address indexes together.
 Deferred upload sequences finalise once during release-set reconciliation after every

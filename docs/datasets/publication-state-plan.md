@@ -18,10 +18,11 @@ of unchanged records.
 | `divisionBoundaryPublicationState` | Lineage × cohort (`scopeId`), with unique logical `snapshotId` | Boundary geometry for the lineage's provider variant and cohort. |
 
 The six scoped families keep one mutable current projection and one receipt per scope.
-Their current table columns named `snapshotId` contain the physical scope ID. Current
-references such as `divisionSnapshotId`, `addressSnapshotId` and `streetSnapshotId`
-likewise identify physical scopes. Metadata, immutable history and API responses retain
-logical snapshot IDs; readers resolve those IDs through publication state.
+Their current table columns named `snapshotId` contain the physical scope ID. Address
+Division and Street references identify physical scopes. Places retains exact logical
+Address and Division snapshot references: these identify the definitions used to build
+the Place, independently of later publications of those dependencies. Metadata,
+immutable history and API responses also retain logical snapshot IDs.
 
 Geometry scopes encode the lineage and cohort as a JSON pair. Provider variants belong
 to distinct lineages. A revision replaces its own scope, while independently retained
@@ -36,23 +37,47 @@ complete replacement are removed. Membership checks include companion tables suc
 localisations, cells and links. An annual snapshot change alone does not copy every
 Division, Place, Street or Address row.
 
-Division, geometry, Place and Street delivery can transmit conditional upserts and
-membership checks for candidate rows. Their equality predicates prevent D1 from writing
-unchanged content rows. This saves row writes; it does not promise that only changed
-rows appear in transmitted SQL or that comparison reads disappear. Publication receipts
-have a small per-scope write cost; source assertions and other release metadata have
-their own write costs.
+Address, Division, Planning, geometry, Place and Street delivery resolve and validate
+the complete candidate on isolated local copies, then seal the final inserted, changed
+and retired rows for delivery. Statistics source/history phases use the same compiler;
+current pack promotion uses its sparse journal adapter. Intermediate staging,
+conditional upserts and membership scans stay local. Unchanged content produces no
+delivered row mutation. Reading and comparing complete source membership remains
+necessary.
 
-Address delivery resolves and validates the complete candidate on isolated local
-mirrors, then seals the final inserted, changed and retired rows for delivery. Its
-intermediate staging and resolution SQL stays local. This final-difference delivery
-contract is not assumed for every family.
+The compiler accepts explicit tables and current scopes for each family. Undeclared
+persistent-table changes fail preparation before delivery. Publication transitions are
+ordered separately from content differences and retain their ownership guards. Metadata
+keeps ordered lifecycle SQL because its referential actions are not supported by the
+ordinary row compiler. FTS uses its dedicated document comparison adapter.
+
+Zero content mutations does not imply a zero-write publication: receipts, assembly
+evidence and release metadata have a small lifecycle cost. A source assertion copied
+into a new year shard, with its preceding shard assertion closed, is an accepted
+exception to unchanged-source write economy.
 
 Place rows preserve the `releaseId` and stored `lastSeenMonth` of their last real
 content change. A complete published cohort asserts membership for all its current
 Places, so current API responses derive `lastSeenMonth` from the selected cohort.
 Historical responses preserve the recorded version values. Snapshot provenance records
 release assertions without touching every unchanged Place.
+
+Place base and locale history are independent. Unchanged components retain their
+original version and owning shard; only changed components acquire new versions and
+journal entries. Source resolutions inherit through snapshot ancestry. Identical
+interpretations add no resolution rows; changed interpretations and explicit
+`source_omission` decisions remain auditable.
+
+Family membership rules remain explicit:
+
+| Family                     | Membership boundary                                                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Address                    | Prepared canonical membership after curation; publisher omission alone does not retire a retained canonical Address. Retirement and owner validation remain required. |
+| Division and Planning      | Complete replacement within the selected lineage scope, including locale membership.                                                                                  |
+| Places                     | Complete replacement within the Place lineage, including locales, cells and Division links. Supplementary Addresses have a separate scope.                            |
+| Streets                    | Complete replacement within the selected lineage, with its notices and companion rows.                                                                                |
+| Area and boundary geometry | Complete replacement within one lineage and cohort; other cohorts and provider variants remain independent.                                                           |
+| Statistics                 | Sparse changes within a dataset and exact period; omitted periods, geographies and fields remain current.                                                             |
 
 Statistics deliberately uses a different membership boundary. One pack contains a
 dataset × exact period × geography, with all dimension-qualified fields and their
@@ -112,6 +137,17 @@ replacement owns that lineage/cohort scope, the pinned geometry can replay from 
 An unfinished replacement does not authorise substituting its partial current geometry.
 Public logical snapshot IDs remain separate from storage scope IDs.
 
+Places prepares selected historical Address and Division dependencies in a disposable
+SQLite view, replaying base and locale versions from their owning history shards. The
+Address assembly records the exact Division lookup snapshot. Hydrated dependency rows
+never become delivered current mutations. Missing revision evidence fails preparation.
+
+For example, a Place linked to Address revision A retains A when revision B has the same
+relevant Address, selected unit and localised text. If B changes that text, the
+dependency fingerprint changes and the Place records B. Division links likewise retain
+their exact revision and small level/localisation definition until that definition
+changes. API inclusion and search therefore use the Place's recorded definitions.
+
 ## Search and cleanup
 
 `addressSearchScopes`, `placeSearchScopes` and `divisionSearchScopes` map stable
@@ -121,6 +157,11 @@ through publication receipts and checks readiness in the same transaction as FTS
 updates. Unchanged text retains its FTS rows across snapshot promotion; only the small
 search mapping needs to advance. A ready base collection can still have an unavailable
 search index and return `503 fts_not_ready` for search.
+
+Place localisations retain resolved dependency search text. Incremental finalisation and
+a fresh FTS rebuild consume the same stored documents without joining mutable Address or
+Division rows. Dependency hashes and retained search documents are internal
+implementation fields, not public Place attributes.
 
 Cleanup first obtains metadata-authorised obsolete snapshots. A replaced logical
 snapshot without its own receipt cannot delete the scope now owned by its replacement.

@@ -39,9 +39,10 @@ scope mapping.
 Current Division and Street references contain physical scope IDs. Preparation and
 history retain logical snapshot IDs, and the writer resolves each exact selected
 reference through a completed receipt. Missing or advanced dependency projections fail
-closed and require chronological preparation. The Address plan delivers final row
-differences resolved locally; scope-based conditional writers in other families share
-its readiness contract without claiming the same transmitted-SQL reduction. See the
+closed and require chronological preparation. The assembly summary records the exact
+logical Division lookup in `lookupSnapshotIds.division` for historical dependency
+replay. Address and the other scoped families deliver final row differences resolved
+locally, with family-specific membership and shared readiness guards. See the
 [publication-state contract](../../publication-state-plan.md).
 
 Address2D base, locale and building-number history are compared independently,
