@@ -336,3 +336,130 @@ test('replays Place text and Address-derived divisions from the selected snapsho
     history.close()
   }
 })
+
+test('historical Places resolve independently inherited locales across years and exclude shared-hash neighbours', async () => {
+  const meta = init('meta'),
+    old = init('history'),
+    next = init('history')
+  try {
+    for (const [snapshot, parent, binding, year] of [
+      ['base', null, 'old', '2025'],
+      ['edited', 'base', 'next', '2026'],
+      ['removed', 'edited', 'next', '2026'],
+    ] as const) {
+      run(
+        meta,
+        'INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?)',
+        [snapshot, 'place', snapshot, year, 'published', parent, TIMESTAMP, TIMESTAMP],
+      )
+      run(
+        meta,
+        'INSERT OR IGNORE INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+        [
+          binding,
+          'history',
+          'hk',
+          year,
+          'preview',
+          binding,
+          binding,
+          binding,
+          'active',
+          binding,
+          TIMESTAMP,
+          TIMESTAMP,
+        ],
+      )
+      run(
+        meta,
+        'INSERT INTO snapshotShardAssignments(snapshotId,dataShardId) VALUES(?,?)',
+        [snapshot, binding],
+      )
+    }
+    for (const id of ['place', 'same-hash-neighbour'])
+      run(
+        old,
+        'INSERT INTO places(id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+        [
+          id,
+          'source-base',
+          114,
+          22,
+          '2025-01',
+          '2025-01',
+          'base-content',
+          'source-base',
+          'base',
+          1,
+          TIMESTAMP,
+          TIMESTAMP,
+        ],
+      )
+    for (const [db, locale, hash, name] of [
+      [old, 'en', 'english-old', 'Original'],
+      [old, 'zh-hant', 'chinese', '原文'],
+      [next, 'en', 'english-new', 'Revised'],
+    ] as const)
+      for (const id of ['place', 'same-hash-neighbour'])
+        run(
+          db,
+          'INSERT INTO placesI18n(placeId,locale,name,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?)',
+          [
+            id,
+            locale,
+            id === 'place' ? name : 'Wrong neighbour',
+            hash,
+            'source-base',
+            'base',
+            1,
+            TIMESTAMP,
+            TIMESTAMP,
+          ],
+        )
+    for (const [db, snapshot, recordType, locale, hash, operation] of [
+      [old, 'base', 'place', '', 'base-content', 'upsert'],
+      [old, 'base', 'placeI18n', 'en', 'english-old', 'upsert'],
+      [old, 'base', 'placeI18n', 'zh-hant', 'chinese', 'upsert'],
+      [next, 'edited', 'placeI18n', 'en', 'english-new', 'upsert'],
+      [next, 'removed', 'placeI18n', 'zh-hant', null, 'delete'],
+    ] as const)
+      run(
+        db,
+        'INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?)',
+        [
+          snapshot,
+          recordType,
+          'place',
+          locale,
+          hash,
+          operation,
+          snapshot,
+          TIMESTAMP,
+          TIMESTAMP,
+        ],
+      )
+    const read = (snapshotId: string) =>
+      listReplayedPlaceRecords({
+        divisionSnapshotId: 'unused',
+        snapshotId,
+        resolveDivisions: false,
+        localeSelection: { mode: 'all', locales: [] },
+        recordIds: ['place'],
+        metaDb: createLocalHarbourDb(meta),
+        historyDbsByBinding: {
+          old: createLocalHarbourDb(old) as never,
+          next: createLocalHarbourDb(next) as never,
+        },
+      })
+    expect((await read('base'))[0]?.i18n.en?.name).toBe('Original')
+    const edited = await read('edited')
+    expect(edited).toHaveLength(1)
+    expect(edited[0]?.i18n.en?.name).toBe('Revised')
+    expect(edited[0]?.i18n['zh-hant']?.name).toBe('原文')
+    expect(Object.keys((await read('removed'))[0]?.i18n ?? {})).toEqual(['en'])
+  } finally {
+    meta.close()
+    old.close()
+    next.close()
+  }
+})

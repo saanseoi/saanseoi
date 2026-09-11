@@ -2,7 +2,7 @@ import type { SourceFamily } from './sourceRecords'
 
 export type SourceRecordCatalogueEntry = {
   resourceType?: string
-  releaseKey?: 'version' | 'code'
+  scopeByDataset?: boolean
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
   nativeNamesColumn?: 'placeNames'
@@ -30,7 +30,6 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     tableName: 'hkgovPlandPlanningCells',
   },
   'ds-hk-overture-division': {
-    releaseKey: 'version',
     geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisions',
@@ -49,7 +48,6 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
 
 const ADDRESS_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-hkgov-dpo-address': {
-    releaseKey: 'version',
     randomSampleStrategy: 'uuid-pivot',
     geometryColumn: 'sourceGeometry',
     tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, properties, sourceGeometry
@@ -73,6 +71,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
       {
         geometryColumn: 'sourceGeometry' as const,
         tableName: 'hkgovCenstatdStatistics',
+        scopeByDataset: true,
       },
     ]),
   ),
@@ -81,6 +80,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
     geometryColumn: 'sourceGeometry',
     geometryEncoding: 'brotli-json',
     tableName: 'hkgovCenstatdDivisionAreas',
+    scopeByDataset: true,
   },
   'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
     geometryColumn: 'sourceGeometry',
@@ -90,7 +90,6 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
 
 const PLACE_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-overture-place': {
-    releaseKey: 'version',
     geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overturePlaces',

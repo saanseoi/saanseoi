@@ -142,10 +142,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
     .select({
       ...getTableColumns(places),
       snapshotId: sql<string>`${lookup.snapshotId}`,
-      addressSnapshotId: publicationLogicalSnapshot(
-        'address',
-        places.addressSnapshotId,
-      ),
+      addressSnapshotId: places.addressSnapshotId,
     })
     .from(places)
     .where(
@@ -478,10 +475,7 @@ export async function listPlaceRecordsCurrent(
       snapshotId: publicationLogicalSnapshot('place', places.snapshotId),
       id: places.id,
       releaseId: places.releaseId,
-      addressSnapshotId: publicationLogicalSnapshot(
-        'address',
-        places.addressSnapshotId,
-      ),
+      addressSnapshotId: places.addressSnapshotId,
       address2dId: places.address2dId,
       address3dId: places.address3dId,
       address3dUnitId: places.address3dUnitId,

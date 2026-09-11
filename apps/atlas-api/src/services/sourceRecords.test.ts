@@ -69,6 +69,10 @@ function metaDatabase(input?: {
                             datasetCode:
                               input?.datasetCode ?? 'ds-hk-overture-division',
                             releaseId: 'source-release-id',
+                            datasetReleaseIdsJson: JSON.stringify([
+                              'source-release-id',
+                              'older-release-id',
+                            ]),
                             resourceType: input?.resourceType ?? 'division',
                             sourceReleaseCode,
                             sourceVersion: input?.sourceVersion ?? '2026-07-22.0',
@@ -88,6 +92,65 @@ function metaDatabase(input?: {
 const sourceReleaseCode = 'dr-hk-overture-division-2026-07-22.0'
 
 describe('source records', () => {
+  test.each(['area', 'boundary'] as const)(
+    'reads Overture division %s history with version-only bounds',
+    async kind => {
+      const sqlite = new Database(':memory:')
+      const table =
+        kind === 'area' ? 'overtureDivisionAreas' : 'overtureDivisionBoundaries'
+      sqlite.exec(`CREATE TABLE ${table} (
+        sourceRecordId TEXT, versionHash TEXT, properties TEXT,
+        validFromRelease TEXT, validToRelease TEXT
+      )`)
+      const insert = sqlite.query(`INSERT INTO ${table} VALUES (?, ?, ?, ?, ?)`)
+      insert.run('record', 'old', '{"name":"Old"}', '2025-09-24.0', '2025-10-22.0')
+      insert.run('record', 'current', '{"name":"Current"}', '2025-10-22.0', null)
+      insert.run('future', 'future', '{"future":true}', '2025-11-19.0', null)
+      const db = {
+        prepare(query: string) {
+          return {
+            bind: (...values: Array<string | number>) => ({
+              all: async () => ({
+                results: sqlite.query(query).all(...values),
+                success: true,
+              }),
+            }),
+          }
+        },
+      }
+      try {
+        for (const [version, name] of [
+          ['2025-09-24.0', 'Old'],
+          ['2025-10-22.0', 'Current'],
+        ] as const) {
+          const code = `dr-hk-overture-division-${kind}-${version}`
+          const args = {
+            env: { DB_SOURCE_HK_2026: db } as never,
+            family: 'divisions' as const,
+            includeGeometry: false,
+            sourceReleaseCode: code,
+            metaDb: metaDatabase({
+              datasetCode: `ds-hk-overture-division-${kind}`,
+              resourceType: kind === 'area' ? 'divisionArea' : 'divisionBoundary',
+              sourceReleaseCode: code,
+              sourceVersion: version,
+            }),
+          }
+          for (const sample of [undefined, 'random'] as const) {
+            expect(
+              (await listSourceRecords({ ...args, sample, limit: 10 }))?.records,
+            ).toEqual([{ sourceRecordId: 'record', properties: { name } }])
+          }
+          expect((await getSourceRecordSchema(args))?.properties).toEqual({
+            name: { type: 'string', nullable: false },
+          })
+        }
+      } finally {
+        sqlite.close()
+      }
+    },
+  )
+
   test('resolves the public parent to its statistics child without losing retained geometry', async () => {
     const sqlite = new Database(':memory:')
     const code =
@@ -101,7 +164,7 @@ describe('source records', () => {
       CREATE TABLE releases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
       CREATE TABLE releaseShardAssignments(releaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease);
+      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, releaseId);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -133,13 +196,13 @@ describe('source records', () => {
       ])
     }
     sqlite.run(
-      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease) VALUES(?, ?, ?, ?, ?, NULL)',
+      "INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, releaseId) VALUES(?, ?, ?, ?, ?, NULL, 'statistic')",
       [
         'record',
         'hash',
         '{"population":42}',
         '{"type":"Point","coordinates":[114,22]}',
-        `${code}::divisionStatistic`,
+        '2021',
       ],
     )
     const binding = {
@@ -182,27 +245,42 @@ describe('source records', () => {
     }
   })
 
-  test('uses full source codes for areas and inventories every record without leaking another dataset', async () => {
+  test('uses version bounds and release ownership to isolate datasets sharing a source table', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
-      validFromRelease TEXT, validToRelease TEXT
+      validFromRelease TEXT, validToRelease TEXT, releaseId TEXT
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
-      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, releaseId) VALUES (?, ?, ?, ?, ?, ?)',
     )
-    insert.run('old', 'v1', '{"obsolete":true}', code.replace('2021', '2016'), code)
-    insert.run('a', 'v1', '{"name":"One","value":1,"optional":null}', code, null)
-    insert.run('b', 'v1', '{"name":null,"value":"suppressed","rare":true}', code, null)
+    insert.run('old', 'v1', '{"obsolete":true}', '2016', '2021', 'older-release-id')
+    insert.run(
+      'a',
+      'v1',
+      '{"name":"One","value":1,"optional":null}',
+      '2016',
+      null,
+      'older-release-id',
+    )
+    insert.run(
+      'b',
+      'v1',
+      '{"name":null,"value":"suppressed","rare":true}',
+      '2021',
+      null,
+      'source-release-id',
+    )
     insert.run(
       'unrelated',
       'v1',
       '{"wrongDataset":true}',
-      code.replace('new-towns', 'major-housing-estates'),
+      '2021',
       null,
+      'other-dataset-release',
     )
-    insert.run('future', 'v1', '{"future":true}', code.replace('2021', '2026'), null)
+    insert.run('future', 'v1', '{"future":true}', '2026', null, 'source-release-id')
     const sourceDb = {
       prepare(query: string) {
         return {
@@ -479,10 +557,10 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[3]).toMatch(
+            expect(values[2]).toMatch(
               /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
             )
-            expect(values[4]).toBe(2)
+            expect(values[3]).toBe(2)
             return {
               all: async () => ({
                 results: [
@@ -537,7 +615,7 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values.slice(0, 2)).toEqual(['2026-07-22.0', '2026-07-22.0'])
-            expect(values[3]).toMatch(
+            expect(values[2]).toMatch(
               /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
             )
             return {
@@ -586,7 +664,7 @@ describe('source records', () => {
         query = value
         return {
           bind(...values: unknown[]) {
-            expect(values[3]).toMatch(/^[0-9a-f-]{36}$/)
+            expect(values[2]).toMatch(/^[0-9a-f-]{36}$/)
             return {
               all: async () => ({
                 results: [
@@ -630,9 +708,9 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values).toEqual([
-              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016',
-              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016',
-              'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-',
+              '2016',
+              '2016',
+              JSON.stringify(['source-release-id', 'older-release-id']),
               2,
             ])
             return {
@@ -759,7 +837,7 @@ describe('source records', () => {
             },
           ],
           'hkgovCenstatdDivisionAreas',
-          censtatdRelease,
+          '2016',
         ),
         DB_SOURCE_HK_BEFORE: sourceDatabase([]),
       } as never,
@@ -858,11 +936,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
       sourceGeometry: JSON.stringify(geometry),
     }
     const db = tableName
-      ? sourceDatabase(
-          [row],
-          tableName,
-          family === 'stats' || family === 'streets' ? code : '2026-07-22.0',
-        )
+      ? sourceDatabase([row], tableName, '2026-07-22.0')
       : ({
           prepare() {
             return {

@@ -16,7 +16,7 @@ import {
   type SourceRecordCatalogueEntry,
 } from './sourceRecordCatalogue'
 type SourceReleaseRow = {
-  sourceValidityCode?: string
+  datasetReleaseIdsJson: string
   datasetCode: string
   releaseId: string
   resourceType: string
@@ -66,7 +66,7 @@ export type SourceRecordPage = {
 
 export type SourceReleaseDiscoveryEntry = Omit<
   SourceReleaseRow,
-  'releaseId' | 'sourceVersion'
+  'releaseId' | 'sourceVersion' | 'datasetReleaseIdsJson'
 > & {
   apiReleaseSetCode: string | null
   recordsAvailable: boolean
@@ -168,7 +168,8 @@ async function resolveSourceRelease(
           releases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           sourceReleases.id AS sourceReleaseId,
-          releases.code AS sourceValidityCode,
+          (SELECT json_group_array(ownedRelease.id) FROM releases AS ownedRelease
+            WHERE ownedRelease.datasetId = datasets.id) AS datasetReleaseIdsJson,
           publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
         FROM releases
@@ -282,7 +283,7 @@ async function readShardSourceRecordPage(args: {
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
-         AND validFromRelease >= ?
+         AND ${sourceDatasetCondition(args.entry)}
        ${cursorCondition}
        ORDER BY sourceRecordId ASC, versionHash ASC
        LIMIT ?`,
@@ -344,7 +345,7 @@ async function readUuidPivotSourceRecordPage(args: {
          FROM ${args.entry.tableName}
          WHERE validFromRelease <= ?
            AND (validToRelease IS NULL OR validToRelease > ?)
-           AND validFromRelease >= ?
+           AND ${sourceDatasetCondition(args.entry)}
            AND sourceRecordId ${operator} ?
          ORDER BY sourceRecordId ASC, versionHash ASC
          LIMIT ?`,
@@ -382,7 +383,7 @@ async function readRandomOrderedSourceRecordPage(args: {
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
-         AND validFromRelease >= ?
+         AND ${sourceDatasetCondition(args.entry)}
        ORDER BY RANDOM()
        LIMIT ?`,
     )
@@ -391,21 +392,26 @@ async function readRandomOrderedSourceRecordPage(args: {
   return result.results
 }
 
+function sourceDatasetCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
+  return entry.scopeByDataset
+    ? `${prefix}releaseId IN (SELECT value FROM json_each(?))`
+    : '1 = 1'
+}
+
 function sourceValidityValues(args: {
   entry: SourceRecordCatalogueEntry
   release: SourceReleaseRow
-}): [string, string, string] {
-  const key =
-    args.entry.releaseKey === 'version'
-      ? args.release.sourceVersion
-      : (args.release.sourceValidityCode ?? args.release.sourceReleaseCode)
-  // Shared publisher tables contain several datasets. A release-code lower
-  // bound prevents an earlier dataset's open intervals leaking into this one.
-  const lower =
-    args.entry.releaseKey === 'version'
-      ? ''
-      : `${args.release.datasetCode.replace(/^ds-/, 'dr-')}-`
-  return [key, key, lower]
+}): string[] {
+  const values = [args.release.sourceVersion, args.release.sourceVersion]
+  // Shared publisher tables retain dataset ownership through releaseId. Version
+  // strings describe time only and cannot identify which dataset owns an assertion.
+  if (args.entry.scopeByDataset) {
+    const ids: unknown = JSON.parse(args.release.datasetReleaseIdsJson)
+    if (!Array.isArray(ids) || !ids.length || ids.some(id => typeof id !== 'string'))
+      throw new Error('Source records require the owning dataset release identities.')
+    values.push(JSON.stringify(ids))
+  }
+  return values
 }
 
 function toSourceRecord(
@@ -569,7 +575,7 @@ export async function getSourceRecordSchema(args: {
       SELECT properties FROM ${entry.tableName} AS record
       WHERE record.validFromRelease <= ?
         AND (record.validToRelease IS NULL OR record.validToRelease > ?)
-        AND record.validFromRelease >= ?
+        AND ${sourceDatasetCondition(entry, 'record.')}
     )
     SELECT field.key AS name, field.type AS type, COUNT(field.key) AS occurrences,
       (SELECT COUNT(*) FROM records) AS total
