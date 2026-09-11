@@ -14,6 +14,7 @@ import type { ProvenanceStore, RuleDeclaration } from '@repo/core/provenance'
 import {
   buildSourceReleaseCode,
   getDatasetById,
+  getDatasetRecordByReleaseCode,
   updateDatasetStatus,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -172,7 +173,10 @@ export async function processNativeSourceSqlRelease(
       },
       { reuseExistingRelease: input.recoverPublishedRelease },
     )
-    datasetId = (await getDatasetById(metaDb, releaseId))?.datasetId
+    datasetId = requireString(
+      (await getDatasetById(metaDb, releaseCode))?.datasetId,
+      'datasetId',
+    )
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -585,14 +589,19 @@ async function resolveNativeSourceRelease(
     })
     try {
       const releaseCode = buildSourceReleaseCode(input.datasetCode, input.sourceVersion)
-      const existing = await getDatasetById(
+      const existing = await getDatasetRecordByReleaseCode(
         context.metaDb as unknown as HarbourReadableDb,
         releaseCode,
       )
       if (
-        existing?.status === 'published' &&
+        existing &&
+        ['staged', 'processing', 'failed', 'published'].includes(existing.status) &&
         existing.datasetCode === input.datasetCode
       ) {
+        if (existing.rawObjectKey !== input.archiveObjectKey)
+          throw new Error(
+            `Native source archive does not match registered release ${releaseCode}.`,
+          )
         return { releaseCode: existing.releaseCode, releaseId: existing.releaseId }
       }
     } finally {
