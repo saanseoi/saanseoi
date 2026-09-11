@@ -11,7 +11,7 @@ import {
 import { sql } from 'drizzle-orm'
 
 import { ingestRunStatuses } from '../../constants/schema'
-import { metaApiReleaseSets, metaSnapshots } from './api'
+import { metaApiReleaseSets } from './api'
 import { metaReleases } from './datasets'
 import { jsonText, timestamps } from '../shared'
 
@@ -39,11 +39,8 @@ export const stats = sqliteTable(
   'stats',
   {
     id: text('id').primaryKey(),
-    type: text('type').notNull(),
+    kind: text('kind').notNull(),
     releaseId: text('releaseId').references(() => metaReleases.id),
-    snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
-      onDelete: 'cascade',
-    }),
     apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
       onDelete: 'cascade',
     }),
@@ -57,10 +54,9 @@ export const stats = sqliteTable(
   },
   table => [
     index('stats_releaseId_idx').on(table.releaseId),
-    index('stats_snapshotId_idx').on(table.snapshotId),
     index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
-      table.type,
+      table.kind,
       table.dimension,
       table.metric,
       table.groupBy,
@@ -68,7 +64,7 @@ export const stats = sqliteTable(
     ),
     check(
       'stats_owner_chk',
-      sql`${table.releaseId} IS NOT NULL OR ${table.snapshotId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
+      sql`${table.releaseId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
     ),
   ],
 )

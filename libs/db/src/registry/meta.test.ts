@@ -586,3 +586,23 @@ describe('buildMetaRegistrySyncStatements', () => {
     )
   })
 })
+
+test('official source datasets retain executable processing definitions and confirmed CRS', () => {
+  for (const code of [
+    'ds-hk-hkgov-dpo-address',
+    'ds-hk-hkgov-had-division-area-district',
+    'ds-hk-hkgov-landsd-division',
+    'ds-hk-hkgov-pland-division-new-town',
+    'ds-hk-hkgov-pland-division-pu',
+  ]) {
+    const dataset = initialDatasets.find(dataset => dataset.code === code)!
+    expect(dataset.sourceCrs).toMatch(/^EPSG:/)
+    const rules = dataset.processingRules!.rulesets.flatMap(ruleset => ruleset.rules)
+    expect(rules.length).toBeGreaterThan(0)
+    expect(rules.every(rule => rule.definition?.implementation)).toBe(true)
+  }
+  expect(
+    initialDatasets.find(dataset => dataset.code === 'ds-hk-hkgov-pland-division-pu')
+      ?.kind,
+  ).toBe('pu')
+})
