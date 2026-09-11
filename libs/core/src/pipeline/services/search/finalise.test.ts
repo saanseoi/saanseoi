@@ -13,7 +13,7 @@ test('deferred publication, pending sequence and unrelated families perform no i
   for (const options of [
     { deferred: true, publishedFamilies: ['places'] },
     { pendingReleaseSetCodes: ['pending'], publishedFamilies: ['places'] },
-    { publishedFamilies: ['divisions'] },
+    { publishedFamilies: ['streets'] },
   ]) {
     await expect(
       finalisePublishedSearch(forbidden as never, forbidden as never, options),

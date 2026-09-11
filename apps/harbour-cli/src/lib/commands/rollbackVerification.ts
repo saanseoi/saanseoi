@@ -338,6 +338,8 @@ function resolveCurrentTable(tableName: string) {
       return currentSchema.address3d
     case 'address3dI18n':
       return currentSchema.address3dI18n
+    case 'divisionSearchScopes':
+      return currentSchema.divisionSearchScopes
     case 'divisions':
       return currentSchema.divisions
     case 'divisionsI18n':

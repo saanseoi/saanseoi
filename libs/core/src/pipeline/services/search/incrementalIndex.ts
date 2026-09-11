@@ -5,11 +5,13 @@ import { resolveApiReleaseSetSnapshotsForRequest } from '../../../lib/db/metaReg
 export type SearchScope = { scopeId: string; snapshotId: string }
 export type SearchIndexDefinition = {
   label: string
-  resourceType: 'address' | 'place'
+  resourceType: 'address' | 'place' | 'division'
   domainCode: string
+  domainCodes?: readonly string[]
   table: string
   scopesTable: string
-  retiredTable: string
+  retiredTable?: string
+  tokenizer?: 'trigram'
   fields: readonly string[]
   unindexed: readonly string[]
   /** SELECT from the `selected` CTE; return exactly the declared fields. */
@@ -24,29 +26,36 @@ const literal = (value: string) => `'${value.replaceAll("'", "''")}'`
 export async function resolvePublishedSearchScopes(
   db: HarbourReadableDb,
   definition: SearchIndexDefinition,
+  request: { regionCode?: 'hk' | 'mo'; domainCode?: string } = {},
 ) {
   const scopes: SearchScope[] = []
-  for (const regionCode of ['hk', 'mo'] as const) {
-    const selection = await resolveApiReleaseSetSnapshotsForRequest(
-      db,
-      definition.resourceType,
-      {
-        regionCode,
-        domainCode: definition.domainCode,
-      },
-    )
-    for (const snapshot of selection?.snapshots ?? []) {
-      if (snapshot.snapshotResourceType !== definition.resourceType) continue
-      const row = await db
-        .select({ lineage: metaSnapshots.snapshotLineageId })
-        .from(metaSnapshots)
-        .where(eq(metaSnapshots.id, snapshot.snapshotId))
-        .get()
-      if (!row) throw new Error(`Missing search snapshot ${snapshot.snapshotId}.`)
-      scopes.push({
-        scopeId: `${regionCode}:${definition.domainCode}:${row.lineage}`,
-        snapshotId: snapshot.snapshotId,
-      })
+  for (const regionCode of request.regionCode
+    ? [request.regionCode]
+    : (['hk', 'mo'] as const)) {
+    for (const domainCode of request.domainCode
+      ? [request.domainCode]
+      : (definition.domainCodes ?? [definition.domainCode])) {
+      const selection = await resolveApiReleaseSetSnapshotsForRequest(
+        db,
+        definition.resourceType,
+        {
+          regionCode,
+          domainCode,
+        },
+      )
+      for (const snapshot of selection?.snapshots ?? []) {
+        if (snapshot.snapshotResourceType !== definition.resourceType) continue
+        const row = await db
+          .select({ lineage: metaSnapshots.snapshotLineageId })
+          .from(metaSnapshots)
+          .where(eq(metaSnapshots.id, snapshot.snapshotId))
+          .get()
+        if (!row) throw new Error(`Missing search snapshot ${snapshot.snapshotId}.`)
+        scopes.push({
+          scopeId: `${regionCode}:${domainCode}:${row.lineage}`,
+          snapshotId: snapshot.snapshotId,
+        })
+      }
     }
   }
   return scopes
@@ -54,7 +63,7 @@ export async function resolvePublishedSearchScopes(
 
 export function createSearchFtsSql(definition: SearchIndexDefinition) {
   return `CREATE VIRTUAL TABLE IF NOT EXISTS ${definition.table} USING fts5(
-    ${definition.fields.map(field => `${field}${definition.unindexed.includes(field) ? ' UNINDEXED' : ''}`).join(', ')}
+    ${definition.fields.map(field => `${field}${definition.unindexed.includes(field) ? ' UNINDEXED' : ''}`).join(', ')}${definition.tokenizer ? ", tokenize='trigram'" : ''}
   )`
 }
 
@@ -110,7 +119,7 @@ export function buildSearchSyncSql(
     `INSERT INTO ${scopesTable} (scopeId, snapshotId) ${selection}
       WHERE true ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId
       WHERE ${scopesTable}.snapshotId IS NOT excluded.snapshotId`,
-    `DROP TABLE IF EXISTS ${retiredTable}`,
+    ...(retiredTable ? [`DROP TABLE IF EXISTS ${retiredTable}`] : []),
   ]
 }
 

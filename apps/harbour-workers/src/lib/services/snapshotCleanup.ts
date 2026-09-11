@@ -116,6 +116,16 @@ export async function cleanupSnapshotByResourceType(
       await deleteStreetSnapshot(db, candidate.snapshotId)
       return true
     case 'division':
+      if (
+        await db
+          .select({ scopeId: currentSchema.divisionSearchScopes.scopeId })
+          .from(currentSchema.divisionSearchScopes)
+          .where(
+            eq(currentSchema.divisionSearchScopes.snapshotId, candidate.snapshotId),
+          )
+          .get()
+      )
+        return false
       if (await divisionSnapshotHasCurrentDependents(db, candidate.snapshotId)) {
         return false
       }

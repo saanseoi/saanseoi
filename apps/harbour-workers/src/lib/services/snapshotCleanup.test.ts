@@ -18,6 +18,12 @@ test('retains a snapshot still serving the published search index', async () => 
   }
   expect(
     await cleanupSnapshotByResourceType(db as never, {
+      resourceType: 'division',
+      snapshotId: 'old',
+    }),
+  ).toBe(false)
+  expect(
+    await cleanupSnapshotByResourceType(db as never, {
       resourceType: 'address',
       snapshotId: 'old',
     }),
