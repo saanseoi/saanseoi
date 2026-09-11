@@ -348,6 +348,11 @@ stops preparation. The shared sealed delivery emits only changed current rows an
 updates readiness with the incremental search index; published source/history evidence
 remains retained.
 
+Subsequent ingestion loads the restored serving predecessor's exact base and locale
+journals from their owning shards. Retained `isCurrent` flags do not select the
+comparison baseline. Reasserting content from a revoked publication can reuse that
+immutable content while recording the new accepted snapshot's actual change.
+
 ## ZH-HANT
 
 Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開 Place 使用 PlaceI18n 的

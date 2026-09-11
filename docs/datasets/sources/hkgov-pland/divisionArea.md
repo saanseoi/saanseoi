@@ -75,8 +75,13 @@ Local geometry materialisation uses WAL-safe SQLite planning copies to retain ex
 mutations and churn outputs. Native receipts protect interrupted replay; the existing
 geometry writer supplies the SQL and runs only when preparing a new plan.
 
-Remote geometry replay includes version-qualified history closures referenced by the
-snapshot change journal, without retransmitting historical geometry.
+Planning Area history retains immutable record/hash versions. Snapshot journals define
+membership from the selected parent's replay state, including its recorded annual
+shards; a root cohort starts with empty membership. Exact and simplified variants and
+other providers retain their versions independently. Remote replay inserts content by
+exact journal keys without closing or rewriting existing geometry or its provenance. The
+stored history `isCurrent` field does not define Area membership. Current projection
+receipts and publication checks apply independently to every selected scope.
 
 SQL generation uses the release-scoped planning mirror.
 [Sealed delivery phases](../../sql-delivery.md) retain the generated payloads and replay

@@ -44,9 +44,17 @@ Exact and simplified geometry imports use distinct
 snapshot identities and confirms remote imports before replaying the same SQL into the
 mirror.
 
-Remote replay retains historical and source closures as version-qualified updates.
-Simplified phases also deliver source-derivative rows and closures keyed by source
-record, exact input version, transform and derivative version.
+Remote replay selects immutable canonical content through upsert journal keys and
+records removals as delete journals. Source closures use exact version keys. Simplified
+phases also deliver source-derivative rows and closures keyed by source record, exact
+input version, transform and derivative version.
+
+Parented exact and simplified snapshots follow the
+[geometry membership contract](../../families/divisions.md#publication-readiness):
+validated identical parent members inherit without payload or child journal writes,
+while companion contributions retain members outside their input. Independent census
+cohorts retain full root membership journals and their own current projections. Source
+assertions and audit delivery remain separate from canonical membership.
 
 ## Source releases
 

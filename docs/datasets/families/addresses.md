@@ -32,8 +32,25 @@ History components are compared independently. An Address2D component change doe
 rewrite identical base, translation or building-number content in another component.
 Unchanged components retain their original content hash and owning history shard.
 Address3D inventory and locale payloads have independent version hashes; historical
-locale reads follow their own journal entries and shards. Snapshot journals contain only
-actual component changes and explicit retirements.
+locale reads follow their own journal entries and shards. ALS snapshot journals contain
+only actual component changes and explicit retirements.
+
+Supplementary Overture Address snapshots hash the canonical base, each locale and each
+building-number lookup independently. Source-edition assertions, participating Place
+IDs, resolution decisions and selected ALS and Division dependencies have a separate
+versioned `address2dEvidence` payload. Snapshot replay selects that evidence alongside
+the canonical components and restores the complete public `sources` output, including
+release references. Repeating an accepted address in another edition can retain its
+component versions while recording the edition's evidence and updating current
+provenance. Reused versions remain in their owning history shard across year boundaries;
+the snapshot records every shard needed to replay its component and evidence selections.
+
+Supplementary snapshots are deliberately parentless to bound replay ancestry. Every
+snapshot journals its complete accepted base, locale and evidence membership, including
+a valid empty set and explicit withdrawals. Building-number lookups are reproducible
+from the selected locales. Full membership journals remain a per-edition cost even when
+all canonical content is unchanged. Published evidence and membership are immutable;
+changed accepted materialisation requires a release revision.
 
 ALS source interpretations in `sourceResolutions` inherit through snapshot ancestry.
 Repeated identical source hashes and resolutions need no new row. Changed resolutions,
@@ -78,6 +95,10 @@ reviewed ALS membership sidecar, including Address3D inventories and building-nu
 lookups. A composed rollback restores Division and Street prerequisites before Address
 and validates all current references before sealing. Retained source assertions and
 history remain available; only the serving projection and publication selection change.
+
+Forward comparison follows the selected predecessor's exact component journals and
+owning shards. Derived building-number lookup comparison follows the serving lookup
+content, so retained versions from a revoked publication do not suppress new changes.
 
 Historical Address API reads replay immutable history. Preparation requires the exact
 selected dependency to have a completed local receipt; it rejects an advanced current

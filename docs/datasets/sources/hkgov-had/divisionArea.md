@@ -1,5 +1,12 @@
 # Home Affairs Department District Boundary area ingestion
 
+Canonical Area versions are immutable. Snapshot membership follows the selected parent's
+version journal and recorded history shards; complete releases remove only members of
+that parent. Exact and simplified scopes and other providers retain their versions
+independently. Reused record/hash content preserves its original provenance, and history
+`isCurrent` does not define membership. Current projection receipts and publication
+checks remain required for each selected scope.
+
 Source validity uses the owning release's version component in `validFromRelease` and
 `validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
 retains the release association.
@@ -22,9 +29,18 @@ SQL replay. Sealed plans retain current, history and source mutations, including
 assertions, together with checksummed churn outputs. Recovery validates normalised
 inputs and reuses the plan before publication.
 
-Remote replay includes history closures from the snapshot change journal and source
-assertions closed by the release. Updates match exact versions and carry their closure
-timestamps without retransmitting older geometry.
+Remote replay selects immutable canonical content through upsert journal keys and
+records removals as delete journals. Source assertions closed by the release receive
+updates matching exact versions and closure timestamps without retransmitting older
+source geometry.
+
+Parented area revisions follow the
+[geometry membership contract](../../families/divisions.md#publication-readiness):
+validated identical parent members inherit without payload or child journal writes;
+changes, removals and reappearances remain explicit. Parentless checkpoints retain full
+membership, and independently retained cohorts each receive their own current
+projection. Source assertions and audit delivery remain separate from canonical
+membership.
 
 This page records the provider-specific profile. The reusable source contract is in
 [`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).

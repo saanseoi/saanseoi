@@ -14,6 +14,11 @@ assertion until they reappear. Reviewed supplementary Division fixtures supply t
 canonical content for their identities while preserving the native publisher assertion,
 so transient source shapes do not create additional canonical versions.
 
+Published rollback retains withdrawn snapshots and their original evidence. New releases
+allocate unused revision numbers while selecting their predecessor from the accepted
+catalogue. Canonical comparison uses that predecessor's exact journal and owning shard,
+so a retained withdrawn revision cannot silently become the next release's parent.
+
 Overture keeps only a limited window of full release payloads. When a monthly payload
 has expired, SaanSeoi does not synthesise feature properties from a neighbouring release
 or from a changelog: a changelog identifies changed records but does not carry their

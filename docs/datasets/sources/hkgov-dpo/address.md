@@ -41,6 +41,10 @@ membership sidecar. A composed restoration prepares Division and Street dependen
 before Address, then validates the complete current candidate. The sealed delivery
 restores serving selection while retaining publisher evidence and historical versions.
 
+Subsequent canonical comparison uses that selected predecessor's exact component
+journals; building-number lookups use the restored serving content. Retained history
+flags are not permission to inherit a revoked publication's canonical state.
+
 Current Division and Street references contain physical scope IDs. Preparation and
 history retain logical snapshot IDs, and the writer resolves each exact selected
 reference through a completed receipt. Missing or advanced dependency projections fail
