@@ -78,6 +78,33 @@ test('startup timeout rejects and shutdown does not wait for a hung proxy', asyn
   }
 })
 
+test('source-file IPC retains the file path and active progress renews its idle deadline', async () => {
+  const f = await fixture(`
+    receive(r => {
+      if (!r.sourceFile || r.path !== '/retained/source.zip') throw new Error('Missing file transfer contract');
+      const progress = setInterval(() => send({type:'progress', id:r.id, operation:'verifying chunk'}), 50);
+      setTimeout(() => { clearInterval(progress); send({type:'done', id:r.id}); }, 650);
+    });
+    send({type:'ready'});
+  `)
+  const client = startR2Process('unused', {
+    workerPath: f.workerPath,
+    requestTimeoutMs: 250,
+  })
+  try {
+    await client.ready
+    await client.retain(
+      'source/key',
+      '/retained/source.zip',
+      { contentType: 'application/zip' },
+      { sourceFile: true },
+    )
+  } finally {
+    await client.dispose()
+    await f.close()
+  }
+})
+
 test('hung R2 request includes object and operation and stops queued requests', async () => {
   const f = await fixture(`
     receive( r => send({type:'progress',id:r.id,operation:'uploading'}));
