@@ -16,14 +16,18 @@ test('Overture envelope retains publisher values once and leaves the input untou
   expect(result.rawProperties).toEqual({
     version: 4,
     names: { primary: ' Raw name ' },
-    sources: input.sources,
+    sources: [{ dataset: 'publisher', recordId: 'original' }],
     country: null,
   })
+  const expected = {
+    ...before,
+    sources: [{ dataset: 'publisher', recordId: 'original' }],
+  }
   expect({
     id: input.id,
     ...result.rawProperties,
     geometry: result.sourceGeometry,
-  }).toEqual(before)
+  }).toEqual(expected)
   expect(input).toEqual(before)
 })
 
@@ -58,15 +62,15 @@ test('ALS flattening retains literal values and unknown fields without enriched 
     easting: 123,
     geoAddress: 'geo',
     hkgovCsuId: '000123',
-    enRegion: ' NT ',
-    enPhaseName: ' Original ',
-    enPhaseNo: 2,
-    enStreetLocationName: null,
-    en3dAddress: [{ EngFloor: { FloorNum: 1 } }],
-    enBuildingName: 'EXAMPLE III',
-    enVillageName: 'VILLAGE',
-    enVillageLocationName: 'DISTRICT',
-    enVillageNumberFrom: '007',
+    regionEn: ' NT ',
+    phaseNameEn: ' Original ',
+    phaseNoEn: 2,
+    streetLocationNameEn: null,
+    address3dEn: [{ EngFloor: { FloorNum: 1 } }],
+    buildingNameEn: 'EXAMPLE III',
+    villageNameEn: 'VILLAGE',
+    villageLocationNameEn: 'DISTRICT',
+    villageNumberFromEn: '007',
     unknownAB: false,
     unknownEmpty: {},
     unknownAbsent: null,
@@ -109,7 +113,7 @@ test('ALS source identity and versions are independent of canonical curation and
   ]
   expect(changed[0]!.sourceRecordId).toBe(first[0]!.sourceRecordId)
   expect(changed[0]!.versionHash).not.toBe(first[0]!.versionHash)
-  expect(first[0]!.rawProperties?.enBuildingName).toBe('Original')
+  expect(first[0]!.rawProperties?.buildingNameEn).toBe('Original')
 })
 
 test('source geometry retains exact WKB bytes rather than a GeoJSON derivative', () => {

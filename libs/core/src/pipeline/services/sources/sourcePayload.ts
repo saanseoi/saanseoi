@@ -1,3 +1,4 @@
+import { retainSourceProperties } from './retainedProperties'
 /**
  * Separate publisher attributes from fields represented once by the source
  * envelope. This is a storage mapping, not canonical normalisation: values are
@@ -19,7 +20,7 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
     )
   }
   return {
-    rawProperties,
+    rawProperties: retainSourceProperties(rawProperties) as Record<string, unknown>,
     sourceGeometry:
       geometry instanceof Uint8Array
         ? {
@@ -43,7 +44,7 @@ export function nativeSourcePayloadHashInput(row: {
   placeNames?: unknown
 }) {
   return {
-    rawProperties: row.rawProperties,
+    rawProperties: retainSourceProperties(row.rawProperties),
     sourceGeometry: row.sourceGeometry ?? null,
     ...(row.placeNames === undefined ? {} : { placeNames: row.placeNames }),
   }

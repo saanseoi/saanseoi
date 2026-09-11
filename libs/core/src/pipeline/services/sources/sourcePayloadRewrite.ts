@@ -1,3 +1,4 @@
+import { retainSourceProperties } from './retainedProperties'
 import { overtureSourcePayload } from './sourcePayload'
 
 export const overtureSourceTables = [
@@ -28,7 +29,11 @@ export function rewriteOvertureSourcePayload(row: {
     throw new Error(
       `Supplemental division requires upstream replay: ${row.sourceRecordId}`,
     )
-  if (!['id', 'geometry'].some(key => Object.hasOwn(raw, key)) && row.sources == null)
+  if (
+    !['id', 'geometry'].some(key => Object.hasOwn(raw, key)) &&
+    row.sources == null &&
+    JSON.stringify(raw) === JSON.stringify(retainSourceProperties(raw))
+  )
     return null
   if (Object.hasOwn(raw, 'id') && raw.id !== row.sourceRecordId) {
     throw new Error(`Publisher/source identity mismatch for ${row.sourceRecordId}`)

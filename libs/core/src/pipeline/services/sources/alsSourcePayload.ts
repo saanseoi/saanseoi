@@ -1,3 +1,4 @@
+import { retainedLocalePropertyName } from './retainedProperties'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { createHash } from '../../utils'
 
@@ -15,19 +16,21 @@ export const alsSourcePropertyNames: Readonly<Record<string, string>> = Object.f
         ['Eng', 'en'],
         ['Chi', 'zhHant'],
       ] as const
-    ).flatMap(([upstream, locale]) => {
-      const base = `${premise}/${upstream}PremisesAddress`
-      return [
-        [`${base}/Region`, `${locale}Region`],
-        [`${base}/${upstream}District`, `${locale}District`],
-        [`${base}/BuildingName`, `${locale}BuildingName`],
-        [`${base}/${upstream}3dAddress`, `${locale}3dAddress`],
-        ...['PhaseName', 'PhaseNo'].map(field => [
-          `${base}/${upstream}Estate/${upstream}Phase/${field}`,
-          `${locale}${field}`,
-        ]),
-        ...(['Street', 'Village', 'Estate', 'Block', 'Phase', 'Unit'] as const).flatMap(
-          section =>
+    )
+      .flatMap(([upstream, locale]) => {
+        const base = `${premise}/${upstream}PremisesAddress`
+        return [
+          [`${base}/Region`, `${locale}Region`],
+          [`${base}/${upstream}District`, `${locale}District`],
+          [`${base}/BuildingName`, `${locale}BuildingName`],
+          [`${base}/${upstream}3dAddress`, `${locale}3dAddress`],
+          ...['PhaseName', 'PhaseNo'].map(field => [
+            `${base}/${upstream}Estate/${upstream}Phase/${field}`,
+            `${locale}${field}`,
+          ]),
+          ...(
+            ['Street', 'Village', 'Estate', 'Block', 'Phase', 'Unit'] as const
+          ).flatMap(section =>
             ({
               Street: ['StreetName', 'LocationName', 'BuildingNoFrom', 'BuildingNoTo'],
               Village: [
@@ -48,9 +51,10 @@ export const alsSourcePropertyNames: Readonly<Record<string, string>> = Object.f
               `${base}/${upstream}${section}/${field}`,
               `${locale}${field === 'BuildingNoFrom' ? `${section}NumberFrom` : field === 'BuildingNoTo' ? `${section}NumberTo` : field === 'LocationName' ? `${section}LocationName` : field}`,
             ]),
-        ),
-      ]
-    }),
+          ),
+        ]
+      })
+      .map(([path, name]) => [path!, retainedLocalePropertyName(name!)]),
   ),
 })
 
@@ -81,7 +85,9 @@ export function alsSourcePropertyName(path: string) {
 export function remapAlsSourceProperties(raw: Record<string, unknown>) {
   const mapped: Record<string, unknown> = {}
   for (const [name, value] of Object.entries(raw)) {
-    const key = name.startsWith('/') ? alsSourcePropertyName(name) : name
+    const key = name.startsWith('/')
+      ? alsSourcePropertyName(name)
+      : retainedLocalePropertyName(name)
     if (Object.hasOwn(mapped, key))
       throw new Error(`Duplicate ALS source property mapping: ${key}`)
     mapped[key] = value

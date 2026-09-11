@@ -101,7 +101,7 @@ test('contract preparation is read-only, reversible and excludes Streets and uns
     expect(JSON.parse(row.rawProperties)).toEqual({
       names: { primary: ' 原始 ' },
       version: 2,
-      sources: attribution,
+      sources: [{ dataset: 'OSM', property: '', recordId: 'literal-id' }],
     })
     expect(row.sources).toBeNull()
     expect(row.versionHash).toBe('stable-hash')
