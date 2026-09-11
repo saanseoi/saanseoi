@@ -30,22 +30,6 @@ export const statsRecords = sqliteTable(
   ],
 )
 
-/**
- * Publication readiness for each dataset and exact reference period.
- * Gates reads while packs are promoted; older periods retain their own state.
- */
-export const statsPublicationState = sqliteTable(
-  'statsPublicationState',
-  {
-    datasetCode: text('datasetCode').notNull(),
-    referencePeriodCode: text('referencePeriodCode').notNull(),
-    snapshotId: text('snapshotId').notNull(),
-    status: text('status', { enum: ['publishing', 'current'] }).notNull(),
-    ...timestamps,
-  },
-  table => [primaryKey({ columns: [table.datasetCode, table.referencePeriodCode] })],
-)
-
 export const statsFields = sqliteTable(
   'statsFields',
   { ...canonicalStatsField, ...definitionVersion, ...timestamps },

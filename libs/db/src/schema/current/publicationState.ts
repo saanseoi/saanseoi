@@ -1,4 +1,4 @@
-import { index, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { timestamps } from '../shared'
 
 /** Delivery completion is separate from permission to serve a published snapshot. */
@@ -10,6 +10,22 @@ export const publicationStateColumns = () => ({
   preparedAt: text('preparedAt'),
   ...timestamps,
 })
+
+/**
+ * Publication readiness for each dataset and exact reference period.
+ * Gates reads while packs are promoted; older periods retain their own state.
+ */
+export const statsPublicationState = sqliteTable(
+  'statsPublicationState',
+  {
+    datasetCode: text('datasetCode').notNull(),
+    referencePeriodCode: text('referencePeriodCode').notNull(),
+    snapshotId: text('snapshotId').notNull(),
+    status: text('status', { enum: ['publishing', 'current'] }).notNull(),
+    ...timestamps,
+  },
+  table => [primaryKey({ columns: [table.datasetCode, table.referencePeriodCode] })],
+)
 
 function snapshotPublicationState(name: string) {
   return sqliteTable(
