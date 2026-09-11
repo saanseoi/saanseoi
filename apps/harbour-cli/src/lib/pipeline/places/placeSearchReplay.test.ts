@@ -7,6 +7,8 @@ test('Places search indexes only the selected unit of an Address3D collection', 
   const db = new Database(':memory:')
   try {
     db.exec(`
+      CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
+      INSERT INTO placeSearchScopes VALUES ('hk:overture:places', 'p');
       CREATE TABLE places(snapshotId, id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy);
       CREATE TABLE placesI18n(snapshotId, placeId, locale, name, nameAlts, brandName, brandNameAlts);
       CREATE TABLE address2dI18n(snapshotId, addressId, locale, formattedAddress);
@@ -36,12 +38,12 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       'utf8',
     )
     db.exec(sql)
-    expect(db.query('SELECT addressText FROM placesFts').get()).toEqual({
+    expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street Unit 12 Floor 3',
     })
     db.exec('UPDATE places SET address3dUnitId = NULL')
     db.exec(sql)
-    expect(db.query('SELECT addressText FROM placesFts').get()).toEqual({
+    expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street',
     })
     db.exec("UPDATE places SET address3dUnitId = 'chosen'")
@@ -55,7 +57,7 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       }),
     )
     db.exec(sql)
-    expect(db.query('SELECT addressText FROM placesFts').get()).toEqual({
+    expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street Special suite',
     })
   } finally {

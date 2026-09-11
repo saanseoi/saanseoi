@@ -6,7 +6,7 @@ import {
 } from '../../../lib/region'
 import { resolveDataRegion } from '../../../schema/region'
 import { derivePlaceReferenceName } from '@repo/core'
-import { resolveActiveSnapshotForType } from '@repo/core/db/metaRegistry'
+import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import type { Context } from 'hono'
 
@@ -292,7 +292,7 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
                   httpStatus: 503,
                   error: 'fts_not_ready',
                   message:
-                    'FTS index is not initialised. Rebuild placesFts before using search.',
+                    'Place search is not ready for the latest published release.',
                 },
               },
             },
@@ -306,11 +306,17 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
 )
 
 async function activePlaceSnapshot(c: Context<AppEnv>, regionCode: 'hk' | 'mo') {
-  return runWithD1ReadRetry(() =>
-    resolveActiveSnapshotForType(c.var.metaDb as never, 'place', {
-      domainCode: 'place',
+  const selection = await runWithD1ReadRetry(() =>
+    resolveApiReleaseSetSnapshotsForRequest(c.var.metaDb as never, 'place', {
+      domainCode: 'overture',
       regionCode,
     }),
+  )
+  return (
+    selection?.snapshots.find(
+      snapshot =>
+        snapshot.snapshotResourceType === 'place' && snapshot.role === 'primary',
+    ) ?? null
   )
 }
 
@@ -455,16 +461,12 @@ async function handlePlaceSearch(
     )
     return c.json({ results }, 200)
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.includes('FTS index is not initialised')
-    ) {
+    if (error instanceof Error && error.message.includes('Place search is not ready')) {
       return c.json(
         {
           httpStatus: 503,
           error: 'fts_not_ready',
-          message:
-            'FTS index is not initialised. Rebuild placesFts before using search.',
+          message: 'Place search is not ready for the latest published release.',
         },
         503,
       )
