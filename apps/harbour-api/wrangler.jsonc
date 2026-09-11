@@ -4,6 +4,7 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-05-01",
   "compatibility_flags": ["nodejs_compat"],
+  "limits": { "cpu_ms": 300000, "subrequests": 40000 },
   "assets": {
     "directory": "public"
   },
