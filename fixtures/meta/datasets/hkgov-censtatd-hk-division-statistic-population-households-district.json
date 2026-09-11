@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:08c4bd15b6a4083ebf518709c2b3130d26cfc4fe7052772cd7c8b5a3ddf6caef",
+  "versionHash": "sha256:3c7d139512d2fb6dbd94f9938b02d2039e027690bed46e24e761b43299ebc6e5",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -120,7 +120,17 @@
     {
       "locale": "en",
       "name": "Population and Household Statistics by District Council District",
-      "description": "Planned C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+      "description": "C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "按區議會分區劃分的人口及住戶統計",
+      "description": "政府統計處提供的陸上非住院人口、住戶及社會經濟指標的每年統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "按区议会分区划分的人口及住户统计",
+      "description": "政府统计处提供的陆上非住院人口、住户及社会经济指标的每年统计。"
     }
   ]
 }

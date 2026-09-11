@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f5d24894a7628a36a324c3d647256ed0c2e2cde88fdfbafb415c6b20ad1c8599",
+  "versionHash": "sha256:7c23c73b699d943482ccf172029743fe054b7857363897c2d8156c5b08b2c238",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -143,7 +143,7 @@
   ],
   "mergeRules": [
     {
-      "rulesetVersion": "rs-official-division-processing-v1",
+      "rulesetVersion": "rs-division-hkgov-pland-new-town-merge-v1",
       "operationCodes": [
         "resolve-geography-identities",
         "normalise-planning-divisions",

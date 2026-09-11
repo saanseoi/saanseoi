@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3ef444937c6e5725959a95be2584b8af188f77732121c1c81b4401d568763a3a",
+  "versionHash": "sha256:cc8c2db6f6170eb1f2768629515359f40afb12ca4f1b13f783b48e09d82834ef",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -142,7 +142,17 @@
     {
       "locale": "en",
       "name": "District Land Area, Population and Density",
-      "description": "Planned C&SD source for District Council district land area, mid-year population and density."
+      "description": "C&SD source for District Council district land area, mid-year population and density."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "分區陸地面積、人口及人口密度",
+      "description": "政府統計處提供的區議會分區陸地面積、年中人口及人口密度統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "分区陆地面积、人口及人口密度",
+      "description": "政府统计处提供的区议会分区陆地面积、年中人口及人口密度统计。"
     }
   ]
 }
