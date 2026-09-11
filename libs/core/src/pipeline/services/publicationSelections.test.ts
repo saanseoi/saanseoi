@@ -21,7 +21,7 @@ function fixture() {
     CREATE TABLE snapshotSources(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,regionCode TEXT,status TEXT,publishedAt TEXT,revision INTEGER);
-    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,effectiveFrom TEXT,effectiveTo TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT);
+    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,effectiveFrom TEXT,effectiveTo TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT,status TEXT);
     CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT,apiReleaseSetId TEXT,domainCode TEXT,cohortKey TEXT,isDefault INTEGER);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT,variant TEXT,role TEXT);
     CREATE TABLE divisionAreaPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
@@ -94,7 +94,7 @@ function fixture() {
   ) {
     sqlite
       .query(
-        "INSERT INTO apiReleaseSets VALUES (?,?,'2026-09-01',NULL,0,'schema','rules')",
+        "INSERT INTO apiReleaseSets VALUES (?,?,'2026-09-01',NULL,0,'schema','rules','current')",
       )
       .run(id, id)
     sqlite
@@ -173,6 +173,14 @@ test('API-pinned companions survive source supersession until the serving select
       'new-boundary',
       'old-boundary',
     ])
+    f.sqlite.exec("UPDATE apiReleaseSets SET status='archived' WHERE id='selected'")
+    const archivedSelection = await resolvePublicationSelections(f.meta)
+    expect([...archivedSelection.divisionArea].sort()).toEqual([
+      'independent-census',
+      'new-area',
+    ])
+    expect([...archivedSelection.divisionBoundary]).toEqual(['new-boundary'])
+    f.sqlite.exec("UPDATE apiReleaseSets SET status='current' WHERE id='selected'")
     await finalisePublishedResources(f.meta, f.binding, {
       snapshotIds: ['new-area', 'new-boundary'],
     })

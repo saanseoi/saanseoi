@@ -5969,6 +5969,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
     .select({
       id: metaApiReleaseSets.id,
       code: metaApiReleaseSets.code,
+      status: metaApiReleaseSets.status,
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,

@@ -64,6 +64,11 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
           },
         )
         for (const releaseSet of catalogue?.releaseSets ?? []) {
+          // A current catalogue keeps archived releases discoverable, but their
+          // geometry has already been superseded in DB_CURRENT. A current set
+          // may still pin a companion from a superseded source release, so
+          // select by release-set status rather than source-release status.
+          if (releaseSet.status !== 'current') continue
           for (const snapshot of releaseSet.snapshots) {
             const type = snapshot.snapshotResourceType
             if (type === 'divisionArea' || type === 'divisionBoundary')
