@@ -19,10 +19,11 @@ export function regionNotFound() {
 
 export function isUnpublishedMacao(
   region: string,
-  result: { status: number; body: unknown },
+  result: { status: number; body: unknown; publicationPending?: boolean },
 ) {
   return (
     region === 'mo' &&
+    !result.publicationPending &&
     result.status === 503 &&
     typeof result.body === 'object' &&
     result.body !== null &&
