@@ -281,7 +281,7 @@ async function buildPlandHistorySql(
   return sqlFile(statements)
 }
 
-async function buildPlandCurrentSql(
+export async function buildPlandCurrentSql(
   context: LocalAddressDbContext,
   state: PlandSqlState,
 ) {

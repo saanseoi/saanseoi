@@ -21,15 +21,18 @@ test('New Territories uses the reviewed Loop identity despite a same-named local
     {},
     {
       get: (_, key) =>
-        key === 'all'
-          ? async () =>
-              reads++ % 2 === 0
-                ? rows.filter(row => includeLoop || row.id !== loop)
-                : [loop, locality].map(divisionId => ({
-                    divisionId,
-                    name: 'Lok Ma Chau Loop',
-                  }))
-          : () => current,
+        key === 'get'
+          ? async () => ({ scopeId: 'lineage' })
+          : key === 'all'
+            ? async () =>
+                reads++ % 2 === 0
+                  ? rows.filter(row => includeLoop || row.id !== loop)
+                  : [loop, locality].map(divisionId => ({
+                      divisionId,
+                      locale: 'en',
+                      name: 'Lok Ma Chau Loop',
+                    }))
+            : () => current,
     },
   )
   const meta = new Proxy(

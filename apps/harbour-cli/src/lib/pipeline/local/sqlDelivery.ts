@@ -182,6 +182,7 @@ export async function runSqlDelivery(
             const db = new Database(path, { readwrite: true, create: false })
             const startedAt = Date.now()
             try {
+              db.exec('PRAGMA foreign_keys = ON')
               db.transaction(() => {
                 db.exec(RECEIPT_SCHEMA_SQL)
                 const receipt = db.query(receiptQuery(plan, batch)).all() as Record<
