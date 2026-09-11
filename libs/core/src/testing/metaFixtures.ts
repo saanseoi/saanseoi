@@ -629,15 +629,14 @@ id TEXT PRIMARY KEY NOT NULL,
           anchorResourceType TEXT,
           maxLagDays INTEGER,
           priority INTEGER NOT NULL DEFAULT 0,
-          configJson TEXT,
           PRIMARY KEY (apiCompositionId, resourceType, variant)
         );
       `,
       `
         INSERT INTO apiCompositionMembers (
-          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
         )
-        SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+          SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -730,7 +729,6 @@ id TEXT PRIMARY KEY NOT NULL,
       anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
-      configJson TEXT,
       PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
     );
   `)
@@ -1031,25 +1029,24 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       updatedAt = excluded.updatedAt;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5, null),
-      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
-      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, '{"ingestDependencies":[{"resourceType":"address","variant":"default"},{"resourceType":"division","variant":"overture"}]}'),
-      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10, null),
-      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'supporting', 1, 'exact_ref', 'place', null, 15, null),
-      ('api-composition-places-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20, null)
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
+      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
+      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'supporting', 1, 'exact_ref', 'place', null, 15),
+      ('api-composition-places-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
     ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
       cohortMatchingMode = excluded.cohortMatchingMode,
       anchorResourceType = excluded.anchorResourceType,
       maxLagDays = excluded.maxLagDays,
-      priority = excluded.priority,
-      configJson = excluded.configJson;
+      priority = excluded.priority;
 
     INSERT INTO snapshotAssembly (
       id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt

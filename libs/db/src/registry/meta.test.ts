@@ -321,7 +321,6 @@ describe('fixture version hashes', () => {
         isRequired: true,
         role: 'geometry',
         cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
-        configJson: expect.stringContaining('"variant":"overture"'),
       }),
     ])
   })

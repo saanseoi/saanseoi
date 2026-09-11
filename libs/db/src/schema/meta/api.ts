@@ -388,7 +388,6 @@ export const metaApiCompositionMembers = sqliteTable(
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
-    configJson: jsonText('configJson'),
   },
   table => [
     primaryKey({
