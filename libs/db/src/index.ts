@@ -50,4 +50,16 @@ export type {
   LandsdStreetNoticeType,
 } from './schema/source/hkgovLandsd'
 export * from './schema/meta'
-export { and, asc, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+export {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  getTableName,
+  inArray,
+  isNull,
+  ne,
+  or,
+  sql,
+} from 'drizzle-orm'

@@ -31,12 +31,16 @@ WITH selected AS (SELECT scopeId, snapshotId FROM placeSearchScopes), desired AS
   ) AS "addressText",
   COALESCE(GROUP_CONCAT(DISTINCT di."name" ORDER BY di."name"), '') AS "divisionText",
   COALESCE(MAX(si."name"), '') AS "streetText"
-FROM selected s JOIN "places" p ON p."snapshotId" = s."snapshotId"
+FROM selected s
+JOIN "placePublicationState" publication ON publication."snapshotId" = s."snapshotId"
+ AND publication."status" = 'current' AND publication."preparedAt" IS NOT NULL
+ AND publication."publicationToken" <> ''
+JOIN "places" p ON p."snapshotId" = publication."scopeId"
 JOIN "placesI18n" pi
   ON pi."snapshotId" = p."snapshotId"
  AND pi."placeId" = p."id"
 LEFT JOIN "addressPublicationState" addressScope
-  ON addressScope."snapshotId" = p."addressSnapshotId"
+  ON addressScope."scopeId" = p."addressSnapshotId"
  AND addressScope."status" = 'current' AND addressScope."preparedAt" IS NOT NULL
 LEFT JOIN "address2dI18n" a2
   ON a2."snapshotId" = addressScope."scopeId"
@@ -108,12 +112,16 @@ WITH selected AS (SELECT scopeId, snapshotId FROM placeSearchScopes), desired AS
   ) AS "addressText",
   COALESCE(GROUP_CONCAT(DISTINCT di."name" ORDER BY di."name"), '') AS "divisionText",
   COALESCE(MAX(si."name"), '') AS "streetText"
-FROM selected s JOIN "places" p ON p."snapshotId" = s."snapshotId"
+FROM selected s
+JOIN "placePublicationState" publication ON publication."snapshotId" = s."snapshotId"
+ AND publication."status" = 'current' AND publication."preparedAt" IS NOT NULL
+ AND publication."publicationToken" <> ''
+JOIN "places" p ON p."snapshotId" = publication."scopeId"
 JOIN "placesI18n" pi
   ON pi."snapshotId" = p."snapshotId"
  AND pi."placeId" = p."id"
 LEFT JOIN "addressPublicationState" addressScope
-  ON addressScope."snapshotId" = p."addressSnapshotId"
+  ON addressScope."scopeId" = p."addressSnapshotId"
  AND addressScope."status" = 'current' AND addressScope."preparedAt" IS NOT NULL
 LEFT JOIN "address2dI18n" a2
   ON a2."snapshotId" = addressScope."scopeId"
