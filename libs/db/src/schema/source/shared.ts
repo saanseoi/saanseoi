@@ -18,6 +18,7 @@ export const sourceReferences = () => jsonText<SourceReference[]>('sources')
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
   releaseId: text('releaseId').notNull(),
+  // Version components within the owning source dataset, never full release codes.
   validFromRelease: text('validFromRelease').notNull(),
   validToRelease: text('validToRelease'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
