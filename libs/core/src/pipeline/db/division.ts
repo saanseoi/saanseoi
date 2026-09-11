@@ -33,7 +33,7 @@ import {
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
 const CURRENT_DIVISION_COLUMN_COUNT = 15
-const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
+const CURRENT_DIVISION_I18N_COLUMN_COUNT = 11
 const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 18
 const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 13
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
@@ -66,6 +66,36 @@ export type DivisionVersionInsertContext = {
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
 }
+
+function currentPayloadChanged(table: string, columns: readonly string[]) {
+  return sql.raw(
+    columns
+      .map(column => `"${table}"."${column}" IS NOT excluded."${column}"`)
+      .join(' OR '),
+  )
+}
+
+const divisionPayloadColumns = [
+  'divisionCode',
+  'bbox',
+  'cartography',
+  'geometry',
+  'hierarchies',
+  'identifiers',
+  'level',
+  'category',
+  'class',
+  'sources',
+  'wikidata',
+] as const
+const divisionI18nPayloadColumns = [
+  'name',
+  'nameVariant',
+  'nameAlts',
+  'nameRules',
+  'nameProvenance',
+  'isLocaleInferred',
+] as const
 
 function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
   const paths = (hierarchy as import('@repo/db').DivisionHierarchies | null)?.full ?? []
@@ -797,17 +827,20 @@ export async function upsertDivisionCurrentStates(
         : statement.onConflictDoUpdate({
             target: [currentSchema.divisions.snapshotId, currentSchema.divisions.id],
             set: {
+              divisionCode: excluded('divisionCode'),
               bbox: excluded('bbox'),
               cartography: excluded('cartography'),
               geometry: excluded('geometry'),
-              hierarchy: excluded('hierarchy'),
+              hierarchies: excluded('hierarchies'),
               identifiers: excluded('identifiers'),
               level: excluded('level'),
-              type: excluded('type'),
+              category: excluded('category'),
+              class: excluded('class'),
               sources: excluded('sources'),
               updatedAt: excluded('updatedAt'),
               wikidata: excluded('wikidata'),
             },
+            setWhere: currentPayloadChanged('divisions', divisionPayloadColumns),
           }),
     )
   }
@@ -816,10 +849,10 @@ export async function upsertDivisionCurrentStates(
 }
 
 /**
- * Replaces current i18n rows for one or more divisions with fresh snapshots.
+ * Reconciles only changed or removed localisations within the current scope.
  */
 export async function replaceDivisionCurrentI18n(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   divisionIds: string[],
   rows: CurrentDivisionI18nWriteRow[],
@@ -832,20 +865,41 @@ export async function replaceDivisionCurrentI18n(
   }
 
   if (!options?.assumeSnapshotEmpty) {
-    const deleteChunkSize = getMaxItemsPerInClause(1, 1)
     const deleteStatements = []
-
-    for (const divisionIdChunk of chunkArray(divisionIds, deleteChunkSize)) {
-      deleteStatements.push(
-        db
-          .delete(currentSchema.divisionsI18n)
-          .where(
-            and(
-              eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-              inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
-            ),
+    const selected = new Set(
+      rows.map(row => JSON.stringify([row.divisionId, row.locale])),
+    )
+    for (const divisionIdChunk of chunkArray(
+      divisionIds,
+      getMaxItemsPerInClause(1, 1),
+    )) {
+      const existing = await db
+        .select({
+          divisionId: currentSchema.divisionsI18n.divisionId,
+          locale: currentSchema.divisionsI18n.locale,
+        })
+        .from(currentSchema.divisionsI18n)
+        .where(
+          and(
+            eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+            inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
           ),
-      )
+        )
+        .all()
+      for (const row of existing) {
+        if (selected.has(JSON.stringify([row.divisionId, row.locale]))) continue
+        deleteStatements.push(
+          db
+            .delete(currentSchema.divisionsI18n)
+            .where(
+              and(
+                eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+                eq(currentSchema.divisionsI18n.divisionId, row.divisionId),
+                eq(currentSchema.divisionsI18n.locale, row.locale),
+              ),
+            ),
+        )
+      }
     }
 
     await runStatementsInGroupsWithWriteRetry(db, deleteStatements)
@@ -1004,7 +1058,28 @@ async function insertDivisionsI18nInChunks(
   for (const chunk of chunkArray(rows, chunkSize)) {
     const statement = db.insert(currentSchema.divisionsI18n).values(chunk)
     statements.push(
-      options?.assumeSnapshotEmpty ? statement.onConflictDoNothing() : statement,
+      options?.assumeSnapshotEmpty
+        ? statement.onConflictDoNothing()
+        : statement.onConflictDoUpdate({
+            target: [
+              currentSchema.divisionsI18n.snapshotId,
+              currentSchema.divisionsI18n.divisionId,
+              currentSchema.divisionsI18n.locale,
+            ],
+            set: {
+              name: excluded('name'),
+              nameVariant: excluded('nameVariant'),
+              nameAlts: excluded('nameAlts'),
+              nameRules: excluded('nameRules'),
+              nameProvenance: excluded('nameProvenance'),
+              isLocaleInferred: excluded('isLocaleInferred'),
+              updatedAt: excluded('updatedAt'),
+            },
+            setWhere: currentPayloadChanged(
+              'divisionsI18n',
+              divisionI18nPayloadColumns,
+            ),
+          }),
     )
   }
 

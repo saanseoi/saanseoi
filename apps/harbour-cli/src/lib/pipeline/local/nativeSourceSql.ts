@@ -2,7 +2,10 @@ import { retainSourceProperties } from '@repo/core/pipeline/services/sources/ret
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { readFileSync } from 'node:fs'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
+import {
+  nativeSourcePayloadHashInput,
+  sourceRecordHashInput,
+} from '@repo/core/pipeline/services/sources/sourcePayload'
 import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -459,14 +462,14 @@ async function retainNativeSourceAudit(
               table.name === 'hkgovLandsdPlaceNames'
                 ? table.rows.map(row => {
                     if (
-                      !row.rawProperties ||
-                      typeof row.rawProperties !== 'object' ||
-                      Array.isArray(row.rawProperties)
+                      !row.properties ||
+                      typeof row.properties !== 'object' ||
+                      Array.isArray(row.properties)
                     )
                       throw new Error(
                         'LandsD selection audit requires native publisher properties.',
                       )
-                    return row.rawProperties as Record<string, unknown>
+                    return row.properties as Record<string, unknown>
                   })
                 : [],
             ),
@@ -612,11 +615,13 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   return Promise.all(
     rows.map(async row => {
       const payload = { ...row } as T & {
-        rawProperties?: unknown
+        properties?: unknown
         sourceLocator?: Record<string, unknown> | null
       }
+      if (Object.hasOwn(payload, 'properties')) {
+        payload.properties = retainSourceProperties(payload.properties)
+      }
       if (separatePublisherEnvelope) {
-        payload.rawProperties = retainSourceProperties(payload.rawProperties)
         payload.sourceLocator = sourceLocatorFromReferences(payload.sources)
         delete payload.sources
       }
@@ -633,13 +638,15 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
           separatePublisherEnvelope
             ? nativeSourcePayloadHashInput({
                 ...payload,
-                rawProperties: payload.rawProperties,
+                properties: payload.properties,
               })
-            : hashPublisherContentOnly
-              ? Object.fromEntries(
-                  Object.entries(payload).filter(([key]) => key !== 'sources'),
-                )
-              : payload,
+            : sourceRecordHashInput(
+                hashPublisherContentOnly
+                  ? Object.fromEntries(
+                      Object.entries(payload).filter(([key]) => key !== 'sources'),
+                    )
+                  : payload,
+              ),
         ),
       }
     }),

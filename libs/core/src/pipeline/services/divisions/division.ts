@@ -76,7 +76,6 @@ import { resolveSourceRecordSchema } from '../../../sourceRecordSchemas'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
 import {
-  cloneDivisionCurrentSnapshot,
   closeCurrentDivisionVersions,
   countDivisionCurrentSnapshotI18nRows,
   countDivisionCurrentSnapshotRows,
@@ -343,8 +342,7 @@ export async function processDivisionDataset(
     publicationToken: versionInsertContext.releaseId,
     timestamp: new Date().toISOString(),
   }
-  await beginSnapshotPublication(currentDb, publication)
-  currentRepoDb = guardSnapshotPublicationWrites(currentRepoDb, publication)
+  const currentScopeId = publication.scopeId
   const divisionCodeAssignments = await timings.measure(
     'loadDivisionCodeAssignmentsMs',
     () => loadDivisionCodeAssignments(metaRepoDb),
@@ -366,7 +364,7 @@ export async function processDivisionDataset(
     versionInsertContext.parentSnapshotId
       ? getDivisionVersionMapForSnapshot(
           currentRepoDb,
-          versionInsertContext.parentSnapshotId,
+          currentScopeId,
           { buildDivisionBaseHashInput, normaliseDivisionI18nSnapshotRow },
           historyBaselineSources.map(source => source.key),
         )
@@ -383,11 +381,11 @@ export async function processDivisionDataset(
   if (parentSnapshotId) {
     const activeSnapshotRowCount = await timings.measure(
       'countDivisionCurrentSnapshotRowsMs',
-      () => countDivisionCurrentSnapshotRows(currentRepoDb, parentSnapshotId),
+      () => countDivisionCurrentSnapshotRows(currentRepoDb, currentScopeId),
     )
     const activeSnapshotI18nRowCount = await timings.measure(
       'countDivisionCurrentSnapshotI18nRowsMs',
-      () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, parentSnapshotId),
+      () => countDivisionCurrentSnapshotI18nRows(currentRepoDb, currentScopeId),
     )
     const expectedI18nRowCount = [...currentRows.values()].reduce(
       (total, row) => total + row.localisedRows.length,
@@ -403,7 +401,7 @@ export async function processDivisionDataset(
     if (activeSnapshotRowCount !== currentRows.size) {
       const traceState = await getDivisionCurrentSnapshotTraceState(
         currentRepoDb,
-        parentSnapshotId,
+        currentScopeId,
         [...traceDivisionIds],
       )
 
@@ -435,15 +433,9 @@ export async function processDivisionDataset(
         `Parent division snapshot ${parentSnapshotId} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
       )
     }
-
-    await timings.measure('cloneDivisionCurrentSnapshotMs', () =>
-      cloneDivisionCurrentSnapshot(
-        currentRepoDb,
-        parentSnapshotId,
-        versionInsertContext.snapshotId,
-      ),
-    )
   }
+  await beginSnapshotPublication(currentDb, publication)
+  currentRepoDb = guardSnapshotPublicationWrites(currentRepoDb, publication)
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
   const seenPublisherIds = new Set<string>()
@@ -800,19 +792,14 @@ export async function processDivisionDataset(
     }
 
     await timings.measure('upsertDivisionCurrentStatesMs', () =>
-      upsertDivisionCurrentStates(
-        currentRepoDb,
-        versionInsertContext.snapshotId,
-        currentDivisionRows,
-        {
-          assumeSnapshotEmpty: isInitialCanonicalLoad,
-        },
-      ),
+      upsertDivisionCurrentStates(currentRepoDb, currentScopeId, currentDivisionRows, {
+        assumeSnapshotEmpty: isInitialCanonicalLoad,
+      }),
     )
     await timings.measure('replaceDivisionCurrentI18nMs', () =>
       replaceDivisionCurrentI18n(
         currentRepoDb,
-        versionInsertContext.snapshotId,
+        currentScopeId,
         [...currentDivisionI18nRowIds],
         currentDivisionI18nRows,
         {
@@ -914,11 +901,7 @@ export async function processDivisionDataset(
     },
   )
   await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
-    deleteStaleDivisionCurrentRows(
-      currentRepoDb,
-      versionInsertContext.snapshotId,
-      seenIds,
-    ),
+    deleteStaleDivisionCurrentRows(currentRepoDb, currentScopeId, seenIds),
   )
   const churnStats = buildChurnStatsRows(
     buildChurnCounts(previousRows, processedRowsById),
@@ -1011,12 +994,8 @@ export async function processDivisionDataset(
     currentDb,
     publication,
     [
-      buildPublicationRowCountSql('divisions', publication.snapshotId, processedRows),
-      buildPublicationRowCountSql(
-        'divisionsI18n',
-        publication.snapshotId,
-        localisedRows,
-      ),
+      buildPublicationRowCountSql('divisions', currentScopeId, processedRows),
+      buildPublicationRowCountSql('divisionsI18n', currentScopeId, localisedRows),
     ].join(' AND '),
   )
   return {

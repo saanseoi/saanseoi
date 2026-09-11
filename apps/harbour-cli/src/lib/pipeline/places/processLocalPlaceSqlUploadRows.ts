@@ -145,6 +145,7 @@ export async function buildPlaceSql(
     const lng = row.effectiveLng ?? place.lng
     const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
+    const unchanged = previous?.row.versionHash === row.versionHash
     const firstSeenMonth =
       typeof previous?.row.firstSeenMonth === 'string'
         ? previous.row.firstSeenMonth
@@ -183,7 +184,7 @@ export async function buildPlaceSql(
     currentInserts.add('places', {
       snapshotId: input.snapshots.snapshotId,
       id: place.id,
-      releaseId: input.message.releaseId,
+      releaseId: unchanged ? previous.row.releaseId : input.message.releaseId,
       addressSnapshotId: row.address2dId
         ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
         : null,
@@ -208,7 +209,7 @@ export async function buildPlaceSql(
       confidence: place.confidence,
       sources: place.sources,
       firstSeenMonth,
-      lastSeenMonth: place.lastSeenMonth,
+      lastSeenMonth: unchanged ? previous.row.lastSeenMonth : place.lastSeenMonth,
       createdAt: now,
       updatedAt: now,
     })

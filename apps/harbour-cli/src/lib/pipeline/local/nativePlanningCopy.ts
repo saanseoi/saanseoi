@@ -49,8 +49,15 @@ export async function captureNativePlanningCopy<T>(input: {
         schema: target.schema,
         logger: {
           logQuery(query, params) {
-            if (/^\s*select\b/i.test(query)) return
-            if (!/^\s*(insert|update|delete)\b/i.test(query))
+            if (
+              /^\s*select\b/i.test(query) &&
+              !query.includes('saanseoi-publication-guard')
+            )
+              return
+            if (
+              !/^\s*(insert|update|delete)\b/i.test(query) &&
+              !query.includes('saanseoi-publication-guard')
+            )
               throw new Error(
                 'Native planning capture accepts generated DML and SELECT only.',
               )
@@ -90,14 +97,40 @@ export async function captureNativePlanningCopy<T>(input: {
       parts = []
       bytes = 0
     }
+    const pendingGuards = new Map<string, string[]>()
     try {
       for await (const line of lines) {
         const row = JSON.parse(line) as { binding: string; sql: string }
+        if (
+          /^\s*select\b/i.test(row.sql) &&
+          row.sql.includes('saanseoi-publication-guard')
+        ) {
+          const guards = pendingGuards.get(row.binding) ?? []
+          guards.push(row.sql)
+          pendingGuards.set(row.binding, guards)
+          continue
+        }
+        const guards = pendingGuards.get(row.binding)
+        if (guards?.length) {
+          row.sql = [
+            'SELECT 1 /* saanseoi-audit-commit:start */;',
+            ...guards,
+            row.sql,
+            'SELECT 1 /* saanseoi-audit-commit:end */;',
+          ].join('\n')
+          pendingGuards.delete(row.binding)
+        }
         const size = Buffer.byteLength(row.sql) + 1
         if (row.binding !== binding || bytes + size > 4 * 1024 * 1024) await flush()
         binding = row.binding
         parts.push(row.sql)
         bytes += size
+      }
+      for (const [guardBinding, guards] of pendingGuards) {
+        if (binding !== guardBinding) await flush()
+        binding = guardBinding
+        parts.push(...guards)
+        bytes += guards.reduce((sum, guard) => sum + Buffer.byteLength(guard) + 1, 0)
       }
       await flush()
     } finally {

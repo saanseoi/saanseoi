@@ -11,6 +11,38 @@ import { readHkgovHydStreetArchive } from '../../sources/hkgov/hyd/hkgovHyd.ts'
 import { sourceSchema } from '@repo/db'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
+test('native source fingerprints remain stable when properties are renamed', async () => {
+  const row: NativeSourceRow = {
+    sourceRecordId: 'road',
+    properties: { STREET_CODE: 7, name: 'Road' },
+    sourceGeometry: {
+      type: 'LineString',
+      coordinates: [
+        [1, 2],
+        [3, 4],
+      ],
+    },
+    sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-1' }],
+  }
+  const [withProvenance] = await versionNativeSourceRows([row], 'release', 'release')
+  const [publisherOnly] = await versionNativeSourceRows(
+    [row],
+    'release',
+    'release',
+    true,
+  )
+  expect(withProvenance?.versionHash).toBe(
+    '9f2720bb25de2eb71dd2124206614f92a81ed83f78b3ee41dad27c719d9d0dcb',
+  )
+  expect(publisherOnly?.versionHash).toBe(
+    '8cf1286f8e3ffe81064622da57a9b3d0b14b02bb3db2330efa6fa52a31273c98',
+  )
+  expect(withProvenance?.properties).toEqual({ streetCode: 7, name: 'Road' })
+  expect(
+    Object.keys(withProvenance ?? {}).filter(key => /properties$/i.test(key)),
+  ).toEqual(['properties'])
+})
+
 test('road centreline schema reuses unchanged features across different archives', async () => {
   const db = new Database(':memory:')
   const config = getTableConfig(sourceSchema.sourceHkgovLandsdRoadCentrelines)
@@ -19,7 +51,7 @@ test('road centreline schema reuses unchanged features across different archives
   )
   const original = {
     sourceRecordId: 'road',
-    rawProperties: { name: 'Road' },
+    properties: { name: 'Road' },
     sourceGeometry: {
       type: 'LineString',
       coordinates: [
@@ -61,7 +93,7 @@ test('road centreline schema reuses unchanged features across different archives
         .get(),
     ).toEqual({ n: 1, first: 'first' })
     await run('third', [
-      { ...original, rawProperties: { name: 'Changed' }, sources: null },
+      { ...original, properties: { name: 'Changed' }, sources: null },
     ])
     expect(db.query(`SELECT count(*) AS n FROM "${config.name}"`).get()).toEqual({
       n: 2,
@@ -82,7 +114,7 @@ test('replays native polygon values and duplicate assertions without losing hist
   const db = new Database(':memory:')
   db.run(`CREATE TABLE evidence (
     sourceRecordId TEXT NOT NULL, versionHash TEXT NOT NULL,
-    sourceGeometry TEXT NOT NULL, rawProperties TEXT NOT NULL,
+    sourceGeometry TEXT NOT NULL, properties TEXT NOT NULL,
     createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, isCurrent INTEGER NOT NULL,
     releaseId TEXT NOT NULL, validFromRelease TEXT NOT NULL, validToRelease TEXT,
     PRIMARY KEY(sourceRecordId, versionHash)
@@ -90,7 +122,7 @@ test('replays native polygon values and duplicate assertions without losing hist
   const original = {
     sourceRecordId: 'one',
     sourceGeometry: { text: "香港'😀".repeat(30000) },
-    rawProperties: { text: '街道'.repeat(30000) },
+    properties: { text: '街道'.repeat(30000) },
   }
   const run = async (rows: NativeSourceRow[], release: string) => {
     const chunks = await buildNativeSourceSql(
@@ -107,7 +139,7 @@ test('replays native polygon values and duplicate assertions without losing hist
     await run([original, original], 'first')
     const first = db.query('SELECT * FROM evidence').get() as Record<string, unknown>
     expect(JSON.parse(first.sourceGeometry as string)).toEqual(original.sourceGeometry)
-    expect(JSON.parse(first.rawProperties as string)).toEqual(original.rawProperties)
+    expect(JSON.parse(first.properties as string)).toEqual(original.properties)
     expect(first.isCurrent).toBe(1)
     const beforeReplay = db.query('SELECT total_changes() AS n').get()
     await run([original], 'first')
@@ -116,7 +148,7 @@ test('replays native polygon values and duplicate assertions without losing hist
     expect(db.query('SELECT createdAt FROM evidence').get()).toEqual({
       createdAt: first.createdAt,
     })
-    await run([{ ...original, rawProperties: { text: 'different' } }], 'second')
+    await run([{ ...original, properties: { text: 'different' } }], 'second')
     expect(
       db
         .query('SELECT isCurrent, validToRelease FROM evidence WHERE versionHash = ?')
@@ -143,9 +175,9 @@ test('imports all three cached HyD archives with lossless geometry and repeatabl
     )
     const rows = archive.features.map((feature, i) => ({
       sourceRecordId:
-        kind === 'streetNamePlate' ? String(feature.properties.SNP_ID) : String(i),
+        kind === 'streetNamePlate' ? String(feature.properties.snpId) : String(i),
       sourceGeometry: feature.geometry,
-      rawProperties: feature.properties,
+      properties: feature.properties,
     }))
     const versioned = await versionNativeSourceRows(rows, 'test', 'test')
     const firstRow = versioned[0]
@@ -173,15 +205,15 @@ test('imports all three cached HyD archives with lossless geometry and repeatabl
       for (const row of versioned) {
         const retained = db
           .query(
-            'SELECT sourceGeometry, rawProperties FROM evidence WHERE sourceRecordId = ? AND versionHash = ?',
+            'SELECT sourceGeometry, properties FROM evidence WHERE sourceRecordId = ? AND versionHash = ?',
           )
           .get(row.sourceRecordId, row.versionHash) as {
           sourceGeometry: string
-          rawProperties: string
+          properties: string
         }
         expect(JSON.parse(retained.sourceGeometry)).toEqual(row.sourceGeometry)
-        expect(JSON.parse(retained.rawProperties)).toEqual(
-          JSON.parse(JSON.stringify(row.rawProperties)),
+        expect(JSON.parse(retained.properties)).toEqual(
+          JSON.parse(JSON.stringify(row.properties)),
         )
       }
     } finally {
