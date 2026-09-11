@@ -649,14 +649,22 @@ timestamps, and delivers only keyed inserts, changed columns and removals within
 complete replacement's scope. Source assertions and history remain in their owning
 shards; metadata and publication receipts retain their separate lifecycle operations.
 
-CLI Division and Planning delivery compares base and individual locale history
-components independently. Unchanged content retains its canonical version, owning
-history shard and original source provenance; a base-only edit leaves unchanged locales
-open, and a locale-only edit leaves the base open. Semantic geometry comparison decodes
-stored geometry before comparison. Source interpretations inherit through snapshot
-ancestry; repeated assertions produce no resolution rows, while explicit source
-omissions remain recorded. Canonical identifiers participate in both current and history
-content.
+The core Division processor and CLI Division/Planning delivery compare base and
+individual locale history components independently. Unchanged content retains its
+canonical version, owning history shard and original source provenance; a base-only edit
+leaves unchanged locales open, and a locale-only edit leaves the base open. Semantic
+geometry comparison decodes stored geometry before comparison. Source interpretations
+inherit through snapshot ancestry; repeated assertions produce no resolution rows, while
+explicit source omissions remain recorded. Canonical identifiers participate in both
+current and history content.
+
+The core processor accepts explicitly named `historyShards` for replay across annual
+databases. It validates the complete parent ancestry, component ownership and retained
+content against the materialised current scope before publishing. A single database
+handle is sufficient for a single-shard parent. Closures target the exact base or locale
+version in its owning shard; child deletion journals are recorded in the active shard.
+Reappearing content preserves its retained canonical provenance. Localisation identity
+includes name provenance independently of base content.
 
 Area and boundary projections use separate lineage/cohort scopes and publication
 receipts. Provider variants retain their own lineages. A revision updates only changed

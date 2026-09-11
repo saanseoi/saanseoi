@@ -389,6 +389,12 @@ async function validateLocaleDependencies(
   const versions = await resolveSnapshotVersionState(plan, shards, ['placeI18n'])
   const originPlans = new Map<string, Promise<SnapshotReplayStep[]>>()
   const originBases = new Map<string, Promise<Base>>()
+  const linksByPlace = new Map<string, Link[]>()
+  for (const link of links.values()) {
+    const group = linksByPlace.get(link.placeId) ?? []
+    group.push(link)
+    linksByPlace.set(link.placeId, group)
+  }
   for (const locale of locales) {
     const key = `placeI18n\u0000${locale.placeId}\u0000${locale.locale}`
     const version = versions.get(key)
@@ -485,13 +491,11 @@ async function validateLocaleDependencies(
         locales: [locale.locale],
       })
     ).searchDependencies[locale.locale]
-    const names = [...links.values()]
-      .filter(link => link.placeId === locale.placeId)
-      .flatMap(link =>
-        link.definition.locales
-          .filter(value => value.locale.toLowerCase() === locale.locale.toLowerCase())
-          .map(value => value.name ?? ''),
-      )
+    const names = (linksByPlace.get(locale.placeId) ?? []).flatMap(link =>
+      link.definition.locales
+        .filter(value => value.locale.toLowerCase() === locale.locale.toLowerCase())
+        .map(value => value.name ?? ''),
+    )
     const divisionText = [...new Set(names.filter(Boolean))].sort().join(',')
     if (
       !expected ||
