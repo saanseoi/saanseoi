@@ -120,6 +120,7 @@ export async function runUpdateCommand(
   const skipPrompts = args.options.yes === true
   const forceCheck = args.options['check-now'] === true || forceDownload
   const forceUpload = args.options['force-upload'] === true
+  const continueUpload = args.options.continue === true
   const errors: string[] = []
   const added = new Map<string, PublishedSourceRelease>()
   const planned: PlannedDatasetUpdates[] = []
@@ -256,6 +257,7 @@ export async function runUpdateCommand(
         includeGeography,
         forceDownload,
         forceUpload,
+        continueUpload,
         printUsage,
         releaseNotesDatasetCode,
         releaseNotesUrl,
@@ -303,6 +305,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
   const supportedOptions = new Set([
     'api-family',
     'check-now',
+    'continue',
     'dataset',
     'defer-stats-release-set',
     'download',
@@ -321,6 +324,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
   )
   const booleanOptions = [
     'check-now',
+    'continue',
     'defer-stats-release-set',
     'download',
     'force-download',
@@ -438,6 +442,7 @@ async function processPlannedUpdates(
     includeGeography: boolean
     forceDownload: boolean
     forceUpload: boolean
+    continueUpload: boolean
     printUsage: () => void
     releaseNotesDatasetCode?: string
     releaseNotesUrl?: string
@@ -461,6 +466,7 @@ async function processPlannedUpdates(
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
+        continueUpload: options.continueUpload,
         deferStatsReleaseSet: options.deferStatsReleaseSet,
         includeGeography: options.includeGeography,
         printUsage: options.printUsage,

@@ -31,6 +31,7 @@ export async function processUpdate(
     shouldDownload: boolean
     forceDownload: boolean
     forceUpload: boolean
+    continueUpload: boolean
     deferStatsReleaseSet: boolean
     includeGeography: boolean
     skipPrompts: boolean
@@ -152,6 +153,7 @@ export async function processUpdate(
       positionals: [path],
       options: {
         ...update.upload.options,
+        ...(options.continueUpload ? { continue: true } : {}),
         ...(options.releaseNotesUrl
           ? { 'release-notes-url': options.releaseNotesUrl }
           : {}),
@@ -164,8 +166,7 @@ export async function processUpdate(
       // A continued initialiser may need to recover a release which reached
       // `processing` before an owned SQL phase could complete. The upload
       // guard still rejects an active phase before it is reused.
-      resumeInterruptedProcessingRelease: options.forceUpload,
-      reuseExistingRelease: options.forceUpload,
+      reuseExistingRelease: options.continueUpload,
       invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
       printUsage: options.printUsage,
       releaseNotesRetryCommand: `./bin/saanseoi update --target ${options.target.remote ? options.target.environment : 'local'} --dataset ${update.dataset.code} --download --check-now`,

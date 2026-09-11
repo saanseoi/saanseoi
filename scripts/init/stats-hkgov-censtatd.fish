@@ -32,7 +32,7 @@ set -l datasets \
 # processing phase; normal runs retain the ordinary staged-only behaviour.
 set -l continuation_args
 if test "$saanseoi_init_continue" -eq 1
-    set continuation_args --force-upload
+    set continuation_args --continue
 end
 
 for dataset in $datasets
