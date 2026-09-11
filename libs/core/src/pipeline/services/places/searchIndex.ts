@@ -54,12 +54,15 @@ FROM selected s JOIN "places" p ON p."snapshotId" = s."snapshotId"
 JOIN "placesI18n" pi
   ON pi."snapshotId" = p."snapshotId"
  AND pi."placeId" = p."id"
+LEFT JOIN "addressPublicationState" addressScope
+  ON addressScope."snapshotId" = p."addressSnapshotId"
+ AND addressScope."status" = 'current' AND addressScope."preparedAt" IS NOT NULL
 LEFT JOIN "address2dI18n" a2
-  ON a2."snapshotId" = p."addressSnapshotId"
+  ON a2."snapshotId" = addressScope."scopeId"
  AND a2."addressId" = p."address2dId"
  AND a2."locale" = pi."locale"
 LEFT JOIN "address3dI18n" a3
-  ON a3."snapshotId" = p."addressSnapshotId"
+  ON a3."snapshotId" = addressScope."scopeId"
  AND a3."address3dId" = p."address3dId"
  AND a3."locale" = pi."locale"
 LEFT JOIN json_each(a3."units") a3unit
