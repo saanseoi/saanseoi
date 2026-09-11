@@ -1,6 +1,6 @@
 import { log, note, outro } from '@clack/prompts'
 
-import { formatField } from '../cli/display.ts'
+import { formatField, formatMutedValue } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { reconcileDraftReleaseSets } from '../upload/upload.ts'
 import { logApiReleaseSetPublication } from './uploadDisplay.ts'
@@ -95,6 +95,14 @@ export async function runReconcileDraftReleaseSetsCommand(
     } finally {
       dbContext.cleanup()
     }
+    // Separate the final stats phase from the following release rows while
+    // continuing Clack's guide in nested initialisation output.
+    log.message('', {
+      secondarySymbol: formatMutedValue('│'),
+      spacing: 0,
+      symbol: formatMutedValue('│'),
+      withGuide: true,
+    })
   }
   await logApiReleaseSetPublication({
     apiReleaseSetPublications: result.publishedReleaseSetCodes.map(
