@@ -790,11 +790,16 @@ function seedSelectedDivision(sqlite: Database) {
 function seedCurrentDivision(sqlite: Database) {
   run(
     sqlite,
+    `INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES ('scope:snapshot-divisions','snapshot-divisions','current','fixture',?)`,
+    [PUBLISHED_AT],
+  )
+  run(
+    sqlite,
     `INSERT INTO divisions (
       snapshotId, id, divisionCode, level, class, createdAt, updatedAt
     , hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
     [
-      'snapshot-divisions',
+      'scope:snapshot-divisions',
       'division-central-western',
       'CW',
       2,
