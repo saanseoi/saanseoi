@@ -120,11 +120,13 @@ enrich the same identities without becoming their source of truth.
 ## Publication readiness
 
 Canonical Street current rows and companion tables use one stable scope per registered
-lineage. `streetPublicationState` maps it to the logical snapshot. Conditional updates
-preserve unchanged rows and timestamps; complete replacement membership removes obsolete
-components within that scope. Candidate SQL may still be transmitted without writing
-unchanged D1 content rows. Current Address links use physical scopes, while metadata and
-history retain logical snapshots and Gazette evidence.
+lineage. `streetPublicationState` maps it to the logical snapshot. The local compiler
+preserves unchanged rows and timestamps and transmits only final content differences.
+Source lifecycle events determine membership; absence from an incremental notice does
+not remove a Street. Source assertions and canonical versions close in their owning
+shards, with snapshot journals recorded in the incoming history shard. Current Address
+links use physical scopes, while metadata and history retain logical snapshots and
+Gazette evidence.
 
 Each delivery batch checks its sealed publication token. Complete validation records
 preparation; publication grants readiness. An interrupted scope remains unavailable, and

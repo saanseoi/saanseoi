@@ -367,9 +367,9 @@ create duplicate search documents. See
 
 C&SD current area geometry uses one stable lineage/cohort scope for each provider
 variant. A revision preserves unchanged geometry rows and timestamps and writes only
-changed content or membership; a distinct cohort retains its own materialisation.
-Conditional candidate SQL may still be transmitted even when D1 writes no unchanged
-content rows. HMA and other canonical Division outputs use their own lineage scopes.
+changed content or membership; a distinct cohort retains its own materialisation. The
+local compiler transmits only final content differences. HMA and other canonical
+Division outputs use their own lineage scopes.
 
 Exact Division dependencies resolve through completed receipts or immutable history;
 preparation does not restore older Division rows into serving current storage. Each

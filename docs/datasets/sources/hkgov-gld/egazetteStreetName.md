@@ -78,9 +78,9 @@ layout, missing OCR runtime, or damaged retrieval can be corrected deliberately.
 
 Notice processing contributes evidence and lifecycle changes to the canonical Street
 lineage. Its current projection uses a stable scope, with `streetPublicationState`
-identifying the logical publication. Conditional current updates preserve unchanged rows
-and timestamps; they can transmit candidate SQL without writing unchanged D1 content
-rows. Scope reuse preserves the notice identities and historical evidence.
+identifying the logical publication. The local compiler preserves unchanged rows and
+timestamps, transmitting only final content differences. Scope reuse preserves the
+notice identities and historical evidence.
 
 Delivery checks its sealed scope token in every current write batch. Complete validation
 records preparation; publication alone grants readiness, including for empty results.
