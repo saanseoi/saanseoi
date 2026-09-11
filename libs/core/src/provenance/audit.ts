@@ -9,6 +9,7 @@ import {
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { createProvenanceReader } from './cache'
+import { boundedBulkSearchText } from './boundedSearchText'
 import type { BulkAudit } from './auditTypes'
 import { auditActionCategory } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
@@ -217,19 +218,7 @@ async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
   // Search text is derived metadata. Keep it bounded when a large retained
   // fixture is split across many provenance objects; the complete fixture
   // partitions remain available for exact audit reads.
-  const encoder = new TextEncoder()
-  let bounded = ''
-  for (const token of tokens) {
-    const next = bounded ? `${bounded} ${token}` : token
-    const candidate = serialise({
-      kind: 'bulk-search',
-      schemaVersion: 1,
-      text: next,
-    })
-    if (encoder.encode(candidate).length > MAX_OBJECT_BYTES) break
-    bounded = next
-  }
-  return bounded
+  return boundedBulkSearchText(tokens)
 }
 
 export async function retainAuditResult(
