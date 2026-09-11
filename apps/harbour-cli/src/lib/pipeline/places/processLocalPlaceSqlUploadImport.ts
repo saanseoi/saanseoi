@@ -6,7 +6,6 @@ import {
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
 import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
-import { getPreparedPublication } from '../local/snapshotPublication.ts'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { currentSchema, sql as drizzleSql } from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
@@ -111,11 +110,7 @@ export async function importPlaceSqlBatches(
       return {
         ...input,
         referenceScopes,
-        publicationPrevious: await getPreparedPublication(
-          db,
-          'placePublicationState',
-          input.snapshots.snapshotLineageId,
-        ),
+        publicationPrevious: input.publicationPrevious,
       }
     }
     if (delivery.context.state.target === 'local') {

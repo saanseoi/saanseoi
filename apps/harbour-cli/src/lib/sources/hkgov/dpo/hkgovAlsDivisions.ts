@@ -1,6 +1,6 @@
 import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, ne } from 'drizzle-orm'
 import { resolveLocalD1Path } from '@repo/core/testing/localDb'
 import {
   currentSchema,
@@ -45,6 +45,7 @@ export async function loadDivisionLookupMaps(options: {
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
         ),
       )
+      .orderBy(desc(metaSchema.metaSnapshots.revision))
       .limit(1)
       .get()
     if (!snapshot) {
@@ -63,7 +64,7 @@ export async function loadDivisionLookupMaps(options: {
     }
     let rows = await options.currentDb
       .select({
-        snapshotId: currentSchema.divisions.snapshotId,
+        snapshotId: currentSchema.divisionPublicationState.snapshotId,
         id: currentSchema.divisions.id,
         level: currentSchema.divisions.level,
         category: currentSchema.divisions.category,
@@ -72,6 +73,13 @@ export async function loadDivisionLookupMaps(options: {
         name: currentSchema.divisionsI18n.name,
       })
       .from(currentSchema.divisions)
+      .innerJoin(
+        currentSchema.divisionPublicationState,
+        eq(
+          currentSchema.divisionPublicationState.scopeId,
+          currentSchema.divisions.snapshotId,
+        ),
+      )
       .innerJoin(
         currentSchema.divisionsI18n,
         and(
@@ -82,7 +90,13 @@ export async function loadDivisionLookupMaps(options: {
           eq(currentSchema.divisionsI18n.divisionId, currentSchema.divisions.id),
         ),
       )
-      .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+      .where(
+        and(
+          eq(currentSchema.divisionPublicationState.snapshotId, snapshot.id),
+          isNotNull(currentSchema.divisionPublicationState.preparedAt),
+          ne(currentSchema.divisionPublicationState.publicationToken, ''),
+        ),
+      )
       .all()
     if (rows.length === 0 && options.historyDb) {
       rows = await options.historyDb
@@ -176,12 +190,13 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string, snapshotId: st
     return sqlite
       .query(
         `
-          SELECT d.snapshotId, d.id, d.level, d.class, di.locale, di.name
+          SELECT p.snapshotId, d.id, d.level, d.class, di.locale, di.name
           FROM divisions d
+          JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
           JOIN divisionsI18n di
             ON di.snapshotId = d.snapshotId
            AND di.divisionId = d.id
-          WHERE d.snapshotId = ?
+          WHERE p.snapshotId = ? AND p.preparedAt IS NOT NULL AND p.publicationToken <> ''
             AND di.locale IN ('en', 'zh-hant')
         `,
       )
@@ -209,12 +224,13 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      SELECT d.snapshotId, d.id, d.level, d.class, di.locale, di.name
+      SELECT p.snapshotId, d.id, d.level, d.class, di.locale, di.name
       FROM divisions d
+      JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
       JOIN divisionsI18n di
         ON di.snapshotId = d.snapshotId
        AND di.divisionId = d.id
-      WHERE d.snapshotId = '${snapshotId}'
+      WHERE p.snapshotId = ${sqlLiteral(snapshotId)} AND p.preparedAt IS NOT NULL AND p.publicationToken <> ''
         AND di.locale IN ('en', 'zh-hant')
     `,
   ]

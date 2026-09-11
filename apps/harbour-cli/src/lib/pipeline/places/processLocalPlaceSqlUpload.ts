@@ -63,6 +63,7 @@ import {
 } from './processLocalPlaceSqlUploadMetadata.ts'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUploadSupplementary.ts'
 import { buildPlaceReleaseStatsRowsFromAccumulator } from './processLocalPlaceSqlUploadStatistics.ts'
+import { getPreparedPublication } from '../local/snapshotPublication.ts'
 
 /**
  * Materialises an Overture Places release. The lifecycle is intentionally
@@ -188,6 +189,11 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
         ),
     )
+    const publicationPrevious = await getPreparedPublication(
+      context.currentDb as unknown as HarbourReadableDb,
+      'placePublicationState',
+      snapshots.snapshotLineageId,
+    )
     const stagedPlaces = await runPlaceProgressPhase(
       progress,
       'Read and normalise',
@@ -296,6 +302,7 @@ export async function processLocalPlaceSqlUpload(
       datasetId,
       message,
       snapshots,
+      publicationPrevious,
       places: [],
       historyRows,
     }

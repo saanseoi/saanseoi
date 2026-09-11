@@ -146,7 +146,8 @@ export async function statsResetBlockers(context: ResetReadContext) {
       ['current', context.currentBinding],
       ...context.historyTargets.map(t => [t.bindingName, t.binding] as const),
     ] as const) {
-      const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${ids})`
+      const current = label === 'current'
+      const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
       await check(
         binding,
         `${label}: addresses reference contributed divisions`,
@@ -155,15 +156,17 @@ export async function statsResetBlockers(context: ResetReadContext) {
       await check(
         binding,
         `${label}: other geometry references contributed divisions`,
-        `SELECT 1 FROM divisionAreas WHERE snapshotId NOT IN (${allGeometryIds}) AND divisionId IN (${divisions}) UNION ALL SELECT 1 FROM divisionBoundaries WHERE snapshotId NOT IN (${allGeometryIds}) AND (leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})) LIMIT 1`,
+        `SELECT 1 FROM divisionAreas WHERE snapshotId NOT IN (${current ? `SELECT scopeId FROM divisionAreaPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND divisionId IN (${divisions}) UNION ALL SELECT 1 FROM divisionBoundaries WHERE snapshotId NOT IN (${current ? `SELECT scopeId FROM divisionBoundaryPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND (leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})) LIMIT 1`,
       )
     }
     await check(
       context.currentBinding,
       'Places reference contributed divisions',
-      `SELECT 1 FROM placesDivision WHERE divisionSnapshotId IN (${ids}) LIMIT 1`,
+      `SELECT 1 FROM placesDivision WHERE divisionSnapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})) LIMIT 1`,
     )
   }
+  if (plan.dependencies.publications.some(row => row.preparedAt === null))
+    blockers.push('Current statistics geography has an unfinished delivery')
   return blockers
 }
 
@@ -197,7 +200,27 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
     ...GEOMETRY_TABLES.flatMap(table => deleteIds(table, 'snapshotId', snapshotIds)),
   ].join('\n')
-  const currentSql = `DELETE FROM statsPublicationState;\n${canonicalSql}`
+  const currentSql = [
+    'DELETE FROM statsPublicationState;',
+    ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
+    ...GEOMETRY_TABLES.flatMap(table => {
+      const family = table.startsWith('divisions')
+        ? 'division'
+        : table === 'divisionAreas'
+          ? 'divisionArea'
+          : 'divisionBoundary'
+      return plan.dependencies.publications
+        .filter(row => row.family === family)
+        .map(
+          row =>
+            `DELETE FROM ${table} WHERE snapshotId = ${literal(String(row.scopeId))} AND EXISTS (SELECT 1 FROM ${family}PublicationState WHERE scopeId = ${literal(String(row.scopeId))} AND snapshotId = ${literal(String(row.snapshotId))} AND publicationToken = ${literal(String(row.publicationToken))} AND preparedAt IS NOT NULL);`,
+        )
+    }),
+    ...plan.dependencies.publications.map(
+      row =>
+        `DELETE FROM ${row.family}PublicationState WHERE scopeId = ${literal(String(row.scopeId))} AND snapshotId = ${literal(String(row.snapshotId))} AND publicationToken = ${literal(String(row.publicationToken))} AND preparedAt IS NOT NULL;`,
+    ),
+  ].join('\n')
   const historySql = [
     canonicalSql,
     ...GEOMETRY_TABLES.flatMap(table =>

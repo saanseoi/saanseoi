@@ -1,3 +1,4 @@
+import { readDivisionSnapshot } from '../pipeline/divisions/readDivisionSnapshot.ts'
 import { Database } from 'bun:sqlite'
 
 import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
@@ -397,16 +398,14 @@ async function findDivisionSnapshotRows(
       `No versioned division snapshot is available for ${release.code} (${cohortKey}).`,
     )
   }
-  return context.currentDb
-    .select({
-      hierarchies: currentSchema.divisions.hierarchies,
-      id: currentSchema.divisions.id,
-      category: currentSchema.divisions.category,
-      class: currentSchema.divisions.class,
-    })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, districtSnapshot.id))
-    .all()
+  return (
+    await readDivisionSnapshot(
+      context.currentDb as never,
+      context.metaDb as never,
+      districtSnapshot.id,
+      context.historyTargets as never,
+    )
+  ).divisions
 }
 
 async function resolveExactSnapshot(
