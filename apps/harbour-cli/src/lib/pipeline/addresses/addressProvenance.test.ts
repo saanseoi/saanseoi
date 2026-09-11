@@ -8,8 +8,44 @@ import {
 } from '@repo/core/provenance'
 import preparation from '../../../../../../fixtures/meta/processing-rules/address-preparation.json'
 import curation from '../../../../../../fixtures/meta/processing-rules/address-curation.json'
-import { retainAddressProvenance } from './addressProvenance'
+import {
+  readAddressPreparationAudit,
+  retainAddressProvenance,
+} from './addressProvenance'
 import { alsAuditFixtures } from '../../sources/hkgov/dpo/hkgovAlsAuditFixtures'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
+test('empty ALS preparation must retain its exact Division selection before upload', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'empty-address-audit-'))
+  const path = join(directory, 'prepared.parquet')
+  const audit = {
+    schemaVersion: 1,
+    sourceVersion: '2026-09-01.0',
+    preparedSha256: 'empty',
+    divisionSnapshotId: 'division-exact',
+    sourceFeatureCount: 0,
+    outputCount: 0,
+    fixtures: [],
+    processingActions: [],
+  }
+  try {
+    await writeFile(`${path}.audit.json`, JSON.stringify(audit))
+    expect(
+      await readAddressPreparationAudit(path, 'empty', audit.sourceVersion),
+    ).toMatchObject({ divisionSnapshotId: 'division-exact', outputCount: 0 })
+    await writeFile(
+      `${path}.audit.json`,
+      JSON.stringify({ ...audit, divisionSnapshotId: undefined }),
+    )
+    await expect(
+      readAddressPreparationAudit(path, 'empty', audit.sourceVersion),
+    ).rejects.toThrow('audit does not match')
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
 
 test('ALS retains reviewed documents and an individual identity decision, with bulk evidence reduced to counts', async () => {
   const objects = new Map<string, ArrayBuffer>()

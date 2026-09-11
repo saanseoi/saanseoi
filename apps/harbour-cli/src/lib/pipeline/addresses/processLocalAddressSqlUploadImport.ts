@@ -120,7 +120,7 @@ export function buildHistoricalAddressMatchKeyLookup(
 }
 
 export function buildFinalImportMessage(
-  initialMessage: DatasetProcessingMessage,
+  initialMessage: AddressPipelineMessage,
   processingRunStartedAt: string,
   messages: AddressPipelineMessage[],
   totalRows: number,
