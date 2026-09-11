@@ -85,15 +85,15 @@ test('reconciles a draft division release set once its required C&SD areas are a
 
     INSERT INTO apiCompositionMembers (
       apiCompositionId, domainCode, resourceType, variant, role, isRequired,
-      cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
+      cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
-      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15, null),
-      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20, null);
+      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15),
+      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20);
 
     INSERT INTO apiReleaseSets (
       id, apiVersionId, apiCompositionId, code, regionCode, domainCode,

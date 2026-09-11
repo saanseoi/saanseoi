@@ -256,7 +256,7 @@ test('rejects a direct source asset that is neither ZIP nor Parquet', async () =
   }
 })
 
-test('reuses an already registered local source asset without writing it again', async () => {
+test('rechecks an already registered local source object without duplicating metadata', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
   const bytes = new TextEncoder().encode('publisher evidence')
   const contentHash = hash(bytes)
@@ -266,15 +266,18 @@ test('reuses an already registered local source asset without writing it again',
     id: '11111111-1111-4111-8111-111111111111',
     assetKey: upload.metadata.assetKey,
   })
+  let checked = false
 
   try {
     await expect(
       registerLocalManagedSourceAsset(registry.db, upload, {
         putObject: async () => {
-          throw new Error('Existing asset should not be written again.')
+          checked = true
         },
       }),
     ).resolves.toBe('11111111-1111-4111-8111-111111111111')
+    expect(checked).toBe(true)
+    expect(registry.rows.size).toBe(1)
   } finally {
     await rm(root, { force: true, recursive: true })
   }
@@ -420,7 +423,7 @@ test('production R2 retains objects but registers IDs only in local metadata', a
     expect(result.url).toBe(`https://api.saanseoi.hk/v0/assets/${result.assetId}`)
     expect(replay.assetId).toBe(result.assetId)
     expect(registry.rows.size).toBe(1)
-    expect(localWrites).toBe(1)
+    expect(localWrites).toBe(2)
     // Re-check R2 even when registration is already present locally.
     expect(remoteWrites).toBe(2)
   } finally {

@@ -16,7 +16,7 @@ import type { MetaDatabase } from '@repo/db'
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { withLocalMetaDb } from '../dbCache/localDbCache.ts'
 import { resolveR2Target, type UploadTarget } from '../cli/options.ts'
-import { retainRemoteR2File } from '../storage/remoteR2.ts'
+import { retainLocalR2File, retainRemoteR2File } from '../storage/remoteR2.ts'
 import { inspectSourceAssetFile } from '../storage/sourceAssetFile.ts'
 import { uploadSourceAssetRemotely } from './sourceAssetUpload.ts'
 
@@ -659,7 +659,6 @@ export async function registerLocalManagedSourceAsset(
         `Registered source asset conflict for ${input.metadata.assetKey}; existing hash differs.`,
       )
     }
-    return existing.id
   }
 
   await options.putObject({
@@ -668,6 +667,8 @@ export async function registerLocalManagedSourceAsset(
     mediaType: input.metadata.mediaType,
     objectKey: input.metadata.assetKey,
   })
+
+  if (existing) return existing.id
 
   const assetId = crypto.randomUUID()
   await metaDb
@@ -712,48 +713,10 @@ async function putLocalSourceAssetObject(input: {
   mediaType: string
   objectKey: string
 }) {
-  await mkdir(LOCAL_R2_PERSIST_DIR, { recursive: true })
-  await mkdir(WRANGLER_CONFIG_HOME, { recursive: true })
-  await mkdir(WRANGLER_LOG_PATH, { recursive: true })
-
-  const command = [
-    'bun',
-    'x',
-    'wrangler',
-    'r2',
-    'object',
-    'put',
-    `${LOCAL_R2_BUCKET_NAME}/${input.objectKey}`,
-    '--file',
-    input.filePath,
-    '--content-type',
-    input.mediaType,
-    '--content-disposition',
-    `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
-    '--local',
-    '--persist-to',
-    LOCAL_R2_PERSIST_DIR,
-    '--config',
-    HARBOUR_WRANGLER_CONFIG_PATH,
-  ]
-  const child = Bun.spawn(command, {
-    cwd: REPO_ROOT,
-    env: {
-      ...process.env,
-      WRANGLER_LOG_PATH: process.env.WRANGLER_LOG_PATH ?? WRANGLER_LOG_PATH,
-      XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME ?? WRANGLER_CONFIG_HOME,
-    },
-    stderr: 'pipe',
-    stdout: 'pipe',
+  await retainLocalR2File(input.objectKey, input.filePath, {
+    contentType: input.mediaType,
+    contentDisposition: `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
   })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-    child.exited,
-  ])
-  if (exitCode !== 0) {
-    throw new Error((stderr || stdout || 'Local R2 source asset upload failed.').trim())
-  }
 }
 
 async function deleteLocalSourceAssetObject(objectKey: string) {

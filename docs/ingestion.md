@@ -163,7 +163,9 @@ Worker reserves 40,000 subrequests and 300 seconds of CPU for verification and a
 these bounds are not a measured throughput guarantee. Loose GML and GeoJSON are packaged
 with streaming ZIP compression and a content-verified local cache; files of 4 GiB or
 more must arrive as ZIP or Parquet. Local D1 with remote R2 uses the same verification
-through its R2-only proxy and keeps metadata writes local.
+through its R2-only proxy and keeps metadata writes local. Local R2 uses the same
+contract against its persisted local bucket. Reusing an existing metadata row still
+verifies the object and restores missing bytes before returning the asset ID.
 
 The private HTTP contract is `GET`/`PUT /v1/assets/parts/{scope}/{hash}` for chunk
 receipts and raw chunk bytes, followed by JSON `POST /v1/assets` containing the file
