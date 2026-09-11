@@ -106,7 +106,6 @@ import {
   resolveCloudflareD1ApiToken,
   resolveShardYear,
   resolveTargetName,
-  shouldIncludePreviousShardYears,
 } from './processLocalAddressSqlUploadImport.ts'
 import {
   ADDRESS_CHUNK_SIZE,

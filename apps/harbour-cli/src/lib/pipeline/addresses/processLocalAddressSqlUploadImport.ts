@@ -67,9 +67,10 @@ export async function replayAddressSqlIntoRemoteCache(
 export async function refreshRemoteMetaCacheAfterReplay(
   targetName: 'preview' | 'production',
   cacheDir: string,
+  releaseId: string,
 ) {
   try {
-    await refreshRemoteMetaCache(targetName, cacheDir)
+    await refreshRemoteMetaCache(targetName, cacheDir, releaseId)
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
 
