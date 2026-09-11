@@ -653,6 +653,7 @@ async function prepareHkgovAlsAddressParquetInternal(
         schemaVersion: 1,
         sourceVersion: options.sourceVersion,
         preparedSha256: await fileSha256(outputFile),
+        divisionSnapshotId: divisionMaps.snapshotId,
         sourceFeatureCount,
         outputCount: rows.length,
         declarations: {

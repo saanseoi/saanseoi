@@ -30,6 +30,7 @@ test('ALS retains reviewed documents and an individual identity decision, with b
       schemaVersion: 1,
       sourceVersion: '2026-09-01.0',
       preparedSha256: 'test',
+      divisionSnapshotId: 'division',
       sourceFeatureCount: 2,
       outputCount: 1,
       declarations: {

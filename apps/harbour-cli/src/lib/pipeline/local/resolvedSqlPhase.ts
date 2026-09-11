@@ -12,6 +12,7 @@ import {
   type ResolvedSqlTarget,
 } from './resolvedSqlPlan.ts'
 import type { PublicationTable } from '@repo/core/pipeline/services/publication/sql.ts'
+import { coalesceDivisionHistory } from '../divisions/coalesceDivisionHistory.ts'
 import {
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,
@@ -104,8 +105,20 @@ export async function deliverResolvedSqlPhase(
       targets,
       publicationTables: input.publicationTables,
       append,
-      generate: candidates =>
-        generate(resolvedCandidateContext(input.context, candidates), candidates),
+      generate: async candidates => {
+        const context = resolvedCandidateContext(input.context, candidates)
+        const result = await generate(context, candidates)
+        if (input.resolvedFamily === 'division') {
+          const historyBinding =
+            input.context.historyBinding?.bindingName ??
+            input.context.historyTargets.find(
+              target => target.db === input.context.historyDb,
+            )?.bindingName
+          if (!historyBinding) throw new Error('Division history owner is unavailable.')
+          await coalesceDivisionHistory({ candidates, files, historyBinding })
+        }
+        return result
+      },
     })
     return { ...result.result, mutationSummary: result.mutationSummary }
   }
