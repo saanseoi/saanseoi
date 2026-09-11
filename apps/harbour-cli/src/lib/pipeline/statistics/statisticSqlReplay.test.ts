@@ -157,6 +157,57 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.close()
   })
 
+  test('replays a large Brotli source geometry as bounded BLOB statements', () => {
+    const sourceGeometry = Uint8Array.from(
+      { length: 100_000 },
+      (_, index) => index % 251,
+    )
+    const batches = buildStatisticSqlBatches({
+      sourceVersion,
+      releaseId,
+      source: {
+        rows: [
+          {
+            ...sourceRow('district-large'),
+            censusYear: '2021',
+            sourceGeometry,
+          },
+        ],
+        table: 'hkgovCenstatdDivisionAreas',
+      },
+    })
+    const [sourceSql] = batches.source
+    if (!sourceSql) throw new Error('Expected source replay SQL.')
+    const statements = sourceSql
+      .split(/(?<=;)\n/)
+      .map(statement => statement.trim())
+      .filter(Boolean)
+    expect(statements.length).toBeGreaterThan(2)
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const sqlite = new Database(':memory:')
+    sqlite.exec(`
+      CREATE TABLE hkgovCenstatdDivisionAreas (
+        censusYear TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
+        releaseId TEXT, sourceGeometry BLOB NOT NULL, sourceLocator TEXT,
+        sourceRecordId TEXT, sources TEXT, updatedAt TEXT, validFromRelease TEXT,
+        validToRelease TEXT, versionHash TEXT,
+        PRIMARY KEY (sourceRecordId, versionHash)
+      );
+    `)
+    sqlite.exec(sourceSql)
+    sqlite.exec(sourceSql)
+    const stored = sqlite
+      .query(
+        'SELECT sourceGeometry FROM hkgovCenstatdDivisionAreas WHERE sourceRecordId = ?',
+      )
+      .get('district-large') as { sourceGeometry: Uint8Array }
+    expect(stored.sourceGeometry).toEqual(Buffer.from(sourceGeometry))
+    sqlite.close()
+  })
+
   test('creates deterministic source/history upserts that restore a failed release safely', () => {
     const batches = buildStatisticSqlBatches({
       history: {

@@ -22,6 +22,7 @@ import {
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import { hashStatisticContent } from './statisticsRecordIdentity'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
@@ -302,13 +303,25 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         ),
     )
     canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const sourceTable = statisticSourceTableForDataset(datasetCode)
     const batches = () =>
       buildStatisticSqlBatches({
         sourceVersion: plan.sourceVersion,
         releaseId,
         source: {
-          rows: rows.map(sourceStatisticAssertion),
-          table: 'hkgovCenstatdStatistics',
+          rows: rows.map(row =>
+            sourceTable === 'hkgovCenstatdDivisionAreas'
+              ? {
+                  ...sourceStatisticAssertion(row),
+                  // The native district geometry can exceed D1's 2 MB row
+                  // limit. This table is the retained source-record path for
+                  // Subdivided Units and its reader decodes Brotli on demand.
+                  censusYear: plan.sourceVersion,
+                  sourceGeometry: compressJsonBrotli(row.sourceGeometry),
+                }
+              : sourceStatisticAssertion(row),
+          ),
+          table: sourceTable,
         },
       })
     const snapshots = await materialiseStatisticSnapshots({
@@ -633,6 +646,15 @@ function requiredString(value: unknown, field: string) {
 
 function optionalString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function statisticSourceTableForDataset(
+  datasetCode: string,
+): 'hkgovCenstatdDivisionAreas' | 'hkgovCenstatdStatistics' {
+  return datasetCode ===
+    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    ? 'hkgovCenstatdDivisionAreas'
+    : 'hkgovCenstatdStatistics'
 }
 
 function object(value: unknown, field: string) {
