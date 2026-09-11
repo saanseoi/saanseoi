@@ -83,7 +83,7 @@ function toSourceSample(value: unknown) {
     ...(family === 'streets'
       ? { resourceType: record.resourceType, variant: record.variant }
       : {}),
-    rawProperties: record.rawProperties,
+    properties: record.properties,
     geometry: record.geometry,
     placeNames: record.placeNames,
   }
@@ -157,7 +157,7 @@ $effect(() => {
 
 <section class="space-y-4" aria-label={m.source_record_samples_aria_label()}>
   <p class="font-body text-body-md text-foreground-alt">
-    {m.source_record_samples_intro()} <code>rawProperties</code>.
+    {m.source_record_samples_intro()} <code>properties</code>.
   </p>
 
   {#if unavailable}

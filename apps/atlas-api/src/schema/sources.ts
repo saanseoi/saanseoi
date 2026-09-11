@@ -23,7 +23,7 @@ const SourceRecordCursorSchema = z
 const SourceRecordSchema = z
   .object({
     sourceRecordId: z.string(),
-    rawProperties: z.object({}).loose().nullable(),
+    properties: z.object({}).loose().nullable(),
     placeNames: z.array(z.object({}).loose()).nullable().optional(),
     geometry: z.unknown().optional(),
   })

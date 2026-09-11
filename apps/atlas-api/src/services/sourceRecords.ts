@@ -45,7 +45,7 @@ type SourceRecordRow = {
 export type SourceRecord = {
   placeNames?: Record<string, unknown>[] | null
   geometry?: unknown
-  rawProperties: Record<string, unknown> | null
+  properties: Record<string, unknown> | null
   resourceType?: string
   sourceRecordId: string
   variant?: string
@@ -417,7 +417,7 @@ function toSourceRecord(
 ): SourceRecord {
   const rawProperties = parseRawProperties(row.rawProperties)
   const record: SourceRecord = {
-    rawProperties,
+    properties: rawProperties,
     sourceRecordId: row.sourceRecordId,
     ...(family === 'streets'
       ? { resourceType: release.resourceType, variant: release.sourceVariant }

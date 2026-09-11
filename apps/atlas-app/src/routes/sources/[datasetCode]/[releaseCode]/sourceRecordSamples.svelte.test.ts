@@ -35,7 +35,7 @@ test('renders the first source record without fetching surplus candidates', asyn
       JSON.stringify({
         records: [
           {
-            rawProperties: {
+            properties: {
               name: 'Example division',
               sources: [{ dataset: 'OpenStreetMap' }],
             },
@@ -59,7 +59,7 @@ test('renders the first source record without fetching surplus candidates', asyn
   await expect.element(screen.getByText('resourceType')).not.toBeInTheDocument()
   await expect.element(screen.getByText('variant')).not.toBeInTheDocument()
   await expect
-    .element(screen.getByRole('button', { name: 'Collapse rawProperties' }))
+    .element(screen.getByRole('button', { name: 'Collapse properties' }))
     .toBeVisible()
   await expect.element(screen.getByText('name')).toBeVisible()
   await expect.element(screen.getByText('Example division')).toBeVisible()
@@ -94,7 +94,7 @@ test('keeps the first sample in place while more samples load', async () => {
         JSON.stringify({
           records: [
             {
-              rawProperties: { name: 'First record' },
+              properties: { name: 'First record' },
               resourceType: 'division',
               sourceRecordId: 'record-1',
               variant: 'default',
@@ -137,7 +137,7 @@ test('keeps the first sample in place while more samples load', async () => {
             sourceRecordId: `record-${index}`,
             resourceType: 'division',
             variant: 'default',
-            rawProperties: { name: `Record ${index}` },
+            properties: { name: `Record ${index}` },
           })),
         }),
       ),
@@ -159,7 +159,7 @@ test('requests and presents native geometry when included', async () => {
         records: [
           {
             sourceRecordId: 'native-record',
-            rawProperties: { name: 'Publisher' },
+            properties: { name: 'Publisher' },
             geometry: { encoding: 'wkb-base64', data: 'AQID' },
           },
         ],

@@ -167,7 +167,7 @@ describe('source records', () => {
       const plain = await listSourceRecords({ ...args, includeGeometry: false })
       expect(plain?.records).toHaveLength(1)
       expect(plain?.records[0]).toMatchObject({
-        rawProperties: { population: 42 },
+        properties: { population: 42 },
       })
       expect(plain?.records[0]).not.toHaveProperty('geometry')
       const spatial = await listSourceRecords({ ...args, includeGeometry: true })
@@ -310,7 +310,7 @@ describe('source records', () => {
       expect(first?.records[0]).toMatchObject({
         sourceRecordId: 'place-a',
         geometry,
-        rawProperties: { names: { primary: 'Publisher name' } },
+        properties: { names: { primary: 'Publisher name' } },
       })
       expect(first?.nextCursor).toBeString()
       const second = await listSourceRecords({
@@ -337,8 +337,8 @@ describe('source records', () => {
         includeGeometry: false,
       })
       expect(withoutGeometry?.records[0]).not.toHaveProperty('geometry')
-      expect(withoutGeometry?.records[0]?.rawProperties).not.toHaveProperty('geometry')
-      expect(withoutGeometry?.records[0]?.rawProperties?.sources).toEqual([
+      expect(withoutGeometry?.records[0]?.properties).not.toHaveProperty('geometry')
+      expect(withoutGeometry?.records[0]?.properties?.sources).toEqual([
         { dataset: 'publisher' },
       ])
       expect(withoutGeometry?.records[0]).not.toHaveProperty('sources')
@@ -464,7 +464,7 @@ describe('source records', () => {
       },
       records: [
         {
-          rawProperties: { class: 'administrative', id: 'division-1' },
+          properties: { class: 'administrative', id: 'division-1' },
           sourceRecordId: 'division-1',
         },
       ],
@@ -779,7 +779,7 @@ describe('source records', () => {
     expect(result?.records).toEqual([
       {
         geometry,
-        rawProperties: { dc: 1, dc_eng: 'Central and Western' },
+        properties: { dc: 1, dc_eng: 'Central and Western' },
         sourceRecordId: 'CENSTATD:A',
       },
     ])
@@ -824,7 +824,7 @@ describe('source records', () => {
     expect(stream).toBeInstanceOf(ReadableStream)
     expect(await new Response(stream).text()).toBe(
       `${JSON.stringify({
-        rawProperties: { class: 'administrative' },
+        properties: { class: 'administrative' },
         sourceRecordId: 'division-1',
       })}\n`,
     )
@@ -883,7 +883,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
     const result = await listSourceRecords({ ...args, limit: 1 })
     const expected = {
       sourceRecordId: 'publisher',
-      rawProperties: { publisherValue: ' original ' },
+      properties: { publisherValue: ' original ' },
       geometry,
       ...(family === 'streets' ? { resourceType, variant: 'overture' } : {}),
     }
