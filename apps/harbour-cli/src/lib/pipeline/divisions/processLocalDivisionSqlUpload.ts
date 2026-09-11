@@ -1,4 +1,5 @@
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
+import { createHash } from '@repo/core/pipeline/utils'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
@@ -120,6 +121,8 @@ export async function processLocalDivisionSqlUpload(
     deferSourcePublish?: boolean
     reuseExistingRelease?: boolean
     skipSnapshotCleanup?: boolean
+    /** Canonical input decoded directly from the registered native archive. */
+    nativeRows?: Record<string, unknown>[]
   } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
@@ -363,6 +366,9 @@ export async function processLocalDivisionSqlUpload(
         inputs: {
           preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
           snapshotId: versionInsertContext.snapshotId,
+          ...(options.nativeRows
+            ? { nativeRowsHash: await createHash(options.nativeRows) }
+            : {}),
         },
         captureOutputs: () => ({ sqlArtefactCount, ...completionCounts }),
         validateOutputs: readDivisionDeliveryOutputs,
@@ -474,6 +480,7 @@ export async function processLocalDivisionSqlUpload(
                 )
               },
               dbContext.sourceTargets.map(target => target.db as never),
+              options.nativeRows,
             ),
         )
         await harbourClient.stageCompleted(
