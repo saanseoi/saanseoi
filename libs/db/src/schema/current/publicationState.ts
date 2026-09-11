@@ -21,7 +21,7 @@ export const statsPublicationState = sqliteTable(
     datasetCode: text('datasetCode').notNull(),
     referencePeriodCode: text('referencePeriodCode').notNull(),
     snapshotId: text('snapshotId').notNull(),
-    status: text('status', { enum: ['publishing', 'current'] }).notNull(),
+    status: text('status', { enum: ['publishing', 'restoring', 'current'] }).notNull(),
     ...timestamps,
   },
   table => [primaryKey({ columns: [table.datasetCode, table.referencePeriodCode] })],
