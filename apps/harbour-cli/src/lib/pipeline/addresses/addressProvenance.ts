@@ -11,7 +11,7 @@ import {
 } from '@repo/core/provenance'
 import { addressNormalisationRule } from '@repo/core/pipeline/services/addresses/normalisation'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import apiFields from '../../../../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
+import apiFields from '../../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
 import { retainProducerAudit } from '../../api/producerAudit'
 
 export type AddressPreparationAudit = {

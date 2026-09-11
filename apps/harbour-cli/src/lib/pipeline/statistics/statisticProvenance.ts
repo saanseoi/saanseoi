@@ -2,7 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { retainStatisticTranslations } from './statisticTranslationAudit'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'
 import { identityCurationRule } from '../../identityCurations'
-import apiFieldDeclarations from '../../../../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
+import apiFieldDeclarations from '../../../../../../fixtures/meta/apiFields/api-stats-v0.1@government-v1.json'
 import {
   retainAuditResult,
   retainObject,
@@ -38,8 +38,12 @@ export async function retainStatisticProvenance(
   const apiFields = await retainObject(store, {
     kind: 'api-field-declarations',
     schemaVersion: 1,
-    fields: apiFieldDeclarations.fields.filter(
-      f => f.sourceDatasetCode === datasetCode,
+    mappingVersion: apiFieldDeclarations.mappingVersion,
+    fixtureVersionHash: apiFieldDeclarations.versionHash,
+    fields: apiFieldDeclarations.resources.flatMap(group =>
+      group.fields
+        .filter(f => f.sourceDatasetCode === datasetCode)
+        .map(field => ({ ...field, resourceType: group.resourceType })),
     ),
   })
   const fields = [...input.fieldMetadata]

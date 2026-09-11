@@ -1,3 +1,4 @@
+import { assertUploadApiFieldCompatibility } from './uploadApiFields'
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 import { resolve } from 'node:path'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -202,6 +203,15 @@ ${mutedBar}  `)
       source: previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
     })
+    const apiFieldCompatibility = assertUploadApiFieldCompatibility(
+      previewResult.plan,
+      sourceSchemaVersion,
+    )
+    if (apiFieldCompatibility.status === 'covered') {
+      log.message(
+        `API-field schema coverage passed: ${apiFieldCompatibility.mappings.join(', ')}.`,
+      )
+    }
     const assumptionWarnings = await resolveAssumptionWarnings(
       registerOptions.filePath,
       previewResult,

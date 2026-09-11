@@ -24,7 +24,12 @@ test('source statistic persistence retains raw evidence without canonical prepar
     layerName: 'layer',
     featureId: '1',
   })
-  expect(row.rawProperties).toBe(rawProperties)
+  expect(row.rawProperties).toEqual({
+    dc: 1,
+    mypopnLand: '12.3',
+    districtEn: 'District',
+  })
+  expect(rawProperties).toEqual({ DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' })
   expect(Object.keys(row).sort()).toEqual([
     'createdAt',
     'isCurrent',

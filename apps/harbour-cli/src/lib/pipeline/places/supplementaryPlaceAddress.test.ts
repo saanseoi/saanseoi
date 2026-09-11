@@ -14,7 +14,7 @@ import { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.t
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import type { currentSchema } from '@repo/db'
 import { resolveApiFieldFixture } from '@repo/db/apiFieldFixtures'
-import fieldsFixture from '../../../../../../fixtures/meta/apiFields/api-places-v0.1@overture-1.12-to-1.18.json'
+import fieldsFixture from '../../../../../../fixtures/meta/apiFields/api-places-v0.1@overture-v1.json'
 
 const citygate: PlaceAddressDefinition = {
   addressId: 'als-citygate',
@@ -267,7 +267,18 @@ describe('supplementary Place Address policy', () => {
 
   test('every Places cohort has a provenance signature for the supplementary source', () => {
     for (const anchor of fieldsFixture.lineageAnchors) {
-      expect(anchor.sourceSchemas['ds-hk-overture-place']).toBeDefined()
+      const composition = fieldsFixture.sourceCompositions.find(c =>
+        c.anchorSnapshotVersions.includes(anchor.snapshotVersion),
+      )!
+      expect(composition.datasetCodes).toContain('ds-hk-overture-place')
+      const sourceSchemas = Object.fromEntries(
+        composition.datasetCodes.map(code => [
+          code,
+          (fieldsFixture.publisherSchemaRanges as Record<string, { min: string }>)[
+            code
+          ]!.min,
+        ]),
+      )
       expect(
         resolveApiFieldFixture({
           apiVersion: fieldsFixture.apiVersion,
@@ -275,11 +286,12 @@ describe('supplementary Place Address policy', () => {
           schemaVersion: fieldsFixture.schemaVersion,
           rulesetVersion: fieldsFixture.rulesetVersion,
           lineageSnapshotVersions: [anchor.snapshotVersion],
-          sourceSchemas: anchor.sourceSchemas,
+          sourceSchemas,
         })?.fields,
       ).toContainEqual(
         expect.objectContaining({
-          apiField: 'place.relationships.address',
+          apiField: 'relationships.address',
+          resourceType: 'place',
           sourceDatasetCode: 'ds-hk-overture-place',
         }),
       )

@@ -1,3 +1,4 @@
+import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 
 /** Persist publisher evidence, never the prepared canonical statistic fields. */
@@ -18,7 +19,7 @@ export function sourceStatisticAssertion<
 >(row: T) {
   return {
     sourceRecordId: row.sourceRecordId,
-    rawProperties: row.rawProperties,
+    rawProperties: retainSourceProperties(row.rawProperties),
     sourceGeometry: row.sourceGeometry,
     sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,
