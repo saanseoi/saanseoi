@@ -116,7 +116,7 @@ export async function logApiReleaseSetPublication(
       `Published API domain release ${formatApiReleaseSetCode(publication.apiReleaseSetCode)}.`,
       {
         secondarySymbol: mutedText('│'),
-        spacing: 2,
+        spacing: 0,
         withGuide: true,
       },
     )
