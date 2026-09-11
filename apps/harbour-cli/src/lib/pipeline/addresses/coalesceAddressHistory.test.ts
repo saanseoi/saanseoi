@@ -6,12 +6,14 @@ import { join, resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { coalesceAddressHistory } from './coalesceAddressHistory.ts'
 import { closeResolvedAddressHistory } from './resolvedAddressHistory.ts'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 const oldBinding = 'DB_HISTORY_HK_2025'
 const nextBinding = 'DB_HISTORY_HK_2026'
 
 async function fixture(
-  run: (input: Parameters<typeof coalesceAddressHistory>[0]) => void,
+  run: (input: Parameters<typeof coalesceAddressHistory>[0]) => void | Promise<void>,
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'address-components-'))
   const opened: Database[] = []
@@ -36,7 +38,8 @@ async function fixture(
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v1','one','r1','building',1);
         INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent) VALUES('a','v1','en','First','r1','one',1),('a','v1','zh-hant','中文','r1','one',1);
-        INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','1',1,'source_endpoint','single',1);`)
+        INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','1',1,'source_endpoint','single',1);
+        INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('one','address2d','a','','v1','upsert','r1'),('one','address2dI18n','a','en','v1','upsert','r1'),('one','address2dI18n','a','zh-hant','v1','upsert','r1');`)
       if (binding === nextBinding)
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','other-release','building',1);
@@ -48,13 +51,23 @@ async function fixture(
       opened.push(copy)
       candidates[binding] = { db: copy }
     }
-    run({
+    await run({
       candidates,
       files,
       historyBinding: nextBinding,
       snapshotId: 'two',
       scopeId: 'scope',
       now: '2026-01-01T00:00:00Z',
+      prior: [
+        { recordType: 'address2d', locale: '' },
+        { recordType: 'address2dI18n', locale: 'en' },
+        { recordType: 'address2dI18n', locale: 'zh-hant' },
+      ].map(row => ({
+        ...row,
+        recordId: 'a',
+        versionHash: 'v1',
+        shard: { bindingName: oldBinding },
+      })),
     })
   } finally {
     for (const db of opened) db.close()
@@ -192,5 +205,114 @@ test('reappearing content reopens its retained version without replacing histori
         "SELECT isCurrent FROM address2dI18n WHERE locale='en'",
       ).get(),
     ).toEqual({ isCurrent: 0 })
+  })
+})
+
+test('Address C repeating B after rollback to A retains exact base and locale changes', async () => {
+  await fixture(async input => {
+    for (const binding of [oldBinding, nextBinding]) {
+      const baseline = new Database(input.files[binding]!)
+      try {
+        for (const db of [baseline, input.candidates[binding]!.db]) {
+          if (binding === oldBinding)
+            db.exec(
+              'UPDATE address2d SET isCurrent=0; UPDATE address2dI18n SET isCurrent=0; UPDATE address2dBuildingNumberLookup SET isCurrent=0',
+            )
+          else
+            db.exec(`
+              INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','branch-b','branch-b','release-b','site',1);
+              UPDATE address2dI18n SET isCurrent=1 WHERE versionHash='returning';
+              INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','branch-b','branch-b','release-b','2',2,'source_endpoint','single',1);
+              INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('branch-b','address2d','a','','branch-b','upsert','release-b'),('branch-b','address2dI18n','a','en','returning','upsert','release-b');`)
+        }
+      } finally {
+        baseline.close()
+      }
+    }
+    stage(input, 'site', '2')
+    input.candidates.DB_CURRENT!.db.exec(
+      "UPDATE address2d SET granularity='site' WHERE id='a'; UPDATE address2dBuildingNumberLookup SET buildingNumber='2',numericStem=2 WHERE addressId='a'",
+    )
+    coalesceAddressHistory(input)
+    const next = input.candidates[nextBinding]!.db
+    expect(
+      next
+        .query(
+          "SELECT recordType,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId='two' ORDER BY recordType,locale",
+        )
+        .all(),
+    ).toEqual([
+      { recordType: 'address2d', locale: '', versionHash: 'v2' },
+      { recordType: 'address2dI18n', locale: 'en', versionHash: 'v2' },
+    ])
+    const state = await resolveSnapshotVersionState(
+      [
+        {
+          snapshotId: 'one',
+          parentSnapshotId: null,
+          shards: [{ dataShardId: oldBinding, bindingName: oldBinding }],
+        },
+        {
+          snapshotId: 'two',
+          parentSnapshotId: 'one',
+          shards: [{ dataShardId: nextBinding, bindingName: nextBinding }],
+        },
+      ],
+      new Map(
+        [oldBinding, nextBinding].map(bindingName => [
+          bindingName,
+          {
+            bindingName,
+            db: drizzle({ client: input.candidates[bindingName]!.db }) as never,
+          },
+        ]),
+      ),
+      ['address2d', 'address2dI18n'],
+    )
+    expect(state.get('address2d\0a\0')?.versionHash).toBe('v2')
+    expect(state.get('address2dI18n\0a\0en')?.versionHash).toBe('v2')
+    expect(state.get('address2dI18n\0a\0zh-hant')?.versionHash).toBe('v1')
+    expect(
+      next
+        .query("SELECT granularity FROM address2d WHERE id='a' AND versionHash='v2'")
+        .get(),
+    ).toEqual({ granularity: 'site' })
+    expect(
+      next
+        .query(
+          "SELECT formattedAddress FROM address2dI18n WHERE addressId='a' AND versionHash='v2' AND locale='en'",
+        )
+        .get(),
+    ).toEqual({ formattedAddress: 'Second' })
+    expect(
+      next
+        .query(
+          "SELECT buildingNumber FROM address2dBuildingNumberLookup WHERE addressId='a' AND versionHash='v2'",
+        )
+        .all(),
+    ).toEqual([{ buildingNumber: '2' }])
+    expect(
+      next.query("SELECT isCurrent FROM address2d WHERE versionHash='branch-b'").get(),
+    ).toEqual({ isCurrent: 1 })
+    expect(
+      next
+        .query("SELECT isCurrent FROM address2dI18n WHERE versionHash='returning'")
+        .get(),
+    ).toEqual({ isCurrent: 1 })
+  })
+})
+
+test('Address coalescing rejects missing selected content without substituting another version', async () => {
+  await fixture(input => {
+    const baseline = new Database(input.files[oldBinding]!)
+    try {
+      baseline.exec("UPDATE address2d SET versionHash='unselected'")
+    } finally {
+      baseline.close()
+    }
+    stage(input)
+    expect(() => coalesceAddressHistory(input)).toThrow(
+      `Missing selected Address component address2d/a in ${oldBinding}`,
+    )
   })
 })

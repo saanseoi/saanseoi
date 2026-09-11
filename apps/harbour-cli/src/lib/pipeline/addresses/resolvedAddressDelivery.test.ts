@@ -31,6 +31,7 @@ import {
   validateResolvedAddressProjection,
 } from './resolvedAddressDelivery.ts'
 import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 
 test('combined Address planning seals only final changes and rejects incomplete projections before emission', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'resolved-address-test-'))
@@ -220,7 +221,9 @@ test('combined Address planning seals only final changes and rejects incomplete 
       scopeId: 'scope',
       retiredAddressIds: [],
       parentReplayPlan: [],
-      priorVersions: [],
+      priorVersions: [] as Parameters<
+        typeof captureResolvedAddressDelivery
+      >[0]['priorVersions'],
       address3d: { path, sourceVersion: '2026-01-01.0', digest, priorMembership: [] },
       expectedAddressCount: 1,
     }
@@ -277,6 +280,26 @@ test('combined Address planning seals only final changes and rejects incomplete 
       isCurrent: 1,
     })
     current.exec("UPDATE addressPublicationState SET status='current'")
+    input.priorVersions = [
+      ...(
+        await resolveSnapshotVersionState(
+          [
+            {
+              snapshotId: 'snapshot',
+              parentSnapshotId: null,
+              shards: [{ dataShardId: 'history', bindingName: 'DB_HISTORY_HK_2026' }],
+            },
+          ],
+          new Map([
+            [
+              'DB_HISTORY_HK_2026',
+              { bindingName: 'DB_HISTORY_HK_2026', db: context.historyDb as never },
+            ],
+          ]),
+          ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+        )
+      ).values(),
+    ]
     message.releaseId = 'release2'
     artefact.rows[0]!.changed = false
     artefact.rows[0]!.base.snapshotId = 'snapshot2'

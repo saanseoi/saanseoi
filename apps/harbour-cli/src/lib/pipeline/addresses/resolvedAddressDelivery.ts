@@ -42,7 +42,12 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
     binding === 'DB_CURRENT'
       ? addressTables
       : binding.startsWith('DB_HISTORY_')
-        ? [...addressTables, 'snapshotVersionChanges', 'sourceResolutions']
+        ? [
+            ...addressTables,
+            'address2dEvidence',
+            'snapshotVersionChanges',
+            'sourceResolutions',
+          ]
         : binding.startsWith('DB_SOURCE_')
           ? ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']
           : []
@@ -263,6 +268,7 @@ export async function captureResolvedAddressDelivery(input: {
         candidates,
         files,
         historyBinding,
+        prior: input.priorVersions,
         snapshotId: input.snapshotId,
         scopeId: input.scopeId,
         now: input.message.processingRunStartedAt ?? new Date().toISOString(),
