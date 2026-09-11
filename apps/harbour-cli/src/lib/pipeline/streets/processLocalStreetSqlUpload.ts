@@ -3,7 +3,7 @@ import {
   beginSnapshotPublication,
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
-  assertPublishedSnapshotMaterialised,
+  resolvePreparedPublicationScope,
 } from '../local/snapshotPublication.ts'
 import {
   buildPublicationRowCountSql,
@@ -56,7 +56,6 @@ import {
   validatePreparedStreets,
 } from './processLocalStreetSqlUploadPreparation.ts'
 import {
-  cloneStreetCurrentSnapshot,
   closeHistoryVersions,
   closeSourceVersions,
   insertHistoryI18nRows,
@@ -219,6 +218,16 @@ export async function processLocalStreetSqlUpload(
       async context => {
         const metaDb = context.metaDb as unknown as HarbourReadableDb &
           HarbourWritableDb
+        const scopeId = snapshot.snapshotLineageId
+        if (snapshot.parentSnapshotId) {
+          const parentScope = await resolvePreparedPublicationScope(
+            context.currentDb as unknown as HarbourReadableDb,
+            'streetPublicationState',
+            snapshot.parentSnapshotId,
+          )
+          if (parentScope !== scopeId)
+            throw new Error('Street publication parent belongs to a different scope.')
+        }
         const publication: PublicationPreparation = {
           table: 'streetPublicationState',
           scopeId: snapshot.snapshotLineageId,
@@ -232,27 +241,13 @@ export async function processLocalStreetSqlUpload(
           ...context,
           currentDb: guardSnapshotPublicationWrites(publicationDb, publication),
         }
-        if (snapshot.parentSnapshotId) {
-          await assertPublishedSnapshotMaterialised(
-            context.currentDb as unknown as HarbourReadableDb,
-            'streetPublicationState',
-            snapshot.parentSnapshotId,
-          )
-          await cloneStreetCurrentSnapshot(
-            context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
-            snapshot.parentSnapshotId,
-            snapshot.id,
-            now,
-          )
-        }
-
         const inheritedChangelog = await context.currentDb
           .select({
             recordKey: currentSchema.streetChangelog.recordKey,
             streetId: currentSchema.streetChangelog.streetId,
           })
           .from(currentSchema.streetChangelog)
-          .where(eq(currentSchema.streetChangelog.snapshotId, snapshot.id))
+          .where(eq(currentSchema.streetChangelog.snapshotId, scopeId))
           .all()
         const recordIds = records.map(record => record.base.id)
         const [currentSourceRows, currentStreets] = await Promise.all([
@@ -262,7 +257,7 @@ export async function processLocalStreetSqlUpload(
           ),
           listCurrentMaterialisedStreets(
             context.currentDb as unknown as HarbourReadableDb,
-            snapshot.id,
+            scopeId,
           ),
         ])
         const sourceHashById = new Map(
@@ -310,19 +305,19 @@ export async function processLocalStreetSqlUpload(
         )
         await replaceCurrentStreetRows(
           context.currentDb as unknown as HarbourWritableDb,
-          snapshot.id,
+          scopeId,
           changedMaterialisedStreets,
           now,
         )
         await replaceCurrentStreetI18nRows(
           context.currentDb as unknown as HarbourWritableDb,
-          snapshot.id,
+          scopeId,
           changedMaterialisedStreets,
           now,
         )
         await syncCurrentStreetChangelog(
           context.currentDb as unknown as HarbourWritableDb,
-          snapshot.id,
+          scopeId,
           preparedChangelog,
           changedMaterialisedStreets
             .filter(record => record.status === 'deleted')
@@ -376,19 +371,15 @@ export async function processLocalStreetSqlUpload(
           publicationDb,
           publication,
           [
-            buildPublicationRowCountSql(
-              'streets',
-              snapshot.id,
-              lifecycle.current.length,
-            ),
+            buildPublicationRowCountSql('streets', scopeId, lifecycle.current.length),
             buildPublicationRowCountSql(
               'streetChangelog',
-              snapshot.id,
+              scopeId,
               expectedChangelog.size,
             ),
             buildPublicationRowCountSql(
               'streetsI18n',
-              snapshot.id,
+              scopeId,
               lifecycle.current.reduce((sum, street) => sum + street.i18n.length, 0),
             ),
           ].join(' AND '),

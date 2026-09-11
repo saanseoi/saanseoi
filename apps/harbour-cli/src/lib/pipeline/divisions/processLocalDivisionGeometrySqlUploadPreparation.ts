@@ -224,17 +224,18 @@ export async function findIdenticalCenstatdGeometrySnapshot(
       )
       .get()
     if (!receipt) continue
+    const scopeId = JSON.stringify([candidate.snapshotLineageId, candidate.cohortKey])
     const materialisedRows =
       plan.resourceType === 'divisionArea'
         ? await currentDb
             .select()
             .from(currentSchema.divisionAreas)
-            .where(eq(currentSchema.divisionAreas.snapshotId, candidate.id))
+            .where(eq(currentSchema.divisionAreas.snapshotId, scopeId))
             .all()
         : await currentDb
             .select()
             .from(currentSchema.divisionBoundaries)
-            .where(eq(currentSchema.divisionBoundaries.snapshotId, candidate.id))
+            .where(eq(currentSchema.divisionBoundaries.snapshotId, scopeId))
             .all()
     const actual = await Promise.all(
       materialisedRows.map(async row => ({

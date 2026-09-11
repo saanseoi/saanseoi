@@ -3,6 +3,7 @@ import {
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
 } from '../local/snapshotPublication.ts'
+import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
@@ -312,6 +313,11 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             timestamp: now,
           }
           const publicationDb = context.currentDb
+          publication.previous = await getPreparedPublication(
+            publicationDb as never,
+            publication.table,
+            publication.scopeId,
+          )
           await beginSnapshotPublication(publicationDb, publication)
           context = {
             ...context,
@@ -452,7 +458,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             reportProgress =>
               replaceCurrentSnapshot(
                 context.currentDb as unknown as HarbourWritableDb,
-                snapshot.id,
+                publication.scopeId,
                 records,
                 compressedGeometryByDivisionId,
                 currentHistoryRows.map(row => row.id),
@@ -471,8 +477,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             'Planning division names',
             reportProgress =>
               replaceCurrentI18n(
-                context.currentDb as unknown as HarbourWritableDb,
-                snapshot.id,
+                context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
+                publication.scopeId,
                 records,
                 currentHistoryRows.map(row => row.id),
                 now,
@@ -638,10 +644,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             publicationDb,
             publication,
             [
-              buildPublicationRowCountSql('divisions', snapshot.id, records.length),
+              buildPublicationRowCountSql(
+                'divisions',
+                publication.scopeId,
+                records.length,
+              ),
               buildPublicationRowCountSql(
                 'divisionsI18n',
-                snapshot.id,
+                publication.scopeId,
                 records.reduce((sum, record) => sum + record.i18n.length, 0),
               ),
             ].join(' AND '),
@@ -663,6 +673,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 releaseCode,
                 records,
                 snapshotId: snapshot.id,
+                publication,
               }),
             )
           const importOptions = resolvePlandImportOptions(target, context)

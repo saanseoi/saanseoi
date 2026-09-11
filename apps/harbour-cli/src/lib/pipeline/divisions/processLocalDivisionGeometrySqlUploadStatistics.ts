@@ -150,7 +150,10 @@ export async function getGeometryChurnBaseline(
             {
               id: row.id,
               type: row.type,
-              versionHash: await hashDivisionGeometryRow(row),
+              versionHash: await hashDivisionGeometryRow({
+                ...row,
+                geometry: decodeStoredGeoJsonGeometry(row.geometry),
+              }),
             },
           ] as const,
       ),

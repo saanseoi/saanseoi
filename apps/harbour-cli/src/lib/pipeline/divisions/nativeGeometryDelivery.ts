@@ -107,12 +107,24 @@ export async function writeGeometryRowsDurably(
             version,
             onProgress,
           )
-          return { churn: encodeChurn(result.churn) }
+          return {
+            churn: encodeChurn(result.churn),
+            currentChanges: result.currentChanges,
+          }
         },
       }),
   })
   // Validate continuation output before making any target mutation.
   const churn = decodeChurn(plan.outputs?.churn)
+  const currentChanges = plan.outputs?.currentChanges as Awaited<
+    ReturnType<typeof writeGeometryRows>
+  >['currentChanges']
+  if (
+    !currentChanges ||
+    !Array.isArray(currentChanges.changedCurrentIds) ||
+    !Array.isArray(currentChanges.removedCurrentIds)
+  )
+    throw new Error('Missing retained geometry current changes.')
   if (!retainedPlan)
     onProgress?.('replay durable local mutations', 0, plan.batches.length)
   await runNativeSqlDelivery(directory, {
@@ -122,7 +134,7 @@ export async function writeGeometryRowsDurably(
       : (completed, total) =>
           onProgress?.('replay durable local mutations', completed, total),
   })
-  return { churn }
+  return { churn, currentChanges }
 }
 
 function encodeChurn(churn: Churn): Record<string, unknown> {

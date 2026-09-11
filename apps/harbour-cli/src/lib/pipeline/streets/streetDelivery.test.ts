@@ -42,7 +42,7 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
   })
   try {
     current.exec(
-      'CREATE TABLE streets(snapshotId TEXT, id TEXT); CREATE TABLE streetPublicationState(scopeId TEXT, snapshotId TEXT PRIMARY KEY, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
+      'CREATE TABLE streets(snapshotId TEXT, id TEXT); CREATE TABLE streetPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
     )
     const publication = {
       table: 'streetPublicationState' as const,

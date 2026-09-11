@@ -765,6 +765,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           runGeometryProgressPhase(progress, 'Sync up', subject, operation),
         await deliveryFileSha256(preparedUpload.filePath),
         releaseCode,
+        writeResult.currentChanges,
       )
     }
     if (options.deferPublish) {

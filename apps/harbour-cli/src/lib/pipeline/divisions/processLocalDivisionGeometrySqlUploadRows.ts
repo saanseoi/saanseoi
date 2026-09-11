@@ -5,6 +5,11 @@ import {
   guardSnapshotPublicationWrites,
 } from '../local/snapshotPublication.ts'
 import {
+  getPreparedPublication,
+  resolvePreparedPublicationScope,
+} from '@repo/core/pipeline/services/publication/execute.ts'
+import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
@@ -25,7 +30,8 @@ import {
 } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql, getTableColumns } from 'drizzle-orm'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import type {
@@ -86,6 +92,7 @@ export async function writeGeometryRows(
     resourceType === 'divisionArea'
       ? 'divisionAreaPublicationState'
       : 'divisionBoundaryPublicationState'
+  const scopeId = JSON.stringify([version.snapshotLineageId, version.cohortKey])
   const reusedSnapshotId = version.skipCanonicalMaterialisation
     ? version.snapshotId
     : version.parentSnapshotId
@@ -95,17 +102,30 @@ export async function writeGeometryRows(
       publicationTable,
       reusedSnapshotId,
     )
+  const parentScopeId = version.parentSnapshotId
+    ? await resolvePreparedPublicationScope(
+        context.currentDb as never,
+        publicationTable,
+        version.parentSnapshotId,
+      )
+    : null
   const publication: PublicationPreparation | null =
     !version.skipCanonicalMaterialisation
       ? {
           table: publicationTable,
-          scopeId: JSON.stringify([version.snapshotLineageId, version.cohortKey]),
+          scopeId,
           snapshotId: version.snapshotId,
           publicationToken: version.releaseId,
           timestamp: now,
         }
       : null
   const publicationDb = context.currentDb
+  if (publication)
+    publication.previous = await getPreparedPublication(
+      publicationDb as never,
+      publicationTable,
+      scopeId,
+    )
   if (publication) {
     await beginSnapshotPublication(publicationDb, publication)
     context = {
@@ -137,16 +157,6 @@ export async function writeGeometryRows(
         ? 'retain companion rows'
         : 'clear current rows',
   )
-  if (!version.merge && !version.skipCanonicalMaterialisation) {
-    await context.currentDb
-      .delete(currentTable)
-      // The current-table key is `(snapshotId, id)`, not `(snapshotId, variant, id)`.
-      // A snapshot therefore represents exactly one geometry variant. Clear the full
-      // snapshot so a retry also replaces rows written before a variant was renamed
-      // (for example the legacy `hkgov-censtatd` C&SD variant).
-      .where(eq(currentTable.snapshotId, version.snapshotId))
-      .run()
-  }
   const historyHashes = new Map<string, string>()
   const sourceHashes = new Map<string, string>()
   onProgress?.('hash geometry rows', 0, rows.length)
@@ -184,11 +194,20 @@ export async function writeGeometryRows(
           },
         ]),
       )
-    : await getGeometryChurnBaseline(
-        context.currentDb,
-        resourceType,
-        version.parentSnapshotId,
-      )
+    : await getGeometryChurnBaseline(context.currentDb, resourceType, parentScopeId)
+  const currentBaseline = version.skipCanonicalMaterialisation
+    ? new Map()
+    : await getGeometryChurnBaseline(context.currentDb, resourceType, scopeId)
+  const removedCurrentIds: string[] =
+    !version.merge && !version.skipCanonicalMaterialisation
+      ? [...currentBaseline.keys()].filter(id => !historyHashes.has(id))
+      : []
+  for (const ids of chunkArray(removedCurrentIds, getMaxItemsPerInClause(1, 1))) {
+    await context.currentDb
+      .delete(currentTable)
+      .where(and(eq(currentTable.snapshotId, scopeId), inArray(currentTable.id, ids)))
+      .run()
+  }
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById, {
     merge: version.merge,
   })
@@ -238,14 +257,11 @@ export async function writeGeometryRows(
       ? await context.currentDb
           .select()
           .from(currentTable)
-          .where(eq(currentTable.snapshotId, version.parentSnapshotId))
+          .where(eq(currentTable.snapshotId, parentScopeId!))
           .all()
       : []
   const currentRowsById = new Map<string, Record<string, unknown>>(
-    inheritedCurrentRows.map(row => [
-      row.id,
-      { ...row, snapshotId: version.snapshotId },
-    ]),
+    inheritedCurrentRows.map(row => [row.id, { ...row, snapshotId: scopeId }]),
   )
   const materialisedGeometryById = new Map<string, unknown>()
   if (!version.skipCanonicalMaterialisation) {
@@ -271,13 +287,21 @@ export async function writeGeometryRows(
     for (const row of rows.map(row => ({
       ...row.canonical,
       geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
-      snapshotId: version.snapshotId,
+      snapshotId: scopeId,
       createdAt: now,
       updatedAt: now,
     }))) {
       currentRowsById.set(row.id, row)
     }
   const currentRows = [...currentRowsById.values()]
+  const changedCurrentRows = currentRows.filter(
+    row =>
+      !currentBaseline.has(String(row.id)) ||
+      (historyHashes.has(String(row.id)) &&
+        currentBaseline.get(String(row.id))?.versionHash !==
+          historyHashes.get(String(row.id))),
+  )
+  const changedCurrentIds = changedCurrentRows.map(row => String(row.id))
   const inheritedHistoryRows =
     !version.skipCanonicalMaterialisation && version.merge && version.parentSnapshotId
       ? await context.historyDb
@@ -374,13 +398,19 @@ export async function writeGeometryRows(
 
   let writtenCurrentRows = 0
   onProgress?.('write current rows', writtenCurrentRows, currentRows.length)
-  for (const chunk of chunkRows(currentRows)) {
+  for (const chunk of chunkRows(changedCurrentRows)) {
     await context.currentDb
       .insert(currentTable)
       .values(chunk as never)
       .onConflictDoUpdate({
         target: [currentTable.snapshotId, currentTable.id],
         set: {
+          ...(resourceType === 'divisionArea'
+            ? { divisionId: sql`excluded.divisionId` }
+            : {
+                leftDivisionId: sql`excluded.leftDivisionId`,
+                rightDivisionId: sql`excluded.rightDivisionId`,
+              }),
           bbox: sql`excluded.bbox`,
           geometry: sql`excluded.geometry`,
           isLand: sql`excluded.isLand`,
@@ -391,6 +421,10 @@ export async function writeGeometryRows(
           variant: sql`excluded.variant`,
           updatedAt: now,
         },
+        setWhere: currentRowChangedSql(
+          resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries',
+          Object.keys(getTableColumns(currentTable)),
+        ),
       })
       .run()
     writtenCurrentRows += chunk.length
@@ -469,11 +503,14 @@ export async function writeGeometryRows(
       publication,
       buildPublicationRowCountSql(
         resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries',
-        version.snapshotId,
+        scopeId,
         currentRows.length,
       ),
     )
-  return { churn }
+  return {
+    churn,
+    currentChanges: { publication, changedCurrentIds, removedCurrentIds },
+  }
 }
 
 function requireGeometryHash(hashes: Map<string, string>, id: string) {

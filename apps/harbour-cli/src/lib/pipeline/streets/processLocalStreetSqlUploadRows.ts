@@ -2,6 +2,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
 import { chunkArray } from '@repo/core/pipeline/utils'
+import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import { currentSchema, historySchema, sourceSchema, streetLocaleCodes } from '@repo/db'
 import type {
   LandsdStreetLifecycleI18n,
@@ -18,84 +19,6 @@ import {
   parseNullableRecord,
   requireString,
 } from './processLocalStreetSqlUploadParsing.ts'
-
-export async function cloneStreetCurrentSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  fromSnapshotId: string,
-  toSnapshotId: string,
-  now: string,
-) {
-  if (fromSnapshotId === toSnapshotId) return
-  await db
-    .insert(currentSchema.streets)
-    .select(
-      db
-        .select({
-          createdAt: sql<string>`${now}`,
-          deletedAt: currentSchema.streets.deletedAt,
-          districtIds: currentSchema.streets.districtIds,
-          id: currentSchema.streets.id,
-          gazetteDate: currentSchema.streets.gazetteDate,
-          snapshotId: sql<string>`${toSnapshotId}`,
-          sources: currentSchema.streets.sources,
-          status: currentSchema.streets.status,
-          updatedAt: sql<string>`${now}`,
-          version: currentSchema.streets.version,
-          yearBuilt: currentSchema.streets.yearBuilt,
-        })
-        .from(currentSchema.streets)
-        .where(eq(currentSchema.streets.snapshotId, fromSnapshotId)),
-    )
-    .onConflictDoNothing()
-    .run()
-  await db
-    .insert(currentSchema.streetsI18n)
-    .select(
-      db
-        .select({
-          base: currentSchema.streetsI18n.base,
-          createdAt: sql<string>`${now}`,
-          description: currentSchema.streetsI18n.description,
-          designator: currentSchema.streetsI18n.designator,
-          directionalPrefix: currentSchema.streetsI18n.directionalPrefix,
-          directionalSuffix: currentSchema.streetsI18n.directionalSuffix,
-          locale: currentSchema.streetsI18n.locale,
-          name: currentSchema.streetsI18n.name,
-          normalised: currentSchema.streetsI18n.normalised,
-          snapshotId: sql<string>`${toSnapshotId}`,
-          streetId: currentSchema.streetsI18n.streetId,
-          updatedAt: sql<string>`${now}`,
-        })
-        .from(currentSchema.streetsI18n)
-        .where(eq(currentSchema.streetsI18n.snapshotId, fromSnapshotId)),
-    )
-    .onConflictDoNothing()
-    .run()
-  await db
-    .insert(currentSchema.streetChangelog)
-    .select(
-      db
-        .select({
-          evidenceAssets: currentSchema.streetChangelog.evidenceAssets,
-          createdAt: sql<string>`${now}`,
-          effectiveDate: currentSchema.streetChangelog.effectiveDate,
-          isPartialNameChange: currentSchema.streetChangelog.isPartialNameChange,
-          kind: currentSchema.streetChangelog.kind,
-          gazetteDate: currentSchema.streetChangelog.gazetteDate,
-          noticeRef: currentSchema.streetChangelog.noticeRef,
-          snapshotId: sql<string>`${toSnapshotId}`,
-          recordKey: currentSchema.streetChangelog.recordKey,
-          sourceReleaseId: currentSchema.streetChangelog.sourceReleaseId,
-          sourceShardId: currentSchema.streetChangelog.sourceShardId,
-          streetId: currentSchema.streetChangelog.streetId,
-          updatedAt: sql<string>`${now}`,
-        })
-        .from(currentSchema.streetChangelog)
-        .where(eq(currentSchema.streetChangelog.snapshotId, fromSnapshotId)),
-    )
-    .onConflictDoNothing()
-    .run()
-}
 
 export async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
   const rows: Array<{ sourceRecordId: string; versionHash: string }> = []
@@ -307,7 +230,7 @@ export async function replaceCurrentStreetRows(
   now: string,
 ) {
   for (const idsChunk of chunkArray(
-    records.map(record => record.id),
+    records.filter(record => record.status === 'deleted').map(record => record.id),
     90,
   )) {
     if (idsChunk.length === 0) continue
@@ -344,6 +267,28 @@ export async function replaceCurrentStreetRows(
           updatedAt: now,
         })),
       )
+      .onConflictDoUpdate({
+        target: [currentSchema.streets.snapshotId, currentSchema.streets.id],
+        set: {
+          deletedAt: sql`excluded.deletedAt`,
+          districtIds: sql`excluded.districtIds`,
+          gazetteDate: sql`excluded.gazetteDate`,
+          sources: sql`excluded.sources`,
+          status: sql`excluded.status`,
+          version: sql`excluded.version`,
+          yearBuilt: sql`excluded.yearBuilt`,
+          updatedAt: sql`excluded.updatedAt`,
+        },
+        setWhere: currentRowChangedSql('streets', [
+          'deletedAt',
+          'districtIds',
+          'gazetteDate',
+          'sources',
+          'status',
+          'version',
+          'yearBuilt',
+        ]),
+      })
       .run()
   }
 }
@@ -354,20 +299,29 @@ export async function replaceCurrentStreetI18nRows(
   records: PreparedMaterialisedStreet[],
   now: string,
 ) {
-  for (const idsChunk of chunkArray(
-    records.map(record => record.id),
-    90,
-  )) {
-    if (idsChunk.length === 0) continue
-    await db
-      .delete(currentSchema.streetsI18n)
-      .where(
-        and(
-          eq(currentSchema.streetsI18n.snapshotId, snapshotId),
-          inArray(currentSchema.streetsI18n.streetId, idsChunk),
-        ),
-      )
-      .run()
+  for (const locale of streetLocaleCodes) {
+    for (const idsChunk of chunkArray(
+      records
+        .filter(
+          record =>
+            record.status === 'deleted' ||
+            !record.i18n.some(row => row.locale === locale),
+        )
+        .map(record => record.id),
+      90,
+    )) {
+      if (idsChunk.length === 0) continue
+      await db
+        .delete(currentSchema.streetsI18n)
+        .where(
+          and(
+            eq(currentSchema.streetsI18n.snapshotId, snapshotId),
+            eq(currentSchema.streetsI18n.locale, locale),
+            inArray(currentSchema.streetsI18n.streetId, idsChunk),
+          ),
+        )
+        .run()
+    }
   }
   const rows = records
     .filter(record => record.status === 'active')
@@ -388,7 +342,36 @@ export async function replaceCurrentStreetI18nRows(
       })),
     )
   for (const rowsChunk of chunkArray(rows, 6)) {
-    await db.insert(currentSchema.streetsI18n).values(rowsChunk).run()
+    await db
+      .insert(currentSchema.streetsI18n)
+      .values(rowsChunk)
+      .onConflictDoUpdate({
+        target: [
+          currentSchema.streetsI18n.snapshotId,
+          currentSchema.streetsI18n.streetId,
+          currentSchema.streetsI18n.locale,
+        ],
+        set: {
+          base: sql`excluded.base`,
+          description: sql`excluded.description`,
+          designator: sql`excluded.designator`,
+          directionalPrefix: sql`excluded.directionalPrefix`,
+          directionalSuffix: sql`excluded.directionalSuffix`,
+          name: sql`excluded.name`,
+          normalised: sql`excluded.normalised`,
+          updatedAt: sql`excluded.updatedAt`,
+        },
+        setWhere: currentRowChangedSql('streetsI18n', [
+          'base',
+          'description',
+          'designator',
+          'directionalPrefix',
+          'directionalSuffix',
+          'name',
+          'normalised',
+        ]),
+      })
+      .run()
   }
 }
 
@@ -453,6 +436,16 @@ export async function syncCurrentStreetChangelog(
           sourceShardId: sql`excluded.sourceShardId`,
           updatedAt: now,
         },
+        setWhere: currentRowChangedSql('streetChangelog', [
+          'evidenceAssets',
+          'effectiveDate',
+          'isPartialNameChange',
+          'kind',
+          'gazetteDate',
+          'noticeRef',
+          'sourceReleaseId',
+          'sourceShardId',
+        ]),
       })
       .run()
   }
