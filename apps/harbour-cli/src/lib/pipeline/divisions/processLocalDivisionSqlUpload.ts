@@ -37,9 +37,11 @@ import {
 import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
+  colorGrey,
   colorRed,
   colorTeal,
   formatCompletedPhaseLabel,
+  formatCount,
   formatDurationMs,
   formatRetryLabel,
   formatRunningPhaseLabel,
@@ -586,12 +588,27 @@ export async function processLocalDivisionSqlUpload(
           ),
           {},
         )
-        await deliverProcessingResult(target, bucket, audit.ref)
+        let deliveredObjects = 0
+        await deliverProcessingResult(
+          target,
+          bucket,
+          audit.ref,
+          (_message, retainedObjects) => {
+            deliveredObjects = retainedObjects
+            progress.update(retainedObjects, {
+              label: `${formatRunningPhaseLabel(
+                colorTeal('Deliver'),
+                colorRed('processing provenance'),
+              )} ${colorGrey(`(${formatCount(retainedObjects)} objects)`)}`,
+            })
+          },
+        )
         progress.complete(
           appendPhaseDetails(
             formatCompletedPhaseLabel(
               colorTeal('Deliver'),
               colorRed('processing provenance'),
+              deliveredObjects,
             ),
             [formatDurationMs(Date.now() - provenanceDeliverStartedAt)],
           ),

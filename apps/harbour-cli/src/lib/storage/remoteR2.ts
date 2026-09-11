@@ -47,9 +47,7 @@ async function openBucket(environment: 'preview' | 'production') {
     const configPath = join(directory, 'wrangler.json')
     await writeFile(configPath, JSON.stringify(remoteR2Config(bucket)))
     process.stdout.write(`Connecting to ${environment} R2 (${bucket}) via Node…\n`)
-    const client = startR2Process(configPath, {
-      onProgress: message => process.stdout.write(`${message}\n`),
-    })
+    const client = startR2Process(configPath)
     worker = client
     unregister = registerInterruptCleanup(() => client.stop())
     await client.ready
