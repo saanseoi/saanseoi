@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:788c4f7483033283bc715746e408a0bd154048282a8a6557180f1a9350a65882",
+  "versionHash": "sha256:1c3d1a9443971e5d4fe34ca5a6772619e75c3ad89d6ba2b16064b67472ed0029",
   "code": "rs-official-division-processing-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -16,6 +16,10 @@
     {
       "operationCode": "normalise-planning-divisions",
       "ruleFixture": "planning-division-normalisation"
+    },
+    {
+      "operationCode": "provenance_division_area_geometry",
+      "ruleFixture": "division-area-geometry"
     }
   ]
 }

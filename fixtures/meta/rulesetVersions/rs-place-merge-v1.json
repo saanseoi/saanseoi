@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2e56e0f9ccf72957111522945f96ea4aa478d8ab266863b187e08496c2d7f36f",
+  "versionHash": "sha256:b17f468e1e6e2b6d4448a1b99ce412a1da2307d483f2ed096a79d5640822bad3",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
@@ -175,6 +175,18 @@
           "description": "审核发布者地址国家代码为 CN 或 MO 或缺失的地点；CN/MO 地点排除在香港投影之外，缺失地点则予以保留。"
         }
       ]
+    },
+    {
+      "operationCode": "provenance_place_normalisation",
+      "ruleFixture": "place-normalisation"
+    },
+    {
+      "operationCode": "provenance_place_address_analysis",
+      "ruleFixture": "place-address-analysis"
+    },
+    {
+      "operationCode": "provenance_place_reference_name",
+      "ruleFixture": "place-reference-name"
     }
   ]
 }

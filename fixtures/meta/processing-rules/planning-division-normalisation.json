@@ -4,8 +4,8 @@
   "id": "normalise-planning-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Create one division for each Planning Department record, keeping its publisher record ID, name, parent division and published map shape.",
-  "inputs": ["planning-divisions"],
+  "summary": "Materialise prepared Planning divisions with their derived canonical IDs, localised names, parent relationships and processed geometry.",
+  "inputs": ["prepared-planning-divisions"],
   "outputs": ["divisions"],
   "parameters": {},
   "implementation": {
