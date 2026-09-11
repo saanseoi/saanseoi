@@ -42,9 +42,7 @@ export type SourceRecordSchema = {
 
 /** Publisher columns represented by the public source-record envelope. */
 export function sourceRecordRawPropertyFields(schema: SourceRecordSchema) {
-  return schema.fields.filter(
-    field => !['id', 'geometry', 'sources'].includes(field.name),
-  )
+  return schema.fields.filter(field => !['id', 'geometry'].includes(field.name))
 }
 
 const overtureDivisionAreaFields: SourceRecordSchemaField[] = [
