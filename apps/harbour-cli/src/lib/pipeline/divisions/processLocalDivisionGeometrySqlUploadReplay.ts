@@ -97,7 +97,7 @@ export async function generateGeometryReplaySql(
       : iterateGeometryCacheRows(
           context.state.dbCacheDir,
           historyBindingName,
-          `SELECT * FROM "${historyTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+          `SELECT content.* FROM "${historyTable}" content INNER JOIN "snapshotVersionChanges" membership ON membership."recordId" = content."id" AND membership."versionHash" = content."versionHash" WHERE membership."snapshotId" = ${geometrySqlLiteral(snapshotId)} AND membership."recordType" = ${geometrySqlLiteral(plan.resourceType)} AND membership."operation" = 'upsert'`,
         )
     const changeRows = skipCanonicalMaterialisation
       ? []
@@ -171,22 +171,14 @@ export async function generateGeometryReplaySql(
               databaseId: context.state.bindings[historyBindingName]?.databaseId,
               name: 'history' as const,
               sql: (function* () {
-                yield* geometryIterateClosureSql(
-                  historyTable,
-                  iterateGeometryCacheRows(
-                    context.state.dbCacheDir,
-                    historyBindingName,
-                    `SELECT "id", "versionHash", "isCurrent", "updatedAt" FROM "${historyTable}" WHERE "isCurrent" = 0 AND "id" IN (SELECT "recordId" FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)} AND "recordType" = ${geometrySqlLiteral(plan.resourceType)})`,
-                  ),
-                  ['id', 'versionHash'],
-                )
-                yield geometrySqlLiteralDelete(historyTable, 'snapshotId', snapshotId)
                 yield geometrySqlLiteralDelete(
                   'snapshotVersionChanges',
                   'snapshotId',
                   snapshotId,
                 )
-                yield* geometryIterateUpsertSql(historyTable, historyRows)
+                yield* geometryIterateUpsertSql(historyTable, historyRows, {
+                  immutable: true,
+                })
                 yield* geometryIterateUpsertSql('snapshotVersionChanges', changeRows)
               })(),
             },
@@ -292,6 +284,7 @@ export async function replayGeometryIntoRemote(
           .toLowerCase()}`,
         inputs: {
           preparedSha256,
+          historyMembershipPolicy: 'immutable-geometry-v1',
           snapshotId,
           sourceVersion: plan.sourceVersion,
           releaseCode,
@@ -350,7 +343,9 @@ function readGeometryReplayMetadata(
         bindingName,
         `SELECT * FROM "${tableName}" WHERE ${where}`,
       )
-      return geometryBuildUpsertSql(tableName, rows)
+      // Each geometry variant carries the release metadata needed for recovery.
+      // Preserve those rows while avoiding writes when the target already matches.
+      return geometryBuildUpsertSql(tableName, rows, { skipUnchanged: true })
     })
     .join('\n')
 }
@@ -377,7 +372,7 @@ function* iterateGeometryCacheRows(
 export function geometryBuildUpsertSql(
   tableName: string,
   rows: Array<Record<string, unknown>>,
-  options: { current?: boolean } = {},
+  options: { current?: boolean; immutable?: boolean; skipUnchanged?: boolean } = {},
 ) {
   return [...geometryIterateUpsertSql(tableName, rows, options)].join('\n')
 }
@@ -411,7 +406,7 @@ function* geometryReplayStatements(
 export function* geometryIterateUpsertSql(
   tableName: string,
   rows: Iterable<Record<string, unknown>>,
-  options: { current?: boolean } = {},
+  options: { current?: boolean; immutable?: boolean; skipUnchanged?: boolean } = {},
 ) {
   let columns: string[] | undefined
   let prefix = ''
@@ -427,7 +422,14 @@ export function* geometryIterateUpsertSql(
       const updated = options.current
         ? columns.filter(column => column !== 'createdAt')
         : columns
-      suffix = ` ON CONFLICT DO UPDATE SET ${updated.map(column => `"${column}" = excluded."${column}"`).join(', ')}${options.current ? ` WHERE ${currentRowChangedSqlText(tableName, columns)}` : ''};`
+      const changed = options.current
+        ? currentRowChangedSqlText(tableName, columns)
+        : options.skipUnchanged
+          ? currentRowChangedSqlText(tableName, columns, [])
+          : null
+      suffix = options.immutable
+        ? ' ON CONFLICT DO NOTHING;'
+        : ` ON CONFLICT DO UPDATE SET ${updated.map(column => `"${column}" = excluded."${column}"`).join(', ')}${changed ? ` WHERE ${changed}` : ''};`
       overheadBytes = Buffer.byteLength(prefix) + Buffer.byteLength(suffix)
     }
     const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`
@@ -441,7 +443,14 @@ export function* geometryIterateUpsertSql(
         valuesBytes = 0
       }
 
-      yield geometryBuildChunkedUpsertSql(tableName, columns, row, prefix, suffix)
+      yield geometryBuildChunkedUpsertSql(
+        tableName,
+        columns,
+        row,
+        prefix,
+        suffix,
+        options.immutable,
+      )
       continue
     }
 
@@ -469,6 +478,7 @@ function geometryBuildChunkedUpsertSql(
   row: Record<string, unknown>,
   prefix: string,
   suffix: string,
+  immutable = false,
 ) {
   const keyColumns = geometryReplayKeyColumns(row)
   if (!keyColumns) {
@@ -534,9 +544,13 @@ function geometryBuildChunkedUpsertSql(
     )
   }
 
-  const where = keyColumns
-    .map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`)
-    .join(' AND ')
+  // The resolved delivery compiler executes this script sequentially in its
+  // SQLite candidate. A conflicting immutable insert reports zero changes,
+  // suppressing every append; a new insert and each append report one change.
+  const where = [
+    ...keyColumns.map(column => `"${column}" = ${geometrySqlLiteral(row[column])}`),
+    ...(immutable ? ['changes() = 1'] : []),
+  ].join(' AND ')
   return [
     upsert,
     ...selectedColumns.flatMap(({ column, value }) => {
@@ -569,12 +583,12 @@ function geometryBuildChunkedUpsertSql(
 }
 
 function geometryReplayKeyColumns(row: Record<string, unknown>) {
-  if (typeof row.snapshotId === 'string' && typeof row.id === 'string') {
-    return ['snapshotId', 'id']
-  }
-
   if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
     return ['id', 'versionHash']
+  }
+
+  if (typeof row.snapshotId === 'string' && typeof row.id === 'string') {
+    return ['snapshotId', 'id']
   }
 
   if (typeof row.sourceRecordId === 'string' && typeof row.versionHash === 'string') {

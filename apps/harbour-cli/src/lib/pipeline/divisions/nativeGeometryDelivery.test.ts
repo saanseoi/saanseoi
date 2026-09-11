@@ -18,20 +18,31 @@ import {
 } from './nativeGeometryDelivery.ts'
 
 for (const target of ['local', 'preview'] as const)
-  test(`${target} geometry planning resumes exact mutations including old history/source closures and retained churn`, async () => {
+  test(`${target} geometry planning resumes membership changes and source closures without mutating retained geometry`, async () => {
     const root = await mkdtemp(join(tmpdir(), 'native-geometry-'))
     const files = {
       DB_CURRENT: join(root, 'current.sqlite'),
       DB_HISTORY: join(root, 'history.sqlite'),
       DB_SOURCE: join(root, 'source.sqlite'),
+      DB_META: join(root, 'meta.sqlite'),
     }
     const current = new Database(files.DB_CURRENT)
     const history = new Database(files.DB_HISTORY)
     const source = new Database(files.DB_SOURCE)
+    const meta = new Database(files.DB_META)
+    meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT);
+      CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
+      CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
+      INSERT INTO snapshots VALUES('old',NULL);
+      INSERT INTO dataShards VALUES('history','DB_HISTORY');
+      INSERT INTO snapshotShardAssignments VALUES('old','history');`)
     const releaseId = `native-geometry-test-${crypto.randomUUID()}`
+    const historyDb = drizzle({ client: history, schema: historySchema })
     const context = {
       currentDb: drizzle({ client: current, schema: currentSchema }),
-      historyDb: drizzle({ client: history, schema: historySchema }),
+      historyDb,
+      historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
+      metaDb: drizzle({ client: meta }),
       sourceDb: drizzle({ client: source, schema: sourceSchema }),
       currentBinding: createLocalExecBinding(current, 'DB_CURRENT'),
       historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
@@ -159,7 +170,7 @@ for (const target of ['local', 'preview'] as const)
             "SELECT count(*) AS n FROM divisionAreas WHERE sourceReleaseId='old' AND isCurrent=1",
           )
           .get(),
-      ).toEqual({ n: 0 })
+      ).toEqual({ n: 2 })
       expect(
         source
           .query(
@@ -205,6 +216,7 @@ for (const target of ['local', 'preview'] as const)
       current.close()
       history.close()
       source.close()
+      meta.close()
       await rm(root, { recursive: true, force: true })
       await rm(dirname(directory), { recursive: true, force: true })
     }

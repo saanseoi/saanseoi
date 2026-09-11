@@ -339,3 +339,87 @@ test('Division base changes retain unchanged locales and preserve meaningful ide
         .get(),
     ).toEqual({ isCurrent: 0 })
   }))
+
+test('Division publication after rollback compares against selected A when C repeats historical B', () =>
+  fixture(async f => {
+    // A remains the serving receipt; B stays retained and flagged current after rollback.
+    for (const db of [
+      requireDefined(f.before.DB_HISTORY_NEW),
+      requireDefined(f.candidates.DB_HISTORY_NEW).db,
+    ])
+      db.exec(`
+        INSERT INTO divisionsI18n(versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt)
+          VALUES('branch-b','release-b',1,0,'branch-b','district','en','Revised','["Revised"]','b','b');
+        INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
+          VALUES('branch-b','divisionI18n','district','en','branch-b','upsert','release-b');`)
+    for (const db of [
+      requireDefined(f.before.DB_HISTORY_OLD),
+      requireDefined(f.candidates.DB_HISTORY_OLD).db,
+    ])
+      db.exec("UPDATE divisionsI18n SET isCurrent=0 WHERE locale='en'")
+    requireDefined(f.candidates.DB_META).db.exec(`
+      INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId)
+        VALUES('branch-b','division','branch-b','2025','published','old');
+      INSERT INTO snapshotShardAssignments(snapshotId,dataShardId) VALUES('branch-b','DB_HISTORY_NEW');`)
+    stage(f.candidates, 'Revised')
+    await f.coalesce()
+    const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
+    expect(
+      next
+        .query(
+          "SELECT recordType,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId='next'",
+        )
+        .all(),
+    ).toEqual([
+      { recordType: 'divisionI18n', locale: 'en', versionHash: 'whole-candidate' },
+    ])
+    const state = await resolveSnapshotVersionState(plan, shards(f.candidates), [
+      'division',
+      'divisionI18n',
+    ])
+    const english = requireDefined(state.get('divisionI18n\0district\0en'))
+    expect(english.versionHash).toBe('whole-candidate')
+    expect(
+      next
+        .query(
+          'SELECT name FROM divisionsI18n WHERE divisionId=? AND versionHash=? AND locale=?',
+        )
+        .get(english.recordId, english.versionHash, english.locale),
+    ).toEqual({ name: 'Revised' })
+    expect(state.get('division\0district\0')?.shard.bindingName).toBe('DB_HISTORY_OLD')
+    expect(state.get('divisionI18n\0district\0zh-hant')?.shard.bindingName).toBe(
+      'DB_HISTORY_OLD',
+    )
+    expect(
+      next
+        .query("SELECT isCurrent,name FROM divisionsI18n WHERE versionHash='branch-b'")
+        .get(),
+    ).toEqual({ isCurrent: 1, name: 'Revised' })
+  }))
+
+test('Division coalescing rejects unavailable selected content even when another history version exists', () =>
+  fixture(async f => {
+    requireDefined(f.before.DB_HISTORY_OLD).exec(
+      "UPDATE divisionsI18n SET versionHash='unselected' WHERE locale='en'",
+    )
+    stage(f.candidates, 'Revised')
+    await expect(f.coalesce()).rejects.toThrow(
+      'Missing selected Division content divisionsI18n/district in DB_HISTORY_OLD',
+    )
+  }))
+
+test('Division coalescing permits a new locale with no predecessor', () =>
+  fixture(async f => {
+    stage(f.candidates)
+    requireDefined(f.candidates.DB_CURRENT).db.exec(
+      "INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,isLocaleInferred) VALUES('scope','district','fr','District',0)",
+    )
+    const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
+    next.exec(`
+      INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,isLocaleInferred,versionHash,sourceReleaseId,isCurrent) VALUES('next','district','fr','District',0,'french','release-next',1);
+      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,sourceReleaseId,operation) VALUES('next','divisionI18n','district','fr','french','release-next','upsert');`)
+    await f.coalesce()
+    expect(
+      next.query('SELECT locale,versionHash FROM snapshotVersionChanges').all(),
+    ).toEqual([{ locale: 'fr', versionHash: 'french' }])
+  }))

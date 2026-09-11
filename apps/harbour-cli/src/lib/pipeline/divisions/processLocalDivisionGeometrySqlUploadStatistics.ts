@@ -1,4 +1,5 @@
 import { readDivisionSnapshot } from './readDivisionSnapshot.ts'
+import { readGeometrySnapshot } from './readGeometrySnapshot.ts'
 import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
@@ -14,8 +15,8 @@ import {
   decompressJsonBrotli,
   MAX_BROTLI_QUALITY,
 } from '@repo/core/pipeline/services/storage/brotliJson.ts'
-import { currentSchema, historySchema } from '@repo/db'
-import { desc, eq } from 'drizzle-orm'
+import { currentSchema } from '@repo/db'
+import { eq } from 'drizzle-orm'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
@@ -173,7 +174,7 @@ export async function getGeometryChurnBaseline(
 
 export async function buildGeometryStats(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
+  _historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
   rows: Array<NonNullable<NormalisedGeometry>>,
@@ -190,7 +191,11 @@ export async function buildGeometryStats(
       ...churnStats,
       ...buildHousingMarketAreaDistrictDistributionRows(
         rows,
-        await resolveHousingMarketAreaDistrictGeometries(currentDb, historyDb, metaDb),
+        await resolveHousingMarketAreaDistrictGeometries(
+          currentDb,
+          metaDb,
+          historyTargets,
+        ),
       ),
     ]
   }
@@ -350,48 +355,27 @@ async function resolveGeometryDistricts(
 
 async function resolveHousingMarketAreaDistrictGeometries(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   metaDb: HarbourReadableDb,
+  historyTargets: readonly ReplayShard[],
 ) {
-  const currentRows = await currentDb
-    .select({
-      divisionId: currentSchema.divisionAreas.divisionId,
-      geometry: currentSchema.divisionAreas.geometry,
-      updatedAt: currentSchema.divisionAreas.updatedAt,
-    })
-    .from(currentSchema.divisionAreas)
-    .where(eq(currentSchema.divisionAreas.variant, CENSTATD_2021_DISTRICT_VARIANT))
-    .orderBy(desc(currentSchema.divisionAreas.updatedAt))
-    .all()
-
-  const snapshot =
-    currentRows.length > 0
-      ? null
-      : await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-          metaDb,
-          'divisionArea',
-          'hk',
-          '2021',
-          { variant: CENSTATD_2021_DISTRICT_VARIANT },
-        )
-  const rows =
-    currentRows.length > 0
-      ? currentRows
-      : snapshot
-        ? await historyDb
-            .select({
-              divisionId: historySchema.divisionAreas.divisionId,
-              geometry: historySchema.divisionAreas.geometry,
-              updatedAt: historySchema.divisionAreas.updatedAt,
-            })
-            .from(historySchema.divisionAreas)
-            .where(eq(historySchema.divisionAreas.snapshotId, snapshot.id))
-            .orderBy(desc(historySchema.divisionAreas.updatedAt))
-            .all()
-        : []
+  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
+    metaDb,
+    'divisionArea',
+    'hk',
+    '2021',
+    { variant: CENSTATD_2021_DISTRICT_VARIANT },
+  )
+  const rows = snapshot
+    ? await readGeometrySnapshot(
+        { currentDb, metaDb: metaDb as never, historyTargets: historyTargets as never },
+        'divisionArea',
+        snapshot.id,
+      )
+    : []
 
   const districts = new Map<string, GeoJsonGeometry>()
   for (const row of rows) {
+    if (!('divisionId' in row)) continue
     if (districts.has(row.divisionId)) continue
     const geometry = decodeStoredGeoJsonGeometry(row.geometry)
     if (!isGeoJsonPolygon(geometry)) {

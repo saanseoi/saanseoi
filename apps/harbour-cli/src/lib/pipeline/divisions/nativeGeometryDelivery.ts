@@ -98,7 +98,11 @@ export async function writeGeometryRowsDurably(
     context,
     releaseId: version.releaseId,
     phase,
-    inputs: { version: retainedVersion, normalisedSha256: hash.digest('hex') },
+    inputs: {
+      version: retainedVersion,
+      normalisedSha256: hash.digest('hex'),
+      historyMembershipPolicy: 'immutable-geometry-v1',
+    },
   }
   const directory = sqlDeliveryPhaseDirectory(input)
   // A retained plan already contains the exact mutations and churn. Keep a retry
