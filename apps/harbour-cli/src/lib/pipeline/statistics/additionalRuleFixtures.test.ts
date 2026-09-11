@@ -41,22 +41,19 @@ test('source assertions validate periods and retain native evidence', async () =
     reference_period_granularity: 'year',
     sources: '[]',
   }
-  const result = await censtatdSourceAssertionRule.execute([
-    row,
-    'release-id',
-    'release-code',
-    '2021',
-  ])
+  const result = await censtatdSourceAssertionRule.execute([row, 'release-id', '2021'])
   expect(result.properties).toEqual({ test: 1 })
   expect(result.sourceRecordId).toBe('fixture-record')
   expect(result.releaseId).toBe('release-id')
+  expect(result.validFromRelease).toBe('2021')
+  expect(result.validToRelease).toBeNull()
   const { properties: _, ...incomplete } = row
   await expect(
-    censtatdSourceAssertionRule.execute([incomplete, 'r', 'r', '2021']),
+    censtatdSourceAssertionRule.execute([incomplete, 'r', '2021']),
   ).rejects.toThrow('source properties are missing; prepare the release again')
-  await expect(
-    censtatdSourceAssertionRule.execute([row, 'r', 'r', '2022']),
-  ).rejects.toThrow('reference_period_code')
+  await expect(censtatdSourceAssertionRule.execute([row, 'r', '2022'])).rejects.toThrow(
+    'reference_period_code',
+  )
 })
 
 test('both geometry audits freeze the same dependency and its implementation revision', async () => {

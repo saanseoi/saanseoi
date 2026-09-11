@@ -408,7 +408,7 @@ function sourcePropertiesReader(dbs: Database[], snapshot: Snapshot) {
         `Unrecognised retained source feature reference: ${sourceFeatureRef}.`,
       )
     const sourceRecordId = `CENSTATD:${sourceFeatureRef.slice(prefix.length)}`
-    const boundary = `${snapshot.releaseCode}::divisionStatistic`
+    const boundary = snapshot.sourceVersion
     const properties = dbs.flatMap(
       db =>
         db

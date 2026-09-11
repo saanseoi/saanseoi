@@ -29,7 +29,7 @@ export type StatisticSqlReplayInput = {
     rows: StatisticRow[]
     table: 'divisionStatistics'
   }
-  releaseCode: string
+  sourceVersion: string
   releaseId: string
   source: {
     rows: StatisticRow[]
@@ -73,7 +73,7 @@ export function buildStatisticSqlBatches(
       input.source.table,
       sourceIds,
       input.releaseId,
-      input.releaseCode,
+      input.sourceVersion,
       sourceRows,
     ),
     ...buildUpsertStatements(
@@ -232,7 +232,7 @@ function buildCloseSourceStatements(
   table: StatisticSqlReplayInput['source']['table'],
   ids: string[],
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
   rows: StatisticRow[],
 ) {
   if (ids.length === 0) return []
@@ -246,7 +246,7 @@ function buildCloseSourceStatements(
     hashes.add(requiredString(valueFor(row, 'versionHash'), 'versionHash'))
     hashesById.set(id, hashes)
   }
-  const update = `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1`
+  const update = `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(sourceVersion)}, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1`
   return [
     ...[...hashesById].map(
       ([id, hashes]) =>
