@@ -24,6 +24,12 @@ import { assertStreetEstateAliasInventoryEmpty } from './hkgovAlsStreetEstateCom
 import { assertAlsCommercialInventoryAbsent } from './hkgovAlsCommercialRetentions'
 import { reportAlsReviewIssue, type AlsReviewIssue } from './hkgovAlsReviewIssue'
 import {
+  membershipCollection,
+  membershipSource,
+  type AlsMembershipCollection,
+  type AlsMembershipSource,
+} from './hkgovAlsMembership'
+import {
   als3dHash,
   assertAddress3dRowBudget,
   normaliseAls3dInventory,
@@ -89,6 +95,10 @@ export async function prepareAls3dCollections(options: {
   writeOutput?: boolean
   skipCurationChecks?: boolean
   onGuardPassed?: (id: AlsAuditGuardId, count?: number) => void
+  membership?: {
+    collections: AlsMembershipCollection[]
+    sources: AlsMembershipSource[]
+  }
 }) {
   const input = globSync(
     resolve(options.sourceDir, 'als_addresses_3d_*.geojson'),
@@ -275,6 +285,7 @@ export async function prepareAls3dCollections(options: {
         assertAddress3dRowBudget(source)
         options.onGuardPassed?.('inventory-size')
         await write(source)
+        options.membership?.sources.push(membershipSource(source, '3d'))
         sourceRecordIds.push(sourceRecordId)
         sourceCount++
       }
@@ -438,6 +449,7 @@ export async function prepareAls3dCollections(options: {
       for (const [locale, units] of Object.entries(inventory.locales))
         assertAddress3dRowBudget({ address3dId: record.id, locale, units })
       await write(record)
+      options.membership?.collections.push(membershipCollection(record))
       ownerHashes.set(address2dId, inventory.contentHash)
       unitCount += inventory.unitCount
     }
