@@ -1,5 +1,9 @@
 # LandsD Place Name database
 
+Source validity uses the owning release's version component in `validFromRelease` and
+`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
+retains the release association.
+
 Native source replay preserves open matching versions without rewriting their release
 metadata. Complete replacement membership closes omissions and superseded hashes; large
 payload append statements skip complete unchanged assertions.
