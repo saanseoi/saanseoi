@@ -879,9 +879,27 @@ function createCleanupCandidatesDb() {
   sqlite.exec(`
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT,
       resourceType TEXT NOT NULL,
-      status TEXT NOT NULL
+      cohortKey TEXT NOT NULL DEFAULT '2026',
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
+      revision INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      createdAt TEXT
     );
+
+    CREATE TABLE snapshotLineages (id TEXT PRIMARY KEY, variant TEXT);
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
+    );
+    CREATE TABLE releases (
+      id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
+    );
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
+    );
+    CREATE TABLE publishers (id TEXT PRIMARY KEY, code TEXT);
 
     CREATE TABLE apiReleaseSets (
       publisherFields TEXT,
@@ -2405,13 +2423,24 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
       listCurrentSnapshotCleanupCandidates(db as never, {
         resourceType: 'divisionArea',
       }),
-    ).resolves.toEqual([])
+    ).resolves.toEqual([
+      {
+        snapshotId: 'snapshot-published-area-variant',
+        resourceType: 'divisionArea',
+      },
+    ])
 
     await expect(
       listCurrentSnapshotCleanupCandidates(db as never, {
         resourceType: 'divisionBoundary',
       }),
-    ).resolves.toEqual([])
+    ).resolves.toEqual([
+      {
+        snapshotId: 'snapshot-published-boundary-variant',
+        resourceType: 'divisionBoundary',
+      },
+    ])
+    sqlite.close()
   })
 })
 

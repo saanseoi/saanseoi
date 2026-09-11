@@ -193,6 +193,8 @@ export type DatasetProcessingMessage = {
   resolvedArtefactKey?: string
   addressSqlArtefactKeys?: string[]
   addressSqlPublishAfterCleanup?: boolean
+  /** Stable lineage key used only by the current serving projection. */
+  addressCurrentScopeId?: string
   addressStats?: {
     deletedRows: number
     insertedVersions: number
