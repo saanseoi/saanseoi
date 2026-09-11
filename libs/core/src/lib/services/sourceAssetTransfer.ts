@@ -190,6 +190,7 @@ export async function completeSourceAssetTransfer(
     fileName: string
     role: string
   },
+  progress: (operation: string) => void = () => {},
 ) {
   assertSourceAssetParts(input.byteLength, input.parts)
   if (
@@ -215,7 +216,10 @@ export async function completeSourceAssetTransfer(
     return bytes
   }
   const hash = createHash('sha256')
-  for (const part of input.parts) hash.update(await readPart(part))
+  for (const [index, part] of input.parts.entries()) {
+    progress(`verifying chunk ${index + 1}/${input.parts.length}`)
+    hash.update(await readPart(part))
+  }
   if (hash.digest('hex') !== input.contentHash)
     throw new Error('Assembled source asset SHA-256 mismatch.')
   const options = {
@@ -239,8 +243,10 @@ export async function completeSourceAssetTransfer(
     const upload = await store.createMultipartUpload(input.assetKey, options)
     try {
       const parts: UploadedPart[] = []
-      for (const [index, part] of input.parts.entries())
+      for (const [index, part] of input.parts.entries()) {
+        progress(`assembling chunk ${index + 1}/${input.parts.length}`)
         parts.push(await upload.uploadPart(index + 1, await readPart(part)))
+      }
       // Concurrent completions can only contain the same verified bytes.
       if (await matches()) await upload.abort()
       else await upload.complete(parts)

@@ -1,9 +1,15 @@
 import { existsSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { eq, metaSchema, or, type MetaDatabase } from '@repo/db'
+import { publicationScopeId } from '@repo/core/pipeline/services/publication/scope'
 import type { UploadTarget } from '../cli/options.ts'
-import { resolveRemoteCacheDir } from './localDbCacheTargets.ts'
+import {
+  mapLocalTargetPaths,
+  requirePath,
+  resolveD1Targets,
+  resolveRemoteCacheDir,
+} from './localDbCacheTargets.ts'
 import {
   DB_CACHE_MANIFEST_VERSION,
   REQUIRED_RELEASE_SHARD_ASSIGNMENTS,
@@ -16,6 +22,51 @@ import {
   readManifest,
 } from './localDbCacheManifest.ts'
 import { openSqliteDb } from './localDbCache.ts'
+
+/** Publication metadata alone does not prove that an initialiser can skip delivery. */
+export async function readLocalCompletedReleaseCodes() {
+  const files = mapLocalTargetPaths(
+    (await resolveD1Targets('local')).filter(target =>
+      ['DB_META', 'DB_CURRENT'].includes(target.bindingName),
+    ),
+  )
+  const metaPath = requirePath(files.DB_META, 'DB_META')
+  const meta = new SQLiteDatabase(metaPath, { readonly: true })
+  try {
+    return await listCompletedReleaseCodes(dirname(metaPath), files, meta)
+  } finally {
+    meta.close()
+  }
+}
+
+export async function listCompletedReleaseCodes(
+  cacheDir: string,
+  files: Record<string, string>,
+  meta: SQLiteDatabase,
+) {
+  const releases = meta
+    .query<CompletedRelease, []>(
+      "SELECT code, datasetId, id, status, resourceType FROM releases WHERE status IN ('published', 'superseded') ORDER BY code",
+    )
+    .all()
+  const incomplete = await findIncompletePublishedReleases(
+    cacheDir,
+    files,
+    meta,
+    releases,
+  )
+  return releases
+    .filter(release => !incomplete.some(issue => issue.startsWith(`${release.code}: `)))
+    .map(release => release.code)
+}
+
+type CompletedRelease = {
+  code: string
+  datasetId: string
+  id: string
+  status: string
+  resourceType: string
+}
 
 export async function readRemoteCachedCompletedReleaseCodes(
   target: UploadTarget,
@@ -74,13 +125,7 @@ export async function findIncompletePublishedReleases(
   cacheDir: string,
   files: Record<string, string>,
   metaSqlite: SQLiteDatabase,
-  releases: Array<{
-    code: string
-    datasetId: string
-    id: string
-    status: string
-    resourceType: string
-  }>,
+  releases: CompletedRelease[],
 ) {
   const currentPath = files.DB_CURRENT ?? resolve(cacheDir, 'DB_CURRENT.sqlite')
   const currentSqlite = existsSync(currentPath)
@@ -94,17 +139,17 @@ export async function findIncompletePublishedReleases(
         continue
       }
 
-      const currentTable = resolveCompletedReleaseCurrentTable(release.resourceType)
+      const receiptTable = resolveCompletedReleaseReceiptTable(release.resourceType)
 
       // Non-SQL pipelines have no cache-level materialisation contract here.
-      if (!currentTable) {
+      if (!receiptTable) {
         continue
       }
 
       const snapshot = metaSqlite
         .query(
           `
-            SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId
+            SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId, s.cohortKey AS cohortKey
             FROM snapshots s
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
             LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
@@ -135,7 +180,11 @@ export async function findIncompletePublishedReleases(
           release.resourceType,
           release.resourceType,
           release.datasetId,
-        ) as { snapshotId?: string; snapshotLineageId?: string | null } | null
+        ) as {
+        snapshotId: string
+        snapshotLineageId: string
+        cohortKey: string
+      } | null
 
       if (!snapshot?.snapshotId) {
         incomplete.push(
@@ -169,13 +218,25 @@ export async function findIncompletePublishedReleases(
       }
 
       try {
-        const rowCount = currentSqlite
+        const receipt = currentSqlite
           .query(
-            `SELECT COUNT(*) AS count FROM ${quoteSqlIdentifier(currentTable)} WHERE "snapshotId" = ?`,
+            `SELECT 1 FROM ${quoteSqlIdentifier(receiptTable)}
+             WHERE snapshotId = ? AND scopeId = ?
+               AND preparedAt IS NOT NULL AND publicationToken <> ''
+               AND status IN ('publishing', 'current')`,
           )
-          .get(snapshot.snapshotId) as { count?: number }
-        if ((rowCount.count ?? 0) === 0) {
-          incomplete.push(`${release.code}: current snapshot is not materialised`)
+          .get(
+            snapshot.snapshotId,
+            publicationScopeId(
+              release.resourceType,
+              snapshot.snapshotLineageId,
+              snapshot.cohortKey,
+            ),
+          )
+        if (!receipt) {
+          incomplete.push(
+            `${release.code}: current snapshot has no complete delivery receipt`,
+          )
         }
       } catch (error) {
         incomplete.push(
@@ -190,14 +251,14 @@ export async function findIncompletePublishedReleases(
   return incomplete
 }
 
-function resolveCompletedReleaseCurrentTable(resourceType: string) {
+function resolveCompletedReleaseReceiptTable(resourceType: string) {
   switch (resourceType) {
     case 'division':
-      return 'divisions'
+      return 'divisionPublicationState'
     case 'divisionArea':
-      return 'divisionAreas'
+      return 'divisionAreaPublicationState'
     case 'divisionBoundary':
-      return 'divisionBoundaries'
+      return 'divisionBoundaryPublicationState'
     default:
       return null
   }
