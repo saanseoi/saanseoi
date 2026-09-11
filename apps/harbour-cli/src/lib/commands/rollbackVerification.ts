@@ -350,8 +350,8 @@ function resolveCurrentTable(tableName: string) {
       return currentSchema.placesDivision
     case 'placesCells':
       return currentSchema.placesCells
-    case 'placesFts':
-      return currentSchema.placesFts
+    case 'placeSearchScopes':
+      return currentSchema.placeSearchScopes
     default:
       throw new Error(`Unsupported rollback current table: ${tableName}`)
   }

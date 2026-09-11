@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
-import { synchroniseAddressSearch } from '@repo/core/pipeline/services/addresses/searchIndex'
+import { finalisePublishedSearch } from '@repo/core/pipeline/services/search/finalise'
 
 import {
   handleBootstrapStatsReleaseSets,
@@ -326,13 +326,12 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
-      if (
-        !request.deferApiReleaseSet &&
-        result.apiReleaseSetPublications?.some(
-          publication => publication.apiFamily === 'addresses',
-        )
-      )
-        await synchroniseAddressSearch(db, c.env.DB_CURRENT)
+      await finalisePublishedSearch(db, c.env.DB_CURRENT, {
+        deferred: request.deferApiReleaseSet || request.deferSourcePublish,
+        publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
+          publication => publication.apiFamily,
+        ),
+      })
       await announcePublishedReleaseSets(c.env, result.apiReleaseSetAnnouncements)
       const { apiReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)
@@ -372,9 +371,9 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const result = await handleReconcileDraftReleaseSets(db, c.req.valid('json'))
-      if (result.pendingReleaseSetCodes.length === 0) {
-        await synchroniseAddressSearch(db, c.env.DB_CURRENT)
-      }
+      await finalisePublishedSearch(db, c.env.DB_CURRENT, {
+        pendingReleaseSetCodes: result.pendingReleaseSetCodes,
+      })
       await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
       const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)

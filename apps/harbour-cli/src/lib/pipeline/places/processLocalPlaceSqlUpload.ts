@@ -1,6 +1,5 @@
 import { PlaceRecordCache } from './placeRecordCache.ts'
 import { mkdir } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
@@ -376,32 +375,6 @@ export async function processLocalPlaceSqlUpload(
         ),
       stagedEnrichedPlaces.processedRows,
     )
-    const rebuildSearch = (mode: 'remote' | 'local') =>
-      deliverSqlPhase(
-        {
-          context,
-          releaseId,
-          phase: 'places-search',
-          nativeLocal: true,
-          inputs: sqlDelivery?.inputs ?? {},
-          mode,
-        },
-        () =>
-          executeSqlText(
-            targets.current,
-            readFileSync(
-              resolve(
-                import.meta.dir,
-                '../../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
-              ),
-              'utf8',
-            ),
-            importOptions,
-          ),
-      )
-    await runPlaceProgressPhase(progress, 'Rebuild', 'Places search index', () =>
-      rebuildSearch('remote'),
-    )
     await runPlaceProgressPhase(
       progress,
       'Mark as',
@@ -533,11 +506,6 @@ export async function processLocalPlaceSqlUpload(
                     ),
                   sqlDelivery,
                 )
-                reportProgress(
-                  stagedEnrichedPlaces.processedRows,
-                  'remote cache search index',
-                )
-                await rebuildSearch('local')
               },
             ),
           stagedEnrichedPlaces.processedRows,
