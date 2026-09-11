@@ -1,3 +1,4 @@
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -41,9 +42,21 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
     inputs: {},
   })
   try {
-    current.exec(
-      'CREATE TABLE streets(snapshotId TEXT, id TEXT); CREATE TABLE streetPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
-    )
+    for (const [binding, db] of Object.entries(databases))
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations'),
+          [
+            binding === 'DB_CURRENT'
+              ? 'current'
+              : binding === 'DB_META'
+                ? 'meta'
+                : binding === 'DB_HISTORY'
+                  ? 'history'
+                  : 'source',
+          ],
+        ),
+      )
     const publication = {
       table: 'streetPublicationState' as const,
       scopeId: 'lineage',

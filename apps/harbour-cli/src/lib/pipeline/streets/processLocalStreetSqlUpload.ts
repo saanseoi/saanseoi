@@ -301,7 +301,7 @@ export async function processLocalStreetSqlUpload(
         await closeSourceVersions(
           context.sourceDb as unknown as HarbourWritableDb,
           changedSourceRecords,
-          releaseCode,
+          dataset.sourceVersion,
           now,
         )
         await closeHistoryVersions(
@@ -354,7 +354,7 @@ export async function processLocalStreetSqlUpload(
         await insertSourceRows(
           context.sourceDb as unknown as HarbourWritableDb,
           releaseId,
-          releaseCode,
+          dataset.sourceVersion,
           changedSourceRecords,
           now,
         )
