@@ -148,7 +148,7 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM placesDivision WHERE placeSnapshotId = 'places-snapshot-new';",
     )
     expect(sql.current).toContain(
-      "DELETE FROM placesFts WHERE snapshotId = 'places-snapshot-new';",
+      "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
     )
     expect(sql.history).toContain(
       "UPDATE places SET isCurrent = 0 WHERE snapshotId = 'places-snapshot-new';",
