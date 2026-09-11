@@ -5,6 +5,11 @@ updates. Changed source hashes close explicitly; bounded same-release membership
 handle source omissions. Large source geometry is assembled only for incomplete or
 closed rows. Canonical Statistics revisions retain omitted values and geographies.
 
+Both native Statistics source tables store only the publisher version in
+`validFromRelease` and `validToRelease`, for example `2023-H2`. These boundaries use the
+complete `sourceVersion`; source dataset prefixes and resource-child suffixes belong to
+release metadata. Unchanged assertions retain their original opening version.
+
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 distinct configured source versions before update discovery, retaining companion
 resources. Discovered updates are also capped at two versions per dataset.
