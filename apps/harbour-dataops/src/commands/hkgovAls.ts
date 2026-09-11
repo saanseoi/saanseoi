@@ -42,7 +42,7 @@ import {
   hasAllOvertureHongKongAreaDivisions,
   overtureHongKongAreas,
   overtureHongKongAreaDivisionId,
-} from '@repo/core/pipeline/services/overtureHongKongAreas'
+} from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 import type {
   ParsedArgs,
   UploadTarget,
@@ -785,12 +785,13 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
           cartography: historySchema.divisions.cartography,
           divisionCode: historySchema.divisions.divisionCode,
           geometry: historySchema.divisions.geometry,
-          hierarchy: historySchema.divisions.hierarchy,
+          hierarchies: historySchema.divisions.hierarchies,
           id: historySchema.divisions.id,
           identifiers: historySchema.divisions.identifiers,
           level: historySchema.divisions.level,
           sources: historySchema.divisions.sources,
-          type: historySchema.divisions.type,
+          category: historySchema.divisions.category,
+          class: historySchema.divisions.class,
           versionHash: historySchema.divisions.versionHash,
           wikidata: historySchema.divisions.wikidata,
         })

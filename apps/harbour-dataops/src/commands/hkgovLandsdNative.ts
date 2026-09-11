@@ -49,7 +49,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   const rows = features.map(feature => ({
     placeNames: feature.placeNames,
     rawProperties: feature.properties,
-    sourceGeometry: feature.geometry,
+    sourceGeometry: feature.sourceGeometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
     sources: [provenance(input, 'GEO_PLACE_NAME')],
   }))
