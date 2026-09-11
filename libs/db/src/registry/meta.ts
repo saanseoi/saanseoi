@@ -495,7 +495,8 @@ export function resolveMergeRulesetDefinitions(
       if (!definition) throw new Error(`Unknown processing rule fixture: ${name}.`)
       return structuredClone(definition)
     })
-    const first = selected[0]!
+    const first = selected[0]
+    if (!first) throw new Error('Processing rule references must not be empty.')
     if (selected.some(definition => definition.scope !== first.scope)) {
       throw new Error('One merge operation cannot combine bulk and individual rules.')
     }
@@ -869,6 +870,16 @@ ON CONFLICT(code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE units.versionHash <> excluded.versionHash;`.trim(),
+    )
+  }
+
+  // Registry-owned translations use exactly the locale keys declared by their unit.
+  for (const unit of initialUnits) {
+    const locales = initialUnitsI18n
+      .filter(translation => translation.code === unit.code)
+      .map(translation => sqlString(translation.locale))
+    statements.push(
+      `DELETE FROM unitsI18n WHERE unitId = (SELECT id FROM units WHERE code = ${sqlString(unit.code)})${locales.length ? ` AND locale NOT IN (${locales.join(', ')})` : ''};`,
     )
   }
 

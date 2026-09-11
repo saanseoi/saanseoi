@@ -171,10 +171,14 @@ describe('fixture version hashes', () => {
       '/divisions/v0/{id}',
     ])
     expect(placePaths).toEqual([
+      '/places/v0',
       '/places/v0.1',
       '/places/v0.1/by-cell/{h3Level}/{h3Cell}',
       '/places/v0.1/search',
       '/places/v0.1/{id}',
+      '/places/v0/by-cell/{h3Level}/{h3Cell}',
+      '/places/v0/search',
+      '/places/v0/{id}',
     ])
     expect(statsPaths).toEqual([
       '/stats/v0',
@@ -587,9 +591,12 @@ test('official source datasets retain executable processing definitions and conf
     'ds-hk-hkgov-pland-division-new-town',
     'ds-hk-hkgov-pland-division-pu',
   ]) {
-    const dataset = initialDatasets.find(dataset => dataset.code === code)!
+    const dataset = initialDatasets.find(dataset => dataset.code === code)
+    if (!dataset) throw new Error(`Missing dataset fixture: ${code}`)
     expect(dataset.sourceCrs).toMatch(/^EPSG:/)
-    const rules = dataset.processingRules!.rulesets.flatMap(ruleset => ruleset.rules)
+    const processingRules = dataset.processingRules
+    if (!processingRules) throw new Error(`Missing processing rules: ${code}`)
+    const rules = processingRules.rulesets.flatMap(ruleset => ruleset.rules)
     expect(rules.length).toBeGreaterThan(0)
     expect(rules.every(rule => rule.definition?.implementation)).toBe(true)
   }
