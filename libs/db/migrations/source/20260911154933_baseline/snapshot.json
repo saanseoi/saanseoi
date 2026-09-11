@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "1d5c05df-3b4b-4eb5-a0a2-db7a48c22301",
+  "id": "e9e3092e-a966-49d6-bfa3-d7727c0036a8",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -108,7 +108,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "overtureDivisionAreas"
     },
@@ -189,6 +189,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "overtureDivisionAreas"
     },
@@ -208,7 +218,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "overtureDivisionBoundaries"
     },
@@ -289,6 +299,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "overtureDivisionBoundaries"
     },
@@ -308,7 +328,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "overtureDivisions"
     },
@@ -389,6 +409,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overtureDivisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "overtureDivisions"
     },
@@ -408,7 +438,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "overturePlaces"
     },
@@ -489,6 +519,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "overturePlaces"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "overturePlaces"
     },
@@ -508,7 +548,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovAlsAddresses2d"
     },
@@ -589,6 +629,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "hkgovAlsAddresses2d"
     },
@@ -608,7 +658,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovAlsAddresses3d"
     },
@@ -689,6 +739,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovAlsAddresses3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceGeometry",
       "entityType": "columns",
       "table": "hkgovAlsAddresses3d"
     },
@@ -708,7 +768,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovLandsdPlaceNames"
     },
@@ -828,16 +888,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovLandsdRoadCentrelines"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovLandsdRoadCentrelines"
@@ -909,6 +959,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovLandsdRoadCentrelines"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovLandsdRoadCentrelines"
     },
@@ -1408,16 +1468,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovHydSensitiveStreets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovHydSensitiveStreets"
@@ -1489,6 +1539,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydSensitiveStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovHydSensitiveStreets"
     },
@@ -1518,16 +1578,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovHydStrategicStreets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovHydStrategicStreets"
@@ -1599,6 +1649,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydStrategicStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovHydStrategicStreets"
     },
@@ -1628,16 +1688,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovHydStreetNamePlates"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovHydStreetNamePlates"
@@ -1709,6 +1759,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovHydStreetNamePlates"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovHydStreetNamePlates"
     },
@@ -1738,16 +1798,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
-      "entityType": "columns",
-      "table": "hkgovTdPedestrianStreets"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "rawProperties",
       "entityType": "columns",
       "table": "hkgovTdPedestrianStreets"
@@ -1819,6 +1869,16 @@
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
       "generated": null,
       "name": "updatedAt",
+      "entityType": "columns",
+      "table": "hkgovTdPedestrianStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
       "entityType": "columns",
       "table": "hkgovTdPedestrianStreets"
     },
@@ -1858,7 +1918,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovHadDivisionAreas"
     },
@@ -1968,7 +2028,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
     },
@@ -2208,7 +2268,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovCenstatdDivisionAreas"
     },
@@ -2328,7 +2388,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovCenstatdStatistics"
     },
@@ -2438,7 +2498,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovPlandNewTowns"
     },
@@ -2568,7 +2628,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sources",
+      "name": "sourceLocator",
       "entityType": "columns",
       "table": "hkgovPlandPlanningCells"
     },

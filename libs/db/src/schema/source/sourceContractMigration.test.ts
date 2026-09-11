@@ -1,31 +1,30 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { readdir, readFile } from 'node:fs/promises'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-test('generated source migration preserves history and every Streets table', async () => {
+test('fresh source migration creates every Streets table and source payload contract', () => {
   const root = resolve(import.meta.dir, '../../..', 'migrations/source')
-  const migrations = (await readdir(root))
-    .filter(name => name <= '20260910184445_typical_alex_power')
+  const migration = readdirSync(root, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name)
     .sort()
+    .at(-1)
+  if (!migration) throw new Error('The source baseline migration is missing.')
+
   const db = new Database(':memory:')
   try {
-    for (const migration of migrations.slice(0, -1)) {
-      db.exec(await readFile(resolve(root, migration, 'migration.sql'), 'utf8'))
-    }
+    db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
     const streetSchema = () =>
       db
         .query(
           "SELECT type,name,sql FROM sqlite_master WHERE name LIKE '%Street%' OR name LIKE '%RoadCentreline%' ORDER BY name",
         )
         .all()
-    const before = streetSchema()
     db.exec(
-      "INSERT INTO overturePlaces (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,rawProperties,sources) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
+      "INSERT INTO overturePlaces (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,rawProperties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
     )
-    db.exec(await readFile(resolve(root, migrations.at(-1)!, 'migration.sql'), 'utf8'))
-    expect(streetSchema()).toEqual(before)
-    expect(before.length).toBeGreaterThan(0)
+    expect(streetSchema().length).toBeGreaterThan(0)
     expect(
       db
         .query(

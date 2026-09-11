@@ -3,9 +3,10 @@ CREATE TABLE `divisions` (
 	`divisionCode` text,
 	`identifiers` text,
 	`level` integer,
-	`type` text NOT NULL,
+	`category` text,
+	`class` text NOT NULL,
 	`wikidata` text,
-	`hierarchy` text,
+	`hierarchies` text NOT NULL,
 	`cartography` text,
 	`sources` text,
 	`geometry` text,
@@ -347,6 +348,16 @@ CREATE TABLE `snapshotVersionChanges` (
 	CONSTRAINT `snapshotVersionChanges_pk` PRIMARY KEY(`snapshotId`, `recordType`, `recordId`, `locale`)
 );
 --> statement-breakpoint
+CREATE TABLE `sourceResolutions` (
+	`scopeId` text NOT NULL,
+	`snapshotId` text,
+	`sourceReleaseId` text NOT NULL,
+	`sourceRecordId` text NOT NULL,
+	`sourceVersionHash` text NOT NULL,
+	`resolutions` text NOT NULL,
+	CONSTRAINT `sourceResolutions_pk` PRIMARY KEY(`scopeId`, `sourceReleaseId`, `sourceRecordId`, `sourceVersionHash`)
+);
+--> statement-breakpoint
 CREATE TABLE `divisionStatistics` (
 	`id` text NOT NULL,
 	`divisionId` text NOT NULL,
@@ -367,6 +378,7 @@ CREATE TABLE `divisionStatistics` (
 CREATE TABLE `statsFields` (
 	`datasetCode` text NOT NULL,
 	`measureCode` text NOT NULL,
+	`measureVersionHash` text DEFAULT '' NOT NULL,
 	`fieldName` text NOT NULL,
 	`sourceField` text NOT NULL,
 	`dimensions` text NOT NULL,
@@ -384,7 +396,7 @@ CREATE TABLE `statsFields` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsFields_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `sourceReleaseId`, `versionHash`)
+	CONSTRAINT `statsFields_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsFieldsI18n` (
@@ -399,7 +411,7 @@ CREATE TABLE `statsFieldsI18n` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`, `sourceReleaseId`, `versionHash`)
+	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsMeasures` (
@@ -410,7 +422,7 @@ CREATE TABLE `statsMeasures` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsMeasures_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `sourceReleaseId`, `versionHash`)
+	CONSTRAINT `statsMeasures_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsMeasuresI18n` (
@@ -425,7 +437,7 @@ CREATE TABLE `statsMeasuresI18n` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`, `sourceReleaseId`, `versionHash`)
+	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsRecords` (
@@ -440,7 +452,8 @@ CREATE TABLE `statsRecords` (
 	`referencePeriodGranularity` text NOT NULL,
 	`referencePeriodEndYear` text NOT NULL,
 	`geography` text NOT NULL,
-	`dimensions` text NOT NULL,
+	`fieldSources` text DEFAULT '{}' NOT NULL,
+	`fieldDefinitionHashes` text DEFAULT '{}' NOT NULL,
 	`values` text NOT NULL,
 	`versionHash` text NOT NULL,
 	`isCurrent` integer NOT NULL,
@@ -460,7 +473,7 @@ CREATE TABLE `statsValuesI18n` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsValuesI18n_pk` PRIMARY KEY(`datasetCode`, `dimensionCode`, `valueCode`, `locale`, `sourceReleaseId`, `versionHash`)
+	CONSTRAINT `statsValuesI18n_pk` PRIMARY KEY(`datasetCode`, `dimensionCode`, `valueCode`, `locale`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE INDEX `divisions_current_lookup_idx` ON `divisions` (`id`,`isCurrent`);--> statement-breakpoint
@@ -519,6 +532,7 @@ CREATE INDEX `divisionBoundaries_sourceReleaseId_idx` ON `divisionBoundaries` (`
 CREATE INDEX `divisionBoundaries_snapshotId_idx` ON `divisionBoundaries` (`snapshotId`);--> statement-breakpoint
 CREATE INDEX `snapshotVersionChanges_record_lookup_idx` ON `snapshotVersionChanges` (`recordType`,`recordId`,`locale`,`snapshotId`);--> statement-breakpoint
 CREATE INDEX `snapshotVersionChanges_snapshot_idx` ON `snapshotVersionChanges` (`snapshotId`);--> statement-breakpoint
+CREATE INDEX `sourceResolutions_source_idx` ON `sourceResolutions` (`sourceReleaseId`,`sourceRecordId`,`sourceVersionHash`);--> statement-breakpoint
 CREATE INDEX `divisionStatistics_current_lookup_idx` ON `divisionStatistics` (`id`,`isCurrent`);--> statement-breakpoint
 CREATE INDEX `divisionStatistics_divisionId_referenceYear_idx` ON `divisionStatistics` (`divisionId`,`referenceYear`);--> statement-breakpoint
 CREATE INDEX `divisionStatistics_sourceReleaseId_idx` ON `divisionStatistics` (`sourceReleaseId`);--> statement-breakpoint

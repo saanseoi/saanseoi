@@ -99,15 +99,113 @@ CREATE TABLE `address3dI18n` (
 	CONSTRAINT `address3dI18n_snapshotId_address3dId_address3d_fk` FOREIGN KEY (`snapshotId`,`address3dId`) REFERENCES `address3d`(`snapshotId`,`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
+CREATE TABLE `addressPublicationState` (
+	`scopeId` text PRIMARY KEY,
+	`snapshotId` text NOT NULL UNIQUE,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `addressSearchScopes` (
+	`scopeId` text PRIMARY KEY,
+	`snapshotId` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `placeSearchScopes` (
+	`scopeId` text PRIMARY KEY,
+	`snapshotId` text NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `places` (
+	`snapshotId` text NOT NULL,
+	`id` text NOT NULL,
+	`releaseId` text NOT NULL,
+	`addressSnapshotId` text,
+	`address2dId` text,
+	`address3dId` text,
+	`address3dUnitId` text,
+	`address3dMembership` text,
+	`lng` real NOT NULL,
+	`lat` real NOT NULL,
+	`bbox` text,
+	`operatingStatus` text,
+	`basicCategory` text,
+	`taxonomyPrimary` text,
+	`taxonomyHierarchy` text,
+	`taxonomyAlternates` text,
+	`wikidataId` text,
+	`websites` text,
+	`socials` text,
+	`emails` text,
+	`phones` text,
+	`addresses` text,
+	`confidence` real,
+	`sources` text,
+	`firstSeenMonth` text NOT NULL,
+	`lastSeenMonth` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	CONSTRAINT `places_pk` PRIMARY KEY(`snapshotId`, `id`),
+	CONSTRAINT "places_address_snapshot_required_chk" CHECK("addressSnapshotId" IS NOT NULL OR ("address2dId" IS NULL AND "address3dId" IS NULL)),
+	CONSTRAINT "places_address3d_unit_reference_chk" CHECK(("address3dId" IS NULL AND "address3dUnitId" IS NULL AND "address3dMembership" IS NULL) OR ("address3dId" IS NOT NULL AND "address3dUnitId" IS NOT NULL AND "address3dMembership" IS NOT NULL AND "address2dId" IS NOT NULL))
+);
+--> statement-breakpoint
+CREATE TABLE `placesCells` (
+	`snapshotId` text NOT NULL,
+	`id` text NOT NULL,
+	`h3Level` integer NOT NULL,
+	`h3Cell` text NOT NULL,
+	CONSTRAINT `placesCells_pk` PRIMARY KEY(`snapshotId`, `id`, `h3Level`, `h3Cell`),
+	CONSTRAINT `placesCells_snapshotId_id_places_fk` FOREIGN KEY (`snapshotId`,`id`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `placesDivision` (
+	`placeSnapshotId` text NOT NULL,
+	`placeId` text NOT NULL,
+	`divisionSnapshotId` text NOT NULL,
+	`divisionId` text NOT NULL,
+	CONSTRAINT `placesDivision_pk` PRIMARY KEY(`placeSnapshotId`, `placeId`, `divisionSnapshotId`, `divisionId`),
+	CONSTRAINT `placesDivision_placeSnapshotId_placeId_places_fk` FOREIGN KEY (`placeSnapshotId`,`placeId`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE,
+	CONSTRAINT `placesDivision_divisionSnapshotId_divisionId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`divisionId`) REFERENCES `divisions`(`snapshotId`,`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `placesI18n` (
+	`snapshotId` text NOT NULL,
+	`placeId` text NOT NULL,
+	`locale` text NOT NULL,
+	`name` text,
+	`nameVariant` text,
+	`nameAlts` text,
+	`brandName` text,
+	`brandNameVariant` text,
+	`brandNameAlts` text,
+	`freeformAddress` text,
+	`accessHint` text,
+	`provenance` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	CONSTRAINT `placesI18n_pk` PRIMARY KEY(`snapshotId`, `placeId`, `locale`),
+	CONSTRAINT `placesI18n_snapshotId_placeId_places_fk` FOREIGN KEY (`snapshotId`,`placeId`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE
+);
+--> statement-breakpoint
+CREATE TABLE `divisionSearchScopes` (
+	`scopeId` text PRIMARY KEY,
+	`snapshotId` text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE `divisions` (
 	`snapshotId` text NOT NULL,
 	`id` text NOT NULL,
 	`divisionCode` text,
 	`identifiers` text,
 	`level` integer,
-	`type` text NOT NULL,
+	`category` text,
+	`class` text NOT NULL,
 	`wikidata` text,
-	`hierarchy` text,
+	`hierarchies` text NOT NULL,
 	`cartography` text,
 	`sources` text,
 	`geometry` text,
@@ -157,8 +255,7 @@ CREATE TABLE `streetsAddress` (
 	`addressSnapshotId` text NOT NULL,
 	`addressId` text NOT NULL,
 	CONSTRAINT `streetsAddress_pk` PRIMARY KEY(`streetSnapshotId`, `streetId`, `addressSnapshotId`, `addressId`),
-	CONSTRAINT `streetsAddress_streetSnapshotId_streetId_streets_fk` FOREIGN KEY (`streetSnapshotId`,`streetId`) REFERENCES `streets`(`snapshotId`,`id`) ON DELETE CASCADE,
-	CONSTRAINT `streetsAddress_addressSnapshotId_addressId_address2d_fk` FOREIGN KEY (`addressSnapshotId`,`addressId`) REFERENCES `address2d`(`snapshotId`,`id`) ON DELETE CASCADE
+	CONSTRAINT `streetsAddress_streetSnapshotId_streetId_streets_fk` FOREIGN KEY (`streetSnapshotId`,`streetId`) REFERENCES `streets`(`snapshotId`,`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `streetsI18n` (
@@ -229,92 +326,6 @@ CREATE TABLE `streetGeometry` (
 	CONSTRAINT `streetGeometry_pk` PRIMARY KEY(`snapshotId`, `streetId`)
 );
 --> statement-breakpoint
-CREATE TABLE `places` (
-	`snapshotId` text NOT NULL,
-	`id` text NOT NULL,
-	`releaseId` text NOT NULL,
-	`addressSnapshotId` text,
-	`address2dId` text,
-	`address3dId` text,
-	`address3dUnitId` text,
-	`address3dMembership` text,
-	`lng` real NOT NULL,
-	`lat` real NOT NULL,
-	`bbox` text,
-	`operatingStatus` text,
-	`basicCategory` text,
-	`taxonomyPrimary` text,
-	`taxonomyHierarchy` text,
-	`taxonomyAlternates` text,
-	`wikidataId` text,
-	`websites` text,
-	`socials` text,
-	`emails` text,
-	`phones` text,
-	`addresses` text,
-	`confidence` real,
-	`sources` text,
-	`firstSeenMonth` text NOT NULL,
-	`lastSeenMonth` text NOT NULL,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `places_pk` PRIMARY KEY(`snapshotId`, `id`),
-	CONSTRAINT `places_addressSnapshotId_address2dId_address2d_fk` FOREIGN KEY (`addressSnapshotId`,`address2dId`) REFERENCES `address2d`(`snapshotId`,`id`),
-	CONSTRAINT `places_addressSnapshotId_address3dId_address3d_fk` FOREIGN KEY (`addressSnapshotId`,`address3dId`) REFERENCES `address3d`(`snapshotId`,`id`),
-	CONSTRAINT "places_address_snapshot_required_chk" CHECK("addressSnapshotId" IS NOT NULL OR ("address2dId" IS NULL AND "address3dId" IS NULL)),
-	CONSTRAINT "places_address3d_unit_reference_chk" CHECK(("address3dId" IS NULL AND "address3dUnitId" IS NULL AND "address3dMembership" IS NULL) OR ("address3dId" IS NOT NULL AND "address3dUnitId" IS NOT NULL AND "address3dMembership" IS NOT NULL AND "address2dId" IS NOT NULL))
-);
---> statement-breakpoint
-CREATE TABLE `placesCells` (
-	`snapshotId` text NOT NULL,
-	`id` text NOT NULL,
-	`h3Level` integer NOT NULL,
-	`h3Cell` text NOT NULL,
-	CONSTRAINT `placesCells_pk` PRIMARY KEY(`snapshotId`, `id`, `h3Level`, `h3Cell`),
-	CONSTRAINT `placesCells_snapshotId_id_places_fk` FOREIGN KEY (`snapshotId`,`id`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE
-);
---> statement-breakpoint
-CREATE TABLE `placesDivision` (
-	`placeSnapshotId` text NOT NULL,
-	`placeId` text NOT NULL,
-	`divisionSnapshotId` text NOT NULL,
-	`divisionId` text NOT NULL,
-	CONSTRAINT `placesDivision_pk` PRIMARY KEY(`placeSnapshotId`, `placeId`, `divisionSnapshotId`, `divisionId`),
-	CONSTRAINT `placesDivision_placeSnapshotId_placeId_places_fk` FOREIGN KEY (`placeSnapshotId`,`placeId`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE,
-	CONSTRAINT `placesDivision_divisionSnapshotId_divisionId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`divisionId`) REFERENCES `divisions`(`snapshotId`,`id`)
-);
---> statement-breakpoint
-CREATE TABLE `placesFts` (
-	`snapshotId` text NOT NULL,
-	`placeId` text NOT NULL,
-	`locale` text NOT NULL,
-	`nameText` text,
-	`brandText` text,
-	`taxonomyText` text,
-	`addressText` text,
-	`divisionText` text,
-	`streetText` text
-);
---> statement-breakpoint
-CREATE TABLE `placesI18n` (
-	`snapshotId` text NOT NULL,
-	`placeId` text NOT NULL,
-	`locale` text NOT NULL,
-	`name` text,
-	`nameVariant` text,
-	`nameAlts` text,
-	`brandName` text,
-	`brandNameVariant` text,
-	`brandNameAlts` text,
-	`freeformAddress` text,
-	`accessHint` text,
-	`provenance` text,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `placesI18n_pk` PRIMARY KEY(`snapshotId`, `placeId`, `locale`),
-	CONSTRAINT `placesI18n_snapshotId_placeId_places_fk` FOREIGN KEY (`snapshotId`,`placeId`) REFERENCES `places`(`snapshotId`,`id`) ON DELETE CASCADE
-);
---> statement-breakpoint
 CREATE TABLE `divisionAreas` (
 	`snapshotId` text NOT NULL,
 	`id` text NOT NULL,
@@ -368,6 +379,7 @@ CREATE TABLE `divisionStatistics` (
 CREATE TABLE `statsFields` (
 	`datasetCode` text NOT NULL,
 	`measureCode` text NOT NULL,
+	`measureVersionHash` text DEFAULT '' NOT NULL,
 	`fieldName` text NOT NULL,
 	`sourceField` text NOT NULL,
 	`dimensions` text NOT NULL,
@@ -380,9 +392,10 @@ CREATE TABLE `statsFields` (
 	`denominatorFieldName` text,
 	`valueKind` text NOT NULL,
 	`unitCode` text NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsFields_pk` PRIMARY KEY(`datasetCode`, `fieldName`)
+	CONSTRAINT `statsFields_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsFieldsI18n` (
@@ -392,17 +405,19 @@ CREATE TABLE `statsFieldsI18n` (
 	`name` text NOT NULL,
 	`description` text,
 	`isTranslationVerified` integer DEFAULT true NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`)
+	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsMeasures` (
 	`datasetCode` text NOT NULL,
 	`measureCode` text NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsMeasures_pk` PRIMARY KEY(`datasetCode`, `measureCode`)
+	CONSTRAINT `statsMeasures_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsMeasuresI18n` (
@@ -412,9 +427,20 @@ CREATE TABLE `statsMeasuresI18n` (
 	`name` text NOT NULL,
 	`description` text,
 	`isTranslationVerified` integer DEFAULT true NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`)
+	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`, `versionHash`)
+);
+--> statement-breakpoint
+CREATE TABLE `statsPublicationState` (
+	`datasetCode` text NOT NULL,
+	`referencePeriodCode` text NOT NULL,
+	`snapshotId` text NOT NULL,
+	`status` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	CONSTRAINT `statsPublicationState_pk` PRIMARY KEY(`datasetCode`, `referencePeriodCode`)
 );
 --> statement-breakpoint
 CREATE TABLE `statsRecords` (
@@ -429,8 +455,10 @@ CREATE TABLE `statsRecords` (
 	`referencePeriodGranularity` text NOT NULL,
 	`referencePeriodEndYear` text NOT NULL,
 	`geography` text NOT NULL,
-	`dimensions` text NOT NULL,
+	`fieldSources` text DEFAULT '{}' NOT NULL,
+	`fieldDefinitionHashes` text DEFAULT '{}' NOT NULL,
 	`values` text NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
 );
@@ -441,9 +469,60 @@ CREATE TABLE `statsValuesI18n` (
 	`valueCode` text NOT NULL,
 	`locale` text NOT NULL,
 	`name` text NOT NULL,
+	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `statsValuesI18n_pk` PRIMARY KEY(`datasetCode`, `dimensionCode`, `valueCode`, `locale`)
+	CONSTRAINT `statsValuesI18n_pk` PRIMARY KEY(`datasetCode`, `dimensionCode`, `valueCode`, `locale`, `versionHash`)
+);
+--> statement-breakpoint
+CREATE TABLE `divisionAreaPublicationState` (
+	`snapshotId` text PRIMARY KEY,
+	`scopeId` text NOT NULL,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `divisionBoundaryPublicationState` (
+	`snapshotId` text PRIMARY KEY,
+	`scopeId` text NOT NULL,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `divisionPublicationState` (
+	`snapshotId` text PRIMARY KEY,
+	`scopeId` text NOT NULL,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `placePublicationState` (
+	`snapshotId` text PRIMARY KEY,
+	`scopeId` text NOT NULL,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `streetPublicationState` (
+	`snapshotId` text PRIMARY KEY,
+	`scopeId` text NOT NULL,
+	`status` text DEFAULT 'publishing' NOT NULL,
+	`publicationToken` text DEFAULT '' NOT NULL,
+	`preparedAt` text,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
 );
 --> statement-breakpoint
 CREATE INDEX `address2d_streetId_idx` ON `address2d` (`streetId`);--> statement-breakpoint
@@ -454,6 +533,14 @@ CREATE INDEX `address2dBuildingNumberLookup_numericStem_idx` ON `address2dBuildi
 CREATE INDEX `address2dI18n_locale_idx` ON `address2dI18n` (`locale`);--> statement-breakpoint
 CREATE UNIQUE INDEX `address3d_snapshot_owner_unique` ON `address3d` (`snapshotId`,`address2dId`);--> statement-breakpoint
 CREATE INDEX `address3dI18n_locale_idx` ON `address3dI18n` (`locale`);--> statement-breakpoint
+CREATE INDEX `places_releaseId_idx` ON `places` (`releaseId`);--> statement-breakpoint
+CREATE INDEX `places_category_idx` ON `places` (`snapshotId`,`basicCategory`);--> statement-breakpoint
+CREATE INDEX `places_taxonomy_idx` ON `places` (`snapshotId`,`taxonomyPrimary`);--> statement-breakpoint
+CREATE INDEX `places_status_idx` ON `places` (`snapshotId`,`operatingStatus`);--> statement-breakpoint
+CREATE INDEX `placesCells_lookup_idx` ON `placesCells` (`snapshotId`,`h3Level`,`h3Cell`,`id`);--> statement-breakpoint
+CREATE INDEX `placesDivision_divisionId_idx` ON `placesDivision` (`divisionSnapshotId`,`divisionId`,`placeSnapshotId`,`placeId`);--> statement-breakpoint
+CREATE INDEX `placesI18n_locale_idx` ON `placesI18n` (`locale`);--> statement-breakpoint
+CREATE INDEX `placesI18n_name_idx` ON `placesI18n` (`locale`,`name`);--> statement-breakpoint
 CREATE INDEX `divisions_divisionCode_idx` ON `divisions` (`snapshotId`,`divisionCode`);--> statement-breakpoint
 CREATE INDEX `divisions_level_idx` ON `divisions` (`level`);--> statement-breakpoint
 CREATE INDEX `divisionsI18n_locale_idx` ON `divisionsI18n` (`snapshotId`,`locale`);--> statement-breakpoint
@@ -468,14 +555,6 @@ CREATE INDEX `streetNameChanges_noticeRef_idx` ON `streetNameChanges` (`noticeRe
 CREATE INDEX `streetNameChanges_status_idx` ON `streetNameChanges` (`status`);--> statement-breakpoint
 CREATE INDEX `streetGeometry_streetId_idx` ON `streetGeometry` (`streetId`);--> statement-breakpoint
 CREATE INDEX `streetGeometry_sourceReleaseId_idx` ON `streetGeometry` (`sourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `places_releaseId_idx` ON `places` (`releaseId`);--> statement-breakpoint
-CREATE INDEX `places_category_idx` ON `places` (`snapshotId`,`basicCategory`);--> statement-breakpoint
-CREATE INDEX `places_taxonomy_idx` ON `places` (`snapshotId`,`taxonomyPrimary`);--> statement-breakpoint
-CREATE INDEX `places_status_idx` ON `places` (`snapshotId`,`operatingStatus`);--> statement-breakpoint
-CREATE INDEX `placesCells_lookup_idx` ON `placesCells` (`snapshotId`,`h3Level`,`h3Cell`,`id`);--> statement-breakpoint
-CREATE INDEX `placesDivision_divisionId_idx` ON `placesDivision` (`divisionSnapshotId`,`divisionId`,`placeSnapshotId`,`placeId`);--> statement-breakpoint
-CREATE INDEX `placesI18n_locale_idx` ON `placesI18n` (`locale`);--> statement-breakpoint
-CREATE INDEX `placesI18n_name_idx` ON `placesI18n` (`locale`,`name`);--> statement-breakpoint
 CREATE INDEX `divisionAreas_divisionId_idx` ON `divisionAreas` (`snapshotId`,`divisionId`);--> statement-breakpoint
 CREATE INDEX `divisionAreas_type_idx` ON `divisionAreas` (`snapshotId`,`type`);--> statement-breakpoint
 CREATE INDEX `divisionBoundaries_leftDivisionId_idx` ON `divisionBoundaries` (`snapshotId`,`leftDivisionId`);--> statement-breakpoint
@@ -484,4 +563,9 @@ CREATE INDEX `divisionBoundaries_type_idx` ON `divisionBoundaries` (`snapshotId`
 CREATE INDEX `divisionStatistics_divisionId_referenceYear_idx` ON `divisionStatistics` (`snapshotId`,`divisionId`,`referenceYear`);--> statement-breakpoint
 CREATE INDEX `statsRecords_dataset_period_idx` ON `statsRecords` (`datasetCode`,`referencePeriodCode`);--> statement-breakpoint
 CREATE INDEX `statsRecords_division_period_idx` ON `statsRecords` (`divisionId`,`referencePeriodCode`);--> statement-breakpoint
-CREATE INDEX `statsRecords_source_release_idx` ON `statsRecords` (`sourceReleaseId`);
+CREATE INDEX `statsRecords_source_release_idx` ON `statsRecords` (`sourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `divisionAreaPublicationState_scope_idx` ON `divisionAreaPublicationState` (`scopeId`);--> statement-breakpoint
+CREATE INDEX `divisionBoundaryPublicationState_scope_idx` ON `divisionBoundaryPublicationState` (`scopeId`);--> statement-breakpoint
+CREATE INDEX `divisionPublicationState_scope_idx` ON `divisionPublicationState` (`scopeId`);--> statement-breakpoint
+CREATE INDEX `placePublicationState_scope_idx` ON `placePublicationState` (`scopeId`);--> statement-breakpoint
+CREATE INDEX `streetPublicationState_scope_idx` ON `streetPublicationState` (`scopeId`);
