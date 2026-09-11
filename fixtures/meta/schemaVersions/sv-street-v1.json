@@ -1,0 +1,7 @@
+{
+  "versionHash": "sha256:7323e8d2360a26ced4c239fc3d10274734cd647ecccc4a5ec93f8bf36b39cfca",
+  "code": "sv-street-v1",
+  "resourceType": "street",
+  "version": "1",
+  "notes": "Canonical Street resources and retained version history."
+}
