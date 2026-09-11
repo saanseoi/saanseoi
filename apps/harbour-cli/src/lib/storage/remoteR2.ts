@@ -1,28 +1,22 @@
-import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { WRANGLER_CONFIG_PATH } from '../dbCache/localDbCacheConfig.ts'
-
-export type RemoteR2Bucket = {
-  get(key: string): Promise<{ arrayBuffer(): Promise<ArrayBuffer> } | null>
-  head(
-    key: string,
-  ): Promise<{ size: number; checksums?: { sha256?: ArrayBuffer } } | null>
-  put(
-    key: string,
-    bytes: Uint8Array,
-    options: {
-      sha256: string
-      onlyIf: { etagDoesNotMatch: string }
-      httpMetadata: { contentType: string; contentDisposition?: string }
-    },
-  ): Promise<unknown>
-}
+import { registerInterruptCleanup } from '../cli/interrupt.ts'
+import { startR2Process } from './remoteR2Process.ts'
+import {
+  retainObjectInBucket,
+  type RemoteR2Bucket,
+  type R2Metadata,
+} from './remoteR2Object.ts'
+export type { RemoteR2Bucket } from './remoteR2Object.ts'
 
 const sessions = new Map<
   string,
-  Promise<{ bucket: RemoteR2Bucket; dispose(): Promise<void> }>
+  Promise<{
+    retain(key: string, bytes: Uint8Array, metadata: R2Metadata): Promise<void>
+    dispose(): Promise<void>
+  }>
 >()
 
 /** R2-only proxy: it has no D1 bindings and cannot register production metadata. */
@@ -39,7 +33,7 @@ export function remoteR2Config(bucketName: string) {
 async function openBucket(environment: 'preview' | 'production') {
   if (!process.env.CLOUDFLARE_ACCOUNT_ID?.trim())
     throw new Error(
-      'Production R2 uploads require CLOUDFLARE_ACCOUNT_ID in the environment.',
+      'Remote R2 uploads require CLOUDFLARE_ACCOUNT_ID in the environment.',
     )
   const config = JSON.parse(await readFile(WRANGLER_CONFIG_PATH, 'utf8'))
   const bucket = config.env?.[environment]?.r2_buckets?.find(
@@ -47,26 +41,42 @@ async function openBucket(environment: 'preview' | 'production') {
   )?.bucket_name
   if (!bucket) throw new Error(`Missing R2_ASSETS configuration for ${environment}.`)
   const directory = await mkdtemp(join(tmpdir(), 'saanseoi-r2-'))
+  let worker: ReturnType<typeof startR2Process> | undefined
+  let unregister = () => {}
   try {
     const configPath = join(directory, 'wrangler.json')
     await writeFile(configPath, JSON.stringify(remoteR2Config(bucket)))
-    const { getPlatformProxy } = await import('wrangler')
-    const proxy = await getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket }>({
-      configPath,
-      persist: false,
-      remoteBindings: true,
+    process.stdout.write(`Connecting to ${environment} R2 (${bucket}) via Node…\n`)
+    const client = startR2Process(configPath, {
+      onProgress: message => process.stdout.write(`${message}\n`),
     })
+    worker = client
+    unregister = registerInterruptCleanup(() => client.stop())
+    await client.ready
+    let sequence = 0
     return {
-      bucket: proxy.env.R2_ASSETS,
-      async dispose() {
+      async retain(key: string, bytes: Uint8Array, metadata: R2Metadata) {
+        // Transfer payloads by file, avoiding JSON/base64 expansion across IPC.
+        const path = join(directory, `${++sequence}.object`)
         try {
-          await proxy.dispose()
+          await writeFile(path, bytes)
+          await client.retain(key, path, metadata)
+        } finally {
+          await rm(path, { force: true })
+        }
+      },
+      async dispose() {
+        unregister()
+        try {
+          await client.dispose()
         } finally {
           await rm(directory, { recursive: true, force: true })
         }
       },
     }
   } catch (error) {
+    unregister()
+    await worker?.dispose()
     await rm(directory, { recursive: true, force: true })
     throw error
   }
@@ -85,35 +95,8 @@ export async function retainRemoteR2Object(
   metadata: { contentType: string; contentDisposition?: string },
   bucketOverride?: RemoteR2Bucket,
 ) {
-  let bucket = bucketOverride
-  if (!bucket) {
-    const session = sessions.get(environment) ?? openBucket(environment)
-    sessions.set(environment, session)
-    bucket = (await session).bucket
-  }
-  const sha256 = createHash('sha256').update(bytes).digest('hex')
-  const matches = async () => {
-    const existing = await bucket.head(key)
-    if (!existing) return false
-    let actual = existing.checksums?.sha256
-      ? Buffer.from(existing.checksums.sha256).toString('hex')
-      : undefined
-    if (!actual) {
-      const object = await bucket.get(key)
-      if (!object) throw new Error(`R2 object disappeared during verification: ${key}`)
-      actual = createHash('sha256')
-        .update(new Uint8Array(await object.arrayBuffer()))
-        .digest('hex')
-    }
-    if (existing.size !== bytes.byteLength || actual !== sha256)
-      throw new Error(`R2 immutable object conflict: ${key}`)
-    return true
-  }
-  if (await matches()) return
-  await bucket.put(key, bytes, {
-    sha256,
-    onlyIf: { etagDoesNotMatch: '*' },
-    httpMetadata: metadata,
-  })
-  if (!(await matches())) throw new Error(`R2 object missing after upload: ${key}`)
+  if (bucketOverride) return retainObjectInBucket(bucketOverride, key, bytes, metadata)
+  const session = sessions.get(environment) ?? openBucket(environment)
+  sessions.set(environment, session)
+  await (await session).retain(key, bytes, metadata)
 }

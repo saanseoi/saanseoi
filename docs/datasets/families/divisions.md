@@ -558,3 +558,7 @@ Official division dataset processing metadata declares the identity bridge, Land
 Department settlement selection and Planning Department normalisation where applicable.
 Source and resource releases retain their creation-time policy. Planning release
 statistics use the `release` kind.
+
+Ancestor hierarchy names retain source localisations when translation fixtures add
+missing locales. An empty translation result preserves every source name used for Hong
+Kong Area assignment and hierarchy validation.

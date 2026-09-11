@@ -102,3 +102,7 @@ SaanSeoi 区划使用 `category`、`class` 及 `level`，与来源的 `subtype` 
 国家参照点是独立的行政 level-0 记录。规划及统计类别的地理 category 为
 `null`。城市保留来源 UUID；行政大区使用独立标识码，即使两者几何相同。落马洲河套地区是经审核的 level-4
 macrohood。科技园及科学园等 hood 不一定有聚落祖先。来源分类保留于 `rawProperties`。
+
+Ancestor hierarchy names retain source localisations when translation fixtures add
+missing locales. An empty translation result preserves every source name used for Hong
+Kong Area assignment and hierarchy validation.

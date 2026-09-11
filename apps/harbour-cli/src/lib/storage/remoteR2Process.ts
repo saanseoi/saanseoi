@@ -1,4 +1,6 @@
-import { fork } from 'node:child_process'
+import { spawn } from 'node:child_process'
+import { createInterface } from 'node:readline'
+import type { Writable, Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import type { R2Metadata } from './remoteR2Object.ts'
 
@@ -14,19 +16,20 @@ export function startR2Process(
     onProgress?: (message: string) => void
   } = {},
 ) {
-  const child = fork(
-    options.workerPath ??
-      fileURLToPath(new URL('./remoteR2Worker.ts', import.meta.url)),
-    [configPath],
+  const child = spawn(
+    'node',
+    [
+      options.workerPath ??
+        fileURLToPath(new URL('./remoteR2Worker.ts', import.meta.url)),
+      configPath,
+    ],
     {
-      execPath: 'node',
-      execArgv: [],
-      serialization: 'json',
-      silent: true,
+      stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
       detached: process.platform !== 'win32',
       env: process.env,
     },
   )
+  const replies = createInterface({ input: child.stdio[3] as Readable })
   child.stdout?.on('data', chunk => process.stdout.write(chunk))
   child.stderr?.on('data', chunk => process.stderr.write(chunk))
   let stopped = false
@@ -84,7 +87,14 @@ export function startR2Process(
   child.once('exit', (code, sig) =>
     fail(new Error(`R2 adapter exited (${sig ?? code}).`)),
   )
-  child.on('message', (reply: Reply) => {
+  replies.on('line', line => {
+    let reply: Reply
+    try {
+      reply = JSON.parse(line)
+    } catch {
+      fail(new Error('Invalid R2 adapter response.'))
+      return
+    }
     if (reply.type === 'ready') {
       clearTimeout(startupTimer)
       resolveReady()
@@ -132,7 +142,8 @@ export function startR2Process(
             }, options.requestTimeoutMs ?? 120_000),
           }
           pending.set(id, item)
-          child.send({ id, key, path, metadata }, error => {
+          const input = child.stdin as Writable
+          input.write(`${JSON.stringify({ id, key, path, metadata })}\n`, error => {
             if (error) fail(error)
           })
         })
