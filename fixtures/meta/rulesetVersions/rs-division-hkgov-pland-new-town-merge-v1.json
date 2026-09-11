@@ -1,0 +1,21 @@
+{
+  "versionHash": "sha256:5dced4b31e2c6a8caa67484b8fc1e5ce2e89f1fce8ad61e428ca4bd04875b8fc",
+  "code": "rs-division-hkgov-pland-new-town-merge-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "resolve-geography-identities",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "normalise-planning-divisions",
+      "ruleFixture": "planning-division-normalisation"
+    },
+    {
+      "operationCode": "provenance_division_area_geometry",
+      "ruleFixture": "division-area-geometry"
+    }
+  ]
+}
