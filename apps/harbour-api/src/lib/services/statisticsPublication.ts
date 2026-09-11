@@ -19,7 +19,7 @@ export type StatisticsD1Database = {
 
 type PublicationManifest = {
   snapshotId: string
-  status: 'publishing' | 'current'
+  status: 'publishing' | 'restoring' | 'current'
 }
 type StoredRow = Record<string, string | number | null>
 type VersionChange = {
@@ -66,6 +66,11 @@ export async function promotePublishedStatisticsTarget(
     )
     .bind(target.datasetCode, target.referencePeriodCode)
     .first<PublicationManifest>()
+  if (manifest?.status === 'restoring') {
+    throw new Error(
+      'Statistic publication is reserved by a sealed rollback; finish its SQL delivery first.',
+    )
+  }
   if (manifest?.status === 'current' && manifest.snapshotId === target.snapshotId) {
     return { changedRecords: 0 }
   }
