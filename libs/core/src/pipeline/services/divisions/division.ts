@@ -93,11 +93,10 @@ import {
 import {
   changedDivisionSourceResolutions,
   closeDivisionHistoryComponents,
-  divisionHistoryKey,
-  divisionLocaleContent,
   identifyDivisionHistoryShards,
   loadDivisionHistoryBaseline,
   omittedDivisionSourceResolutions,
+  planDivisionHistoryChanges,
   withoutDivisionPublicationVersion,
   type DivisionHistoryComponent,
 } from '../../db/divisionHistory'
@@ -393,6 +392,10 @@ export async function processDivisionDataset(
     current: currentRows,
     baseHashInput: buildDivisionBaseHashInput,
   })
+  if (!sourceDb && historyBaseline.sourceResolutions.size > 0)
+    throw new Error(
+      'Division processing with inherited source assertions requires retained publisher source storage.',
+    )
   const activeSnapshot = await resolveLatestPublishedSnapshotForResourceTypeRegion(
     metaRepoDb,
     'division',
@@ -565,23 +568,9 @@ export async function processDivisionDataset(
         versionHash: string
       }
     > = []
-    const changedDivisionI18nVersionRows: Array<
-      {
-        divisionId: string
-        isLocaleInferred: boolean
-        nameProvenance?: DivisionI18nPayload['nameProvenance']
-        locale: string
-        name: string | null
-        nameAlts: string | null
-        nameRules: unknown
-        nameVariant: unknown
-        sourceReleaseId: string
-      } & {
-        versionHash: string
-        createdAt: string
-        updatedAt: string
-      }
-    > = []
+    const changedDivisionI18nVersionRows: Parameters<
+      typeof insertDivisionVersionRows
+    >[3] = []
     const changedSourceIds = new Set<string>()
     const unchangedSourceIds = new Set<string>()
 
@@ -624,37 +613,6 @@ export async function processDivisionDataset(
         )
       }
       const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
-      const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
-      const churnHash = await createHash({
-        base: buildDivisionBaseHashInput(normalised.base),
-        i18n: storedCanonicalI18n,
-      })
-
-      processedRows += 1
-      localisedRows += storedCanonicalI18n.length
-      seenIds.add(normalised.base.id)
-      updateLocaleStatsAccumulator(
-        statsAccumulator,
-        storedCanonicalI18n.map(row => ({
-          hasAltName: Boolean(row.nameAlts),
-          hasName: Boolean(row.name),
-          isLocaleInferred: row.isLocaleInferred,
-          locale: row.locale,
-        })),
-      )
-      const districtId = resolveDistrictId(normalised.base)
-      if (districtId) {
-        districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
-      }
-      processedRowsById.set(normalised.base.id, {
-        churnHash,
-        geometry: normalised.base.geometry,
-        id: normalised.base.id,
-        localisedRows: storedCanonicalI18n,
-        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchies),
-        type: normalised.base.class,
-        versionHash,
-      })
       let sourceChanged: boolean | null = null
 
       if (sourceDb && message.source === 'overture' && !isSupplemental) {
@@ -691,6 +649,41 @@ export async function processDivisionDataset(
         }
       }
 
+      // A reviewed fixture supplies the final canonical row for this identity.
+      // Keep the native source assertion without writing a transient canonical version.
+      if (!isSupplemental && replacedDivisionIds.has(normalised.base.id)) continue
+      const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
+      const churnHash = await createHash({
+        base: buildDivisionBaseHashInput(normalised.base),
+        i18n: storedCanonicalI18n,
+      })
+
+      processedRows += 1
+      localisedRows += storedCanonicalI18n.length
+      seenIds.add(normalised.base.id)
+      updateLocaleStatsAccumulator(
+        statsAccumulator,
+        storedCanonicalI18n.map(row => ({
+          hasAltName: Boolean(row.nameAlts),
+          hasName: Boolean(row.name),
+          isLocaleInferred: row.isLocaleInferred,
+          locale: row.locale,
+        })),
+      )
+      const districtId = resolveDistrictId(normalised.base)
+      if (districtId) {
+        districtCounts.set(districtId, (districtCounts.get(districtId) ?? 0) + 1)
+      }
+      processedRowsById.set(normalised.base.id, {
+        churnHash,
+        geometry: normalised.base.geometry,
+        id: normalised.base.id,
+        localisedRows: storedCanonicalI18n,
+        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchies),
+        type: normalised.base.class,
+        versionHash,
+      })
+
       const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
@@ -723,50 +716,23 @@ export async function processDivisionDataset(
         })),
       )
 
+      const historyChanges = await planDivisionHistoryChanges({
+        base: normalised.base,
+        i18n: storedCanonicalI18n,
+        previous: current,
+        components: historyBaseline.components,
+        versionHash,
+        churnHash,
+      })
       if (baseChanged) {
         insertedVersions += 1
         currentDivisionRows.push(normalised.base)
-        changedDivisionVersionRows.push({ ...normalised.base, versionHash })
-        const prior = historyBaseline.components.get(
-          divisionHistoryKey(normalised.base.id),
-        )
-        if (prior) changedHistoryComponents.push(prior)
       } else {
         i18nOnlyChangedRows += 1
       }
-      const previousLocales = new Map(
-        current?.localisedRows.map(row => [row.locale, row]),
-      )
-      const nextLocales = new Set(storedCanonicalI18n.map(row => row.locale))
-      for (const localised of storedCanonicalI18n) {
-        const prior = previousLocales.get(localised.locale)
-        const content = divisionLocaleContent(localised)
-        if (
-          prior &&
-          stableJsonStringify(divisionLocaleContent(prior)) ===
-            stableJsonStringify(content)
-        )
-          continue
-        const owned = historyBaseline.components.get(
-          divisionHistoryKey(normalised.base.id, localised.locale),
-        )
-        if (owned) changedHistoryComponents.push(owned)
-        changedDivisionI18nVersionRows.push({
-          ...content,
-          sourceReleaseId: versionInsertContext.releaseId,
-          versionHash: await createHash(content),
-          createdAt: currentDivisionI18nNow,
-          updatedAt: currentDivisionI18nNow,
-        })
-      }
-      for (const prior of previousLocales.values()) {
-        if (!nextLocales.has(prior.locale)) {
-          const owned = historyBaseline.components.get(
-            divisionHistoryKey(normalised.base.id, prior.locale),
-          )
-          if (owned) changedHistoryComponents.push({ ...owned, omitted: true })
-        }
-      }
+      changedDivisionVersionRows.push(...historyChanges.baseRows)
+      changedDivisionI18nVersionRows.push(...historyChanges.i18nRows)
+      changedHistoryComponents.push(...historyChanges.closures)
     }
     await timings.measure('closeCurrentDivisionVersionsMs', () =>
       closeDivisionHistoryComponents({
