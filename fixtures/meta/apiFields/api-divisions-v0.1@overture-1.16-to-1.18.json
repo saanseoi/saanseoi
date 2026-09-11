@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f936e73cedfe5427442a3ee1612db9b4f5f926b3f68b2913debe4c8f997ab5db",
+  "versionHash": "sha256:e7ea0312cba596e63540581d33296973c9eac1c10b61e8588c21320942a8ce2f",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -730,6 +730,60 @@
       "contributionType": "primary",
       "priority": 0,
       "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.primary",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 0.75
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "names.common",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "subtype",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 2,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "class",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 3,
+      "confidence": 0.95
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "parent_division_id",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 5,
+      "confidence": 0.8
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "sourceFieldPath": "admin_level",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
+      "priority": 4,
+      "confidence": 0.9
     }
   ]
 }

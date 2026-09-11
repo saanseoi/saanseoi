@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:b72d14e0a5a5a6d0e7a627b1ddbb852ee5f09d404c8bcd20134a2ce72af910ca",
+  "versionHash": "sha256:1189c980d352d95ccd0a8a1d21e90d83623d5490fb053bd5fa44547ac2805647",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-new-town",
   "schemaVersion": "sv-division-v1",
@@ -179,6 +179,15 @@
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+      "sourceFieldPath": "planning_level",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
       "priority": 0,
       "confidence": 1
     }
