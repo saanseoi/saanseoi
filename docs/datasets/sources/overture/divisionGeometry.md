@@ -3,6 +3,9 @@
 Unchanged open source versions remain untouched across releases. Complete publisher
 membership closes omissions independently of the assertion release ID. Snapshot
 materialisation and release-specific provenance remain separate from source validity.
+`validFromRelease` and `validToRelease` store only the release's `sourceVersion`, such
+as `2025-09-24.0`, for Division, Division Area and Division Boundary source records.
+Dataset-prefixed release codes belong to release metadata.
 
 Each newly published area or boundary resource release supersedes the preceding release
 of that resource. Current snapshot cleanup removes superseded geometry once it is no

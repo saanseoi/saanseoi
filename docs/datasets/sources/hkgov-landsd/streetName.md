@@ -34,6 +34,11 @@ The release version is the retained PDF's acquisition date with a generated corr
 suffix. The identity registry pins that version to the exact PDF SHA-256, so the same
 bytes keep the same cohort across targets. No artificial historic date is used.
 
+Baseline records, notice records and notice applications retain only that release
+`sourceVersion` in `validFromRelease` and `validToRelease`, for example `2026-09-01.0`.
+The interval includes its starting version and excludes its closing version. The
+separate `releaseId` identifies the registered source release.
+
 The current-release preflight requires:
 
 - at least one baseline source record and no notice records;

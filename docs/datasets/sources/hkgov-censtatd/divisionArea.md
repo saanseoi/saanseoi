@@ -261,7 +261,9 @@ canonical Overture division snapshot: the latest cohort at or before the C&SD co
 used first; only an absent earlier cohort permits the earliest later Overture cohort.
 The selection is retained as a snapshot lookup dependency. Permanent Living Quarters
 must not create a second C&SD division snapshot merely to satisfy its geometry
-validation.
+validation. Reference validation opens all configured regional history shards so that a
+later Overture snapshot can be replayed even when the C&SD source belongs to an earlier
+shard year. The C&SD source and geometry retain their own shard assignment.
 
 The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
 Market Area polygons have their own deterministic canonical division IDs and therefore
