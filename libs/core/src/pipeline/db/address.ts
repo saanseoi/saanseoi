@@ -177,7 +177,8 @@ SET
   divisionSnapshotId = ${sqlLiteral(divisionSnapshotId)},
 ${assignments.join(',\n')},
   updatedAt = ${updatedAtSql}
-WHERE snapshotId = ${sqlLiteral(snapshotId)};`.trim()
+WHERE snapshotId = ${sqlLiteral(snapshotId)}
+  AND divisionSnapshotId IS NOT ${sqlLiteral(divisionSnapshotId)};`.trim()
 }
 
 function selectCurrentAddressVersionFields() {
