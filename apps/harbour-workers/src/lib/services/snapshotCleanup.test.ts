@@ -119,30 +119,66 @@ for (const family of ['place', 'address', 'division'] as const) {
   })
 }
 
-test('physical scope references protect Address, Street and Division dependencies', async () => {
+test('physical Address scope references protect Street and Division dependencies', async () => {
   const f = fixture()
   try {
-    for (const family of ['address', 'street', 'division'] as const) f.receipt(family)
+    for (const family of ['street', 'division'] as const) f.receipt(family)
     f.row('street')
     f.sqlite.exec(
       "INSERT INTO address2d(snapshotId,id,divisionSnapshotId,streetSnapshotId,streetId) VALUES ('dependent','address','scope','scope','street')",
     )
-    f.sqlite.exec(
-      "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01','scope')",
-    )
-    for (const family of ['address', 'street', 'division'] as const)
+    for (const family of ['street', 'division'] as const)
       expect(await f.clean(family)).toBe(false)
   } finally {
     f.sqlite.close()
   }
 })
 
+test.each(['obsolete', 'scope'])(
+  'retained logical Place dependency %s does not pin Address or Division current rows',
+  async logicalSnapshotId => {
+    const f = fixture()
+    try {
+      for (const family of ['address', 'division'] as const) {
+        f.receipt(family)
+        f.row(family)
+      }
+      f.sqlite
+        .query(
+          "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
+        )
+        .run(logicalSnapshotId)
+      const definition = JSON.stringify({
+        level: 1,
+        locales: [{ locale: 'en', name: 'Retained division' }],
+      })
+      f.sqlite
+        .query(
+          "INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition) VALUES ('dependent','place',?,'division',?)",
+        )
+        .run(logicalSnapshotId, definition)
+      for (const family of ['address', 'division'] as const)
+        expect(await f.clean(family)).toBe(true)
+      expect(f.sqlite.query('SELECT addressSnapshotId FROM places').get()).toEqual({
+        addressSnapshotId: logicalSnapshotId,
+      })
+      expect(
+        f.sqlite
+          .query('SELECT divisionSnapshotId,definition FROM placesDivision')
+          .get(),
+      ).toEqual({ divisionSnapshotId: logicalSnapshotId, definition })
+    } finally {
+      f.sqlite.close()
+    }
+  },
+)
+
 test.each(['replacement', 'new-token', 'interrupted', 'search', 'dependent'] as const)(
   'cleanup rechecks %s acquisition after its precheck',
   async race => {
     let acquired = false
     const family =
-      race === 'search' ? 'division' : race === 'dependent' ? 'address' : 'divisionArea'
+      race === 'search' || race === 'dependent' ? 'division' : 'divisionArea'
     const f = fixture((sqlite, query) => {
       if (!acquired && query.startsWith('delete from')) {
         acquired = true
@@ -152,7 +188,7 @@ test.each(['replacement', 'new-token', 'interrupted', 'search', 'dependent'] as 
           )
         else if (race === 'dependent')
           sqlite.exec(
-            "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01','scope')",
+            "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES ('dependent','address','scope')",
           )
         else
           sqlite.exec(
@@ -165,12 +201,7 @@ test.each(['replacement', 'new-token', 'interrupted', 'search', 'dependent'] as 
       f.row(family)
       expect(await f.clean(family)).toBe(false)
       expect(acquired).toBe(true)
-      const table =
-        family === 'division'
-          ? 'divisions'
-          : family === 'address'
-            ? 'address2d'
-            : 'divisionAreas'
+      const table = family === 'division' ? 'divisions' : 'divisionAreas'
       expect(f.sqlite.query(`SELECT count(*) AS n FROM ${table}`).get()).toEqual({
         n: 1,
       })
