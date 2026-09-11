@@ -226,8 +226,7 @@ test('Division reissues inherit unchanged base, every locale and source assertio
       'sourceResolutions',
     ])
       expect(
-        f.candidates
-          .requireDefined(DB_HISTORY_NEW)
+        requireDefined(f.candidates.DB_HISTORY_NEW)
           .db.query(`SELECT count(*) AS n FROM ${table}`)
           .get(),
       ).toEqual({ n: 0 })
@@ -298,8 +297,7 @@ test('Division component omissions retire the exact older shard and leave anothe
       old.query("SELECT isCurrent FROM divisions WHERE id='foreign'").get(),
     ).toEqual({ isCurrent: 1 })
     expect(
-      f.candidates
-        .requireDefined(DB_HISTORY_NEW)
+      requireDefined(f.candidates.DB_HISTORY_NEW)
         .db.query('SELECT recordType,locale,operation FROM snapshotVersionChanges')
         .all(),
     ).toEqual([{ recordType: 'divisionI18n', locale: 'zh-hant', operation: 'delete' }])
@@ -315,4 +313,29 @@ test('Division source omissions retain explicit evidence while unchanged asserti
       (await resolveSnapshotSourceResolutions(plan, shards(f.candidates))).get('source')
         ?.resolutions,
     ).toEqual({ entities: {}, decisions: [{ type: 'source_omission' }] })
+  }))
+
+test('Division base changes retain unchanged locales and preserve meaningful identifiers', () =>
+  fixture(async f => {
+    stage(f.candidates)
+    const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
+    next.exec(`UPDATE divisions SET identifiers='{"statistical":"district-1"}'`)
+    requireDefined(f.candidates.DB_CURRENT).db.exec(
+      `UPDATE divisions SET identifiers='{"statistical":"district-1"}'`,
+    )
+    await f.coalesce()
+    expect(
+      next.query('SELECT recordType,locale FROM snapshotVersionChanges').all(),
+    ).toEqual([{ recordType: 'division', locale: '' }])
+    expect(next.query('SELECT identifiers FROM divisions').get()).toEqual({
+      identifiers: '{"statistical":"district-1"}',
+    })
+    expect(next.query('SELECT count(*) AS n FROM divisionsI18n').get()).toEqual({
+      n: 0,
+    })
+    expect(
+      requireDefined(f.candidates.DB_HISTORY_OLD)
+        .db.query('SELECT isCurrent FROM divisions')
+        .get(),
+    ).toEqual({ isCurrent: 0 })
   }))
