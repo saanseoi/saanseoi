@@ -52,14 +52,14 @@ type DocsState = {
   releases: Array<{ id: string; notes: string | null }>
 }
 export type OfficialAddressInitManifest = {
-  baseline: { currentDivisionSnapshotIds: string[]; docs: DocsState }
+  baseline: { currentDivisionScopeIds: string[]; docs: DocsState }
   completedAt?: string
   createdAt: string
   identityFiles: { history: FileBeforeImage }
   owned?: {
     apiReleaseSetIds: string[]
     assetIds: Array<{ assetKey: string; id: string; releaseId: string | null }>
-    materialisedDivisionSnapshotIds: string[]
+    materialisedDivisionScopeIds: string[]
     releaseCodes: string[]
     releaseIds: string[]
     snapshotIds: string[]
@@ -69,7 +69,7 @@ export type OfficialAddressInitManifest = {
   runId: string
   status: 'running' | 'complete'
   target: 'local' | 'preview' | 'production'
-  version: 1
+  version: 2
 }
 
 function targetName(target: UploadTarget): OfficialAddressInitManifest['target'] {
@@ -210,7 +210,7 @@ export async function beginOfficialAddressInitialisation(
     }
     const manifest: OfficialAddressInitManifest = {
       baseline: {
-        currentDivisionSnapshotIds: await readCurrentDivisionSnapshotIds(context),
+        currentDivisionScopeIds: await readCurrentDivisionScopeIds(context),
         docs: await readDocsState(context),
       },
       createdAt: new Date().toISOString(),
@@ -220,7 +220,7 @@ export async function beginOfficialAddressInitialisation(
       runId: crypto.randomUUID(),
       status: 'running',
       target: targetName(target),
-      version: 1,
+      version: 2,
     }
     await mkdir(dirname(path), { recursive: true })
     // Replace stale manifests only after validating the clean baseline and
@@ -266,7 +266,7 @@ export async function completeOfficialAddressInitialisation(target: UploadTarget
               LocalAddressDbContext,
               'metaDb' | 'currentDb'
             >,
-            manifest.baseline.currentDivisionSnapshotIds ?? [],
+            manifest.baseline.currentDivisionScopeIds ?? [],
           ),
           await readDocsState({ metaDb }),
         ),
@@ -281,7 +281,7 @@ export async function completeOfficialAddressInitialisation(target: UploadTarget
   await complete(
     await collectOwnedRecordsFromRemoteMeta(
       meta,
-      manifest.baseline.currentDivisionSnapshotIds ?? [],
+      manifest.baseline.currentDivisionScopeIds ?? [],
       await getRemoteMetaClient(target, 'DB_CURRENT'),
     ),
     await readRemoteDocsState(meta),
@@ -348,7 +348,7 @@ export async function runResetOfficialAddressesCommand(
       }
       manifest.owned = await collectOwnedRecords(
         context,
-        manifest.baseline.currentDivisionSnapshotIds ?? [],
+        manifest.baseline.currentDivisionScopeIds ?? [],
       )
     }
     if (discardAbandonedStaged) {
@@ -378,7 +378,7 @@ export async function runResetOfficialAddressesCommand(
         throw new Error('Official address reset cancelled.')
     }
     if (dryRun) return
-    const artefacts = buildResetSql(context, manifest)
+    const artefacts = await buildResetSql(context, manifest)
     const resetManifest = manifest
     await executeResetSqlArtefacts({
       artefacts,
@@ -528,11 +528,10 @@ async function adoptFailedAddressResetState(
     )
   }
   const docs = await readDocsState(context)
-  const baselineCurrentDivisionSnapshotIds =
-    await readCurrentDivisionSnapshotIds(context)
+  const baselineCurrentDivisionScopeIds = await readCurrentDivisionScopeIds(context)
   const manifest: OfficialAddressInitManifest = {
     baseline: {
-      currentDivisionSnapshotIds: baselineCurrentDivisionSnapshotIds,
+      currentDivisionScopeIds: baselineCurrentDivisionScopeIds,
       docs,
     },
     completedAt: new Date().toISOString(),
@@ -541,11 +540,11 @@ async function adoptFailedAddressResetState(
     identityFiles: {
       history: await readBeforeImage(HISTORY_FILE),
     },
-    owned: await collectOwnedRecords(context, baselineCurrentDivisionSnapshotIds),
+    owned: await collectOwnedRecords(context, baselineCurrentDivisionScopeIds),
     runId: crypto.randomUUID(),
     status: 'complete',
     target: targetName(target),
-    version: 1,
+    version: 2,
   }
   note(
     'All address releases are failed or staged with no published API state.',
@@ -556,7 +555,7 @@ async function adoptFailedAddressResetState(
 
 async function collectOwnedRecords(
   context: Pick<LocalAddressDbContext, 'metaDb' | 'currentDb'>,
-  baselineCurrentDivisionSnapshotIds: string[],
+  baselineCurrentDivisionScopeIds: string[],
 ) {
   const releases = await context.metaDb
     .select({
@@ -617,13 +616,13 @@ async function collectOwnedRecords(
     .from(metaSchema.metaAssets)
     .where(inArray(metaSchema.metaAssets.releaseId, releaseIds))
     .all()
-  const currentDivisionSnapshotIds = await readCurrentDivisionSnapshotIds(context)
+  const currentDivisionScopeIds = await readCurrentDivisionScopeIds(context)
   return {
     apiReleaseSetIds: selectOwnedOfficialAddressApiReleaseSetIds(apiRows),
     assetIds: assets,
-    materialisedDivisionSnapshotIds: resolveOwnedMaterialisedDivisionSnapshotIds(
-      currentDivisionSnapshotIds,
-      baselineCurrentDivisionSnapshotIds,
+    materialisedDivisionScopeIds: resolveOwnedMaterialisedDivisionScopeIds(
+      currentDivisionScopeIds,
+      baselineCurrentDivisionScopeIds,
     ),
     releaseCodes: releases.map(row => row.code),
     releaseIds,
@@ -649,7 +648,7 @@ async function getRemoteMetaClient(
 
 async function collectOwnedRecordsFromRemoteMeta(
   client: RemoteD1QueryClient,
-  baselineCurrentDivisionSnapshotIds: string[],
+  baselineCurrentDivisionScopeIds: string[],
   current: RemoteD1QueryClient,
 ): Promise<NonNullable<OfficialAddressInitManifest['owned']>> {
   const releases = (await client.query(
@@ -687,9 +686,9 @@ async function collectOwnedRecordsFromRemoteMeta(
   return {
     apiReleaseSetIds: selectOwnedOfficialAddressApiReleaseSetIds(apiRows),
     assetIds: assets,
-    materialisedDivisionSnapshotIds: resolveOwnedMaterialisedDivisionSnapshotIds(
+    materialisedDivisionScopeIds: resolveOwnedMaterialisedDivisionScopeIds(
       [...new Set(currentRows.map(row => row.snapshotId))].sort(),
-      baselineCurrentDivisionSnapshotIds,
+      baselineCurrentDivisionScopeIds,
     ),
     releaseCodes: releases.map(row => row.code),
     releaseIds,
@@ -732,11 +731,11 @@ async function queryRemoteInChunks<T>(
   return rows
 }
 
-export function resolveOwnedMaterialisedDivisionSnapshotIds(
-  currentSnapshotIds: string[],
-  baselineSnapshotIds: string[],
+export function resolveOwnedMaterialisedDivisionScopeIds(
+  currentScopeIds: string[],
+  baselineScopeIds: string[],
 ) {
-  return currentSnapshotIds.filter(id => !baselineSnapshotIds.includes(id))
+  return currentScopeIds.filter(id => !baselineScopeIds.includes(id))
 }
 
 /**
@@ -784,7 +783,10 @@ async function assertResetStillSafe(
       'Refusing reset: address releases no longer exactly match this initialisation manifest.',
     )
   const snapshots = await context.metaDb
-    .select({ id: metaSchema.metaSnapshots.id })
+    .select({
+      id: metaSchema.metaSnapshots.id,
+      scopeId: metaSchema.metaSnapshots.snapshotLineageId,
+    })
     .from(metaSchema.metaSnapshots)
     .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
     .all()
@@ -797,30 +799,32 @@ async function assertResetStillSafe(
     throw new Error(
       'Refusing reset: address snapshots no longer exactly match this initialisation manifest.',
     )
-  const unexpectedCurrent = await context.currentDb
-    .select({ snapshotId: currentSchema.address2d.snapshotId })
+  const addressScopeIds = new Set(snapshots.map(row => row.scopeId))
+  const currentScopes = await context.currentDb
+    .selectDistinct({ snapshotId: currentSchema.address2d.snapshotId })
     .from(currentSchema.address2d)
-    .where(not(inArray(currentSchema.address2d.snapshotId, owned.snapshotIds)))
-    .limit(1)
-    .get()
+    .all()
+  const unexpectedCurrent = currentScopes.some(
+    row => !addressScopeIds.has(row.snapshotId),
+  )
   if (unexpectedCurrent)
     throw new Error(
       'Refusing reset: current address rows are not owned by this initialisation.',
     )
-  const currentDivisionSnapshotIds = await readGeographicDivisionSnapshotIds(
+  const currentDivisionScopeIds = await readGeographicDivisionScopeIds(
     context,
-    await readCurrentDivisionSnapshotIds(context),
+    await readCurrentDivisionScopeIds(context),
   )
-  const expectedDivisionSnapshotIds = await readGeographicDivisionSnapshotIds(context, [
-    ...(manifest.baseline.currentDivisionSnapshotIds ?? []),
-    ...owned.materialisedDivisionSnapshotIds,
+  const expectedDivisionScopeIds = await readGeographicDivisionScopeIds(context, [
+    ...(manifest.baseline.currentDivisionScopeIds ?? []),
+    ...owned.materialisedDivisionScopeIds,
   ])
-  const hasOwnedMaterialisedDivision = currentDivisionSnapshotIds.some(snapshotId =>
-    owned.materialisedDivisionSnapshotIds.includes(snapshotId),
+  const hasOwnedMaterialisedDivision = currentDivisionScopeIds.some(snapshotId =>
+    owned.materialisedDivisionScopeIds.includes(snapshotId),
   )
   if (
     hasOwnedMaterialisedDivision &&
-    !sameSet(currentDivisionSnapshotIds, expectedDivisionSnapshotIds)
+    !sameSet(currentDivisionScopeIds, expectedDivisionScopeIds)
   )
     throw new Error(
       'Refusing reset: current division projections changed after address initialisation.',
@@ -972,7 +976,7 @@ async function absorbAbandonedStagedAddressReleases(
   }
 }
 
-function buildResetSql(
+async function buildResetSql(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   manifest: OfficialAddressInitManifest,
 ) {
@@ -984,8 +988,16 @@ function buildResetSql(
     assets = sqlList(owned.assetIds.map(asset => asset.id))
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE releaseId IN (${ids});`
   const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});\nDELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${ids});`
-  const divisionSnapshots = sqlList(owned.materialisedDivisionSnapshotIds)
-  const currentSql = `DELETE FROM address2d WHERE snapshotId IN (${snapshots});\nDELETE FROM divisions WHERE snapshotId IN (${divisionSnapshots});\n${readFileSync(resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'), 'utf8')}`
+  const scopeIds: string[] = []
+  for (const ids of chunkArray(owned.snapshotIds, getMaxItemsPerInClause())) {
+    const rows = await context.metaDb
+      .select({ scopeId: metaSchema.metaSnapshots.snapshotLineageId })
+      .from(metaSchema.metaSnapshots)
+      .where(inArray(metaSchema.metaSnapshots.id, ids))
+      .all()
+    for (const row of rows) if (row.scopeId) scopeIds.push(row.scopeId)
+  }
+  const currentSql = `${buildOfficialAddressCurrentResetSql([...new Set(scopeIds)], owned.materialisedDivisionScopeIds)}\n${readFileSync(resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-addresses-fts.sql'), 'utf8')}`
   const docsSql = [
     ...manifest.baseline.docs.apiReleaseSets.map(
       row =>
@@ -1054,7 +1066,7 @@ async function readDocsState(
   ])
   return { apiReleaseSets: apiReleaseSets.sort(byId), releases: releases.sort(byId) }
 }
-async function readCurrentDivisionSnapshotIds(
+async function readCurrentDivisionScopeIds(
   context: Pick<LocalAddressDbContext, 'currentDb'>,
 ) {
   const rows = await context.currentDb
@@ -1063,39 +1075,45 @@ async function readCurrentDivisionSnapshotIds(
     .all()
   return [...new Set(rows.map(row => row.snapshotId))].sort()
 }
-async function readGeographicDivisionSnapshotIds(
+async function readGeographicDivisionScopeIds(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  snapshotIds: string[],
+  scopeIds: string[],
 ) {
-  if (snapshotIds.length === 0) return []
-
-  const rows = await context.metaDb
-    .select({ snapshotId: metaSchema.metaSnapshots.id })
-    .from(metaSchema.metaSnapshots)
-    .leftJoin(
-      metaSchema.metaSnapshotLineages,
-      eq(
-        metaSchema.metaSnapshots.snapshotLineageId,
-        metaSchema.metaSnapshotLineages.id,
-      ),
-    )
-    .leftJoin(
-      metaSchema.metaDatasets,
-      eq(metaSchema.metaSnapshotLineages.primaryDatasetId, metaSchema.metaDatasets.id),
-    )
-    .where(
-      and(
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
-        inArray(metaSchema.metaSnapshots.id, snapshotIds),
-        or(
-          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-          eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
+  const result = new Set<string>()
+  for (const ids of chunkArray(scopeIds, getMaxItemsPerInClause(1, 3))) {
+    const rows = await context.metaDb
+      .select({ scopeId: metaSchema.metaSnapshotLineages.id })
+      .from(metaSchema.metaSnapshotLineages)
+      .leftJoin(
+        metaSchema.metaDatasets,
+        eq(
+          metaSchema.metaSnapshotLineages.primaryDatasetId,
+          metaSchema.metaDatasets.id,
         ),
-      ),
-    )
-    .all()
+      )
+      .where(
+        and(
+          eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
+          inArray(metaSchema.metaSnapshotLineages.id, ids),
+          or(
+            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+            eq(metaSchema.metaDatasets.code, LEGACY_OVERTURE_DIVISION_DATASET_CODE),
+          ),
+        ),
+      )
+      .all()
+    for (const row of rows) result.add(row.scopeId)
+  }
+  return [...result].sort()
+}
 
-  return [...new Set(rows.map(row => row.snapshotId))].sort()
+export function buildOfficialAddressCurrentResetSql(
+  addressScopeIds: string[],
+  divisionScopeIds: string[],
+) {
+  const addresses = sqlList(addressScopeIds)
+  const divisions = sqlList(divisionScopeIds)
+  return `DELETE FROM address2d WHERE snapshotId IN (${addresses});\nDELETE FROM addressPublicationState WHERE scopeId IN (${addresses});\nDELETE FROM divisions WHERE snapshotId IN (${divisions});\nDELETE FROM divisionPublicationState WHERE scopeId IN (${divisions});`
 }
 export async function readBeforeImage(
   path: string,
@@ -1155,7 +1173,7 @@ async function readManifest(path: string): Promise<OfficialAddressInitManifest> 
   if (
     !value ||
     typeof value !== 'object' ||
-    (value as { version?: unknown }).version !== 1
+    (value as { version?: unknown }).version !== 2
   )
     throw new Error(
       'Official-address initialisation manifest has an unsupported format.',

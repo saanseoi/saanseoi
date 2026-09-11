@@ -64,6 +64,7 @@ import {
   verifyPurgeResult,
   verifyRollbackResult,
 } from './rollbackVerification.ts'
+import { assertRollbackPublicationAvailable } from './rollbackPublication.ts'
 
 export const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
@@ -208,6 +209,33 @@ export async function runRollbackReleaseCommand(
     if (operation === 'rollback') {
       await assertRollbackPreconditions(release, previousRelease, previousReleaseSet)
     }
+    const previousSnapshot = previousReleaseId
+      ? await resolveSnapshotForRelease(metaDb, previousReleaseId, resourceType)
+      : null
+    if (previousReleaseId && !previousSnapshot)
+      throw new Error(
+        `Rollback predecessor ${previousReleaseId} has no retained snapshot.`,
+      )
+    const purgedSnapshot =
+      operation === 'purge'
+        ? await metaDb
+            .select({ parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId })
+            .from(metaSchema.metaSnapshots)
+            .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
+            .get()
+        : null
+    await assertRollbackPublicationAvailable(
+      dbContext.currentDb as unknown as HarbourReadableDb,
+      {
+        resourceType,
+        snapshotId: snapshot.id,
+        previousSnapshotId:
+          operation === 'purge'
+            ? (purgedSnapshot?.parentSnapshotId ?? null)
+            : (previousSnapshot?.id ?? null),
+        operation,
+      },
+    )
     const rollbackPlan = describeLatestReleaseRollbackPlan({
       source: releaseSource,
       resourceType: resourceType,
