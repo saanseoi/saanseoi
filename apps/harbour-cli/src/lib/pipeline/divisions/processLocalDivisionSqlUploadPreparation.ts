@@ -1,16 +1,16 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/hongKongHierarchyGuard'
+import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/divisions/hongKongHierarchyGuard'
 import { curationDocumentsFor } from '../../curationDocuments'
 import {
   hasLocaleRegression,
   hasNameRegression,
-} from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import { metaDivisionCodes } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { createDivisionBranchCounts } from '@repo/core/pipeline/services/division'
+import { createDivisionBranchCounts } from '@repo/core/pipeline/services/divisions/division'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import {
   countDivisionCurrentSnapshotI18nRows,
@@ -34,8 +34,8 @@ import {
   normaliseDivisionRow,
   normaliseDivisionI18nForStorage,
   resolveDistrictId,
-} from '@repo/core/pipeline/services/division'
-import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
+} from '@repo/core/pipeline/services/divisions/division'
+import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -45,7 +45,7 @@ import {
   buildQualityStatsRows,
   createLocaleStatsAccumulator,
   updateLocaleStatsAccumulator,
-} from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import { createHash } from '@repo/core/pipeline/utils'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -173,6 +173,17 @@ export async function buildDivisionSqlState(
     allowTranslationGeneration,
   )
 
+  for (const [id, translated] of translationsByDivisionId) {
+    const entry = hierarchyLookup.get(id)
+    if (entry)
+      hierarchyLookup.set(id, {
+        ...entry,
+        i18n: Object.fromEntries(
+          translated.localisations.map(row => [row.locale, { name: row.name }]),
+        ),
+      })
+  }
+
   let processedRows = 0
   let insertedVersions = 0
   let localisedRows = 0
@@ -255,7 +266,7 @@ export async function buildDivisionSqlState(
           division: normalised.base,
           rawNames: normalised.i18n.map(row => row.name),
           translations: resolvedI18n.applications,
-          parents: divisionAuditParents(normalised.base.hierarchy),
+          parents: divisionAuditParents(normalised.base.hierarchies),
         }),
       )
       const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
@@ -310,8 +321,8 @@ export async function buildDivisionSqlState(
         geometry: normalised.base.geometry,
         id: normalised.base.id,
         localisedRows: storedCanonicalI18n,
-        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchy),
-        type: normalised.base.type,
+        parentId: resolveParentDivisionIdFromHierarchy(normalised.base.hierarchies),
+        type: normalised.base.class,
         versionHash,
       })
 
@@ -369,8 +380,12 @@ export async function buildDivisionSqlState(
       records,
       message.releaseId ?? message.datasetId,
     )
-    for (const [index, resolution] of resolutions.entries())
-      records[index]!.sourceResolution = resolution
+    for (const [index, resolution] of resolutions.entries()) {
+      const record = records[index]
+      if (!record)
+        throw new Error(`Missing LandsD source record for resolution ${index}.`)
+      record.sourceResolution = resolution
+    }
   }
 
   logDivisionTraceGroup(
@@ -485,19 +500,9 @@ export function jsonText(value: unknown): string | null {
 export function resolveParentDivisionIdFromHierarchy(
   hierarchy: unknown,
 ): string | null {
-  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
-    return null
-  }
-
-  const parent = hierarchy[hierarchy.length - 1]
-  if (!parent || typeof parent !== 'object') {
-    return null
-  }
-
-  const divisionId = (parent as Record<string, unknown>).division_id
-  return typeof divisionId === 'string' && divisionId.trim().length > 0
-    ? divisionId
-    : null
+  const paths = (hierarchy as import('@repo/db').DivisionHierarchies | null)?.full ?? []
+  const ids = [...new Set(paths.flatMap(path => path.at(-1)?.id ?? []))].sort()
+  return ids.length === 1 ? (ids[0] ?? null) : ids.length ? JSON.stringify(ids) : null
 }
 
 export function asOptionalInteger(value: unknown) {

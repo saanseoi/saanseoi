@@ -1,3 +1,4 @@
+import { missingSourceMembershipPredicates } from '../local/sourceMembershipSql.ts'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { deliverSqlPhase, type SqlDeliveryPhase } from '../local/sqlDeliveryPhase.ts'
@@ -20,7 +21,6 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
 )
 const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
-const SOURCE_ID_CHUNK_SIZE = 250
 
 type StatisticRow = object
 
@@ -80,14 +80,7 @@ export function buildStatisticSqlBatches(
       input.source.table,
       sourceRows,
       ['sourceRecordId', 'versionHash'],
-      [
-        'isCurrent',
-        'releaseId',
-        'updatedAt',
-        'validFromRelease',
-        'validToRelease',
-        'sourceGeometry',
-      ],
+      ['isCurrent', 'releaseId', 'updatedAt', 'validToRelease', 'sourceGeometry'],
       ['sourceGeometry'],
     ),
   ]
@@ -246,12 +239,25 @@ function buildCloseSourceStatements(
   const [firstRow] = rows
   if (!firstRow) return []
   const updatedAt = requiredString(valueFor(firstRow, 'updatedAt'), 'updatedAt')
-  return chunk(ids, SOURCE_ID_CHUNK_SIZE).map(idsChunk =>
-    [
-      `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(updatedAt)}`,
-      `WHERE "isCurrent" = 1 AND ("sourceRecordId" IN (${idsChunk.map(sqlValue).join(', ')}) OR "releaseId" = ${sqlValue(releaseId)});`,
-    ].join(' '),
-  )
+  const hashesById = new Map<string, Set<string>>()
+  for (const row of rows) {
+    const id = requiredString(valueFor(row, 'sourceRecordId'), 'sourceRecordId')
+    const hashes = hashesById.get(id) ?? new Set<string>()
+    hashes.add(requiredString(valueFor(row, 'versionHash'), 'versionHash'))
+    hashesById.set(id, hashes)
+  }
+  const update = `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1`
+  return [
+    ...[...hashesById].map(
+      ([id, hashes]) =>
+        `${update} AND "sourceRecordId" = ${sqlValue(id)} AND "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')});`,
+    ),
+    // A same-release rebuild can omit rows; do not close other source lineages.
+    ...missingSourceMembershipPredicates(ids).map(
+      predicate =>
+        `${update} AND "releaseId" = ${sqlValue(releaseId)} AND ${predicate};`,
+    ),
+  ]
 }
 
 function buildCloseHistoryStatements(ids: string[], rows: StatisticRow[]) {
@@ -259,12 +265,9 @@ function buildCloseHistoryStatements(ids: string[], rows: StatisticRow[]) {
   const [firstRow] = rows
   if (!firstRow) return []
   const updatedAt = requiredString(valueFor(firstRow, 'updatedAt'), 'updatedAt')
-  return chunk(ids, SOURCE_ID_CHUNK_SIZE).map(idsChunk =>
-    [
-      'UPDATE "divisionStatistics" SET "isCurrent" = 0,',
-      `"updatedAt" = ${sqlValue(updatedAt)}`,
-      `WHERE "isCurrent" = 1 AND "id" IN (${idsChunk.map(sqlValue).join(', ')});`,
-    ].join(' '),
+  return rows.map(
+    row =>
+      `UPDATE "divisionStatistics" SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND "id" = ${sqlValue(valueFor(row, 'id'))} AND "versionHash" <> ${sqlValue(valueFor(row, 'versionHash'))};`,
   )
 }
 
@@ -291,7 +294,7 @@ function buildUpsertStatements(
     for (const column of chunkedColumns) {
       const value = values[column]
       if (value === null || value === undefined) continue
-      const inlineValues = { ...values, [column]: null }
+      const inlineValues = { ...values, [column]: null, isCurrent: false }
       const baseStatement = buildUpsertStatement(
         table,
         columns,
@@ -305,7 +308,11 @@ function buildUpsertStatements(
       const appendStatements = chunkSqlText(text, chunk =>
         buildAppendStatement(table, column, chunk, conflictColumns, values),
       )
-      return [baseStatement, ...appendStatements]
+      return [
+        baseStatement,
+        ...appendStatements,
+        `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 1 WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(values[key])}`).join(' AND ')} AND "isCurrent" = 0;`,
+      ]
     }
 
     throw new Error('A statistic SQL statement exceeds the D1 limit.')
@@ -326,7 +333,7 @@ function buildUpsertStatement(
     updateColumns
       .map(column => `${sqlIdentifier(column)} = excluded.${sqlIdentifier(column)}`)
       .join(', '),
-    ';',
+    `WHERE ${sqlIdentifier(table)}.isCurrent <> 1;`,
   ].join(' ')
 }
 
@@ -339,7 +346,7 @@ function buildAppendStatement(
 ) {
   return [
     `UPDATE ${sqlIdentifier(table)} SET ${sqlIdentifier(column)} = COALESCE(${sqlIdentifier(column)}, '') || ${sqlValue(value)}`,
-    `WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(row[key])}`).join(' AND ')};`,
+    `WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(row[key])}`).join(' AND ')} AND isCurrent = 0;`,
   ].join(' ')
 }
 
@@ -443,14 +450,6 @@ function chunkSql(statements: string[]) {
     current += `${statement}\n`
   }
   if (current) chunks.push(current)
-  return chunks
-}
-
-function chunk<T>(items: T[], size: number) {
-  const chunks: T[][] = []
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size))
-  }
   return chunks
 }
 

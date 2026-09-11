@@ -156,7 +156,6 @@ export async function buildDivisionMetaSqlFile(
     for (const row of batch) {
       rows.push({
         id: crypto.randomUUID(),
-        type: row.type,
         releaseId: message.releaseId ?? message.datasetId,
         dimension: row.dimension,
         metric: row.metric,
@@ -310,7 +309,7 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND type != 'processing';`,
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND kind != 'processing';`,
     ...buildInsertStatements(
       'stats',
       [

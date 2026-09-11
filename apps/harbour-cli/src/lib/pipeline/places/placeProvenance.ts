@@ -5,7 +5,7 @@ import {
   type ProvenanceStore,
   type JsonRecord,
 } from '@repo/core/provenance'
-import { placeNormalisationRule } from '@repo/core/pipeline/services/place'
+import { placeNormalisationRule } from '@repo/core/pipeline/services/places/place'
 import apiFields from '../../../../../../fixtures/meta/apiFields/api-places-v0.1@overture-1.12-to-1.18.json'
 import { retainProducerAudit } from '../../api/producerAudit'
 import { retainRegisteredRule } from '../../api/retainedRule'

@@ -1,14 +1,14 @@
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { hashDivisionGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
-import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+import { hashDivisionGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
-} from '@repo/core/pipeline/services/geometryStats'
+} from '@repo/core/pipeline/services/metrics/geometryStats'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { currentSchema, historySchema } from '@repo/db'
 import { desc, eq } from 'drizzle-orm'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
@@ -34,7 +34,6 @@ function geometryStatRow(
   groupValue: string | null = null,
 ) {
   return {
-    type: 'release',
     dimension,
     metric,
     metricUnit: 'count',
@@ -122,7 +121,7 @@ export function createGeometryChurnCounts(
 
 export async function getGeometryChurnBaseline(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  type: GeometryUploadPlan['type'],
+  type: GeometryUploadPlan['resourceType'],
   parentSnapshotId: string | null,
 ) {
   if (!parentSnapshotId) {
@@ -167,7 +166,7 @@ export async function buildGeometryStats(
   rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
 ) {
-  const churnStats = buildGeometryChurnStatRows(plan.type, churn)
+  const churnStats = buildGeometryChurnStatRows(plan.resourceType, churn)
   if (isHousingMarketAreaPlan(plan)) {
     // Housing Market Areas are their own geographic domain. Their records are
     // shown on the district map only after a positive-area spatial
@@ -191,7 +190,7 @@ export async function buildGeometryStats(
   const districts = await resolveGeometryDistricts(currentDb, metaDb, plan)
   if (resolveProviderBridgeConfig(plan)) {
     for (const row of rows) {
-      for (const divisionId of divisionReferenceIds(plan.type, row)) {
+      for (const divisionId of divisionReferenceIds(plan.resourceType, row)) {
         // HAD and C&SD bridges resolve these canonical identifiers directly to
         // districts, including historical cohorts whose generic hierarchy has
         // no matching snapshot entry.
@@ -202,7 +201,7 @@ export async function buildGeometryStats(
   const geometryRows =
     plan.source === 'overture'
       ? selectDistrictRelevantGeometryRecords(
-          plan.type,
+          plan.resourceType,
           rows.map(row => ({
             ...row.canonical,
             geometry: row.canonical.geometry as GeoJsonGeometry,
@@ -216,16 +215,16 @@ export async function buildGeometryStats(
   return [
     ...churnStats,
     ...buildGeometryReleaseStatsRows(
-      plan.type,
-      calculateDistrictGeometryStatistics(plan.type, geometryRows, districts),
+      plan.resourceType,
+      calculateDistrictGeometryStatistics(plan.resourceType, geometryRows, districts),
     ),
-    ...buildGeometryDistrictDistributionRows(plan.type, rows, districts),
+    ...buildGeometryDistrictDistributionRows(plan.resourceType, rows, districts),
   ]
 }
 
 function isHousingMarketAreaPlan(plan: GeometryUploadPlan) {
   return (
-    plan.type === 'divisionArea' &&
+    plan.resourceType === 'divisionArea' &&
     plan.source === 'hkgov-censtatd' &&
     plan.datasetCode ===
       'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
@@ -249,7 +248,7 @@ export function supportsDistrictGeometryStatistics(plan: GeometryUploadPlan) {
 }
 
 function buildGeometryChurnStatRows(
-  _type: GeometryUploadPlan['type'],
+  _type: GeometryUploadPlan['resourceType'],
   churn: GeometryChurnCounts,
 ) {
   const rows = [
@@ -308,9 +307,10 @@ async function resolveGeometryDistricts(
 
   const divisions = await currentDb
     .select({
-      hierarchy: currentSchema.divisions.hierarchy,
+      hierarchies: currentSchema.divisions.hierarchies,
       id: currentSchema.divisions.id,
-      type: currentSchema.divisions.type,
+      category: currentSchema.divisions.category,
+      class: currentSchema.divisions.class,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
@@ -318,19 +318,16 @@ async function resolveGeometryDistricts(
 
   return new Map(
     divisions.flatMap(division => {
-      if (division.type === 'district') return [[division.id, division.id]]
-      if (!Array.isArray(division.hierarchy)) return []
-
-      const district = division.hierarchy.find(
-        entry =>
-          entry &&
-          typeof entry === 'object' &&
-          (entry as Record<string, unknown>).type === 'district' &&
-          typeof (entry as Record<string, unknown>).division_id === 'string',
-      ) as Record<string, unknown> | undefined
-      return typeof district?.division_id === 'string'
-        ? [[division.id, district.division_id]]
-        : []
+      if (division.class === 'district') return [[division.id, division.id]]
+      const ids = [
+        ...new Set(
+          division.hierarchies.administrative
+            .flat()
+            .filter(entry => entry.class === 'district')
+            .map(entry => entry.id),
+        ),
+      ]
+      return ids.length === 1 && ids[0] ? [[division.id, ids[0]]] : []
     }),
   )
 }
@@ -407,7 +404,7 @@ export function decodeStoredGeoJsonGeometry(value: unknown): GeoJsonGeometry {
 }
 
 function buildGeometryDistrictDistributionRows(
-  type: GeometryUploadPlan['type'],
+  type: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   districtsByDivisionId: Map<string, string>,
 ) {
@@ -521,7 +518,7 @@ export function buildOvertureGeometryProcessingActions(
           field: 'region',
           equals: 'CN-GD',
         },
-        resourceType: plan.type,
+        resourceType: plan.resourceType,
         sourceVersion: plan.sourceVersion,
         examples,
         omittedExampleCount: excludedRecords.length - examples.length,

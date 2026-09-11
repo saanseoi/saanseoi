@@ -112,7 +112,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         source: previewPlan.source,
         sourceVersion: previewPlan.sourceVersion,
         theme: previewPlan.theme,
-        type: previewPlan.type,
+        type: previewPlan.resourceType,
       })
     : undefined
 
@@ -565,22 +565,27 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 ...(previewPlan.source === 'hkgov-pland-new-town'
                   ? []
                   : [3, 4, 5, 6]
-                ).map(level => ({
-                  ...statRow(
-                    'units',
-                    'count',
-                    records.filter(record => record.base.level === level).length,
-                    (
-                      {
-                        3: 'primary',
-                        4: 'secondary',
-                        5: 'tertiary',
-                        6: 'subunits',
-                      } as Record<number, string>
-                    )[level]!,
-                  ),
-                  groupBy: 'unit_distribution',
-                })),
+                ).map(level => {
+                  const groupValue = (
+                    {
+                      3: 'primary',
+                      4: 'secondary',
+                      5: 'tertiary',
+                      6: 'subunits',
+                    } as Record<number, string>
+                  )[level]
+                  if (!groupValue)
+                    throw new Error(`Unknown Planning division level ${level}.`)
+                  return {
+                    ...statRow(
+                      'units',
+                      'count',
+                      records.filter(record => record.base.level === level).length,
+                      groupValue,
+                    ),
+                    groupBy: 'unit_distribution',
+                  }
+                }),
                 ...planningDivisionChurn(
                   currentHistoryRows.map(row => ({
                     id: row.id,

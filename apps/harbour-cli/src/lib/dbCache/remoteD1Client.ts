@@ -8,6 +8,7 @@ export type RemoteD1QueryClient = {
 }
 
 type CloudflareD1QueryResult = {
+  meta?: unknown
   error?: unknown
   results?: Array<Record<string, unknown>>
   success?: boolean
@@ -29,6 +30,7 @@ export function createCloudflareD1QueryClient(options: {
   fetch?: RemoteD1Fetch
   retryDelayMs?: number
   retryLimit?: number
+  onMeta?: (meta: unknown) => void | Promise<void>
 }): RemoteD1QueryClient {
   const fetchImpl = options.fetch ?? fetch
   const endpoint = `https://api.cloudflare.com/client/v4/accounts/${options.accountId}/d1/database/${options.databaseId}/query`
@@ -71,6 +73,7 @@ export function createCloudflareD1QueryClient(options: {
         const result = Array.isArray(payload.result)
           ? payload.result[0]
           : payload.result
+        await options.onMeta?.(result?.meta)
 
         if (
           response.ok &&

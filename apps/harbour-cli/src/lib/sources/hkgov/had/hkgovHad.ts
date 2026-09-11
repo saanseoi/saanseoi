@@ -6,6 +6,7 @@ import { parquetWriteFile } from 'hyparquet-writer'
 
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 import { readFileGeodatabaseArchive } from '../../fileGeodatabase.ts'
+import { readNativeFileGeodatabaseArchive } from '../../fileGeodatabaseNative.ts'
 
 const HKGOV_HAD_SOURCE = 'hkgov-had'
 const HKGOV_HAD_SOURCE_SCHEMA_VERSION = '1.2'
@@ -29,6 +30,7 @@ type HkgovHadFeatureCollection = {
 }
 
 type HkgovHadFeature = {
+  sourceGeometry?: unknown
   geometry?: unknown
   properties?: unknown
   type?: unknown
@@ -217,7 +219,36 @@ export async function readHkgovHadDistrictArchive(archiveBytes: Uint8Array) {
     }
     requireDistrictGeometry(feature.geometry, index)
   }
-  return layer as HkgovHadFeatureCollection & { features: HkgovHadFeature[] }
+  const nativeLayers = readNativeFileGeodatabaseArchive(archiveBytes)
+  const nativeLayer = Object.entries(nativeLayers).find(
+    ([name]) => name.toUpperCase() === 'DCD',
+  )?.[1] as { features?: HkgovHadFeature[] } | undefined
+  if (
+    !Array.isArray(nativeLayer?.features) ||
+    nativeLayer.features.length !== layer.features.length
+  )
+    throw new Error(
+      'HAD native and projected collections must contain the same records.',
+    )
+  const nativeById = new Map(
+    nativeLayer.features.map(feature => [
+      (feature.properties as HkgovHadProperties).AREA_ID,
+      feature,
+    ]),
+  )
+  if (nativeById.size !== nativeLayer.features.length)
+    throw new Error('Duplicate HAD native area identity.')
+  return {
+    ...layer,
+    features: layer.features.map((feature, index) => {
+      const native = nativeById.get((feature.properties as HkgovHadProperties).AREA_ID)
+      if (!native) throw new Error('HAD projected record has no native geometry.')
+      return {
+        ...feature,
+        sourceGeometry: requireDistrictGeometry(native.geometry, index, true),
+      }
+    }),
+  } as HkgovHadFeatureCollection & { features: HkgovHadFeature[] }
 }
 
 function normaliseHkgovHadDistrictFeature(
@@ -250,7 +281,11 @@ function normaliseHkgovHadDistrictFeature(
     id: `HAD:${areaId}`,
     object_id: optionalInteger(properties.OBJECTID),
     region: 'HK',
-    source_geometry: geometry,
+    source_geometry: requireDistrictGeometry(
+      feature.sourceGeometry ?? geometry,
+      index,
+      feature.sourceGeometry != null,
+    ),
     source_properties: properties as Record<string, unknown>,
     sources: [
       {
@@ -270,7 +305,11 @@ function normaliseHkgovHadDistrictFeature(
   }
 }
 
-function requireDistrictGeometry(value: unknown, index: number): GeoJsonGeometry {
+function requireDistrictGeometry(
+  value: unknown,
+  index: number,
+  native = false,
+): GeoJsonGeometry {
   if (!isRecord(value) || (value.type !== 'Polygon' && value.type !== 'MultiPolygon')) {
     throw new Error(
       `HAD district feature ${index + 1} must have a Polygon or MultiPolygon geometry.`,
@@ -280,10 +319,12 @@ function requireDistrictGeometry(value: unknown, index: number): GeoJsonGeometry
   const positions = collectPositions(geometry)
   if (
     positions.length === 0 ||
-    positions.some(position => !isWgs84Position(position))
+    positions.some(position =>
+      native ? !position.every(Number.isFinite) : !isWgs84Position(position),
+    )
   ) {
     throw new Error(
-      `HAD district feature ${index + 1} does not contain valid WGS84 longitude/latitude coordinates.`,
+      `HAD district feature ${index + 1} does not contain valid ${native ? 'native' : 'WGS84 longitude/latitude'} coordinates.`,
     )
   }
   return geometry

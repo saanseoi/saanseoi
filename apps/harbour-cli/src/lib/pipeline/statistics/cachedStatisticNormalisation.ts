@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statistics/statisticRules'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'
 import { statisticLocalisationRule } from './statisticLocalisationRule'
 import { prepareCachedArtefact } from '../local/preparedArtefact.ts'

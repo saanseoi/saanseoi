@@ -114,8 +114,10 @@ export async function runLocalProgressPhase<T>(
 
   try {
     const result = await operation((reportedCurrent, reportedSubject) => {
+      const nextSubject = reportedSubject ?? phase.subject
+      const subjectChanged = nextSubject !== subject
       current = reportedCurrent
-      subject = reportedSubject ?? phase.subject
+      subject = nextSubject
       if (totalUnits === undefined) {
         progress.message(labelForProgress(undefined, subject))
         return
@@ -125,6 +127,7 @@ export async function runLocalProgressPhase<T>(
       current = resolvedCurrent
       progress.update(resolvedCurrent, {
         label: labelForProgress(resolvedCurrent, subject),
+        reset: subjectChanged,
       })
     })
 

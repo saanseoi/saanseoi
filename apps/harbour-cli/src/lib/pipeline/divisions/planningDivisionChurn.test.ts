@@ -5,7 +5,16 @@ import {
 } from './planningDivisionChurn'
 
 test('division churn ignores geometry and provenance but detects hierarchy changes', () => {
-  const base = { id: 'a', level: 5, hierarchy: ['parent'], identifiers: { tpu: '1' } }
+  const base = {
+    id: 'a',
+    level: 5,
+    hierarchies: {
+      administrative: [],
+      locality: [],
+      full: [[{ id: 'parent', class: 'region', name: 'Parent' }]],
+    },
+    identifiers: { tpu: '1' },
+  }
   const before = planningDivisionContentHash({
     ...base,
     geometry: 'old',
@@ -18,13 +27,20 @@ test('division churn ignores geometry and provenance but detects hierarchy chang
       sources: { sourceVersion: '2021' },
     }),
   ).toBe(before)
-  expect(planningDivisionContentHash({ ...base, hierarchy: ['other'] })).not.toBe(
-    before,
-  )
   expect(
     planningDivisionContentHash({
       ...base,
-      hierarchy: JSON.stringify(base.hierarchy),
+      hierarchies: {
+        administrative: [],
+        locality: [],
+        full: [[{ id: 'other', class: 'region', name: 'Other' }]],
+      },
+    }),
+  ).not.toBe(before)
+  expect(
+    planningDivisionContentHash({
+      ...base,
+      hierarchies: JSON.stringify(base.hierarchies),
       identifiers: JSON.stringify(base.identifiers),
     }),
   ).toBe(before)

@@ -28,7 +28,7 @@ export function resolveUploadProcessingStrategy(
   previewResult: Awaited<ReturnType<typeof prepareUpload>>,
 ) {
   if (
-    previewResult.plan.type === 'divisionStatistic' &&
+    previewResult.plan.resourceType === 'divisionStatistic' &&
     previewResult.plan.theme === 'stats' &&
     previewResult.plan.source === 'hkgov-censtatd' &&
     previewResult.plan.datasetCode ===
@@ -38,14 +38,14 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    previewResult.plan.type === 'divisionStatistic' &&
+    previewResult.plan.resourceType === 'divisionStatistic' &&
     previewResult.plan.theme === 'stats' &&
     previewResult.plan.source === 'hkgov-censtatd'
   )
     return { mode: 'local-hkgov-censtatd-generic-statistic-sql' as const }
 
   if (
-    previewResult.plan.type === 'address' &&
+    previewResult.plan.resourceType === 'address' &&
     previewResult.plan.theme === 'addresses'
   ) {
     return {
@@ -54,7 +54,7 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    previewResult.plan.type === 'place' &&
+    previewResult.plan.resourceType === 'place' &&
     previewResult.plan.theme === 'places' &&
     previewResult.plan.source === 'overture'
   ) {
@@ -62,7 +62,7 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    previewResult.plan.type === 'street' &&
+    previewResult.plan.resourceType === 'street' &&
     previewResult.plan.theme === 'streets' &&
     previewResult.plan.source === 'hkgov-landsd'
   ) {
@@ -70,7 +70,7 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    previewResult.plan.type === 'division' &&
+    previewResult.plan.resourceType === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'hkgov-pland-pu' ||
       previewResult.plan.source === 'hkgov-pland-new-town')
@@ -79,7 +79,7 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    previewResult.plan.type === 'division' &&
+    previewResult.plan.resourceType === 'division' &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-landsd' ||
@@ -91,8 +91,8 @@ export function resolveUploadProcessingStrategy(
   }
 
   if (
-    (previewResult.plan.type === 'divisionArea' ||
-      previewResult.plan.type === 'divisionBoundary') &&
+    (previewResult.plan.resourceType === 'divisionArea' ||
+      previewResult.plan.resourceType === 'divisionBoundary') &&
     previewResult.plan.theme === 'divisions' &&
     (previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-had' ||
@@ -106,7 +106,7 @@ export function resolveUploadProcessingStrategy(
   }
 
   throw new Error(
-    `Unsupported upload type for local SQL processing: ${previewResult.plan.source}/${previewResult.plan.type}.`,
+    `Unsupported upload type for local SQL processing: ${previewResult.plan.source}/${previewResult.plan.resourceType}.`,
   )
 }
 
@@ -133,7 +133,7 @@ export async function processPreparedUpload({
 }) {
   if (processingStrategy.mode === 'local-address-sql') {
     if (
-      previewResult.plan.type !== 'address' ||
+      previewResult.plan.resourceType !== 'address' ||
       previewResult.plan.theme !== 'addresses'
     ) {
       throw new Error('Local address SQL processing requires an address dataset.')
@@ -153,7 +153,7 @@ export async function processPreparedUpload({
         source: previewResult.plan.source,
         sourceVersion: previewResult.plan.sourceVersion,
         theme: previewResult.plan.theme,
-        type: previewResult.plan.type,
+        resourceType: previewResult.plan.resourceType,
       },
       uploadResult,
       preparedUploadFile,
@@ -188,7 +188,7 @@ export async function processPreparedUpload({
 
   if (processingStrategy.mode === 'local-place-sql') {
     if (
-      previewResult.plan.type !== 'place' ||
+      previewResult.plan.resourceType !== 'place' ||
       previewResult.plan.theme !== 'places' ||
       previewResult.plan.source !== 'overture'
     ) {
@@ -208,7 +208,7 @@ export async function processPreparedUpload({
         source: 'overture',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: 'places',
-        type: 'place',
+        resourceType: 'place',
       },
       uploadResult,
       preparedUploadFile,
@@ -227,7 +227,7 @@ export async function processPreparedUpload({
 
   if (processingStrategy.mode === 'local-division-sql') {
     if (
-      previewResult.plan.type !== 'division' ||
+      previewResult.plan.resourceType !== 'division' ||
       previewResult.plan.theme !== 'divisions'
     ) {
       throw new Error('Local division SQL processing requires a division dataset.')
@@ -250,7 +250,7 @@ export async function processPreparedUpload({
           | 'overture',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: previewResult.plan.theme,
-        type: previewResult.plan.type,
+        resourceType: previewResult.plan.resourceType,
       },
       uploadResult,
       preparedUploadFile,
@@ -279,7 +279,7 @@ export async function processPreparedUpload({
 
   if (processingStrategy.mode === 'local-street-sql') {
     if (
-      previewResult.plan.type !== 'street' ||
+      previewResult.plan.resourceType !== 'street' ||
       previewResult.plan.theme !== 'streets' ||
       previewResult.plan.source !== 'hkgov-landsd'
     ) {
@@ -298,7 +298,7 @@ export async function processPreparedUpload({
         source: 'hkgov-landsd',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: 'streets',
-        type: 'street',
+        resourceType: 'street',
       },
       uploadResult,
       preparedUploadFile,
@@ -326,7 +326,7 @@ export async function processPreparedUpload({
         source: previewResult.plan.source as 'hkgov-pland-pu' | 'hkgov-pland-new-town',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: 'divisions',
-        type: 'division',
+        resourceType: 'division',
       },
       uploadResult,
       preparedUploadFile,
@@ -355,8 +355,8 @@ export async function processPreparedUpload({
 
   if (processingStrategy.mode === 'local-division-geometry-sql') {
     if (
-      (previewResult.plan.type !== 'divisionArea' &&
-        previewResult.plan.type !== 'divisionBoundary') ||
+      (previewResult.plan.resourceType !== 'divisionArea' &&
+        previewResult.plan.resourceType !== 'divisionBoundary') ||
       previewResult.plan.theme !== 'divisions' ||
       (previewResult.plan.source !== 'overture' &&
         previewResult.plan.source !== 'hkgov-had' &&
@@ -374,7 +374,7 @@ export async function processPreparedUpload({
     }
 
     const shouldDeriveHkgovSimplifiedGeometry =
-      previewResult.plan.type === 'divisionArea' &&
+      previewResult.plan.resourceType === 'divisionArea' &&
       (previewResult.plan.source === 'hkgov-had' ||
         previewResult.plan.source === 'hkgov-censtatd' ||
         previewResult.plan.source === 'hkgov-pland-pu' ||
@@ -393,7 +393,7 @@ export async function processPreparedUpload({
         geometryStatus: previewResult.plan.geometryStatus,
         transform: divisionGeometryTransform,
         theme: 'divisions',
-        type: previewResult.plan.type,
+        resourceType: previewResult.plan.resourceType,
       },
       uploadResult,
       preparedUploadFile,
@@ -428,7 +428,7 @@ export async function processPreparedUpload({
           geometryStatus: previewResult.plan.geometryStatus,
           transform: 'simplified',
           theme: 'divisions',
-          type: 'divisionArea',
+          resourceType: 'divisionArea',
         },
         uploadResult,
         preparedUploadFile,
@@ -477,7 +477,7 @@ export async function processPreparedUpload({
       throw new Error('Expected a prepared upload file for local SQL processing.')
     }
     if (
-      previewResult.plan.type !== 'divisionStatistic' ||
+      previewResult.plan.resourceType !== 'divisionStatistic' ||
       previewResult.plan.theme !== 'stats' ||
       previewResult.plan.source !== 'hkgov-censtatd'
     ) {
@@ -496,7 +496,7 @@ export async function processPreparedUpload({
         source: 'hkgov-censtatd',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: 'stats',
-        type: 'divisionStatistic',
+        resourceType: 'divisionStatistic',
       },
       uploadResult,
       preparedUploadFile,
@@ -541,6 +541,6 @@ export async function processPreparedUpload({
   }
 
   throw new Error(
-    `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.type}.`,
+    `No local SQL upload processor is available for ${previewResult.plan.source}/${previewResult.plan.resourceType}.`,
   )
 }

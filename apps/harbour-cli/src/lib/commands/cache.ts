@@ -1,5 +1,7 @@
+import { inArray, metaSchema } from '@repo/db'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
+  withLocalMetaDb,
   readRemoteCachedCompletedReleaseCodes,
   rebuildRemoteDbCache,
   seedRemoteDbCacheAfterReset,
@@ -125,18 +127,27 @@ export async function runCacheCompletedReleasesCommand(
     ) ||
     (cacheTableProfile !== undefined &&
       cacheTableProfile !== 'planningDivisionGeometry' &&
-      cacheTableProfile !== 'places') ||
-    !target.remote
+      cacheTableProfile !== 'places')
   ) {
     printUsage()
     throw new Error(
-      '`cache:completed-releases` accepts `--target preview|production` and optional `--table-profile planningDivisionGeometry|places`.',
+      '`cache:completed-releases` accepts `--target local|preview|production` and optional `--table-profile planningDivisionGeometry|places`.',
     )
   }
 
-  const releaseCodes = await readRemoteCachedCompletedReleaseCodes(target, {
-    allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
-  })
+  const releaseCodes = target.remote
+    ? await readRemoteCachedCompletedReleaseCodes(target, {
+        allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
+      })
+    : await withLocalMetaDb(async db =>
+        (
+          await db
+            .select({ code: metaSchema.metaReleases.code })
+            .from(metaSchema.metaReleases)
+            .where(inArray(metaSchema.metaReleases.status, ['published', 'superseded']))
+            .all()
+        ).map(row => row.code),
+      )
   if (releaseCodes.length > 0) {
     process.stdout.write(`${releaseCodes.join('\n')}\n`)
   }

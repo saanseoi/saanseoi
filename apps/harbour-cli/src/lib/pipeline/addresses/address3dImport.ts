@@ -1,3 +1,4 @@
+import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
@@ -6,7 +7,7 @@ import type { MetaDatabase } from '@repo/db'
 import {
   resolveImportTarget,
   type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
 import {
   sourceResolutionSql,
@@ -341,6 +342,38 @@ export async function importAddress3dCollections(args: {
     ownerReferences(args.path),
     args.execute,
   )
+  // Source versions remain open across releases. Compare membership explicitly;
+  // releaseId identifies the assertion's provenance, not its last observation.
+  const remainingSources = new Map<string, Map<string, string>>()
+  for (const table of [
+    ...(validated.source2dCount === undefined ? [] : ['hkgovAlsAddresses2d']),
+    'hkgovAlsAddresses3d',
+  ]) {
+    const remaining = new Map<string, string>()
+    let cursor: number | undefined
+    for (;;) {
+      const rows = await args.execute('source', [
+        {
+          sql: `SELECT rowid, sourceRecordId, versionHash FROM ${table} WHERE ${cursor === undefined ? '' : `rowid > ${cursor} AND `}isCurrent = 1 ORDER BY rowid LIMIT 1024`,
+          params: [],
+        },
+      ])
+      if (!rows.length) break
+      for (const row of rows) {
+        if (
+          typeof row.sourceRecordId !== 'string' ||
+          typeof row.versionHash !== 'string' ||
+          !Number.isSafeInteger(row.rowid)
+        )
+          throw new Error(`Invalid current ALS source identity in ${table}`)
+        if (remaining.has(row.sourceRecordId))
+          throw new Error(`Multiple current ALS assertions for ${row.sourceRecordId}`)
+        remaining.set(row.sourceRecordId, row.versionHash)
+      }
+      cursor = Math.max(...rows.map(row => row.rowid as number))
+    }
+    remainingSources.set(table, remaining)
+  }
   // The snapshot is still draft; retries replace its complete collection set.
   await args.execute('current', [
     {
@@ -377,29 +410,39 @@ export async function importAddress3dCollections(args: {
           },
         ])
       }
-      await args.execute('source', [
-        {
-          sql: `UPDATE ${sourceTable} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?`,
-          params: [args.sourceVersion, now, record.sourceRecordId, record.versionHash],
-        },
-        insert(
-          sourceTable,
+      const remaining = remainingSources.get(sourceTable)
+      if (!remaining) throw new Error(`Missing source membership for ${sourceTable}`)
+      const unchanged = remaining.get(record.sourceRecordId) === record.versionHash
+      remaining.delete(record.sourceRecordId)
+      if (!unchanged)
+        await args.execute('source', [
           {
-            sourceRecordId: record.sourceRecordId,
-            versionHash: record.versionHash,
-            releaseId: args.releaseId,
-            validFromRelease: args.sourceVersion,
-            validToRelease: null,
-            isCurrent: 1,
-            rawProperties: record.rawProperties,
-            sourceGeometry: record.sourceGeometry,
-            sources: publisherSources,
-            createdAt: now,
-            updatedAt: now,
+            sql: `UPDATE ${sourceTable} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?`,
+            params: [
+              args.sourceVersion,
+              now,
+              record.sourceRecordId,
+              record.versionHash,
+            ],
           },
-          'ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
-        ),
-      ])
+          insert(
+            sourceTable,
+            {
+              sourceRecordId: record.sourceRecordId,
+              versionHash: record.versionHash,
+              releaseId: args.releaseId,
+              validFromRelease: args.sourceVersion,
+              validToRelease: null,
+              isCurrent: 1,
+              rawProperties: record.rawProperties,
+              sourceGeometry: record.sourceGeometry,
+              sourceLocator: sourceLocatorFromReferences(publisherSources),
+              createdAt: now,
+              updatedAt: now,
+            },
+            `ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt WHERE ${sourceTable}.isCurrent <> 1 OR ${sourceTable}.validToRelease IS NOT NULL`,
+          ),
+        ])
     } else if (record.kind === 'collection') {
       for (const sourceRecordId of record.sourceRecordIds) {
         const sourceVersionHash = sourceVersions.get(sourceRecordId)
@@ -433,20 +476,18 @@ export async function importAddress3dCollections(args: {
       await args.execute('current', currentStatements)
     }
   }
-  await args.execute('source', [
-    ...(validated.source2dCount !== undefined
-      ? [
-          {
-            sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
-            params: [args.sourceVersion, now, args.releaseId],
-          },
-        ]
-      : []),
-    {
-      sql: 'UPDATE hkgovAlsAddresses3d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
-      params: [args.sourceVersion, now, args.releaseId],
-    },
-  ])
+  for (const [table, remaining] of remainingSources) {
+    const ids = [...remaining.keys()]
+    for (let offset = 0; offset < ids.length; offset += 96) {
+      const batch = ids.slice(offset, offset + 96)
+      await args.execute('source', [
+        {
+          sql: `UPDATE ${table} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND sourceRecordId IN (${batch.map(() => '?').join(',')})`,
+          params: [args.sourceVersion, now, ...batch],
+        },
+      ])
+    }
+  }
   for (const prior of args.priorMembership) {
     if (validated.ids.has(prior.recordId)) continue
     await args.execute('history', [

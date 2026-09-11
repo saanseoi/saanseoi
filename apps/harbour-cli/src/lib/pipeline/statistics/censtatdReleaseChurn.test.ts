@@ -66,7 +66,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       source: 'hkgov-censtatd',
       sourceVersion: '2023-H2',
       theme: 'stats',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
     },
   )
 
@@ -76,6 +76,51 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   expect(
     sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
   ).toEqual({ status: 'staged' })
+
+  sqlite.exec('UPDATE sourceReleases SET rawObjectKey = NULL')
+  await syncStagedReleaseIntoLocalMetaCache(
+    metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
+    {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
+      releaseCode:
+        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+      releaseId,
+    },
+    {
+      cohortKey: '2023-H2',
+      regionCode: 'hk',
+      source: 'hkgov-censtatd',
+      sourceVersion: '2023-H2',
+      theme: 'stats',
+      resourceType: 'divisionStatistic',
+    },
+  )
+  expect(sqlite.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
+    rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
+  })
+  sqlite.exec("UPDATE sourceReleases SET rawObjectKey = 'by-source/original.zip'")
+  await syncStagedReleaseIntoLocalMetaCache(
+    metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
+    {
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
+      releaseCode:
+        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+      releaseId,
+    },
+    {
+      cohortKey: '2023-H2',
+      regionCode: 'hk',
+      source: 'hkgov-censtatd',
+      sourceVersion: '2023-H2',
+      theme: 'stats',
+      resourceType: 'divisionStatistic',
+    },
+  )
+  expect(sqlite.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
+    rawObjectKey: 'by-source/original.zip',
+  })
 
   sqlite.exec(`
     UPDATE releases SET status = 'processing' WHERE id = '${releaseId}';
@@ -120,7 +165,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
         source: 'hkgov-censtatd',
         sourceVersion: '2023-H2',
         theme: 'stats',
-        type: 'divisionStatistic',
+        resourceType: 'divisionStatistic',
       },
       { retainedDeliveryCacheDir: recoveryRoot },
     )
@@ -147,7 +192,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
         source: 'hkgov-censtatd',
         sourceVersion: '2023-H2',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       },
       { reuseExistingRelease: true },
     ),

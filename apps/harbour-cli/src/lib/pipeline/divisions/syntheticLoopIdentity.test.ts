@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { overtureHongKongAreaDivisionId } from '@repo/core/pipeline/services/overtureHongKongAreas'
+import { overtureHongKongAreaDivisionId } from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 import { resolveSyntheticOvertureHongKongAreas } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
 test('New Territories uses the reviewed Loop identity despite a same-named locality', async () => {

@@ -1,7 +1,6 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { createRequire } from 'node:module'
 
-import { readFileGeodatabaseArchive } from '../../fileGeodatabase.ts'
 import { unzipSafeArchive } from '../../zipArchive.ts'
 
 const require = createRequire(import.meta.url)
@@ -120,6 +119,7 @@ export function readHkgovTdPedestrianStreetArchive(
       const properties = featureProperties(feature)
       return properties?.Name === layerName
     })
+    assertNativeStreetCrs(featureProperties(item)?.Definition, layerName)
     const dsid = readDsId(featureProperties(item)?.Definition)
     if (dsid === undefined) {
       throw new Error(`TD pedestrian archive does not define ${layerName}.`)
@@ -140,14 +140,30 @@ export async function readHkgovHydStreetArchive(
   archiveBytes: Uint8Array,
 ): Promise<HkgovHydStreetCollection> {
   const profile = HKGOV_HYD_STREET_PROFILES[kind]
-  const layers = await readFileGeodatabaseArchive(archiveBytes)
-  const matches = Object.entries(layers).filter(([name]) => name === profile.layer)
+  const entries = unzipSafeArchive(archiveBytes)
+  const readTable = createNativeFgdbTableReader()
+  const catalogue = readTable(entries, 4)
+  if (!isFeatureCollection(catalogue)) throw new Error('Missing FileGDB catalogue.')
+  const matches = catalogue.features.filter(
+    feature => featureProperties(feature)?.Name === profile.layer,
+  )
   if (matches.length !== 1) {
     throw new Error(
       `HyD ${kind} archive must contain exactly one ${profile.layer} layer.`,
     )
   }
-  const collection = matches[0]?.[1]
+  const definition = featureProperties(matches[0])?.Definition
+  const dsid = readDsId(definition)
+  if (dsid === undefined) throw new Error(`Missing FileGDB layer ID: ${profile.layer}`)
+  assertNativeStreetCrs(definition, profile.layer)
+  const systemCatalogue = readTable(entries, 1)
+  if (!Array.isArray(systemCatalogue))
+    throw new Error('Missing FileGDB system catalogue.')
+  const tableIndex = systemCatalogue.findIndex(
+    row => isRecord(row) && row.Name === profile.layer,
+  )
+  if (tableIndex < 0) throw new Error(`Missing physical table: ${profile.layer}`)
+  const collection = readTable(entries, tableIndex + 1)
   if (!isFeatureCollection(collection) || collection.features.length === 0) {
     throw new Error(`HyD ${kind} ${profile.layer} layer has no features.`)
   }
@@ -264,17 +280,28 @@ function createNativeFgdbTableReader() {
   }
   const path = require('node:path') as { dirname(path: string): string }
   const source = fs.readFileSync(fieldsPath, 'utf8')
-  const patched = source.replace(
-    '    out.offset = ++offset;\n    return out;',
-    [
-      '    // Modern FileGDB string descriptors may carry a UTF-8 default value.',
-      '    // The original reader only skipped its length byte.',
-      '    var defaultLength = data.getUint8(offset++, true);',
-      '    offset += defaultLength;',
-      '    out.offset = offset;',
-      '    return out;',
-    ].join('\n'),
-  )
+  if (
+    !source.includes('    out.offset = ++offset;\n    return out;') ||
+    !source.includes('out.meta.proj = proj4(out.meta.wkt);')
+  ) {
+    throw new Error('Installed FileGDB reader no longer has the expected CRS decoder.')
+  }
+  const patched = source
+    .replace(
+      'out.meta.proj = proj4(out.meta.wkt);',
+      '// Preserve publisher coordinates; no projection at source intake.',
+    )
+    .replace(
+      '    out.offset = ++offset;\n    return out;',
+      [
+        '    // Modern FileGDB string descriptors may carry a UTF-8 default value.',
+        '    // The original reader only skipped its length byte.',
+        '    var defaultLength = data.getUint8(offset++, true);',
+        '    offset += defaultLength;',
+        '    out.offset = offset;',
+        '    return out;',
+      ].join('\n'),
+    )
   if (patched === source) {
     throw new Error('Installed FileGDB reader no longer has the expected descriptor.')
   }
@@ -283,6 +310,9 @@ function createNativeFgdbTableReader() {
   patchedModule.paths = moduleApi._nodeModulePaths(path.dirname(fieldsPath))
   patchedModule._compile(patched, fieldsPath)
   const cache = require.cache as Record<string, unknown>
+  const previousModules = [fieldsPath, rowsPath, readPath].map(
+    path => [path, cache[path]] as const,
+  )
   cache[fieldsPath] = patchedModule
 
   const rowsSource = fs.readFileSync(rowsPath, 'utf8')
@@ -321,6 +351,11 @@ function createNativeFgdbTableReader() {
     table: Uint8Array,
     tableIndex: Uint8Array,
   ) => unknown
+  // The private reader captures these modules. Do not alter other fgdb users.
+  for (const [path, previous] of previousModules) {
+    if (previous === undefined) delete cache[path]
+    else cache[path] = previous
+  }
   return (entries: Record<string, Uint8Array>, tableId: number) => {
     if (!Number.isInteger(tableId) || tableId < 0) {
       throw new Error(`Invalid FileGDB table ID ${tableId}.`)
@@ -404,4 +439,39 @@ function optionalInteger(value: unknown) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+/** Read the active publisher layer CRS, excluding deleted catalogue records. */
+export function readHkgovStreetArchiveCrs(
+  archiveBytes: Uint8Array,
+  names: readonly string[],
+) {
+  const entries = unzipSafeArchive(archiveBytes)
+  const catalogue = createNativeFgdbTableReader()(entries, 4)
+  if (!isFeatureCollection(catalogue)) throw new Error('Missing FileGDB catalogue.')
+  return Object.fromEntries(
+    names.map(name => {
+      const item = catalogue.features.find(
+        feature => featureProperties(feature)?.Name === name,
+      )
+      const definition = featureProperties(item)?.Definition
+      if (typeof definition !== 'string') throw new Error(`Missing definition: ${name}`)
+      const spatialReference =
+        definition.match(/<SpatialReference[\s\S]*?<\/SpatialReference>/)?.[0] ?? ''
+      const code =
+        spatialReference.match(/<LatestWKID>(\d+)<\/LatestWKID>/)?.[1] ??
+        spatialReference.match(/<WKID>(\d+)<\/WKID>/)?.[1]
+      if (!code) throw new Error(`Missing CRS: ${name}`)
+      return [name, `EPSG:${code}`]
+    }),
+  )
+}
+
+function assertNativeStreetCrs(definition: unknown, layer: string) {
+  if (
+    typeof definition !== 'string' ||
+    !/<LatestWKID>2326<\/LatestWKID>/.test(definition)
+  ) {
+    throw new Error(`Expected EPSG:2326 publisher geometry for ${layer}.`)
+  }
 }

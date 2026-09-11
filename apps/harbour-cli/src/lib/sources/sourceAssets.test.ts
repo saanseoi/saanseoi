@@ -388,3 +388,46 @@ function createMemoryRegistry(initial?: {
 function hash(bytes: Uint8Array) {
   return createHash('sha256').update(bytes).digest('hex')
 }
+
+test('production R2 retains objects but registers IDs only in local metadata', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'source-assets-r2-'))
+  try {
+    const bytes = new TextEncoder().encode('evidence')
+    const upload = await writeUpload(root, bytes, hash(bytes))
+    const registry = createMemoryRegistry()
+    let remoteWrites = 0
+    let localWrites = 0
+    const options = {
+      withMetaDb: async <T>(work: (db: MetaDatabase) => T | Promise<T>) =>
+        work(registry.db),
+      putObject: async () => {
+        localWrites++
+      },
+      retainRemoteObject: async (
+        environment: string,
+        key: string,
+        body: Uint8Array,
+      ) => {
+        expect(environment).toBe('production')
+        expect(key).toBe(upload.metadata.assetKey)
+        expect(body).toEqual(bytes)
+        remoteWrites++
+      },
+    }
+    const target = {
+      environment: 'dev' as const,
+      remote: false,
+      r2: 'production' as const,
+    }
+    const result = await uploadManagedSourceAsset(target, upload, options)
+    const replay = await uploadManagedSourceAsset(target, upload, options)
+    expect(result.url).toBe(`https://api.saanseoi.hk/v0/assets/${result.assetId}`)
+    expect(replay.assetId).toBe(result.assetId)
+    expect(registry.rows.size).toBe(1)
+    expect(localWrites).toBe(1)
+    // Re-check R2 even when registration is already present locally.
+    expect(remoteWrites).toBe(2)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

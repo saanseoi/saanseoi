@@ -18,7 +18,7 @@ export async function loadAlsDivisionHistory(
     'division',
     'divisionI18n',
   ])
-  const divisions = new Map<string, { level: number | null; type: string }>()
+  const divisions = new Map<string, { level: number | null; class: string }>()
   const names: Array<{ divisionId: string; locale: string; name: string | null }> = []
   for (const versions of groupResolvedVersionsByShard(state.values()).values()) {
     const db = versions[0]?.shard.db
@@ -36,7 +36,8 @@ export async function loadAlsDivisionHistory(
         .select({
           id: historySchema.divisions.id,
           level: historySchema.divisions.level,
-          type: historySchema.divisions.type,
+          category: historySchema.divisions.category,
+          class: historySchema.divisions.class,
           versionHash: historySchema.divisions.versionHash,
         })
         .from(historySchema.divisions)
@@ -76,7 +77,7 @@ export async function loadAlsDivisionHistory(
             snapshotId,
             id: row.divisionId,
             level: division.level,
-            type: division.type,
+            class: division.class,
             locale: row.locale,
             name: row.name,
           },

@@ -8,8 +8,8 @@ import { buildDeterministicUuidV5 } from '@repo/db'
 import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreaForCenstatdCode,
-} from '@repo/core/pipeline/services/overtureHongKongAreas'
-import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
+} from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statistics/statisticsReferencePeriod'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
 

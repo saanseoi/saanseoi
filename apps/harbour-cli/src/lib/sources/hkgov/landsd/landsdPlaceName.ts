@@ -5,6 +5,7 @@ import { parquetWriteFile } from 'hyparquet-writer'
 
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { readFileGeodatabaseArchive } from '../../fileGeodatabase.ts'
+import { readNativeFileGeodatabaseArchive } from '../../fileGeodatabaseNative.ts'
 import { landsdSettlementSelectionRule } from './settlementSelection'
 
 const LANDSD_PLACE_NAME_SOURCE = 'hkgov-landsd'
@@ -35,6 +36,7 @@ export type PreparedLandsdPlaceNameUpload = {
 }
 
 export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
+  sourceGeometry: GeoJsonGeometry
   placeNames: Array<{
     nameEn: string | null
     nameZhHant: string | null
@@ -65,6 +67,27 @@ export async function readLandsdPlaceNameArchive(
     )
   }
 
+  const nativeLayer = readNativeFileGeodatabaseArchive(archiveBytes).GEO_PLACE_NAME
+  if (
+    !isFeatureCollection(nativeLayer) ||
+    nativeLayer.features.length !== placeFeatures.features.length
+  ) {
+    throw new Error(
+      'LandsD native and projected collections must contain the same records.',
+    )
+  }
+  const nativeById = new Map(
+    nativeLayer.features.map((value, index) => {
+      const feature = requireFeature(value, index)
+      return [
+        requireGeoNameId(feature.properties.GEO_NAME_ID, index),
+        feature.geometry,
+      ] as const
+    }),
+  )
+  if (nativeById.size !== nativeLayer.features.length)
+    throw new Error('Duplicate LandsD native place identity.')
+
   const namesByGeoNameId = new Map<string, NativeLandsdPlaceName['placeNames']>()
   for (const [index, value] of placeNameRows.entries()) {
     if (!isRecord(value)) {
@@ -91,6 +114,18 @@ export async function readLandsdPlaceNameArchive(
     requireText(feature.properties.PLACE_CLASS, 'PLACE_CLASS', index)
     requireText(feature.properties.PLACE_TYPE, 'PLACE_TYPE', index)
     requirePointGeometry(feature.geometry, index)
+    const sourceGeometry = nativeById.get(geoNameId)
+    if (!sourceGeometry)
+      throw new Error('LandsD projected record has no native geometry.')
+    const coordinates = (sourceGeometry as { coordinates?: unknown }).coordinates
+    if (
+      sourceGeometry.type !== 'Point' ||
+      !Array.isArray(coordinates) ||
+      coordinates.length < 2 ||
+      !coordinates.every(Number.isFinite)
+    ) {
+      throw new Error('LandsD place has invalid native point geometry.')
+    }
     const placeNames = namesByGeoNameId.get(geoNameId) ?? []
     if (!placeNames.some(name => name.status === 'Official')) {
       throw new Error(
@@ -101,6 +136,7 @@ export async function readLandsdPlaceNameArchive(
       ...feature,
       id: geoNameId,
       placeNames,
+      sourceGeometry,
       properties: feature.properties,
     }
   })

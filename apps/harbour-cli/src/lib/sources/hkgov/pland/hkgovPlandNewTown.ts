@@ -123,7 +123,7 @@ export async function prepareHkgovPlandNewTownParquet(options: {
   inputFile: string
   outputFile: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) {
   const payload = JSON.parse(
     await readFile(resolve(options.inputFile), 'utf8'),
@@ -136,7 +136,7 @@ export async function prepareHkgovPlandNewTownNativeShpZip(options: {
   inputFile: string
   outputFile: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) {
   return prepareHkgovPlandNewTownFeatureCollection(
     options,
@@ -161,7 +161,7 @@ async function prepareHkgovPlandNewTownFeatureCollection(
     inputFile: string
     outputFile: string
     sourceVersion: string
-    type: 'division' | 'divisionArea'
+    resourceType: 'division' | 'divisionArea'
   },
   payload: FeatureCollection,
 ) {
@@ -190,7 +190,7 @@ async function prepareHkgovPlandNewTownFeatureCollection(
     )
   }
   await mkdir(dirname(resolve(options.outputFile)), { recursive: true })
-  if (options.type === 'division') {
+  if (options.resourceType === 'division') {
     writeDivisionParquet(resolve(options.outputFile), rows, options.sourceVersion)
   } else {
     writeDivisionAreaParquet(resolve(options.outputFile), rows, options.sourceVersion)

@@ -1,5 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
-import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import {
   groupAuditSqlStatements,
   AUDIT_COMMIT_START,

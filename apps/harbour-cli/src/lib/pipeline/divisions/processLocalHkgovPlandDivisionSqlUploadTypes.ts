@@ -16,7 +16,7 @@ export type HkgovPlandDivisionUploadPlan = {
   source: 'hkgov-pland-pu' | 'hkgov-pland-new-town'
   sourceVersion: string
   theme: 'divisions'
-  type: 'division'
+  resourceType: 'division'
 }
 
 export type PreparedDivision = {
@@ -25,12 +25,13 @@ export type PreparedDivision = {
     cartography: null
     divisionCode: string | null
     geometry: unknown
-    hierarchy: unknown
+    hierarchies: import('@repo/db').DivisionHierarchies
     id: string
     identifiers: unknown
     level: number
     sources: Record<string, unknown>
-    type: string
+    class: string
+    category: import('@repo/db').DivisionCategory | null
     wikidata: null
   }
   cells: Array<{

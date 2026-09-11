@@ -12,6 +12,7 @@ import type { StagedPlaces } from './processLocalPlaceSqlUploadTypes.ts'
 export async function reuseStagedPlaces(input: {
   path: string
   sourceSha256: string
+  computationContract?: string
   sourceVersion: string
   rawObjectKey: string
   generate: () => Promise<StagedPlaces>
@@ -30,6 +31,7 @@ export async function reuseStagedPlaces(input: {
     let manifest:
       | {
           version: number
+          computationContract?: string
           identity: string
           fileSha256: string
           result: Omit<StagedPlaces, 'path'>
@@ -51,6 +53,9 @@ export async function reuseStagedPlaces(input: {
               identity,
               fileSha256: manifest.fileSha256,
               result: manifest.result,
+              ...(manifest.computationContract
+                ? { computationContract: manifest.computationContract }
+                : {}),
             }),
           ) ||
         !manifest.result ||
@@ -65,14 +70,22 @@ export async function reuseStagedPlaces(input: {
         throw new Error(
           'Staged Place source checksum differs; refusing corrupted preparation.',
         )
-      return { ...manifest.result, path: input.path }
+      if (manifest.computationContract === input.computationContract)
+        return { ...manifest.result, path: input.path }
     }
     const staged = await input.generate()
     if (staged.path !== input.path)
       throw new Error('Unexpected staged Place output path.')
     const { path: _, ...result } = staged
     const fileSha256 = await deliveryFileSha256(input.path)
-    const payload = { identity, fileSha256, result }
+    const payload = {
+      identity,
+      fileSha256,
+      result,
+      ...(input.computationContract
+        ? { computationContract: input.computationContract }
+        : {}),
+    }
     await writeDeliveryFile(
       directory,
       basename(manifestPath),

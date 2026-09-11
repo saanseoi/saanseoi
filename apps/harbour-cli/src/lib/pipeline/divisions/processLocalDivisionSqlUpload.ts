@@ -3,7 +3,7 @@ import { mkdir } from 'node:fs/promises'
 import {
   buildDivisionBaseHashInput,
   normaliseDivisionI18nSnapshotRow,
-} from '@repo/core/pipeline/services/division'
+} from '@repo/core/pipeline/services/divisions/division'
 import { resolve } from 'node:path'
 import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
 import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
@@ -245,7 +245,7 @@ export async function processLocalDivisionSqlUpload(
     source: previewPlan.source,
     sourceVersion: previewPlan.sourceVersion,
     theme: previewPlan.theme,
-    type: previewPlan.type,
+    resourceType: previewPlan.resourceType,
     processingMode: 'sql',
     ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   }

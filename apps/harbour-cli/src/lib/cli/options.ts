@@ -13,6 +13,7 @@ export type UploadEnvironment = 'dev' | 'preview' | 'production'
 export type UploadTarget = {
   remote: boolean
   environment: UploadEnvironment
+  r2?: 'local' | 'preview' | 'production'
 }
 
 /**
@@ -79,7 +80,7 @@ export function buildRegisterOptions(
         ? args.options['dataset-code']
         : undefined,
     filePath: resolve(invocationCwd, inputFile),
-    type: typeof args.options.type === 'string' ? args.options.type : undefined,
+    resourceType: typeof args.options.type === 'string' ? args.options.type : undefined,
     theme: typeof args.options.theme === 'string' ? args.options.theme : undefined,
     regionCode:
       typeof args.options.region === 'string' ? args.options.region : undefined,
@@ -115,20 +116,29 @@ export function resolveUploadTarget(args: ParsedArgs): UploadTarget {
       ? args.options.target
       : process.env.HARBOUR_UPLOAD_TARGET
 
+  const r2 = args.options.r2 ?? process.env.SAANSEOI_R2_TARGET
+  if (r2 !== undefined && !['local', 'preview', 'production'].includes(String(r2)))
+    throw new Error('--r2 requires local, preview, or production.')
+  if (r2 !== undefined && rawTarget && rawTarget !== 'local' && r2 !== rawTarget)
+    throw new Error('An independent --r2 target is supported only with --target local.')
+  const storage = r2 === undefined ? {} : { r2: r2 as UploadTarget['r2'] }
   switch (rawTarget) {
     case undefined:
     case 'local':
       return {
+        ...storage,
         remote: false,
         environment: 'dev',
       }
     case 'preview':
       return {
+        ...storage,
         remote: true,
         environment: 'preview',
       }
     case 'production':
       return {
+        ...storage,
         remote: true,
         environment: 'production',
       }
@@ -149,4 +159,22 @@ export function getStringOption(args: ParsedArgs, keys: string[]): string | unde
   }
 
   return undefined
+}
+
+export function resolveR2Target(
+  target: UploadTarget,
+): 'local' | 'preview' | 'production' {
+  const value = target.r2 ?? process.env.SAANSEOI_R2_TARGET
+  if (value !== undefined) {
+    if (value !== 'local' && value !== 'preview' && value !== 'production')
+      throw new Error('Invalid SAANSEOI_R2_TARGET.')
+    if (target.remote && value !== target.environment)
+      throw new Error('An independent R2 target requires local D1.')
+    return value
+  }
+  return target.remote && target.environment === 'production'
+    ? 'production'
+    : target.remote
+      ? 'preview'
+      : 'local'
 }

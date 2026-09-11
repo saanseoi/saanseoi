@@ -1,5 +1,7 @@
+import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
+import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { readFileSync } from 'node:fs'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -88,7 +90,7 @@ export type NativeSourceRelease = {
   sourceVersion: string
   tables: NativeSourceTable[]
   theme: 'streets' | 'stats' | 'divisions'
-  type: 'street' | 'divisionStatistic' | 'divisionArea' | 'division'
+  resourceType: 'street' | 'divisionStatistic' | 'divisionArea' | 'division'
 }
 
 /**
@@ -113,7 +115,7 @@ export async function processNativeSourceSqlRelease(
     source: input.source,
     sourceVersion: input.sourceVersion,
     theme: input.theme,
-    type: input.type,
+    type: input.resourceType,
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
   const releaseId = requireString(registered.releaseId, 'releaseId')
@@ -157,7 +159,7 @@ export async function processNativeSourceSqlRelease(
         source: input.source,
         sourceVersion: input.sourceVersion,
         theme: input.theme,
-        type: input.type,
+        resourceType: input.resourceType,
       },
     )
     await client.stageRunning(
@@ -282,7 +284,7 @@ async function prepareNativeDivisionMetaSql(
     source: input.source,
     sourceVersion: input.sourceVersion,
     theme: input.theme,
-    type: 'division',
+    resourceType: 'division',
   }
   const prepared = await prepareDivisionVersionInsertContext(
     metaDb,
@@ -608,7 +610,13 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   const now = new Date().toISOString()
   return Promise.all(
     rows.map(async row => {
-      const payload = { ...row }
+      const payload = { ...row } as T & {
+        sourceLocator?: Record<string, unknown> | null
+      }
+      if (separatePublisherEnvelope) {
+        payload.sourceLocator = sourceLocatorFromReferences(payload.sources)
+        delete payload.sources
+      }
       return {
         ...payload,
         createdAt: now,
@@ -658,18 +666,23 @@ export async function buildNativeSourceSql(
       ].includes(table.name),
     )
     const ids = [...new Set(rows.map(row => row.sourceRecordId))]
-    const currentRowScopes = table.replaceCurrentRows ? [[]] : chunk(ids, 250)
-    for (const idsChunk of currentRowScopes) {
-      const idCondition = table.replaceCurrentRows
-        ? ''
-        : ` AND "sourceRecordId" IN (${idsChunk.map(sqlValue).join(', ')})`
-      statements.push(
-        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1${idCondition};`,
-      )
-    }
+    if (table.replaceCurrentRows)
+      for (const predicate of missingSourceMembershipPredicates(ids))
+        statements.push(
+          `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND ${predicate};`,
+        )
+    const hashesById = new Map<string, Set<string>>()
     for (const row of rows) {
-      const columns = Object.keys(row)
-      columns.forEach(column => {
+      const hashes = hashesById.get(row.sourceRecordId) ?? new Set<string>()
+      hashes.add(row.versionHash)
+      hashesById.set(row.sourceRecordId, hashes)
+    }
+    for (const [id, hashes] of hashesById)
+      statements.push(
+        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND "sourceRecordId" = ${sqlValue(id)} AND "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')});`,
+      )
+    for (const row of rows) {
+      Object.keys(row).forEach(column => {
         assertIdentifier(column, 'column')
       })
       statements.push(...nativeRowStatements(table.name, row))
@@ -691,7 +704,7 @@ function nativeRowStatements(table: string, row: Record<string, unknown>) {
     .map(column => `"${column}" = excluded."${column}"`)
     .join(', ')
   const insert = (values: Record<string, unknown>) =>
-    `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns.map(column => sqlValue(values[column])).join(', ')}) ON CONFLICT ("sourceRecordId", "versionHash") DO UPDATE SET ${updates};`
+    `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns.map(column => sqlValue(values[column])).join(', ')}) ON CONFLICT ("sourceRecordId", "versionHash") DO UPDATE SET ${updates} WHERE "${table}"."isCurrent" <> 1 OR "${table}"."validToRelease" IS NOT NULL;`
   const direct = insert(row)
   if (Buffer.byteLength(direct) <= SQL_STATEMENT_BYTE_LIMIT) return [direct]
 
@@ -706,7 +719,7 @@ function nativeRowStatements(table: string, row: Record<string, unknown>) {
     largeValues.push([column, text])
     placeholder[column] = ''
   }
-  const where = `"sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)}`
+  const where = `"sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "isCurrent" = 0`
   const statements = [insert(placeholder)]
   for (const [column, value] of largeValues) {
     // Iterate code points so a chunk never splits a UTF-8 character. Even
@@ -755,7 +768,7 @@ function nativeInspection(input: NativeSourceRelease): UploadInspection {
     distinctCountryValues: [],
     distinctRegionValues: ['hk'],
     distinctThemeValues: [input.theme],
-    distinctTypeValues: [input.type],
+    distinctTypeValues: [input.resourceType],
     rowCount: input.rowCount,
     schema: [...fields.values()].sort((left, right) =>
       left.name.localeCompare(right.name),
@@ -821,14 +834,6 @@ function assertIdentifier(value: string, label: string) {
   if (!/^[A-Za-z][A-Za-z0-9]*$/.test(value)) {
     throw new Error(`Unsafe ${label} identifier: ${value}.`)
   }
-}
-
-function chunk<T>(items: T[], size: number) {
-  const chunks: T[][] = []
-  for (let index = 0; index < items.length; index += size) {
-    chunks.push(items.slice(index, index + size))
-  }
-  return chunks
 }
 
 function chunkSql(statements: string[]) {

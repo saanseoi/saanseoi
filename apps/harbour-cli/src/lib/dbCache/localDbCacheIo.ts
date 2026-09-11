@@ -37,7 +37,7 @@ export async function replaceCachedTableRows(
       bindingName,
       filePath,
       tableImports,
-      type: 'replace-table-rows',
+      kind: 'replace-table-rows',
     }),
   )
 }
@@ -45,7 +45,7 @@ export async function replaceCachedTableRows(
 export async function checkpointSqliteDatabase(filePath: string) {
   await runSqliteCacheWorker({
     filePath,
-    type: 'checkpoint',
+    kind: 'checkpoint',
   })
 }
 
@@ -107,7 +107,7 @@ export async function importDatabaseDumpsToSqlite(
     destinationPath,
     dumpPaths,
     pruneOperations,
-    type: 'import-dumps',
+    kind: 'import-dumps',
   })
 }
 

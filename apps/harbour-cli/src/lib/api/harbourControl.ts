@@ -27,7 +27,7 @@ type PublishPayload = {
   skipSnapshotCleanup?: boolean
 }
 
-const LOCAL_PROXY_RETRY_DELAY_MS = 250
+const LOCAL_PROXY_RETRY_DELAYS_MS = [250, 1_000, 3_000]
 
 function controlErrorMessage(body: Record<string, unknown> | null, status: number) {
   if (typeof body?.message === 'string') return body.message
@@ -88,12 +88,13 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      await postControl(baseUrl, authHeaders, '/v1/control/stageCompleted', {
-        releaseCode,
-        releaseId,
-        phase,
-        stats,
-      })
+      await postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageCompleted',
+        { releaseCode, releaseId, phase, stats },
+        { retryLocalProxyConnectionFailure: !target.remote },
+      )
     },
     async stageFailed(
       releaseId: string,
@@ -102,13 +103,13 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      await postControl(baseUrl, authHeaders, '/v1/control/stageFailed', {
-        releaseCode,
-        releaseId,
-        error,
-        phase,
-        stats,
-      })
+      await postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageFailed',
+        { releaseCode, releaseId, error, phase, stats },
+        { retryLocalProxyConnectionFailure: !target.remote },
+      )
     },
     async stageRunning(
       releaseId: string,
@@ -116,12 +117,13 @@ export function createHarbourControlClient(target: UploadTarget) {
       stats?: Record<string, unknown>,
       releaseCode?: string,
     ) {
-      await postControl(baseUrl, authHeaders, '/v1/control/stageRunning', {
-        releaseCode,
-        releaseId,
-        phase,
-        stats,
-      })
+      await postControl(
+        baseUrl,
+        authHeaders,
+        '/v1/control/stageRunning',
+        { releaseCode, releaseId, phase, stats },
+        { retryLocalProxyConnectionFailure: !target.remote },
+      )
     },
   }
 }
@@ -131,9 +133,13 @@ async function postControl<TResponse = Record<string, unknown>>(
   authHeaders: Record<string, string>,
   path: string,
   payload: StagePayload | PublishPayload,
-  options: { retryLocalDeferredPublishFailure?: boolean } = {},
+  options: {
+    retryLocalDeferredPublishFailure?: boolean
+    retryLocalProxyConnectionFailure?: boolean
+  } = {},
 ): Promise<TResponse | null> {
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  let lastError: string | undefined
+  for (let attempt = 0; attempt <= LOCAL_PROXY_RETRY_DELAYS_MS.length; attempt += 1) {
     const response = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: {
@@ -150,17 +156,24 @@ async function postControl<TResponse = Record<string, unknown>>(
 
     if (response.ok) return body as TResponse | null
 
-    if (
+    lastError = controlErrorMessage(body, response.status)
+
+    const retryDeferredPublish =
       attempt === 0 &&
       options.retryLocalDeferredPublishFailure &&
       response.status === 500
-    ) {
-      await Bun.sleep(LOCAL_PROXY_RETRY_DELAY_MS)
+    const retryProxyConnection =
+      options.retryLocalProxyConnectionFailure &&
+      response.status === 500 &&
+      lastError.includes('Network connection lost')
+
+    if (retryDeferredPublish || retryProxyConnection) {
+      await Bun.sleep(LOCAL_PROXY_RETRY_DELAYS_MS[attempt] ?? 0)
       continue
     }
 
-    throw new Error(controlErrorMessage(body, response.status))
+    throw new Error(lastError)
   }
 
-  throw new Error('Harbour control request failed after proxy recovery.')
+  throw new Error(lastError ?? 'Harbour control request failed after proxy recovery.')
 }

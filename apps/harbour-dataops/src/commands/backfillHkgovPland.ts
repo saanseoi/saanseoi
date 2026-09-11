@@ -308,7 +308,7 @@ async function isValidPreparedArtefact(
   manifestFile: string,
   expected: Pick<
     PreparedArtefactManifest,
-    'sourceArchiveSha256' | 'sourceVersion' | 'parserContractVersion' | 'type'
+    'sourceArchiveSha256' | 'sourceVersion' | 'parserContractVersion' | 'resourceType'
   >,
 ) {
   try {

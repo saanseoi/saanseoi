@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { describe, expect, test } from 'bun:test'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
-import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/division'
+import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/divisions/division'
 
 import {
   prepareLandsdPlaceNameDivisionUpload,
@@ -25,6 +25,13 @@ describe('LandsD native Place Name FileGDB intake', () => {
     )
 
     expect(features).toHaveLength(2706)
+    expect(features[0]?.sourceGeometry).not.toEqual(features[0]?.geometry)
+    const firstFeature = features[0]
+    if (!firstFeature?.sourceGeometry)
+      throw new Error('LandsD feature is missing source geometry')
+    expect(
+      (firstFeature.sourceGeometry as { coordinates: number[] }).coordinates[0],
+    ).toBeGreaterThan(100000)
     expect(
       features.filter(feature => feature.properties.PLACE_CLASS === 'Settlement'),
     ).toHaveLength(1613)

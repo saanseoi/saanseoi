@@ -67,6 +67,42 @@ describe('harbour control client', () => {
     expect(calls).toHaveLength(1)
   })
 
+  test('retries a local stage update after Wrangler loses its proxy connection', async () => {
+    let calls = 0
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async () => {
+      calls += 1
+      return calls === 1
+        ? Response.json({ error: 'Network connection lost.' }, { status: 500 })
+        : Response.json({ status: 'running' })
+    }) as unknown as typeof fetch
+
+    const client = createHarbourControlClient({ environment: 'dev', remote: false })
+
+    await expect(
+      client.stageRunning('release-id', 'calculateApiReleaseSetStats'),
+    ).resolves.toBeUndefined()
+    expect(calls).toBe(2)
+  })
+
+  test('caps local stage retries after repeated proxy connection loss', async () => {
+    let calls = 0
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async () => {
+      calls += 1
+      return Response.json({ error: 'Network connection lost.' }, { status: 500 })
+    }) as unknown as typeof fetch
+
+    const client = createHarbourControlClient({ environment: 'dev', remote: false })
+
+    await expect(
+      client.stageRunning('release-id', 'calculateApiReleaseSetStats'),
+    ).rejects.toThrow('Network connection lost.')
+    expect(calls).toBe(4)
+  })
+
   test('retries one local publish after Wrangler reports a lost proxy connection', async () => {
     const calls: Array<{ body?: unknown; url: string }> = []
 

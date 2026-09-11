@@ -1,7 +1,7 @@
 import {
   createHkgovCenstatdDistrictResolution,
   type ResolvedHkgovCenstatdDistrict,
-} from '@repo/core/pipeline/services/divisionStatistics'
+} from '@repo/core/pipeline/services/divisions/divisionStatistics'
 import { resolveIdentityCuration } from '../../identityCurations'
 import fixture from '../../../../../../fixtures/meta/processing-rules/censtatd-district-identity.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'

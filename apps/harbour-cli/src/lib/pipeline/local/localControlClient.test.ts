@@ -30,7 +30,7 @@ test.each([
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
       originalFileName: 'division.parquet',

@@ -3,7 +3,7 @@ import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'
 import { statisticLocalisationRule } from './statisticLocalisationRule'
-import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statistics/statisticRules'
 import {
   guardSession,
   registerRule,
@@ -15,7 +15,7 @@ import type {
   CenstatdCanonicalDimensionValue,
   CenstatdCanonicalField,
   CenstatdCanonicalObservation,
-} from '@repo/core/pipeline/services/censtatdReleaseStats'
+} from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
 import type {
   CanonicalStatsGeography,
   StatsAggregation,
@@ -23,7 +23,7 @@ import type {
   StatsPeriodicity,
   StatsStatisticKind,
 } from '@repo/db'
-import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statistics/statisticsReferencePeriod'
 
 import type {
   CenstatdFieldMetadata,

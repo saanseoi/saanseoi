@@ -1,3 +1,4 @@
+import { addD1RowUsage, readD1RowUsage } from './sqlDeliveryUsage.ts'
 import { createHash } from 'node:crypto'
 import {
   createD1ImportClient,
@@ -34,14 +35,28 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
     plan: SqlDeliveryPlan,
     batch: SqlDeliveryBatch,
     statements: Array<{ sql: string; params: unknown[] }>,
+    state: SqlDeliveryCheckpoint,
+    save: () => Promise<void>,
   ) => {
     if (
       plan.context.phase === 'address3d-data' &&
       batch.target.bindingName.startsWith('DB_SOURCE_')
     )
-      await preRetireAddressSources(statements, sql =>
-        query(batch.target.databaseId).query(sql),
-      )
+      await preRetireAddressSources(statements, async sql => {
+        state.usagePending = true
+        await save()
+        const rows = await createCloudflareD1QueryClient({
+          ...options,
+          databaseId: batch.target.databaseId,
+          retryLimit: 0,
+          onMeta: meta => {
+            addD1RowUsage(state, readD1RowUsage(meta))
+          },
+        }).query(sql)
+        state.usagePending = false
+        await save()
+        return rows
+      })
   }
   const hasReceipt = async (plan: SqlDeliveryPlan, batch: SqlDeliveryBatch) => {
     if (!tables.has(batch.target.databaseId)) {
@@ -102,10 +117,21 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             `Bound batch ${entry.batch.index} has an uncertain outcome without a receipt; no writes were repeated.`,
           )
       }
+      for (const entry of pending) {
+        if (entry.state.usagePending)
+          addD1RowUsage(entry.state, readD1RowUsage(undefined))
+      }
       for (const entry of pending)
-        await prepareSourceRetirement(plan, entry.batch, entry.statements)
+        await prepareSourceRetirement(
+          plan,
+          entry.batch,
+          entry.statements,
+          entry.state,
+          save,
+        )
       for (const entry of entries) {
         entry.state.status = existing.has(entry.batch.index) ? 'complete' : 'ingesting'
+        if (!existing.has(entry.batch.index)) entry.state.usagePending = true
       }
       await save()
       if (!pending.length) return
@@ -133,7 +159,7 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
         )
         const body = (await response.json()) as {
           success?: boolean
-          result?: Array<{ success?: boolean }>
+          result?: Array<{ success?: boolean; meta?: unknown }>
         }
         if (
           !response.ok ||
@@ -144,6 +170,18 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
           throw new Error(
             `Bound SQL delivery failed (${response.status}); retain the plan for receipt verification.`,
           )
+        let resultOffset = 1
+        for (const [index, entry] of pending.entries()) {
+          if (index === 0)
+            addD1RowUsage(entry.state, readD1RowUsage(body.result[0]?.meta))
+          for (let i = 0; i < entry.statements.length + 1; i++)
+            addD1RowUsage(
+              entry.state,
+              readD1RowUsage(body.result[resultOffset++]?.meta),
+            )
+          entry.state.usagePending = false
+        }
+        await save()
         const confirmed = await this.confirmedReceipts(
           plan,
           pending.map(entry => entry.batch),
@@ -217,8 +255,10 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
           sql: string
           params: unknown[]
         }>
-        await prepareSourceRetirement(plan, batch, statements)
+        if (state.usagePending) addD1RowUsage(state, readD1RowUsage(undefined))
+        await prepareSourceRetirement(plan, batch, statements, state, save)
         state.status = 'ingesting'
+        state.usagePending = true
         await save()
         const startedAt = Date.now()
         try {
@@ -242,7 +282,7 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
           )
           const body = (await response.json()) as {
             success?: boolean
-            result?: Array<{ success?: boolean }>
+            result?: Array<{ success?: boolean; meta?: unknown }>
           }
           if (
             !response.ok ||
@@ -253,6 +293,10 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             throw new Error(
               `Bound SQL delivery failed (${response.status}); retain the plan for receipt verification.`,
             )
+          for (let i = 0; i < statements.length + 2; i++)
+            addD1RowUsage(state, readD1RowUsage(body.result[i]?.meta))
+          state.usagePending = false
+          await save()
           if (!(await hasReceipt(plan, batch)))
             throw new Error('Bound SQL delivery completed without its receipt.')
           state.status = 'complete'
@@ -310,6 +354,7 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             throw new Error('SQL delivery upload filename is missing.')
           // Persist intent before sending the non-repeatable request.
           state.status = 'ingesting'
+          state.usagePending = true
           await save()
           result = await client.ingest(state.filename, etag)
           state.bookmark = result.atBookmark
@@ -350,6 +395,11 @@ export function createSqlDeliveryRemote(options: SqlDeliveryRemoteOptions) {
             result?.error === 'Not currently importing anything.' ||
             /D1_RESET_DO|Cancelled due to no poll\(\)/.test(result?.error ?? '')
           if (terminal || interrupted) {
+            if (terminal && !state.rowUsage) {
+              addD1RowUsage(state, readD1RowUsage(result?.result?.meta))
+              state.usagePending = false
+              await save()
+            }
             if (await hasReceipt(plan, batch)) break
             // A stale bookmark can outlive the import worker. Reattach by the
             // exact payload ETag, never by re-uploading or re-ingesting SQL.

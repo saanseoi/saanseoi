@@ -7,6 +7,7 @@ import {
 import { chunkArray } from '@repo/core/pipeline/utils'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { DivisionHistoryTarget } from './divisionApiReleaseSetStats'
+import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'
 
 type RecordRow = typeof historySchema.statsRecords.$inferSelect
 type Field = typeof historySchema.statsFields.$inferSelect
@@ -156,7 +157,6 @@ export function buildStatisticsStatsRows(
     metricUnit = 'count',
   ) =>
     rows.push({
-      type: 'apiReleaseSet',
       dimension,
       value,
       groupBy,
@@ -262,7 +262,12 @@ export function buildStatisticsStatsRows(
       locale,
     )
   }
-  // Structural identity only: numerical changes across periods are not data churn.
+  for (const [dimension, value] of Object.entries(
+    buildStatisticsRecordChurn(data.records, previous?.records),
+  ))
+    add(dimension, value, null, null, 'churn')
+
+  // Structural identity counts are independent of record value changes.
   if (previous) {
     const structures = (value: StatisticsStatsData) => ({
       fields: new Set(value.fields.map(row => key(row.datasetCode, row.fieldName))),

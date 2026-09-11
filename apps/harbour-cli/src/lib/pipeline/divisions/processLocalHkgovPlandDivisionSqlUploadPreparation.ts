@@ -1,3 +1,5 @@
+import { emptyDivisionHierarchies } from '@repo/db'
+import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/planning-division-normalisation.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { eq } from 'drizzle-orm'
@@ -8,7 +10,7 @@ import {
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
 import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
-import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import { createHash } from '@repo/core/pipeline/utils'
 import { historySchema, metaSchema } from '@repo/db'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
@@ -34,9 +36,10 @@ export async function listCurrentHistoryRows(
       divisionCode: historySchema.divisions.divisionCode,
       identifiers: historySchema.divisions.identifiers,
       level: historySchema.divisions.level,
-      type: historySchema.divisions.type,
+      category: historySchema.divisions.category,
+      class: historySchema.divisions.class,
       wikidata: historySchema.divisions.wikidata,
-      hierarchy: historySchema.divisions.hierarchy,
+      hierarchies: historySchema.divisions.hierarchies,
       cartography: historySchema.divisions.cartography,
       sources: historySchema.divisions.sources,
       versionHash: historySchema.divisions.versionHash,
@@ -103,7 +106,7 @@ async function readPreparedDivisionsInternal(
     })),
     sourceRelease,
   })
-  return records.map(record => {
+  const translated = records.map(record => {
     const resolved = translationsByDivisionId.get(record.base.id)
     if (!resolved) {
       throw new Error(
@@ -112,6 +115,29 @@ async function readPreparedDivisionsInternal(
     }
     return { ...record, i18n: resolved.localisations }
   })
+  const byId = new Map(translated.map(record => [record.base.id, record]))
+  return Promise.all(
+    translated.map(async record => {
+      const rawPath = Array.isArray(record.raw.hierarchy) ? record.raw.hierarchy : []
+      const path = rawPath.map(entry => {
+        const id = (entry as { division_id: string }).division_id
+        const parent = byId.get(id)
+        if (!parent) throw new Error(`Missing Planning ancestor ${id}.`)
+        return {
+          division_id: id,
+          type: parent.base.class,
+          i18n: Object.fromEntries(
+            parent.i18n.map(row => [row.locale, { name: row.name }]),
+          ),
+        }
+      })
+      const base = {
+        ...record.base,
+        hierarchies: materialiseDivisionHierarchies(record.base.id, [path]),
+      }
+      return { ...record, base, versionHash: await createHash(base) }
+    }),
+  )
 }
 
 async function normalisePreparedDivision(
@@ -131,14 +157,15 @@ async function normalisePreparedDivision(
     cartography: null,
     divisionCode: resolvePlandDivisionCode(level, id, divisionCodesByCanonicalId),
     geometry,
-    hierarchy: value.hierarchy ?? [],
+    hierarchies: emptyDivisionHierarchies(),
     id,
     identifiers,
     level: levelNumber(level),
     sources: {
       hkgovPland: [{ sourceVersion: value.source_version, planningLevel: level }],
     },
-    type: `planning-${level}`,
+    class: `planning-${level}`,
+    category: null,
     wikidata: null,
   }
   const versionHash = await createHash(base)
@@ -251,11 +278,11 @@ function validatePreparedDivisionsInternal(
     if (ids.has(record.base.id))
       throw new Error(`Duplicate planning division ${record.base.id}.`)
     ids.add(record.base.id)
-    for (const parent of record.base.hierarchy as Array<{ division_id?: unknown }>) {
-      if (typeof parent.division_id === 'string' && !ids.has(parent.division_id)) {
+    for (const parent of record.base.hierarchies.full.flat()) {
+      if (typeof parent.id === 'string' && !ids.has(parent.id)) {
         // Parent rows are emitted before their children; this guards accidental cross-domain links.
         throw new Error(
-          `Planning division ${record.base.id} references unavailable parent ${parent.division_id}.`,
+          `Planning division ${record.base.id} references unavailable parent ${parent.id}.`,
         )
       }
     }

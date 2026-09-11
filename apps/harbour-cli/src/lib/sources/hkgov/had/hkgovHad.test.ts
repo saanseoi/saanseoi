@@ -122,6 +122,7 @@ describe('HAD district GeoJSON preparation', () => {
     ])
     const native = await readHkgovHadDistrictArchive(archive)
     const nativeFeatures = native.features as Array<{
+      sourceGeometry?: { coordinates?: unknown; type?: string }
       geometry?: { coordinates?: unknown; type?: string }
       properties?: { AREA_ID?: unknown }
     }>
@@ -137,6 +138,14 @@ describe('HAD district GeoJSON preparation', () => {
       new Set(historical.features.map(feature => feature.properties.AREA_ID)),
     )
     for (const feature of nativeFeatures) {
+      expect(feature.sourceGeometry?.type).toBe(feature.geometry?.type)
+      const nativeNumbers = JSON.stringify(feature.sourceGeometry?.coordinates)
+      expect(nativeNumbers).not.toBe(JSON.stringify(feature.geometry?.coordinates))
+      const sourceGeometry = feature.sourceGeometry
+      if (!sourceGeometry || !Array.isArray(sourceGeometry.coordinates))
+        throw new Error('Native HAD feature is missing source geometry coordinates')
+      const ordinates = sourceGeometry.coordinates.flat(Infinity) as number[]
+      expect(ordinates.every(value => value > 100000)).toBe(true)
       const areaId = String(feature.properties?.AREA_ID)
       const matching = historical.features.find(
         candidate => candidate.properties.AREA_ID === areaId,

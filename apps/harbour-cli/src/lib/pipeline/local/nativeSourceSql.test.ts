@@ -43,12 +43,16 @@ test('road centreline schema reuses unchanged features across different archives
         sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-1' }],
       },
     ])
+    const firstAssertion = db.query(`SELECT * FROM "${config.name}"`).get()
+    const beforeUnchanged = db.query('SELECT total_changes() AS n').get()
     await run('second', [
       {
         ...original,
         sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-2' }],
       },
     ])
+    expect(db.query('SELECT total_changes() AS n').get()).toEqual(beforeUnchanged)
+    expect(db.query(`SELECT * FROM "${config.name}"`).get()).toEqual(firstAssertion)
     expect(
       db
         .query(
@@ -105,7 +109,9 @@ test('replays native polygon values and duplicate assertions without losing hist
     expect(JSON.parse(first.sourceGeometry as string)).toEqual(original.sourceGeometry)
     expect(JSON.parse(first.rawProperties as string)).toEqual(original.rawProperties)
     expect(first.isCurrent).toBe(1)
+    const beforeReplay = db.query('SELECT total_changes() AS n').get()
     await run([original], 'first')
+    expect(db.query('SELECT total_changes() AS n').get()).toEqual(beforeReplay)
     expect(db.query('SELECT count(*) AS n FROM evidence').get()).toEqual({ n: 1 })
     expect(db.query('SELECT createdAt FROM evidence').get()).toEqual({
       createdAt: first.createdAt,

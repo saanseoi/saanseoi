@@ -222,5 +222,5 @@ export function resolveSchemaVersionId(
   }
 
   schemaSpinner.stop(formatSchemaCheck('passed'))
-  return `${previewResult.plan.source}-${previewResult.plan.type}-unvalidated`
+  return `${previewResult.plan.source}-${previewResult.plan.resourceType}-unvalidated`
 }

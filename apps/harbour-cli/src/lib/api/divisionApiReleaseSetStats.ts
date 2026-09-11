@@ -12,8 +12,8 @@ import {
   buildDivisionApiReleaseSetStatsRows,
   createLocaleStatsAccumulator,
   type StatsLocaleGroup,
-} from '@repo/core/pipeline/services/stats'
-import { resolveDistrictId } from '@repo/core/pipeline/services/division'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
+import { resolveDistrictId } from '@repo/core/pipeline/services/divisions/division'
 import { planningDivisionContentHash } from '../pipeline/divisions/planningDivisionChurn'
 
 export type DivisionHistoryTarget = { bindingName: string; db: unknown }
@@ -171,7 +171,7 @@ function canonical(value: unknown): unknown {
   return value
 }
 
-function churnSnapshot(snapshot: DivisionStatsSnapshot, group: 'type' | 'level') {
+function churnSnapshot(snapshot: DivisionStatsSnapshot, group: 'class' | 'level') {
   const names = new Map<string, unknown[]>()
   for (const row of snapshot.names) {
     const values = names.get(row.divisionId) ?? []
@@ -212,7 +212,7 @@ export function buildDivisionStatsFromSnapshots(
   const increment = (map: Map<string, number>, key: string) =>
     map.set(key, (map.get(key) ?? 0) + 1)
   for (const row of current.divisions) {
-    increment(byDivisionType, row.type)
+    increment(byDivisionType, row.class)
     if (row.level != null) increment(byLevel, String(row.level))
     const district = resolveDistrictId(row)
     if (district) increment(byDistrict, district)
@@ -260,8 +260,8 @@ export function buildDivisionStatsFromSnapshots(
     if (row.nameAlts != null) add(localeStats.altCoverage, locale, row.divisionId)
   }
   const churn = buildChurnCounts(
-    churnSnapshot(previous, 'type'),
-    churnSnapshot(current, 'type'),
+    churnSnapshot(previous, 'class'),
+    churnSnapshot(current, 'class'),
   )
   const levels = buildChurnCounts(
     churnSnapshot(previous, 'level'),

@@ -102,7 +102,7 @@ export async function resumeAddressInitialisation(
         source: 'hkgov-dpo',
         sourceVersion,
         theme: 'addresses',
-        type: 'address',
+        resourceType: 'address',
       },
       message as Record<string, string>,
       {

@@ -1,5 +1,7 @@
+import { PlaceProjectionSql } from './placeProjectionSql.ts'
+import { missingSourceMembershipPredicates } from '../local/sourceMembershipSql.ts'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
-import { overtureSourcePayload } from '@repo/core/pipeline/services/sourcePayload'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 import { historySchema, sourceSchema } from '@repo/db'
@@ -97,9 +99,10 @@ export async function buildPlaceSql(
         `DELETE FROM places WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
       ]
     : []
+  const currentInserts = new PlaceProjectionSql()
+  const changeInserts = new PlaceProjectionSql()
   const historySqlByBinding = new Map<string, string[]>()
   const sourceSqlByBinding = new Map<string, string[]>()
-  const changes: string[] = []
   const previousById = new Map(input.historyRows.map(state => [state.row.id, state]))
 
   const historyStatements = (bindingName: string) => {
@@ -116,8 +119,6 @@ export async function buildPlaceSql(
     sourceSqlByBinding.set(bindingName, created)
     return created
   }
-
-  const unchangedByBinding = new Map<string, string[]>()
 
   let processedPlaceRows = 0
   for (const row of input.places) {
@@ -150,124 +151,120 @@ export async function buildPlaceSql(
     // Each release's source API reads its assigned shard, so a year rollover
     // must materialise the payload in the new shard even when its hash matches.
     if (
-      source?.bindingName === input.activeSourceBindingName &&
-      source.versionHash === row.sourcePayloadHash
+      source?.bindingName !== input.activeSourceBindingName ||
+      source.versionHash !== row.sourcePayloadHash
     ) {
-      const ids = unchangedByBinding.get(source.bindingName) ?? []
-      ids.push(place.id)
-      unchangedByBinding.set(source.bindingName, ids)
-    } else {
       if (source)
         sourceStatements(source.bindingName).push(
-          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(place.id)} AND isCurrent = 1 AND versionHash <> ${lit(row.sourcePayloadHash)};`,
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(place.id)} AND isCurrent = 1${source.bindingName === input.activeSourceBindingName ? ` AND versionHash <> ${lit(row.sourcePayloadHash)}` : ''};`,
         )
       sourceStatements(input.activeSourceBindingName).push(
-        insertSql('overturePlaces', {
-          sourceRecordId: place.id,
-          sources: overtureSourcePayload(place.raw).sources,
-          rawProperties: overtureSourcePayload(place.raw).rawProperties,
-          sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
-          versionHash: row.sourcePayloadHash,
-          releaseId: input.message.releaseId,
-          validFromRelease: input.message.sourceVersion,
-          validToRelease: null,
-          isCurrent: 1,
-          createdAt: now,
-          updatedAt: now,
-        }),
+        insertSql(
+          'overturePlaces',
+          {
+            sourceRecordId: place.id,
+            sourceLocator: overtureSourcePayload(place.raw).sourceLocator,
+            rawProperties: overtureSourcePayload(place.raw).rawProperties,
+            sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
+            versionHash: row.sourcePayloadHash,
+            releaseId: input.message.releaseId,
+            validFromRelease: input.message.sourceVersion,
+            validToRelease: null,
+            isCurrent: 1,
+            createdAt: now,
+            updatedAt: now,
+          },
+          true,
+        ),
       )
     }
-    currentSql.push(
-      insertSql('places', {
+    currentInserts.add('places', {
+      snapshotId: input.snapshots.snapshotId,
+      id: place.id,
+      releaseId: input.message.releaseId,
+      addressSnapshotId: row.address2dId
+        ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+        : null,
+      address2dId: row.address2dId,
+      address3dId: row.address3dId,
+      address3dUnitId: row.address3dUnitId ?? null,
+      address3dMembership: row.address3dMembership ?? null,
+      lng,
+      lat,
+      bbox: place.bbox,
+      operatingStatus: place.operatingStatus,
+      basicCategory: place.basicCategory,
+      taxonomyPrimary: place.taxonomyPrimary,
+      taxonomyHierarchy: place.taxonomyHierarchy,
+      taxonomyAlternates: place.taxonomyAlternates,
+      wikidataId: place.wikidataId,
+      websites: place.websites,
+      socials: place.socials,
+      emails: place.emails,
+      phones: place.phones,
+      addresses: place.addresses,
+      confidence: place.confidence,
+      sources: place.sources,
+      firstSeenMonth,
+      lastSeenMonth: place.lastSeenMonth,
+      createdAt: now,
+      updatedAt: now,
+    })
+    for (const { h3Level, h3Cell } of row.projection?.cells ??
+      PLACE_H3_LEVELS.map(h3Level => ({
+        h3Level,
+        h3Cell: latLngToCell(lat, lng, h3Level),
+      }))) {
+      currentInserts.add('placesCells', {
         snapshotId: input.snapshots.snapshotId,
         id: place.id,
-        releaseId: input.message.releaseId,
-        addressSnapshotId: row.address2dId
-          ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
-          : null,
-        address2dId: row.address2dId,
-        address3dId: row.address3dId,
-        address3dUnitId: row.address3dUnitId ?? null,
-        address3dMembership: row.address3dMembership ?? null,
-        lng,
-        lat,
-        bbox: place.bbox,
-        operatingStatus: place.operatingStatus,
-        basicCategory: place.basicCategory,
-        taxonomyPrimary: place.taxonomyPrimary,
-        taxonomyHierarchy: place.taxonomyHierarchy,
-        taxonomyAlternates: place.taxonomyAlternates,
-        wikidataId: place.wikidataId,
-        websites: place.websites,
-        socials: place.socials,
-        emails: place.emails,
-        phones: place.phones,
-        addresses: place.addresses,
-        confidence: place.confidence,
-        sources: place.sources,
-        firstSeenMonth,
-        lastSeenMonth: place.lastSeenMonth,
+        h3Level,
+        h3Cell,
+      })
+    }
+    for (const [localeIndex, localised] of place.i18n.entries()) {
+      const i18nVersionHash =
+        row.projection?.i18nHashes[localeIndex] ??
+        (await createHash({
+          placeVersionHash: row.versionHash,
+          locale: localised.locale,
+          localised,
+        }))
+      currentInserts.add('placesI18n', {
+        snapshotId: input.snapshots.snapshotId,
+        placeId: place.id,
+        locale: localised.locale,
+        name: localised.name,
+        nameVariant: localised.nameVariant,
+        nameAlts: localised.nameAlts,
+        brandName: localised.brandName,
+        brandNameVariant: localised.brandNameVariant,
+        brandNameAlts: localised.brandNameAlts,
+        freeformAddress: localised.freeformAddress,
+        accessHint: localised.accessHint ?? null,
+        provenance: localised.provenance,
         createdAt: now,
         updatedAt: now,
-      }),
-    )
-    for (const h3Level of PLACE_H3_LEVELS) {
-      currentSql.push(
-        insertSql('placesCells', {
-          snapshotId: input.snapshots.snapshotId,
-          id: place.id,
-          h3Level,
-          h3Cell: latLngToCell(lat, lng, h3Level),
-        }),
-      )
-    }
-    for (const localised of place.i18n) {
-      const i18nVersionHash = await createHash({
-        placeVersionHash: row.versionHash,
-        locale: localised.locale,
-        localised,
       })
-      currentSql.push(
-        insertSql('placesI18n', {
-          snapshotId: input.snapshots.snapshotId,
-          placeId: place.id,
-          locale: localised.locale,
-          name: localised.name,
-          nameVariant: localised.nameVariant,
-          nameAlts: localised.nameAlts,
-          brandName: localised.brandName,
-          brandNameVariant: localised.brandNameVariant,
-          brandNameAlts: localised.brandNameAlts,
-          freeformAddress: localised.freeformAddress,
-          accessHint: localised.accessHint ?? null,
-          provenance: localised.provenance,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
-      changes.push(
-        insertSql('snapshotVersionChanges', {
-          snapshotId: input.snapshots.snapshotId,
-          recordType: 'placeI18n',
-          recordId: place.id,
-          locale: localised.locale,
-          versionHash: i18nVersionHash,
-          operation: 'upsert',
-          sourceReleaseId: input.message.releaseId,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
+      changeInserts.add('snapshotVersionChanges', {
+        snapshotId: input.snapshots.snapshotId,
+        recordType: 'placeI18n',
+        recordId: place.id,
+        locale: localised.locale,
+        versionHash: i18nVersionHash,
+        operation: 'upsert',
+        sourceReleaseId: input.message.releaseId,
+        createdAt: now,
+        updatedAt: now,
+      })
     }
     for (const divisionId of row.divisionIds) {
-      currentSql.push(
-        insertSql('placesDivision', {
-          placeSnapshotId: input.snapshots.snapshotId,
-          placeId: place.id,
-          divisionSnapshotId: input.snapshots.divisionSnapshotId,
-          divisionId,
-        }),
-      )
+      currentInserts.add('placesDivision', {
+        placeSnapshotId: input.snapshots.snapshotId,
+        placeId: place.id,
+        divisionSnapshotId: input.snapshots.divisionSnapshotId,
+        divisionId,
+      })
     }
 
     if (previous?.row.versionHash !== row.versionHash) {
@@ -316,12 +313,14 @@ export async function buildPlaceSql(
           updatedAt: now,
         }),
       )
-      for (const localised of place.i18n) {
-        const i18nVersionHash = await createHash({
-          placeVersionHash: row.versionHash,
-          locale: localised.locale,
-          localised,
-        })
+      for (const [localeIndex, localised] of place.i18n.entries()) {
+        const i18nVersionHash =
+          row.projection?.i18nHashes[localeIndex] ??
+          (await createHash({
+            placeVersionHash: row.versionHash,
+            locale: localised.locale,
+            localised,
+          }))
         historyStatements(input.activeHistoryBindingName).push(
           insertSql('placesI18n', {
             placeId: place.id,
@@ -344,33 +343,29 @@ export async function buildPlaceSql(
           }),
         )
       }
-      changes.push(
-        insertSql('snapshotVersionChanges', {
-          snapshotId: input.snapshots.snapshotId,
-          recordType: 'place',
-          recordId: place.id,
-          locale: '',
-          versionHash: row.versionHash,
-          operation: 'upsert',
-          sourceReleaseId: input.message.releaseId,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
+      changeInserts.add('snapshotVersionChanges', {
+        snapshotId: input.snapshots.snapshotId,
+        recordType: 'place',
+        recordId: place.id,
+        locale: '',
+        versionHash: row.versionHash,
+        operation: 'upsert',
+        sourceReleaseId: input.message.releaseId,
+        createdAt: now,
+        updatedAt: now,
+      })
     } else {
-      changes.push(
-        insertSql('snapshotVersionChanges', {
-          snapshotId: input.snapshots.snapshotId,
-          recordType: 'place',
-          recordId: place.id,
-          locale: '',
-          versionHash: previous.row.versionHash,
-          operation: 'upsert',
-          sourceReleaseId: input.message.releaseId,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
+      changeInserts.add('snapshotVersionChanges', {
+        snapshotId: input.snapshots.snapshotId,
+        recordType: 'place',
+        recordId: place.id,
+        locale: '',
+        versionHash: previous.row.versionHash,
+        operation: 'upsert',
+        sourceReleaseId: input.message.releaseId,
+        createdAt: now,
+        updatedAt: now,
+      })
     }
     processedPlaceRows += 1
     options.onProgress?.(processedPlaceRows)
@@ -388,65 +383,37 @@ export async function buildPlaceSql(
       historyStatements(previous.bindingName).push(
         `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(previousId)} AND isCurrent = 1;`,
       )
-      changes.push(
-        insertSql('snapshotVersionChanges', {
-          snapshotId: input.snapshots.snapshotId,
-          recordType: 'place',
-          recordId: previous.row.id,
-          locale: '',
-          versionHash: null,
-          operation: 'delete',
-          sourceReleaseId: input.message.releaseId,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
+      changeInserts.add('snapshotVersionChanges', {
+        snapshotId: input.snapshots.snapshotId,
+        recordType: 'place',
+        recordId: previous.row.id,
+        locale: '',
+        versionHash: null,
+        operation: 'delete',
+        sourceReleaseId: input.message.releaseId,
+        createdAt: now,
+        updatedAt: now,
+      })
     }
   }
 
-  // Compact, bounded ID batches avoid resending publisher JSON for unchanged rows.
-  for (const [bindingName, ids] of unchangedByBinding) {
-    for (let offset = 0; offset < ids.length; offset += 100) {
-      sourceStatements(bindingName).push(
-        `UPDATE overturePlaces SET releaseId = ${lit(input.message.releaseId ?? input.datasetId)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND sourceRecordId IN (${ids
-          .slice(offset, offset + 100)
-          .map(lit)
-          .join(',')});`,
-      )
-    }
-  }
   if (includeRemovedPlaces) {
     // Also close omissions on a rebuild of the same release, where releaseId
     // alone cannot distinguish retained rows from removed rows.
     const seenSourceIds =
       options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
-    const removedByBinding = new Map<string, string[]>()
-    for (const [id, source] of input.sourceRows ?? []) {
-      if (seenSourceIds.has(id)) continue
-      const ids = removedByBinding.get(source.bindingName) ?? []
-      ids.push(id)
-      removedByBinding.set(source.bindingName, ids)
-    }
-    for (const [bindingName, ids] of removedByBinding) {
-      for (let offset = 0; offset < ids.length; offset += 100)
-        sourceStatements(bindingName).push(
-          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND sourceRecordId IN (${ids
-            .slice(offset, offset + 100)
-            .map(lit)
-            .join(',')});`,
-        )
-    }
     for (const bindingName of input.sourceBindingNames)
-      sourceStatements(bindingName).push(
-        `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND (releaseId IS NULL OR releaseId <> ${lit(input.message.releaseId ?? input.datasetId)});`,
-      )
+      for (const predicate of missingSourceMembershipPredicates([...seenSourceIds]))
+        sourceStatements(bindingName).push(
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND ${predicate};`,
+        )
   }
 
   return {
-    currentSql,
+    currentSql: [...currentSql, ...currentInserts.finish()],
     historySqlByBinding,
     sourceSqlByBinding,
-    changes,
+    changes: changeInserts.finish(),
   }
 }
 

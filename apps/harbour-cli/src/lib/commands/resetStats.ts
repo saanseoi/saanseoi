@@ -217,7 +217,6 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('apiReleaseSetSnapshots', 'apiReleaseSetId', setIds),
     ...deleteIds('publishedDataJournal', 'releaseId', releaseIds),
     ...deleteIds('stats', 'releaseId', releaseIds),
-    ...deleteIds('stats', 'snapshotId', snapshotIds),
     ...deleteIds('stats', 'apiReleaseSetId', setIds),
     ...[
       'releaseProcessingActionChunks',

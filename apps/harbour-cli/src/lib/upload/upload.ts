@@ -231,19 +231,21 @@ async function registerUploadLocally(
       allowExistingDatasetStatuses,
       cohortKey: previewResult.plan.cohortKey,
       filePath: previewResult.plan.fileName,
+      rawObjectKey: createRawObjectKey(previewResult.plan),
       inspection: previewResult.inspection,
       originalFileName: previewResult.plan.originalFileName,
       regionCode: previewResult.plan.regionCode,
       releaseNotesUrl: previewResult.plan.releaseNotesUrl,
       reuseExistingRelease: options.reuseExistingRelease,
       resumeInterruptedProcessingRelease: options.resumeStagedRelease,
+      recoveredSqlDeliveryReleaseId: resumeSqlDeliveryReleaseId,
       resolveSchemaFingerprint: createLocalSchemaFingerprintResolver(metaDb),
       shardYear,
       source: previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
       geometryStatus: previewResult.plan.geometryStatus,
       theme: previewResult.plan.theme,
-      type: previewResult.plan.type,
+      resourceType: previewResult.plan.resourceType,
     })
 
     if (!registered.datasetId || !registered.releaseId) {
@@ -262,7 +264,7 @@ async function registerUploadLocally(
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,
       status: 'staged',
-      type: registered.plan.type,
+      resourceType: registered.plan.resourceType,
     }
   } finally {
     dbContext.cleanup()
@@ -312,7 +314,7 @@ async function requestRemoteRegistration(
           sourceVersion: previewResult.plan.sourceVersion,
           geometryStatus: previewResult.plan.geometryStatus,
           theme: previewResult.plan.theme,
-          type: previewResult.plan.type,
+          resourceType: previewResult.plan.resourceType,
         },
       }),
       headers: { 'content-type': 'application/json', ...getAuthHeaders() },

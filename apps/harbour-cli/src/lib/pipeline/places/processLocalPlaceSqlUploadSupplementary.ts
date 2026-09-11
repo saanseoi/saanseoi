@@ -1,3 +1,4 @@
+import type { PlaceRecordCache } from './placeRecordCache.ts'
 import {
   mkdir,
   readFile,
@@ -27,7 +28,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   extractPlaceAddressTexts,
   type NormalisedPlace,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import {
   addressFingerprint,
   compactAddressResolution,
@@ -46,16 +47,16 @@ import {
   SUPPLEMENTARY_ADDRESS_VARIANT,
 } from './supplementaryPlaceAddressRows.ts'
 import { createHash } from '@repo/core/pipeline/utils'
-import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
-import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
-import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addressPipeline/normalisation'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
 import {
   currentSchema,
   historySchema,
   metaSchema,
   buildDeterministicUuidV5,
 } from '@repo/db'
-import { and, eq, ne, isNotNull, like, lte, sql } from 'drizzle-orm'
+import { and, eq, ne, inArray, isNotNull, like, lte, sql } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import {
   executeSqlText,
@@ -82,6 +83,7 @@ import { chunkStatements, insertSql, lit } from './processLocalPlaceSqlUploadImp
 import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 
 type PrepareSupplementaryAddressesInput = {
+  recordCache?: PlaceRecordCache
   retainAudit: (
     releaseId: string,
     datasetCode: string,
@@ -321,7 +323,10 @@ async function prepareSupplementaryAddressesLocked(
     })
     .from(currentSchema.address2dI18n)
     .where(
-      eq(currentSchema.address2dI18n.snapshotId, input.snapshots.addressSnapshotId),
+      and(
+        eq(currentSchema.address2dI18n.snapshotId, input.snapshots.addressSnapshotId),
+        inArray(currentSchema.address2dI18n.locale, ['en', 'zh-hant']),
+      ),
     )
     .all()) as PlaceAddressDefinition[]
   const geometry = new Map<string, { lng: number; lat: number }>()
@@ -338,6 +343,8 @@ async function prepareSupplementaryAddressesLocked(
     new Set(officialById.keys()),
     geometry,
     fixture,
+    input.recordCache,
+    true,
   )
   input.onStage?.('Place Address history')
   const previousById = new Map<string, PlaceHistoryRow>()
@@ -423,7 +430,7 @@ async function prepareSupplementaryAddressesLocked(
         if (resolution.tier === 'supplementary')
           supplementaryResolutions.push(stagedResolution)
         analysedRows += 1
-        if (analysedRows % 512 === 0) input.onProgress?.(analysedRows)
+        if (analysedRows % 5_000 === 0) input.onProgress?.(analysedRows)
       }
       input.onProgress?.(analysedRows)
     } finally {

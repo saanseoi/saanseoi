@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test'
-import { wkbGeometryRule } from '@repo/core/pipeline/services/division'
+import { wkbGeometryRule } from '@repo/core/pipeline/services/divisions/division'
 import { censtatdSourceAssertionRule } from './processLocalHkgovCenstatdDistrictStatisticSqlUpload'
 import { censtatdDistrictIdentityRule } from './censtatdDistrictBridge'
 import {
   divisionAreaGeometryRule,
   divisionBoundaryGeometryRule,
-} from '@repo/core/pipeline/services/divisionGeometry'
+} from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { freezeRegisteredRule } from '../../api/retainedRule'
 import sourceFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
 import bridgeFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-district-identity.json'

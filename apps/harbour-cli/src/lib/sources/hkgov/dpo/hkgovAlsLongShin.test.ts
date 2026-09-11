@@ -1,5 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
-import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
+import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'

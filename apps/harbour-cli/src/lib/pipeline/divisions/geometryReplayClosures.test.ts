@@ -102,7 +102,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
               cohortKey: '2026',
               rowCount: 1,
               theme: 'divisions',
-              type: 'divisionArea',
+              resourceType: 'divisionArea',
               ...(sourceName === 'hkgov-censtatd'
                 ? { transform: 'simplified' as const }
                 : {}),

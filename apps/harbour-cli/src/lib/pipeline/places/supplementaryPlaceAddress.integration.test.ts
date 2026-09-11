@@ -15,7 +15,7 @@ import {
   ensureDraftSnapshotForRelease,
   upsertSnapshotSource,
 } from '@repo/core/db/metaRegistry'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
 import policy from './testFixtures/supplementaryAddressPolicy.json'
 import { buildPlacesResetSql, collectOwnedPlaces } from '../../commands/resetPlaces.ts'
@@ -59,7 +59,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       rawObjectKey: 'places.parquet',
       originalFileName: 'places.parquet',
       ingestedAt: '2026-08-19T00:00:00Z',
-      type: 'place',
+      resourceType: 'place',
       cohortKey: '2026-08',
       sourceVersion: '2026-08-19.0',
       status: 'processing',
@@ -73,7 +73,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       rawObjectKey: 'als.parquet',
       originalFileName: 'als.parquet',
       ingestedAt: '2026-08-19T00:00:00Z',
-      type: 'address',
+      resourceType: 'address',
       cohortKey: '2026-08',
       sourceVersion: '2026-08-01',
       status: 'published',
@@ -104,7 +104,13 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     const currentDb = drizzle({ client: current, schema: currentSchema })
     currentDb
       .insert(currentSchema.divisions)
-      .values({ snapshotId: 'division', id: 'hk', type: 'country' })
+      .values({
+        snapshotId: 'division',
+        id: 'hk',
+        class: 'country',
+        category: 'administrative',
+        hierarchies: { administrative: [], locality: [], full: [] },
+      })
       .run()
     currentDb
       .insert(currentSchema.address2d)
@@ -313,7 +319,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       rawObjectKey: 'places-withdrawn.parquet',
       originalFileName: 'places-withdrawn.parquet',
       ingestedAt: '2026-09-16T00:00:00Z',
-      type: 'place',
+      resourceType: 'place',
       cohortKey: '2026-09',
       sourceVersion: '2026-09-16.0',
       status: 'processing',

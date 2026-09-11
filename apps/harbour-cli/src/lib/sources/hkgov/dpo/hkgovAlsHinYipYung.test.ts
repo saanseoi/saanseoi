@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { requireDefined } from '@repo/core/requireDefined'
-import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
+import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'

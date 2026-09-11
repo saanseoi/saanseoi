@@ -92,14 +92,21 @@ for (const interrupted of [false, true])
         expected.query(statement.sql).run(...statement.params)
       let interrupt = interrupted
       const counts: number[] = []
+      const plans: string[] = []
       const query = async (sql: string) => {
+        if (sql.includes('rowid>')) {
+          const plan = actual.query(`EXPLAIN QUERY PLAN ${sql}`).all() as {
+            detail: string
+          }[]
+          plans.push(...plan.map(row => row.detail))
+        }
         const rows = actual.query(sql).all() as Record<string, unknown>[]
         counts.push(rows.length)
         if (interrupt) {
           interrupt = false
           throw new Error('lost acknowledgement')
         }
-        return rows
+        return rows.reverse()
       }
       if (interrupted)
         await expect(preRetireAddressSources(statements, query)).rejects.toThrow(
@@ -109,6 +116,12 @@ for (const interrupted of [false, true])
       for (const statement of statements)
         actual.query(statement.sql).run(...statement.params)
       expect(Math.max(...counts)).toBe(1024)
+      expect(
+        plans.some(detail => detail.includes('INTEGER PRIMARY KEY (rowid>?)')),
+      ).toBe(true)
+      expect(plans.some(detail => detail.startsWith('SCAN hkgovAlsAddresses2d'))).toBe(
+        false,
+      )
       expect(
         actual
           .query(
@@ -140,9 +153,11 @@ test('retirement rejects unrelated statements and inconsistent release metadata 
       query,
     ),
   ).rejects.toThrow('uniform publisher')
+  const statement = statements[1]
+  if (!statement) throw new Error('Address retirement test fixture is incomplete')
   await expect(
     preRetireAddressSources(
-      [statements[1]!, { ...closure, params: ['new-version', 'now', 'other-release'] }],
+      [statement, { ...closure, params: ['new-version', 'now', 'other-release'] }],
       query,
     ),
   ).rejects.toThrow('uniform publisher')

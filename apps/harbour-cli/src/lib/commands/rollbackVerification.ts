@@ -212,7 +212,7 @@ async function countMetaRollbackRows(
       db,
       metaSchema.stats,
       input.operation === 'purge'
-        ? sql`${metaSchema.stats.releaseId} = ${input.release.releaseId} OR ${metaSchema.stats.snapshotId} = ${input.snapshotId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`
+        ? sql`${metaSchema.stats.releaseId} = ${input.release.releaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`
         : eq(metaSchema.stats.releaseId, input.release.releaseId),
     ),
     countRows(
@@ -442,7 +442,7 @@ export async function verifyPurgeResult(
     countRows(
       dbContext.metaDb,
       metaSchema.stats,
-      sql`${metaSchema.stats.releaseId} = ${input.releaseId} OR ${metaSchema.stats.snapshotId} = ${input.snapshotId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`,
+      sql`${metaSchema.stats.releaseId} = ${input.releaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`,
     ),
     countRows(
       dbContext.metaDb,

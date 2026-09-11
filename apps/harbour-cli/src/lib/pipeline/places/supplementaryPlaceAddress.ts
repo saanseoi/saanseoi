@@ -1,6 +1,5 @@
+import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
 import { createHash } from 'node:crypto'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/place-address-analysis.json'
-import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import {
   createPlaceAddressMatcher,
   normaliseAddressText,
@@ -386,43 +385,28 @@ export function parseSupplementaryCuration(
   return fixture
 }
 
-export const placeAddressAnalysisRule = registerRule(
-  ruleDeclarationFromFixture(ruleFixture),
-  (input: {
-    definitions: PlaceAddressDefinition[]
-    officialIds: Set<string>
-    geometry: Map<string, { lng: number; lat: number }>
-    fixture: SupplementaryCuration
-  }) =>
-    createSupplementaryAddressAnalyserInternal(
-      input.definitions,
-      input.officialIds,
-      input.geometry,
-      input.fixture,
-    ),
-)
+export {
+  placeAddressAnalysisRule,
+  createSupplementaryAddressAnalyser,
+} from './placeAddressAnalysis.ts'
 
-export function createSupplementaryAddressAnalyser(
+export function createSupplementaryAddressAnalyserInternal(
   definitions: PlaceAddressDefinition[],
   officialIds: Set<string>,
   geometry: Map<string, { lng: number; lat: number }>,
   fixture: SupplementaryCuration,
-) {
-  return placeAddressAnalysisRule.execute({
-    definitions,
-    officialIds,
-    geometry,
-    fixture,
-  })
-}
-
-function createSupplementaryAddressAnalyserInternal(
-  definitions: PlaceAddressDefinition[],
-  officialIds: Set<string>,
-  geometry: Map<string, { lng: number; lat: number }>,
-  fixture: SupplementaryCuration,
+  recordCache?: PlaceRecordCache,
 ) {
   const matcher = createPlaceAddressMatcher(definitions)
+  const parserContext = recordCache ? recordCacheKey(definitions) : ''
+  const parse = (text: string) => {
+    const key = recordCache ? recordCacheKey([parserContext, text]) : ''
+    const cached = recordCache?.get<ParsedPlaceAddress>('address parsing', key)
+    if (cached !== undefined) return cached
+    const parsed = parsePlaceAddress(text, matcher)
+    recordCache?.set('address parsing', key, parsed)
+    return parsed
+  }
   const policy = fixture.policies[fixture.activePolicy]
   if (!policy) throw new Error('Missing active supplementary policy.')
   const byStreet = new Map<string, typeof matcher.definitions>()
@@ -444,6 +428,7 @@ function createSupplementaryAddressAnalyserInternal(
     byPlace.set(entry.placeId, entries)
   }
   const decisionsByObservation = new Map<string, (typeof fixture.decisions)[number]>()
+  const decisionsByPlace = new Map<string, typeof fixture.decisions>()
   let indexedDecisions = fixture.decisions
   let indexedDecisionCount = -1
   return (
@@ -451,7 +436,7 @@ function createSupplementaryAddressAnalyserInternal(
     previous: PreviousAddressLink | null,
   ): AddressResolution => {
     const fingerprint = addressFingerprint(observation.texts)
-    const parsed = observation.texts.map(text => parsePlaceAddress(text, matcher))
+    const parsed = observation.texts.map(parse)
     const entries = (byPlace.get(observation.placeId) ?? []).filter(
       entry =>
         entry.firstSeen <= observation.sourceRelease &&
@@ -497,9 +482,13 @@ function createSupplementaryAddressAnalyserInternal(
       indexedDecisionCount !== fixture.decisions.length
     ) {
       decisionsByObservation.clear()
+      decisionsByPlace.clear()
       indexedDecisions = fixture.decisions
       indexedDecisionCount = fixture.decisions.length
       for (const decision of fixture.decisions) {
+        const placeDecisions = decisionsByPlace.get(decision.placeId) ?? []
+        placeDecisions.push(decision)
+        decisionsByPlace.set(decision.placeId, placeDecisions)
         const key = JSON.stringify([
           decision.placeId,
           decision.fingerprint,
@@ -594,7 +583,8 @@ function createSupplementaryAddressAnalyserInternal(
       }
       return result('review', null, 'decision_target_not_reproducible')
     }
-    const latestDecision = fixture.decisions
+    const placeDecisions = decisionsByPlace.get(observation.placeId) ?? []
+    const latestDecision = placeDecisions
       .filter(
         item =>
           item.placeId === observation.placeId &&
@@ -605,7 +595,7 @@ function createSupplementaryAddressAnalyserInternal(
       latestDecision?.resolution === 'leave_unlinked' &&
       latestDecision.fingerprint !== fingerprint &&
       latestDecision.address2dFingerprint !== parsedAddressFingerprint(parsed)
-    const lastDecision = fixture.decisions
+    const lastDecision = placeDecisions
       .filter(
         item =>
           item.placeId === observation.placeId &&

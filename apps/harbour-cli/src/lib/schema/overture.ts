@@ -21,7 +21,7 @@ type UploadSchemaField = {
 type UploadSchemaVersion = SchemaWindow & {
   id: string
   source: 'overture'
-  type: ResourceType
+  resourceType: ResourceType
   fields: UploadSchemaField[]
   allowedUnexpectedFields?: UploadSchemaField[]
 }
@@ -46,7 +46,7 @@ export function validateOvertureSchema(
   if (differences.length > 0) {
     throw new Error(
       [
-        `Schema drift detected for ${plan.type} upload.`,
+        `Schema drift detected for ${plan.resourceType} upload.`,
         `Expected schema version: ${schema.id}.`,
         'Differences:',
         ...differences.map(line => `- ${line}`),
@@ -59,7 +59,7 @@ export function validateOvertureSchema(
 
 function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
   const candidates = OVERTURE_SCHEMAS.filter(schema => {
-    if (schema.source !== 'overture' || schema.type !== plan.type) {
+    if (schema.source !== 'overture' || schema.resourceType !== plan.resourceType) {
       return false
     }
 
@@ -82,12 +82,12 @@ function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
 
   if (candidates.length === 0) {
     throw new Error(
-      `No accepted Overture schema version matches type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
+      `No accepted Overture schema version matches type=${plan.resourceType}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
     )
   }
 
   throw new Error(
-    `Multiple accepted Overture schema versions matched type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
+    `Multiple accepted Overture schema versions matched type=${plan.resourceType}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
   )
 }
 

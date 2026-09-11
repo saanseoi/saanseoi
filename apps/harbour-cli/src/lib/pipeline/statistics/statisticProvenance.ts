@@ -11,7 +11,7 @@ import {
   type ProvenanceStore,
   type RuleDeclaration,
 } from '@repo/core/provenance'
-import { populationThousandsRule } from '@repo/core/pipeline/services/statisticRules'
+import { populationThousandsRule } from '@repo/core/pipeline/services/statistics/statisticRules'
 import { statisticNormalisationRule } from './normaliseHkgovCenstatdStatistics'
 import { retainRegisteredRule } from '../../api/retainedRule'
 import { curationDocumentsFor, type CurationDocument } from '../../curationDocuments'

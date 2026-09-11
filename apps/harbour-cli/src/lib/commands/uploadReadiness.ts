@@ -43,7 +43,7 @@ export async function assertAddressUploadPrerequisites(
     ) => Promise<unknown>
   } = {},
 ) {
-  if (plan.type !== 'address' || plan.theme !== 'addresses') {
+  if (plan.resourceType !== 'address' || plan.theme !== 'addresses') {
     return
   }
 
@@ -155,7 +155,8 @@ export async function assertDivisionGeometryUploadPrerequisites(
   } = {},
 ) {
   if (
-    (plan.type !== 'divisionArea' && plan.type !== 'divisionBoundary') ||
+    (plan.resourceType !== 'divisionArea' &&
+      plan.resourceType !== 'divisionBoundary') ||
     plan.theme !== 'divisions'
   ) {
     return
@@ -189,7 +190,7 @@ export async function assertDivisionGeometryUploadPrerequisites(
 
   throw new Error(
     [
-      `${plan.type} uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
+      `${plan.resourceType} uploads require a published division snapshot for region ${plan.regionCode.toUpperCase()}.`,
       `No published division snapshot was found for the ${plan.cohortKey} cohort.`,
       'Upload the division release first, then rerun this upload.',
     ].join(' '),

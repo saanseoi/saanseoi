@@ -1,10 +1,11 @@
+import { overtureHongKongCities } from '@repo/core/pipeline/services/divisions/overtureHongKongCities'
 import { requireDefined } from '@repo/core/requireDefined'
 import type { RuleDeclaration } from '@repo/core/provenance'
 import geometryPatchFixture from '../../../../../../fixtures/meta/patches/overture-hong-kong-area-geometry-restoration.json'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
+import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { currentSchema } from '@repo/db'
 import { and, eq } from 'drizzle-orm'
@@ -18,7 +19,7 @@ import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts
 import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreas,
-} from '@repo/core/pipeline/services/overtureHongKongAreas'
+} from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 import type {
   GeometryUploadPlan,
   NormalisedGeometry,
@@ -29,7 +30,8 @@ type SyntheticOvertureHongKongArea = {
   code: string
   districtDivisionIds: string[]
   divisionId: string
-  names?: (typeof overtureHongKongAreas)[number]['names']
+  reconstruct?: boolean
+  names?: Record<'en' | 'zh-hant' | 'zh-hans', string>
 }
 
 export function syntheticAreaExclusion(
@@ -86,6 +88,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
       id: currentSchema.divisions.id,
       identifiers: currentSchema.divisions.identifiers,
       level: currentSchema.divisions.level,
+      class: currentSchema.divisions.class,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
@@ -112,8 +115,22 @@ export async function resolveSyntheticOvertureHongKongAreas(
     ids.push(row.divisionId)
     districtIdsByName.set(row.name, ids)
   }
-  return overtureHongKongAreas.flatMap(area => {
-    const divisionId = overtureHongKongAreaDivisionId(area.code)
+  const definitions = [
+    ...overtureHongKongAreas.map(area => ({
+      ...area,
+      divisionId: overtureHongKongAreaDivisionId(area.code),
+    })),
+    ...overtureHongKongCities.map(city => {
+      const matches = i18nRows.filter(
+        row => row.name === city.names.en && byId.get(row.divisionId)?.class === 'city',
+      )
+      if (matches.length > 1)
+        throw new Error(`Ambiguous city geometry identity: ${city.names.en}.`)
+      return { ...city, divisionId: matches[0]?.divisionId ?? city.id }
+    }),
+  ]
+  return definitions.flatMap(area => {
+    const divisionId = area.divisionId
     if (!divisionId) return []
     const division = byId.get(divisionId)
     if (!division) return []
@@ -165,6 +182,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
         districtDivisionIds,
         divisionId,
         names: area.names,
+        reconstruct: area.code !== 'hong-kong-city',
       },
     ]
   })
@@ -179,7 +197,9 @@ export function selectOvertureHongKongAreasWithoutSourceGeometry(
       'divisionId' in row.canonical ? [row.canonical.divisionId] : [],
     ),
   )
-  return areas.filter(area => !sourceAreaDivisionIds.has(area.divisionId))
+  return areas.filter(
+    area => area.reconstruct || !sourceAreaDivisionIds.has(area.divisionId),
+  )
 }
 
 function buildSyntheticAreaRows(
@@ -362,7 +382,7 @@ export function buildSyntheticOvertureHongKongAreaPatchActions(
             exclusion: geometryPatchFixture.parameters.exclusion,
             method: geometryPatchFixture.method,
           },
-          resourceType: plan.type,
+          resourceType: plan.resourceType,
           sourceVersion: plan.sourceVersion,
         },
         mode: 'automatic' as const,

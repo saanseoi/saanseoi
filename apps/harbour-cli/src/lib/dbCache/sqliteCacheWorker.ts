@@ -29,17 +29,17 @@ type SqliteCacheWorkerPayload =
       binaryTableImports?: BinaryTableImport[]
       dumpPaths: string[]
       pruneOperations?: CachePruneOperation[]
-      type: 'import-dumps'
+      kind: 'import-dumps'
     }
   | {
       bindingName: string
       filePath: string
       tableImports: RemoteTableImport[]
-      type: 'replace-table-rows'
+      kind: 'replace-table-rows'
     }
   | {
       filePath: string
-      type: 'checkpoint'
+      kind: 'checkpoint'
     }
 
 async function main() {
@@ -53,7 +53,7 @@ async function main() {
     await readFile(payloadPath, 'utf8'),
   ) as SqliteCacheWorkerPayload
 
-  switch (payload.type) {
+  switch (payload.kind) {
     case 'checkpoint':
       checkpointSqliteDatabase(payload.filePath)
       return

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { readAuditPage, type ProvenanceStore } from '@repo/core/provenance'
-import { retainDivisionProvenance } from '@repo/core/pipeline/services/divisionProvenance'
+import { retainDivisionProvenance } from '@repo/core/pipeline/services/divisions/divisionProvenance'
 import { buildDivisionTranslationProcessingActions } from './processLocalDivisionSqlUploadTranslations'
 
 test('C&SD translation applications retain applied decisions and only unused fixtures are skipped', async () => {
@@ -38,7 +38,7 @@ test('C&SD translation applications retain applied decisions and only unused fix
     inputCount: 1,
     outputCount: 1,
     actions: buildDivisionTranslationProcessingActions({
-      division: { id: 'anderson', level: null, type: 'housing-market-area' },
+      division: { id: 'anderson', level: null, class: 'housing-market-area' },
       rawNames: ['Anderson', '安達臣'],
       translations: [translation],
     }),

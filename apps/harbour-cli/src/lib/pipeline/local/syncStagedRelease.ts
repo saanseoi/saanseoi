@@ -1,6 +1,7 @@
 import {
   and,
   eq,
+  isNull,
   metaDatasets,
   metaPublishers,
   metaReleases,
@@ -16,6 +17,7 @@ import {
 import {
   buildDeterministicSourceReleaseId,
   buildSourceReleaseCode,
+  releasePublicationDate,
 } from '@repo/core/db/metaRegistry'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import type { MetaDatabase } from '@repo/db'
@@ -27,7 +29,7 @@ type StagedReleaseSyncPlan = {
   source: string
   sourceVersion: string
   theme: string
-  type: ResourceType
+  resourceType: ResourceType
 }
 
 export async function syncStagedReleaseIntoLocalMetaCache(
@@ -79,9 +81,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     .where(eq(metaReleases.code, release.releaseCode))
     .limit(1)
     .get()
-  if (existingRelease && existingRelease.resourceType !== plan.type) {
+  if (existingRelease && existingRelease.resourceType !== plan.resourceType) {
     throw new Error(
-      `Resource release ${release.releaseCode} belongs to ${existingRelease.resourceType}, not ${plan.type}.`,
+      `Resource release ${release.releaseCode} belongs to ${existingRelease.resourceType}, not ${plan.resourceType}.`,
     )
   }
   if (
@@ -135,7 +137,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           sourceVersion: plan.sourceVersion,
           expectedResourceTypes: dataset.resourceTypes,
           sourceSchemaVersion,
-          publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+          publicationDate: releasePublicationDate(plan.sourceVersion),
           cohortKey: plan.cohortKey,
           rawObjectKey: release.rawObjectKey,
           originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
@@ -152,6 +154,23 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         .onConflictDoNothing({ target: metaSourceReleases.code })
         .run()
 
+      // Registration may precede acquisition of the prepared object. Complete
+      // only a missing key on an unpublished source; preserve native archives.
+      await tx
+        .update(metaSourceReleases)
+        .set({ rawObjectKey: release.rawObjectKey, updatedAt: now })
+        .where(
+          and(
+            eq(metaSourceReleases.id, sourceReleaseId),
+            isNull(metaSourceReleases.rawObjectKey),
+            or(
+              eq(metaSourceReleases.status, 'staged'),
+              eq(metaSourceReleases.status, 'failed'),
+            ),
+          ),
+        )
+        .run()
+
       return tx
         .insert(metaReleases)
         .values({
@@ -159,11 +178,11 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           sourceReleaseId,
           datasetId: dataset.id,
           code: release.releaseCode,
-          resourceType: plan.type,
+          resourceType: plan.resourceType,
           sourceVersion: plan.sourceVersion,
           sourceSchemaVersion,
           processingRules,
-          publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+          publicationDate: releasePublicationDate(plan.sourceVersion),
           cohortKey: plan.cohortKey,
           rawObjectKey: release.rawObjectKey,
           originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
@@ -181,11 +200,11 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           set: {
             sourceReleaseId,
             datasetId: dataset.id,
-            resourceType: plan.type,
+            resourceType: plan.resourceType,
             sourceVersion: plan.sourceVersion,
             sourceSchemaVersion,
             processingRules,
-            publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+            publicationDate: releasePublicationDate(plan.sourceVersion),
             cohortKey: plan.cohortKey,
             rawObjectKey: release.rawObjectKey,
             originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,

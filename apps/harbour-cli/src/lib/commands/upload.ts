@@ -1,7 +1,7 @@
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 import { resolve } from 'node:path'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/stats'
+import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
 import {
@@ -150,7 +150,7 @@ ${mutedBar}  `)
         sourceVersion:
           registerOptions.sourceVersion ?? hkgovHadPreparation.sourceVersion,
         theme: registerOptions.theme ?? hkgovHadPreparation.theme,
-        type: registerOptions.type ?? hkgovHadPreparation.type,
+        type: registerOptions.resourceType ?? hkgovHadPreparation.type,
       })
       log.message('Prepared Home Affairs Department District Boundary GeoJSON.')
     }
@@ -172,7 +172,7 @@ ${mutedBar}  `)
         source: hkgovCenstatdPreparation.source,
         sourceVersion: hkgovCenstatdPreparation.sourceVersion,
         theme: registerOptions.theme ?? hkgovCenstatdPreparation.theme,
-        type: registerOptions.type ?? hkgovCenstatdPreparation.type,
+        type: registerOptions.resourceType ?? hkgovCenstatdPreparation.type,
       })
       log.message('Prepared Census and Statistics Department District Council GML.')
     }
@@ -191,7 +191,7 @@ ${mutedBar}  `)
         sourceVersion:
           registerOptions.sourceVersion ?? landsdPlaceNamePreparation.sourceVersion,
         theme: registerOptions.theme ?? landsdPlaceNamePreparation.theme,
-        type: registerOptions.type ?? landsdPlaceNamePreparation.type,
+        type: registerOptions.resourceType ?? landsdPlaceNamePreparation.type,
       })
       log.message('Prepared LandsD Settlement Place Name GeoJSON.')
     }

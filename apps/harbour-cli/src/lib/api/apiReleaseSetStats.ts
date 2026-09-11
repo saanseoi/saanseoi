@@ -15,12 +15,12 @@ import {
   createLocaleStatsAccumulator,
   type AddressDivisionQualityCounts,
   type StatsLocaleGroup,
-} from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import {
   buildPlaceLocalisationStatistics,
   type PlaceLocaleConflict,
   type PlaceI18nRecord,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -728,7 +728,7 @@ function placeStatsRow(
     groupValue: grouping?.groupValue ?? null,
     metric,
     metricUnit,
-    type: 'apiReleaseSet',
+
     updatedAt: timestamp,
     value,
   }
@@ -850,11 +850,9 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
     `DELETE FROM stats WHERE apiReleaseSetId = ${sqlLiteral(apiReleaseSetId)};`,
     ...rows.map(row =>
       [
-        'INSERT INTO stats (id, type, releaseId, snapshotId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
+        'INSERT INTO stats (id, releaseId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
         [
           crypto.randomUUID(),
-          row.type,
-          null,
           null,
           apiReleaseSetId,
           row.dimension,

@@ -126,10 +126,18 @@ describe('OperationProgress', () => {
       max: 182_441,
       reset: true,
     })
+    staticProgress.update(4_999, { label: 'Normalise records (4,999)' })
+    staticProgress.update(5_000, { label: 'Normalise records (5,000)' })
+    staticProgress.update(5_000, { label: 'Normalise records (5,000) timer tick' })
+    staticProgress.update(9_999, { label: 'Normalise records (9,999)' })
+    staticProgress.update(10_000, { label: 'Normalise records (10,000)' })
     staticProgress.complete('Normalise records (182,441) (7.32 s)')
 
     expect(staticLabels).toEqual([
       ['step', 'Normalise records'],
+      ['step', 'Normalise records (182,441)'],
+      ['step', 'Normalise records (5,000)'],
+      ['step', 'Normalise records (10,000)'],
       ['success', 'Normalise records (182,441) (7.32 s)'],
     ])
     expect(staticProgress.hasActivePhase()).toBe(false)

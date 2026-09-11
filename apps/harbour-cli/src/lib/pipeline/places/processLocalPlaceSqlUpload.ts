@@ -1,3 +1,4 @@
+import { PlaceRecordCache } from './placeRecordCache.ts'
 import { mkdir } from 'node:fs/promises'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -18,7 +19,7 @@ import { calculateAndStoreApiReleaseSetStats } from '../../api/apiReleaseSetStat
 import { resolveApiReleaseSetStatsTarget } from '../../api/apiReleaseSetStats.ts'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import type { UploadTarget } from '../../cli/options.ts'
-import type { NormalisedPlace } from '@repo/core/pipeline/services/place'
+import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
 import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
 import {
@@ -91,6 +92,7 @@ export async function processLocalPlaceSqlUpload(
 
   const bucket = new LocalPipelineBucket(releaseRoot)
   const progress = new OperationProgress()
+  let recordCache: PlaceRecordCache | undefined
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
@@ -99,6 +101,14 @@ export async function processLocalPlaceSqlUpload(
   let publishResult: PublishDatasetResult | void | null = null
 
   try {
+    recordCache = new PlaceRecordCache(
+      resolve(
+        LOCAL_RELEASE_ROOT,
+        targetName(target),
+        'place-record-cache',
+        `${datasetCode}.sqlite`,
+      ),
+    )
     await runPlaceProgressPhase(progress, 'Prepare', 'workspace', () =>
       bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
     )
@@ -132,7 +142,7 @@ export async function processLocalPlaceSqlUpload(
       source: previewPlan.source,
       sourceVersion: previewPlan.sourceVersion,
       theme: previewPlan.theme,
-      type: previewPlan.type,
+      resourceType: previewPlan.resourceType,
       processingMode: 'sql',
       ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
     }
@@ -191,6 +201,7 @@ export async function processLocalPlaceSqlUpload(
           releaseRoot,
           current => reportProgress(current),
           await deliveryFileSha256(preparedUpload.filePath),
+          recordCache,
         ),
       previewPlan.rowCount,
     )
@@ -213,6 +224,7 @@ export async function processLocalPlaceSqlUpload(
       'official Address definitions',
       reportProgress =>
         prepareSupplementaryAddresses({
+          recordCache,
           context,
           metaDb,
           snapshots,
@@ -244,7 +256,7 @@ export async function processLocalPlaceSqlUpload(
                 }),
             }),
           onProgress: current => reportProgress(current, 'Place Address candidates'),
-          onStage: subject => reportProgress(stagedPlaces.includedRows, subject),
+          onStage: subject => reportProgress(0, subject),
         }),
       stagedPlaces.includedRows,
     )
@@ -262,6 +274,7 @@ export async function processLocalPlaceSqlUpload(
           current => reportProgress(current),
           supplementary,
           stagedPlaces.path,
+          recordCache,
         ),
       stagedPlaces.includedRows,
     )
@@ -591,6 +604,13 @@ export async function processLocalPlaceSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
+    if (recordCache) {
+      for (const [stage, counts] of recordCache.counts)
+        console.info(
+          `Places ${stage}: ${counts.reused} reused, ${counts.computed} computed`,
+        )
+      recordCache.close()
+    }
     if (!target.remote && completed && dbContext)
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
     dbContext?.cleanup()

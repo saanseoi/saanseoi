@@ -1,3 +1,5 @@
+import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
+
 /** Persist publisher evidence, never the prepared canonical statistic fields. */
 export function sourceStatisticAssertion<
   T extends {
@@ -18,7 +20,7 @@ export function sourceStatisticAssertion<
     sourceRecordId: row.sourceRecordId,
     rawProperties: row.rawProperties,
     sourceGeometry: row.sourceGeometry,
-    sources: row.sources,
+    sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,
     releaseId: row.releaseId,
     validFromRelease: row.validFromRelease,

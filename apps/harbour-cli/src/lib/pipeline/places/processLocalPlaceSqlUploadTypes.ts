@@ -3,7 +3,7 @@ import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingA
 import type {
   PlaceLocalisationStatistics,
   NormalisedPlace,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import type { historySchema } from '@repo/db'
 
 export type PlaceUploadPlan = {
@@ -15,7 +15,7 @@ export type PlaceUploadPlan = {
   source: 'overture'
   sourceVersion: string
   theme: 'places'
-  type: 'place'
+  resourceType: 'place'
 }
 
 export type UploadResult = {
@@ -27,6 +27,7 @@ export type UploadResult = {
 }
 
 export type EnrichedPlace = {
+  projection?: { cells: { h3Level: number; h3Cell: string }[]; i18nHashes: string[] }
   place: NormalisedPlace
   /** Curated Place geometry used by the public Place projection, if overridden. */
   effectiveLng?: number

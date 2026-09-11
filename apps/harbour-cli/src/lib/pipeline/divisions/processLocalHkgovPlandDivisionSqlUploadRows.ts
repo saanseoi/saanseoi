@@ -1,5 +1,5 @@
 import { and, eq, inArray } from 'drizzle-orm'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordSourceResolutions } from '@repo/core/pipeline/db/sourceResolutions'
 import type { NewSourceResolution } from '@repo/db/historySchema'
 import type { HarbourWritableDb } from '@repo/core/db/types'
@@ -7,7 +7,7 @@ import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVer
 import {
   compressJsonBrotli,
   MAX_BROTLI_QUALITY,
-} from '@repo/core/pipeline/services/brotliJson'
+} from '@repo/core/pipeline/services/storage/brotliJson'
 import {
   chunkArray,
   createHash,
@@ -181,7 +181,10 @@ export async function insertHistoryRows(
         resolutions.set(source.sourceRecordId, resolution)
       }
       resolution.resolutions.entities.division = [
-        ...new Set([...resolution.resolutions.entities.division!, record.base.id]),
+        ...new Set([
+          ...(resolution.resolutions.entities.division ?? []),
+          record.base.id,
+        ]),
       ].sort()
     }
   }
@@ -311,7 +314,7 @@ export async function insertSourceRows(
         wasGeometryRepaired: cell.wasGeometryRepaired,
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
-        sources: [{ dataset: 'hkgov-pland-pu', layer: 'TPUSU' }],
+        sourceLocator: { layer: 'TPUSU' },
         versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
         releaseId,
         validFromRelease: releaseCode,
@@ -348,7 +351,7 @@ export async function insertSourceRows(
       sourceGeometry: town.sourceGeometry,
       wasGeometryRepaired: town.wasGeometryRepaired,
       repairedGeometry: town.repairedGeometry,
-      sources: [{ dataset: 'hkgov-pland-new-town' }],
+      sourceLocator: null,
       versionHash: await createHash(nativeSourcePayloadHashInput(town)),
       releaseId,
       validFromRelease: releaseCode,
@@ -475,7 +478,6 @@ export function statRow(
   groupValue: string,
 ) {
   return {
-    type: 'division' as const,
     dimension,
     metric,
     metricUnit: 'rows',

@@ -164,15 +164,15 @@ export type SqliteCacheWorkerPayload =
       destinationPath: string
       dumpPaths: string[]
       pruneOperations?: CachePruneOperation[]
-      type: 'import-dumps'
+      kind: 'import-dumps'
     }
   | {
       bindingName: string
       filePath: string
       tableImports: RemoteTableImport[]
-      type: 'replace-table-rows'
+      kind: 'replace-table-rows'
     }
   | {
       filePath: string
-      type: 'checkpoint'
+      kind: 'checkpoint'
     }

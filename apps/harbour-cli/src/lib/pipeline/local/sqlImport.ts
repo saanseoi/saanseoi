@@ -11,12 +11,12 @@ import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
   combineSqlImportArtefacts,
   splitSqlStatements,
-} from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { runWithWriteRetry, type WriteRetryEvent } from '@repo/core/pipeline/utils'
 import {
   readArtefactBytes,
   type PipelineArtefactBucket,
-} from '@repo/core/pipeline/services/pipelineArtefacts'
+} from '@repo/core/pipeline/services/storage/artefacts'
 
 type LocalD1PreparedStatement = {
   run(): Promise<unknown>

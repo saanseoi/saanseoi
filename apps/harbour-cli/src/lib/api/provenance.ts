@@ -8,7 +8,8 @@ import {
   type ProvenanceStore,
 } from '@repo/core/provenance'
 import { getAuthHeaders, resolveHarbourApiUrl } from './api'
-import type { UploadTarget } from '../cli/options'
+import { resolveR2Target, type UploadTarget } from '../cli/options'
+import { retainRemoteR2Object } from '../storage/remoteR2.ts'
 
 const PROVENANCE_UPLOAD_RETRY_LIMIT = 3
 const PROVENANCE_UPLOAD_RETRY_DELAY_MS = 250
@@ -136,6 +137,7 @@ export async function deliverProcessingResult(
   source: ProvenanceStore,
   ref: ObjectRef,
   onProgress?: (message: string) => void,
+  options: { retainRemoteObject?: typeof retainRemoteR2Object } = {},
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const headers = getAuthHeaders()
@@ -145,7 +147,15 @@ export async function deliverProcessingResult(
     async get() {
       return null
     },
-    async put(_key, bytes) {
+    async put(key, bytes) {
+      const r2 = resolveR2Target(target)
+      if (!target.remote && r2 !== 'local')
+        await (options.retainRemoteObject ?? retainRemoteR2Object)(
+          r2,
+          key,
+          new Uint8Array(bytes),
+          { contentType: 'application/json' },
+        )
       const hash = await hashBytes(new Uint8Array(bytes))
       await uploadProvenanceObject(baseUrl, headers, hash, bytes)
       uploaded++

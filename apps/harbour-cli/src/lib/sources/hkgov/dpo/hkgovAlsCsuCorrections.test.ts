@@ -1,4 +1,4 @@
-import { alsSourcePayload } from '@repo/core/pipeline/services/alsSourcePayload'
+import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
