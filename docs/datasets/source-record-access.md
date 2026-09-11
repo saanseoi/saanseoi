@@ -28,11 +28,13 @@ canonical API geometry.
 
 ## Release and storage selection
 
-Source validity is resolved using each table's ingestion contract. Overture divisions,
-Places and ALS use source versions. Division areas, division boundaries, Planning, C&SD
-statistics and Streets use full source-release codes. Planning's derived area release
-uses the same source-validity code as its division projection. Shared C&SD tables are
-also bounded by dataset so one dataset cannot supply another's samples or schema fields.
+Every source table stores the version component of its owning release in
+`validFromRelease` and `validToRelease`, such as `2025-09-24.0` or `2021`. Intervals
+include the opening version and exclude the closing version. A null closing version
+remains open. The metadata release association supplies dataset identity; validity
+values never include dataset prefixes or resource suffixes. Shared C&SD tables are
+bounded by their owning dataset's release IDs so equal versions in different datasets
+cannot supply one another's samples or schema fields.
 
 All assigned source shards participate in reads. Duplicate record/hash pairs are
 collapsed and cursor pages are ordered by source identifier and hash across shards.
