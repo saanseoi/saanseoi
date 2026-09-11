@@ -1,9 +1,7 @@
 import type { ResourceType } from '../types'
 
-export type LatestReleaseRollbackInput = {
+export type DraftReleasePurgeInput = {
   apiReleaseSetId: string
-  previousApiReleaseSetId?: string | null
-  previousReleaseId?: string | null
   releaseId: string
   snapshotId: string
   source: string
@@ -11,30 +9,17 @@ export type LatestReleaseRollbackInput = {
   resourceType: ResourceType
 }
 
-export type LatestReleaseRollbackSql = {
+export type DraftReleasePurgeSql = {
   current: string
   history: string
   meta: string
   source: string
 }
 
-export type LatestReleaseRollbackPlan = {
+export type DraftReleasePurgePlan = {
   currentTables: readonly string[]
   historyTables: readonly string[]
   sourceTables: readonly string[]
-}
-
-export function buildLatestReleaseRollbackSql(
-  input: LatestReleaseRollbackInput,
-): LatestReleaseRollbackSql {
-  const plan = resolveRollbackPlan(input)
-
-  return {
-    current: buildCurrentRollbackSql(input, plan),
-    history: buildHistoryRollbackSql(input, plan),
-    meta: buildMetaRollbackSql(input),
-    source: buildSourceRollbackSql(input, plan),
-  }
 }
 
 /**
@@ -45,8 +30,8 @@ export function buildLatestReleaseRollbackSql(
  * rather than retained as a non-current version.
  */
 export function buildDraftReleasePurgeSql(
-  input: LatestReleaseRollbackInput,
-): LatestReleaseRollbackSql {
+  input: DraftReleasePurgeInput,
+): DraftReleasePurgeSql {
   const plan = resolveRollbackPlan(input)
 
   return {
@@ -57,9 +42,9 @@ export function buildDraftReleasePurgeSql(
   }
 }
 
-export function describeLatestReleaseRollbackPlan(
-  input: Pick<LatestReleaseRollbackInput, 'source' | 'resourceType'>,
-): LatestReleaseRollbackPlan {
+export function describeDraftReleasePurgePlan(
+  input: Pick<DraftReleasePurgeInput, 'source' | 'resourceType'>,
+): DraftReleasePurgePlan {
   const plan = resolveRollbackPlan(input)
 
   return {
@@ -154,56 +139,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
   },
 }
 
-function buildMetaRollbackSql(input: LatestReleaseRollbackInput) {
-  const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
-  const statements = [
-    `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM publishedDataJournal WHERE releaseId = ${literal(input.releaseId)} OR relatedReleaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM snapshotAssemblyRuns WHERE snapshotId = ${literal(input.snapshotId)};`,
-    `DELETE FROM snapshotSources WHERE snapshotId = ${literal(input.snapshotId)} OR resourceReleaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM apiReleaseSets WHERE id = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM snapshots WHERE id = ${literal(input.snapshotId)};`,
-  ]
-
-  if (input.previousApiReleaseSetId) {
-    statements.push(
-      [
-        'UPDATE apiReleaseSets',
-        "SET status = 'current',",
-        '  validTo = NULL,',
-        `  updatedAt = ${now}`,
-        `WHERE id = ${literal(input.previousApiReleaseSetId)};`,
-      ].join('\n'),
-    )
-  }
-
-  if (input.previousReleaseId) {
-    statements.push(
-      [
-        'UPDATE releases',
-        "SET status = 'published',",
-        '  revokedAt = NULL,',
-        '  revocationReason = NULL,',
-        '  supersededByReleaseId = NULL,',
-        `  updatedAt = ${now}`,
-        `WHERE id = ${literal(input.previousReleaseId)};`,
-      ].join('\n'),
-    )
-  }
-
-  statements.push(`DELETE FROM releases WHERE id = ${literal(input.releaseId)};`)
-
-  return joinStatements(statements)
-}
-
-function buildCurrentRollbackSql(
-  input: LatestReleaseRollbackInput,
-  plan: RollbackPlan,
-) {
+function buildCurrentRollbackSql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
   return joinStatements(
     plan.currentTables.map(
       ({ table, snapshotColumn }) =>
@@ -233,25 +169,7 @@ export function currentRollbackPredicateSql(
   return `${column} IN (SELECT scopeId FROM ${publication} WHERE snapshotId = ${literal(snapshotId)})`
 }
 
-function buildHistoryRollbackSql(
-  input: LatestReleaseRollbackInput,
-  plan: RollbackPlan,
-) {
-  return joinStatements([
-    `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ...(input.resourceType === 'street'
-      ? []
-      : [
-          `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
-        ]),
-    ...plan.historyTables.map(
-      ({ table }) =>
-        `UPDATE ${table} SET isCurrent = 0 WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ),
-  ])
-}
-
-function buildPurgeHistorySql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
+function buildPurgeHistorySql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
   return joinStatements([
     `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
     ...(input.resourceType === 'street'
@@ -266,36 +184,7 @@ function buildPurgeHistorySql(input: LatestReleaseRollbackInput, plan: RollbackP
   ])
 }
 
-function buildSourceRollbackSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
-  const now = sqlExpression("strftime('%Y-%m-%dT%H:%M:%fZ', 'now')")
-
-  return joinStatements(
-    plan.sourceTables.flatMap(table => [
-      [
-        `UPDATE ${table}`,
-        'SET isCurrent = 1,',
-        '  validToRelease = NULL,',
-        `  updatedAt = ${now}`,
-        'WHERE isCurrent = 0',
-        `  AND validToRelease = ${literal(input.sourceVersion)};`,
-      ].join('\n'),
-      ...(input.previousReleaseId
-        ? [
-            [
-              `UPDATE ${table}`,
-              `SET releaseId = ${literal(input.previousReleaseId)},`,
-              `  updatedAt = ${now}`,
-              `WHERE releaseId = ${literal(input.releaseId)}`,
-              `  AND validFromRelease <> ${literal(input.sourceVersion)};`,
-            ].join('\n'),
-          ]
-        : []),
-      `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)} AND validFromRelease = ${literal(input.sourceVersion)};`,
-    ]),
-  )
-}
-
-function buildPurgeSourceSql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
+function buildPurgeSourceSql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
   return joinStatements(
     plan.sourceTables.map(
       table => `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)};`,
@@ -303,7 +192,7 @@ function buildPurgeSourceSql(input: LatestReleaseRollbackInput, plan: RollbackPl
   )
 }
 
-function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
+function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
   return joinStatements([
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
@@ -322,7 +211,7 @@ function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
 }
 
 function resolveRollbackPlan(
-  input: Pick<LatestReleaseRollbackInput, 'source' | 'resourceType'>,
+  input: Pick<DraftReleasePurgeInput, 'source' | 'resourceType'>,
 ): RollbackPlan {
   const resourcePlan = rollbackPlans[input.resourceType]
 
@@ -351,8 +240,4 @@ function joinStatements(statements: string[]) {
 
 function literal(value: string) {
   return `'${value.replaceAll("'", "''")}'`
-}
-
-function sqlExpression(value: string) {
-  return value
 }

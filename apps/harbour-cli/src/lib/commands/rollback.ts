@@ -1,10 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { and, desc, eq, metaSchema, ne } from '@repo/db'
+import { eq, metaSchema } from '@repo/db'
 import {
   buildDraftReleasePurgeSql,
-  buildLatestReleaseRollbackSql,
-  describeLatestReleaseRollbackPlan,
+  describeDraftReleasePurgePlan,
 } from '@repo/core/pipeline/rollback'
 import {
   resolveActiveReleaseSetForType,
@@ -36,7 +35,6 @@ import {
   resolveLocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
 import type {
-  ReleaseRecord,
   ResolvedReleaseRecord,
   RollbackArtefact,
   RollbackOperation,
@@ -59,12 +57,8 @@ import {
   formatRollbackStepLabel,
   updateDbCacheProgress,
 } from './rollbackDisplay.ts'
-import {
-  countRollbackPlanRows,
-  verifyPurgeResult,
-  verifyRollbackResult,
-} from './rollbackVerification.ts'
-import { assertRollbackPublicationAvailable } from './rollbackPublication.ts'
+import { countRollbackPlanRows, verifyPurgeResult } from './rollbackVerification.ts'
+import { assertDraftPurgePublicationAvailable } from './rollbackPublication.ts'
 import { runReconstructRollbackCommand } from './reconstructRollback.ts'
 
 export const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
@@ -82,7 +76,7 @@ export async function runRollbackReleaseCommand(
 ) {
   if (!args.options.purge) return runReconstructRollbackCommand(args, target, options)
   const releaseSpecifier = getStringOption(args, ['release']) ?? args.positionals[0]
-  const operation: RollbackOperation = args.options.purge ? 'purge' : 'rollback'
+  const operation: RollbackOperation = 'purge'
 
   if (!releaseSpecifier) {
     options.printUsage()
@@ -172,19 +166,8 @@ export async function runRollbackReleaseCommand(
 
     const releaseSet =
       (await resolveReleaseSetForRelease(metaDb, release.releaseId, resourceType)) ??
-      (operation === 'purge'
-        ? await resolveDraftReleaseSetForSnapshot(metaDb, snapshot.id)
-        : null)
+      (await resolveDraftReleaseSetForSnapshot(metaDb, snapshot.id))
     const activeReleaseSet = await resolveActiveReleaseSetForType(metaDb, resourceType)
-
-    if (
-      operation === 'rollback' &&
-      (!releaseSet || !activeReleaseSet || releaseSet.id !== activeReleaseSet.id)
-    ) {
-      throw new Error(
-        `Rollback only supports the active latest ${resourceType} release. ${release.releaseCode} is not active.`,
-      )
-    }
 
     if (!releaseSet) {
       throw new Error(`API release set not found for ${release.releaseCode}.`)
@@ -197,55 +180,27 @@ export async function runRollbackReleaseCommand(
       releaseSet,
     })
 
-    const previousReleaseId =
-      operation === 'rollback'
-        ? await resolvePreviousPublishedReleaseId(dbContext.metaDb, release.releaseId)
-        : null
-    const previousRelease = previousReleaseId
-      ? await resolveDatasetRecord(metaDb, { releaseId: previousReleaseId })
-      : null
-    const previousReleaseSet = previousReleaseId
-      ? await resolveReleaseSetForRelease(metaDb, previousReleaseId, resourceType)
-      : null
-
-    if (operation === 'rollback') {
-      await assertRollbackPreconditions(release, previousRelease, previousReleaseSet)
-    }
-    const previousSnapshot = previousReleaseId
-      ? await resolveSnapshotForRelease(metaDb, previousReleaseId, resourceType)
-      : null
-    if (previousReleaseId && !previousSnapshot)
-      throw new Error(
-        `Rollback predecessor ${previousReleaseId} has no retained snapshot.`,
-      )
-    const purgedSnapshot =
-      operation === 'purge'
-        ? await metaDb
-            .select({ parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId })
-            .from(metaSchema.metaSnapshots)
-            .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
-            .get()
-        : null
-    await assertRollbackPublicationAvailable(
+    const purgedSnapshot = await metaDb
+      .select({ parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId })
+      .from(metaSchema.metaSnapshots)
+      .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
+      .get()
+    await assertDraftPurgePublicationAvailable(
       dbContext.currentDb as unknown as HarbourReadableDb,
       {
         resourceType,
         snapshotId: snapshot.id,
-        previousSnapshotId:
-          operation === 'purge'
-            ? (purgedSnapshot?.parentSnapshotId ?? null)
-            : (previousSnapshot?.id ?? null),
-        operation,
+        previousSnapshotId: purgedSnapshot?.parentSnapshotId ?? null,
       },
     )
-    const rollbackPlan = describeLatestReleaseRollbackPlan({
+    const rollbackPlan = describeDraftReleasePurgePlan({
       source: releaseSource,
       resourceType: resourceType,
     })
     const planCounts = await countRollbackPlanRows(dbContext, {
       apiReleaseSetId: releaseSet.id,
-      previousApiReleaseSetId: previousReleaseSet?.id ?? null,
-      previousReleaseId,
+      previousApiReleaseSetId: null,
+      previousReleaseId: null,
       release,
       snapshotId: snapshot.id,
       tables: rollbackPlan,
@@ -269,18 +224,15 @@ export async function runRollbackReleaseCommand(
 
     const rollbackInput = {
       apiReleaseSetId: releaseSet.id,
-      previousApiReleaseSetId: previousReleaseSet?.id ?? null,
-      previousReleaseId,
+      previousApiReleaseSetId: null,
+      previousReleaseId: null,
       releaseId: release.releaseId,
       snapshotId: snapshot.id,
       source: releaseSource,
       sourceVersion: release.sourceVersion,
       resourceType,
     }
-    const rollbackSql =
-      operation === 'purge'
-        ? buildDraftReleasePurgeSql(rollbackInput)
-        : buildLatestReleaseRollbackSql(rollbackInput)
+    const rollbackSql = buildDraftReleasePurgeSql(rollbackInput)
     const rollbackRoot = resolve(
       ROLLBACK_ROOT,
       resolveTargetName(target),
@@ -327,7 +279,7 @@ export async function runRollbackReleaseCommand(
 
     if (!options.dryRun && !options.skipConfirm) {
       const shouldContinue = await confirm({
-        message: `${operation === 'purge' ? 'Purge' : 'Rollback'} ${release.releaseCode} on ${resolveTargetName(target)}?`,
+        message: `Purge ${release.releaseCode} on ${resolveTargetName(target)}?`,
         initialValue: false,
       })
 
@@ -393,21 +345,12 @@ export async function runRollbackReleaseCommand(
           )
         }
 
-        if (operation === 'purge') {
-          await verifyPurgeResult(dbContext, {
-            apiReleaseSetId: releaseSet.id,
-            releaseId: release.releaseId,
-            snapshotId: snapshot.id,
-            tables: rollbackPlan,
-          })
-        } else {
-          await verifyRollbackResult(metaDb, {
-            previousReleaseId: previousRelease?.releaseId ?? null,
-            previousReleaseSetId: previousReleaseSet?.id ?? null,
-            releaseId: release.releaseId,
-            resourceType,
-          })
-        }
+        await verifyPurgeResult(dbContext, {
+          apiReleaseSetId: releaseSet.id,
+          releaseId: release.releaseId,
+          snapshotId: snapshot.id,
+          tables: rollbackPlan,
+        })
       }
       if (target.remote) {
         await withRemoteCacheMutation(
@@ -424,8 +367,8 @@ export async function runRollbackReleaseCommand(
       formatRollbackResult({
         dryRun: options.dryRun,
         operation,
-        previousRelease,
-        previousReleaseSet,
+        previousRelease: null,
+        previousReleaseSet: null,
         release,
         rollbackRoot,
       }).join('\n'),
@@ -434,67 +377,6 @@ export async function runRollbackReleaseCommand(
     outro('Harbour rollback complete')
   } finally {
     dbContext.cleanup()
-  }
-}
-
-async function resolvePreviousPublishedReleaseId(
-  metaDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['metaDb'],
-  releaseId: string,
-) {
-  const journalRow =
-    (await metaDb
-      .select({
-        releaseId: metaSchema.metaPublishedDataJournal.releaseId,
-      })
-      .from(metaSchema.metaPublishedDataJournal)
-      .where(
-        and(
-          eq(metaSchema.metaPublishedDataJournal.relatedReleaseId, releaseId),
-          ne(metaSchema.metaPublishedDataJournal.action, 'published'),
-        ),
-      )
-      .orderBy(desc(metaSchema.metaPublishedDataJournal.createdAt))
-      .limit(1)
-      .get()) ?? null
-
-  if (journalRow?.releaseId) {
-    return journalRow.releaseId
-  }
-
-  const releaseRow =
-    (await metaDb
-      .select({
-        releaseId: metaSchema.metaReleases.id,
-      })
-      .from(metaSchema.metaReleases)
-      .where(eq(metaSchema.metaReleases.supersededByReleaseId, releaseId))
-      .limit(1)
-      .get()) ?? null
-
-  return releaseRow?.releaseId ?? null
-}
-
-async function assertRollbackPreconditions(
-  release: ResolvedReleaseRecord,
-  previousRelease: ReleaseRecord,
-  previousReleaseSet: Awaited<ReturnType<typeof resolveReleaseSetForRelease>>,
-) {
-  if (release.status !== 'published') {
-    throw new Error(
-      `Rollback only supports published latest releases. ${release.releaseCode} is ${release.status}.`,
-    )
-  }
-
-  if (previousRelease && previousRelease.datasetId !== release.datasetId) {
-    throw new Error(
-      `Previous release ${previousRelease.releaseCode} belongs to a different dataset.`,
-    )
-  }
-
-  if (previousRelease && !previousReleaseSet) {
-    throw new Error(
-      `Previous API release set not found for ${previousRelease.releaseCode}.`,
-    )
   }
 }
 

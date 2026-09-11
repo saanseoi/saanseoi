@@ -2,14 +2,13 @@ import { sql } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ResourceType } from '@repo/core'
 
-/** A metadata rollback cannot restore a mutable projection that has advanced. */
-export async function assertRollbackPublicationAvailable(
+/** Draft deletion needs an intact serving predecessor when the draft owns current. */
+export async function assertDraftPurgePublicationAvailable(
   current: HarbourReadableDb,
   input: {
     resourceType: ResourceType
     snapshotId: string
     previousSnapshotId: string | null
-    operation: 'rollback' | 'purge'
   },
 ) {
   const tables: Partial<Record<ResourceType, string>> = {
@@ -31,7 +30,7 @@ export async function assertRollbackPublicationAvailable(
     .get()
   if (previous) return
   // A draft that never acquired the current scope can still be removed safely.
-  if (input.operation === 'purge') {
+  {
     const ownsScope = await current
       .select({ owned: sql<number>`1` })
       .from(sql.raw(table))
@@ -40,6 +39,6 @@ export async function assertRollbackPublicationAvailable(
     if (!ownsScope) return
   }
   throw new Error(
-    `Cannot ${input.operation} ${input.snapshotId}: its predecessor ${input.previousSnapshotId} has no ready current projection. Automatic restoration from history is not implemented; prepare the predecessor through a separately authorised rebuild before retrying.`,
+    `Cannot purge ${input.snapshotId}: its predecessor ${input.previousSnapshotId} has no ready current projection. Complete recovery of the draft-owned current scope before purging. Published releases use rollback reconstruction.`,
   )
 }

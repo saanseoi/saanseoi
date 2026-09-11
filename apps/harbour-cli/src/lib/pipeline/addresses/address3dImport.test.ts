@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { buildLatestReleaseRollbackSql } from '@repo/core/pipeline/rollback'
 import { als3dHash } from '../../sources/hkgov/dpo/hkgovAls3d'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import {
@@ -351,23 +350,6 @@ test('writes large bound collections, replays idempotently and journals removed 
       { versionHash: 'changed-hash', validToRelease: null, isCurrent: 1 },
       { versionHash: 'source-hash', validToRelease: '2026-10-01.0', isCurrent: 0 },
     ])
-    const rollback = buildLatestReleaseRollbackSql({
-      apiReleaseSetId: 'test',
-      previousApiReleaseSetId: null,
-      previousReleaseId: '2026-09-01.0',
-      releaseId: '2026-10-01.0',
-      snapshotId: 'snapshot',
-      source: 'hkgov-dpo',
-      sourceVersion: '2026-10-01.0',
-      resourceType: 'address',
-    })
-    databases.source.exec(rollback.source)
-    expect(
-      databases.source
-        .query('SELECT versionHash, isCurrent, validToRelease FROM hkgovAlsAddresses3d')
-        .all(),
-    ).toEqual([{ versionHash: 'source-hash', isCurrent: 1, validToRelease: null }])
-    await runSourceRelease('2026-10-01.0', 'changed-hash')
     await runSourceRelease('2026-11-01.0', null)
     expect(
       databases.source
