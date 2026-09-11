@@ -79,6 +79,11 @@ Divisions reconciliation recreates missing draft compositions from retained prim
 snapshots; geographic initialisation then restores C&SD district and area-type inputs
 and publishes complete Divisions release sets before the remaining statistics uploads.
 
+API-field publication matches the exact source composition and a selected primary
+snapshot's lineage. When a cohort contains several primary Statistics datasets, its
+reviewed mapping includes the eligible lineage anchors for each member. Source-schema
+ranges and field provenance remain scoped to the sources in that release set.
+
 General and district C&SD uploads retain a versioned
 [processing provenance result](../processing-provenance.md) before publication. It
 captures registered normalisation and scaling declarations, execution counts, reviewed
