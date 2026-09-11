@@ -33,6 +33,11 @@ release links and provenance registrations remain in local D1. Stored managed-as
 use the production API host and become available after the database cutover. Local
 object copies also remain available for local API/provenance validation.
 
+Remote R2 uploads require Node.js 22.18 or newer on `PATH`. A persistent Node subprocess
+handles Wrangler R2 operations while ingestion runs in Bun. Connection startup has a
+45-second deadline and each object operation has a 120-second deadline; progress and
+errors identify the operation and object key.
+
 The uploader uses Wrangler authentication and an R2-only remote binding, with no
 production D1 binding. Configure `CLOUDFLARE_API_TOKEN` with the required R2 access and
 `CLOUDFLARE_ACCOUNT_ID`, or use an authenticated Wrangler session. Matching objects are

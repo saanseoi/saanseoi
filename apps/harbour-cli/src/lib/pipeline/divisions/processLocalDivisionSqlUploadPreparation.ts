@@ -178,9 +178,12 @@ export async function buildDivisionSqlState(
     if (entry)
       hierarchyLookup.set(id, {
         ...entry,
-        i18n: Object.fromEntries(
-          translated.localisations.map(row => [row.locale, { name: row.name }]),
-        ),
+        i18n: {
+          ...entry.i18n,
+          ...Object.fromEntries(
+            translated.localisations.map(row => [row.locale, { name: row.name }]),
+          ),
+        },
       })
   }
 
