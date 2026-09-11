@@ -134,7 +134,7 @@ export async function handlePublishDataset(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const datasetType = dataset.type as ResourceType
+    const datasetType = dataset.resourceType as ResourceType
     const failedAudit = await db
       .select({ status: metaSchema.releaseProvenance.attemptStatus })
       .from(metaSchema.releaseProvenance)
@@ -538,7 +538,7 @@ export async function handlePublishDataset(
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         snapshotVariant: datasetVariant,
-        type: datasetType,
+        resourceType: datasetType,
         // Each statistic reference period is independently publishable. Other
         // families may still wait for required companion snapshots.
         deferApiReleaseSet: !shouldPublishReleaseSet,

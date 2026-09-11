@@ -23,7 +23,7 @@ test('restores missing Overture draft sets from retained geography without stats
     source: 'overture',
     regionCode: 'hk',
     cohortKey,
-    type: 'division',
+    resourceType: 'division',
     sourceVersion: cohortKey,
     rawObjectKey: 'hk/overture/division.parquet',
     originalFileName: 'division.parquet',
@@ -137,7 +137,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     source: 'overture',
     regionCode: 'hk',
     cohortKey,
-    type: 'division',
+    resourceType: 'division',
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
     originalFileName: 'division.parquet',
@@ -150,7 +150,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     source: 'overture',
     regionCode: 'hk',
     cohortKey,
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division-area.parquet',
     originalFileName: 'division-area.parquet',
@@ -163,7 +163,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     source: 'overture',
     regionCode: 'hk',
     cohortKey,
-    type: 'divisionBoundary',
+    resourceType: 'divisionBoundary',
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division-boundary.parquet',
     originalFileName: 'division-boundary.parquet',
@@ -567,7 +567,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .run('archived', releaseSetId)
   sqlite
     .query(
-      "INSERT INTO stats (id, type, apiReleaseSetId, dimension, metric, metricUnit, value, createdAt, updatedAt) VALUES ('partial-division-stats', 'apiReleaseSet', ?, 'records', 'count', 'count', 1, '2026-01-01', '2026-01-01')",
+      "INSERT INTO stats (id, kind, apiReleaseSetId, dimension, metric, metricUnit, value, createdAt, updatedAt) VALUES ('partial-division-stats', 'apiReleaseSet', ?, 'records', 'count', 'count', 1, '2026-01-01', '2026-01-01')",
     )
     .run(releaseSetId)
   const archivedRecovery = await handleReconcileDraftReleaseSets(db, {
