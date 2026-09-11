@@ -25,14 +25,14 @@
     "test:audit-page": "bun ./scripts/test-audit-page.ts"
   },
   "dependencies": {
-    "@better-auth/core": "1.7.3",
-    "@better-auth/passkey": "1.7.3",
+    "@better-auth/core": "1.7.4",
+    "@better-auth/passkey": "1.7.4",
     "@humanspeak/svelte-markdown": "^1.9.0",
     "@iconify-svelte/emojione-monotone": "1.0.3",
     "@iconify-svelte/hugeicons": "1.0.19",
     "@iconify-svelte/ion": "1.0.3",
-    "@iconify-svelte/lucide": "1.0.62",
-    "@iconify-svelte/material-symbols-light": "1.0.51",
+    "@iconify-svelte/lucide": "1.0.63",
+    "@iconify-svelte/material-symbols-light": "1.0.52",
     "@iconify-svelte/proicons": "1.0.5",
     "@iconify-svelte/simple-icons": "1.0.43",
     "@maplibre/maplibre-gl-leaflet": "0.1.4",
@@ -43,17 +43,17 @@
     "@scalar/api-reference": "^1.68.0",
     "@tanstack/svelte-virtual": "^3.13.37",
     "@turf/turf": "^7.4.0",
-    "better-auth": "1.7.3",
-    "bits-ui": "^2.19.1",
+    "better-auth": "1.7.4",
+    "bits-ui": "^2.19.2",
     "diff": "^9.0.0",
     "geos-wasm": "3.1.1",
     "github-slugger": "^2.0.0",
     "leader-line": "1.0.8",
     "leaflet": "1.9.4",
     "mapbox-gl": "3.30.0",
-    "maplibre-gl": "^6.8.0",
+    "maplibre-gl": "^6.9.0",
     "svelte-maplibre-gl": "^2.2.1",
-    "zod": "^4.5.4"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "8.0.0-next.7",
@@ -70,10 +70,10 @@
     "svelte-check": "^4.7.6",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
-    "vite": "^8.2.2",
+    "vite": "^8.3.0",
     "vitest": "^5.0.0",
     "vitest-browser-svelte": "^3.1.0",
-    "wrangler": "^4.130.0",
+    "wrangler": "^4.131.0",
     "xlsx": "^0.18.5"
   },
   "imports": {
