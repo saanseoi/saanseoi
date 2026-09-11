@@ -96,6 +96,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'divisionSearchScopes' },
       { table: 'divisionsI18n' },
       { table: 'divisions' },
+      { table: 'divisionPublicationState' },
     ],
     historyTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     sources: {
@@ -105,12 +106,18 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
     },
   },
   divisionArea: {
-    currentTables: [{ table: 'divisionAreas' }],
+    currentTables: [
+      { table: 'divisionAreas' },
+      { table: 'divisionAreaPublicationState' },
+    ],
     historyTables: [{ table: 'divisionAreas' }],
     sources: { overture: ['overtureDivisionAreas'] },
   },
   divisionBoundary: {
-    currentTables: [{ table: 'divisionBoundaries' }],
+    currentTables: [
+      { table: 'divisionBoundaries' },
+      { table: 'divisionBoundaryPublicationState' },
+    ],
     historyTables: [{ table: 'divisionBoundaries' }],
     sources: { overture: ['overtureDivisionBoundaries'] },
   },
@@ -121,6 +128,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'address3d' },
       { table: 'address2dI18n' },
       { table: 'address2d' },
+      { table: 'addressPublicationState' },
     ],
     historyTables: [
       { table: 'address3dI18n' },
@@ -139,6 +147,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'placesI18n' },
       { table: 'placeSearchScopes' },
       { table: 'places' },
+      { table: 'placePublicationState' },
     ],
     historyTables: [{ table: 'placesI18n' }, { table: 'places' }],
     sources: { overture: ['overturePlaces'] },
@@ -198,9 +207,30 @@ function buildCurrentRollbackSql(
   return joinStatements(
     plan.currentTables.map(
       ({ table, snapshotColumn }) =>
-        `DELETE FROM ${table} WHERE ${snapshotColumn ?? 'snapshotId'} = ${literal(input.snapshotId)};`,
+        `DELETE FROM ${table} WHERE ${currentRollbackPredicateSql(table, snapshotColumn ?? 'snapshotId', input.snapshotId)};`,
     ),
   )
+}
+
+/** Search selection and publication receipts retain logical revisions; payload rows use scopes. */
+export function currentRollbackPredicateSql(
+  table: string,
+  column: string,
+  snapshotId: string,
+) {
+  if (table.endsWith('SearchScopes') || table.endsWith('PublicationState'))
+    return `${column} = ${literal(snapshotId)}`
+  const publication =
+    table === 'divisionAreas'
+      ? 'divisionAreaPublicationState'
+      : table === 'divisionBoundaries'
+        ? 'divisionBoundaryPublicationState'
+        : table.startsWith('division')
+          ? 'divisionPublicationState'
+          : table.startsWith('address')
+            ? 'addressPublicationState'
+            : 'placePublicationState'
+  return `${column} IN (SELECT scopeId FROM ${publication} WHERE snapshotId = ${literal(snapshotId)})`
 }
 
 function buildHistoryRollbackSql(

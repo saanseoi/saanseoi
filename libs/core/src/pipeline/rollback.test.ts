@@ -1,3 +1,4 @@
+import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 
 import { buildDraftReleasePurgeSql, buildLatestReleaseRollbackSql } from './rollback'
@@ -16,10 +17,10 @@ describe('latest release rollback SQL', () => {
     })
 
     expect(sql.current).toContain(
-      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-new';",
+      "DELETE FROM divisionsI18n WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-new');",
     )
     expect(sql.current).toContain(
-      "DELETE FROM divisions WHERE snapshotId = 'snapshot-new';",
+      "DELETE FROM divisions WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-new');",
     )
     expect(sql.history).toContain(
       "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'snapshot-new';",
@@ -58,10 +59,10 @@ describe('latest release rollback SQL', () => {
     })
 
     expect(sql.current).toContain(
-      "DELETE FROM address3dI18n WHERE snapshotId = 'address-snapshot-new';",
+      "DELETE FROM address3dI18n WHERE snapshotId IN (SELECT scopeId FROM addressPublicationState WHERE snapshotId = 'address-snapshot-new');",
     )
     expect(sql.current).toContain(
-      "DELETE FROM address2d WHERE snapshotId = 'address-snapshot-new';",
+      "DELETE FROM address2d WHERE snapshotId IN (SELECT scopeId FROM addressPublicationState WHERE snapshotId = 'address-snapshot-new');",
     )
     expect(sql.history).toContain(
       "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'address-snapshot-new';",
@@ -97,10 +98,10 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM hkgovPlandNewTowns WHERE releaseId = 'release-draft';\n",
     )
     expect(sql.current).toContain(
-      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-draft';",
+      "DELETE FROM divisionsI18n WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
     )
     expect(sql.current).toContain(
-      "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft';",
+      "DELETE FROM divisions WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
     )
     expect(sql.current).not.toContain('SET isCurrent')
     expect(sql.history).toContain(
@@ -145,7 +146,7 @@ describe('latest release rollback SQL', () => {
       sql.current.indexOf(placesDelete),
     )
     expect(sql.current).toContain(
-      "DELETE FROM placesDivision WHERE placeSnapshotId = 'places-snapshot-new';",
+      "DELETE FROM placesDivision WHERE placeSnapshotId IN (SELECT scopeId FROM placePublicationState WHERE snapshotId = 'places-snapshot-new');",
     )
     expect(sql.current).toContain(
       "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
@@ -170,4 +171,36 @@ describe('latest release rollback SQL', () => {
       }),
     ).toThrow('Rollback is not implemented for source unknown/address.')
   })
+})
+
+test('current rollback resolves the selected logical revision to its scope and leaves a newer owner alone', () => {
+  const db = new Database(':memory:')
+  db.exec(`CREATE TABLE divisionSearchScopes(scopeId PRIMARY KEY,snapshotId);
+    CREATE TABLE divisions(snapshotId,id,PRIMARY KEY(snapshotId,id));
+    CREATE TABLE divisionsI18n(snapshotId,divisionId,locale);
+    CREATE TABLE divisionPublicationState(scopeId PRIMARY KEY,snapshotId UNIQUE);
+    INSERT INTO divisionPublicationState VALUES('selected-scope','selected'),('other-scope','newer');
+    INSERT INTO divisions VALUES('selected-scope','a'),('other-scope','b');
+    INSERT INTO divisionsI18n VALUES('selected-scope','a','en'),('other-scope','b','en');`)
+  const input = {
+    apiReleaseSetId: 'set',
+    releaseId: 'release',
+    snapshotId: 'selected',
+    source: 'overture',
+    sourceVersion: '2026',
+    resourceType: 'division' as const,
+  }
+  try {
+    db.exec(buildLatestReleaseRollbackSql(input).current)
+    expect(db.query('SELECT * FROM divisions').all()).toEqual([
+      { snapshotId: 'other-scope', id: 'b' },
+    ])
+    expect(db.query('SELECT * FROM divisionPublicationState').all()).toEqual([
+      { scopeId: 'other-scope', snapshotId: 'newer' },
+    ])
+    db.exec(buildDraftReleasePurgeSql({ ...input, snapshotId: 'old-revision' }).current)
+    expect(db.query('SELECT count(*) AS n FROM divisions').get()).toEqual({ n: 1 })
+  } finally {
+    db.close()
+  }
 })

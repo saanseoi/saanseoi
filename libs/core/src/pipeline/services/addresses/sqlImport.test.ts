@@ -9,6 +9,7 @@ import { loadMigrationSql } from '../../../testing/metaFixtures'
 
 import {
   buildAddressHistoryApplySqlImportFile,
+  buildAddressCurrentSqlImportFile,
   buildAddressHistorySqlImportFile,
   buildAddressResolvedSqlImportFiles,
   buildAddressSourceSqlImportFiles,
@@ -150,6 +151,67 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
 })
 
 describe('address SQL import staging cleanup', () => {
+  test('current rows store Division scopes while resolved artefacts and history retain logical revisions', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(
+        loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
+          'current',
+        ]),
+      )
+      const normalised = normaliseAddressRowForPipeline({
+        id: 'address',
+        divisionSnapshotId: 'division-revision',
+        enFormattedAddress: 'Example',
+      })
+      const artefact: ResolvedAddressChunkArtefact = {
+        ...resolvedArtefact,
+        rowEnd: 1,
+        totalRows: 1,
+        rows: [
+          {
+            addressId: 'address',
+            sourceId: 'source',
+            versionHash: 'hash',
+            changed: true,
+            changedExistingId: null,
+            coverageComponents: [],
+            i18n: [],
+            base: {
+              ...normalised.base,
+              id: 'address',
+              snapshotId: 'address-revision',
+              createdAt: '2026-09-12',
+              updatedAt: '2026-09-12',
+            },
+          },
+        ],
+      }
+      db.exec(
+        buildAddressCurrentSqlImportFile(message, artefact, {
+          currentSnapshotId: 'address-scope',
+          currentDivisionSnapshotId: 'division-scope',
+        }).sql,
+      )
+      expect(
+        db.query('SELECT snapshotId,divisionSnapshotId FROM address2d').get(),
+      ).toEqual({ snapshotId: 'address-scope', divisionSnapshotId: 'division-scope' })
+      db.exec(buildAddressHistorySqlImportFile(message, artefact).sql)
+      expect(
+        db
+          .query(
+            'SELECT snapshotId,divisionSnapshotId FROM zzAddressImportResolvedRows',
+          )
+          .get(),
+      ).toEqual({
+        snapshotId: 'address-revision',
+        divisionSnapshotId: 'division-revision',
+      })
+      expect(artefact.rows[0]!.base.divisionSnapshotId).toBe('division-revision')
+    } finally {
+      db.close()
+    }
+  })
   test('drops current resolved staging tables after current apply SQL', () => {
     const currentFile = buildAddressResolvedSqlImportFiles(
       message,
