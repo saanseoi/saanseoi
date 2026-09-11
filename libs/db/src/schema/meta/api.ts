@@ -1,3 +1,8 @@
+import type {
+  ApiFieldInput,
+  ApiFieldRulePin,
+  PublisherFields,
+} from '../../apiFieldInputs'
 import {
   foreignKey,
   index,
@@ -17,7 +22,6 @@ import {
   apiVersionStatuses,
   datasetTypes,
   provenanceContributionTypes,
-  resolverCodes,
   snapshotStatuses,
 } from '../../constants/schema'
 import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
@@ -207,6 +211,7 @@ export const metaApiReleaseSets = sqliteTable(
     validTo: isoTimestamp('validTo'),
     notes: text('notes'),
     guide: text('guide'),
+    publisherFields: text('publisherFields', { mode: 'json' }).$type<PublisherFields>(),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -467,12 +472,16 @@ export const metaApiFieldProvenance = sqliteTable(
     id: primaryUuid('id'),
     apiReleaseSetId: apiReleaseSetIdColumn(),
     apiField: text('apiField').notNull(),
+    resourceType: text('resourceType').notNull(),
     variant: text('variant'),
     sourceDatasetId: text('sourceDatasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    sourceFieldPath: text('sourceFieldPath').notNull(),
-    resolverCode: text('resolverCode', { enum: resolverCodes }).notNull(),
+    inputs: text('inputs', { mode: 'json' }).$type<ApiFieldInput[]>().notNull(),
+    resolverRules: text('resolverRules', { mode: 'json' })
+      .$type<ApiFieldRulePin[]>()
+      .notNull(),
+    resolverCode: text('resolverCode').notNull(),
     contributionType: text('contributionType', {
       enum: provenanceContributionTypes,
     }).notNull(),
@@ -482,17 +491,19 @@ export const metaApiFieldProvenance = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('apiFieldProvenance_release_field_source_unique_idx').on(
+    uniqueIndex('apiFieldProvenance_release_resource_field_inputs_unique_idx').on(
       table.apiReleaseSetId,
+      table.resourceType,
       table.apiField,
       table.variant,
       table.sourceDatasetId,
-      table.sourceFieldPath,
+      table.inputs,
       table.contributionType,
       table.priority,
     ),
     index('apiFieldProvenance_release_field_idx').on(
       table.apiReleaseSetId,
+      table.resourceType,
       table.apiField,
     ),
   ],
