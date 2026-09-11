@@ -26,7 +26,7 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
       const columns = (
         sqlite.query(`PRAGMA table_info("${table}")`).all() as Array<{ name: string }>
       ).map(column => column.name)
-      expect(columns).toContain('rawProperties')
+      expect(columns).toContain('properties')
       expect(columns).toContain('sourceGeometry')
       for (const column of periodColumns) expect(columns).not.toContain(column)
       const payload = JSON.stringify({
@@ -35,11 +35,11 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
         Population: 123,
       })
       sqlite
-        .query(`INSERT INTO "${table}" (sourceRecordId, versionHash, releaseId, validFromRelease, isCurrent, rawProperties, sourceGeometry)
+        .query(`INSERT INTO "${table}" (sourceRecordId, versionHash, releaseId, validFromRelease, isCurrent, properties, sourceGeometry)
         VALUES ('record', 'hash', 'release', '2021', 1, ?, 'null')`)
         .run(payload)
-      expect(sqlite.query(`SELECT rawProperties FROM "${table}"`).get()).toEqual({
-        rawProperties: payload,
+      expect(sqlite.query(`SELECT properties FROM "${table}"`).get()).toEqual({
+        properties: payload,
       })
     }
     const canonicalColumns = (

@@ -17,7 +17,7 @@ export type HkgovTdPedestrianStreetKind = (typeof hkgovTdPedestrianStreetKinds)[
  * CSDI distributes five kinds with this same schema: Part-time Pedestrian,
  * Hawker, Market, Traffic Calming and Full-time Pedestrian Street. `OBJECTID`
  * is scoped to a kind, which forms part of sourceRecordId. The kind is retained
- * as the source-layer discriminator; publisher attributes live in rawProperties.
+ * as the source-layer discriminator; publisher attributes live in properties.
  */
 export const sourceHkgovTdPedestrianStreets = sqliteTable(
   'hkgovTdPedestrianStreets',
