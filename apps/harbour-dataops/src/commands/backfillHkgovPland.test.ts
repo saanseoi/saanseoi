@@ -9,6 +9,7 @@ const preparedTypes: Array<{ sourceVersion: string; resourceType: string }> = []
 const preparedInputs: string[] = []
 const uploadedTypes: Array<{
   deferApiReleaseSet: boolean
+  reuseExistingRelease: boolean
   skipSnapshotCleanup: boolean
   sourceVersion: string
   resourceType: string
@@ -43,12 +44,17 @@ const runUploadCommandMock = mock(
   async (
     _args: { options: { 'source-version'?: unknown; 'resource-type'?: unknown } },
     _target: unknown,
-    options: { deferApiReleaseSet?: boolean; skipSnapshotCleanup: boolean },
+    options: {
+      deferApiReleaseSet?: boolean
+      reuseExistingRelease?: boolean
+      skipSnapshotCleanup: boolean
+    },
   ) => {
     const sourceVersion = String(_args.options['source-version'])
     const resourceType = String(_args.options['resource-type'])
     uploadedTypes.push({
       deferApiReleaseSet: options.deferApiReleaseSet === true,
+      reuseExistingRelease: options.reuseExistingRelease === true,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
       sourceVersion,
       resourceType,
@@ -159,60 +165,70 @@ describe('Planning Department backfills', () => {
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
         sourceVersion: '2001',
         resourceType: 'division',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
         sourceVersion: '2001',
         resourceType: 'divisionArea',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
         sourceVersion: '2006',
         resourceType: 'division',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
         sourceVersion: '2006',
         resourceType: 'divisionArea',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
         sourceVersion: '2011',
         resourceType: 'division',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
         sourceVersion: '2011',
         resourceType: 'divisionArea',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
         sourceVersion: '2016',
         resourceType: 'division',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
         sourceVersion: '2016',
         resourceType: 'divisionArea',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
         sourceVersion: '2021',
         resourceType: 'division',
       },
       {
         deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
         sourceVersion: '2021',
         resourceType: 'divisionArea',
       },

@@ -492,6 +492,10 @@ async function uploadPreparedArtefact(args: {
     forceUpload: args.forceUpload,
     invocationCwd: args.invocationCwd,
     printUsage: () => undefined,
+    // Division and area are separate materialisations of one Planning source
+    // release. An interrupted area pass must re-enter that companion release
+    // without admitting an unrelated processing dataset.
+    reuseExistingRelease: args.resourceType === 'divisionArea',
     skipConfirm: true,
     // A Planning Department division snapshot is the required referent for its
     // companion area release. Keep it materialised while this cohort's area is
