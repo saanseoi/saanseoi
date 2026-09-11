@@ -19,7 +19,7 @@ export type MarkdownTransclusion = {
   displayTitleKey: ReferenceMessageKey
   markdown: string
   title: string
-  type: 'definition' | 'note'
+  kind: 'definition' | 'note'
   version: string
 }
 
@@ -342,7 +342,7 @@ export function getMarkdownTransclusion(href: string | null | undefined) {
   return getMarkdownReference({
     id,
     locale,
-    type: type as MarkdownTransclusion['type'],
+    type: type as MarkdownTransclusion['kind'],
     version: `v${version}`,
   })
 }
@@ -372,7 +372,7 @@ function getMarkdownReference({
 }: {
   id: string
   locale: string
-  type: MarkdownTransclusion['type']
+  type: MarkdownTransclusion['kind']
   version: string
 }): MarkdownGlossaryEntry | null {
   const reference =
@@ -382,7 +382,7 @@ function getMarkdownReference({
   return {
     ...reference,
     id,
-    type,
+    kind: type,
     version,
     markdown: selectMarkdownHeadingPath(reference.source, [
       { heading: reference.title, level: 1 },

@@ -92,7 +92,7 @@ export type ApiRelease = {
     role: 'primary' | 'supporting'
     resourceType: string
     sourceVersion: string
-    subType: string | null
+    kind: string | null
     variant: string
     sourceArchive?: {
       assetId: string
@@ -236,7 +236,7 @@ export type RegistrySource = {
   releaseType: string
   releaseFrequency: string
   theme: string
-  subType: string | null
+  kind: string | null
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
@@ -274,7 +274,7 @@ export type ReleaseMergeRules = {
     rulesetVersionHash: string
     rules: Array<{
       operationCode: string
-      type: 'bulk' | 'record'
+      kind: 'bulk' | 'record'
       sourceFieldPath?: string
       targetFieldPath?: string
       condition?: string
