@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Open source versions with unchanged hashes retain their release ID, validity and
+timestamps. Publisher membership determines omissions independently of release markers.
+Geometry source and derivative conflict updates run only for closed assertions; closing
+a changed version targets that current version without rewriting older history.
+
 New Territories area restoration includes the nine statutory district land geometries
 and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
 
@@ -112,10 +117,9 @@ Recorded zero means no selected matches or changes in that execution. Missing br
 definitions or counters mean **not recorded**. Audit presents only retained policy and
 never substitutes the current implementation for a historical declaration.
 
-Source-row `sources` is `null` when Overture division or division geometry ingestion has
-no supplied provenance. Ingestion does not manufacture source references from internal
-record or canonical division IDs. Publisher identifiers and archive evidence remain
-valid references.
+Overture attribution remains in `rawProperties.sources`, including explicit nulls or
+empty arrays supplied by the publisher. Private acquisition locators do not repeat
+publisher attribution or canonical identifiers.
 
 Local geometry prerequisite checks may read a pending delivery only when its sealed
 plans prove ownership by the exact release being resumed. Other releases remain blocked
@@ -496,3 +500,26 @@ hierarchy normalisation is recorded in the release audit.
 Initialisation stops at the first failed upload so a retained SQL delivery keeps
 exclusive ownership until its release is recovered. If audit delivery also fails, the
 log includes both the original guard reason and the delivery error.
+
+## Source record response
+
+The [source record contract](../source-records.md) retains publisher attributes in
+`rawProperties`, including publisher-authored attribution. Records expose source
+identity and optional native geometry. Resource types, variants and internal acquisition
+locators are not publisher-record fields. Geometry retains the source coordinates and
+CRS; canonical geometry is available through the family’s canonical API.
+
+## Local D1 with production artefacts
+
+For a fresh local initialisation, `--target local --r2 production` keeps processing and
+registrations in local D1 while retaining source and provenance objects in production
+R2. See the
+[storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
+immutable uploads and continuation requirements.
+
+## Registry metadata
+
+Official division dataset processing metadata declares the identity bridge, Lands
+Department settlement selection and Planning Department normalisation where applicable.
+Source and resource releases retain their creation-time policy. Planning release
+statistics use the `release` kind.

@@ -3,6 +3,11 @@
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.
 
+Address decision lookup indexes both exact observations and per-Place decision history.
+Historical replay retains release ordering, fingerprint checks and first-match
+precedence without scanning unrelated decisions. Appending or replacing the ledger
+refreshes both indexes.
+
 Canonical list requests use SQL pagination for materialised snapshots. Historical lists
 replay bounded batches until the requested page and one further match are found. Their
 `meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
@@ -17,9 +22,10 @@ release validity.
 
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
-assertions carry compact, bounded ID updates that advance release membership while
-preserving their original validity and creation dates. Source finalisation closes
-assertions absent from the incoming release after all chunks have been applied.
+assertions remain untouched, preserving their original release, validity and timestamps.
+Source finalisation compares complete incoming membership in disjoint indexed ID ranges
+and closes omissions after all chunks have been applied. A shard rollover writes the
+required copy to the new shard and closes the preceding shard's current assertion.
 Canonical current snapshots are materialised independently of this source optimisation.
 
 The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
@@ -56,6 +62,43 @@ reuse. Review and supplementary analysis run before this cache is consulted.
 
 Cold enrichment rechecks observed Address3D dependencies before replacing the staged
 output; a detected concurrent edit leaves the completed file intact.
+
+### Incremental Place preparation
+
+Harbour retains a disposable per-record SQLite cache under
+`.local/harbour-sql/releases/{target}/place-record-cache/{datasetCode}.sqlite`. It is
+shared across releases of that dataset and target. Source records with identical
+payloads reuse normalisation, while first-seen and last-seen observation months are
+assigned for the release being processed. Reading and hashing the incoming source is
+still required to establish membership, changes and removals.
+
+Address parsing is keyed by publisher text and official definitions. Address resolution
+also includes coordinates, official IDs and geometry, matching policies, the previous
+relationship and applicable curation entries and decisions. Resolved records retain
+compact cache values; review records retain candidate evidence. Same-release decisions
+and supplementary identity creation execute their ledger operations on every attempt.
+Review guards, audit delivery and supplementary snapshot materialisation remain active.
+
+Per-record enrichment includes the selected Address and Division references, Address
+parent and division links, curated coordinates and the normalised source. Address3D
+collection dependencies, including missing collections, are checked before reuse.
+Reusable projections include H3 cells and localisation version hashes. Implementation,
+processing-rule and dependency-lock changes invalidate cached computations, including
+same-release normalisation staging. Cached values carry checksums and writes are atomic;
+retained computations from an interrupted attempt must still match the next attempt's
+inputs and references.
+
+Each snapshot receives its complete current projection and source-resolution records.
+Independent current and version-index rows use multi-row inserts bounded by the SQL
+statement byte limit. Source and history mutations retain their ordered lifecycle
+statements. The CLI reports reused and computed record counts for each cache stage.
+
+`bun run scripts/benchmark-place-incremental.ts` compares direct, cold-cache and warm
+record-cache preparation for 1,000 synthetic Places and official definitions. It checks
+identical resolution and enrichment digests and reports projection statement counts and
+bytes in `.cache/preparation-benchmarks/place-incremental.json`. Reference reads use an
+in-memory fixture; timings exclude Parquet reading, database mirroring and remote
+delivery. The first run populates the record cache and incurs cache-write overhead.
 
 `bun run scripts/benchmark-place-enrichment.ts` compares direct, cold-cache and
 warm-cache enrichment on 2,000 synthetic unlinked Places using migrated local SQLite
@@ -329,3 +372,23 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Source record response
+
+The [source record contract](../source-records.md) retains publisher attributes in
+`rawProperties`, including publisher-authored attribution. Records expose source
+identity and optional native geometry. Resource types, variants and internal acquisition
+locators are not publisher-record fields. Geometry retains the source coordinates and
+CRS; canonical geometry is available through the family’s canonical API.
+
+## Local D1 with production artefacts
+
+For a fresh local initialisation, `--target local --r2 production` keeps processing and
+registrations in local D1 while retaining source and provenance objects in production
+R2. See the
+[storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
+immutable uploads and continuation requirements.
+
+Local Places continuation reuses retained inputs and completed source releases.
+Official-address matching reads English and Traditional Chinese definitions from the
+selected ALS snapshot. Local ownership-manifest completion opens only metadata.

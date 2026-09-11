@@ -1,5 +1,10 @@
 # Statistics dataset family
 
+Statistics source replay closes changed hashes and same-release omissions explicitly.
+Conflict updates leave open matching versions untouched, including their original
+release and validity. Large geometry reconstruction is limited to incomplete or closed
+rows, so replay does not rewrite or append to a complete unchanged payload.
+
 Source-shard assignments use the four-digit year of the publisher version, including
 versions with quarter or half-year suffixes. Canonical history uses each observation's
 reference-period end year independently.
@@ -338,10 +343,23 @@ in that cohort as its denominator; unverified labels remain explicit. Unlinked g
 is a coverage fact, not an assertion that a match is incorrect. Publisher values remain
 strings and are never summed to produce these metrics.
 
-Structural changes count added, removed and retained field, measure and geography
-identities against the preceding release with the same API version, domain, region and
-period granularity. They do not compare numerical values. The first comparable release
-has no change baseline.
+Primary-record churn compares the preceding release with the same API version, domain,
+region and period granularity. Records match by dataset, geography kind/code/class and
+analytical dimensions. Changed records have different field/value mappings, canonical
+division linkage or geometry companion domain/variant. Publisher values are compared as
+literal strings, including suppression and unavailable markers; reference-period fields,
+geometry companion cohort, source provenance and version metadata do not imply a change.
+
+Distinct retained source copies remain separate occurrences. Within each analytical
+identity, identical payloads match first, remaining pairs count as changed, and
+unmatched occurrences count as added or removed. This preserves the primary-record
+totals even when multiple selected source releases contain the same analytical record.
+Added, changed and unchanged sum to the current count; removed, changed and unchanged
+sum to the preceding count. A first release counts every record as added.
+
+Structural changes independently count added, removed and retained field, measure and
+geography identities against that same preceding release. They do not compare numerical
+values. The first comparable release has no structural change baseline.
 
 Publication and reconciliation calculate these presentation facts. To rebuild all local
 published releases without re-ingestion or changing snapshot membership:
@@ -353,3 +371,19 @@ bun apps/harbour-cli/src/cli.ts stats:backfill-statistics --target local
 
 Use `--release CODE[,CODE...]` to select API releases. The backfill prepares and
 validates every selected release before replacing any saved presentation statistics.
+
+## Source record response
+
+The [source record contract](../source-records.md) retains publisher attributes in
+`rawProperties`, including publisher-authored attribution. Records expose source
+identity and optional native geometry. Resource types, variants and internal acquisition
+locators are not publisher-record fields. Geometry retains the source coordinates and
+CRS; canonical geometry is available through the family’s canonical API.
+
+## Local D1 with production artefacts
+
+For a fresh local initialisation, `--target local --r2 production` keeps processing and
+registrations in local D1 while retaining source and provenance objects in production
+R2. See the
+[storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
+immutable uploads and continuation requirements.
