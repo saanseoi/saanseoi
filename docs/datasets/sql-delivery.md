@@ -22,7 +22,7 @@ Each plan contains:
   payload byte lengths and SHA-256 checksums;
 - numbered `.sql` files, or `.json` files containing bound Address3D statements;
 - `progress.json`: separate remote/local checkpoints, upload filenames, bookmarks and
-  timing counters;
+  timing counters and available D1 row usage;
 - `lock.sqlite`: an advisory lock that SQLite releases when the process exits.
 
 A sealed plan is immutable. Recovery reads retained payloads without calculating
@@ -246,6 +246,47 @@ Bound query execution has no separate bulk-upload phase. These client-observed t
 include network latency. Summed concurrent batch times are not release wall-clock
 duration. A recovered receipt can prove completion without recovering a timing sample
 lost when the process terminated.
+
+## D1 row usage
+
+Remote batch checkpoints retain `rowUsage.rowsRead`, `rowUsage.rowsWritten` and a
+`complete` flag. Bound delivery sums D1 statement metadata, including the receipt insert
+and receipt-table creation. Grouped requests attribute each statement to its sealed
+batch and count shared table creation once. SQL imports retain the terminal import
+result's cumulative metadata once; polling and receipt-confirmed recovery do not add
+that result again. Bounded source retirement contributes its returned metadata to the
+owning batch.
+
+`sql:status` and remote/local reconciliation results expose the phase totals and
+measurement completeness. These totals cover delivery mutations and retirement, not
+receipt-verification reads or unrelated Worker, migration or R2 activity. Missing
+metadata and lost acknowledgements are unknown usage, not zero usage. An incomplete
+summary is a lower bound. Existing sealed checkpoints without usage remain recoverable
+and report incomplete measurement. `usagePending` is persisted before execution so a
+crash cannot silently turn an unmeasured request into a complete cost report.
+
+## Initial production bootstrap
+
+For a fresh local run, `saanseoi init --target local --r2 production` retains source and
+provenance objects in production R2 while keeping registrations and processing in local
+D1. See the [R2 bootstrap mode](./d1-bootstrap.md#ingest-locally-with-production-r2) for
+continuation, authentication and object-verification requirements.
+
+A local initialisation can prepare and validate the final persistent database contents
+before a first production import. A SQL export for each D1 shard must include the
+required schema, indexes, history, snapshot membership and metadata, and omit transient
+staging tables and local execution receipts. R2 artefacts and production bindings need
+separate preparation and verification.
+
+D1 imports SQL rather than accepting an arbitrary local SQLite file as a Time Travel
+restore. Final inserts and index creation remain billable. Local preparation can avoid
+remote staging writes, intermediate version updates, temporary-index work and repeated
+draft rebuilds. Its benefit depends on the final retained rows and indexes, not the
+compressed upload size. A bootstrap workflow must target empty, verified databases and
+publish only after all shards and artefacts pass cross-reference checks. The
+[initial D1 bootstrap runbook](./d1-bootstrap.md) provides destination-creation, local
+export, restore-validation and guarded import commands for the complete shard set.
+Artefact verification and Worker publication remain separate steps.
 
 ## Local benchmark
 
