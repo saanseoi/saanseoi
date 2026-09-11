@@ -76,6 +76,7 @@ import {
   type GeoJsonPosition,
 } from '../../geojson'
 import type { AsyncBuffer } from 'hyparquet'
+import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
 import { resolveSourceRecordSchema } from '../../../sourceRecordSchemas'
 
 import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
@@ -1956,7 +1957,7 @@ function collectLocalisedRuleValues(
  * Builds canonical ancestor classifications from the source division schema.
  */
 export async function buildDivisionHierarchyLookup(
-  file: AsyncBuffer,
+  file: DivisionInput,
   source: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
     Partial<Pick<DatasetProcessingMessage, 'regionCode'>>,
 ) {
@@ -1971,7 +1972,7 @@ export async function buildDivisionHierarchyLookup(
     columns.push('admin_level')
   }
 
-  for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
+  for await (const batch of readDivisionInputBatches(file, DIVISION_BATCH_SIZE, {
     columns,
   })) {
     sourceRows.push(...batch)

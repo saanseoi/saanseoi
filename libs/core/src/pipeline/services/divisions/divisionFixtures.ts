@@ -1,8 +1,7 @@
 import { overtureHongKongCityRestorationActions } from './overtureHongKongCityRestoration'
-import type { AsyncBuffer } from 'hyparquet'
+import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
 
 import type { DatasetProcessingMessage } from '../../../types'
-import { readParquetObjectsInBatches } from '../../parquetR2'
 import prcCountryAnchor from '../../../../../../fixtures/divisions/overture/hk-prc-country-anchor.json'
 import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
 import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
@@ -39,12 +38,12 @@ export function getSupplementalDivisionFixtureRows(
 }
 
 export async function* readDivisionRowsWithFixtures(
-  file: AsyncBuffer,
+  file: DivisionInput,
   message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   batchSize: number,
 ): AsyncGenerator<DivisionRowBatch> {
   const sourceRows: DivisionFixtureRow[] = []
-  for await (const rows of readParquetObjectsInBatches(file, batchSize)) {
+  for await (const rows of readDivisionInputBatches(file, batchSize)) {
     sourceRows.push(...rows)
   }
 

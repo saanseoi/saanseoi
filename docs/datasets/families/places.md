@@ -24,12 +24,12 @@ SQL uploads compare incoming publisher hashes with current source assertions in 
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
 assertions remain untouched, preserving their original release, validity and timestamps.
 Source finalisation compares complete incoming membership in disjoint indexed ID ranges
-and closes omissions after all chunks have been applied. A shard rollover writes the
-unchanged assertion remains in its owning shard, while the release is assigned every
-source shard containing a retained assertion. New, changed and returning assertions
-write to the active shard; changed and omitted assertions close in their owning shard.
-Canonical and source candidates share final-difference delivery; only their changed rows
-are transmitted.
+and closes omissions after all chunks have been applied. A shard rollover leaves the
+unchanged assertion in its owning shard, while the release is assigned every source
+shard containing a retained assertion. New, changed and returning assertions write to
+the active shard; changed and omitted assertions close in their owning shard. Canonical
+and source candidates share final-difference delivery; only their changed rows are
+transmitted.
 
 The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
 optional `releaseSet`, `snapshot`, `cohort` and `dataset` selectors. Read retained
