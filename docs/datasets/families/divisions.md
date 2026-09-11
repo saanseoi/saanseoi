@@ -592,6 +592,11 @@ Initialisation stops at the first failed upload so a retained SQL delivery keeps
 exclusive ownership until its release is recovered. If audit delivery also fails, the
 log includes both the original guard reason and the delivery error.
 
+Initialisation skips a published Division or geometry release only when its snapshot has
+a complete delivery receipt for the matching current scope, together with its source
+membership and shard assignments. Completed empty snapshots are valid. Superseded
+releases remain skippable after their current projection has been cleaned up.
+
 ## Source record response
 
 The [source record contract](../source-records.md) exposes publisher attributes in
