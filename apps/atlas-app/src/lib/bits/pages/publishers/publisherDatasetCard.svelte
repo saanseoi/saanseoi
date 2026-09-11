@@ -87,10 +87,10 @@ let facts = $derived.by(() => {
     })
   }
 
-  if (source.subType) {
+  if (source.kind) {
     rows.push({
-      label: m.source_subtype(),
-      value: displayRegistryValue(source.subType) ?? unavailable,
+      label: m.source_kind(),
+      value: displayRegistryValue(source.kind) ?? unavailable,
     })
   }
 

@@ -15,10 +15,10 @@ test('groups Kwai Tsing with the New Territories', () => {
     division => division.attributes.divisionCode === 'KC',
   )
 
-  expect(kwaiTsing?.relationships.hierarchy.data).toContainEqual({
-    type: 'divisions',
+  expect(kwaiTsing?.attributes.hierarchies.administrative.flat()).toContainEqual({
+    class: 'area',
     id: '780c42b7-213b-5076-9d36-6ae0024e3bd3',
-    meta: { subType: 'area', name: 'New Territories' },
+    name: 'New Territories',
   })
 
   const [population, landArea] = urbanDensityStatsResponses
