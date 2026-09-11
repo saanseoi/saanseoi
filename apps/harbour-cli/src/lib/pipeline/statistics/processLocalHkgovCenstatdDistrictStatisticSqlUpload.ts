@@ -1,3 +1,4 @@
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
@@ -40,7 +41,6 @@ import {
   invalidateRemoteDbCache,
   applyPublishMetadataDeltaToRemoteCache,
   refreshRemoteMetaCache,
-  resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../../cli/options.ts'
@@ -159,16 +159,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
   progress.beginPhase('Prepare statistic processing cache', { max: null })
-  let context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  let context: Awaited<ReturnType<typeof resolveCurrentWriteContext>>
   try {
-    context = await resolveLocalAddressDbContext(
+    context = await resolveCurrentWriteContext(
       target,
       plan.regionCode,
       plan.sourceVersion.slice(0, 4),
       {
-        cacheTableProfile: 'divisionStatistic',
         resumeSqlDeliveryReleaseId: releaseId,
-        includeAllHistoryShardYears: true,
+
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -513,7 +512,11 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
               published,
             )
           } else {
-            await refreshRemoteMetaCache(targetName, context.state.dbCacheDir)
+            await refreshRemoteMetaCache(
+              targetName,
+              context.state.dbCacheDir,
+              releaseId,
+            )
           }
         }
         return published
