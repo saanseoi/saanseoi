@@ -14,6 +14,7 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'divisionStatistic') {
       return [
         'statsRecords',
+        'statsPublicationState',
         'statsFields',
         'statsFieldsI18n',
         'statsMeasures',
@@ -25,6 +26,7 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'statistics') {
       return [
         'statsRecords',
+        'statsPublicationState',
         'statsFields',
         'statsFieldsI18n',
         'statsMeasures',
@@ -34,26 +36,37 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'street') {
-      return ['divisions', 'divisionsI18n', 'streets', 'streetsI18n']
+      return [
+        'divisions',
+        'divisionPublicationState',
+        'divisionsI18n',
+        'streets',
+        'streetPublicationState',
+        'streetsI18n',
+      ]
     }
 
     if (cacheTableProfile === 'division') {
-      return ['divisions', 'divisionsI18n']
+      return ['divisions', 'divisionPublicationState', 'divisionsI18n']
     }
 
     if (cacheTableProfile === 'places') {
       return [
         'divisions',
+        'divisionPublicationState',
         'divisionsI18n',
         'streets',
+        'streetPublicationState',
         'streetsI18n',
         'streetsAddress',
+        'addressPublicationState',
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
         'address3d',
         'address3dI18n',
         'places',
+        'placePublicationState',
         'placesI18n',
         'placesDivision',
         'placesCells',
@@ -63,9 +76,12 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'address') {
       return [
         'divisions',
+        'divisionPublicationState',
         'divisionsI18n',
         'streets',
+        'streetPublicationState',
         'streetsI18n',
+        'addressPublicationState',
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
@@ -78,29 +94,42 @@ export function resolveCacheTablesForBinding(
       cacheTableProfile === 'divisionGeometry' ||
       cacheTableProfile === 'planningDivisionGeometry'
     ) {
-      return cacheTableProfile === 'planningDivisionGeometry'
-        ? ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
-        : ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
+      return [
+        'divisions',
+        'divisionPublicationState',
+        'divisionsI18n',
+        'divisionAreas',
+        'divisionAreaPublicationState',
+        'divisionBoundaries',
+        'divisionBoundaryPublicationState',
+      ]
     }
 
     return [
       'divisions',
+      'divisionPublicationState',
       'divisionsI18n',
       'streets',
+      'streetPublicationState',
       'streetsI18n',
       'streetsAddress',
       'places',
+      'placePublicationState',
       'placesI18n',
       'placesDivision',
       'placesCells',
+      'addressPublicationState',
       'address2d',
       'address2dI18n',
       'address2dBuildingNumberLookup',
       'address3d',
       'address3dI18n',
       'divisionAreas',
+      'divisionAreaPublicationState',
       'divisionBoundaries',
+      'divisionBoundaryPublicationState',
       'statsRecords',
+      'statsPublicationState',
       'statsFields',
       'statsFieldsI18n',
       'statsMeasures',
@@ -113,6 +142,7 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'divisionStatistic') {
       return [
         'sourceResolutions',
+        'snapshotVersionChanges',
         'divisionStatistics',
         'statsRecords',
         'statsFields',
@@ -126,6 +156,7 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'statistics') {
       return [
         'sourceResolutions',
+        'snapshotVersionChanges',
         'statsRecords',
         'statsFields',
         'statsFieldsI18n',

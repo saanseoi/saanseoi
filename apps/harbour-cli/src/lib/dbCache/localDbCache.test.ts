@@ -132,21 +132,24 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(156)
-  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(40)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(104)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(55)
-  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(50)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(163)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(107)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(59)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(54)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
     'sourceResolutions',
   )
   expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
     'divisions',
+    'divisionPublicationState',
     'divisionsI18n',
     'divisionAreas',
+    'divisionAreaPublicationState',
     'divisionBoundaries',
+    'divisionBoundaryPublicationState',
   ])
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(51)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(54)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {
