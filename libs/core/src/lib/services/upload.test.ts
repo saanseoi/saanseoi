@@ -1,3 +1,4 @@
+import { initialDatasets } from '../../../../db/src/registry/meta'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -555,6 +556,12 @@ describe('upload', () => {
 
     initDb(dbPath).close()
     const sqlite = new Database(dbPath)
+    const policy = initialDatasets.find(
+      dataset => dataset.code === 'ds-hk-overture-division',
+    )!.processingRules
+    sqlite
+      .query('UPDATE datasets SET processingRules = ? WHERE code = ?')
+      .run(JSON.stringify(policy), 'ds-hk-overture-division')
     const db = createLocalHarbourDb(sqlite)
 
     const result = await registerUpload(db, {
@@ -588,6 +595,24 @@ describe('upload', () => {
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
+
+    const sourceMetadata = sqliteCheck
+      .query(`
+      SELECT s.rawObjectKey, s.processingRules AS sourceRules,
+        r.processingRules AS resourceRules, d.processingRules AS datasetRules
+      FROM releases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
+      JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
+    `)
+      .get(result.plan.releaseCode) as {
+      rawObjectKey: string
+      sourceRules: string
+      resourceRules: string
+      datasetRules: string
+    }
+    expect(sourceMetadata.rawObjectKey).toBe(result.rawObjectKey!)
+    expect(sourceMetadata.datasetRules).not.toBeNull()
+    expect(sourceMetadata.sourceRules).toBe(sourceMetadata.datasetRules)
+    expect(sourceMetadata.resourceRules).toBe(sourceMetadata.datasetRules)
 
     sqliteCheck.close()
 
@@ -1411,52 +1436,74 @@ Reconcile the schema before uploading this dataset.`)
     sqlite.close()
   })
 
-  test('continues a completed processing release only when explicitly requested', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-20.0',
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'processing',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-    insertFixtureIngestRun(sqlite, {
-      runId: 'completed-processing-run',
-      releaseId,
-      phase: 'processDataset',
-      status: 'completed',
-      startedAt: '2026-06-02T00:00:00.000Z',
-      finishedAt: '2026-06-02T00:01:00.000Z',
-    })
+  test.each(['completed', 'retained', 'retained-remote', 'mismatched'])(
+    'continues only completed processing or the recovered SQL owner: %s',
+    async recovery => {
+      const tempDir = createTempDir()
+      const dbPath = join(tempDir, 'harbour.sqlite')
+      const fixtureFile = createFixturePath(tempDir)
+      const sqlite = initDb(dbPath)
+      const db = createLocalHarbourDb(sqlite)
+      const { releaseId } = insertFixtureRelease(sqlite, {
+        source: 'overture',
+        regionCode: 'hk',
+        cohortKey: '2026-05',
+        theme: 'divisions',
+        type: 'division',
+        sourceVersion: '2026-05-20.0',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'processing',
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      if (recovery === 'completed')
+        insertFixtureIngestRun(sqlite, {
+          runId: 'completed-processing-run',
+          releaseId,
+          phase: 'processDataset',
+          status: 'completed',
+          startedAt: '2026-06-02T00:00:00.000Z',
+          finishedAt: '2026-06-02T00:01:00.000Z',
+        })
 
-    const result = await registerUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
-      resumeInterruptedProcessingRelease: true,
-    })
-    expect(result).toMatchObject({ releaseId })
+      const registration = registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
+        resumeInterruptedProcessingRelease: true,
+        reuseExistingRelease: recovery === 'retained-remote',
+        allowExistingDatasetStatuses:
+          recovery === 'retained-remote' ? ['staged', 'processing'] : undefined,
+        recoveredSqlDeliveryReleaseId:
+          recovery === 'retained'
+            ? releaseId
+            : recovery === 'mismatched'
+              ? 'other-release'
+              : undefined,
+      })
+      if (recovery === 'mismatched') {
+        await expect(registration).rejects.toThrow(
+          'the processing phase did not complete',
+        )
+        sqlite.close()
+        return
+      }
+      const result = await registration
+      expect(result).toMatchObject({ releaseId })
 
-    expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
-    ).toEqual({ status: 'staged' })
-    sqlite.close()
-  })
+      expect(
+        sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+      ).toEqual({ status: 'staged' })
+      sqlite.close()
+    },
+  )
 
   test('does not continue a processing release with an active ingest phase', async () => {
     const tempDir = createTempDir()
@@ -1503,6 +1550,9 @@ Reconcile the schema before uploading this dataset.`)
         inspection: fixtureInspection,
         rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
         resumeInterruptedProcessingRelease: true,
+        recoveredSqlDeliveryReleaseId: releaseId,
+        reuseExistingRelease: true,
+        allowExistingDatasetStatuses: ['staged', 'processing'],
       }),
     ).rejects.toThrow('phase importPlandSqlSource is still running')
 
