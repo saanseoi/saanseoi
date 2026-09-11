@@ -1,16 +1,87 @@
 import { describe, expect, test } from 'bun:test'
+import { resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
+import { loadMigrationSql } from '@repo/core/testing/metaFixtures'
 
 import {
+  assertPlacesCurrentResetOwnership,
   assertPlacesInitialisationComplete,
+  buildPlacesResetSql,
   collectOwnedPlaces,
   failRunningPlacesIngestRuns,
   failPlacesManifest,
   hasCompletedOverturePlacesBaseline,
   resumePlacesManifest,
 } from './resetPlaces.ts'
+
+function createPlacesResetCurrentDb() {
+  const sqlite = new SQLiteDatabase(':memory:')
+  sqlite.exec(
+    loadMigrationSql(resolve(import.meta.dir, '../../../../../../libs/db/migrations'), [
+      'current',
+    ]),
+  )
+  for (const [scope, snapshot, addressId] of [
+    ['places-address-lineage', 'address-draft', 'opa-owned'],
+    ['als-lineage', 'als-snapshot', 'official'],
+  ]) {
+    sqlite
+      .query(`INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
+      VALUES(?,?,'current','token','prepared')`)
+      .run(scope!, snapshot!)
+    sqlite
+      .query('INSERT INTO addressSearchScopes(scopeId,snapshotId) VALUES(?,?)')
+      .run(scope!, snapshot!)
+    sqlite
+      .query(
+        "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES(?,?,'division')",
+      )
+      .run(scope!, addressId!)
+    sqlite
+      .query(
+        "INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES(?,?,'en','1 TEST ROAD')",
+      )
+      .run(scope!, addressId!)
+    sqlite
+      .query(
+        "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,evidence) VALUES(?,?,'1','source_endpoint')",
+      )
+      .run(scope!, addressId!)
+  }
+  for (const [scope, snapshot] of [
+    ['places-lineage', 'unlinked-draft'],
+    ['unrelated-place-lineage', 'unrelated-place-snapshot'],
+  ]) {
+    sqlite
+      .query(`INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
+      VALUES(?,?,'current','token','prepared')`)
+      .run(scope!, snapshot!)
+    sqlite
+      .query('INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES(?,?)')
+      .run(scope!, snapshot!)
+    sqlite
+      .query(`INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth)
+      VALUES(?,'place','release',114,22,'2026-09','2026-09')`)
+      .run(scope!)
+    sqlite
+      .query(
+        "INSERT INTO placesI18n(snapshotId,placeId,locale,name) VALUES(?,'place','en','Test')",
+      )
+      .run(scope!)
+    sqlite
+      .query(
+        "INSERT INTO placesCells(snapshotId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
+      )
+      .run(scope!)
+    sqlite
+      .query(`INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition)
+      VALUES(?,'place','division-scope','division','{}')`)
+      .run(scope!)
+  }
+  return { db: createLocalHarbourDb(sqlite), sqlite }
+}
 
 function createPlacesOwnershipDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -130,6 +201,85 @@ function createPlacesOwnershipDb() {
 }
 
 describe('Overture Places initialisation ownership', () => {
+  test('resets owned serving scopes and receipts while preserving unrelated current projections', async () => {
+    const metadata = createPlacesOwnershipDb()
+    const current = createPlacesResetCurrentDb()
+    try {
+      const owned = await collectOwnedPlaces(metadata.db)
+      current.sqlite.exec(buildPlacesResetSql(owned).currentSql)
+      for (const table of [
+        'address2d',
+        'address2dI18n',
+        'address2dBuildingNumberLookup',
+      ])
+        expect(current.sqlite.query(`SELECT snapshotId FROM ${table}`).all()).toEqual([
+          { snapshotId: 'als-lineage' },
+        ])
+      for (const table of ['places', 'placesI18n', 'placesCells'])
+        expect(current.sqlite.query(`SELECT snapshotId FROM ${table}`).all()).toEqual([
+          { snapshotId: 'unrelated-place-lineage' },
+        ])
+      expect(
+        current.sqlite.query('SELECT placeSnapshotId FROM placesDivision').all(),
+      ).toEqual([{ placeSnapshotId: 'unrelated-place-lineage' }])
+      for (const table of ['addressPublicationState', 'addressSearchScopes'])
+        expect(
+          current.sqlite.query(`SELECT scopeId,snapshotId FROM ${table}`).all(),
+        ).toEqual([{ scopeId: 'als-lineage', snapshotId: 'als-snapshot' }])
+      for (const table of ['placePublicationState', 'placeSearchScopes'])
+        expect(
+          current.sqlite.query(`SELECT scopeId,snapshotId FROM ${table}`).all(),
+        ).toEqual([
+          {
+            scopeId: 'unrelated-place-lineage',
+            snapshotId: 'unrelated-place-snapshot',
+          },
+        ])
+      expect(
+        current.sqlite.query('SELECT addressId FROM addressSearchFts').all(),
+      ).toEqual([{ addressId: 'official' }])
+      expect(current.sqlite.query('SELECT scopeId FROM placeSearchFts').all()).toEqual([
+        { scopeId: 'unrelated-place-lineage' },
+      ])
+    } finally {
+      current.sqlite.close()
+      metadata.sqlite.close()
+    }
+  })
+
+  test('checks current scope ownership through exact publication snapshot selections', async () => {
+    const { db, sqlite } = createPlacesResetCurrentDb()
+    const owned = {
+      addressSnapshotIds: [
+        'address-draft',
+        ...Array.from({ length: 150 }, (_, i) => `retained-${i}`),
+      ],
+      placeSnapshotIds: ['unlinked-draft', 'unrelated-place-snapshot'],
+    }
+    try {
+      await expect(
+        assertPlacesCurrentResetOwnership(db, owned),
+      ).resolves.toBeUndefined()
+      sqlite.exec(
+        "UPDATE addressPublicationState SET snapshotId='unowned-snapshot' WHERE scopeId='places-address-lineage'",
+      )
+      await expect(assertPlacesCurrentResetOwnership(db, owned)).rejects.toThrow(
+        'supplementary Address rows are not owned',
+      )
+      sqlite.exec(
+        "UPDATE addressPublicationState SET snapshotId='address-draft' WHERE scopeId='places-address-lineage'",
+      )
+      sqlite.exec(
+        "UPDATE placePublicationState SET snapshotId='unowned-place-snapshot' WHERE scopeId='places-lineage'",
+      )
+      await expect(assertPlacesCurrentResetOwnership(db, owned)).rejects.toThrow(
+        'current Places rows are not owned',
+      )
+    } finally {
+      sqlite.close()
+    }
+  })
+
   test('recognises a fully published retained local baseline without claiming reset ownership', () => {
     expect(
       hasCompletedOverturePlacesBaseline({

@@ -13,6 +13,13 @@ import {
   geometryBuildUpsertSql,
 } from './processLocalDivisionGeometrySqlUploadReplay.ts'
 import { MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES } from './processLocalDivisionGeometrySqlUploadConfig.ts'
+import {
+  AUDIT_MAX_BLOB_BYTES,
+  decodeAuditChunkParts,
+  encodeAuditGroup,
+  type AuditChunk,
+  type AuditSummary,
+} from '@repo/core/pipeline/db/processingActionCodec.ts'
 
 const tables = {
   snapshotLineages: 'id TEXT PRIMARY KEY, variant TEXT, versionHash TEXT',
@@ -30,10 +37,11 @@ const tables = {
   snapshotShardAssignments:
     'snapshotId TEXT REFERENCES snapshots(id), dataShardId TEXT, PRIMARY KEY(snapshotId,dataShardId)',
   releaseProcessingActions:
-    'releaseId TEXT, action TEXT, status TEXT, error TEXT, updatedAt TEXT, PRIMARY KEY(releaseId,action)',
+    'id TEXT PRIMARY KEY, releaseId TEXT, action TEXT, mode TEXT, generation TEXT, decisionCount INTEGER, affectedRecordCount INTEGER, createdAt TEXT, updatedAt TEXT',
   releaseProcessingActionChunks:
-    'releaseId TEXT, action TEXT, chunk INTEGER, status TEXT, PRIMARY KEY(releaseId,action,chunk)',
-  stats: 'releaseId TEXT PRIMARY KEY, count INTEGER, properties TEXT',
+    'id TEXT PRIMARY KEY, releaseId TEXT, actionId TEXT, generation TEXT, firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER, encoding TEXT, checksum TEXT, payload BLOB CHECK(length(payload)<=32768)',
+  stats:
+    'id TEXT PRIMARY KEY, releaseId TEXT, apiReleaseSetId TEXT, dimension TEXT, metric TEXT, metricUnit TEXT, value REAL, groupBy TEXT, groupValue TEXT, createdAt TEXT, updatedAt TEXT',
 }
 
 function schema(db: Database) {
@@ -42,11 +50,10 @@ function schema(db: Database) {
     db.exec(`CREATE TABLE "${table}"(${columns})`)
 }
 
-function populate(db: Database) {
+async function populate(db: Database) {
   db.exec(`INSERT INTO releaseShardAssignments VALUES('release','history'),('release','source');
-    INSERT INTO releaseProcessingActions VALUES('release','normalise','completed',NULL,'first');
-    INSERT INTO releaseProcessingActionChunks VALUES('release','normalise',0,'completed');
-    INSERT INTO stats VALUES('release',12,NULL);`)
+    INSERT INTO stats VALUES('count','release',NULL,'divisionArea','count','records',12,NULL,NULL,'first','first');`)
+  await updateReport(db, 'first', 12)
   for (const variant of ['exact', 'simplified'])
     db.exec(`INSERT INTO snapshotLineages VALUES('${variant}','${variant}','lineage-hash');
       INSERT INTO snapshots VALUES('${variant}','${variant}','draft','complete','first');
@@ -55,6 +62,50 @@ function populate(db: Database) {
       INSERT INTO snapshotAssemblySources VALUES('${variant}','dataset');
       INSERT INTO snapshotAssemblyRuns VALUES('${variant}','${variant}','${variant}','selected','{"materialisationHash":"retained"}',NULL);
       INSERT INTO snapshotShardAssignments VALUES('${variant}','history');`)
+}
+
+async function updateReport(
+  db: Database,
+  generation: string,
+  affectedRecordCount: number,
+) {
+  const summary: AuditSummary = {
+    id: 'normalise',
+    releaseId: 'release',
+    action: 'normalise',
+    mode: 'automatic',
+    generation,
+    decisionCount: 1,
+    affectedRecordCount,
+    createdAt: 'first',
+    updatedAt: generation,
+  }
+  const chunks = await encodeAuditGroup(summary, [
+    {
+      action: summary.action,
+      mode: summary.mode,
+      affectedRecordCount,
+      summary: 'Normalised source geometry',
+      evidence: { release: 'release', generation },
+    },
+  ])
+  executeNativeSqlStatements(
+    db,
+    geometryBuildUpsertSql('releaseProcessingActions', [summary]),
+  )
+  executeNativeSqlStatements(
+    db,
+    geometryBuildUpsertSql('releaseProcessingActionChunks', chunks),
+  )
+}
+
+async function report(db: Database) {
+  const chunks = db
+    .query<AuditChunk, []>(`SELECT chunk.* FROM releaseProcessingActionChunks chunk
+    JOIN releaseProcessingActions action ON action.id=chunk.actionId AND action.generation=chunk.generation
+    ORDER BY chunk.firstOrdinal,chunk.part`)
+    .all()
+  return decodeAuditChunkParts(chunks)
 }
 
 function contents(db: Database) {
@@ -85,7 +136,7 @@ async function fixture(
   try {
     schema(local)
     schema(remote)
-    populate(local)
+    await populate(local)
     const context = {
       state: {
         target: 'local',
@@ -151,6 +202,7 @@ for (const order of [
         expect(changes(remote)).toBe(after)
       }
       expect(contents(remote)).toEqual(contents(local))
+      expect(await report(remote)).toEqual(await report(local))
 
       // DB_META retains SQL outside the data diff. Its emitted statements must
       // still leave an identical target untouched, while the diff reports equality.
@@ -204,20 +256,20 @@ test('geometry metadata replay resumes a partial second variant and carries real
     expect((changes(remote) ?? 0) - beforeResume).toBe(5)
     expect(contents(remote)).toEqual(contents(local))
 
-    local.exec(`UPDATE releaseProcessingActions SET status='error',error='retry',updatedAt='failed';
-      UPDATE releaseProcessingActionChunks SET status='error';
-      UPDATE stats SET count=13,properties='{"checked":true}';
+    await updateReport(local, 'second', 13)
+    local.exec(`UPDATE stats SET value=13,groupBy='type',groupValue='land';
       UPDATE snapshotSources SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
       UPDATE snapshotAssemblyRuns SET anchorReleaseId='release' WHERE snapshotId='simplified';`)
     const beforeChanges = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('simplified'))
     expect((changes(remote) ?? 0) - beforeChanges).toBe(5)
     expect(contents(remote)).toEqual(contents(local))
+    expect(await report(remote)).toEqual(await report(local))
 
-    local.exec(`UPDATE releaseProcessingActions SET status='completed',error=NULL,updatedAt='recovered';
-      UPDATE releaseProcessingActionChunks SET status='completed';
-      UPDATE stats SET properties=NULL;
-      UPDATE snapshots SET status='published',updatedAt='published' WHERE id='exact';`)
+    local.exec(`UPDATE releaseProcessingActions SET updatedAt='recovered';
+      UPDATE stats SET groupBy=NULL,groupValue=NULL;
+      UPDATE snapshots SET status='published',updatedAt='published' WHERE id='exact';
+      UPDATE snapshotAssemblyRuns SET status='completed' WHERE snapshotId='exact';`)
     const beforeRecovery = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('exact'))
     expect((changes(remote) ?? 0) - beforeRecovery).toBe(4)
@@ -253,6 +305,48 @@ test('oversized metadata replay retains complete content when the existing chunk
     expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
     executeNativeSqlStatements(db, sql)
     expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
+  } finally {
+    db.close()
+  }
+})
+
+test('maximum-size audit chunks skip identical BLOBs and replay changed evidence', () => {
+  const db = new Database(':memory:')
+  schema(db)
+  const row: AuditChunk = {
+    id: 'chunk',
+    releaseId: 'release',
+    actionId: 'action',
+    generation: 'generation',
+    firstOrdinal: 0,
+    decisionCount: 1,
+    part: 0,
+    parts: 1,
+    encoding: 'gzip-json-v1',
+    checksum: 'checksum',
+    payload: new Uint8Array(AUDIT_MAX_BLOB_BYTES).fill(0xab),
+  }
+  const replay = () => {
+    const sql = geometryBuildUpsertSql('releaseProcessingActionChunks', [row], {
+      skipUnchanged: true,
+    })
+    expect(Buffer.byteLength(sql)).toBeLessThanOrEqual(
+      MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+    )
+    executeNativeSqlStatements(db, sql)
+  }
+  try {
+    replay()
+    expect(changes(db)).toBe(1)
+    replay()
+    expect(changes(db)).toBe(1)
+    row.payload[0] = 0xcd
+    row.checksum = 'changed'
+    replay()
+    expect(changes(db)).toBe(2)
+    expect(db.query('SELECT * FROM releaseProcessingActionChunks').get()).toEqual(row)
+    replay()
+    expect(changes(db)).toBe(2)
   } finally {
     db.close()
   }
