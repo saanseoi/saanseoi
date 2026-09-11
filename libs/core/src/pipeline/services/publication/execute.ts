@@ -39,15 +39,9 @@ export async function beginSnapshotPublication(
   db: unknown,
   input: PublicationPreparation,
 ) {
-  const previous =
-    input.previous === undefined
-      ? await getPreparedPublication(
-          db as import('../../../lib/db/types').HarbourReadableDb,
-          input.table,
-          input.scopeId,
-        )
-      : input.previous
-  await runPublicationSql(db, buildBeginPublicationSql({ ...input, previous }))
+  // The caller captures the predecessor before reading baseline rows. Resolving
+  // it here could let a stale plan overwrite a newer completed scope.
+  await runPublicationSql(db, buildBeginPublicationSql(input))
 }
 
 /** Resolve a completed local mirror, including an acknowledged deferred publication. */
