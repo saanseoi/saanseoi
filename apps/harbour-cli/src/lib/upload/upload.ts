@@ -240,7 +240,7 @@ async function registerUploadLocally(
     const allowExistingDatasetStatuses: ReleaseStatus[] | undefined = options.force
       ? options.allowReprocessPublished
         ? options.reuseExistingRelease
-          ? ['staged', 'processing']
+          ? ['staged', 'processing', 'published']
           : ['staged', 'published']
         : ['staged']
       : options.resumeStagedRelease

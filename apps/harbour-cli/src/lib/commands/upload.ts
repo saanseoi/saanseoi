@@ -61,6 +61,8 @@ export async function runUploadCommand(
     allowReprocessPublished?: boolean
     /** Add another materialisation to an already registered source release. */
     reuseExistingRelease?: boolean
+    /** Verify that a locally interrupted processing release has no active phase. */
+    resumeInterruptedProcessingRelease?: boolean
     /** Allows a native importer to register an independent older cohort. */
     allowHistoricalCohort?: boolean
     invocationCwd: string
@@ -87,12 +89,14 @@ export async function runUploadCommand(
   const commandStartedAt = Date.now()
   const mutedBar = '\u001B[90m│\u001B[39m'
   const cacheArtefacts = shouldCacheArtefacts(args.options)
-  const resumeStagedRelease = args.options.continue === true
+  const resumeStagedRelease =
+    args.options.continue === true ||
+    options.resumeInterruptedProcessingRelease === true
 
   if (args.options.continue !== undefined && !resumeStagedRelease) {
     throw new Error('`upload --continue` does not take a value.')
   }
-  if (resumeStagedRelease && options.forceUpload) {
+  if (args.options.continue === true && options.forceUpload) {
     throw new Error('Use either `upload --continue` or `upload --force`, not both.')
   }
 
