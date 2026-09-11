@@ -306,6 +306,7 @@ export function buildDivisionGeometryHashInput(
 ) {
   return {
     ...row,
+    sources: row.sources ?? null,
     createdAt: undefined,
     snapshotId: undefined,
     updatedAt: undefined,
