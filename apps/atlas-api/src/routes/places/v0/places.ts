@@ -1,3 +1,7 @@
+import {
+  getPublicationReadiness,
+  guardPublicationRead,
+} from '../../../db/publicationState'
 import { EmptyRegionCollectionSchema } from '../../../schema/region'
 import {
   emptyRegionCollection,
@@ -343,46 +347,69 @@ async function handlePlaceDetail(
       503,
     )
   }
-  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
-
-  const place = await runWithD1ReadRetry(() =>
-    getPlaceCurrent(c.var.currentDb, {
-      placeId: args.placeId,
-      snapshotId: activeSnapshot.snapshotId,
-    }),
-  )
-  if (!place) {
-    return c.json(
+  const token = await getPublicationReadiness(c.var.currentDb, 'place', [
+    activeSnapshot.snapshotId,
+  ])
+  const notReady = () =>
+    c.json(
       {
-        httpStatus: 404,
-        error: 'not_found',
-        message: `No place found for ${args.regionCode}/${args.placeId}.`,
+        httpStatus: 503 as const,
+        error: 'snapshot_not_ready',
+        message: 'The selected place snapshot is not ready.',
       },
-      404,
+      503,
     )
-  }
+  if (token === null) return notReady()
+  return (
+    (await guardPublicationRead(
+      c.var.currentDb,
+      'place',
+      [activeSnapshot.snapshotId],
+      token,
+      async () => {
+        await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
 
-  const [i18n, divisions] = await runWithD1ReadRetry(() =>
-    Promise.all([
-      listPlaceI18n(c.var.currentDb, {
-        placeId: args.placeId,
-        snapshotId: activeSnapshot.snapshotId,
-        locale: args.locale,
-      }),
-      listPlaceDivisions(c.var.currentDb, {
-        placeId: args.placeId,
-        snapshotId: activeSnapshot.snapshotId,
-        locale: args.locale,
-      }),
-    ]),
-  )
-  return c.json(
-    {
-      place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
-      i18n: i18n.map(toPlaceI18nApiRecord),
-      divisions,
-    },
-    200,
+        const place = await runWithD1ReadRetry(() =>
+          getPlaceCurrent(c.var.currentDb, {
+            placeId: args.placeId,
+            snapshotId: activeSnapshot.snapshotId,
+          }),
+        )
+        if (!place) {
+          return c.json(
+            {
+              httpStatus: 404,
+              error: 'not_found',
+              message: `No place found for ${args.regionCode}/${args.placeId}.`,
+            },
+            404,
+          )
+        }
+
+        const [i18n, divisions] = await runWithD1ReadRetry(() =>
+          Promise.all([
+            listPlaceI18n(c.var.currentDb, {
+              placeId: args.placeId,
+              snapshotId: activeSnapshot.snapshotId,
+              locale: args.locale,
+            }),
+            listPlaceDivisions(c.var.currentDb, {
+              placeId: args.placeId,
+              snapshotId: activeSnapshot.snapshotId,
+              locale: args.locale,
+            }),
+          ]),
+        )
+        return c.json(
+          {
+            place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
+            i18n: i18n.map(toPlaceI18nApiRecord),
+            divisions,
+          },
+          200,
+        )
+      },
+    )) ?? notReady()
   )
 }
 
@@ -420,16 +447,39 @@ async function handlePlacesByCell(
       503,
     )
   }
-  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
-  const places = await runWithD1ReadRetry(() =>
-    listPlacesByH3Cell(c.var.currentDb, {
-      snapshotId: activeSnapshot.snapshotId,
-      h3Level,
-      h3Cell: args.h3Cell,
-      limit: args.limit,
-    }),
+  const token = await getPublicationReadiness(c.var.currentDb, 'place', [
+    activeSnapshot.snapshotId,
+  ])
+  const notReady = () =>
+    c.json(
+      {
+        httpStatus: 503 as const,
+        error: 'snapshot_not_ready',
+        message: 'The selected place snapshot is not ready.',
+      },
+      503,
+    )
+  if (token === null) return notReady()
+  return (
+    (await guardPublicationRead(
+      c.var.currentDb,
+      'place',
+      [activeSnapshot.snapshotId],
+      token,
+      async () => {
+        await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
+        const places = await runWithD1ReadRetry(() =>
+          listPlacesByH3Cell(c.var.currentDb, {
+            snapshotId: activeSnapshot.snapshotId,
+            h3Level,
+            h3Cell: args.h3Cell,
+            limit: args.limit,
+          }),
+        )
+        return c.json({ places: places.map(place => toPlaceApiRecord(place)) }, 200)
+      },
+    )) ?? notReady()
   )
-  return c.json({ places: places.map(place => toPlaceApiRecord(place)) }, 200)
 }
 
 async function handlePlaceSearch(
@@ -448,31 +498,57 @@ async function handlePlaceSearch(
       503,
     )
   }
-  await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
-
-  try {
-    const results = await runWithD1ReadRetry(() =>
-      searchPlacesFts(c.var.currentDb, {
-        snapshotId: activeSnapshot.snapshotId,
-        locale: args.locale,
-        query: args.q,
-        limit: args.limit,
-      }),
+  const token = await getPublicationReadiness(c.var.currentDb, 'place', [
+    activeSnapshot.snapshotId,
+  ])
+  const notReady = () =>
+    c.json(
+      {
+        httpStatus: 503 as const,
+        error: 'snapshot_not_ready',
+        message: 'The selected place snapshot is not ready.',
+      },
+      503,
     )
-    return c.json({ results }, 200)
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('Place search is not ready')) {
-      return c.json(
-        {
-          httpStatus: 503,
-          error: 'fts_not_ready',
-          message: 'Place search is not ready for the latest published release.',
-        },
-        503,
-      )
-    }
-    throw error
-  }
+  if (token === null) return notReady()
+  return (
+    (await guardPublicationRead(
+      c.var.currentDb,
+      'place',
+      [activeSnapshot.snapshotId],
+      token,
+      async () => {
+        await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
+
+        try {
+          const results = await runWithD1ReadRetry(() =>
+            searchPlacesFts(c.var.currentDb, {
+              snapshotId: activeSnapshot.snapshotId,
+              locale: args.locale,
+              query: args.q,
+              limit: args.limit,
+            }),
+          )
+          return c.json({ results }, 200)
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message.includes('Place search is not ready')
+          ) {
+            return c.json(
+              {
+                httpStatus: 503,
+                error: 'fts_not_ready',
+                message: 'Place search is not ready for the latest published release.',
+              },
+              503,
+            )
+          }
+          throw error
+        }
+      },
+    )) ?? notReady()
+  )
 }
 
 export const placeRoutes = [
