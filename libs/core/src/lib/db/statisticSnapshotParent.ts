@@ -7,6 +7,8 @@ export async function resolveAcceptedStatisticSnapshotParent(
   lineageId: string,
   cohortKey: string,
 ) {
+  // Qualify correlated columns explicitly: Drizzle strips column qualifiers
+  // from SQL expressions in a single-table projection.
   const snapshots = metaSchema.metaSnapshots
   const candidates = await db
     .select({
@@ -16,13 +18,13 @@ export async function resolveAcceptedStatisticSnapshotParent(
         SELECT 1 FROM apiReleaseSetSnapshots member
         JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
         JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
-        WHERE member.snapshotId=${snapshots.id} AND catalogue.status<>'draft'
+        WHERE member.snapshotId=snapshots.id AND catalogue.status<>'draft'
       )`,
       selected: sql<number>`EXISTS (
         SELECT 1 FROM apiReleaseSetSnapshots member
         JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
         JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
-        WHERE member.snapshotId=${snapshots.id} AND catalogue.status='current'
+        WHERE member.snapshotId=snapshots.id AND catalogue.status='current'
           AND catalogue.id=(SELECT latest.id FROM apiCatalogRevisions latest
             WHERE latest.apiVersionId=catalogue.apiVersionId AND latest.regionCode=catalogue.regionCode
               AND latest.status='current'
@@ -32,18 +34,18 @@ export async function resolveAcceptedStatisticSnapshotParent(
         SELECT 1 FROM snapshotSources source
         JOIN releases release ON release.id=source.resourceReleaseId
         JOIN releaseProvenance audit ON audit.releaseId=release.id
-        WHERE source.snapshotId=${snapshots.id} AND source.role='primary'
+        WHERE source.snapshotId=snapshots.id AND source.role='primary'
           AND release.status='published' AND audit.attemptStatus='completed'
       ) AND NOT EXISTS (
         SELECT 1 FROM snapshotSources source
         JOIN releases release ON release.id=source.resourceReleaseId
-        WHERE source.snapshotId=${snapshots.id} AND source.role<>'lookup'
+        WHERE source.snapshotId=snapshots.id AND source.role<>'lookup'
           AND release.status NOT IN ('published','superseded')
       )`,
       revoked: sql<number>`EXISTS (
         SELECT 1 FROM snapshotSources source
         JOIN releases release ON release.id=source.resourceReleaseId
-        WHERE source.snapshotId=${snapshots.id} AND source.role<>'lookup' AND release.status='revoked'
+        WHERE source.snapshotId=snapshots.id AND source.role<>'lookup' AND release.status='revoked'
       )`,
     })
     .from(snapshots)
