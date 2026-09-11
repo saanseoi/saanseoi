@@ -77,7 +77,9 @@ export async function readGeometrySnapshot(
       : historySchema.divisionBoundaries
   const rows: GeometrySnapshotRow[] = []
   for (const versions of groupResolvedVersionsByShard(state.values()).values()) {
-    const db = versions[0]!.shard.db
+    const first = versions[0]
+    if (!first) continue
+    const db = first.shard.db
     for (const chunk of chunkArray(versions, 64)) {
       const found = await db
         .select()
@@ -88,7 +90,7 @@ export async function readGeometrySnapshot(
         .all()
       if (found.length !== chunk.length)
         throw new Error(
-          `Snapshot ${snapshotId} is missing retained ${resourceType} versions in ${versions[0]!.shard.bindingName}.`,
+          `Snapshot ${snapshotId} is missing retained ${resourceType} versions in ${first.shard.bindingName}.`,
         )
       rows.push(...(found as unknown as GeometrySnapshotRow[]))
     }
