@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, open, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { basename, join } from 'node:path'
 import { withDeliveryLock } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryFiles.ts'
@@ -9,6 +9,54 @@ import {
 } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryGeneration.ts'
 import { assertSqlDeliveryPlanningAllowed } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryPending.ts'
 import { resetLocalDb } from './reset-local-db.ts'
+import { assertLocalR2Stopped } from './local-r2-owners.ts'
+
+test('full reset rejects open R2 storage before invalidating or changing data', async () => {
+  const f = await fixture()
+  const handle = await open(f.files[2], 'r')
+  let steps = 0
+  try {
+    await expect(
+      resetLocalDb('all', {
+        repoRoot: f.root,
+        executeStep: async () => {
+          steps++
+        },
+      }),
+    ).rejects.toThrow('Local R2 is open')
+    expect(steps).toBe(0)
+    expect(await readSqlDeliveryGeneration(f.cacheDir, 'test')).toBeNull()
+    expect(await Bun.file(f.marker).exists()).toBe(true)
+    await rm(f.files[2])
+    await expect(assertLocalR2Stopped(f.root)).rejects.toThrow('Local R2 is open')
+    await handle.close()
+    await assertLocalR2Stopped(f.root)
+  } finally {
+    await handle.close()
+    await rm(f.root, { recursive: true, force: true })
+  }
+})
+
+test('full reset rechecks R2 owners before removing retained objects', async () => {
+  const f = await fixture()
+  let handle: Awaited<ReturnType<typeof open>> | undefined
+  try {
+    await expect(
+      resetLocalDb('all', {
+        repoRoot: f.root,
+        executeStep: async step => {
+          if (basename(step.command[1] ?? '') === 'vacuum-local-db.sh')
+            handle = await open(f.files[2], 'r')
+        },
+      }),
+    ).rejects.toThrow('Local R2 is open')
+    for (const path of [...f.files, f.marker])
+      expect(await Bun.file(path).exists()).toBe(true)
+  } finally {
+    await handle?.close()
+    await rm(f.root, { recursive: true, force: true })
+  }
+})
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), 'reset-local-db-'))
