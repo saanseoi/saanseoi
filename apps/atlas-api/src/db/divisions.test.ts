@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
 import {
   listDivisionAreasCurrentByDivisionIds,

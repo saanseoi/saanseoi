@@ -231,8 +231,8 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisions
-      (snapshotId, id, level, type, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?)`,
+      (snapshotId, id, level, class, createdAt, updatedAt, hierarchies)
+      VALUES (?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
     [DIVISION_SNAPSHOT, 'division-central', 2, 'district', PUBLISHED_AT, PUBLISHED_AT],
   )
   run(
@@ -335,8 +335,8 @@ function seedHistory(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisions
-      (id, level, type, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, level, class, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt, hierarchies)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
     [
       'division-central',
       2,

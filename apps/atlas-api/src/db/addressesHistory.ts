@@ -3,7 +3,7 @@ import { and, asc, eq, historySchema, sql } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 import { getReplayedAddressVersionMap } from '@repo/core/pipeline/db/address.ts'
-import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addressPipeline/normalisation.ts'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation.ts'
 
 import type {
   AddressLocaleValue,
