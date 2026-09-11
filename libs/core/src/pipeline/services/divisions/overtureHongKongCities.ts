@@ -76,15 +76,18 @@ export function missingOvertureHongKongCityRows(
             value,
           })),
         },
-        hierarchies: [
-          [
-            {
-              division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
-              subtype: 'dependency',
-              name: '香港 Hong Kong SAR',
-            },
-          ],
-        ],
+        hierarchies: districtDivisionIds.map((divisionId, index) => [
+          {
+            division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
+            subtype: 'dependency',
+            name: '香港 Hong Kong SAR',
+          },
+          {
+            division_id: divisionId,
+            subtype: 'region',
+            name: city.districtNames[index],
+          },
+        ]),
         identifiers: {
           saanseoiCorrection: {
             code: city.code,
