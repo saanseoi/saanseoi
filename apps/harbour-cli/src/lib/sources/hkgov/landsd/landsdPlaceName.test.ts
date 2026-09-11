@@ -21,8 +21,8 @@ describe('LandsD native Place Name FileGDB intake', () => {
     const feature = {
       id: '123',
       type: 'Feature' as const,
-      geometry: { type: 'Point', coordinates: [114.15, 22.28] },
-      sourceGeometry: { type: 'Point', coordinates: [832000, 816000] },
+      geometry: { type: 'Point' as const, coordinates: [114.15, 22.28] },
+      sourceGeometry: { type: 'Point' as const, coordinates: [832000, 816000] },
       properties: {
         GEO_NAME_ID: '123',
         PLACE_CLASS: 'Settlement',
@@ -36,7 +36,8 @@ describe('LandsD native Place Name FileGDB intake', () => {
     const original = structuredClone(feature)
     const [row] = landsdSettlementDivisionRows([feature])
     expect(row).toBeDefined()
-    const normalised = normaliseDivisionRow(row!)
+    if (!row) throw new Error('Expected a settlement projection.')
+    const normalised = normaliseDivisionRow(row)
     expect(normalised.i18n).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Official', nameAlts: 'Alias' }),

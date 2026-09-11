@@ -49,7 +49,8 @@
     "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
     "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
-    "./sourceAssets": "./src/lib/services/sourceAssets.ts"
+    "./sourceAssets": "./src/lib/services/sourceAssets.ts",
+    "./sourceAssetTransfer": "./src/lib/services/sourceAssetTransfer.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
