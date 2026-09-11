@@ -11,6 +11,7 @@ import {
 import type { SqlDeliveryTarget } from './sqlDeliveryTypes.ts'
 import { inlineNativeParameters } from './nativePlanningCopy.ts'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import { groupAuditSqlStatements } from '@repo/core/pipeline/db/processingActionSqlGroups'
 
 type Receipt = {
   scopeId: string
@@ -58,6 +59,7 @@ export async function captureResolvedSqlPlan<T>(input: {
 }) {
   const publications: ReturnType<typeof scopedPublicationDelivery>[] = []
   const retainedSql: Array<{ binding: string; sql: string }> = []
+  let retainedPayloads: Array<{ binding: string; bytes: Uint8Array }> = []
   const append = async (
     target: SqlDeliveryTarget,
     bytes: Uint8Array,
@@ -203,23 +205,34 @@ export async function captureResolvedSqlPlan<T>(input: {
         if (column && input.publicationTables?.length)
           policy.rowScope = { column, values: ownedScopes.get(owner) ?? [] }
       }
+      retainedPayloads = retainedSql.flatMap(retained =>
+        groupAuditSqlStatements(splitSqlStatements(retained.sql), 60).map(group => {
+          const bytes = Buffer.from(
+            JSON.stringify(group.map(sql => ({ sql, params: [] }))),
+          )
+          if (
+            bytes.byteLength > 4 * 1024 * 1024 ||
+            group.some(sql => Buffer.byteLength(sql) > 100_000)
+          )
+            throw new Error(
+              'Retained metadata transaction exceeds the delivery budget.',
+            )
+          return { binding: retained.binding, bytes }
+        }),
+      )
       return value
     },
   })
   // Finish outer wrappers first while their inner ownership guards remain active.
   for (const publication of publications.toReversed()) await publication.complete()
-  for (const retained of retainedSql) {
+  for (const retained of retainedPayloads) {
     const target = required(input.targets[retained.binding], retained.binding)
-    const statements = splitSqlStatements(retained.sql).map(sql => ({
-      sql,
-      params: [],
-    }))
     await input.append(
       {
         bindingName: retained.binding,
         databaseId: target.databaseId ?? retained.binding,
       },
-      Buffer.from(JSON.stringify(statements)),
+      retained.bytes,
       'bound',
     )
   }

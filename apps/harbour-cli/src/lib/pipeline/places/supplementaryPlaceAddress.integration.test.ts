@@ -103,6 +103,20 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       sourceReleaseId: releaseId,
     })
     const currentDb = drizzle({ client: current, schema: currentSchema })
+    meta.exec(`INSERT INTO snapshotLineages(id,code,regionCode,resourceType,identityMode,versionHash)
+      VALUES ('division','division-dependency','hk','division','persistent','fixture');
+      INSERT INTO snapshots(id,code,resourceType,cohortKey,status,snapshotLineageId)
+      VALUES ('division-selected','division-selected','division','2026-08','published','division');`)
+    currentDb
+      .insert(currentSchema.divisionPublicationState)
+      .values({
+        scopeId: 'division',
+        snapshotId: 'division-serving-newer',
+        status: 'current',
+        publicationToken: 'division-fixture',
+        preparedAt: '2026-08-19T00:00:00Z',
+      })
+      .run()
     const officialScopeId = official.snapshotLineageId
     if (!officialScopeId) throw new Error('Expected an official Address lineage.')
     currentDb
@@ -202,10 +216,11 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         ],
       },
       metaDb: db,
+      dependencyDb: currentDb,
       snapshots: {
         snapshotId: placeSnapshot.id,
         addressSnapshotId: official.id,
-        divisionSnapshotId: 'division',
+        divisionSnapshotId: 'division-selected',
       },
       places: [place],
       historyRows: [],

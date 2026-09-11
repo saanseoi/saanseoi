@@ -113,6 +113,7 @@ export async function loadCurrentPlaceHistory(
         throw new Error(
           `Current Place locale without a base: ${row.placeId}/${row.locale}.`,
         )
+      if (!state.locales) state.locales = []
       const locales = state.locales
       if (locales.some(locale => locale.row.locale === row.locale))
         throw new Error(
