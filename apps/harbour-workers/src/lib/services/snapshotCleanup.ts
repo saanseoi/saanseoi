@@ -2,7 +2,8 @@ import type { SnapshotCleanupMessage } from '@repo/core'
 import type { ResourceType } from '@repo/core'
 import { listCurrentSnapshotCleanupCandidates } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { currentSchema, eq } from '@repo/db'
+import { and, currentSchema, eq, sql } from '@repo/db'
+import type { SQL } from 'drizzle-orm'
 import type { CurrentDatabase, MetaDatabase } from '@repo/db'
 
 type SnapshotCleanupCandidate = {
@@ -83,6 +84,32 @@ export async function cleanupSnapshotByResourceType(
   db: AtomicWritableDb,
   candidate: SnapshotCleanupCandidate,
 ) {
+  const publication = {
+    place: currentSchema.placePublicationState,
+    address: currentSchema.addressPublicationState,
+    street: currentSchema.streetPublicationState,
+    division: currentSchema.divisionPublicationState,
+    divisionArea: currentSchema.divisionAreaPublicationState,
+    divisionBoundary: currentSchema.divisionBoundaryPublicationState,
+    divisionStatistic: currentSchema.statsPublicationState,
+  }[candidate.resourceType]
+  if (!publication) return false
+  if (
+    await db
+      .select({ id: publication.snapshotId })
+      .from(publication)
+      .where(eq(publication.snapshotId, candidate.snapshotId))
+      .limit(1)
+      .get()
+  )
+    return false
+  // A finaliser may acquire a receipt after the read above. Check its absence
+  // again inside every delete, in the same batch as the rest of the snapshot.
+  db = guardCleanupDeletes(
+    db,
+    sql`NOT EXISTS (SELECT 1 FROM ${publication}
+    WHERE ${publication.snapshotId} = ${candidate.snapshotId})`,
+  )
   switch (candidate.resourceType) {
     case 'place':
       if (
@@ -147,6 +174,23 @@ export async function cleanupSnapshotByResourceType(
         .where(eq(currentSchema.divisionStatistics.snapshotId, candidate.snapshotId))
       return true
   }
+}
+
+function guardCleanupDeletes(db: AtomicWritableDb, guard: SQL): AtomicWritableDb {
+  return new Proxy(db, {
+    get(target, key, receiver) {
+      if (key !== 'delete') return Reflect.get(target, key, receiver)
+      return (table: Parameters<AtomicWritableDb['delete']>[0]) => {
+        const deletion = target.delete(table)
+        return new Proxy(deletion, {
+          get(builder, property, context) {
+            if (property !== 'where') return Reflect.get(builder, property, context)
+            return (condition: SQL) => builder.where(and(condition, guard))
+          },
+        })
+      }
+    },
+  })
 }
 
 async function deletePlaceSnapshot(db: AtomicWritableDb, snapshotId: string) {
