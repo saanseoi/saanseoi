@@ -400,6 +400,41 @@ describe('all-statistics reset', () => {
     ).not.toContain('place')
   })
 
+  test('blocks retained logical Place division references after their current projection has gone', async () => {
+    const { meta, current, context } = setup()
+    meta.exec("UPDATE datasets SET theme='stats'")
+    insert(current, 'places', { id: 'p', snapshotId: 'place-scope' })
+    insert(current, 'placesDivision', {
+      placeSnapshotId: 'place-scope',
+      placeId: 'p',
+      divisionSnapshotId: 'divisionArea',
+      divisionId: 'd',
+      definition: JSON.stringify({
+        level: 1,
+        locales: [{ locale: 'en', name: 'Retained' }],
+      }),
+    })
+    expect(await statsResetBlockers(context)).toContain(
+      'Places reference contributed divisions',
+    )
+    insert(meta, 'snapshotAssembly', {
+      id: 'lookup',
+      code: 'lookup',
+      resourceType: 'place',
+    })
+    insert(meta, 'snapshotAssemblyRuns', {
+      id: 'lookup',
+      snapshotId: 'place',
+      snapshotAssemblyId: 'lookup',
+      selectionSummaryJson: JSON.stringify({
+        lookupSnapshotIds: { division: 'divisionArea' },
+      }),
+    })
+    expect(await statsResetBlockers(context)).toContain(
+      'Other snapshots retain exact statistics lookup dependencies',
+    )
+  })
+
   test('cascades derived geography and dependent Divisions publications while retaining other inputs', async () => {
     const { meta, current, history, source, context } = setup()
     meta.exec("UPDATE datasets SET theme = 'stats' WHERE id = 'dataset'")

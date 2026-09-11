@@ -131,6 +131,11 @@ export async function divisionResetBlockers(context: ResetReadContext) {
     'Other snapshots retain division parents or assembly anchors',
     `SELECT 1 FROM snapshots WHERE resourceType NOT IN ${TYPES} AND parentSnapshotId IN (${SNAPSHOTS}) UNION ALL SELECT 1 FROM snapshotAssemblyRuns WHERE snapshotId NOT IN (${SNAPSHOTS}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
   )
+  await check(
+    context.metaBinding,
+    'Other snapshots retain exact division lookup dependencies',
+    `SELECT 1 FROM snapshotAssemblyRuns, json_each(selectionSummaryJson, '$.lookupSnapshotIds') AS dependency WHERE snapshotId NOT IN (${SNAPSHOTS}) AND dependency.value IN (${SNAPSHOTS}) LIMIT 1`,
+  )
   // These references do not all have database foreign keys. A family reset
   // cannot leave their canonical identities or geometry companions dangling.
   for (const [label, binding] of [

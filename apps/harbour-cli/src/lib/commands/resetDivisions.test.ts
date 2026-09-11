@@ -245,6 +245,26 @@ describe('all-divisions reset', () => {
     )
   })
 
+  test('blocks exact metadata lookup dependencies without requiring current materialisations', async () => {
+    const { meta, context } = setup()
+    insert(meta, 'snapshotAssembly', {
+      id: 'lookup',
+      code: 'lookup',
+      resourceType: 'place',
+    })
+    insert(meta, 'snapshotAssemblyRuns', {
+      id: 'lookup',
+      snapshotId: 'place',
+      snapshotAssemblyId: 'lookup',
+      selectionSummaryJson: JSON.stringify({
+        lookupSnapshotIds: { division: 'division' },
+      }),
+    })
+    expect(await divisionResetBlockers(context)).toEqual([
+      'Other snapshots retain exact division lookup dependencies',
+    ])
+  })
+
   test('bounds SQL for many releases and escapes identifiers as values', () => {
     const releases = Array.from({ length: 205 }, (_, index) => ({
       id: `release-'${index}`,

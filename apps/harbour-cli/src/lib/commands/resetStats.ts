@@ -133,6 +133,11 @@ export async function statsResetBlockers(context: ResetReadContext) {
     'Other snapshots retain statistics parents or assembly anchors',
     `SELECT 1 FROM snapshots WHERE id NOT IN (${snapshotSelection}) AND parentSnapshotId IN (${snapshotSelection}) UNION ALL SELECT 1 FROM snapshotAssemblyRuns WHERE snapshotId NOT IN (${snapshotSelection}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
   )
+  await check(
+    context.metaBinding,
+    'Other snapshots retain exact statistics lookup dependencies',
+    `SELECT 1 FROM snapshotAssemblyRuns, json_each(selectionSummaryJson, '$.lookupSnapshotIds') AS dependency WHERE snapshotId NOT IN (${snapshotSelection}) AND dependency.value IN (${snapshotSelection}) LIMIT 1`,
+  )
   const geometryIds = plan.snapshots
     .filter(row => row.resourceType !== 'divisionStatistic')
     .map(row => String(row.id))
