@@ -55,6 +55,7 @@ export {
   asc,
   desc,
   eq,
+  getColumnTable,
   getTableColumns,
   getTableName,
   inArray,
@@ -62,4 +63,5 @@ export {
   ne,
   or,
   sql,
+  type AnyColumn,
 } from 'drizzle-orm'
