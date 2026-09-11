@@ -74,7 +74,12 @@ export async function restorePlaceDerivedRows(input: Input) {
   const shards = new Map<string, ReplayShard>(
     input.historyTargets.map(target => [target.bindingName, target]),
   )
-  const expected = await resolveSnapshotVersionState(plan, shards, ['place'])
+  const expected = await resolveValidatedProjectionVersions({
+    metaDb: input.metaDb,
+    historyTargets: input.historyTargets,
+    snapshotId: input.snapshotId,
+    recordTypes: ['place'],
+  })
   const expectedIds = new Set([...expected.values()].map(row => row.recordId))
   if (
     expectedIds.size !== bases.size ||
@@ -471,6 +476,7 @@ async function validateLocaleDependencies(
       : null
     if (
       !original ||
+      typeof original.snapshotId !== 'string' ||
       canonicalPlaceJson(original.searchDependencyText) !== canonicalPlaceJson(text) ||
       !text ||
       typeof text !== 'object' ||

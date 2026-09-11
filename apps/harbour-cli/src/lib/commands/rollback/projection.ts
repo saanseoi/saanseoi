@@ -40,6 +40,13 @@ export type RestoreSnapshotProjectionInput = {
   scopeId: string
   resourceType: ProjectionResourceType
   cacheDir?: string
+  /** Exact prerequisites already reconstructed in this isolated composition. */
+  preparedDependencies?: ReadonlyMap<
+    string,
+    { resourceType: 'division' | 'street'; scopeId: string }
+  >
+  /** The enclosing composition must validate all current foreign keys before emission. */
+  deferForeignKeyValidation?: boolean
 }
 
 const components: Record<ProjectionResourceType, ProjectionComponent[]> = {
@@ -126,6 +133,8 @@ async function addressDependencies(input: RestoreSnapshotProjectionInput) {
       `Address snapshot ${input.snapshotId} has no recorded exact Division dependency.`,
     )
   const servingScope = (type: 'division' | 'street', snapshotId: string) => {
+    const prepared = input.preparedDependencies?.get(snapshotId)
+    if (prepared?.resourceType === type) return prepared.scopeId
     const receipt = input.current
       .query<{ scopeId: string }, [string]>(
         `SELECT scopeId FROM ${type}PublicationState WHERE snapshotId=? AND status='current' AND preparedAt IS NOT NULL AND publicationToken<>''`,
@@ -363,7 +372,7 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
       if (membership)
         assertAddressProjectionMembership(input.current, input.scopeId, membership)
     }
-    assertProjectionForeignKeys(input.current)
+    if (!input.deferForeignKeyValidation) assertProjectionForeignKeys(input.current)
     input.current.exec('COMMIT')
   } catch (error) {
     input.current.exec('ROLLBACK')

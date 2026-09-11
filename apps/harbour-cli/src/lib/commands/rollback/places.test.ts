@@ -256,7 +256,7 @@ async function fixture() {
     for (const [table, hash] of [
       ['places', baseHash],
       ['placesI18n', localeHash],
-    ]) {
+    ] as const) {
       const row = db
         .query(`SELECT * FROM ${table} WHERE versionHash=?`)
         .get(hash) as Record<string, unknown>
@@ -457,7 +457,15 @@ test('Place rollback validates retained locale Address text against its original
   }
 })
 
-test.each(['hash', 'definition', 'assembly', 'source', 'text'] as const)(
+test.each([
+  'hash',
+  'definition',
+  'assignment',
+  'address-content',
+  'assembly',
+  'source',
+  'text',
+] as const)(
   'Place rollback rejects missing %s dependency evidence before mutating derived rows',
   async failure => {
     const f = await fixture()
@@ -472,6 +480,9 @@ test.each(['hash', 'definition', 'assembly', 'source', 'text'] as const)(
         currentChanges++
       }
       if (failure === 'definition') f.old.exec('DELETE FROM divisions')
+      if (failure === 'assignment')
+        f.meta.exec("DELETE FROM snapshotShardAssignments WHERE snapshotId='d0'")
+      if (failure === 'address-content') f.old.exec('DELETE FROM address2d')
       if (failure === 'assembly')
         f.meta.exec("DELETE FROM snapshotAssemblyRuns WHERE snapshotId='p0'")
       if (failure === 'source') f.old.exec('DELETE FROM sourceResolutions')
