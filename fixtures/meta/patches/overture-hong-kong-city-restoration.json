@@ -1,0 +1,7 @@
+{
+  "kind": "division-city-restoration-patch",
+  "schemaVersion": 1,
+  "id": "overture_hong_kong_city_restored",
+  "reason": "Reconstruct a missing Hong Kong city from Central and Western, Wan Chai and Eastern districts, excluding Southern; preserve an existing source city identity.",
+  "method": "union-overture-district-areas"
+}
