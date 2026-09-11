@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0315427c081347ae328e97ed4756ba5701a6927ca6762ef8acc238e41db2a774",
+  "versionHash": "sha256:87ddb88f012e71d2e5fef96b66e301d630938cde098119b8e53fef377439dd76",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
@@ -88,7 +88,10 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-official-division-processing-v1",
-      "operationCodes": ["resolve-geography-identities"]
+      "operationCodes": [
+        "resolve-geography-identities",
+        "provenance_division_area_geometry"
+      ]
     }
   ]
 }

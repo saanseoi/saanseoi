@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ec29ca1401a53acbfd720fdb0de141809677dafef65bb223f43de40fbe4d7b74",
+  "versionHash": "sha256:1a33c325cce00e41330f77bea1080732e2b51c3421dcd0508c618f110345024f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -58,7 +58,10 @@
       "rulesetVersion": "rs-division-statistic-merge-v1",
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],

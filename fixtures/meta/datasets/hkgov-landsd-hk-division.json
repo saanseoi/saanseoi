@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a8ea2fd63ec7eca71b639bdd3385d21c4f8efc01bde89d3d4bf2b1c23413f3ac",
+  "versionHash": "sha256:44aedc0a892494eb79009d97ff32d650b5b07b0527dd1e967075d95c31d05f3e",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-division",
   "regionCode": "hk",
@@ -66,7 +66,11 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-official-division-processing-v1",
-      "operationCodes": ["select-landsd-settlements", "resolve-geography-identities"]
+      "operationCodes": [
+        "select-landsd-settlements",
+        "resolve-geography-identities",
+        "provenance_division_area_geometry"
+      ]
     }
   ]
 }

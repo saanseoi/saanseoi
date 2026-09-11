@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:251937df4a17a3857f30726fca3a9735969f3ba9c9702820ff3e8a79c8e92881",
+  "versionHash": "sha256:995d1d5936c24006a54dd1476cc57eafd7d4a94c1a31a451e84025ddbf26c778",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -65,7 +65,10 @@
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
         "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
