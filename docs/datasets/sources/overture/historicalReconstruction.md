@@ -6,6 +6,14 @@ deletions without requiring the original monthly archive. The shared
 [division API backfill](../../families/divisions.md#api-release-statistics) rebuilds
 counts, coverage and churn for historical and current releases.
 
+Division base records and individual locales inherit independently through explicit
+snapshot ancestry. Unchanged publisher reissues add no canonical history, version
+journal or source-interpretation rows. Changed source payloads retain their assertions
+even when canonical content is unchanged; absent sources carry an explicit omission
+assertion until they reappear. Reviewed supplementary Division fixtures supply the final
+canonical content for their identities while preserving the native publisher assertion,
+so transient source shapes do not create additional canonical versions.
+
 Overture keeps only a limited window of full release payloads. When a monthly payload
 has expired, SaanSeoi does not synthesise feature properties from a neighbouring release
 or from a changelog: a changelog identifies changed records but does not carry their

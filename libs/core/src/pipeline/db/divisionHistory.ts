@@ -74,6 +74,7 @@ export async function planDivisionHistoryChanges(input: {
   const currentChanged = input.previous?.churnHash !== input.churnHash
   const baseRows: Parameters<typeof insertDivisionVersionRows>[2] = []
   const i18nRows: Parameters<typeof insertDivisionVersionRows>[3] = []
+  const timestamp = input.base.updatedAt ?? new Date().toISOString()
   const closures: Array<DivisionHistoryComponent & { omitted?: boolean }> = []
   if (!currentChanged)
     return { baseChanged, currentChanged, baseRows, i18nRows, closures }
@@ -101,8 +102,8 @@ export async function planDivisionHistoryChanges(input: {
     i18nRows.push({
       ...content,
       versionHash: await createHash(content),
-      createdAt: input.base.updatedAt,
-      updatedAt: input.base.updatedAt,
+      createdAt: timestamp,
+      updatedAt: timestamp,
     })
   }
   for (const prior of previousLocales.values()) {

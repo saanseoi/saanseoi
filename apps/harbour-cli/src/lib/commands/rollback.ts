@@ -65,6 +65,7 @@ import {
   verifyRollbackResult,
 } from './rollbackVerification.ts'
 import { assertRollbackPublicationAvailable } from './rollbackPublication.ts'
+import { runReconstructRollbackCommand } from './reconstructRollback.ts'
 
 export const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 
@@ -79,6 +80,7 @@ export async function runRollbackReleaseCommand(
     skipConfirm: boolean
   },
 ) {
+  if (!args.options.purge) return runReconstructRollbackCommand(args, target, options)
   const releaseSpecifier = getStringOption(args, ['release']) ?? args.positionals[0]
   const operation: RollbackOperation = args.options.purge ? 'purge' : 'rollback'
 
