@@ -324,7 +324,7 @@ export const metaSnapshotAssemblySources = sqliteTable(
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
-    configJson: jsonText('configJson'),
+    selectionRulesJson: jsonText('selectionRulesJson'),
   },
   table => [
     primaryKey({
