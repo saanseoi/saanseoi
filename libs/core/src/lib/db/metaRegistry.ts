@@ -1,5 +1,9 @@
 import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
+import {
+  assertAcceptedDraftSnapshotParent,
+  resolveAcceptedSnapshotParent,
+} from './snapshotParent'
 import { listRetainedGeometrySnapshotIds } from './geometrySnapshotRetention'
 import {
   and,
@@ -3305,6 +3309,7 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (snapshotForSourceRelease) {
+    await assertAcceptedDraftSnapshotParent(db, snapshotForSourceRelease)
     await preserveOrPromoteGeometryStatus(snapshotForSourceRelease.id)
     return snapshotForSourceRelease
   }
@@ -3338,6 +3343,7 @@ export async function ensureDraftSnapshotForRelease(
       .limit(1)
       .get()
     if (sharedDraft) {
+      await assertAcceptedDraftSnapshotParent(db, sharedDraft)
       await preserveOrPromoteGeometryStatus(sharedDraft.id)
       return sharedDraft
     }
@@ -3456,29 +3462,21 @@ export async function ensureDraftSnapshotForRelease(
     .limit(1)
     .get()
 
+  const effectiveParent = await resolveAcceptedSnapshotParent(db, {
+    lineageId,
+    cohortKey: args.cohortKey,
+    identityMode,
+  })
+  const parentSnapshotId = effectiveParent?.id ?? null
+
   if (latestForCohort?.status === 'draft' && resourceType !== 'divisionStatistic') {
+    if (latestForCohort.parentSnapshotId !== parentSnapshotId)
+      throw new Error(
+        'Draft snapshot predecessor is no longer selected; prepare a fresh draft before ingestion.',
+      )
     await preserveOrPromoteGeometryStatus(latestForCohort.id)
     return latestForCohort
   }
-
-  const effectiveParent = latestForCohort
-    ? { id: latestForCohort.id }
-    : identityMode === 'cohort_scoped'
-      ? null
-      : await db
-          .select({ id: metaSnapshots.id })
-          .from(metaSnapshots)
-          .where(
-            and(
-              eq(metaSnapshots.snapshotLineageId, lineageId),
-              eq(metaSnapshots.status, 'published'),
-              sql`${metaSnapshots.cohortKey} < ${args.cohortKey}`,
-            ),
-          )
-          .orderBy(desc(metaSnapshots.cohortKey), desc(metaSnapshots.revision))
-          .limit(1)
-          .get()
-  const parentSnapshotId = effectiveParent?.id ?? null
 
   const revision = latestForCohort ? latestForCohort.revision + 1 : 0
   const snapshotCode = buildSnapshotVersionCode(

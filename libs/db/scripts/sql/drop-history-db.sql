@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS `address3dI18n`;
 DROP TABLE IF EXISTS `address3d`;
 DROP TABLE IF EXISTS `address2dBuildingNumberLookup`;
 DROP TABLE IF EXISTS `address2dI18n`;
+DROP TABLE IF EXISTS `address2dEvidence`;
 DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;
