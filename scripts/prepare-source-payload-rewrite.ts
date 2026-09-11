@@ -81,7 +81,7 @@ try {
       })
       if (!replacement) continue
       const properties = JSON.stringify(replacement.rawProperties)
-      const statement = `UPDATE ${table} SET rawProperties = ${literal(properties)}, sourceGeometry = ${literal(json(replacement.sourceGeometry))}, sources = ${literal(json(replacement.sources))} WHERE sourceRecordId = ${literal(row.sourceRecordId)} AND versionHash = ${literal(row.versionHash)} AND rawProperties = ${literal(row.rawProperties)} AND sourceGeometry IS ${literal(row.sourceGeometry)} AND sources IS ${literal(row.sources)};\n`
+      const statement = `UPDATE ${table} SET rawProperties = ${literal(properties)}, sourceGeometry = ${literal(json(replacement.sourceGeometry))}, sources = ${literal(json(null))} WHERE sourceRecordId = ${literal(row.sourceRecordId)} AND versionHash = ${literal(row.versionHash)} AND rawProperties = ${literal(row.rawProperties)} AND sourceGeometry IS ${literal(row.sourceGeometry)} AND sources IS ${literal(row.sources)};\n`
       if (outputError) throw outputError
       if (!output.write(statement)) await once(output, 'drain')
       report.rewrittenRows += 1
@@ -93,7 +93,7 @@ try {
         Buffer.byteLength(row.sourceGeometry ?? '')
       report.jsonBytesAfter +=
         Buffer.byteLength(properties) +
-        Buffer.byteLength(json(replacement.sources) ?? '') +
+        Buffer.byteLength(json(null) ?? '') +
         Buffer.byteLength(json(replacement.sourceGeometry) ?? '')
     }
   }
