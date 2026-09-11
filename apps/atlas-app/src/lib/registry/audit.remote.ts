@@ -10,9 +10,11 @@ import {
   readIndexedAuditPage,
   readAuditDecision,
   validateAuditManifest,
+  type AuditManifest,
   type Digest,
 } from '@repo/core/provenance'
 import { getMetaDb } from './server'
+import { runWithReadRetry } from '../server/d1'
 import { cachedAuditData } from './auditCache.server'
 import {
   loadAuditFixtures,
@@ -25,6 +27,33 @@ function store() {
   if (!bucket) throw new Error('Release audit storage is unavailable.')
   return bucket
 }
+
+async function readAuditManifests<
+  T extends { hash: string | null; byteLength: number | null },
+>(rows: T[]): Promise<Array<T & { manifest: AuditManifest }>> {
+  const audits: Array<T & { manifest: AuditManifest }> = []
+  for (const row of rows) {
+    const { hash, byteLength } = row
+    if (!hash || byteLength === null) continue
+    const manifest = await runWithReadRetry(() =>
+      readObject(store(), {
+        hash: hash as Digest,
+        byteLength,
+      }),
+    )
+    if (
+      !manifest ||
+      typeof manifest !== 'object' ||
+      Array.isArray(manifest) ||
+      manifest.kind !== 'processing-audit'
+    )
+      continue
+    validateAuditManifest(manifest)
+    audits.push({ ...row, manifest })
+  }
+  return audits
+}
+
 async function manifestFor(releaseId: string, hash?: string) {
   const table = metaSchema.releaseProvenance
   const row = await getMetaDb()
@@ -54,43 +83,27 @@ export const getSourceAudit = query(
       metaPublishers: publishers,
       metaPublisherI18n: publisherI18n,
     } = metaSchema
-    const rows = await getMetaDb()
-      .select({
-        releaseId: r.id,
-        code: r.code,
-        resourceType: r.resourceType,
-        sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-        sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-        sourceSubType: d.subType,
-        hash: p.manifestHash,
-        byteLength: p.byteLength,
-      })
-      .from(p)
-      .innerJoin(r, eq(r.id, p.releaseId))
-      .innerJoin(s, eq(s.id, r.sourceReleaseId))
-      .innerJoin(d, eq(d.id, s.datasetId))
-      .innerJoin(publishers, eq(d.publisherId, publishers.id))
-      .where(and(eq(d.code, input.datasetCode), eq(s.code, input.releaseCode)))
-      .all()
-    return (
-      await Promise.all(
-        rows.map(async row => {
-          const manifest = await readObject(store(), {
-            hash: row.hash as Digest,
-            byteLength: row.byteLength,
-          })
-          if (
-            !manifest ||
-            typeof manifest !== 'object' ||
-            Array.isArray(manifest) ||
-            manifest.kind !== 'processing-audit'
-          )
-            return null
-          validateAuditManifest(manifest)
-          return { ...row, manifest }
-        }),
-      )
-    ).filter(row => row !== null)
+    const rows = await runWithReadRetry(() =>
+      getMetaDb()
+        .select({
+          releaseId: r.id,
+          code: r.code,
+          resourceType: r.resourceType,
+          sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourceKind: d.kind,
+          hash: p.manifestHash,
+          byteLength: p.byteLength,
+        })
+        .from(p)
+        .innerJoin(r, eq(r.id, p.releaseId))
+        .innerJoin(s, eq(s.id, r.sourceReleaseId))
+        .innerJoin(d, eq(d.id, s.datasetId))
+        .innerJoin(publishers, eq(d.publisherId, publishers.id))
+        .where(and(eq(d.code, input.datasetCode), eq(s.code, input.releaseCode)))
+        .all(),
+    )
+    return readAuditManifests(rows)
   },
 )
 
@@ -109,57 +122,41 @@ export const getApiAudit = query(
       metaPublishers: publishers,
       metaPublisherI18n: publisherI18n,
     } = metaSchema
-    const rows = await getMetaDb()
-      .select({
-        releaseId: r.id,
-        code: r.code,
-        resourceType: r.resourceType,
-        apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
-        sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-        sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-        sourceSubType: datasets.subType,
-        sourceVariant: datasets.sourceVariant,
-        hash: p.manifestHash,
-        byteLength: p.byteLength,
-      })
-      .from(p)
-      .innerJoin(r, eq(p.releaseId, r.id))
-      .innerJoin(sourceReleases, eq(r.sourceReleaseId, sourceReleases.id))
-      .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
-      .innerJoin(publishers, eq(datasets.publisherId, publishers.id))
-      .where(sql`exists (
+    const rows = await runWithReadRetry(() =>
+      getMetaDb()
+        .select({
+          releaseId: r.id,
+          code: r.code,
+          resourceType: r.resourceType,
+          apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
+          sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourceKind: datasets.kind,
+          sourceVariant: datasets.sourceVariant,
+          hash: p.manifestHash,
+          byteLength: p.byteLength,
+        })
+        .from(p)
+        .innerJoin(r, eq(p.releaseId, r.id))
+        .innerJoin(sourceReleases, eq(r.sourceReleaseId, sourceReleases.id))
+        .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
+        .innerJoin(publishers, eq(datasets.publisherId, publishers.id))
+        .where(sql`exists (
     select 1 from ${sources}
     inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
     inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId}
     inner join ${versions} on ${versions.id} = ${sets.apiVersionId}
     where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
   )`)
-      .all()
-    return (
-      await Promise.all(
-        rows
-          .sort(
-            (left, right) =>
-              Number(left.apiReleaseSetRole !== 'primary') -
-              Number(right.apiReleaseSetRole !== 'primary'),
-          )
-          .map(async row => {
-            const manifest = await readObject(store(), {
-              hash: row.hash as Digest,
-              byteLength: row.byteLength,
-            })
-            if (
-              !manifest ||
-              typeof manifest !== 'object' ||
-              Array.isArray(manifest) ||
-              manifest.kind !== 'processing-audit'
-            )
-              return null
-            validateAuditManifest(manifest)
-            return { ...row, manifest }
-          }),
-      )
-    ).filter(row => row !== null)
+        .all(),
+    )
+    return readAuditManifests(
+      rows.sort(
+        (left, right) =>
+          Number(left.apiReleaseSetRole !== 'primary') -
+          Number(right.apiReleaseSetRole !== 'primary'),
+      ),
+    )
   },
 )
 

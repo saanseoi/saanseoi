@@ -10,7 +10,7 @@ test('resolves glossary definitions in the requested locale', () => {
   const transclusion = getMarkdownTransclusion('saanseoi:zh-hant:definition/release/v1')
 
   expect(transclusion?.markdown).toContain('不可變已發布版本')
-  expect(transclusion?.type).toBe('definition')
+  expect(transclusion?.kind).toBe('definition')
 })
 
 test('resolves map-guide glossary definitions and notes', () => {
@@ -26,9 +26,9 @@ test('resolves map-guide glossary definitions and notes', () => {
 
   expect(api?.markdown).toContain('<i>software</i>')
   expect(basemap?.markdown).toContain('<i>bottom background layer</i>')
-  expect(basemap?.type).toBe('note')
+  expect(basemap?.kind).toBe('note')
   expect(vite?.markdown).toContain('bundles your project files')
-  expect(vite?.type).toBe('note')
+  expect(vite?.kind).toBe('note')
   expect(render?.markdown).toContain('turn geographic data')
   expect(mapStyle?.markdown).toContain('set of visual rules')
   expect(request?.markdown).toContain('message sent to a server')
