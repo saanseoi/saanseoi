@@ -15,7 +15,10 @@ import {
   buildAddressSourceSqlImportFiles,
   buildAddressSqlCleanupFile,
 } from './sqlImport'
-import { buildAddressMetaSqlFile, resolveAddressDivisionCohortKey } from './sqlStages'
+import {
+  writeAddressReleaseMetaSqlFile,
+  resolveAddressDivisionCohortKey,
+} from './sqlStages'
 import { splitSqlStatements } from './sqlImportStages'
 import { normaliseAddressRowForPipeline } from './normalisation'
 import type { ResolvedAddressChunkArtefact } from './types'
@@ -51,7 +54,7 @@ const resolvedArtefact = {
   unchangedRows: 0,
 } satisfies ResolvedAddressChunkArtefact
 
-test('Address SQL metadata delivery retains the published snapshot lineage', async () => {
+test('empty Address SQL metadata delivery retains lineage and exact Division lookup', async () => {
   const source = new Database(':memory:')
   const delivered = new Database(':memory:')
   try {
@@ -102,6 +105,10 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
       VALUES ('release-address', 'history-shard');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
       VALUES ('address-snapshot', 'history-shard');
+      INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
+      VALUES ('division-snapshot','division-snapshot','division','2025','published');
+      INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
+      VALUES ('division-snapshot','dataset-division','release-division','primary','division-test','exact_ref');
     `)
     expect(
       source
@@ -116,12 +123,36 @@ test('Address SQL metadata delivery retains the published snapshot lineage', asy
       id: 'address-snapshot',
     })
 
-    const file = await buildAddressMetaSqlFile(
+    let metadataSql = ''
+    const result = await writeAddressReleaseMetaSqlFile(
       drizzle({ client: source, schema: metaSchema }) as never,
-      message,
-      'address-snapshot',
+      {
+        async put(_key: string, value: string) {
+          metadataSql = value
+        },
+      } as never,
+      {
+        ...message,
+        totalRows: 0,
+        addressDivisionSnapshotId: 'division-snapshot',
+      } as typeof message,
     )
-    delivered.exec(file.sql)
+    expect(result.addressSqlArtefactKeys).toHaveLength(1)
+    delivered.exec(metadataSql)
+    expect(
+      delivered
+        .query(
+          "SELECT json_extract(selectionSummaryJson,'$.lookupSnapshotIds.division') AS division FROM snapshotAssemblyRuns WHERE snapshotId='address-snapshot'",
+        )
+        .get(),
+    ).toEqual({ division: 'division-snapshot' })
+    expect(
+      delivered
+        .query(
+          "SELECT resourceReleaseId FROM snapshotSources WHERE snapshotId='address-snapshot' AND role='lookup'",
+        )
+        .get(),
+    ).toEqual({ resourceReleaseId: 'release-division' })
 
     expect(
       delivered

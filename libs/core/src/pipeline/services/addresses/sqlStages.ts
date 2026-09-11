@@ -4,6 +4,7 @@ import { readSnapshotAssemblySql } from '../../db/snapshotAssembly'
 import { recordSnapshotLookupDependency } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
+  and,
   eq,
   currentSchema,
   metaSchema,
@@ -203,21 +204,13 @@ export async function writeAddressCurrentSqlChunkStage(
   const selectedDivisionSnapshotId =
     pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
   if (
-    artefact.rowStart === 0 &&
-    artefact.rows[0]?.base.snapshotId &&
-    selectedDivisionSnapshotId
-  ) {
-    await recordSnapshotLookupDependency(
-      metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      {
-        snapshotId: artefact.rows[0].base.snapshotId,
-        lookupSnapshotId: selectedDivisionSnapshotId,
-        anchorReleaseId: message.releaseId ?? message.datasetId,
-        selectedByRule: 'api-composition:address/default->division/overture',
-        selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
-      },
+    artefact.rows.some(
+      row => row.base.divisionSnapshotId !== selectedDivisionSnapshotId,
     )
-  }
+  )
+    throw new Error(
+      'Prepared Address rows do not match their exact Division selection.',
+    )
   const currentDivisionScopeId = selectedDivisionSnapshotId
     ? await resolvePreparedPublicationScope(
         currentDb as unknown as HarbourReadableDb,
@@ -330,6 +323,21 @@ export async function writeAddressReleaseMetaSqlFile(
 ): Promise<AddressPipelineMessage> {
   const pipelineMessage = message as AddressPipelineMessage
   const snapshotId = await resolveAddressSnapshotId(metaDb, message)
+  if (!pipelineMessage.addressDivisionSnapshotId)
+    throw new Error(
+      'Address release metadata requires its exact prepared Division snapshot.',
+    )
+  // Record the release-level lookup independently of row/chunk count.
+  await recordSnapshotLookupDependency(
+    metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+    {
+      snapshotId,
+      lookupSnapshotId: pipelineMessage.addressDivisionSnapshotId,
+      anchorReleaseId: message.releaseId ?? message.datasetId,
+      selectedByRule: 'api-composition:address/default->division/overture',
+      selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
+    },
+  )
   const file = await buildAddressMetaSqlFile(metaDb, message, snapshotId)
   const keys = await writeSqlFiles(bucket, message, [file])
 
@@ -354,7 +362,13 @@ async function resolveAddressSnapshotId(
       metaSchema.metaSnapshotSources,
       eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
     )
-    .where(eq(metaSchema.metaSnapshotSources.resourceReleaseId, releaseId))
+    .where(
+      and(
+        eq(metaSchema.metaSnapshotSources.resourceReleaseId, releaseId),
+        eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        eq(metaSchema.metaSnapshots.resourceType, 'address'),
+      ),
+    )
     .limit(1)
     .get()
 
