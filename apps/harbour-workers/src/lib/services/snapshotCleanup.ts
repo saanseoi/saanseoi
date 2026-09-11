@@ -85,6 +85,14 @@ export async function cleanupSnapshotByResourceType(
 ) {
   switch (candidate.resourceType) {
     case 'place':
+      if (
+        await db
+          .select({ scopeId: currentSchema.placeSearchScopes.scopeId })
+          .from(currentSchema.placeSearchScopes)
+          .where(eq(currentSchema.placeSearchScopes.snapshotId, candidate.snapshotId))
+          .get()
+      )
+        return false
       await deletePlaceSnapshot(db, candidate.snapshotId)
       return true
     case 'address':
@@ -133,9 +141,6 @@ export async function cleanupSnapshotByResourceType(
 
 async function deletePlaceSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
-    db
-      .delete(currentSchema.placesFts)
-      .where(eq(currentSchema.placesFts.snapshotId, snapshotId)),
     db
       .delete(currentSchema.placesCells)
       .where(eq(currentSchema.placesCells.snapshotId, snapshotId)),
