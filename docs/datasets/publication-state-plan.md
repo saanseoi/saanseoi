@@ -1,86 +1,148 @@
 # Publication state
 
-Publication-state tables live in the current database. They record delivery completion
-and permission to serve the selected published data. They contain small snapshot or
-scope checkpoints, independently of the number of canonical records.
+Publication-state tables live in the current database. Each receipt maps a stable
+storage scope to one logical snapshot and records whether delivery is complete and the
+published selection may be served. Advancing a snapshot does not change the storage keys
+of unchanged records.
 
 ## Tables and identities
 
-| Table                              | Identity                                               | Materialisation                                                                   |
-| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| `statsPublicationState`            | Dataset × exact reference period                       | Packed statistics and their versioned definitions.                                |
-| `addressPublicationState`          | Snapshot lineage (`scopeId`), with unique `snapshotId` | The lineage's Address 2D/3D projection, localisations and building-number lookup. |
-| `divisionPublicationState`         | Snapshot, with indexed lineage scope                   | Division records and localisations.                                               |
-| `placePublicationState`            | Snapshot, with indexed lineage scope                   | Places, localisations, spatial cells and division links.                          |
-| `streetPublicationState`           | Snapshot, with indexed lineage scope                   | Streets, localisations, changelog and companion rows.                             |
-| `divisionAreaPublicationState`     | Snapshot, with indexed lineage/cohort scope            | Area geometries and their retained provider variant.                              |
-| `divisionBoundaryPublicationState` | Snapshot, with indexed lineage/cohort scope            | Boundary geometries and their retained provider variant.                          |
+| Table                              | Identity                                                       | Materialisation                                                  |
+| ---------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `statsPublicationState`            | Dataset × exact reference period                               | Packed statistics and their versioned definitions.               |
+| `addressPublicationState`          | Snapshot lineage (`scopeId`), with unique logical `snapshotId` | Address 2D/3D, localisations and building-number lookup.         |
+| `divisionPublicationState`         | Snapshot lineage (`scopeId`), with unique logical `snapshotId` | Division records and localisations.                              |
+| `placePublicationState`            | Snapshot lineage (`scopeId`), with unique logical `snapshotId` | Places, localisations, spatial cells and division links.         |
+| `streetPublicationState`           | Snapshot lineage (`scopeId`), with unique logical `snapshotId` | Streets, localisations, changelog and companion rows.            |
+| `divisionAreaPublicationState`     | Lineage × cohort (`scopeId`), with unique logical `snapshotId` | Area geometry for the lineage's provider variant and cohort.     |
+| `divisionBoundaryPublicationState` | Lineage × cohort (`scopeId`), with unique logical `snapshotId` | Boundary geometry for the lineage's provider variant and cohort. |
 
-Snapshot-keyed families retain a receipt for each materialisation being prepared or
-served. This allows a new snapshot to be prepared alongside the published snapshot.
-Publication retires completed ancestor receipts only after every selected replacement is
-ready. Independent snapshots and active deliveries remain protected. The number of
-receipt writes follows publications, not record counts.
+The six scoped families keep one mutable current projection and one receipt per scope.
+Their current table columns named `snapshotId` contain the physical scope ID. Current
+references such as `divisionSnapshotId`, `addressSnapshotId` and `streetSnapshotId`
+likewise identify physical scopes. Metadata, immutable history and API responses retain
+logical snapshot IDs; readers resolve those IDs through publication state.
 
-Address uses one mutable projection per lineage. Its publication state owns that mapping
-and gates the entire scope during delivery. Statistics keeps a separate checkpoint for
-every exact reference period, so an annual release does not retire older statistics.
+Geometry scopes encode the lineage and cohort as a JSON pair. Provider variants belong
+to distinct lineages. A revision replaces its own scope, while independently retained
+cohorts and variants remain available. Creating a distinct scope requires its initial
+materialisation even when another cohort contains identical geometry.
+
+## Current write economy
+
+Within an existing scope, unchanged canonical content retains its rows and timestamps.
+New records are inserted, changed components are updated and absent members of a
+complete replacement are removed. Membership checks include companion tables such as
+localisations, cells and links. An annual snapshot change alone does not copy every
+Division, Place, Street or Address row.
+
+Division, geometry, Place and Street delivery can transmit conditional upserts and
+membership checks for candidate rows. Their equality predicates prevent D1 from writing
+unchanged content rows. This saves row writes; it does not promise that only changed
+rows appear in transmitted SQL or that comparison reads disappear. Publication receipts
+have a small per-scope write cost; source assertions and other release metadata have
+their own write costs.
+
+Address delivery resolves and validates the complete candidate on isolated local
+mirrors, then seals the final inserted, changed and retired rows for delivery. Its
+intermediate staging and resolution SQL stays local. This final-difference delivery
+contract is not assumed for every family.
+
+Place rows preserve the `releaseId` and stored `lastSeenMonth` of their last real
+content change. A complete published cohort asserts membership for all its current
+Places, so current API responses derive `lastSeenMonth` from the selected cohort.
+Historical responses preserve the recorded version values. Snapshot provenance records
+release assertions without touching every unchanged Place.
+
+Statistics deliberately uses a different membership boundary. One pack contains a
+dataset × exact period × geography, with all dimension-qualified fields and their
+versioned definitions. Current and history share that pack structure. Later annual
+releases preserve earlier periods; partial revisions replace supplied fields while
+retaining omitted fields and geographies. Unchanged reissues reuse canonical versions
+and inherited snapshot membership. History adds complete versions and sparse journal
+entries only for changed packs; publication promotes those changes into current.
 
 ## Delivery and publication
 
-The shared receipt contains `snapshotId`, `scopeId`, `publicationToken`, `preparedAt`,
-`status`, `createdAt` and `updatedAt`. A delivery token identifies the owner of a sealed
-import. A receipt starts as `publishing`, with `preparedAt` unset. Each write batch must
-still own that token. Completion validation sets `preparedAt`; it does not grant
-permission to serve the snapshot.
+The shared scoped receipt contains `scopeId`, `snapshotId`, `publicationToken`,
+`preparedAt`, `status`, `createdAt` and `updatedAt`. A sealed delivery claims its scope
+using a unique token and the exact acknowledged predecessor snapshot and token. The
+receipt becomes `publishing`, with `preparedAt` unset. Each mutation batch verifies
+ownership in the same transaction as its writes. A competing or stale delivery cannot
+silently take over the scope.
 
-Local import mirrors can retain a completed `publishing` receipt after remote
-publication, or while API publication is deliberately deferred. Import preparation can
-use that acknowledged snapshot as its baseline when its snapshot and delivery token
-match the selected predecessor. This does not grant public read permission: API and
-search reads require `current`.
+There is one current projection per scope, so it is unavailable to public readers while
+being updated. Completion validation records `preparedAt`; it does not grant permission
+to serve. Interrupted work resumes its sealed delivery with the same ownership proof. A
+valid empty projection requires the same completion evidence as a populated one.
 
-Snapshot inheritance and identical-geometry reuse also require completed delivery
-receipts. Matching row counts or values alone cannot certify a predecessor whose import
-is unfinished.
+Local mirrors may retain completed `publishing` receipts while publication is deferred
+or remote finalisation has advanced. Preparation may use that acknowledged predecessor
+only when its logical snapshot and token match. Row counts or matching values alone do
+not certify a predecessor. Historical dependencies must be replayed or explicitly
+prepared; a newer current scope must not be substituted for a selected older revision.
 
-The publication finaliser resolves the published resource selections from metadata and
-requires their completed receipts. It changes matching receipts to `current` using
-conditional updates against the snapshot, scope, token and completion timestamp. Missing
-or interrupted delivery remains unavailable. A valid empty snapshot has a completion
-receipt and returns an empty collection. An unchanged reconciliation does not rewrite
-receipts or observations.
+The finaliser resolves published selections from metadata, validates scope identity and
+marks matching completed receipts `current`. Its updates check the snapshot, scope,
+token and completion timestamp. Missing or unfinished delivery remains unavailable.
+Repeated finalisation leaves ready receipts and observation rows untouched. A pinned
+older geometry revision can share a scope whose selected replacement is ready; the older
+geometry is read from immutable history.
 
-Statistics owns its promotion at publication time and retains its dataset/period
-checkpoint contract. Its canonical versions and sparse revision journal continue to
-ensure that unchanged reissues do not rewrite packs.
+Statistics promotes changed packs at publication time. Its `statsPublicationState`
+checkpoint records dataset, exact period, logical snapshot and `publishing`/`current`
+status; it does not use the shared delivery-token columns. Earlier periods keep their
+own checkpoints. Unchanged reissues advance publication metadata without rewriting
+canonical packs.
 
-Current API responses require ready receipts before reading and verify the same
-publication tokens after all component reads. If publication changes during the read,
-the response is discarded with `snapshot_not_ready`. Historical selectors continue to
-use the appropriate immutable snapshot replay path. Current geometry selection retains
-independently published cohorts and variants.
+## Reads and historical revisions
+
+Current API reads require the exact selected logical snapshot to have ready publication
+state. Scoped readers compare publication tokens before reading and after all component
+reads; Statistics rechecks its dataset/period publication checkpoints. A changed or
+incomplete publication returns `503 snapshot_not_ready`; it cannot produce a partial
+successful response. Empty ready collections return an empty result.
+
+Explicit older revision selections use immutable history and snapshot journals when the
+selected snapshot is no longer current. Ordinary Statistics requests use current even
+for older reference periods. A reference year alone is not a revision selector.
+
+Geometry included by a published release retains its exact selected revision. If a ready
+replacement owns that lineage/cohort scope, the pinned geometry can replay from history.
+An unfinished replacement does not authorise substituting its partial current geometry.
+Public logical snapshot IDs remain separate from storage scope IDs.
 
 ## Search and cleanup
 
-`addressSearchScopes`, `placeSearchScopes` and `divisionSearchScopes` certify the FTS
-projection for their published search scopes. These remain separate from publication
-state. Search finalisation checks base publication readiness in the same transaction as
-index updates. A base collection can be ready while its search index requires repair.
+`addressSearchScopes`, `placeSearchScopes` and `divisionSearchScopes` map stable
+region/domain/lineage search scopes to logical published snapshots. Search scopes and
+physical storage scopes have distinct identities. Finalisation resolves base rows
+through publication receipts and checks readiness in the same transaction as FTS
+updates. Unchanged text retains its FTS rows across snapshot promotion; only the small
+search mapping needs to advance. A ready base collection can still have an unavailable
+search index and return `503 fts_not_ready` for search.
 
-Cleanup first respects metadata retention and dependent records, then protects snapshots
-with publication receipts or active search scopes. Delete predicates recheck publication
-state within the deletion transaction. Publication retires completed receipts for
-superseded ancestors of its selected snapshots; active deliveries remain protected.
+Cleanup first obtains metadata-authorised obsolete snapshots. A replaced logical
+snapshot without its own receipt cannot delete the scope now owned by its replacement.
+For an obsolete scope that still has a completed receipt, every delete checks the
+captured snapshot, scope, token and completion timestamp, together with search and
+current-dependency guards. All owned rows and the receipt are deleted atomically, with
+the receipt last. Active deliveries with `preparedAt` unset remain protected. Statistics
+packs are not deleted by this snapshot-scope cleanup.
 
 ## Reset and reingest
 
-Generate schema migrations through Drizzle and include every publication-state table in
-current-database reset/drop scripts and relevant local cache profiles. The next database
-reset and reingest creates the receipts through normal validated delivery and
-publication. There is no inferred backfill or compatibility path that marks existing
-rows ready based on their presence.
+Generate migrations through Drizzle and include publication-state tables in current
+reset/drop scripts and the relevant local cache profiles. A reset and chronological
+reingest creates receipts through normal validated delivery and publication. There is no
+inferred backfill or compatibility path that marks existing rows ready from their
+presence.
+
+Generic release rollback requires a ready predecessor projection before it changes any
+database. Automatic restoration of an advanced mutable scope from history is not
+implemented by that command. A draft that never acquired a current scope can still be
+purged; a draft that replaced its predecessor requires restoration first.
 
 The Streets source-payload consolidation and API-family unification remain separate work
-described in the [Streets family](families/streets.md). Publication readiness does not
-change publisher payloads, street identity or notice evidence.
+in the [Streets family](families/streets.md). Publication state preserves publisher
+payloads, street identity and notice evidence.
