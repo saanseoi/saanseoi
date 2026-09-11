@@ -140,8 +140,13 @@ export const placesCells = sqliteTable(
  * script, so migration tooling must not try to create a regular table for
  * `placesFts`.
  */
-export const placesFts = sqliteTable('placesFts', {
+export const placeSearchScopes = sqliteTable('placeSearchScopes', {
+  scopeId: text('scopeId').primaryKey(),
   snapshotId: text('snapshotId').notNull(),
+})
+
+export const placesFts = sqliteTable('placeSearchFts', {
+  scopeId: text('scopeId').notNull(),
   placeId: text('placeId').notNull(),
   locale: text('locale').notNull(),
   nameText: text('nameText'),

@@ -11,7 +11,13 @@ export * from './divisions'
 export * from './streets'
 export * from './streetNameChanges'
 export * from './streetGeometry'
-export * from './places'
+export {
+  places,
+  placesI18n,
+  placesDivision,
+  placesCells,
+  placeSearchScopes,
+} from './places'
 export * from './divisionGeometry'
 export * from './divisionStatistics'
 export * from './statistics'
