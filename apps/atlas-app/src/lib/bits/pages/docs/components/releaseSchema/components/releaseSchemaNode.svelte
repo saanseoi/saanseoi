@@ -189,6 +189,11 @@ function toggleExpanded() {
               class="rounded-full bg-secondary-container px-2.5 py-1 font-body text-caption font-semibold text-on-secondary-container"
               >Required</span
             >
+          {:else if depth > 0}
+            <span
+              class="rounded-full border border-outline-variant px-2.5 py-1 font-body text-caption text-foreground-alt"
+              >Optional</span
+            >
           {/if}
           {#if nullable}
             <span

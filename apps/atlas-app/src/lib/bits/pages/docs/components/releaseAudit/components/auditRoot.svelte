@@ -162,7 +162,7 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
     return
   searchStates = { ...searchStates, [releaseId]: state }
 }
-const sourceSubTypeLabels: Record<string, string> = {
+const sourceKindLabels: Record<string, string> = {
   district: 'District',
   pu: 'PU',
   'new-town': 'New Town',
@@ -171,20 +171,20 @@ const sourceVariantLabels: Record<string, string> = {
   'hkgov-censtatd-landclipped': 'Landclipped',
   'hkgov-censtatd': 'Territory',
 }
-const sourceSubTypeLabel = (value?: string | null) =>
-  value ? (sourceSubTypeLabels[value.toLowerCase()] ?? value) : value
+const sourceKindLabel = (value?: string | null) =>
+  value ? (sourceKindLabels[value.toLowerCase()] ?? value) : value
 const sourceVariantLabel = (value?: string | null) =>
   value ? sourceVariantLabels[value.toLowerCase()] : undefined
 const sourceOutlineLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherShortName?: string
-  sourceSubType?: string | null
+  sourceKind?: string | null
   sourceVariant?: string | null
 }) =>
   [
     resourceLabel(resource.resourceType),
     resource.sourcePublisherShortName,
-    sourceSubTypeLabel(resource.sourceSubType),
+    sourceKindLabel(resource.sourceKind),
     sourceVariantLabel(resource.sourceVariant),
   ]
     .filter(Boolean)
@@ -192,13 +192,13 @@ const sourceOutlineLabel = (resource: {
 const sourceHeadingLabel = (resource: {
   resourceType: Parameters<typeof resourceLabel>[0]
   sourcePublisherName?: string
-  sourceSubType?: string | null
+  sourceKind?: string | null
   sourceVariant?: string | null
 }) =>
   [
     resource.sourcePublisherName,
     resourceLabel(resource.resourceType),
-    sourceSubTypeLabel(resource.sourceSubType),
+    sourceKindLabel(resource.sourceKind),
     sourceVariantLabel(resource.sourceVariant),
   ]
     .filter(Boolean)
