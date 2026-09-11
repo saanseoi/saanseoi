@@ -207,6 +207,14 @@ function placeTaxonomy(record: PlaceRecord['place'], profile: PlaceProfile) {
   }
 }
 
+/** A completed Place publication asserts membership for its whole source cohort. */
+export function withPlacePublication<T extends { lastSeenMonth: string }>(
+  place: T,
+  cohortKey: string,
+): T {
+  return { ...place, lastSeenMonth: cohortKey.slice(0, 7) }
+}
+
 function createPlaceResource(args: {
   baseUrl: string
   record: PlaceRecord
@@ -580,7 +588,19 @@ export async function listPlaces(args: {
           body: buildJsonApiListDocument({
             url,
             data: records.map(record =>
-              createPlaceResource({ baseUrl: url.origin, record, routeState }),
+              createPlaceResource({
+                baseUrl: url.origin,
+                record: useHistory
+                  ? record
+                  : {
+                      ...record,
+                      place: withPlacePublication(
+                        record.place,
+                        activeSnapshot.cohortKey,
+                      ),
+                    },
+                routeState,
+              }),
             ),
             included,
             limit,
