@@ -5,6 +5,7 @@ export {
   address2dBuildingNumberLookup,
   address3d,
   address3dI18n,
+  addressSearchScopes,
 } from './addresses'
 export * from './divisions'
 export * from './streets'

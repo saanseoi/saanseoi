@@ -154,8 +154,13 @@ export const address2dBuildingNumberLookup = sqliteTable(
  * table itself is rebuilt from the immutable address snapshot by
  * `rebuild-addresses-fts.sql`; it is deliberately not a Drizzle migration.
  */
-export const addressesFts = sqliteTable('addressesFts', {
+export const addressSearchScopes = sqliteTable('addressSearchScopes', {
+  scopeId: text('scopeId').primaryKey(),
   snapshotId: text('snapshotId').notNull(),
+})
+
+export const addressesFts = sqliteTable('addressSearchFts', {
+  scopeId: text('scopeId').notNull(),
   addressId: text('addressId').notNull(),
   locale: text('locale').notNull(),
   formattedAddress: text('formattedAddress'),
