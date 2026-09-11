@@ -20,6 +20,12 @@
       "properties.tpu": "properties.TPU"
     }
   },
+  "sourceCompositions": [
+    {
+      "datasetCodes": ["ds-hk-hkgov-pland-division-pu"],
+      "anchorSnapshotVersions": ["ss-hk-division-hkgov-pland-pu-2001"]
+    }
+  ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-hkgov-pland-pu-2001"
@@ -434,12 +440,6 @@
           ]
         }
       ]
-    }
-  ],
-  "sourceCompositions": [
-    {
-      "datasetCodes": ["ds-hk-hkgov-pland-division-pu"],
-      "anchorSnapshotVersions": ["ss-hk-division-hkgov-pland-pu-2001"]
     }
   ]
 }

@@ -74,6 +74,34 @@
       "properties.villageNumberToZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.BuildingNoTo"
     }
   },
+  "sourceCompositions": [
+    {
+      "datasetCodes": ["ds-hk-hkgov-dpo-address", "ds-hk-overture-division"],
+      "anchorSnapshotVersions": [
+        "ss-hk-address-2024-07-25.0",
+        "ss-hk-address-2025-01-23.0",
+        "ss-hk-address-2025-02-25.0",
+        "ss-hk-address-2025-03-21.0",
+        "ss-hk-address-2025-04-26.0",
+        "ss-hk-address-2025-05-22.0",
+        "ss-hk-address-2025-06-20.0",
+        "ss-hk-address-2025-08-13.0",
+        "ss-hk-address-2025-09-03.0",
+        "ss-hk-address-2025-09-24.0",
+        "ss-hk-address-2025-11-04.0",
+        "ss-hk-address-2025-12-16.0",
+        "ss-hk-address-2026-02-04.0",
+        "ss-hk-address-2026-04-03.0",
+        "ss-hk-address-2026-04-22.0",
+        "ss-hk-address-2026-04-25.0",
+        "ss-hk-address-2026-06-04.0",
+        "ss-hk-address-2026-06-24.0",
+        "ss-hk-address-2026-07-08.0",
+        "ss-hk-address-2026-07-10.0",
+        "ss-hk-address-2026-07-22.0"
+      ]
+    }
+  ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-address-2024-07-25.0"
@@ -1879,34 +1907,6 @@
           "origin": "curation",
           "fieldPath": "alsCurations.hierarchy"
         }
-      ]
-    }
-  ],
-  "sourceCompositions": [
-    {
-      "datasetCodes": ["ds-hk-hkgov-dpo-address", "ds-hk-overture-division"],
-      "anchorSnapshotVersions": [
-        "ss-hk-address-2024-07-25.0",
-        "ss-hk-address-2025-01-23.0",
-        "ss-hk-address-2025-02-25.0",
-        "ss-hk-address-2025-03-21.0",
-        "ss-hk-address-2025-04-26.0",
-        "ss-hk-address-2025-05-22.0",
-        "ss-hk-address-2025-06-20.0",
-        "ss-hk-address-2025-08-13.0",
-        "ss-hk-address-2025-09-03.0",
-        "ss-hk-address-2025-09-24.0",
-        "ss-hk-address-2025-11-04.0",
-        "ss-hk-address-2025-12-16.0",
-        "ss-hk-address-2026-02-04.0",
-        "ss-hk-address-2026-04-03.0",
-        "ss-hk-address-2026-04-22.0",
-        "ss-hk-address-2026-04-25.0",
-        "ss-hk-address-2026-06-04.0",
-        "ss-hk-address-2026-06-24.0",
-        "ss-hk-address-2026-07-08.0",
-        "ss-hk-address-2026-07-10.0",
-        "ss-hk-address-2026-07-22.0"
       ]
     }
   ]

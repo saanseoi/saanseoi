@@ -19,6 +19,17 @@
       "properties.newTownZhHans": "properties.NewTown_Sc"
     }
   },
+  "sourceCompositions": [
+    {
+      "datasetCodes": ["ds-hk-hkgov-pland-division-new-town"],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-hkgov-pland-new-town-2006",
+        "ss-hk-division-hkgov-pland-new-town-2011",
+        "ss-hk-division-hkgov-pland-new-town-2016",
+        "ss-hk-division-hkgov-pland-new-town-2021"
+      ]
+    }
+  ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-hkgov-pland-new-town-2006"
@@ -373,17 +384,6 @@
             }
           ]
         }
-      ]
-    }
-  ],
-  "sourceCompositions": [
-    {
-      "datasetCodes": ["ds-hk-hkgov-pland-division-new-town"],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-hkgov-pland-new-town-2006",
-        "ss-hk-division-hkgov-pland-new-town-2011",
-        "ss-hk-division-hkgov-pland-new-town-2016",
-        "ss-hk-division-hkgov-pland-new-town-2021"
       ]
     }
   ]
