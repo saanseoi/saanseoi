@@ -183,19 +183,20 @@ Descriptor-only source blocks remain block-bearing parents even when their block
 is absent; matching Address3D inventories use the existing parent.
 
 For reference and testing imports, `saanseoi init --skip-curation-checks` and
-`saanseoi init:addresses --skip-curation-checks` omit the upfront all-release review.
-Source and integrity validation still run during preparation of each ingested release.
-These commands propagate acceptance of pending address curation checks to ALS ingestion.
-Existing corrections retain unverified provenance where applicable; unresolved identity
-changes receive generated IDs. Automatic acceptance does not write reviewed decisions to
-curation fixtures. Shared ALS 3D buildings may retain separate owners and inventories in
-this mode without a reviewed ownership merge. Block enrichment and duplicate suppression
-are omitted in this mode; inventories use exact parents or unique block-free matches,
-retaining publisher 2D components. Section inventories may retain their existing parent
-without reviewed ownership. Alias curations whose source guards no longer match are
-omitted in skip mode; both publisher records retain their identities, geometry and
-source assertions. Coordinate backfills with missing, ambiguous or changed source
-targets are omitted in skip mode, leaving publisher geometry unchanged.
+`saanseoi init:addresses --skip-curation-checks` accept pending address curation checks.
+The upfront chronological preflight still runs when releases remain to ingest; deletion
+review, source validation and integrity checks remain required. These commands propagate
+the curation-check setting to ALS ingestion. Existing corrections retain unverified
+provenance where applicable; unresolved identity changes receive generated IDs.
+Automatic acceptance does not write reviewed decisions to curation fixtures. Shared ALS
+3D buildings may retain separate owners and inventories in this mode without a reviewed
+ownership merge. Block enrichment and duplicate suppression are omitted in this mode;
+inventories use exact parents or unique block-free matches, retaining publisher 2D
+components. Section inventories may retain their existing parent without reviewed
+ownership. Alias curations whose source guards no longer match are omitted in skip mode;
+both publisher records retain their identities, geometry and source assertions.
+Coordinate backfills with missing, ambiguous or changed source targets are omitted in
+skip mode, leaving publisher geometry unchanged.
 
 ALS coordinate-backfill estate guards use retained publisher names when supplied,
 independently of curated display names. Exact source-point and release bounds remain

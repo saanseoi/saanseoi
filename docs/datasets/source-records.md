@@ -74,14 +74,14 @@ them into an invented GeometryCollection.
 
 ## Prepared rollout
 
-`prepare-source-contract-rewrite.ts` reads an offline source database and produces
-guarded conversion SQL, exact rollback SQL and a JSON report. It restores Overture
-attribution to `properties` and compacts acquisition references before the generated
-`sources` to `sourceLocator` column-renaming migration. It excludes Streets tables.
-Unknown provenance shapes, supplemental assertions and enriched/nested ALS payloads are
-reported for upstream replay. HAD and LandsD Place Names geometry retained as
-longitude/latitude requires native FileGDB replay; inverse projection is not a
-substitute for the original evidence.
+`prepare-source-contract-rewrite.ts` reads an offline database with the pre-migration
+`rawProperties` and `sources` columns and produces guarded conversion SQL, exact
+rollback SQL and a JSON report. It restores Overture attribution to the property payload
+and compacts acquisition references before the generated `sources` to `sourceLocator`
+column-renaming migration. It excludes Streets tables. Unknown provenance shapes,
+supplemental assertions and enriched/nested ALS payloads are reported for upstream
+replay. HAD and LandsD Place Names geometry retained as longitude/latitude requires
+native FileGDB replay; inverse projection is not a substitute for the original evidence.
 
 Review and resolve every replay report before releasing the contract. Verify retained
 source assertions, version history and canonical resolution links; apply the reviewed
@@ -93,6 +93,23 @@ decoded coordinate object; replay the upstream record when that encoding is requ
 
 Supplemental Overture division fixtures belong to canonical snapshots. They do not
 create publisher assertions or advance the validity of an absent publisher record.
+
+## Schema deployment
+
+The generated source migration `20260911161401_smiling_living_tribunal` renames
+`rawProperties` to `properties` in all 18 feature-source tables. Apply the source
+migration chain to each source shard before running the corresponding ingestion and API
+code. The migration preserves JSON bytes, geometry, source identities, content hashes,
+validity intervals, timestamps and indexes.
+
+Complete pending source deliveries before applying the migration: sealed SQL plans
+retain the column names against which they were prepared.
+
+Source fingerprints retain their established serialisation keys independently of storage
+field names, so unchanged publisher assertions keep the same content version. Prepared
+payloads and SQL readers use `properties`. Regenerate prepared C&SD Parquet files and
+ALS publisher sidecars with the current preparation code; cached source normalisation
+and database mirrors use explicit contract versions.
 
 ## ALS acquisition and field mappings
 
