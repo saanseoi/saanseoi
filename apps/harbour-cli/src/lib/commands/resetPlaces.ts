@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path'
 import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
 
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { like, lte, not } from 'drizzle-orm'
+import { like, lte, not, sql } from 'drizzle-orm'
 import {
   and,
   currentSchema,
@@ -757,32 +757,7 @@ async function assertPlacesResetStillSafe(
       'Refusing reset: Places snapshots no longer exactly match the initialisation manifest.',
     )
 
-  const unexpectedCurrent = await context.currentDb
-    .select({ snapshotId: currentSchema.places.snapshotId })
-    .from(currentSchema.places)
-    .where(not(inArray(currentSchema.places.snapshotId, owned.placeSnapshotIds)))
-    .limit(1)
-    .get()
-  if (unexpectedCurrent)
-    throw new Error(
-      'Refusing reset: current Places rows are not owned by this initialisation.',
-    )
-
-  const unexpectedSupplementaryAddress = await context.currentDb
-    .select({ snapshotId: currentSchema.address2d.snapshotId })
-    .from(currentSchema.address2d)
-    .where(
-      and(
-        like(currentSchema.address2d.id, 'opa-%'),
-        not(inArray(currentSchema.address2d.snapshotId, owned.addressSnapshotIds)),
-      ),
-    )
-    .limit(1)
-    .get()
-  if (unexpectedSupplementaryAddress)
-    throw new Error(
-      'Refusing reset: supplementary Address rows are not owned by this initialisation.',
-    )
+  await assertPlacesCurrentResetOwnership(context.currentDb as HarbourReadableDb, owned)
 
   for (const target of context.historyTargets) {
     const unexpectedHistory = await (target.db as HarbourReadableDb)
@@ -920,6 +895,48 @@ async function readPlacesManifest(path: string): Promise<PlacesInitManifest> {
   return value as PlacesInitManifest
 }
 
+export async function assertPlacesCurrentResetOwnership(
+  db: HarbourReadableDb,
+  owned: Pick<OwnedPlaces, 'placeSnapshotIds' | 'addressSnapshotIds'>,
+) {
+  for (const { table, publication, snapshots, predicate, label } of [
+    {
+      table: currentSchema.places,
+      publication: currentSchema.placePublicationState,
+      snapshots: owned.placeSnapshotIds,
+      predicate: undefined,
+      label: 'current Places',
+    },
+    {
+      table: currentSchema.address2d,
+      publication: currentSchema.addressPublicationState,
+      snapshots: owned.addressSnapshotIds,
+      predicate: like(currentSchema.address2d.id, 'opa-%'),
+      label: 'supplementary Address',
+    },
+  ]) {
+    const unexpected = await db
+      .select({ snapshotId: table.snapshotId })
+      .from(table)
+      .where(
+        and(
+          predicate,
+          sql`NOT EXISTS (
+        SELECT 1 FROM ${publication}
+        WHERE ${publication.scopeId} = ${table.snapshotId}
+          AND ${publication.snapshotId} IN (SELECT value FROM json_each(${JSON.stringify(snapshots)}))
+      )`,
+        ),
+      )
+      .limit(1)
+      .get()
+    if (unexpected)
+      throw new Error(
+        `Refusing reset: ${label} rows are not owned by this initialisation.`,
+      )
+  }
+}
+
 async function writePlacesManifest(path: string, manifest: PlacesInitManifest) {
   await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
 }
@@ -934,14 +951,20 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
   const sourceReleases = sqlList(owned.sourceReleaseIds)
   const apiReleaseSets = sqlList(owned.apiReleaseSetIds)
   const assets = sqlList(owned.assets.map(asset => asset.id))
+  const placeScopes = `SELECT scopeId FROM placePublicationState WHERE snapshotId IN (${placeSnapshots})`
+  const addressScopes = `SELECT scopeId FROM addressPublicationState WHERE snapshotId IN (${addressSnapshots})`
   const currentSql = [
-    `DELETE FROM placesCells WHERE snapshotId IN (${placeSnapshots});`,
-    `DELETE FROM placesDivision WHERE placeSnapshotId IN (${placeSnapshots});`,
-    `DELETE FROM placesI18n WHERE snapshotId IN (${placeSnapshots});`,
-    `DELETE FROM places WHERE snapshotId IN (${placeSnapshots});`,
-    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots});`,
-    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots});`,
-    `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM placesCells WHERE snapshotId IN (${placeScopes});`,
+    `DELETE FROM placesDivision WHERE placeSnapshotId IN (${placeScopes});`,
+    `DELETE FROM placesI18n WHERE snapshotId IN (${placeScopes});`,
+    `DELETE FROM places WHERE snapshotId IN (${placeScopes});`,
+    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressScopes});`,
+    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressScopes});`,
+    `DELETE FROM address2d WHERE snapshotId IN (${addressScopes});`,
+    `DELETE FROM placeSearchScopes WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM addressSearchScopes WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM placePublicationState WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM addressPublicationState WHERE snapshotId IN (${addressSnapshots});`,
     readFileSync(
       resolve(REPO_ROOT, 'libs/db/scripts/sql/rebuild-places-fts.sql'),
       'utf8',
