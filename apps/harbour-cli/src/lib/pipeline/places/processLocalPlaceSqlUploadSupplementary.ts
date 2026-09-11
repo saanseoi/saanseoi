@@ -50,20 +50,16 @@ import {
 import { createHash } from '@repo/core/pipeline/utils'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
-import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
+import { materialiseSupplementaryAddressHistory } from './supplementaryAddressHistory.ts'
 import {
   currentSchema,
   historySchema,
   metaSchema,
   buildDeterministicUuidV5,
 } from '@repo/db'
-import { and, eq, ne, inArray, isNotNull, like, lte, sql } from 'drizzle-orm'
+import { and, eq, ne, inArray, isNotNull, lte, sql } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
-import {
-  executeSqlText,
-  type SqlImportExecutionOptions,
-  type SqlImportTargetContext,
-} from '../local/sqlImport.ts'
+import { executeSqlText, type SqlImportExecutionOptions } from '../local/sqlImport.ts'
 import type {
   PlaceHistoryRow,
   PlaceHistoryState,
@@ -80,7 +76,7 @@ import {
   SUPPLEMENTARY_DEFAULT_DECISIONS_PATH,
   supplementaryEntryLedgerPath,
 } from './processLocalPlaceSqlUploadConfig.ts'
-import { chunkStatements, insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
+import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
 import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 
 type PrepareSupplementaryAddressesInput = {
@@ -651,20 +647,22 @@ async function prepareSupplementaryAddressesLocked(
       row.current.divisionSnapshotId = servingDivision.scopeId
   }
   const materialisedAddressIds = new Set(addresses.map(row => row.current.id))
-  const activeAddressIds = new Set<string>()
-  for (const target of input.context.historyTargets) {
-    const rows = await (target.db as HarbourReadableDb)
-      .select({ id: historySchema.address2d.id })
-      .from(historySchema.address2d)
-      .where(
-        and(
-          eq(historySchema.address2d.isCurrent, true),
-          like(historySchema.address2d.id, 'opa-%'),
-        ),
-      )
+  const activeAddressIds = new Set(
+    (
+      await currentDb
+        .select({ id: currentSchema.address2d.id })
+        .from(currentSchema.address2d)
+        .where(eq(currentSchema.address2d.snapshotId, currentScopeId))
+        .all()
+    ).map(row => row.id),
+  )
+  const scopeSnapshotIds = (
+    await db
+      .select({ id: metaSchema.metaSnapshots.id })
+      .from(metaSchema.metaSnapshots)
+      .where(eq(metaSchema.metaSnapshots.snapshotLineageId, currentScopeId))
       .all()
-    for (const row of rows) activeAddressIds.add(row.id)
-  }
+  ).map(row => row.id)
   const revokedAddressIds = [
     ...new Set([
       ...[...activeAddressIds].filter(id => !materialisedAddressIds.has(id)),
@@ -784,7 +782,39 @@ async function prepareSupplementaryAddressesLocked(
         expectedCount: addresses.length,
         inputs: { materialisationHash, snapshotId: snapshot.id },
       },
-      async () => {
+      async candidates => {
+        if (!historyShard)
+          throw new Error('Supplementary Address publication requires a history shard.')
+        const owners = await materialiseSupplementaryAddressHistory({
+          candidates,
+          addresses,
+          scopeId: currentScopeId,
+          scopeSnapshotIds,
+          snapshotId: snapshot.id,
+          releaseId,
+          historyBinding: historyShard.bindingName,
+          revokedAddressIds,
+          now,
+        })
+        const shards = await db
+          .select({
+            id: metaSchema.metaDataShards.id,
+            bindingName: metaSchema.metaDataShards.bindingName,
+          })
+          .from(metaSchema.metaDataShards)
+          .where(
+            and(
+              eq(metaSchema.metaDataShards.shardType, 'history'),
+              eq(metaSchema.metaDataShards.environment, environment),
+            ),
+          )
+          .all()
+        for (const binding of owners) {
+          const owner = shards.find(shard => shard.bindingName === binding)
+          if (!owner || typeof owner.id !== 'string')
+            throw new Error(`Missing supplementary content owner ${binding}.`)
+          await upsertSnapshotShardAssignment(db, snapshot.id, owner.id)
+        }
         if (!input.importOptions.isLocal) {
           await executeSqlText(
             input.targets.meta,
@@ -795,114 +825,6 @@ async function prepareSupplementaryAddressesLocked(
             ].join('\n'),
             input.importOptions,
           )
-        }
-        const currentSql = [
-          `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(currentScopeId)};`,
-          `DELETE FROM address2dI18n WHERE snapshotId = ${lit(currentScopeId)};`,
-          `DELETE FROM address2d WHERE snapshotId = ${lit(currentScopeId)};`,
-        ]
-        for (const target of input.targets.historyByBinding.values()) {
-          await importSupplementarySql(
-            target,
-            "UPDATE address2d SET isCurrent = 0 WHERE id LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dI18n SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1; UPDATE address2dBuildingNumberLookup SET isCurrent = 0 WHERE addressId LIKE 'opa-%' AND isCurrent = 1;",
-            input.importOptions,
-          )
-        }
-        const historySql: string[] = []
-        const changes: string[] = [
-          `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${lit(snapshot.id)};`,
-        ]
-        for (const row of addresses) {
-          const version = {
-            versionHash: row.versionHash,
-            snapshotId: snapshot.id,
-            sourceReleaseId: releaseId,
-            isCurrent: 1,
-            createdAt: now,
-            updatedAt: now,
-          }
-          currentSql.push(
-            insertSql('address2d', {
-              ...row.current,
-              snapshotId: currentScopeId,
-              createdAt: now,
-              updatedAt: now,
-            }),
-          )
-          historySql.push(insertSql('address2d', { ...row.canonical, ...version }))
-          for (const lookup of buildAddressBuildingNumberLookupRows(row.i18n)) {
-            currentSql.push(
-              insertSql('address2dBuildingNumberLookup', {
-                ...lookup,
-                snapshotId: currentScopeId,
-                createdAt: now,
-                updatedAt: now,
-              }),
-            )
-            historySql.push(
-              insertSql('address2dBuildingNumberLookup', { ...lookup, ...version }),
-            )
-          }
-          changes.push(
-            insertSql('snapshotVersionChanges', {
-              snapshotId: snapshot.id,
-              recordType: 'address2d',
-              recordId: row.current.id,
-              locale: '',
-              versionHash: row.versionHash,
-              operation: 'upsert',
-              sourceReleaseId: releaseId,
-              createdAt: now,
-              updatedAt: now,
-            }),
-          )
-          for (const value of row.i18n) {
-            currentSql.push(
-              insertSql('address2dI18n', {
-                ...value,
-                snapshotId: currentScopeId,
-                createdAt: now,
-                updatedAt: now,
-              }),
-            )
-            historySql.push(insertSql('address2dI18n', { ...value, ...version }))
-            changes.push(
-              insertSql('snapshotVersionChanges', {
-                snapshotId: snapshot.id,
-                recordType: 'address2dI18n',
-                recordId: row.current.id,
-                locale: value.locale,
-                versionHash: row.versionHash,
-                operation: 'upsert',
-                sourceReleaseId: releaseId,
-                createdAt: now,
-                updatedAt: now,
-              }),
-            )
-          }
-        }
-        for (const id of revokedAddressIds) {
-          changes.push(
-            insertSql('snapshotVersionChanges', {
-              snapshotId: snapshot.id,
-              recordType: 'address2d',
-              recordId: id,
-              locale: '',
-              versionHash: null,
-              operation: 'delete',
-              sourceReleaseId: releaseId,
-              createdAt: now,
-              updatedAt: now,
-            }),
-          )
-        }
-        for (const [target, statements] of [
-          [input.targets.current, currentSql],
-          [input.targets.history, [...historySql, ...changes]],
-        ] as const) {
-          input.onStage?.(`import supplementary Addresses into ${target.name}`)
-          for (const sql of chunkStatements(statements))
-            await importSupplementarySql(target, sql, input.importOptions)
         }
       },
     )
@@ -1042,15 +964,6 @@ async function writeSupplementaryReviewArtefact(input: {
 
 function temporaryPath(path: string) {
   return `${path}.${process.pid}.${crypto.randomUUID()}.tmp`
-}
-
-async function importSupplementarySql(
-  target: SqlImportTargetContext,
-  sql: string,
-  options: SqlImportExecutionOptions,
-) {
-  await executeSqlText(target, sql, options)
-  if (!options.isLocal) await executeSqlText(target, sql, { ...options, isLocal: true })
 }
 
 async function assertSupplementaryAddressRows(

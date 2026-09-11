@@ -1,5 +1,6 @@
 import { createHash } from '@repo/core/pipeline/utils'
 import { establishAddressGranularity } from '@repo/core/pipeline/services/addresses/granularity'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
 import type { currentSchema } from '@repo/db'
 import type {
   StagedAddressResolution,
@@ -132,22 +133,41 @@ export async function buildSupplementaryAddressRows(input: {
       geometry: null,
       bbox: null,
       identifiers: { supplementaryIdentityKey: entry.identityKey },
-      sources,
     }
-    const versionHash = await createHash({ canonical, values: entry.values })
+    const i18n = entry.values.map(({ provenance: _provenance, ...value }) => ({
+      ...value,
+      addressId: id,
+    }))
+    const versionHash = await createHash(canonical)
+    const i18nVersionHashes = Object.fromEntries(
+      await Promise.all(
+        i18n.map(async value => [value.locale, await createHash(value)]),
+      ),
+    ) as Record<string, string>
+    const lookups = await Promise.all(
+      buildAddressBuildingNumberLookupRows(i18n).map(async lookup => ({
+        ...lookup,
+        versionHash: await createHash(lookup),
+      })),
+    )
     rows.push({
       canonical,
       versionHash,
+      i18nVersionHashes,
+      lookups,
+      evidence: {
+        addressId: id,
+        sources,
+        versionHash: await createHash({ addressId: id, sources }),
+      },
       current: {
         ...canonical,
+        sources,
         snapshotId: input.snapshotId,
         divisionSnapshotId: base?.divisionSnapshotId ?? input.divisionSnapshotId,
         streetSnapshotId: null,
       },
-      i18n: entry.values.map(({ provenance: _provenance, ...value }) => ({
-        ...value,
-        addressId: id,
-      })),
+      i18n,
     })
   }
   return rows

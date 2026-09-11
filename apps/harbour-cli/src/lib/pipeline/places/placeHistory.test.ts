@@ -452,3 +452,24 @@ test('forward Places ingest after rollback compares the restored predecessor and
     f.close()
   }
 })
+
+test('Places refuses a serving predecessor whose selected history content is missing', async () => {
+  const f = fixture()
+  try {
+    await f.run([await place()])
+    getDatabase(f.databases, 'old')
+      .query('DELETE FROM placesI18n WHERE locale=?')
+      .run('en')
+    const before = f.current.query('SELECT total_changes() AS n').get()
+    await expect(
+      loadCurrentPlaceHistory(f.historyTargets, {
+        currentDb: drizzle({ client: f.current }) as never,
+        scopeId: 'scope',
+        replayPlan: f.plan,
+      }),
+    ).rejects.toThrow('Missing exact Place predecessor content')
+    expect(f.current.query('SELECT total_changes() AS n').get()).toEqual(before)
+  } finally {
+    f.close()
+  }
+})

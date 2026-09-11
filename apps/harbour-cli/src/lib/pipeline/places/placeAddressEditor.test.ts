@@ -134,7 +134,7 @@ test('New Address decisions replay without an ALS base and retain localisation p
   })
   expect(rows[0]?.current.districtId).toBeNull()
   expect(
-    rows[0]?.canonical.sources[0]?.localisationProvenance['zh-hant']?.isHumanVerified,
+    rows[0]?.evidence.sources[0]?.localisationProvenance['zh-hant']?.isHumanVerified,
   ).toEqual([])
   expect(rows[0]?.i18n[1]).not.toHaveProperty('provenance')
 })
