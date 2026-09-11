@@ -175,7 +175,7 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
     ])
   })
 
-  test('reports multiple hierarchy alternatives', () => {
+  test('accepts multiple evidenced hierarchy alternatives', () => {
     expect(
       collectOvertureHongKongDivisionSourceAssumptionViolations([
         {
@@ -192,7 +192,7 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
           ],
         },
       ]),
-    ).toEqual(['row 1 (district): expected at most one hierarchies entry, got 2'])
+    ).toEqual([])
   })
 })
 
@@ -215,7 +215,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
       base: {
         id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
         level: 0,
-        type: 'country',
+        class: 'country',
         geometry: null,
       },
       i18n: expect.arrayContaining([
@@ -245,8 +245,8 @@ describe('missingOvertureHongKongAreaRows', () => {
     })),
   )
 
-  test('reuses Overture’s historic Kowloon identity', () => {
-    expect(overtureHongKongAreaDivisionId('kowloon')).toBe(
+  test('keeps the administrative Kowloon area distinct from the source city', () => {
+    expect(overtureHongKongAreaDivisionId('kowloon')).not.toBe(
       '17009785-57fd-4e5b-af86-2d27352e4718',
     )
   })
@@ -268,7 +268,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     }
   })
 
-  test('does not replace an Overture-provided polygonal area record', () => {
+  test('adds the administrative area alongside the source city polygon', () => {
     const rows = missingOvertureHongKongAreaRows(
       { regionCode: 'hk', source: 'overture', resourceType: 'division' },
       [
@@ -282,7 +282,7 @@ describe('missingOvertureHongKongAreaRows', () => {
       ],
     )
 
-    expect(rows.map(row => row.names.primary)).not.toContain('Kowloon')
+    expect(rows.map(row => row.names.primary)).toContain('Kowloon')
   })
 
   test('preserves Kowloon when Overture supplies its area identity as a point', () => {
@@ -304,7 +304,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     )
   })
 
-  test('replaces a non-Kowloon Overture area point with the canonical synthetic area', () => {
+  test('preserves an existing canonical administrative area identity', () => {
     const hongKongIsland = overtureHongKongAreas.find(
       area => area.code === 'hong-kong-island',
     )
@@ -323,11 +323,7 @@ describe('missingOvertureHongKongAreaRows', () => {
       ],
     )
 
-    expect(rows.find(row => row.id === divisionId)).toMatchObject({
-      geometry: null,
-      names: { primary: hongKongIsland.names.en },
-      wikidata: hongKongIsland.wikidata,
-    })
+    expect(rows.find(row => row.id === divisionId)).toBeUndefined()
   })
 })
 
@@ -376,9 +372,9 @@ describe('normaliseDivisionRow i18n', () => {
 
     expect(normalised).toMatchObject({
       base: {
-        hierarchy: [],
+        hierarchies: { administrative: [], locality: [], full: [] },
         level: null,
-        type: 'housing-market-area',
+        class: 'housing-market-area',
       },
     })
   })
@@ -412,7 +408,7 @@ describe('normaliseDivisionRow i18n', () => {
             properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
           },
         },
-        type: 'settlement',
+        class: 'settlement',
       },
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Central' }),
@@ -496,7 +492,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     expect(normalised.base).toMatchObject({
       id: '222b7818-970a-491d-98b6-b88d8c6f0161',
       level: 4,
-      type: 'macrohood',
+      class: 'macrohood',
     })
     expect(normalised.overtureHongKongDivisionClassificationCorrection).toEqual({
       level: 4,
@@ -536,17 +532,27 @@ describe('normaliseDivisionRow hierarchy', () => {
       },
     )
 
-    expect(normalised.base.hierarchies).toEqual([
-      {
-        division_id: '222b7818-970a-491d-98b6-b88d8c6f0161',
-        i18n: {
-          en: { name: 'Lok Ma Chau Loop' },
-          'zh-hant': { name: '落馬洲河套地區' },
-        },
-        level: 4,
-        type: 'macrohood',
-      },
-    ])
+    expect(normalised.base.hierarchies).toEqual({
+      administrative: [],
+      locality: [
+        [
+          {
+            id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+            class: 'macrohood',
+            name: '落馬洲河套地區 Lok Ma Chau Loop',
+          },
+        ],
+      ],
+      full: [
+        [
+          {
+            id: '222b7818-970a-491d-98b6-b88d8c6f0161',
+            class: 'macrohood',
+            name: '落馬洲河套地區 Lok Ma Chau Loop',
+          },
+        ],
+      ],
+    })
   })
 
   test('retains the original Overture source record reference', () => {
@@ -611,47 +617,47 @@ describe('normaliseDivisionRow hierarchy', () => {
       { hierarchyLookup },
     )
 
-    expect(normalised.base.hierarchies).toEqual([
-      {
-        division_id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
-        i18n: {
-          en: {
-            name: 'Hong Kong SAR',
+    expect(normalised.base.hierarchies).toEqual({
+      administrative: [
+        [
+          {
+            id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
+            class: 'sar',
+            name: '香港特別行政區 Hong Kong SAR',
           },
-          'zh-hant': {
-            name: '香港特別行政區',
+          {
+            id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+            class: 'area',
+            name: '香港島 Hong Kong Island',
           },
-        },
-        level: 0,
-        type: 'sar',
-      },
-      {
-        division_id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
-        i18n: {
-          en: {
-            name: 'Hong Kong Island',
+          {
+            id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
+            class: 'district',
+            name: '中西區 Central and Western District',
           },
-          'zh-hant': {
-            name: '香港島',
+        ],
+      ],
+      locality: [],
+      full: [
+        [
+          {
+            id: 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d',
+            class: 'sar',
+            name: '香港特別行政區 Hong Kong SAR',
           },
-        },
-        level: 1,
-        type: 'area',
-      },
-      {
-        division_id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
-        i18n: {
-          en: {
-            name: 'Central and Western District',
+          {
+            id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+            class: 'area',
+            name: '香港島 Hong Kong Island',
           },
-          'zh-hant': {
-            name: '中西區',
+          {
+            id: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
+            class: 'district',
+            name: '中西區 Central and Western District',
           },
-        },
-        level: 2,
-        type: 'district',
-      },
-    ])
+        ],
+      ],
+    })
     expect(normalised.base.identifiers).toBeNull()
   })
 
@@ -693,21 +699,11 @@ describe('normaliseDivisionRow hierarchy', () => {
       },
     )
 
-    expect(normalised.base.hierarchies).toEqual([
-      {
-        division_id: 'division-locality',
-        i18n: {
-          en: {
-            name: 'Somewhere',
-          },
-          'zh-hant': {
-            name: '某處',
-          },
-        },
-        level: 3,
-        type: 'town',
-      },
-    ])
+    expect(normalised.base.hierarchies).toEqual({
+      administrative: [],
+      locality: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],
+      full: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],
+    })
   })
 
   test('inserts an area after Hong Kong SAR for a district', () => {
@@ -739,9 +735,9 @@ describe('normaliseDivisionRow hierarchy', () => {
       { hierarchyLookup },
     )
 
-    expect(normalised.base.hierarchies).toMatchObject([
-      { type: 'sar' },
-      { level: 1, type: 'area', division_id: '25cec859-44f3-5e1d-a72b-952f804e56ab' },
+    expect(normalised.base.hierarchies.administrative[0]).toMatchObject([
+      { class: 'sar' },
+      { class: 'area', id: '25cec859-44f3-5e1d-a72b-952f804e56ab' },
     ])
     expect(normalised.overtureHongKongAreaHierarchyAssignment).toMatchObject({
       code: 'hong-kong-island',

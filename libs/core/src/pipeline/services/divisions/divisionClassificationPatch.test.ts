@@ -21,7 +21,7 @@ test('classification patch checks admin level against the declared source schema
   const source = { source: 'overture' as const, sourceVersion: '2025-09-24.0' }
   expect(normaliseDivisionRow(row, { source }).base).toMatchObject({
     level: 4,
-    type: 'macrohood',
+    class: 'macrohood',
   })
   for (const invalidRow of [
     { ...row, admin_level: 3 },

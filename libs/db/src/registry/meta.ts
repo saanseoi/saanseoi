@@ -210,7 +210,7 @@ export type MergeProcessingRule = {
   operationCode: string
   definition?: ReturnType<typeof ruleDeclarationFromFixture>
   definitions?: Array<ReturnType<typeof ruleDeclarationFromFixture>>
-  type: 'bulk' | 'record'
+  kind: 'bulk' | 'record'
   sourceFieldPath?: string
   targetFieldPath?: string
   condition?: string
@@ -501,7 +501,7 @@ export function resolveMergeRulesetDefinitions(
     }
     return {
       operationCode: rule.operationCode,
-      type: first.scope === 'bulk' ? 'bulk' : 'record',
+      kind: first.scope === 'bulk' ? 'bulk' : 'record',
       sourceFieldPath: [
         ...new Set(selected.flatMap(definition => definition.inputs)),
       ].join(', '),

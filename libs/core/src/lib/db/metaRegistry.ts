@@ -115,7 +115,7 @@ type ReleaseProcessingRules = {
       operationCode: string
       sourceFieldPath?: string
       targetFieldPath?: string
-      type: 'bulk' | 'record'
+      kind: 'bulk' | 'record'
     }>
   }>
 }
