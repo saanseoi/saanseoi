@@ -1,6 +1,33 @@
 import { expect, test } from 'bun:test'
+import { createHash } from '../../utils'
 import { alsSourcePayload, captureAlsPublisherSources } from './alsSourcePayload'
-import { overtureSourcePayload, sourceLocatorFromReferences } from './sourcePayload'
+import {
+  nativeSourcePayloadHashInput,
+  overtureSourcePayload,
+  sourceLocatorFromReferences,
+} from './sourcePayload'
+
+test('native source fingerprints remain stable when the payload field is named properties', async () => {
+  const source = {
+    properties: { NAME: ' Original ', count: 0, country: null },
+    sourceGeometry: { type: 'Point', coordinates: [114, 22] },
+    placeNames: [{ NAME_EN: ' Original ' }],
+  }
+  expect(await createHash(nativeSourcePayloadHashInput(source))).toBe(
+    '06a040564707402655026b698d739a999c07f79f0a8a44700c5bbca11be6cbf9',
+  )
+  expect(
+    await createHash(nativeSourcePayloadHashInput({ properties: source.properties })),
+  ).toBe('70b6f84af61a6362cc04ce5e7de593259af848d280825f760dee0cb9512c8400')
+  expect(
+    await createHash(
+      nativeSourcePayloadHashInput({
+        ...source,
+        properties: { ...source.properties, NAME: 'Changed upstream' },
+      }),
+    ),
+  ).not.toBe(await createHash(nativeSourcePayloadHashInput(source)))
+})
 
 test('Overture envelope retains publisher values once and leaves the input untouched', () => {
   const input = {

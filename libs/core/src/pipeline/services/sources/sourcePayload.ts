@@ -41,14 +41,23 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
  * Source fingerprints retain their original serialised field key. This key is
  * part of the hash contract only; stored and prepared payloads use properties.
  */
+export function sourceRecordHashInput(row: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [
+      key === 'properties' ? 'rawProperties' : key,
+      value,
+    ]),
+  )
+}
+
 export function publisherSourceHashInput(row: {
   properties: unknown
   sourceGeometry?: unknown
 }) {
-  return {
-    rawProperties: row.properties,
+  return sourceRecordHashInput({
+    properties: row.properties,
     sourceGeometry: row.sourceGeometry ?? null,
-  }
+  })
 }
 
 /** Native properties and geometry are versioned independently of acquisition or repair. */

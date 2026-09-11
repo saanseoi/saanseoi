@@ -10,7 +10,7 @@ import {
   rewriteOvertureSourcePayload,
 } from '../libs/core/src/pipeline/services/sources/sourcePayloadRewrite'
 
-/** Offline preparation only. Run before the sources -> sourceLocator schema migration. */
+/** Offline preparation of rawProperties/sources databases before their column migrations. */
 const { values } = parseArgs({
   options: {
     database: { type: 'string' },
@@ -66,16 +66,16 @@ try {
     // Compressed C&SD geometry is deliberately neither decoded nor rewritten here.
     for (const row of db
       .query(
-        `SELECT sourceRecordId, versionHash, rawProperties, sources${geometryColumn && table !== 'hkgovCenstatdDivisionAreas' ? ', sourceGeometry' : ''} FROM ${table}`,
+        `SELECT sourceRecordId, versionHash, rawProperties AS properties, sources${geometryColumn && table !== 'hkgovCenstatdDivisionAreas' ? ', sourceGeometry' : ''} FROM ${table}`,
       )
       .iterate() as Iterable<{
       sourceRecordId: string
       versionHash: string
-      rawProperties: string | null
+      properties: string | null
       sources: string | null
       sourceGeometry?: string | null
     }>) {
-      const raw = parse(row.rawProperties)
+      const raw = parse(row.properties)
       const sources = parse(row.sources)
       const overture = (overtureSourceTables as readonly string[]).includes(table)
       if (raw && isSupplementalDivisionPayload(raw)) {
@@ -107,13 +107,13 @@ try {
           continue
         }
       }
-      let nextRaw = row.rawProperties
+      let nextProperties = row.properties
       let nextGeometry = row.sourceGeometry
       let locator: Record<string, unknown> | null = null
       if (overture) {
         const replacement = rewriteOvertureSourcePayload({
           sourceRecordId: row.sourceRecordId,
-          rawProperties: raw ?? {},
+          properties: raw ?? {},
           sources,
           sourceGeometry: parse(row.sourceGeometry ?? null),
         })
@@ -131,7 +131,7 @@ try {
           continue
         }
         if (replacement) {
-          nextRaw = json(replacement.rawProperties)
+          nextProperties = json(replacement.properties)
           nextGeometry = json(replacement.sourceGeometry)
         }
       } else {
@@ -151,7 +151,7 @@ try {
       }
       const nextSources = json(locator)
       if (
-        nextRaw === row.rawProperties &&
+        nextProperties === row.properties &&
         nextSources === row.sources &&
         nextGeometry === row.sourceGeometry
       )
@@ -163,12 +163,12 @@ try {
         ...(nextGeometry === undefined ? [] : ['sourceGeometry']),
       ]
       const before = [
-        row.rawProperties,
+        row.properties,
         row.sources,
         ...(nextGeometry === undefined ? [] : [row.sourceGeometry ?? null]),
       ]
       const after = [
-        nextRaw,
+        nextProperties,
         nextSources,
         ...(nextGeometry === undefined ? [] : [nextGeometry ?? null]),
       ]

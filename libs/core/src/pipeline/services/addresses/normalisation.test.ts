@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { createHash } from '../../utils'
+import { captureAlsPublisherSources } from '../sources/alsSourcePayload'
 import {
   buildAddressBaseHashInput,
   buildAddressBuildingNumberLookupRows,
@@ -28,6 +29,45 @@ const buildBase = (sources: unknown) =>
     townId: null,
     villageId: null,
   }) as Parameters<typeof buildAddressBaseHashInput>[0]
+
+test('ALS capture and normalisation preserve the source fingerprint through the properties rename', async () => {
+  const sources = await captureAlsPublisherSources(
+    [
+      {
+        feature: {
+          properties: {
+            Address: {
+              PremisesAddress: {
+                GeoAddress: 'geo',
+                BuildingCsuInformation: { CsuId: '000123' },
+                EngPremisesAddress: {
+                  BuildingName: ' Original ',
+                  Eng3dAddress: [{ EngFloor: { FloorNum: 1 } }],
+                },
+              },
+            },
+          },
+          geometry: { type: 'Point', coordinates: [114, 22] },
+        },
+        sourceFile: 'district.geojson',
+        featureIndexOneBased: 1,
+      },
+    ],
+    '2026-01-01.0',
+  )
+  const publisherSource = [...sources.values()][0]!
+  const retainedHash =
+    '63d65e4d54deca5ae283db6a7db7cf84b9d872dafa23cecdb27a8f582474a94c'
+  expect(publisherSource.sourceRecordId).toBe('4c248d40-0a2c-5061-9eee-86bdeadf8f7b')
+  expect(publisherSource.versionHash).toBe(retainedHash)
+  expect(publisherSource.properties).toMatchObject({
+    buildingNameEn: ' Original ',
+    address3dEn: [{ EngFloor: { FloorNum: 1 } }],
+  })
+  expect(await createHash(buildHkgovAlsSourceHashInput({ publisherSource }))).toBe(
+    retainedHash,
+  )
+})
 
 test('versions explicit parent changes independently of localisation', async () => {
   const base = buildBase(null)

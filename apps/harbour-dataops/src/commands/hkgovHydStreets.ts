@@ -128,7 +128,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       const properties = feature.properties
       const sourceRecordId = await hydSourceRecordId(profile.kind, feature)
       const common = {
-        properties: properties,
+        properties,
         sourceGeometry: feature.geometry,
         sourceRecordId,
         sources: [{ ...provenance, layerName: hydLayer(profile.kind) }],

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  hashDivisionGeometrySourceRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
 } from './divisionGeometry'
@@ -19,6 +20,29 @@ const polygon = {
 }
 
 describe('division geometry normalisation', () => {
+  test('source fingerprints retain envelope metadata and the established serialised field key', async () => {
+    const source = {
+      properties: { name: ' Original ' },
+      sourceGeometry: null,
+      sourceRecordId: 'record',
+      sourceLocator: null,
+      derivation: null,
+    }
+    const hash = await hashDivisionGeometrySourceRow(source)
+    expect(hash).toBe(
+      '88bb9a74535773540154b76fa4c1b18b00970d478ce7c39ec37dc69aa07c7506',
+    )
+    expect(
+      await hashDivisionGeometrySourceRow({ ...source, sourceRecordId: 'other' }),
+    ).not.toBe(hash)
+    expect(
+      await hashDivisionGeometrySourceRow({
+        ...source,
+        properties: { name: 'Changed upstream' },
+      }),
+    ).not.toBe(hash)
+  })
+
   test('excludes Guangdong rows from HK area and boundary extracts', () => {
     expect(
       normaliseDivisionAreaGeometryRow({
