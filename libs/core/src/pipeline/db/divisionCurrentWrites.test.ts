@@ -26,7 +26,7 @@ test('Division current writes insert, change and remove only the affected rows w
     class: 'district',
     level: 2,
     category: 'administrative',
-    hierarchies: { full: [] },
+    hierarchies: { full: [], administrative: [], locality: [] },
     createdAt: timestamp,
     updatedAt: timestamp,
   })

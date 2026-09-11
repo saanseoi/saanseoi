@@ -15,6 +15,8 @@ export type PublicationIdentity = {
 export type PublicationPreparation = PublicationIdentity & {
   scopeId: string
   timestamp: string
+  /** The exact acknowledged predecessor captured while the delivery plan is sealed. */
+  previous?: { snapshotId: string; publicationToken: string } | null
 }
 
 const literal = (value: string) => `'${value.replaceAll("'", "''")}'`
@@ -42,9 +44,12 @@ export function buildPublicationGuardSql(input: PublicationIdentity) {
 
 /** The same sealed delivery may retry; another delivery cannot take its snapshot. */
 export function buildBeginPublicationSql(input: PublicationPreparation) {
+  const previous = input.previous
+    ? `snapshotId = ${literal(input.previous.snapshotId)} AND publicationToken = ${literal(input.previous.publicationToken)} AND preparedAt IS NOT NULL`
+    : '0'
   return [
     'SELECT 1 /* saanseoi-audit-commit:start */;',
-    `INSERT INTO ${tableName(input.table)} (scopeId, snapshotId, status, publicationToken, preparedAt, createdAt, updatedAt) VALUES (${literal(input.scopeId)}, ${literal(input.snapshotId)}, 'publishing', ${literal(input.publicationToken)}, NULL, ${literal(input.timestamp)}, ${literal(input.timestamp)}) ON CONFLICT(snapshotId) DO NOTHING;`,
+    `INSERT INTO ${tableName(input.table)} (scopeId, snapshotId, status, publicationToken, preparedAt, createdAt, updatedAt) VALUES (${literal(input.scopeId)}, ${literal(input.snapshotId)}, 'publishing', ${literal(input.publicationToken)}, NULL, ${literal(input.timestamp)}, ${literal(input.timestamp)}) ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId, status = 'publishing', publicationToken = excluded.publicationToken, preparedAt = NULL, updatedAt = excluded.updatedAt WHERE ${previous};`,
     buildPublicationAssertionSql(
       `EXISTS (SELECT 1 FROM ${tableName(input.table)} WHERE scopeId = ${literal(input.scopeId)} AND snapshotId = ${literal(input.snapshotId)} AND publicationToken = ${literal(input.publicationToken)} AND status = 'publishing' AND preparedAt IS NULL)`,
     ),
