@@ -158,7 +158,7 @@ describe('Places SQL materialisation', () => {
         PRIMARY KEY (sourceRecordId, versionHash)
       );
       CREATE TABLE places (
-        snapshotId TEXT, id TEXT, releaseId TEXT, addressSnapshotId TEXT,
+        snapshotId TEXT, id TEXT, releaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT,
         address2dId TEXT, address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT,
         operatingStatus TEXT, basicCategory TEXT, taxonomyPrimary TEXT,
         taxonomyHierarchy TEXT, taxonomyAlternates TEXT, wikidataId TEXT,
@@ -170,7 +170,7 @@ describe('Places SQL materialisation', () => {
         snapshotId TEXT, placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT,
         nameAlts TEXT, brandName TEXT,
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT, accessHint TEXT,
-        provenance TEXT, createdAt TEXT, updatedAt TEXT
+        provenance TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
       );
       CREATE TABLE placesDivision (placeSnapshotId TEXT, placeId TEXT);
       CREATE TABLE placesCells (snapshotId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
@@ -180,7 +180,7 @@ describe('Places SQL materialisation', () => {
     history.exec(`
       CREATE TABLE sourceResolutions (scopeId TEXT, snapshotId TEXT, sourceReleaseId TEXT, sourceRecordId TEXT, sourceVersionHash TEXT, resolutions TEXT, PRIMARY KEY(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash));
       CREATE TABLE places (
-        id TEXT, releaseId TEXT, addressSnapshotId TEXT, address2dId TEXT,
+        id TEXT, releaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
         address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT, operatingStatus TEXT,
         basicCategory TEXT, taxonomyPrimary TEXT, taxonomyHierarchy TEXT,
         taxonomyAlternates TEXT, wikidataId TEXT, websites TEXT, socials TEXT,
@@ -194,7 +194,7 @@ describe('Places SQL materialisation', () => {
         brandName TEXT, brandNameVariant TEXT,
         brandNameAlts TEXT, versionHash TEXT, sourceReleaseId TEXT,
         snapshotId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT
-        , freeformAddress TEXT, accessHint TEXT, provenance TEXT
+        , freeformAddress TEXT, accessHint TEXT, provenance TEXT, searchDependencyText TEXT
       );
       CREATE TABLE snapshotVersionChanges (
         snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
