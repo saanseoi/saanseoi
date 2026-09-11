@@ -39,14 +39,12 @@ describe('stats rows', () => {
       ]),
       '2026-08-17T00:00:00.000Z',
     )
-    expect(
-      areas.map(row => [row.kind, row.dimension, row.metric, row.metricUnit]),
-    ).toEqual([
-      ['release', 'geometry', 'feature_count', 'count'],
-      ['release', 'geometry', 'polygon_count', 'count'],
-      ['release', 'geometry', 'area', 'square_kilometres'],
-      ['release', 'geometry', 'boundary_segment_count', 'count'],
-      ['release', 'geometry', 'boundary_length', 'kilometres'],
+    expect(areas.map(row => [row.dimension, row.metric, row.metricUnit])).toEqual([
+      ['geometry', 'feature_count', 'count'],
+      ['geometry', 'polygon_count', 'count'],
+      ['geometry', 'area', 'square_kilometres'],
+      ['geometry', 'boundary_segment_count', 'count'],
+      ['geometry', 'boundary_length', 'kilometres'],
     ])
     expect(
       buildGeometryReleaseStatsRows(
@@ -83,7 +81,7 @@ describe('stats rows', () => {
       total: 4,
     })
 
-    expect(rows.every(row => row.kind === 'release')).toBe(true)
+    expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
         dimension: 'locale_coverage',
@@ -121,7 +119,7 @@ describe('stats rows', () => {
       },
     })
 
-    expect(rows.every(row => row.kind === 'apiReleaseSet')).toBe(true)
+    expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
         dimension: 'records',
@@ -316,7 +314,7 @@ describe('stats rows', () => {
       },
     })
 
-    expect(rows.every(row => row.kind === 'apiReleaseSet')).toBe(true)
+    expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
         dimension: 'records',

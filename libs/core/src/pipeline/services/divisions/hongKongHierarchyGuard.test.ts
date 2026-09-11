@@ -57,11 +57,12 @@ test('bulk normalisation inserts Area before the independent guard checks it', (
     },
     { hierarchyGuard },
   )
-  expect(result.base.hierarchies).toMatchObject(
-    materialiseDivisionHierarchies('self', [
-      [sar, { division_id: area.division_id, level: 1, type: 'area' }],
-    ]),
-  )
+  expect(result.base.hierarchies.administrative).toEqual([
+    [
+      { id: sar.division_id, name: 'Hong Kong SAR', class: 'sar' },
+      { id: area.division_id, name: '新界 New Territories', class: 'area' },
+    ],
+  ])
   expect(hierarchyGuard).toMatchObject({ status: 'passed', checked: 1, failed: 0 })
 })
 
@@ -119,6 +120,7 @@ test('reviewed replacements defer only the intermediate hierarchy guard', () => 
     id: '17009785-57fd-4e5b-af86-2d27352e4718',
     country: 'HK',
     subtype: 'locality',
+    class: 'city',
     names: { common: { en: 'Kowloon' } },
     hierarchies: [
       [
@@ -136,7 +138,7 @@ test('reviewed replacements defer only the intermediate hierarchy guard', () => 
     { ...row, hierarchies: [[row.hierarchies[0]![0]!]] },
     { hierarchyGuard },
   )
-  expect(final.base.class).toBe('area')
+  expect(final.base.class).toBe('city')
   expect(final.base.hierarchies.full).toHaveLength(1)
   expect(() =>
     normaliseDivisionRow({ ...row, id: '' }, { deferHierarchyGuard: true }),
@@ -182,11 +184,12 @@ test('registered QA corrections are patches, while area assignment remains a cod
   ).toBe('rules')
 })
 
-test('a recognised Area point is not inserted into its own district ancestry', () => {
+test('a source city keeps its identity and has a separate administrative area', () => {
   const raw = {
     id: '17009785-57fd-4e5b-af86-2d27352e4718',
     country: 'HK',
     subtype: 'locality',
+    class: 'city',
     names: { common: { en: 'Kowloon' } },
     hierarchies: [
       [
@@ -201,18 +204,20 @@ test('a recognised Area point is not inserted into its own district ancestry', (
   }
   const original = structuredClone(raw)
   const result = normaliseDivisionRow(raw)
-  expect(result.base.hierarchies).toEqual(
-    materialiseDivisionHierarchies('self', [
-      [
-        expect.objectContaining({
-          division_id: sar.division_id,
-          type: 'sar',
-          level: 0,
-        }),
-      ],
-    ]),
-  )
-  expect(result.base).toMatchObject({ id: raw.id, class: 'area', level: 1 })
+  expect(result.base.hierarchies.administrative[0]?.map(entry => entry.class)).toEqual([
+    'sar',
+    'area',
+    'district',
+  ])
+  expect(
+    result.base.hierarchies.administrative.flat().map(entry => entry.id),
+  ).not.toContain(raw.id)
+  expect(result.base).toMatchObject({
+    id: raw.id,
+    class: 'city',
+    category: 'locality',
+    level: 1,
+  })
   expect(result.overtureHongKongAreaHierarchyAssignment).toMatchObject({
     code: 'kowloon',
   })
