@@ -191,7 +191,7 @@ function createRegistryReleasesDb() {
       id TEXT PRIMARY KEY,
       publisherId TEXT,
       code TEXT NOT NULL,
-      subType TEXT
+      kind TEXT
     );
 
 
@@ -396,7 +396,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           publisherCode: 'hkgov-als',
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
-          subType: null,
+          kind: null,
           datasetI18n: [
             { datasetId: 'dataset-a', locale: 'en', name: 'Hong Kong addresses' },
             { datasetId: 'dataset-a', locale: 'zh-Hant', name: '香港地址' },
@@ -406,7 +406,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           publisherCode: 'landsd',
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
-          subType: null,
+          kind: null,
         }),
       ]),
     )

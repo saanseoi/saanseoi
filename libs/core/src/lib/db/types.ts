@@ -45,6 +45,7 @@ type RunnableStatement = {
 type InsertStatement = RunnableStatement & {
   onConflictDoNothing(config?: { target?: unknown | unknown[] }): RunnableStatement
   onConflictDoUpdate(config: {
+    setWhere?: unknown
     set: Record<string, unknown>
     target: unknown | unknown[]
   }): RunnableStatement
