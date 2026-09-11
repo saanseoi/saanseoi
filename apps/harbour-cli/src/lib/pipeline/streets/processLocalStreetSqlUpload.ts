@@ -1,3 +1,4 @@
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import {
   beginSnapshotPublication,
@@ -32,7 +33,6 @@ import { createHarbourControlClient } from '../../api/harbourControl.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
 import { createLocalControlClient } from '../local/localControlClient.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
-import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import { runLocalProgressPhase } from '../local/orchestrator.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
 import { materialiseLandsdStreetLifecycle } from '../../sources/hkgov/landsd/street/landsdStreetLifecycle.ts'
@@ -101,13 +101,11 @@ export async function processLocalStreetSqlUpload(
     progress,
     { action: 'Prepare', subject: 'database' },
     () =>
-      resolveLocalAddressDbContext(
+      resolveCurrentWriteContext(
         target,
         previewPlan.regionCode,
         previewPlan.sourceVersion,
         {
-          cacheTableProfile: 'street',
-          includePreviousShardYears: true,
           resumeSqlDeliveryReleaseId: releaseId,
         },
       ),
