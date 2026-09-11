@@ -20,7 +20,19 @@
     {
       "operationCode": "curate_censtatd_measure_metadata",
       "ruleFixture": "statistic-field-curation"
+    },
+    {
+      "operationCode": "provenance_statistic_normalisation",
+      "ruleFixture": "statistic-normalisation"
+    },
+    {
+      "operationCode": "provenance_statistic_localisation",
+      "ruleFixture": "statistic-localisation"
+    },
+    {
+      "operationCode": "provenance_division_area_geometry",
+      "ruleFixture": "division-area-geometry"
     }
   ],
-  "versionHash": "sha256:63e661d1086e3bd6bb37a1fd9d82073aedc2cd6941c143ae6dd709288981d0d5"
+  "versionHash": "sha256:345b49e2570479ff10c7749573ac650a136660a75db1b3958bcb2102da5f389d"
 }
