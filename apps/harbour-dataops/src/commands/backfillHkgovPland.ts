@@ -62,7 +62,7 @@ type NativePlandPrepare = (options: {
 const PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION = 1
 // Bump this when a Planning source adapter change can alter the generated
 // Parquet for the same native archive.
-const PLAND_NATIVE_PREPARATION_CONTRACT_VERSION = '1'
+const PLAND_NATIVE_PREPARATION_CONTRACT_VERSION = '2'
 
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
   {
