@@ -7,6 +7,9 @@ test('retained fields use camelCase without changing literals or language dictio
     CSDI_ADMIN_AREA_ID: '001',
     END_LIFESPAN: null,
     SHAPE_Length: 21739.940418289458,
+    EN_Description: 'English description',
+    SC_Description: '简体描述',
+    TC_Description: '繁體描述',
     names: { common: { 'zh-Hant': ' 中文 ' } },
     sources: [{ record_id: '007', update_time: '2026-09-11' }],
   }
@@ -17,6 +20,9 @@ test('retained fields use camelCase without changing literals or language dictio
     csdiAdminAreaId: '001',
     endLifespan: null,
     shapeLength: 21739.940418289458,
+    descriptionEn: 'English description',
+    descriptionZhHans: '简体描述',
+    descriptionZhHant: '繁體描述',
     names: { common: { 'zh-Hant': ' 中文 ' } },
     sources: [{ recordId: '007', updateTime: '2026-09-11' }],
   })
