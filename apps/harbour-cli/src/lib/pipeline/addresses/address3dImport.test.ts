@@ -31,6 +31,31 @@ function createTable(db: Database, table: SQLiteTable) {
   db.exec(`CREATE TABLE "${config.name}" (${[...columns, ...keys].join(',')})`)
 }
 
+test.each(['source', 'source2d'])(
+  'requires publisher properties in prepared ALS %s rows',
+  async kind => {
+    const directory = await mkdtemp(join(tmpdir(), 'address3d-properties-'))
+    const path = join(directory, 'prepared.jsonl')
+    try {
+      await writeFile(
+        path,
+        JSON.stringify({
+          kind,
+          sourceRecordId: 'source-1',
+          versionHash: 'source-hash',
+          sourceGeometry: null,
+          sources: [],
+        }),
+      )
+      await expect(validateAddress3dPreparation(path, '2026-08-19.0')).rejects.toThrow(
+        'source properties are missing; prepare the ALS release again',
+      )
+    } finally {
+      await rm(directory, { recursive: true, force: true })
+    }
+  },
+)
+
 test('writes large bound collections, replays idempotently and journals removed membership', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'address3d-import-test-'))
   const path = join(directory, 'prepared.jsonl')
@@ -89,7 +114,7 @@ test('writes large bound collections, replays idempotently and journals removed 
         kind: 'source',
         sourceRecordId: 'source-1',
         versionHash: 'source-hash',
-        rawProperties: { source: true },
+        properties: { source: true },
         sourceGeometry: { type: 'Point', coordinates: [114, 22, 8] },
         sources: [
           { dataset: 'hkgov-dpo-als-3d', sourceFile: 'original.json' },
@@ -115,7 +140,7 @@ test('writes large bound collections, replays idempotently and journals removed 
         kind: 'source2d' as const,
         sourceRecordId,
         versionHash: `original-${index}`,
-        rawProperties: { hkgovCsuId: '001', enBuildingName: ' ORIGINAL ' },
+        properties: { hkgovCsuId: '001', enBuildingName: ' ORIGINAL ' },
         sourceGeometry: { type: 'Point', coordinates: [114 + index, 22] },
         sources: [
           {
@@ -213,24 +238,24 @@ test('writes large bound collections, replays idempotently and journals removed 
     expect(
       databases.source
         .query(
-          'SELECT sourceRecordId, rawProperties, sourceGeometry FROM hkgovAlsAddresses2d ORDER BY sourceRecordId',
+          'SELECT sourceRecordId, properties, sourceGeometry FROM hkgovAlsAddresses2d ORDER BY sourceRecordId',
         )
         .all(),
     ).toEqual(
       original2d.map(record => ({
         sourceRecordId: record.sourceRecordId,
-        rawProperties: JSON.stringify(record.rawProperties),
+        properties: JSON.stringify(record.properties),
         sourceGeometry: JSON.stringify(record.sourceGeometry),
       })),
     )
     expect(
       databases.source
         .query(
-          'SELECT rawProperties, sourceGeometry, sourceLocator FROM hkgovAlsAddresses3d',
+          'SELECT properties, sourceGeometry, sourceLocator FROM hkgovAlsAddresses3d',
         )
         .get(),
     ).toEqual({
-      rawProperties: JSON.stringify({ source: true }),
+      properties: JSON.stringify({ source: true }),
       sourceGeometry: JSON.stringify({ type: 'Point', coordinates: [114, 22, 8] }),
       sourceLocator: JSON.stringify({ sourceFile: 'original.json' }),
     })
@@ -265,7 +290,7 @@ test('writes large bound collections, replays idempotently and journals removed 
     const runSourceRelease = async (sourceVersion: string, hash: string | null) => {
       const next = hash
         ? [
-            { ...records[0], versionHash: hash, rawProperties: { hash } },
+            { ...records[0], versionHash: hash, properties: { hash } },
             collection,
             { ...manifest, sourceVersion, source2dCount: 0 },
           ]

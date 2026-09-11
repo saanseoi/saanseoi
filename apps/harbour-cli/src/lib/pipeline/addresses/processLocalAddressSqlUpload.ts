@@ -3,7 +3,12 @@ import { resolve } from 'node:path'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
-import { boundedHistoryApply } from './boundedHistoryApply.ts'
+import { captureResolvedAddressDelivery } from './resolvedAddressDelivery.ts'
+import {
+  prepareAddressMembershipBaseline,
+  addressMembershipMirrorFile,
+} from './addressMembershipBaseline.ts'
+import { sha256, writeDeliveryFile } from '../local/sqlDeliveryFiles.ts'
 import {
   getReplayedAddressVersionMap,
   prepareAddressVersionInsertContext,
@@ -13,12 +18,7 @@ import {
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import {
-  createAddress3dExecutor,
-  fileSha256,
-  importAddress3dCollections,
-  validateAddress3dPreparation,
-} from './address3dImport'
+import { fileSha256, validateAddress3dPreparation } from './address3dImport'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
@@ -31,7 +31,6 @@ import { deliverProducerAudit } from '../../api/producerAuditDelivery'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addresses/sqlImport'
 import {
-  importAddressSqlArtefacts,
   completeAddressSqlGenerationPhases,
   publishImportedAddressSqlRelease,
   type AddressSqlImportStageOptions,
@@ -82,10 +81,6 @@ import {
   formatRunningPhaseLabel,
 } from '../local/progressFormatting.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
-import {
-  loadAddressCurrentLookupCache,
-  writeAddressCurrentLookupCache,
-} from './addressCurrentLookupCache.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
 import {
   prepareReleaseSqlDelivery,
@@ -151,7 +146,7 @@ export async function processLocalAddressSqlUpload(
       ? await validateAddress3dPreparation(address3dPath, previewPlan.sourceVersion)
       : undefined
   if (prepared3d) {
-    if (!prepared3d.source2dCount) {
+    if (prepared3d.source2dCount === undefined) {
       throw new Error(
         'ALS preparation has no original 2D publisher ledger; prepare the release again.',
       )
@@ -192,7 +187,8 @@ export async function processLocalAddressSqlUpload(
   )
   if (
     retainedDelivery &&
-    (retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
+    (retainedDelivery.context.inputs.planner !== 'resolved-address-publication-v1' ||
+      retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
       retainedDelivery.context.inputs.address3dSha256 !==
         (prepared3d?.digest ?? null) ||
       retainedDelivery.context.releaseId !== releaseId)
@@ -208,7 +204,9 @@ export async function processLocalAddressSqlUpload(
   const timed = <T>(action: string, subject: string, operation: () => Promise<T>) =>
     runLocalProgressPhase(progress, { action, subject }, operation)
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = 'address'
+  // Every dataset writer uses the same complete mirror; family subsets cannot
+  // establish shared ownership or preserve other sources' materialisations.
+  const cacheTableProfile = undefined
   const remoteCacheScopeKey = undefined
 
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
@@ -379,134 +377,16 @@ export async function processLocalAddressSqlUpload(
       dbContext.metaDb as unknown as HarbourReadableDb,
       versionInsertContext.snapshotLineageId,
     )
-    const prior3d =
-      prepared3d && versionInsertContext.parentSnapshotId
-        ? [
-            ...(
-              await resolveSnapshotVersionState(
-                await resolveSnapshotReplayPlan(
-                  dbContext.metaDb as unknown as HarbourReadableDb,
-                  versionInsertContext.parentSnapshotId,
-                ),
-                new Map(
-                  dbContext.historyTargets.map(target => [
-                    target.bindingName,
-                    {
-                      bindingName: target.bindingName,
-                      db: target.db as HarbourReadableDb,
-                    },
-                  ]),
-                ),
-                ['address3d', 'address3dI18n'],
-              )
-            ).values(),
-          ]
-        : []
-    const import3d = async (writeOptions: AddressSqlImportStageOptions) => {
-      if (!prepared3d) return
-      const generate3d = async (executionOptions: AddressSqlImportStageOptions) => {
-        await importAddress3dCollections({
-          path: address3dPath,
-          sourceVersion: previewPlan.sourceVersion,
-          snapshotId: versionInsertContext.snapshotId,
-          releaseId,
-          expectedDigest: prepared3d.digest,
-          timestamp: processingRunStartedAt,
-          priorMembership: prior3d,
-          execute: await createAddress3dExecutor(
-            dbContext.metaDb,
-            initialMessage,
-            executionOptions,
-          ),
-        })
-      }
-      const directory = resolve(releaseRoot, 'sql-delivery-address3d')
-      const retained3dDelivery = await readDeliveryPlan(directory)
-      if (!target.remote) {
-        const files = dbContext.state.files
-        if (!files) throw new Error('Missing native Address database paths.')
-        await prepareNativeSqlDelivery({
-          directory,
-          files,
-          ownershipDirectory: dbContext.state.dbCacheDir,
-          releaseId,
-          phase: 'address3d-data',
-          inputs: retained3dDelivery?.context.inputs ?? {
-            independentBoundTargets: true,
-            // Address2D prerequisites are already delivered. These three D1
-            // projections share no cross-database write dependencies.
-            parallelTargets: true,
-            digest: prepared3d.digest,
-            snapshotId: versionInsertContext.snapshotId,
-            sourceVersion: previewPlan.sourceVersion,
-          },
-          generate: append =>
-            generate3d({
-              ...writeOptions,
-              captureQueries: async (destination, statements) => {
-                const binding = destination.binding?.bindingName
-                if (!binding || !files[binding])
-                  throw new Error('Unknown native Address3D binding.')
-                await append(
-                  { bindingName: binding, databaseId: binding },
-                  new TextEncoder().encode(JSON.stringify(statements)),
-                  'bound',
-                )
-              },
-            }),
-        })
-        await runNativeSqlDelivery(directory, {
-          files,
-          onProgress: (completed, total) =>
-            progress.message(`Local Address3D SQL: ${completed}/${total} batches`),
-        })
-        return
-      }
-      if (!writeOptions.isLocal) {
-        await prepareReleaseSqlDelivery({
-          directory,
-          context: dbContext,
-          releaseId,
-          phase: 'address3d-data',
-          inputs: retained3dDelivery?.context.inputs ?? {
-            independentBoundTargets: true,
-            // Address2D is delivered; preserve order within each independent shard.
-            parallelTargets: true,
-            digest: prepared3d.digest,
-            snapshotId: versionInsertContext.snapshotId,
-            sourceVersion: previewPlan.sourceVersion,
-          },
-          generate: capture =>
-            generate3d({
-              ...writeOptions,
-              captureQueries: (target, statements) =>
-                capture(
-                  target,
-                  new TextEncoder().encode(JSON.stringify(statements)),
-                  'bound',
-                ),
-            }),
-        })
-      }
-      await executeReleaseSqlDelivery({
-        directory,
-        context: dbContext,
-        ...importOptions,
-        mode: writeOptions.isLocal ? 'local' : 'remote',
-        onProgress: (completed, total) =>
-          progress.message(
-            `Address3D ${writeOptions.isLocal ? 'replay' : 'delivery'}: ${completed}/${total} batches`,
-          ),
-      })
-    }
-    importOptions.beforePublish = () => import3d(importOptions)
-    const isHistoricalBranch =
-      versionInsertContext.parentSnapshotId !== null &&
-      activeSnapshot?.id !== versionInsertContext.parentSnapshotId
-    const historicalParentVersions = isHistoricalBranch
-      ? await getReplayedAddressVersionMap(
+    const parentReplayPlan = versionInsertContext.parentSnapshotId
+      ? await resolveSnapshotReplayPlan(
           dbContext.metaDb as unknown as HarbourReadableDb,
-          versionInsertContext.parentSnapshotId as string,
+          versionInsertContext.parentSnapshotId,
+        )
+      : []
+    const priorVersions = [
+      ...(
+        await resolveSnapshotVersionState(
+          parentReplayPlan,
           new Map(
             dbContext.historyTargets.map(target => [
               target.bindingName,
@@ -516,29 +396,64 @@ export async function processLocalAddressSqlUpload(
               },
             ]),
           ),
-          {
-            buildAddressBaseHashInput,
-            buildMatchKey,
-            normaliseAddressI18nSnapshotRow,
-          },
+          ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+        )
+      ).values(),
+    ]
+    const prior3d = priorVersions.filter(row =>
+      ['address3d', 'address3dI18n'].includes(row.recordType),
+    )
+    if (
+      activeSnapshot &&
+      activeSnapshot.id !== versionInsertContext.parentSnapshotId &&
+      activeSnapshot.id !== versionInsertContext.snapshotId
+    )
+      throw new Error(
+        'Address deltas must extend the latest published snapshot. Prepare historical releases in a chronological local rebuild.',
+      )
+    const parentVersions = versionInsertContext.parentSnapshotId
+      ? await getReplayedAddressVersionMap(
+          dbContext.metaDb as unknown as HarbourReadableDb,
+          versionInsertContext.parentSnapshotId,
+          new Map(
+            dbContext.historyTargets.map(target => [
+              target.bindingName,
+              {
+                bindingName: target.bindingName,
+                db: target.db as HarbourReadableDb,
+              },
+            ]),
+          ),
+          { buildAddressBaseHashInput, buildMatchKey, normaliseAddressI18nSnapshotRow },
         )
       : undefined
-    const addressCurrentLookupCache = historicalParentVersions
+    const addressCurrentLookupCache = parentVersions
       ? {
           byId: new Map(
-            [...historicalParentVersions].map(([id, version]) => [
+            [...parentVersions].map(([id, version]) => [
               id,
               { churnHash: version.churnHash, id: version.id },
             ]),
           ),
-          byMatchKey: buildHistoricalAddressMatchKeyLookup(historicalParentVersions),
+          byMatchKey: buildHistoricalAddressMatchKeyLookup(parentVersions),
           snapshotId: versionInsertContext.parentSnapshotId as string,
         }
-      : await loadAddressCurrentLookupCache(
-          resolvedTargetName,
-          previewPlan.regionCode,
-          versionInsertContext.parentSnapshotId,
-        )
+      : undefined
+    const reviewMembership = () =>
+      prepareAddressMembershipBaseline({
+        cacheDir: dbContext.state.dbCacheDir,
+        currentPath: requireString(
+          dbContext.state.files?.DB_CURRENT,
+          'current mirror path',
+        ),
+        scopeId: versionInsertContext.snapshotLineageId,
+        parentSnapshotId: versionInsertContext.parentSnapshotId,
+        preparedFile: preparedUpload.filePath,
+        sourceVersion: previewPlan.sourceVersion,
+        reportFile: resolve(releaseRoot, 'address-deletions.json'),
+      })
+    const membership =
+      prepared3d && !retainedDelivery ? await reviewMembership() : undefined
     const finalMessageWithMeta = retainedDelivery
       ? (retainedDelivery.context.inputs.message as AddressPipelineMessage)
       : await (async () => {
@@ -549,11 +464,8 @@ export async function processLocalAddressSqlUpload(
             range =>
               ({
                 addressCurrentLookupCache: addressCurrentLookupCache ?? undefined,
-                addressHistoricalParentSnapshotId: historicalParentVersions
-                  ? (versionInsertContext.parentSnapshotId ?? undefined)
-                  : undefined,
-                addressHistoricalParentVersions: historicalParentVersions,
                 ...initialMessage,
+                addressCurrentScopeId: versionInsertContext.snapshotLineageId,
                 addressStage: 'normalise',
                 chunkSize: ADDRESS_CHUNK_SIZE,
                 processingRunStartedAt,
@@ -734,6 +646,7 @@ export async function processLocalAddressSqlUpload(
             currentMessages,
             previewPlan.rowCount,
           )
+          finalMessage.addressCurrentScopeId = versionInsertContext.snapshotLineageId
           const addressStats = addAddressPipelineStats(
             EMPTY_ADDRESS_PIPELINE_STATS,
             finalMessage.addressStats ?? {},
@@ -777,11 +690,74 @@ export async function processLocalAddressSqlUpload(
       ),
     )
 
-    const noopClient = {
-      async publishDataset() {},
-      async stageRunning() {},
-      async stageCompleted() {},
-      async stageFailed() {},
+    const resolvedDeliveryInputs = retainedDelivery?.context.inputs ?? {
+      planner: 'resolved-address-publication-v1',
+      preparedSha256,
+      address3dSha256: prepared3d?.digest ?? null,
+      membershipSha256: membership ? sha256(JSON.stringify(membership.current)) : null,
+      predecessorMembershipSha256: membership?.previousBytes
+        ? sha256(membership.previousBytes)
+        : null,
+      message: finalMessageWithMeta,
+    }
+    const generateResolved = async (
+      capture: Parameters<typeof captureResolvedAddressDelivery>[0]['capture'],
+    ) => {
+      // Recheck the preparation and exact predecessor under the shared delivery lock.
+      if (membership) {
+        const checked = await reviewMembership()
+        if (
+          sha256(JSON.stringify(checked.current)) !==
+            resolvedDeliveryInputs.membershipSha256 ||
+          (checked.previousBytes ? sha256(checked.previousBytes) : null) !==
+            resolvedDeliveryInputs.predecessorMembershipSha256
+        )
+          throw new Error(
+            'Address membership changed during planning; prepare the release again.',
+          )
+      }
+      const result = await captureResolvedAddressDelivery({
+        context: dbContext,
+        metaDb: dbContext.metaDb,
+        bucket,
+        message: finalMessageWithMeta,
+        options: importOptions,
+        snapshotId: versionInsertContext.snapshotId,
+        scopeId: versionInsertContext.snapshotLineageId,
+        expectedAddressCount:
+          membership?.current.addresses.length ?? previewPlan.rowCount,
+        retiredAddressIds: membership?.retiredIds ?? [],
+        membership: membership?.current,
+        parentReplayPlan,
+        priorVersions,
+        ...(prepared3d
+          ? {
+              address3d: {
+                path: address3dPath,
+                sourceVersion: previewPlan.sourceVersion,
+                digest: prepared3d.digest,
+                priorMembership: prior3d,
+              },
+            }
+          : {}),
+        capture,
+      })
+      if (!membership) return result
+      const bytes = JSON.stringify(membership.current)
+      await writeDeliveryFile(deliveryDirectory, 'address-membership.json', bytes)
+      return {
+        ...result,
+        acknowledgedMirrorFiles: [
+          {
+            file: 'address-membership.json',
+            sha256: sha256(bytes),
+            mirrorFile: addressMembershipMirrorFile(
+              versionInsertContext.snapshotLineageId,
+              versionInsertContext.snapshotId,
+            ),
+          },
+        ],
+      }
     }
     if (target.remote) {
       await timed('Prepare SQL delivery', 'address', () =>
@@ -790,29 +766,12 @@ export async function processLocalAddressSqlUpload(
           context: dbContext,
           releaseId,
           phase: 'address-data',
-          inputs: retainedDelivery?.context.inputs ?? {
-            preparedSha256,
-            address3dSha256: prepared3d?.digest ?? null,
-            message: finalMessageWithMeta,
-          },
+          inputs: resolvedDeliveryInputs,
           timings: {
             mirrorPreparationMs,
             sqlGenerationMs: Date.now() - Date.parse(processingRunStartedAt),
           },
-          generate: captureSql =>
-            importAddressSqlArtefacts(
-              noopClient,
-              dbContext.metaDb,
-              bucket,
-              finalMessageWithMeta,
-              {
-                ...importOptions,
-                captureSql: async (destination, bytes) => {
-                  for (const part of boundedHistoryApply(bytes, previewPlan.rowCount))
-                    await captureSql(destination, part)
-                },
-              },
-            ),
+          generate: generateResolved,
         }),
       )
       await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
@@ -835,8 +794,6 @@ export async function processLocalAddressSqlUpload(
             }),
         ),
       )
-      if (prepared3d)
-        await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
       await retainAudit()
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
@@ -853,27 +810,18 @@ export async function processLocalAddressSqlUpload(
           ownershipDirectory: dbContext.state.dbCacheDir,
           releaseId,
           phase: 'address-data',
-          inputs: retainedDelivery?.context.inputs ?? {
-            preparedSha256,
-            address3dSha256: prepared3d?.digest ?? null,
-            message: finalMessageWithMeta,
-          },
+          inputs: resolvedDeliveryInputs,
           generate: append =>
-            importAddressSqlArtefacts(
-              noopClient,
-              dbContext.metaDb,
-              bucket,
-              finalMessageWithMeta,
-              {
-                ...importOptions,
-                captureSql: async (destination, bytes) => {
-                  const binding = destination.binding?.bindingName
-                  if (!binding || !files[binding])
-                    throw new Error('Unknown native Address binding.')
-                  await append({ bindingName: binding, databaseId: binding }, bytes)
-                },
-              },
-            ),
+            generateResolved(async (destination, bytes, kind) => {
+              const binding =
+                destination.bindingName ??
+                Object.entries(dbContext.state.bindings).find(
+                  ([, value]) => value.databaseId === destination.databaseId,
+                )?.[0]
+              if (!binding || !files[binding])
+                throw new Error('Unknown native Address binding.')
+              await append({ bindingName: binding, databaseId: binding }, bytes, kind)
+            }),
         }),
       )
       await completeAddressSqlGenerationPhases(harbourClient, finalMessageWithMeta)
@@ -884,8 +832,6 @@ export async function processLocalAddressSqlUpload(
             progress.message(`Local Address SQL: ${completed}/${total} batches`),
         }),
       )
-      if (prepared3d)
-        await timed('Prepare and import', 'Address3D', () => import3d(importOptions))
       await retainAudit()
       publishResult = await publishImportedAddressSqlRelease(
         importProgressClient,
@@ -913,10 +859,6 @@ export async function processLocalAddressSqlUpload(
           ),
         )
         shouldRefreshRemoteMetaCache = true
-        if (prepared3d)
-          await timed('Replay SQL', 'Address3D', () =>
-            import3d({ ...importOptions, isLocal: true }),
-          )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }
@@ -936,15 +878,6 @@ export async function processLocalAddressSqlUpload(
         addressQuality: options.quality,
       })
     }
-    await timed('Write lookup cache', 'address', () =>
-      writeAddressCurrentLookupCache(
-        resolvedTargetName,
-        previewPlan.regionCode,
-        releaseCode,
-        dbContext.historyDb,
-        versionInsertContext.snapshotId,
-      ),
-    )
     if (!target.remote)
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
   } catch (error) {
