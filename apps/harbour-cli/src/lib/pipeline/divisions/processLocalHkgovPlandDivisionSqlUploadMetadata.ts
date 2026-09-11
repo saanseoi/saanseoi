@@ -127,9 +127,7 @@ export async function buildPlandMetaSql(
   ]
   const statsColumns = [
     'id',
-    'type',
     'releaseId',
-    'snapshotId',
     'apiReleaseSetId',
     'dimension',
     'metric',
@@ -172,7 +170,7 @@ export async function buildPlandMetaSql(
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)} AND kind != 'processing';`,
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)} AND metric != 'processing';`,
     ...buildInsertStatements(
       'stats',
       statsColumns,

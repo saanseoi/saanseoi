@@ -309,12 +309,11 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND kind != 'processing';`,
+    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND metric != 'processing';`,
     ...buildInsertStatements(
       'stats',
       [
         'id',
-        'type',
         'releaseId',
         'dimension',
         'metric',
@@ -325,7 +324,7 @@ ON CONFLICT(id) DO UPDATE SET
         'createdAt',
         'updatedAt',
       ],
-      rows.filter(row => row.type !== 'processing'),
+      rows.filter(row => row.metric !== 'processing'),
       {
         verb: 'INSERT INTO',
       },

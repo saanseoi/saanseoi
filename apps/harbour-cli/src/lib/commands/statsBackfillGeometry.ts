@@ -603,7 +603,7 @@ function buildRemoteStatsSql(cacheDir: string, releaseId: string) {
     const columns = Object.keys(rows[0] ?? {})
       .map(column => `"${column}"`)
       .join(', ')
-    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND kind = 'release' AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
+    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
   } finally {
     database.close()
   }
