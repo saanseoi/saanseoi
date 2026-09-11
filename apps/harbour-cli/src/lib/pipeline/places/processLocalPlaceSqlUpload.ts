@@ -6,6 +6,7 @@ import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type {
   HarbourClient,
   PublishDatasetResult,
@@ -219,7 +220,14 @@ export async function processLocalPlaceSqlUpload(
       progress,
       'Prepare',
       'Place history',
-      () => loadCurrentPlaceHistory(context.historyTargets),
+      async () =>
+        loadCurrentPlaceHistory(context.historyTargets, {
+          currentDb: context.currentDb as unknown as HarbourReadableDb,
+          scopeId: snapshots.snapshotLineageId,
+          replayPlan: publicationPrevious
+            ? await resolveSnapshotReplayPlan(metaDb, publicationPrevious.snapshotId)
+            : [],
+        }),
     )
     const targets = await placeTargets(
       context,
