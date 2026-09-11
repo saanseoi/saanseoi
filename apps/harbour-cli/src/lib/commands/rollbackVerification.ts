@@ -33,7 +33,7 @@ export async function countRollbackPlanRows(
   },
 ): Promise<RollbackPlanCounts> {
   const [sourceRows, historyRows, currentRows, metaRows] = await Promise.all([
-    countSourceRollbackRows(dbContext.sourceDb, input),
+    countSourceRollbackRows(dbContext, input),
     countHistoryRollbackRows(dbContext.historyDb, input),
     countCurrentRollbackRows(dbContext.currentDb, input),
     countMetaRollbackRows(dbContext.metaDb, input),
@@ -120,7 +120,7 @@ async function countHistoryRollbackRows(
 }
 
 async function countSourceRollbackRows(
-  db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['sourceDb'],
+  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   input: {
     previousReleaseId: string | null
     release: ResolvedReleaseRecord
@@ -130,40 +130,59 @@ async function countSourceRollbackRows(
 ) {
   let total = 0
 
-  for (const tableName of input.tables.sourceTables) {
-    const table = resolveSourceTable(tableName)
-    if (input.operation === 'purge') {
-      total += await countRows(db, table, eq(table.releaseId, input.release.releaseId))
-      continue
-    }
-    const deletedRows = await countRows(
-      db,
-      table,
-      and(
-        eq(table.releaseId, input.release.releaseId),
-        eq(table.validFromRelease, input.release.sourceVersion),
-      ),
-    )
-    const reopenedRows = await countRows(
-      db,
-      table,
-      and(
-        eq(table.isCurrent, false),
-        eq(table.validToRelease, input.release.sourceVersion),
-      ),
-    )
-    const reassignedRows = input.previousReleaseId
-      ? await countRows(
+  for (const sourceTarget of dbContext.sourceTargets) {
+    const db = sourceTarget.db as Awaited<
+      ReturnType<typeof resolveLocalAddressDbContext>
+    >['sourceDb']
+    for (const tableName of input.tables.sourceTables) {
+      const table = resolveSourceTable(tableName)
+      if (input.operation === 'purge') {
+        total += await countRows(
           db,
           table,
-          and(
-            eq(table.releaseId, input.release.releaseId),
-            ne(table.validFromRelease, input.release.sourceVersion),
-          ),
+          eq(table.releaseId, input.release.releaseId),
         )
-      : 0
+        if (input.release.resourceType === 'place') {
+          total += await countRows(
+            db,
+            table,
+            and(
+              eq(table.isCurrent, false),
+              eq(table.validToRelease, input.release.sourceVersion),
+            ),
+          )
+        }
+        continue
+      }
+      const deletedRows = await countRows(
+        db,
+        table,
+        and(
+          eq(table.releaseId, input.release.releaseId),
+          eq(table.validFromRelease, input.release.sourceVersion),
+        ),
+      )
+      const reopenedRows = await countRows(
+        db,
+        table,
+        and(
+          eq(table.isCurrent, false),
+          eq(table.validToRelease, input.release.sourceVersion),
+        ),
+      )
+      const reassignedRows = input.previousReleaseId
+        ? await countRows(
+            db,
+            table,
+            and(
+              eq(table.releaseId, input.release.releaseId),
+              ne(table.validFromRelease, input.release.sourceVersion),
+            ),
+          )
+        : 0
 
-    total += deletedRows + reopenedRows + reassignedRows
+      total += deletedRows + reopenedRows + reassignedRows
+    }
   }
 
   return total
@@ -413,6 +432,8 @@ export async function verifyPurgeResult(
   input: {
     apiReleaseSetId: string
     releaseId: string
+    resourceType: string
+    sourceVersion: string
     snapshotId: string
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
@@ -447,7 +468,7 @@ export async function verifyPurgeResult(
       metaSchema.metaApiReleaseSets,
       eq(metaSchema.metaApiReleaseSets.id, input.apiReleaseSetId),
     ),
-    countPurgeSourceRows(dbContext.sourceDb, input),
+    countPurgeSourceRows(dbContext, input),
     countPurgeHistoryRows(dbContext.historyDb, input),
     countPurgeCurrentRows(dbContext.currentDb, input),
     countRows(
@@ -509,7 +530,7 @@ export async function verifyPurgeResult(
 }
 
 async function countPurgeSourceRows(
-  db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['sourceDb'],
+  dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   input: {
     releaseId: string
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
@@ -517,9 +538,24 @@ async function countPurgeSourceRows(
 ) {
   let total = 0
 
-  for (const tableName of input.tables.sourceTables) {
-    const table = resolveSourceTable(tableName)
-    total += await countRows(db, table, eq(table.releaseId, input.releaseId))
+  for (const sourceTarget of dbContext.sourceTargets) {
+    const db = sourceTarget.db as Awaited<
+      ReturnType<typeof resolveLocalAddressDbContext>
+    >['sourceDb']
+    for (const tableName of input.tables.sourceTables) {
+      const table = resolveSourceTable(tableName)
+      total += await countRows(db, table, eq(table.releaseId, input.releaseId))
+      if (input.resourceType === 'place') {
+        total += await countRows(
+          db,
+          table,
+          and(
+            eq(table.isCurrent, false),
+            eq(table.validToRelease, input.sourceVersion),
+          ),
+        )
+      }
+    }
   }
 
   return total

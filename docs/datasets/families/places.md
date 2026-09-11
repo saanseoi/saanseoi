@@ -25,7 +25,9 @@ prepared local mirrors. New and changed assertions carry full payloads; unchange
 assertions remain untouched, preserving their original release, validity and timestamps.
 Source finalisation compares complete incoming membership in disjoint indexed ID ranges
 and closes omissions after all chunks have been applied. A shard rollover writes the
-required copy to the new shard and closes the preceding shard's current assertion.
+unchanged assertion remains in its owning shard, while the release is assigned every
+source shard containing a retained assertion. New, changed and returning assertions
+write to the active shard; changed and omitted assertions close in their owning shard.
 Canonical and source candidates share final-difference delivery; only their changed rows
 are transmitted.
 
