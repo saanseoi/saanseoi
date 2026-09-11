@@ -95,3 +95,52 @@ test('scope conflicts fail before SQL generation', () => {
   ).toThrow('Conflicting')
   expect(buildAddressSearchSyncSql([])).toEqual([])
 })
+
+test('first finalisation retires the snapshot index only on a successful commit', () => {
+  const { db, add, sync } = fixture()
+  try {
+    db.exec(
+      "CREATE VIRTUAL TABLE addressesFts USING fts5(text); INSERT INTO addressesFts VALUES('Retained search')",
+    )
+    add('new', 'a', 'New Road')
+    expect(() => sync('new', true)).toThrow('injected failure')
+    expect(db.query('SELECT text FROM addressesFts').all()).toEqual([
+      { text: 'Retained search' },
+    ])
+    sync('new')
+    expect(
+      db.query("SELECT name FROM sqlite_master WHERE name='addressesFts'").all(),
+    ).toEqual([])
+  } finally {
+    db.close()
+  }
+})
+
+test('independent scopes retain distinct content and removing a scope deletes only its documents', () => {
+  const { db, add } = fixture()
+  try {
+    add('als-snapshot', 'shared-id', 'Official Road')
+    add('other-snapshot', 'shared-id', 'Supplementary Road')
+    const apply = (scopes: Parameters<typeof buildAddressSearchSyncSql>[0]) =>
+      db.transaction(() => {
+        for (const sql of buildAddressSearchSyncSql(scopes)) db.exec(sql)
+      })()
+    apply([
+      { scopeId: 'als', snapshotId: 'als-snapshot' },
+      { scopeId: 'other', snapshotId: 'other-snapshot' },
+    ])
+    expect(db.query('SELECT count(*) AS n FROM addressSearchFts').get()).toEqual({
+      n: 2,
+    })
+    const before = db
+      .query("SELECT rowid FROM addressSearchFts WHERE scopeId='als'")
+      .get()
+    apply([{ scopeId: 'als', snapshotId: 'als-snapshot' }])
+    expect(db.query('SELECT rowid FROM addressSearchFts').get()).toEqual(before)
+    expect(db.query('SELECT scopeId FROM addressSearchScopes').all()).toEqual([
+      { scopeId: 'als' },
+    ])
+  } finally {
+    db.close()
+  }
+})
