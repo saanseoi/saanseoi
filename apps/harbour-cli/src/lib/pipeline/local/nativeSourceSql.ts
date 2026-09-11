@@ -176,7 +176,7 @@ export async function processNativeSourceSqlRelease(
       },
       releaseCode,
     )
-    const sql = await buildNativeSourceSql(input.tables, releaseId, releaseCode)
+    const sql = await buildNativeSourceSql(input.tables, releaseId, input.sourceVersion)
     const remoteReplay = target.remote
       ? resolveNativeRemoteReplay(target, context, shardYear)
       : null
@@ -607,7 +607,7 @@ function resolveNativeMetaReplay(
 export async function versionNativeSourceRows<T extends NativeSourceRow>(
   rows: T[],
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
   hashPublisherContentOnly = false,
   separatePublisherEnvelope = false,
 ) {
@@ -631,7 +631,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         isCurrent: true,
         releaseId,
         updatedAt: now,
-        validFromRelease: releaseCode,
+        validFromRelease: sourceVersion,
         validToRelease: null,
         // Archive provenance changes between releases even for identical features.
         versionHash: await createHash(
@@ -656,7 +656,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
 export async function buildNativeSourceSql(
   tables: NativeSourceTable[],
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
 ) {
   const statements: string[] = []
   for (const table of tables) {
@@ -664,7 +664,7 @@ export async function buildNativeSourceSql(
     const rows = await versionNativeSourceRows(
       table.rows,
       releaseId,
-      releaseCode,
+      sourceVersion,
       table.name === 'hkgovLandsdRoadCentrelines',
       [
         'hkgovLandsdPlaceNames',
@@ -679,7 +679,7 @@ export async function buildNativeSourceSql(
     if (table.replaceCurrentRows)
       for (const predicate of missingSourceMembershipPredicates(ids))
         statements.push(
-          `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND ${predicate};`,
+          `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(sourceVersion)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND ${predicate};`,
         )
     const hashesById = new Map<string, Set<string>>()
     for (const row of rows) {
@@ -689,7 +689,7 @@ export async function buildNativeSourceSql(
     }
     for (const [id, hashes] of hashesById)
       statements.push(
-        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(releaseCode)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND "sourceRecordId" = ${sqlValue(id)} AND "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')});`,
+        `UPDATE "${table.name}" SET "isCurrent" = 0, "validToRelease" = ${sqlValue(sourceVersion)}, "updatedAt" = ${sqlValue(new Date().toISOString())} WHERE "isCurrent" = 1 AND "sourceRecordId" = ${sqlValue(id)} AND "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')});`,
       )
     for (const row of rows) {
       Object.keys(row).forEach(column => {

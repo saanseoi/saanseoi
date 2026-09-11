@@ -15,7 +15,10 @@ function valueExpression(value: NetRow[string], params: NetStatement['params']) 
   // JSON transports cannot preserve 64-bit integers or binary binding types.
   // Exact SQL literals retain these values and still obey the SQL byte budget.
   if (typeof value === 'bigint') return value.toString()
-  if (value instanceof Uint8Array) return `X'${Buffer.from(value).toString('hex')}'`
+  if (value instanceof Uint8Array) {
+    params.push(Buffer.from(value).toString('hex'))
+    return 'unhex(?)'
+  }
   if (value === undefined || (typeof value === 'number' && !Number.isFinite(value)))
     throw new Error('Unsupported net-plan SQLite value.')
   params.push(value)
@@ -131,6 +134,19 @@ export function journalNetTable(input: {
   const ordering = (alias: string) =>
     table.primaryKey.map(column => `${alias}.${q(column)}`).join(',')
   const write = (kind: 'delete' | 'insert' | 'update', row: NetRow) => {
+    const scope = table.policy.rowScope
+    if (scope) {
+      const index = table.writable.indexOf(scope.column)
+      if (
+        index < 0 ||
+        !scope.values.includes(String(row[scope.column])) ||
+        (kind === 'update' &&
+          !scope.values.includes(String(row[`__net_before_${index}`])))
+      )
+        throw new Error(
+          `Net-plan mutation escapes its owned scope: ${table.policy.name}.${scope.column}`,
+        )
+    }
     if (kind !== 'delete') assertNetRowBudget(row, table.columns, table.policy.name)
     if (kind === 'update' && table.policy.collection) {
       const previous = Object.fromEntries(
