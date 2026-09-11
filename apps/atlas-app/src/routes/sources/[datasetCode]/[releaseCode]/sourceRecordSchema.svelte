@@ -158,7 +158,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
 
   const properties: OpenApiSchema = sourceSchema
     ? {
-        description: m.source_record_schema_raw_properties_description(),
+        description: m.source_record_schema_properties_description(),
         properties: Object.fromEntries(
           sourceRecordRawPropertyFields(sourceSchema).map(field => [
             field.name,

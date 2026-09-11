@@ -762,6 +762,8 @@ export const createUrbanDensityStatsCode = (
     "const statsEndpoint = '/stats/v0.1/geographies'",
     "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
     '',
+    '// The 2024 reference period uses its latest published revision.',
+    '// To reproduce a revision, set the same releaseSet on both requests using meta.apiReleaseSet.',
     'async function getDistrictField(field: string) {',
     '  const url = new URL(statsEndpoint, apiBaseUrl)',
     "  url.searchParams.set('cohort', '2024')",
