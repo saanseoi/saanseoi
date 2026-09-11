@@ -1,4 +1,9 @@
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
+import {
+  mapLocalTargetPaths,
+  resolveD1Targets,
+} from '../dbCache/localDbCacheTargets.ts'
+import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 import { confirm, isCancel, note, outro } from '@clack/prompts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
@@ -280,7 +285,17 @@ export async function runResetDivisionsCommand(
   if (discardAbandonedSqlDelivery && target.remote) {
     throw new Error('--discard-abandoned-sql-delivery only supports the local target.')
   }
+  // Allow inspection of the owning cache. The reset lifecycle still checks every
+  // plan under the delivery lock before it may discard ownership or execute SQL.
+  let resumeSqlDeliveryReleaseId: string | undefined
+  if (discardAbandonedSqlDelivery) {
+    const metaPath = mapLocalTargetPaths(await resolveD1Targets('local')).DB_META
+    if (!metaPath) throw new Error('Division reset requires the DB_META binding.')
+    resumeSqlDeliveryReleaseId = (await readPendingSqlDelivery(dirname(metaPath)))
+      ?.releaseId
+  }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
+    resumeSqlDeliveryReleaseId,
     includeAllHistoryShardYears: true,
     includeAllSourceShardYears: true,
     requireExistingRemoteCache: target.remote,
