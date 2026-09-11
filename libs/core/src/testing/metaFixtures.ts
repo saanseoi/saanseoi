@@ -1265,7 +1265,7 @@ type FixtureRelease = {
   datasetCode?: string
   source: string
   regionCode: string
-  type: ResourceType
+  resourceType: ResourceType
   theme?: string
   sourceVersion: string
   cohortKey: string
@@ -1286,14 +1286,14 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
   const publisherCode = publisherCodeForSource(release.source)
   const datasetCode =
     release.datasetCode ??
-    buildDatasetCode(release.regionCode, release.source, release.type)
+    buildDatasetCode(release.regionCode, release.source, release.resourceType)
   const releaseCode =
     release.releaseCode ??
     buildDatasetReleaseCode(
       release.regionCode,
       release.source,
       release.sourceVersion,
-      release.type,
+      release.resourceType,
     )
   const releaseId = release.releaseId ?? `release-${releaseCode}`
   const supersededByReleaseId = release.supersededByReleaseCode
@@ -1373,7 +1373,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     releaseId,
     publisherCode,
     datasetCode,
-    release.type,
+    release.resourceType,
     releaseCode,
     release.sourceVersion,
     release.cohortKey,

@@ -319,13 +319,13 @@ export async function prepareDivisionVersionInsertContext(
     )
   }
 
-  const snapshot = await ensureDraftSnapshotForRelease(metaDb, message.type, {
+  const snapshot = await ensureDraftSnapshotForRelease(metaDb, message.resourceType, {
     regionCode: dataset.regionCode,
     cohortKey: dataset.cohortKey,
     datasetCode: dataset.datasetCode,
     datasetId: dataset.datasetId,
     sourceReleaseId: dataset.releaseId,
-    variant: datasetVariantForSource(message.type, dataset.source, {
+    variant: datasetVariantForSource(message.resourceType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
       sourceVariant: dataset.sourceVariant,
@@ -378,7 +378,7 @@ export async function prepareDivisionVersionInsertContext(
   )
   await recordSnapshotAssemblyRun(metaDb, {
     snapshotId: snapshot.id,
-    resourceType: message.type,
+    resourceType: message.resourceType,
     anchorReleaseId: dataset.releaseId,
     anchorCohortKey: dataset.cohortKey,
     selectionSummaryJson: {

@@ -116,7 +116,7 @@ export function missingOvertureHongKongAreaRows(
 ) {
   if (
     message.source !== 'overture' ||
-    message.type !== 'division' ||
+    message.resourceType !== 'division' ||
     message.regionCode !== 'hk'
   ) {
     return []

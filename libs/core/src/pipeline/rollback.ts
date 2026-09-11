@@ -8,7 +8,7 @@ export type LatestReleaseRollbackInput = {
   snapshotId: string
   source: string
   sourceVersion: string
-  type: ResourceType
+  resourceType: ResourceType
 }
 
 export type LatestReleaseRollbackSql = {
@@ -205,7 +205,7 @@ function buildHistoryRollbackSql(
 ) {
   return joinStatements([
     `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ...(input.type === 'street'
+    ...(input.resourceType === 'street'
       ? []
       : [
           `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
@@ -220,7 +220,7 @@ function buildHistoryRollbackSql(
 function buildPurgeHistorySql(input: LatestReleaseRollbackInput, plan: RollbackPlan) {
   return joinStatements([
     `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${literal(input.snapshotId)};`,
-    ...(input.type === 'street'
+    ...(input.resourceType === 'street'
       ? []
       : [
           `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
@@ -290,10 +290,10 @@ function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
 function resolveRollbackPlan(
   input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
 ): RollbackPlan {
-  const resourcePlan = rollbackPlans[input.type]
+  const resourcePlan = rollbackPlans[input.resourceType]
 
   if (!resourcePlan) {
-    throw new Error(`Rollback is not implemented for ${input.type} releases.`)
+    throw new Error(`Rollback is not implemented for ${input.resourceType} releases.`)
   }
 
   const sourceTables = resourcePlan.sources[input.source]
@@ -307,7 +307,7 @@ function resolveRollbackPlan(
   }
 
   throw new Error(
-    `Rollback is not implemented for source ${input.source}/${input.type}.`,
+    `Rollback is not implemented for source ${input.source}/${input.resourceType}.`,
   )
 }
 

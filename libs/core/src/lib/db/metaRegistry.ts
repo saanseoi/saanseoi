@@ -1896,7 +1896,7 @@ type LatestDatasetLookup = {
 }
 
 type DatasetIdentityRecord = {
-  type: ResourceType
+  resourceType: ResourceType
   source: string
   datasetId: string
   datasetCode: string
@@ -1999,7 +1999,7 @@ export async function getLatestDatasetForRegionSourceDatasetType(
   regionCode: RegionCode,
   source: string,
   datasetCode: string,
-  type: ResourceType,
+  resourceType: ResourceType,
 ): Promise<LatestDatasetLookup> {
   const datasetRows = (await db
     .select(releaseRecordSelection)
@@ -2014,7 +2014,7 @@ export async function getLatestDatasetForRegionSourceDatasetType(
         // type and cohort. Upload chronology and schema compatibility belong
         // to that product's dataset lineage, never to the publisher broadly.
         eq(metaDatasets.code, datasetCode),
-        eq(metaReleases.resourceType, type),
+        eq(metaReleases.resourceType, resourceType),
         ne(metaReleases.status, 'failed'),
         ne(metaReleases.status, 'uploading'),
       ),
@@ -2096,7 +2096,7 @@ export async function hasDatasetForCohortKeySourceType(
   regionCode: RegionCode,
   cohortKey: string,
   source: string,
-  type: ResourceType,
+  resourceType: ResourceType,
 ) {
   const existing =
     ((await db
@@ -2113,7 +2113,7 @@ export async function hasDatasetForCohortKeySourceType(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaReleases.cohortKey, cohortKey),
           eq(metaPublishers.code, publisherCodeForSource(source)),
-          eq(metaReleases.resourceType, type),
+          eq(metaReleases.resourceType, resourceType),
           ne(metaReleases.status, 'failed'),
         ),
       )
@@ -2357,7 +2357,7 @@ export async function insertDataset(
       sourceReleaseId,
       datasetId: dataset.id,
       code: plan.releaseCode,
-      resourceType: plan.type,
+      resourceType: plan.resourceType,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
       processingRules: dataset.processingRules,
@@ -2475,7 +2475,7 @@ export async function resetFailedDataset(
     .update(metaReleases)
     .set({
       sourceVersion: plan.sourceVersion,
-      resourceType: plan.type,
+      resourceType: plan.resourceType,
       sourceSchemaVersion,
       processingRules: dataset.processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
@@ -2658,8 +2658,8 @@ export async function setSupersededByReleaseId(
     .run()
 }
 
-export function getApiVersionCodeForType(type: ResourceType) {
-  return buildApiVersionCode(type, '0.1')
+export function getApiVersionCodeForType(resourceType: ResourceType) {
+  return buildApiVersionCode(resourceType, '0.1')
 }
 
 async function resolveCurrentApiComposition(
@@ -2752,11 +2752,11 @@ async function listApiCompositionMembersSafely(
 
 export async function listCurrentApiCompositionMembersForType(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
 ) {
   const composition = await resolveCurrentApiComposition(
     db,
-    getApiVersionCodeForType(type),
+    getApiVersionCodeForType(resourceType),
   )
 
   return composition ? listApiCompositionMembers(db, composition.id) : []
@@ -3658,9 +3658,9 @@ export async function listSnapshotsForRelease(
 
 export async function resolveReleaseSetForType(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
 
   return (
     (await db
@@ -3690,25 +3690,29 @@ export async function resolveReleaseSetForType(
 
 async function resolveDomainCodeForType(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   domainCode?: string,
 ) {
   if (domainCode) return domainCode
 
   const composition = await resolveCurrentApiCompositionSafely(
     db,
-    getApiVersionCodeForType(type),
+    getApiVersionCodeForType(resourceType),
   )
   return composition?.defaultDomainCode ?? 'default'
 }
 
 export async function resolveActiveReleaseSetForType(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   domainCode?: string,
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
-  const resolvedDomainCode = await resolveDomainCodeForType(db, type, domainCode)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
+  const resolvedDomainCode = await resolveDomainCodeForType(
+    db,
+    resourceType,
+    domainCode,
+  )
 
   return (
     (await db
@@ -3740,12 +3744,12 @@ export async function resolveActiveReleaseSetForType(
 
 export async function resolveLatestReleaseSetForTypeDomainCohort(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   domainCode: string,
   regionCode: RegionCode,
   cohortKey: string,
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
 
   return (
     (await db
@@ -3786,11 +3790,11 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
  */
 export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({
       familyType: metaApiVersions.familyType,
@@ -3918,12 +3922,12 @@ export async function listDraftReleaseSetPrimaryReleases(
  */
 export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
   domainCode = 'geographic',
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const rows = await db
     .select({
       cohortKey: metaApiReleaseSets.cohortKey,
@@ -3951,7 +3955,7 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
         eq(metaApiReleaseSets.domainCode, domainCode),
         sql`${metaApiReleaseSets.cohortKey} >= ${cohortKey}`,
         eq(metaApiReleaseSetSnapshots.role, 'primary'),
-        eq(metaSnapshots.resourceType, type),
+        eq(metaSnapshots.resourceType, resourceType),
         eq(metaSnapshotSources.role, 'primary'),
         eq(metaPublishers.code, 'overture'),
       ),
@@ -3964,14 +3968,14 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
 
 export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
   options: {
     domainCode?: string
     forceNew?: boolean
   } = {},
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({
       id: metaApiVersions.id,
@@ -3983,7 +3987,7 @@ export async function ensureDraftReleaseSetForRelease(
     .get()
 
   if (!apiVersion) {
-    throw new Error(`API version not found for type: ${type}`)
+    throw new Error(`API version not found for type: ${resourceType}`)
   }
 
   const composition = await resolveCurrentApiCompositionSafely(db, apiVersionCode)
@@ -3993,16 +3997,16 @@ export async function ensureDraftReleaseSetForRelease(
     : []
   const domainCode = options.domainCode ?? composition?.defaultDomainCode ?? 'default'
   const isCompositionMember = compositionMembers.some(
-    member => member.domainCode === domainCode && member.resourceType === type,
+    member => member.domainCode === domainCode && member.resourceType === resourceType,
   )
 
   if (
     composition?.primaryResourceType &&
-    composition.primaryResourceType !== type &&
+    composition.primaryResourceType !== resourceType &&
     !isCompositionMember
   ) {
     throw new Error(
-      `API composition ${composition.code} expects primary resourceType=${composition.primaryResourceType}, not ${type}.`,
+      `API composition ${composition.code} expects primary resourceType=${composition.primaryResourceType}, not ${resourceType}.`,
     )
   }
 
@@ -4086,7 +4090,7 @@ export async function ensureDraftReleaseSetForRelease(
     .join('--')
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
-  const resourceCode = resourceTypeCodeSlug(type)
+  const resourceCode = resourceTypeCodeSlug(resourceType)
   // Statistics are materialised from `divisionStatistic` resources, while the
   // public API contract deliberately uses the broader Statistics schema name.
   const defaultSchemaVersion =
@@ -4152,11 +4156,15 @@ export async function ensureDraftReleaseSetForRelease(
 export async function resolveReleaseSetForRelease(
   db: HarbourReadableDb,
   releaseId: string,
-  type: ResourceType,
+  resourceType: ResourceType,
   domainCode?: string,
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
-  const resolvedDomainCode = await resolveDomainCodeForType(db, type, domainCode)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
+  const resolvedDomainCode = await resolveDomainCodeForType(
+    db,
+    resourceType,
+    domainCode,
+  )
 
   return (
     (await db
@@ -4437,7 +4445,7 @@ export async function publishReleaseArtefacts(
     snapshotId: string
     /** The materialised snapshot variant, when it is more specific than its dataset. */
     snapshotVariant?: string
-    type: ResourceType
+    resourceType: ResourceType
     /** Publish the dataset snapshot, but leave the API release set as draft. */
     deferApiReleaseSet?: boolean
     /** Whether this release-set publication should emit a catalogue revision. */
@@ -4520,7 +4528,7 @@ export async function publishReleaseArtefacts(
     : []
   const datasetVariant =
     args.snapshotVariant ??
-    datasetVariantForSource(args.type, args.dataset.source, {
+    datasetVariantForSource(args.resourceType, args.dataset.source, {
       cohortKey: args.dataset.cohortKey,
       datasetCode: args.dataset.datasetCode,
       sourceVariant: args.dataset.sourceVariant,
@@ -4529,7 +4537,7 @@ export async function publishReleaseArtefacts(
   const datasetMember = compositionMembers.find(
     member =>
       member.domainCode === releaseSet.domainCode &&
-      member.resourceType === args.type &&
+      member.resourceType === args.resourceType &&
       member.variant === datasetVariant,
   )
   const releaseSetSnapshots = new Map<
@@ -4581,14 +4589,17 @@ export async function publishReleaseArtefacts(
     )
   }
 
-  releaseSetSnapshots.set(buildReleaseSetSnapshotMemberKey(args.type, datasetVariant), {
-    role: datasetMember?.role ?? 'primary',
-    isRequired: datasetMember?.isRequired ?? true,
-    cohortMatchingMode: datasetMember?.cohortMatchingMode ?? 'exact_ref',
-    anchorSnapshotId: null,
-    snapshotId: args.snapshotId,
-    variant: datasetVariant,
-  })
+  releaseSetSnapshots.set(
+    buildReleaseSetSnapshotMemberKey(args.resourceType, datasetVariant),
+    {
+      role: datasetMember?.role ?? 'primary',
+      isRequired: datasetMember?.isRequired ?? true,
+      cohortMatchingMode: datasetMember?.cohortMatchingMode ?? 'exact_ref',
+      anchorSnapshotId: null,
+      snapshotId: args.snapshotId,
+      variant: datasetVariant,
+    },
+  )
 
   for (const member of compositionMembers) {
     if (member.domainCode !== releaseSet.domainCode || !member.anchorResourceType) {
@@ -4744,7 +4755,7 @@ export async function publishReleaseArtefacts(
           .where(
             and(
               eq(metaSnapshotSources.resourceReleaseId, args.dataset.releaseId),
-              eq(metaSnapshots.resourceType, args.type),
+              eq(metaSnapshots.resourceType, args.resourceType),
             ),
           )
           .all()
@@ -5054,7 +5065,7 @@ export async function publishReleaseArtefacts(
           reason: null,
           metadataJson: {
             replacedReleaseId: args.currentRelease.releaseId,
-            type: args.type,
+            type: args.resourceType,
           },
           createdAt: publishedAt,
         }),
@@ -5070,7 +5081,7 @@ export async function publishReleaseArtefacts(
           reason: replacedReason,
           metadataJson: {
             replacementReleaseId: args.dataset.releaseId,
-            type: args.type,
+            type: args.resourceType,
           },
           createdAt: publishedAt,
         }),
@@ -5119,7 +5130,7 @@ export async function publishReleaseArtefacts(
           statusTo: 'published',
           reason: null,
           metadataJson: {
-            type: args.type,
+            type: args.resourceType,
           },
           createdAt: publishedAt,
         }),
@@ -5643,7 +5654,6 @@ function isExplicitlyRequestableDivisionGeometry(resourceType: ResourceType) {
 
 export async function resolveActiveSnapshotForType(
   db: HarbourReadableDb,
-  type: ResourceType,
   resourceType: ResourceType,
   options: {
     domainCode?: string
@@ -5651,7 +5661,11 @@ export async function resolveActiveSnapshotForType(
     variant?: string
   } = {},
 ) {
-  const domainCode = await resolveDomainCodeForType(db, type, options.domainCode)
+  const domainCode = await resolveDomainCodeForType(
+    db,
+    resourceType,
+    options.domainCode,
+  )
   if (options.regionCode) {
     return (
       (await db
@@ -5682,7 +5696,7 @@ export async function resolveActiveSnapshotForType(
         .innerJoin(metaDatasets, eq(metaSnapshotSources.datasetId, metaDatasets.id))
         .where(
           and(
-            eq(metaApiVersions.code, getApiVersionCodeForType(type)),
+            eq(metaApiVersions.code, getApiVersionCodeForType(resourceType)),
             eq(metaApiReleaseSets.status, 'current'),
             eq(metaApiReleaseSets.domainCode, domainCode),
             eq(metaSnapshots.resourceType, resourceType),
@@ -5702,7 +5716,11 @@ export async function resolveActiveSnapshotForType(
     )
   }
 
-  const activeReleaseSet = await resolveActiveReleaseSetForType(db, type, domainCode)
+  const activeReleaseSet = await resolveActiveReleaseSetForType(
+    db,
+    resourceType,
+    domainCode,
+  )
 
   if (!activeReleaseSet) {
     return null
@@ -5742,7 +5760,7 @@ export async function resolveActiveSnapshotForType(
 
 export async function resolveApiReleaseSetForRequest(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   args: {
     catalogRevision?: string
     cohortKey?: string
@@ -5753,7 +5771,7 @@ export async function resolveApiReleaseSetForRequest(
     releaseSet?: string
   },
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({ id: metaApiVersions.id })
     .from(metaApiVersions)
@@ -5842,10 +5860,10 @@ export async function resolveApiReleaseSetForRequest(
 
 export async function resolveApiReleaseSetSnapshotsForRequest(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   args: Parameters<typeof resolveApiReleaseSetForRequest>[2],
 ) {
-  const releaseSet = await resolveApiReleaseSetForRequest(db, type, args)
+  const releaseSet = await resolveApiReleaseSetForRequest(db, resourceType, args)
   if (!releaseSet) return null
 
   const snapshots = await listApiReleaseSetSnapshots(db, releaseSet.id)
@@ -5862,10 +5880,10 @@ export async function resolveApiReleaseSetSnapshotsForRequest(
  */
 export async function listApiReleaseSetSnapshotsForRegistryRequest(
   db: HarbourReadableDb,
-  type: ResourceType,
+  resourceType: ResourceType,
   args: Parameters<typeof resolveApiReleaseSetForRequest>[2],
 ) {
-  const apiVersionCode = getApiVersionCodeForType(type)
+  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({ id: metaApiVersions.id })
     .from(metaApiVersions)
@@ -6324,7 +6342,7 @@ async function requireDatasetDefinition(
         and(
           eq(metaPublishers.code, publisherCodeForSource(plan.source)),
           eq(metaDatasets.code, plan.datasetCode),
-          sql`EXISTS (SELECT 1 FROM json_each(${metaDatasets.resourceTypes}) WHERE value = ${plan.type})`,
+          sql`EXISTS (SELECT 1 FROM json_each(${metaDatasets.resourceTypes}) WHERE value = ${plan.resourceType})`,
         ),
       )
       .limit(1)

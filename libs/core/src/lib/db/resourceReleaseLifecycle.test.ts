@@ -42,7 +42,7 @@ test('post-publication statistics failures retain superseded source release stat
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09-24.0',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'division.parquet',
       originalFileName: 'division.parquet',
@@ -114,7 +114,7 @@ for (const order of [types, [...types].reverse()]) {
           {
             datasetCode,
             releaseCode,
-            type,
+            resourceType: type,
             source: 'hkgov-censtatd',
             sourceVersion: '2024',
             cohortKey: '2024',

@@ -31,7 +31,7 @@ export type DatasetRecord = {
   cohortKey: string
   geometryStatus: GeometryStatus
   theme: string
-  type: string
+  resourceType: string
   kind: string | null
   sourceVariant: string
   source: string
@@ -82,7 +82,7 @@ export type UploadPlan = {
   cohortKey: string
   shardYear?: string
   theme: ResourceTheme
-  type: ResourceType
+  resourceType: ResourceType
   source: string
   sourceVersion: string
   /**
@@ -115,7 +115,7 @@ export type RegisterUploadOptions = {
   regionCode?: string
   cohortKey?: string
   theme?: string
-  type?: string
+  resourceType?: string
   source?: string
   sourceVersion?: string
   geometryStatus?: GeometryStatus
@@ -165,7 +165,7 @@ export type DatasetProcessingMessage = {
   source: string
   sourceVersion: string
   theme: ResourceTheme
-  type: ResourceType
+  resourceType: ResourceType
   skipSnapshotCleanup?: boolean
   preplannedAddressChunks?: boolean
   rowStart?: number

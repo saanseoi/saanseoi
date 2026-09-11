@@ -26,7 +26,7 @@ test('ALS history preserves distinct source owners at one street address and exa
     const release = insertFixtureRelease(sqlite, {
       source: 'hkgov-dpo',
       regionCode: 'hk',
-      type: 'address',
+      resourceType: 'address',
       sourceVersion: '2024-07-31.0',
       cohortKey: '2024-07-31.0',
       rawObjectKey: 'address.parquet',
@@ -56,7 +56,7 @@ test('ALS history preserves distinct source owners at one street address and exa
       datasetId: 'hkgov-dpo-hk-address',
       source: 'hkgov-dpo',
       regionCode: 'hk',
-      type: 'address',
+      resourceType: 'address',
       theme: 'addresses',
       sourceVersion: '2024-07-31.0',
       cohortKey: '2024-07-31.0',

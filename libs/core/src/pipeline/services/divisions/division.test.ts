@@ -200,7 +200,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
   test('adds the PRC country anchor to Overture Hong Kong division snapshots', () => {
     const [fixture] = getSupplementalDivisionFixtureRows({
       source: 'overture',
-      type: 'division',
+      resourceType: 'division',
       regionCode: 'hk',
     })
 
@@ -229,7 +229,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
     expect(
       getSupplementalDivisionFixtureRows({
         source: 'overture',
-        type: 'divisionBoundary',
+        resourceType: 'divisionBoundary',
         regionCode: 'hk',
       }),
     ).toEqual([])
@@ -253,7 +253,7 @@ describe('missingOvertureHongKongAreaRows', () => {
 
   test('synthesises each missing Hong Kong level-1 area from its district members', () => {
     const rows = missingOvertureHongKongAreaRows(
-      { regionCode: 'hk', source: 'overture', type: 'division' },
+      { regionCode: 'hk', source: 'overture', resourceType: 'division' },
       sourceRows,
     )
 
@@ -270,7 +270,7 @@ describe('missingOvertureHongKongAreaRows', () => {
 
   test('does not replace an Overture-provided polygonal area record', () => {
     const rows = missingOvertureHongKongAreaRows(
-      { regionCode: 'hk', source: 'overture', type: 'division' },
+      { regionCode: 'hk', source: 'overture', resourceType: 'division' },
       [
         ...sourceRows,
         {
@@ -287,7 +287,7 @@ describe('missingOvertureHongKongAreaRows', () => {
 
   test('preserves Kowloon when Overture supplies its area identity as a point', () => {
     const rows = missingOvertureHongKongAreaRows(
-      { regionCode: 'hk', source: 'overture', type: 'division' },
+      { regionCode: 'hk', source: 'overture', resourceType: 'division' },
       [
         ...sourceRows,
         {
@@ -311,7 +311,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     if (!hongKongIsland) throw new Error('Hong Kong Island fixture is missing.')
     const divisionId = overtureHongKongAreaDivisionId(hongKongIsland.code)
     const rows = missingOvertureHongKongAreaRows(
-      { regionCode: 'hk', source: 'overture', type: 'division' },
+      { regionCode: 'hk', source: 'overture', resourceType: 'division' },
       [
         ...sourceRows,
         {

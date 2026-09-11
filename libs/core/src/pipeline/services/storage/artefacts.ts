@@ -32,7 +32,7 @@ export function buildPipelineArtefactKey(
   const releaseId = message.releaseCode ?? message.releaseId ?? message.datasetId
   return [
     'processed',
-    message.type,
+    message.resourceType,
     releaseId,
     stage,
     `${String(rowStart).padStart(12, '0')}-${String(rowEnd).padStart(12, '0')}.json`,

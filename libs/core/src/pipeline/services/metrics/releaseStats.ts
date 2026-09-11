@@ -1015,15 +1015,7 @@ function buildReleaseStatsRow(
     groupValue: string
   },
 ): ReleaseScopedStatsRow {
-  return buildStatsRow(
-    'release',
-    dimension,
-    metric,
-    metricUnit,
-    value,
-    timestamp,
-    grouping,
-  )
+  return buildStatsRow(dimension, metric, metricUnit, value, timestamp, grouping)
 }
 
 function buildApiReleaseSetStatsRow(
@@ -1037,19 +1029,10 @@ function buildApiReleaseSetStatsRow(
     groupValue: string
   },
 ): ApiReleaseSetScopedStatsRow {
-  return buildStatsRow(
-    'apiReleaseSet',
-    dimension,
-    metric,
-    metricUnit,
-    value,
-    timestamp,
-    grouping,
-  )
+  return buildStatsRow(dimension, metric, metricUnit, value, timestamp, grouping)
 }
 
 function buildStatsRow(
-  kind: 'apiReleaseSet' | 'release',
   dimension: string,
   metric: string,
   metricUnit: string,
@@ -1067,7 +1050,6 @@ function buildStatsRow(
     groupValue: grouping?.groupValue ?? null,
     metric,
     metricUnit,
-    kind,
     updatedAt: timestamp,
     value,
   }

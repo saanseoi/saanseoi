@@ -35,7 +35,7 @@ export type SourceRecordSchema = {
   fields: SourceRecordSchemaField[]
   id: string
   source: 'overture'
-  type: ResourceType
+  resourceType: ResourceType
   validFromRelease: string
   validToRelease?: string
 }
@@ -90,7 +90,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-place-v2025-09-24.0',
     source: 'overture',
-    type: 'place',
+    resourceType: 'place',
     validFromRelease: '2025-09-24.0',
     validToRelease: '2025-10-21.0',
     fields: [
@@ -116,7 +116,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-place-v2025-10-22.0',
     source: 'overture',
-    type: 'place',
+    resourceType: 'place',
     validFromRelease: '2025-10-22.0',
     validToRelease: '2025-12-16.0',
     fields: [
@@ -143,7 +143,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-place-v2025-12-17.0',
     source: 'overture',
-    type: 'place',
+    resourceType: 'place',
     validFromRelease: '2025-12-17.0',
     fields: [
       { name: 'id', type: 'utf8', nullable: true },
@@ -170,7 +170,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-v2025-09-24.0',
     source: 'overture',
-    type: 'division',
+    resourceType: 'division',
     validFromRelease: '2025-09-24.0',
     validToRelease: '2026-02-17.0',
     fields: [
@@ -201,7 +201,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-v2026-02-18.0',
     source: 'overture',
-    type: 'division',
+    resourceType: 'division',
     validFromRelease: '2026-02-18.0',
     fields: [
       { name: 'id', type: 'utf8', nullable: true },
@@ -232,7 +232,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-area-v2025-09-24.0',
     source: 'overture',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
     validFromRelease: '2025-09-24.0',
     validToRelease: '2026-02-17.0',
     fields: overtureDivisionAreaFields,
@@ -240,7 +240,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-area-v2026-02-18.0',
     source: 'overture',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
     validFromRelease: '2026-02-18.0',
     fields: [
       ...overtureDivisionAreaFields,
@@ -250,7 +250,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-boundary-v2025-09-24.0',
     source: 'overture',
-    type: 'divisionBoundary',
+    resourceType: 'divisionBoundary',
     validFromRelease: '2025-09-24.0',
     validToRelease: '2026-02-17.0',
     fields: overtureDivisionBoundaryFields,
@@ -258,7 +258,7 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-division-boundary-v2026-02-18.0',
     source: 'overture',
-    type: 'divisionBoundary',
+    resourceType: 'divisionBoundary',
     validFromRelease: '2026-02-18.0',
     fields: [
       ...overtureDivisionBoundaryFields,
@@ -280,7 +280,7 @@ export function resolveSourceRecordSchema({
 
   const candidates = overtureSourceRecordSchemas.filter(
     schema =>
-      schema.type === resourceType &&
+      schema.resourceType === resourceType &&
       compareRelease(sourceVersion, schema.validFromRelease) >= 0 &&
       (!schema.validToRelease ||
         compareRelease(sourceVersion, schema.validToRelease) <= 0),
@@ -302,13 +302,13 @@ export function resolveOvertureSourceRecordFieldDefinition(
   const definition = commonDefinitions[field.name]
   if (definition) return definition
 
-  if (field.name === 'geometry') return geometryDefinition(sourceSchema.type)
+  if (field.name === 'geometry') return geometryDefinition(sourceSchema.resourceType)
   if (field.name === 'theme')
-    return { enum: [themeFor(sourceSchema.type)], type: 'string' }
+    return { enum: [themeFor(sourceSchema.resourceType)], type: 'string' }
   if (field.name === 'type')
-    return { enum: [typeFor(sourceSchema.type)], type: 'string' }
+    return { enum: [typeFor(sourceSchema.resourceType)], type: 'string' }
 
-  return resourceDefinitions()[sourceSchema.type]?.[field.name] ?? null
+  return resourceDefinitions()[sourceSchema.resourceType]?.[field.name] ?? null
 }
 
 const trimmedString: SourceRecordSchemaDefinition = {
@@ -659,11 +659,11 @@ const divisionBoundaryDefinitions: Record<string, SourceRecordSchemaDefinition> 
   subtype: placetype,
 }
 
-function geometryDefinition(type: ResourceType): SourceRecordSchemaDefinition {
+function geometryDefinition(resourceType: ResourceType): SourceRecordSchemaDefinition {
   const geometryTypes =
-    type === 'place' || type === 'division'
+    resourceType === 'place' || resourceType === 'division'
       ? ['Point']
-      : type === 'divisionArea'
+      : resourceType === 'divisionArea'
         ? ['Polygon', 'MultiPolygon']
         : ['LineString', 'MultiLineString']
 
@@ -678,18 +678,18 @@ function geometryDefinition(type: ResourceType): SourceRecordSchemaDefinition {
   }
 }
 
-function themeFor(type: ResourceType) {
-  return type === 'place' ? 'places' : 'divisions'
+function themeFor(resourceType: ResourceType) {
+  return resourceType === 'place' ? 'places' : 'divisions'
 }
 
-function typeFor(type: ResourceType) {
-  switch (type) {
+function typeFor(resourceType: ResourceType) {
+  switch (resourceType) {
     case 'divisionArea':
       return 'division_area'
     case 'divisionBoundary':
       return 'division_boundary'
     default:
-      return type
+      return resourceType
   }
 }
 

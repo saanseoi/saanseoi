@@ -147,7 +147,7 @@ FROM "address2dI18n";
 
 export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessage) {
   return (
-    message.type === 'address' &&
+    message.resourceType === 'address' &&
     message.processingMode === 'sql' &&
     (message.addressStage === 'sql-import-source' ||
       message.addressStage === 'sql-import-history' ||

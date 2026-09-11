@@ -48,7 +48,10 @@ test('restoration applies only when Kowloon is absent from the source release', 
     kowloonRestorationActions(rows, missingOvertureHongKongAreaRows(message, rows)),
   ).toEqual([])
   expect(
-    missingOvertureHongKongAreaRows({ ...message, type: 'divisionArea' }, districts),
+    missingOvertureHongKongAreaRows(
+      { ...message, resourceType: 'divisionArea' },
+      districts,
+    ),
   ).toEqual([])
   expect(() => missingOvertureHongKongAreaRows(message, [])).toThrow(
     'Cannot synthesise',
