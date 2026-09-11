@@ -160,12 +160,11 @@ export async function buildPlaceSql(
         ? previous.row.firstSeenMonth
         : place.firstSeenMonth
     const source = input.sourceRows?.get(place.id)
-    // Each release's source API reads its assigned shard, so a year rollover
-    // must materialise the payload in the new shard even when its hash matches.
-    if (
-      source?.bindingName !== input.activeSourceBindingName ||
-      source.versionHash !== row.sourcePayloadHash
-    ) {
+    // A release is assigned every source shard that contains one of its
+    // retained assertions. An unchanged assertion therefore remains owned by
+    // its original shard across a year boundary; only a changed, new or
+    // returning assertion needs a write in the active shard.
+    if (!source || source.versionHash !== row.sourcePayloadHash) {
       if (source)
         sourceStatements(source.bindingName).push(
           `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(place.id)} AND isCurrent = 1${source.bindingName === input.activeSourceBindingName ? ` AND versionHash <> ${lit(row.sourcePayloadHash)}` : ''};`,

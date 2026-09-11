@@ -11,7 +11,7 @@ import { resolvePipelineEnvironment } from '../../cli/options.ts'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { metaSchema } from '@repo/db'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import type { SqlImportTargetContext } from '../local/sqlImport.ts'
 import type { PlaceUploadPlan } from './processLocalPlaceSqlUploadTypes.ts'
@@ -29,6 +29,7 @@ export async function upsertPlaceMetadata(
   releaseId: string,
   plan: PlaceUploadPlan,
   target: UploadTarget,
+  options: { sourceBindingNames?: readonly string[] } = {},
 ) {
   await upsertSnapshotSource(
     metaDb,
@@ -91,7 +92,40 @@ export async function upsertPlaceMetadata(
     await upsertSnapshotShardAssignment(metaDb, snapshots.snapshotId, historyShard.id)
     await upsertReleaseShardAssignment(metaDb, releaseId, historyShard.id)
   }
-  if (sourceShard) await upsertReleaseShardAssignment(metaDb, releaseId, sourceShard.id)
+  const sourceBindingNames = [
+    ...(options.sourceBindingNames ?? []),
+    ...(sourceShard ? [sourceShard.bindingName] : []),
+  ]
+  const sourceShards = await Promise.all(
+    [...new Set(sourceBindingNames)].map(async bindingName => {
+      const shard = await metaDb
+        .select({
+          id: metaSchema.metaDataShards.id,
+          bindingName: metaSchema.metaDataShards.bindingName,
+        })
+        .from(metaSchema.metaDataShards)
+        .where(
+          and(
+            eq(metaSchema.metaDataShards.bindingName, bindingName),
+            eq(metaSchema.metaDataShards.shardType, 'source'),
+            eq(metaSchema.metaDataShards.environment, environment),
+            eq(metaSchema.metaDataShards.status, 'active'),
+          ),
+        )
+        .limit(1)
+        .get()
+      if (!shard)
+        throw new Error(
+          `Active Places source shard ${bindingName} is not registered for ${environment}.`,
+        )
+      return shard
+    }),
+  )
+  await Promise.all(
+    sourceShards.map(shard =>
+      upsertReleaseShardAssignment(metaDb, releaseId, shard.id),
+    ),
+  )
 }
 
 export async function placeTargets(
