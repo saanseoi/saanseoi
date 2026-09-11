@@ -113,12 +113,30 @@ export async function loadCurrentPlaceHistory(
         throw new Error(
           `Current Place locale without a base: ${row.placeId}/${row.locale}.`,
         )
-      if (state.locales!.some(locale => locale.row.locale === row.locale))
+      const locales = state.locales
+      if (locales.some(locale => locale.row.locale === row.locale))
         throw new Error(
           `Multiple current Place locale versions for ${row.placeId}/${row.locale}.`,
         )
-      state.locales!.push({ bindingName: group.bindingName, row })
+      locales.push({ bindingName: group.bindingName, row })
     }
+  if (ownership) {
+    const links = (await ownership.currentDb
+      .select()
+      .from(currentSchema.placesDivision)
+      .where(eq(currentSchema.placesDivision.placeSnapshotId, ownership.scopeId))
+      .all()) as (typeof currentSchema.placesDivision.$inferSelect)[]
+    for (const link of links) {
+      const state = states.get(link.placeId)
+      if (!state)
+        throw new Error(
+          `Current Place Division link without a base: ${link.placeId}/${link.divisionId}.`,
+        )
+      const divisionLinks = state.divisionLinks ?? []
+      divisionLinks.push(link)
+      state.divisionLinks = divisionLinks
+    }
+  }
   return [...states.values()]
 }
 
@@ -132,14 +150,6 @@ export async function buildPlaceSql(
   if (!scopeId) throw new Error('Places require a stable current scope.')
   const currentSql: string[] = []
   const currentInserts = new PlaceProjectionSql(MAX_SQL_BYTES - 4096, true)
-  const referenceScope = (snapshotId: string) => {
-    const scope = input.referenceScopes?.get(snapshotId)
-    if (!scope)
-      throw new Error(
-        `Places require a complete current reference scope for snapshot ${snapshotId}.`,
-      )
-    return scope
-  }
   const changeInserts = new PlaceProjectionSql()
   const historySqlByBinding = new Map<string, string[]>()
   const sourceSqlByBinding = new Map<string, string[]>()
@@ -197,16 +207,19 @@ export async function buildPlaceSql(
       priorResolution?.sourceVersionHash !== row.sourcePayloadHash ||
       canonicalPlaceJson(priorResolution.resolutions) !==
         canonicalPlaceJson(resolutions)
-    )
+    ) {
+      const sourceReleaseId = input.message.releaseId
+      if (!sourceReleaseId) throw new Error('Places require a source release ID.')
       historyStatements(input.activeHistoryBindingName).push(
         sourceResolutionSql({
           snapshotId: input.snapshots.snapshotId,
-          sourceReleaseId: input.message.releaseId!,
+          sourceReleaseId,
           sourceRecordId: place.id,
           sourceVersionHash: row.sourcePayloadHash,
           resolutions,
         }),
       )
+    }
     const lng = row.effectiveLng ?? place.lng
     const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
@@ -300,7 +313,7 @@ export async function buildPlaceSql(
       `DELETE FROM placesCells WHERE ${rowScope} AND id = ${lit(place.id)}${projectedCells.length ? ` AND NOT (${projectedCells.map(cell => `(h3Level = ${cell.h3Level} AND h3Cell = ${lit(cell.h3Cell)})`).join(' OR ')})` : ''};`,
     )
     currentSql.push(
-      `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND NOT (divisionSnapshotId = ${lit(referenceScope(input.snapshots.divisionSnapshotId))} AND divisionId IN (${row.divisionIds.map(lit).join(',')}))` : ''};`,
+      `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND divisionId NOT IN (${row.divisionIds.map(lit).join(',')})` : ''};`,
     )
     for (const { h3Level, h3Cell } of projectedCells) {
       publicationCounts.cells += 1
@@ -378,13 +391,35 @@ export async function buildPlaceSql(
       if (place.i18n.some(row => row.locale === previousLocale.row.locale)) continue
       retireLocale(previousLocale)
     }
-    for (const divisionId of row.divisionIds) {
+    const previousDivisions = new Map(
+      previous?.divisionLinks?.map(link => [link.divisionId, link]),
+    )
+    for (const divisionId of [...new Set(row.divisionIds)].sort()) {
+      const candidate = row.divisionDefinitions?.[divisionId]
+      if (!candidate)
+        throw new Error(
+          `Missing exact Place Division definition ${place.id}/${divisionId}.`,
+        )
+      const definition = {
+        level: candidate.level,
+        locales: [...candidate.locales].sort((a, b) =>
+          a.locale.localeCompare(b.locale),
+        ),
+      }
+      const previousDivision = previousDivisions.get(divisionId)
+      const divisionSnapshotId =
+        previousDivision &&
+        canonicalPlaceJson(previousDivision.definition) ===
+          canonicalPlaceJson(definition)
+          ? previousDivision.divisionSnapshotId
+          : input.snapshots.divisionSnapshotId
       publicationCounts.divisionLinks += 1
       currentInserts.add('placesDivision', {
         placeSnapshotId: scopeId,
         placeId: place.id,
-        divisionSnapshotId: referenceScope(input.snapshots.divisionSnapshotId),
+        divisionSnapshotId,
         divisionId,
+        definition,
       })
     }
 
@@ -484,10 +519,12 @@ export async function buildPlaceSql(
       const resolutions = { entities: {}, decisions: [{ type: 'source_omission' }] }
       if (canonicalPlaceJson(previous.resolutions) === canonicalPlaceJson(resolutions))
         continue
+      const sourceReleaseId = input.message.releaseId
+      if (!sourceReleaseId) throw new Error('Places require a source release ID.')
       historyStatements(input.activeHistoryBindingName).push(
         sourceResolutionSql({
           snapshotId: input.snapshots.snapshotId,
-          sourceReleaseId: input.message.releaseId!,
+          sourceReleaseId,
           sourceRecordId,
           sourceVersionHash: previous.sourceVersionHash,
           resolutions,
@@ -525,7 +562,8 @@ function missingPlaceMembershipPredicates(ids: string[]) {
   const predicates: string[] = []
   for (let offset = 0; offset < sorted.length; offset += 96) {
     const batch = sorted.slice(offset, offset + 96)
-    const first = batch[0]!
+    const first = batch[0]
+    if (!first) throw new Error('Place membership predicate batch is empty.')
     const next = sorted[offset + 96]
     predicates.push(
       [

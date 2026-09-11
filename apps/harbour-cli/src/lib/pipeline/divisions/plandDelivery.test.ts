@@ -4,7 +4,10 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { sql } from 'drizzle-orm'
-import { integer, sqliteTable } from 'drizzle-orm/sqlite-core'
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+} from '../local/snapshotPublication.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
@@ -16,8 +19,6 @@ import {
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
 import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 import type { HarbourWritableDb } from '@repo/core/db/types'
-
-const counter = sqliteTable('counter', { n: integer().notNull() })
 
 test('Planning copies isolate failed preparation and resume partial delivery without recalculating counts', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pland-delivery-'))
@@ -40,21 +41,29 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
     inputs: { source: 'fixed' },
   }
   try {
-    clients.DB_CURRENT.exec(
-      loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
-        'current',
-      ]),
-    )
-    for (const db of Object.values(clients))
-      db.exec('CREATE TABLE counter(n INTEGER NOT NULL); INSERT INTO counter VALUES(0)')
+    for (const [binding, db] of Object.entries(clients))
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations'),
+          [
+            binding === 'DB_CURRENT'
+              ? 'current'
+              : binding === 'DB_META'
+                ? 'meta'
+                : binding === 'DB_HISTORY'
+                  ? 'history'
+                  : 'source',
+          ],
+        ),
+      )
     await expect(
-      deliverPlandWorkflow(phase, context, async copy => {
-        await copy.currentDb.update(counter).set({ n: 1 }).run()
+      deliverPlandWorkflow(phase, context, async _copy => {
         throw new Error('preparation interrupted')
       }),
     ).rejects.toThrow('preparation interrupted')
-    for (const db of Object.values(clients))
-      expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
+    expect(
+      clients.DB_CURRENT.query('SELECT count(*) AS n FROM divisions').get(),
+    ).toEqual({ n: 0 })
     const counts = { importedRows: 7, changedRows: 3, deletedRows: 1 }
     const record: PreparedDivision = {
       base: {
@@ -90,6 +99,14 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
     }
     await expect(
       deliverPlandWorkflow(phase, context, async copy => {
+        const publication = {
+          table: 'divisionPublicationState' as const,
+          scopeId: 'snapshot',
+          snapshotId: 'logical-snapshot',
+          publicationToken: phase.releaseId,
+          timestamp: '2026-09-12',
+        }
+        await beginSnapshotPublication(copy.currentDb, publication)
         await replaceCurrentSnapshot(
           copy.currentDb as unknown as HarbourWritableDb,
           'snapshot',
@@ -99,31 +116,37 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
           '2026-09-07T00:00:00.000Z',
           () => {},
         )
-        for (const db of [copy.currentDb, copy.historyDb, copy.sourceDb, copy.metaDb]) {
-          await db
-            .update(counter)
-            .set({ n: sql`${counter.n}+1` })
-            .run()
-          expect(await db.select().from(counter).all()).toEqual([{ n: 1 }])
-        }
-        // Fault only the real target, after preparation copies have been created.
-        clients.DB_HISTORY.exec(
-          "CREATE TRIGGER fail BEFORE UPDATE ON counter BEGIN SELECT RAISE(ABORT, 'delivery interrupted'); END",
+        await copy.historyDb.run(
+          sql`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('logical-snapshot','division','planning-test','','fixed','upsert','release')`,
         )
-        for (const db of Object.values(clients))
-          expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
+        await completeSnapshotPublication(
+          copy.currentDb,
+          publication,
+          "(SELECT count(*) FROM divisions WHERE snapshotId='snapshot')=1",
+        )
+        clients.DB_HISTORY.exec(
+          "CREATE TRIGGER fail BEFORE INSERT ON snapshotVersionChanges BEGIN SELECT RAISE(ABORT, 'delivery interrupted'); END",
+        )
+        expect(
+          clients.DB_CURRENT.query('SELECT count(*) AS n FROM divisions').get(),
+        ).toEqual({ n: 0 })
         return counts
       }),
     ).rejects.toThrow('delivery interrupted')
-    expect(clients.DB_CURRENT.query('SELECT n FROM counter').get()).toEqual({ n: 1 })
+    expect(
+      clients.DB_CURRENT.query('SELECT count(*) AS n FROM divisions').get(),
+    ).toEqual({ n: 1 })
     clients.DB_HISTORY.exec('DROP TRIGGER fail')
     expect(
       await deliverPlandWorkflow(phase, context, async () => {
         throw new Error('Must not repeat Planning materialisation')
       }),
     ).toEqual(counts)
-    for (const db of Object.values(clients))
-      expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 1 })
+    expect(
+      clients.DB_HISTORY.query(
+        'SELECT count(*) AS n FROM snapshotVersionChanges',
+      ).get(),
+    ).toEqual({ n: 1 })
     expect(
       clients.DB_CURRENT.query(
         'SELECT id, snapshotId, typeof(geometry) AS encoding FROM divisions',

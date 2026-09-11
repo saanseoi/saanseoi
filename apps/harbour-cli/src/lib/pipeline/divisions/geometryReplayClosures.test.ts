@@ -7,7 +7,7 @@ import { resolveShardBindingName } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import { withSqlDeliveryCapture } from '../local/sqlDeliveryCapture.ts'
 import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
-import { replayGeometryIntoRemote } from './processLocalDivisionGeometrySqlUploadReplay.ts'
+import { generateGeometryReplaySql } from './processLocalDivisionGeometrySqlUploadReplay.ts'
 
 for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
   test(`remote geometry capture retains ${sourceName} closures and derivative versions`, async () => {
@@ -94,7 +94,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           })
         },
         () =>
-          replayGeometryIntoRemote(
+          generateGeometryReplaySql(
             { remote: true, environment: 'preview' },
             context,
             {

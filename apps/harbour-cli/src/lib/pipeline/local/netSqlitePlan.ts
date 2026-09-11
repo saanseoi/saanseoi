@@ -112,13 +112,32 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           "SELECT name FROM net_baseline.sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'",
         )
         .all()
+      for (const { name } of db
+        .query<{ name: string }, []>(
+          "SELECT name FROM main.sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+        )
+        .all()) {
+        if (
+          !persistent.some(table => table.name === name) &&
+          !selected.has(name) &&
+          !excluded.has(name)
+        )
+          throw new Error(
+            `Net-plan preparation created an undeclared persistent table: ${binding}.${name}`,
+          )
+      }
       for (const { name } of persistent) {
         if (selected.has(name) || excluded.has(name)) continue
         // An explicit policy is required even when an unrelated table's writes
         // would otherwise be silently omitted from the delivered final state.
+        const columns = db
+          .query<{ name: string }, []>(`PRAGMA main.table_info(${q(name)})`)
+          .all()
+          .map(column => `${q(column.name)} COLLATE BINARY`)
+          .join(',')
         const changed = db
           .query(
-            `SELECT 1 FROM (SELECT * FROM main.${q(name)} EXCEPT SELECT * FROM net_baseline.${q(name)}) UNION ALL SELECT 1 FROM (SELECT * FROM net_baseline.${q(name)} EXCEPT SELECT * FROM main.${q(name)}) LIMIT 1`,
+            `SELECT 1 FROM (SELECT ${columns} FROM main.${q(name)} EXCEPT SELECT ${columns} FROM net_baseline.${q(name)}) UNION ALL SELECT 1 FROM (SELECT ${columns} FROM net_baseline.${q(name)} EXCEPT SELECT ${columns} FROM main.${q(name)}) LIMIT 1`,
           )
           .get()
         if (changed)

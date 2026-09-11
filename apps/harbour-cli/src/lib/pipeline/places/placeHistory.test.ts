@@ -23,6 +23,12 @@ import type {
   EnrichedPlace,
 } from './processLocalPlaceSqlUploadTypes.ts'
 
+function getDatabase(databases: Map<string, Database>, binding: string): Database {
+  const database = databases.get(binding)
+  if (!database) throw new Error(`Missing test database: ${binding}`)
+  return database
+}
+
 function fixture() {
   const databases = new Map<string, Database>()
   for (const [binding, family] of [
@@ -40,14 +46,14 @@ function fixture() {
     )
     databases.set(binding, db)
   }
-  const current = databases.get('current')!
+  const current = getDatabase(databases, 'current')
   const historyTargets = ['old', 'new'].map(bindingName => ({
     bindingName,
-    db: drizzle({ client: databases.get(bindingName)! }),
+    db: drizzle({ client: getDatabase(databases, bindingName) }),
   })) as unknown as Parameters<typeof loadCurrentPlaceHistory>[0]
   const sourceTargets = ['source', 'source-next'].map(bindingName => ({
     bindingName,
-    db: drizzle({ client: databases.get(bindingName)! }),
+    db: drizzle({ client: getDatabase(databases, bindingName) }),
   })) as unknown as Parameters<typeof loadCurrentPlaceSources>[0]
   const shards = new Map(
     historyTargets.map(target => [
@@ -56,7 +62,12 @@ function fixture() {
     ]),
   ) as Map<string, ReplayShard>
   const plan: SnapshotReplayStep[] = []
-  async function run(places: EnrichedPlace[], binding = 'old', source = 'source') {
+  async function run(
+    places: EnrichedPlace[],
+    binding = 'old',
+    source = 'source',
+    divisionSnapshotId = 'division-a',
+  ) {
     const snapshotId = `revision-${plan.length + 1}`
     const input: BuildPlaceSqlInput = {
       activeHistoryBindingName: binding,
@@ -77,17 +88,17 @@ function fixture() {
         snapshotId,
         snapshotLineageId: 'scope',
         addressSnapshotId: 'address',
-        divisionSnapshotId: 'division',
+        divisionSnapshotId,
       },
       places,
     }
     const sql = await buildPlaceSql(input, { timestamp: snapshotId })
     current.exec(sql.currentSql.join('\n'))
     for (const [name, statements] of sql.historySqlByBinding)
-      databases.get(name)!.exec(statements.join('\n'))
+      getDatabase(databases, name).exec(statements.join('\n'))
     for (const [name, statements] of sql.sourceSqlByBinding)
-      databases.get(name)!.exec(statements.join('\n'))
-    if (sql.changes.length) databases.get(binding)!.exec(sql.changes.join('\n'))
+      getDatabase(databases, name).exec(statements.join('\n'))
+    if (sql.changes.length) getDatabase(databases, binding).exec(sql.changes.join('\n'))
     plan.push({
       snapshotId,
       parentSnapshotId: plan.at(-1)?.snapshotId ?? null,
@@ -116,7 +127,8 @@ async function place(): Promise<EnrichedPlace> {
       names: { en: 'Original', 'zh-Hant': '原文' },
     },
     '2025-01',
-  )!
+  )
+  if (!place) throw new Error('Place fixture normalisation failed')
   return {
     place,
     address2dId: null,
@@ -146,12 +158,13 @@ test('Places inherit independent base, locales and source resolutions across yea
     const before = f.current.query('SELECT sources FROM places').get()
     expect(before).not.toEqual({ sources: JSON.stringify(row.place.sources) })
 
-    row.place.i18n.find(locale => locale.locale === 'en')!.name = 'Updated English'
+    const english = row.place.i18n.find(locale => locale.locale === 'en')
+    if (!english) throw new Error('English place locale missing')
+    english.name = 'Updated English'
     const localeOnly = await f.run([row], 'new', 'source-next')
     expect(localeOnly.changes.join('')).toContain('placeI18n')
     expect(
-      f.databases
-        .get('new')!
+      getDatabase(f.databases, 'new')
         .query(
           "SELECT recordType FROM snapshotVersionChanges WHERE snapshotId='revision-3'",
         )
@@ -160,8 +173,8 @@ test('Places inherit independent base, locales and source resolutions across yea
     expect(localeOnly.historySqlByBinding.get('old')?.join('')).not.toContain(
       'UPDATE places SET',
     )
-    const old = f.databases.get('old')!,
-      next = f.databases.get('new')!
+    const old = getDatabase(f.databases, 'old'),
+      next = getDatabase(f.databases, 'new')
     expect(old.query('SELECT isCurrent FROM places').get()).toEqual({ isCurrent: 1 })
     expect(next.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     expect(next.query('SELECT locale FROM placesI18n').all()).toEqual([
@@ -231,7 +244,8 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
     }
     await f.run([row])
     row.addressSnapshotId = 'address-b'
-    row.searchDependencies.en!.addressSnapshotId = 'address-b'
+    if (!row.searchDependencies.en) throw new Error('English dependencies missing')
+    row.searchDependencies.en.addressSnapshotId = 'address-b'
     const same = await f.run([row])
     expect(same.historySqlByBinding.size).toBe(0)
     expect(f.current.query('SELECT addressSnapshotId FROM places').get()).toEqual({
@@ -244,12 +258,11 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
         )
         .get(),
     ).toEqual({ revision: 'address-a' })
-    row.searchDependencies.en!.divisionText = 'Revised Division translation'
+    row.searchDependencies.en.divisionText = 'Revised Division translation'
     const revised = await f.run([row], 'new')
     expect(revised.changes.join('')).toContain('placeI18n')
     expect(
-      f.databases
-        .get('new')!
+      getDatabase(f.databases, 'new')
         .query(
           "SELECT recordType FROM snapshotVersionChanges WHERE snapshotId='revision-3'",
         )
@@ -265,6 +278,96 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
     expect(f.current.query('SELECT addressSnapshotId FROM places').get()).toEqual({
       addressSnapshotId: 'address-a',
     })
+  } finally {
+    f.close()
+  }
+})
+
+test('base edits retain locale versions and retirement excludes another current scope', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    await f.run([row])
+    const old = getDatabase(f.databases, 'old')
+    f.current.exec(
+      "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',114,22,'2025','2025','original','original')",
+    )
+    old.exec(
+      "INSERT INTO places(id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES('foreign','foreign',114,22,'2025','2025','foreign','foreign','foreign',1,'original','original')",
+    )
+    row.place.operatingStatus = 'temporarily_closed'
+    row.versionHash = await hashPlaceMaterialisation(row.place, {
+      addressSnapshotId: 'address',
+      divisionSnapshotId: 'division',
+      addressId: null,
+      divisionIds: [],
+    })
+    const changed = await f.run([row], 'new')
+    expect(changed.changes.join('')).not.toContain('placeI18n')
+    expect(
+      old.query('SELECT count(*) AS n FROM placesI18n WHERE isCurrent=1').get(),
+    ).toEqual({ n: 2 })
+    expect(
+      getDatabase(f.databases, 'new')
+        .query('SELECT count(*) AS n FROM placesI18n')
+        .get(),
+    ).toEqual({ n: 0 })
+    await f.run([], 'new')
+    expect(old.query("SELECT isCurrent FROM places WHERE id='foreign'").get()).toEqual({
+      isCurrent: 1,
+    })
+    expect(f.current.query('SELECT id,snapshotId FROM places').all()).toEqual([
+      { id: 'foreign', snapshotId: 'another-scope' },
+    ])
+  } finally {
+    f.close()
+  }
+})
+
+test('Places retain historical Division definitions and only update links when their contents change', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    row.divisionIds = ['district']
+    row.divisionDefinitions = {
+      district: {
+        level: 3,
+        locales: [
+          { locale: 'en', name: 'Original district' },
+          { locale: 'zh-hant', name: '原文' },
+        ],
+      },
+    }
+    f.current.exec(
+      "PRAGMA foreign_keys=ON; CREATE TABLE divisionLinkWrites(operation TEXT); CREATE TRIGGER divisionLinkUpdated AFTER UPDATE ON placesDivision BEGIN INSERT INTO divisionLinkWrites VALUES('update'); END; CREATE TRIGGER divisionLinkDeleted AFTER DELETE ON placesDivision BEGIN INSERT INTO divisionLinkWrites VALUES('delete'); END",
+    )
+    // No current Division row or publication receipt exists for this exact old revision.
+    await f.run([row])
+    const district = row.divisionDefinitions.district
+    if (!district) throw new Error('District definition missing')
+    district.locales.reverse()
+    const same = await f.run([row], 'old', 'source', 'division-b')
+    expect(same.historySqlByBinding.size).toBe(0)
+    expect(
+      f.current.query('SELECT divisionSnapshotId FROM placesDivision').get(),
+    ).toEqual({ divisionSnapshotId: 'division-a' })
+    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([])
+    const revisedDistrict = district.locales.find(locale => locale.locale === 'en')
+    if (!revisedDistrict) throw new Error('English district locale missing')
+    revisedDistrict.name = 'Revised district'
+    await f.run([row], 'old', 'source', 'division-b')
+    expect(
+      f.current.query('SELECT divisionSnapshotId FROM placesDivision').get(),
+    ).toEqual({ divisionSnapshotId: 'division-b' })
+    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
+      { operation: 'update' },
+    ])
+    row.divisionIds = []
+    await f.run([row])
+    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
+      { operation: 'update' },
+      { operation: 'delete' },
+    ])
   } finally {
     f.close()
   }
