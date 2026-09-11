@@ -135,6 +135,14 @@ test.each(['2026-Q2', '2023-H2'])(
 
     expect(snapshots.map(snapshot => snapshot.parentSnapshotId)).toEqual([null, null])
     const firstSnapshot = requireDefined(snapshots[0])
+    // A retained draft is not an accepted predecessor. Deferred publication
+    // certifies the completed audit and immutable snapshots before API activation.
+    sqlite.exec(`
+      UPDATE releases SET status = 'published' WHERE id = 'release';
+      INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+      VALUES ('release', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
+      UPDATE snapshots SET status = 'published';
+    `)
     const correction = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: '2016',
       datasetCode: 'dataset-statistics',

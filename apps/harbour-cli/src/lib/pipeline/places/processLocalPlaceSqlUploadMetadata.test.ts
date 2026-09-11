@@ -4,6 +4,7 @@ import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 
 import { metaSchema } from '@repo/db'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { assignPlaceSourceShards } from './processLocalPlaceSqlUploadMetadata.ts'
 
@@ -32,7 +33,10 @@ test('Place releases retain every active source shard containing their assertion
          'place-release', 'place', '2026-01-01.0', 'published');
     `)
 
-    const metaDb = drizzle({ client: database, schema: metaSchema })
+    const metaDb = drizzle({
+      client: database,
+      schema: metaSchema,
+    }) as unknown as HarbourReadableDb & HarbourWritableDb
     await assignPlaceSourceShards(metaDb, 'place-release', 'preview', [
       'DB_SOURCE_HK_2025',
       'DB_SOURCE_HK_2026',
