@@ -1,3 +1,8 @@
+import {
+  getPublicationReadiness,
+  publicationScopeCondition,
+  publicationLogicalSnapshot,
+} from './publicationState'
 import type { CurrentDatabase, HistoryDatabase } from '@repo/db'
 import { and, asc, eq, inArray, sql } from '@repo/db'
 import { currentSchema, historySchema } from '@repo/db'
@@ -174,7 +179,9 @@ export async function listDivisionAreasCurrentByDivisionIds(
           .from(divisionAreas)
           .where(
             and(
-              eq(divisionAreas.snapshotId, lookup.snapshotId),
+              publicationScopeCondition('divisionArea', divisionAreas.snapshotId, [
+                lookup.snapshotId,
+              ]),
               inArray(divisionAreas.divisionId, divisionIds),
               ...(lookup.variant ? [eq(divisionAreas.variant, lookup.variant)] : []),
             ),
@@ -217,7 +224,11 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
             .from(divisionBoundaries)
             .where(
               and(
-                eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+                publicationScopeCondition(
+                  'divisionBoundary',
+                  divisionBoundaries.snapshotId,
+                  [lookup.snapshotId],
+                ),
                 inArray(divisionBoundaries.leftDivisionId, divisionIds),
                 ...(lookup.variant
                   ? [eq(divisionBoundaries.variant, lookup.variant)]
@@ -230,7 +241,11 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
             .from(divisionBoundaries)
             .where(
               and(
-                eq(divisionBoundaries.snapshotId, lookup.snapshotId),
+                publicationScopeCondition(
+                  'divisionBoundary',
+                  divisionBoundaries.snapshotId,
+                  [lookup.snapshotId],
+                ),
                 inArray(divisionBoundaries.rightDivisionId, divisionIds),
                 ...(lookup.variant
                   ? [eq(divisionBoundaries.variant, lookup.variant)]
@@ -513,7 +528,11 @@ function buildDivisionConditions(
   >,
 ) {
   return [
-    sql`${divisions.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds ?? [lookup.snapshotId])}))`,
+    publicationScopeCondition(
+      'division',
+      divisions.snapshotId,
+      lookup.snapshotIds ?? [lookup.snapshotId],
+    ),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.class ? eq(divisions.class, lookup.class) : undefined,
     lookup.category ? eq(divisions.category, lookup.category) : undefined,
@@ -541,14 +560,7 @@ export async function hasCurrentDivisionSnapshot(
   db: CurrentDatabase,
   snapshotId: string,
 ) {
-  return Boolean(
-    await db
-      .select({ id: divisions.id })
-      .from(divisions)
-      .where(eq(divisions.snapshotId, snapshotId))
-      .limit(1)
-      .get(),
-  )
+  return (await getPublicationReadiness(db, 'division', [snapshotId])) !== null
 }
 
 export async function listDivisionRecordsCurrent(
@@ -571,7 +583,7 @@ export async function listDivisionRecordsCurrent(
 
   const rows = await db
     .select({
-      snapshotId: divisions.snapshotId,
+      snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
       id: divisions.id,
       divisionCode: divisions.divisionCode,
       level: divisions.level,
@@ -637,7 +649,7 @@ export async function listDivisionRecordsCurrentByIds(
       chunks.map(divisionIds =>
         db
           .select({
-            snapshotId: divisions.snapshotId,
+            snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
             id: divisions.id,
             divisionCode: divisions.divisionCode,
             level: divisions.level,
@@ -657,7 +669,11 @@ export async function listDivisionRecordsCurrentByIds(
           .from(divisions)
           .where(
             and(
-              sql`${divisions.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds ?? [lookup.snapshotId])}))`,
+              publicationScopeCondition(
+                'division',
+                divisions.snapshotId,
+                lookup.snapshotIds ?? [lookup.snapshotId],
+              ),
               inArray(divisions.id, divisionIds),
             ),
           )

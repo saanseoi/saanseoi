@@ -1,3 +1,4 @@
+import { getPublicationReadiness, publicationLogicalSnapshot } from './publicationState'
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
 import { addressBlockTypes, and, asc, eq, ne, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
@@ -11,6 +12,7 @@ const {
   addressesFts,
   addressesFtsMatch,
   addressSearchScopes,
+  addressPublicationState,
 } = currentSchema
 
 export type AddressLocaleValue = {
@@ -248,7 +250,7 @@ function buildAddressConditions(
   return [
     // One bound JSON array preserves global SQL pagination without an unbounded
     // IN parameter list. An empty selection deliberately matches no rows.
-    sql`${address2d.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)}))`,
+    sql`${address2d.snapshotId} in (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)})))`,
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
     lookup.areaId ? eq(address2d.areaId, lookup.areaId) : undefined,
     lookup.districtId ? eq(address2d.districtId, lookup.districtId) : undefined,
@@ -262,8 +264,11 @@ export async function getAddressRecordCurrent(
   const i18n = buildAddressI18nJsonSelection(lookup.localeSelection)
   const row = await db
     .select({
-      snapshotId: address2d.snapshotId,
-      divisionSnapshotId: address2d.divisionSnapshotId,
+      snapshotId: addressPublicationState.snapshotId,
+      divisionSnapshotId: publicationLogicalSnapshot(
+        'division',
+        address2d.divisionSnapshotId,
+      ),
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -285,6 +290,13 @@ export async function getAddressRecordCurrent(
       i18n,
     })
     .from(address2d)
+    .innerJoin(
+      addressPublicationState,
+      and(
+        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.status, 'current'),
+      ),
+    )
     .where(and(...buildAddressConditions(lookup), eq(address2d.id, lookup.addressId)))
     .limit(1)
     .get()
@@ -296,14 +308,7 @@ export async function hasCurrentAddressSnapshot(
   db: CurrentDatabase,
   snapshotId: string,
 ) {
-  return Boolean(
-    await db
-      .select({ id: address2d.id })
-      .from(address2d)
-      .where(eq(address2d.snapshotId, snapshotId))
-      .limit(1)
-      .get(),
-  )
+  return (await getPublicationReadiness(db, 'address', [snapshotId])) !== null
 }
 
 export async function listAddressRecordsCurrent(
@@ -313,8 +318,11 @@ export async function listAddressRecordsCurrent(
   const i18n = buildAddressI18nJsonSelection(lookup.localeSelection)
   const rows = await db
     .select({
-      snapshotId: address2d.snapshotId,
-      divisionSnapshotId: address2d.divisionSnapshotId,
+      snapshotId: addressPublicationState.snapshotId,
+      divisionSnapshotId: publicationLogicalSnapshot(
+        'division',
+        address2d.divisionSnapshotId,
+      ),
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -336,6 +344,13 @@ export async function listAddressRecordsCurrent(
       i18n,
     })
     .from(address2d)
+    .innerJoin(
+      addressPublicationState,
+      and(
+        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.status, 'current'),
+      ),
+    )
     .where(
       and(
         ...buildAddressConditions(lookup),
@@ -361,8 +376,11 @@ export async function listAddressRecordsCurrentByIds(
   const i18n = buildAddressI18nJsonSelection(lookup.localeSelection)
   const rows = await db
     .select({
-      snapshotId: address2d.snapshotId,
-      divisionSnapshotId: address2d.divisionSnapshotId,
+      snapshotId: addressPublicationState.snapshotId,
+      divisionSnapshotId: publicationLogicalSnapshot(
+        'division',
+        address2d.divisionSnapshotId,
+      ),
       id: address2d.id,
       geometry: address2d.geometry,
       bbox: address2d.bbox,
@@ -384,6 +402,13 @@ export async function listAddressRecordsCurrentByIds(
       i18n,
     })
     .from(address2d)
+    .innerJoin(
+      addressPublicationState,
+      and(
+        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.status, 'current'),
+      ),
+    )
     .where(
       and(
         ...buildAddressConditions(lookup),
@@ -406,6 +431,8 @@ export async function searchAddressIdsCurrent(
   lookup: AddressSearchLookup,
 ): Promise<{ addressIds: string[]; total: number }> {
   if (lookup.snapshotIds.length === 0) return { addressIds: [], total: 0 }
+  if ((await getPublicationReadiness(db, 'address', lookup.snapshotIds)) === null)
+    throw new Error('FTS index is not initialised for the selected latest snapshots.')
   if (lookup.mode === 'exact' || lookup.mode === 'range') {
     const buildingNumber = normaliseAddressSearchNumber(lookup.query)
     if (!buildingNumber) return { addressIds: [], total: 0 }
@@ -457,10 +484,12 @@ export async function searchAddressIdsCurrent(
   const ftsQuery = buildAddressFtsQuery(lookup)
   if (!ftsQuery) return { addressIds: [], total: 0 }
   try {
-    const scopes = await db
-      .select({ snapshotId: addressSearchScopes.snapshotId })
-      .from(addressSearchScopes)
-      .all()
+    const readSearchScopes = () =>
+      db
+        .select({ snapshotId: addressSearchScopes.snapshotId })
+        .from(addressSearchScopes)
+        .all()
+    const scopes = await readSearchScopes()
     if (lookup.snapshotIds.some(id => !scopes.some(scope => scope.snapshotId === id)))
       throw new Error('FTS index is not initialised for the selected latest snapshots.')
     const conditions = and(
@@ -478,7 +507,7 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, addressSearchScopes.snapshotId),
+            sql`${address2d.snapshotId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
             eq(address2d.id, addressesFts.addressId),
           ),
         )
@@ -497,13 +526,16 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, addressSearchScopes.snapshotId),
+            sql`${address2d.snapshotId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
             eq(address2d.id, addressesFts.addressId),
           ),
         )
         .where(conditions)
         .get(),
     ])
+    const after = await readSearchScopes()
+    if (lookup.snapshotIds.some(id => !after.some(scope => scope.snapshotId === id)))
+      throw new Error('FTS index is not initialised for the selected latest snapshots.')
     return {
       addressIds: rows.map(row => row.addressId),
       total: Number(countRow?.count ?? 0),
@@ -573,6 +605,13 @@ export async function countAddressRecordsCurrent(
   const row = await db
     .select({ count: sql<number>`count(*)` })
     .from(address2d)
+    .innerJoin(
+      addressPublicationState,
+      and(
+        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.status, 'current'),
+      ),
+    )
     .where(and(...buildAddressConditions(lookup)))
     .limit(1)
     .get()

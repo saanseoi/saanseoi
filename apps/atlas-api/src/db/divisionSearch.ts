@@ -28,12 +28,20 @@ export async function searchDivisions(
   if (!terms.length || terms.length > 8)
     throw new Error('Invalid division search terms.')
   try {
-    const ready = await db
-      .prepare(`SELECT count(*) AS n FROM json_each(?) selected
-      JOIN divisionSearchScopes s ON s.scopeId = json_extract(selected.value, '$.scopeId')
-        AND s.snapshotId = json_extract(selected.value, '$.snapshotId')`)
-      .bind(selected)
-      .first<{ n: number }>()
+    const readReadiness = () =>
+      db
+        .prepare(`SELECT count(*) AS n,
+        json_group_array(json_array(scopeId,snapshotId,publicationToken,updatedAt)) AS token
+        FROM (SELECT s.scopeId,p.snapshotId,p.publicationToken,p.updatedAt
+          FROM json_each(?) selected
+          JOIN divisionSearchScopes s ON s.scopeId = json_extract(selected.value, '$.scopeId')
+            AND s.snapshotId = json_extract(selected.value, '$.snapshotId')
+          JOIN divisionPublicationState p ON p.snapshotId = s.snapshotId
+          WHERE p.status = 'current' AND p.preparedAt IS NOT NULL AND p.publicationToken <> ''
+          ORDER BY s.scopeId)`)
+        .bind(selected)
+        .first<{ n: number; token: string }>()
+    const ready = await readReadiness()
     if (ready?.n !== scopes.length) throw new DivisionSearchNotReady()
 
     const parameters: (string | number)[] = [selected]
@@ -85,7 +93,10 @@ export async function searchDivisions(
         FROM divisionSearchFts f JOIN matched m ON m.rowid = f.rowid
         JOIN divisionSearchScopes mapping ON mapping.scopeId = f.scopeId
         JOIN selected s ON s.scopeId = mapping.scopeId AND s.snapshotId = mapping.snapshotId
-        JOIN divisions d ON d.snapshotId = s.snapshotId AND d.id = f.divisionId
+        JOIN divisionPublicationState publication ON publication.snapshotId = s.snapshotId
+          AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
+          AND publication.publicationToken <> ''
+        JOIN divisions d ON d.snapshotId = publication.scopeId AND d.id = f.divisionId
         WHERE true ${locale}
       ), ranked AS (
         SELECT *, row_number() OVER (
@@ -101,11 +112,16 @@ export async function searchDivisions(
     `)
       .bind(...parameters)
       .all<DivisionSearchResult>()
+    const after = await readReadiness()
+    if (after?.n !== scopes.length || after.token !== ready.token)
+      throw new DivisionSearchNotReady()
     return result.results
   } catch (error) {
     if (
       error instanceof Error &&
-      `${error.message} ${error.cause}`.includes('no such table: divisionSearch')
+      /no such table: division(?:Search|PublicationState)/.test(
+        `${error.message} ${error.cause}`,
+      )
     )
       throw new DivisionSearchNotReady({ cause: error })
     throw error
