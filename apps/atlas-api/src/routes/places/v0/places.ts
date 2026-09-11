@@ -307,7 +307,8 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
 
 async function activePlaceSnapshot(c: Context<AppEnv>, regionCode: 'hk' | 'mo') {
   return runWithD1ReadRetry(() =>
-    resolveActiveSnapshotForType(c.var.metaDb as never, 'place', 'place', {
+    resolveActiveSnapshotForType(c.var.metaDb as never, 'place', {
+      domainCode: 'place',
       regionCode,
     }),
   )

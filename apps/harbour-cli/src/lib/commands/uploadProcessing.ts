@@ -525,7 +525,7 @@ export async function processPreparedUpload({
         source: 'hkgov-censtatd',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: 'stats',
-        type: 'divisionStatistic',
+        resourceType: 'divisionStatistic',
       },
       uploadResult,
       preparedUploadFile,
