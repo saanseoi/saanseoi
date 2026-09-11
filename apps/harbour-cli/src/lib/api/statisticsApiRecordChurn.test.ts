@@ -19,7 +19,13 @@ const record = (overrides: Partial<RecordRow> = {}): RecordRow => ({
     code: 'one',
     areaCompanion: { cohortKey: '2025', domainCode: 'geographic', variant: 'censtatd' },
   },
-  dimensions: { sex: 'female', age: 'adult' },
+  fieldDefinitionHashes: { population: 'female-adult', households: 'all' },
+  fieldSources: {
+    population: {
+      sourceReleaseId: 'source-2025',
+      sourceFeatureRef: 'publisher/2025/feature:23',
+    },
+  },
   values: { population: '10', households: '4' },
   versionHash: 'hash-2025',
   isCurrent: true,
@@ -49,7 +55,8 @@ test('period, provenance, JSON key order and geometry cohort alone do not change
         domainCode: 'geographic',
       },
     },
-    dimensions: { age: 'adult', sex: 'female' },
+    fieldDefinitionHashes: { households: 'all', population: 'female-adult' },
+    fieldSources: {},
     values: { households: '4', population: '10' },
   })
   expect(buildStatisticsRecordChurn([record()], [previous])).toEqual({
@@ -68,6 +75,7 @@ test('literal values, publisher status, field membership and division linkage co
     { values: { population: '10' } },
     { values: { population: '10', households: '4', added: '1' } },
     { divisionId: null },
+    { fieldDefinitionHashes: { population: 'revised-definition', households: 'all' } },
   ]
   for (const patch of patches) {
     expect(buildStatisticsRecordChurn([record(patch)], [record()])).toEqual({
@@ -80,13 +88,13 @@ test('literal values, publisher status, field membership and division linkage co
   }
 })
 
-test('dataset, geography and dimension identities remain distinct', () => {
+test('dataset and semantic geography identities remain distinct', () => {
   const patches: Partial<RecordRow>[] = [
     { datasetCode: 'housing' },
     { geography: { kind: 'district', code: 'two' } },
     { geography: { kind: 'new-town', code: 'one' } },
     { geography: { kind: 'district', code: 'one', class: 'urban' } },
-    { dimensions: { age: 'adult', sex: 'male' } },
+    { geography: { kind: 'district', code: 'one', namespace: 'another-parent' } },
   ]
   for (const patch of patches) {
     expect(buildStatisticsRecordChurn([record(patch)], [record()])).toEqual({

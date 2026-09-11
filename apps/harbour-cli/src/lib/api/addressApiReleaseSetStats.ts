@@ -105,8 +105,8 @@ export function previousAddressStatsRelease(
 }
 
 /**
- * Replays immutable membership rather than mutable current rows. Address2D and
- * Address3D version hashes each already cover their complete retained payload.
+ * Replays immutable membership rather than mutable current rows. Base content and
+ * translations have independent versions, so churn includes all retained locales.
  */
 export async function readAddressStatsSnapshot(
   metaDb: HarbourReadableDb,
@@ -126,15 +126,36 @@ export async function readAddressStatsSnapshot(
   const state = await resolveSnapshotVersionState(plan, shards, [
     'address2d',
     'address3d',
+    'address2dI18n',
+    'address3dI18n',
   ])
   const address2d = new Map<string, AddressChurnSnapshot>()
   const address3d = new Map<string, AddressChurnSnapshot>()
+  const localesByRecord = new Map<string, Array<[string, string]>>()
+
+  for (const version of state.values()) {
+    if (
+      version.recordType !== 'address2dI18n' &&
+      version.recordType !== 'address3dI18n'
+    )
+      continue
+    const key = `${version.recordType}\u0000${version.recordId}`
+    const locales = localesByRecord.get(key) ?? []
+    locales.push([version.locale, version.versionHash])
+    localesByRecord.set(key, locales)
+  }
 
   for (const version of state.values()) {
     if (version.recordType !== 'address2d' && version.recordType !== 'address3d')
       continue
     const row = {
-      churnHash: version.versionHash,
+      churnHash: JSON.stringify([
+        version.versionHash,
+        (
+          localesByRecord.get(`${version.recordType}I18n\u0000${version.recordId}`) ??
+          []
+        ).sort(([left], [right]) => left.localeCompare(right)),
+      ]),
       id: version.recordId,
       localisedRows: [],
       parentId: null,

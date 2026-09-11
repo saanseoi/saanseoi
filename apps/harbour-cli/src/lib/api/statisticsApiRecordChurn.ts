@@ -4,7 +4,7 @@ type RecordRow = StatisticsStatsData['records'][number]
 const entries = (value: Record<string, string>) =>
   Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
 
-/** Compare continuing analytical records across periods, preserving every source copy. */
+/** Compare continuing geography packs across exact-period cohorts. */
 export function buildStatisticsRecordChurn(
   current: RecordRow[],
   previous: RecordRow[] = [],
@@ -12,16 +12,17 @@ export function buildStatisticsRecordChurn(
   const inventory = (records: RecordRow[]) => {
     const groups = new Map<string, Map<string, number>>()
     for (const row of records) {
-      // IDs and source references include publication/period-specific components.
+      // Exact periods differ across cohorts; semantic geography continues.
       const identity = JSON.stringify([
         row.datasetCode,
         row.geography.kind,
         row.geography.code,
         row.geography.class ?? null,
-        entries(row.dimensions),
+        row.geography.namespace ?? null,
       ])
       const payload = JSON.stringify([
         entries(row.values),
+        entries(row.fieldDefinitionHashes),
         row.divisionId ?? null,
         row.geography.areaCompanion?.domainCode ?? null,
         row.geography.areaCompanion?.variant ?? null,

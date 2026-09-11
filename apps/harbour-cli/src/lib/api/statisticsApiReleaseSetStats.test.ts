@@ -16,13 +16,17 @@ const record = (id: string, values: Record<string, string>, datasetCode = 'a') =
     referencePeriodCode: '2025',
     geography: { kind: 'district', code: id },
     divisionId: null,
-    dimensions: {},
+    fieldSources: {},
+    fieldDefinitionHashes: Object.fromEntries(
+      Object.keys(values).map(field => [field, `definition-${datasetCode}-${field}`]),
+    ),
   }) as StatisticsStatsData['records'][number]
 const field = (fieldName: string, datasetCode = 'a') =>
   ({
     datasetCode,
     fieldName,
     measureCode: fieldName,
+    versionHash: `definition-${datasetCode}-${fieldName}`,
     statisticKind: 'count',
     aggregation: 'total',
     unitCode: 'person',
@@ -60,6 +64,7 @@ test('counts dataset-qualified fields, literal availability and localisation wit
       {
         datasetCode: 'a',
         fieldName: 'population',
+        versionHash: 'definition-a-population',
         locale: 'zh-Hant',
         name: 'Population',
         isTranslationVerified: false,
@@ -114,7 +119,7 @@ function createTables(sqlite: Database, tables: SQLiteTable[]) {
     )
   }
 }
-test('history reads honour composition, cohort, current versions and duplicate shard copies', async () => {
+test('frozen history follows sparse ancestry for no-op reissues and exact definition versions', async () => {
   const meta = new Database(':memory:'),
     history = new Database(':memory:')
   try {
@@ -123,22 +128,30 @@ test('history reads honour composition, cohort, current versions and duplicate s
       metaSchema.metaSnapshots,
       metaSchema.metaSnapshotSources,
       metaSchema.metaDatasets,
+      metaSchema.metaSnapshotShardAssignments,
+      metaSchema.metaDataShards,
     ])
     createTables(history, [
       historySchema.statsRecords,
       historySchema.statsFields,
       historySchema.statsFieldsI18n,
+      historySchema.snapshotVersionChanges,
     ])
-    meta.exec(`INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,role) VALUES ('api','snapshot','primary');
- INSERT INTO snapshots (id,resourceType) VALUES ('snapshot','divisionStatistic');
- INSERT INTO datasets (id,code) VALUES ('dataset','a');
- INSERT INTO snapshotSources (snapshotId,datasetId,resourceReleaseId,role) VALUES ('snapshot','dataset','source','primary');`)
-    history.exec(`INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash) VALUES
- ('yes','a','source','2025','{"population":"1"}','{"kind":"district","code":"one"}',1,'v1'),
- ('wrong-period','a','source','2024','{}','{}',1,'v2'),
- ('wrong-source','a','elsewhere','2025','{}','{}',1,'v3'),
- ('obsolete','a','source','2025','{}','{}',0,'v4');
- INSERT INTO statsFields (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash) VALUES ('a','population','source',1,'f1'),('a','unused','source',1,'f2');`)
+    meta.exec(`INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,role) VALUES ('api','reissue','primary');
+      INSERT INTO snapshots (id,resourceType,parentSnapshotId) VALUES ('base','divisionStatistic',NULL),('reissue','divisionStatistic','base');
+      INSERT INTO datasets (id,code) VALUES ('dataset','a');
+      INSERT INTO snapshotSources (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
+    history.exec(`INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,fieldDefinitionHashes,fieldSources) VALUES
+      ('yes','a','old-source','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','{"population":"f1"}','{}'),
+      ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','{"population":"f2"}','{}'),
+      ('wrong-period','a','old-source','2024','{}','{}',1,'v3','{}','{}'),
+      ('unselected','a','new-source','2025','{}','{}',1,'v4','{}','{}');
+      INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES
+        ('base','statsRecord','yes','v1','upsert'),('base','statsRecord','wrong-period','v3','upsert');
+      INSERT INTO statsFields (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash) VALUES
+        ('a','population','old-source',0,'f1'),('a','population','later-source',1,'f2');
+      INSERT INTO statsFieldsI18n (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash,locale,name) VALUES
+        ('a','population','old-source',0,'f1','en','Frozen definition'),('a','population','later-source',1,'f2','en','Latest definition');`)
     const targets = [
       { bindingName: 'history', db: drizzle({ client: history }) },
       { bindingName: 'copy', db: drizzle({ client: history }) },
@@ -148,8 +161,11 @@ test('history reads honour composition, cohort, current versions and duplicate s
       targets,
       { id: 'api', cohortKey: '2025' },
     )
-    expect(data.records.map(row => row.id)).toEqual(['yes'])
-    expect(data.fields.map(row => row.fieldName)).toEqual(['population'])
+    expect(data.records.map(row => [row.id, row.values])).toEqual([
+      ['yes', { population: '1' }],
+    ])
+    expect(data.fields.map(row => row.versionHash)).toEqual(['f1'])
+    expect(data.labels.map(row => row.name)).toEqual(['Frozen definition'])
     await expect(
       readStatisticsStatsData(drizzle({ client: meta }) as never, targets, {
         id: 'api',
@@ -157,7 +173,7 @@ test('history reads honour composition, cohort, current versions and duplicate s
       }),
     ).rejects.toThrow('No retained')
     history.exec(
-      `INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash) VALUES ('yes','a','source','2025','{}','{}',1,'conflict')`,
+      `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES ('base','statsRecord','yes','conflict','upsert')`,
     )
     await expect(
       readStatisticsStatsData(drizzle({ client: meta }) as never, targets, {
