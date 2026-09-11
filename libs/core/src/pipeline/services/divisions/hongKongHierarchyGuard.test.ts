@@ -14,25 +14,25 @@ import { auditActionCategory, type IndividualAudit } from '../../../provenance'
 const sar = {
   division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
   level: 0,
-  type: 'sar',
+  class: 'sar',
   i18n: {},
 }
 const area = {
   division_id: overtureHongKongAreaDivisionId('new-territories')!,
   level: 1,
-  type: 'area',
+  class: 'area',
   i18n: {},
 }
 const district = {
   division_id: 'north',
   level: 2,
-  type: 'district',
+  class: 'district',
   i18n: { en: { name: 'North District' } },
 }
 const child = {
   id: 'village',
   country: 'HK',
-  type: 'village',
+  class: 'village',
   level: 5,
   hierarchy: [sar, area, district],
 }
@@ -106,7 +106,7 @@ test('district descendants may contain legitimate nested areas after the distric
         sar,
         area,
         district,
-        { division_id: 'lantau', level: 1, type: 'area', i18n: {} },
+        { division_id: 'lantau', level: 1, class: 'area', i18n: {} },
       ],
     },
     guard,

@@ -31,14 +31,14 @@ export function divisionLevel(
   ) as number
 }
 
-export function divisionType(
+export function divisionClass(
   policy: DivisionPolicy,
   hints: Hints,
   counts?: BranchCounts,
   before?: unknown,
 ): string {
   return selectBranch(
-    divisionTaxonomyBranches(policy).filter(b => b.group === 'Type Classification'),
+    divisionTaxonomyBranches(policy).filter(b => b.group === 'Class Classification'),
     { ...hints, level: divisionLevel(policy, hints) },
     before,
     counts,
@@ -54,22 +54,22 @@ export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
     field,
     equals,
   })
-  for (const kind of ['level', 'type'] as const) {
+  for (const kind of ['level', 'class'] as const) {
     let precedence = 0
     const add = (id: string, condition: BranchCondition, result: string | number) =>
       branches.push({
         id: `${kind}.${id}`,
-        group: kind === 'level' ? 'Level Classification' : 'Type Classification',
+        group: kind === 'level' ? 'Level Classification' : 'Class Classification',
         precedence: ++precedence,
         condition,
         result,
       })
     add('hong-kong-area', eq('isHongKongArea', true), policy.hongKongArea[kind])
-    for (const entry of kind === 'level' ? policy.subtypeLevels : policy.subtypeTypes)
+    for (const entry of kind === 'level' ? policy.subtypeLevels : policy.subtypeClasses)
       add(
         `subtype.${entry.token}`,
         eq('subtype', entry.token),
-        'level' in entry ? entry.level : entry.type,
+        'level' in entry ? entry.level : entry.class,
       )
     for (const entry of policy.localityClasses)
       add(
@@ -88,20 +88,20 @@ export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
       add('fallback.parent', eq('hasParent', true), policy.fallback.parentLevel)
       add('fallback.root', { all: [] }, policy.fallback.rootLevel)
     } else {
-      for (const entry of policy.neighbourhoodTypes)
+      for (const entry of policy.hoodClasses)
         add(
-          `neighbourhood.${entry.type}`,
+          `neighbourhood.${entry.class}`,
           {
             any: entry.tokens.flatMap(token => [
               eq('subtype', token),
               eq('class', token),
             ]),
           },
-          entry.type,
+          entry.class,
         )
-      for (const [level, type] of policy.fallback.typesByLevel.entries())
+      for (const [level, type] of policy.fallback.classesByLevel.entries())
         add(`fallback.level.${level}`, eq('level', level), type)
-      add('fallback.other', { all: [] }, policy.fallback.type)
+      add('fallback.other', { all: [] }, policy.fallback.class)
     }
   }
   if (Object.isFrozen(policy)) branchCache.set(policy, branches)
@@ -125,7 +125,7 @@ export function validateDivisionPolicy(policy: DivisionPolicy): void {
   for (const entries of [
     policy.levelTokens,
     policy.subtypeLevels,
-    policy.subtypeTypes,
+    policy.subtypeClasses,
     policy.localityClasses,
     policy.hierarchySubtypes,
   ]) {
@@ -136,7 +136,7 @@ export function validateDivisionPolicy(policy: DivisionPolicy): void {
         entry =>
           !text(entry.token) ||
           ('level' in entry && !level(entry.level)) ||
-          ('type' in entry && !text(entry.type)),
+          ('class' in entry && !text(entry.class)),
       )
     ) {
       throw new Error('Invalid division taxonomy policy entries.')
@@ -144,17 +144,17 @@ export function validateDivisionPolicy(policy: DivisionPolicy): void {
   }
   if (
     !level(policy.hongKongArea.level) ||
-    !text(policy.hongKongArea.type) ||
+    !text(policy.hongKongArea.class) ||
     !level(policy.fallback.parentLevel) ||
     !level(policy.fallback.rootLevel) ||
-    !text(policy.fallback.type) ||
-    !policy.fallback.typesByLevel.length ||
-    !policy.fallback.typesByLevel.every(text) ||
+    !text(policy.fallback.class) ||
+    !policy.fallback.classesByLevel.length ||
+    !policy.fallback.classesByLevel.every(text) ||
     !policy.hongKongAreaNames.length ||
     !policy.hongKongAreaNames.every(text) ||
-    !policy.neighbourhoodTypes.length ||
-    policy.neighbourhoodTypes.some(
-      entry => !text(entry.type) || !entry.tokens.length || !entry.tokens.every(text),
+    !policy.hoodClasses.length ||
+    policy.hoodClasses.some(
+      entry => !text(entry.class) || !entry.tokens.length || !entry.tokens.every(text),
     )
   ) {
     throw new Error('Invalid division taxonomy fallback policy.')

@@ -31,7 +31,7 @@ export function validateDivisionClassificationFixture(value: unknown) {
       !Number.isInteger(e.expected?.adminLevel) ||
       !(e.expected.class === null || typeof e.expected.class === 'string') ||
       !e.expected.subtype ||
-      e.replacement?.type !== 'macrohood' ||
+      e.replacement?.class !== 'macrohood' ||
       e.replacement.level !== 4
     )
       throw new Error('Invalid division classification patch entry.')
@@ -84,7 +84,10 @@ function applyClassification({
         },
       ],
     )
-  return { level: entry.replacement.level, type: entry.replacement.type as 'macrohood' }
+  return {
+    level: entry.replacement.level,
+    class: entry.replacement.class as 'macrohood',
+  }
 }
 
 export const divisionClassificationRule = registerRule(

@@ -46,7 +46,7 @@ test('classification patch blocks source drift and leaves unrelated identities a
   const row = { id: entry.divisionId, admin_level: 2, subtype: 'region' }
   expect(applyDivisionClassificationPatch(row)).toEqual({
     level: 4,
-    type: 'macrohood',
+    class: 'macrohood',
   })
   expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 3 })).toThrow(
     'guard mismatch',

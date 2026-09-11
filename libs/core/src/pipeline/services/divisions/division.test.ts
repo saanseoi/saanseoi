@@ -33,7 +33,7 @@ const hierarchyLookup: DivisionHierarchyLookup = new Map([
         },
       },
       level: 0,
-      type: 'sar',
+      class: 'sar',
     },
   ],
   [
@@ -48,7 +48,7 @@ const hierarchyLookup: DivisionHierarchyLookup = new Map([
         },
       },
       level: 2,
-      type: 'district',
+      class: 'district',
     },
   ],
 ])
@@ -496,7 +496,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     })
     expect(normalised.overtureHongKongDivisionClassificationCorrection).toEqual({
       level: 4,
-      type: 'macrohood',
+      class: 'macrohood',
     })
   })
 
@@ -525,7 +525,7 @@ describe('normaliseDivisionRow hierarchy', () => {
                 'zh-hant': { name: '落馬洲河套地區' },
               },
               level: 4,
-              type: 'macrohood',
+              class: 'macrohood',
             },
           ],
         ]),
@@ -692,7 +692,7 @@ describe('normaliseDivisionRow hierarchy', () => {
                 },
               },
               level: 3,
-              type: 'town',
+              class: 'town',
             },
           ],
         ]),
@@ -775,7 +775,7 @@ describe('buildOvertureHongKongDivisionClassificationProcessingActions', () => {
         action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
         affectedRecordCount: 1,
         evidence: expect.objectContaining({
-          canonical: { level: 4, type: 'macrohood' },
+          canonical: { level: 4, class: 'macrohood' },
           divisionId: '222b7818-970a-491d-98b6-b88d8c6f0161',
           source: { adminLevel: 2, class: null, subtype: 'region' },
         }),

@@ -34,7 +34,7 @@ test('classification counts selected branches once and compares actual source va
     changed: 0,
   })
   expect(counts['level.contains.class.city']).toEqual({ matched: 0, changed: 0 })
-  expect(counts['type.fallback.level.2']).toEqual({ matched: 1, changed: 0 })
+  expect(counts['class.fallback.level.2']).toEqual({ matched: 1, changed: 1 })
   expect(counts['inference.han']).toEqual({ matched: 1, changed: 1 })
   expect(
     Object.entries(counts)
@@ -46,7 +46,7 @@ test('classification counts selected branches once and compares actual source va
     { branchCounts: counts },
   )
   expect(counts['level.locality.town']).toEqual({ matched: 1, changed: 1 })
-  expect(counts['type.locality.town']).toEqual({ matched: 1, changed: 1 })
+  expect(counts['class.locality.town']).toEqual({ matched: 1, changed: 0 })
 })
 
 test('inference retains the actual detectors and counts failed and mixed-script decisions', () => {

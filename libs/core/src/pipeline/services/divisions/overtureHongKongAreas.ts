@@ -106,7 +106,7 @@ export function buildOvertureHongKongAreaHierarchyEntry(area: OvertureHongKongAr
       'zh-hant': { name: area.names['zh-hant'] },
     },
     level: 1,
-    type: 'area',
+    class: 'area',
   }
 }
 
