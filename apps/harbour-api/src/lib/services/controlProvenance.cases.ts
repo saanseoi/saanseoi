@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
+import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
 import { insertFixtureRelease } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
   ensureDraftSnapshotForRelease,

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
+import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { insertFixtureRelease } from '../../../../../libs/core/src/testing/metaFixtures'
 import { getDatasetRecordByReleaseId } from '@repo/core/db/metaRegistry'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
@@ -142,11 +142,11 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   }
   const provenanceRows = sqlite
     .query(
-      'SELECT apiField, sourceFieldPath FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
+      'SELECT apiField, inputs FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
     )
     .all(publishedReleaseSet.apiReleaseSetId) as Array<{
     apiField: string
-    sourceFieldPath: string
+    inputs: string
   }>
 
   sqlite.close()
@@ -176,10 +176,14 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   ])
   expect(sortProvenanceRows(provenanceRows)).toEqual(
     sortProvenanceRows(
-      divisionFixtureOverture116To118.fields.map(field => ({
-        apiField: field.apiField,
-        sourceFieldPath: field.sourceFieldPath,
-      })),
+      divisionFixtureOverture116To118.resources
+        .flatMap(group =>
+          group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
+        )
+        .map(field => ({
+          apiField: field.apiField,
+          inputs: JSON.stringify(field.inputs),
+        })),
     ),
   )
 })
