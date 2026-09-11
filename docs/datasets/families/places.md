@@ -26,7 +26,8 @@ assertions remain untouched, preserving their original release, validity and tim
 Source finalisation compares complete incoming membership in disjoint indexed ID ranges
 and closes omissions after all chunks have been applied. A shard rollover writes the
 required copy to the new shard and closes the preceding shard's current assertion.
-Canonical current snapshots are materialised independently of this source optimisation.
+Canonical and source candidates share final-difference delivery; only their changed rows
+are transmitted.
 
 The Places API exposes contributing releases at `/places/v0.1/source-releases`, with
 optional `releaseSet`, `snapshot`, `cohort` and `dataset` selectors. Read retained
@@ -88,10 +89,14 @@ same-release normalisation staging. Cached values carry checksums and writes are
 retained computations from an interrupted attempt must still match the next attempt's
 inputs and references.
 
-Each snapshot receives its complete current projection and source-resolution records.
-Independent current and version-index rows use multi-row inserts bounded by the SQL
-statement byte limit. Source and history mutations retain their ordered lifecycle
-statements. The CLI reports reused and computed record counts for each cache stage.
+Each snapshot asserts complete Place membership. The local compiler validates the
+candidate and emits only final current, source and history differences. Base and each
+locale history inherit independently; unchanged reissues create no component versions,
+journal entries or source-resolution rows. Sparse source resolutions inherit along
+snapshot ancestry, while changed interpretations and explicit source omissions remain
+recorded. Superseded components close in their owning history shard. Snapshot journal
+assignments identify history shards. The CLI reports reused and computed record counts
+for each cache stage.
 
 `bun run scripts/benchmark-place-incremental.ts` compares direct, cold-cache and warm
 record-cache preparation for 1,000 synthetic Places and official definitions. It checks
@@ -422,16 +427,24 @@ selected release.
 
 Current Places, localisations, spatial cells and Division links use one stable scope per
 snapshot lineage. `placePublicationState` maps that scope to the logical publication.
-Current Address and Division references also contain physical scopes; metadata and
-history retain the selected logical snapshot IDs, and API responses resolve the scope
-mappings back to logical IDs.
+Address and Division references retain exact logical revisions. Preparation replays
+selected historical Address bases, unit collections and independent localisations into a
+disposable dependency view using the Address assembly's recorded Division lookup. Those
+lookup rows never enter delivered tables. Missing revision evidence fails preparation.
 
-Conditional upserts preserve unchanged Place content, cells, localisations and links.
-Complete replacement membership removes absent rows within that scope. The importer can
-transmit candidate SQL for unchanged rows, but those candidates cause no D1 content-row
-writes. The stored `releaseId` and `lastSeenMonth` retain the last real content change.
-Current API responses derive `lastSeenMonth` from the selected complete publication
-cohort; immutable history retains its recorded version values.
+Final-difference delivery preserves unchanged Place content, cells, localisations and
+links without transmitting their candidate SQL. Complete replacement membership removes
+absent rows within that scope. The stored `releaseId` and `lastSeenMonth` retain the
+last real content change. Current API responses derive `lastSeenMonth` from the selected
+complete publication cohort; immutable history retains its recorded version values.
+
+A newer Address revision with identical relevant base, selected unit and locale content
+reuses the Place's earlier reference. Changed dependency content advances that exact
+reference. Division links retain their selected logical revision and a small definition
+containing level and localisations; unchanged definitions reuse the preceding link.
+Place localisations retain resolved dependency search text, so both incremental search
+and fresh FTS rebuilds use the same definitions. API projections omit the internal
+dependency fingerprint and search text fields.
 
 Place delivery checks records, localisations, spatial cells and Division links before
 marking its receipt prepared. Supplementary Address delivery resolves final row
