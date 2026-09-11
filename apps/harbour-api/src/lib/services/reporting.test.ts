@@ -237,11 +237,10 @@ describe('reporting service', () => {
           );
 
         INSERT INTO stats (
-          id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+          id, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
         ) VALUES
           (
             'stat-release-2',
-            'address',
             'release-2',
             'count',
             'churn',
@@ -254,7 +253,6 @@ describe('reporting service', () => {
           ),
           (
             'stat-release-3',
-            'address',
             'release-3',
             'count',
             'churn',
@@ -267,7 +265,6 @@ describe('reporting service', () => {
           ),
           (
             'stat-release-4',
-            'address',
             'release-4',
             'count',
             'churn',
@@ -653,10 +650,9 @@ function seedIngestRun(sqlite: SQLiteDatabase) {
 function seedStat(sqlite: SQLiteDatabase) {
   sqlite.exec(`
     INSERT INTO stats (
-      id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+      id, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
     ) VALUES (
       'stat-dr-hk-hkgov-dpo-address-2026-06-24.0-rows',
-      'address',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'ingest',
       'rows',
@@ -677,7 +673,7 @@ function seedSourceRows(
 ) {
   sqlite.exec(`
     INSERT INTO hkgovAlsAddresses2d (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sources, rawProperties
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, rawProperties
     ) VALUES (
       '${sourceRecordId}',
       'version-hash-1',
@@ -687,7 +683,6 @@ function seedSourceRows(
       1,
       '2026-06-24T10:40:00.000Z',
       '2026-06-24T10:40:00.000Z',
-      '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
       '{"geoAddress":"1 Example Road","csuId":"csu-1"}'
     );
   `)

@@ -86,7 +86,7 @@ function makePlan(sourceVersion: string): UploadPlan {
     schemaFingerprint: 'test-fingerprint',
     inferredFrom: {
       theme: 'path',
-      type: 'path',
+      resourceType: 'path',
       regionCode: 'path',
       cohortKey: 'flag',
       source: 'flag',

@@ -90,7 +90,7 @@ export type PreparedHkgovCenstatdDistrictUpload = {
   sourceVersion: string
   transform?: typeof HKGOV_CENSTATD_SIMPLIFIED_TRANSFORM
   theme: 'divisions'
-  type: 'divisionArea'
+  resourceType: 'divisionArea'
 }
 
 type CsdIFeature = {
@@ -121,7 +121,7 @@ type PreparedDistrictRow = {
   source_properties: Record<string, unknown>
   sources: Array<Record<string, string | number>>
   theme: 'divisions'
-  type: 'divisionArea'
+  resourceType: 'divisionArea'
 }
 
 /**
@@ -198,7 +198,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
       ),
       stringColumn(
         'type',
-        rows.map(row => row.type),
+        rows.map(row => row.resourceType),
         false,
       ),
       jsonColumn(
@@ -255,7 +255,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
     sourceVersion: outputSourceVersion,
     transform: options.transform,
     theme: 'divisions',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
   }
 }
 
@@ -339,7 +339,7 @@ function normaliseCsdIDistrictFeature(
       },
     ],
     theme: 'divisions',
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
   }
 }
 

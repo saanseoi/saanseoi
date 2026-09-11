@@ -31,7 +31,7 @@ export async function loadDatasetFixtures(
     }
     fixtures.push({
       ...sourceFixture,
-      type: resourceTypes[0] as string,
+      resourceType: resourceTypes[0] as string,
     } satisfies DatasetFixture)
   }
 
@@ -159,21 +159,22 @@ export function orderDatasetsByCompositionDependencies(
 }
 
 function datasetCompositionMembers(dataset: DatasetFixture) {
-  return (dataset.resourceTypes ?? (dataset.type ? [dataset.type] : [])).map(
-    resourceType =>
-      compositionMemberKey({
-        resourceType,
-        variant:
-          resourceType === 'division' ||
-          resourceType === 'divisionArea' ||
-          resourceType === 'divisionBoundary'
-            ? (dataset.sourceVariant ?? dataset.publisherCode)
-            : datasetVariantForSource(
-                resourceType as ResourceType,
-                dataset.publisherCode,
-                { datasetCode: dataset.code },
-              ),
-      }),
+  return (
+    dataset.resourceTypes ?? (dataset.resourceType ? [dataset.resourceType] : [])
+  ).map(resourceType =>
+    compositionMemberKey({
+      resourceType,
+      variant:
+        resourceType === 'division' ||
+        resourceType === 'divisionArea' ||
+        resourceType === 'divisionBoundary'
+          ? (dataset.sourceVariant ?? dataset.publisherCode)
+          : datasetVariantForSource(
+              resourceType as ResourceType,
+              dataset.publisherCode,
+              { datasetCode: dataset.code },
+            ),
+    }),
   )
 }
 

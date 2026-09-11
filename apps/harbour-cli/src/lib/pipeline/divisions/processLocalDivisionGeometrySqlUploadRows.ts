@@ -32,7 +32,7 @@ import { requireString } from './processLocalDivisionGeometrySqlUploadPreparatio
 
 export async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  type: GeometryUploadPlan['resourceType'],
+  resourceType: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
     publisherRows?: Array<NonNullable<NormalisedGeometry>>
@@ -56,15 +56,15 @@ export async function writeGeometryRows(
   const publisherRows = version.publisherRows ?? rows
   const now = toIsoTimestamp()
   const currentTable =
-    type === 'divisionArea'
+    resourceType === 'divisionArea'
       ? currentSchema.divisionAreas
       : currentSchema.divisionBoundaries
   const historyTable =
-    type === 'divisionArea'
+    resourceType === 'divisionArea'
       ? historySchema.divisionAreas
       : historySchema.divisionBoundaries
   const sourceTable =
-    type === 'divisionArea'
+    resourceType === 'divisionArea'
       ? version.source === 'hkgov-had'
         ? sourceSchema.sourceHkgovHadDivisionAreas
         : version.source === 'hkgov-censtatd'
@@ -142,7 +142,11 @@ export async function writeGeometryRows(
           },
         ]),
       )
-    : await getGeometryChurnBaseline(context.currentDb, type, version.parentSnapshotId)
+    : await getGeometryChurnBaseline(
+        context.currentDb,
+        resourceType,
+        version.parentSnapshotId,
+      )
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById, {
     merge: version.merge,
   })
@@ -165,7 +169,7 @@ export async function writeGeometryRows(
       {
         snapshotId: version.snapshotId,
         sourceReleaseId: version.releaseId,
-        recordType: type,
+        recordType: resourceType,
         operation: 'delete',
         changes: closedHistoryRows.map(row => ({ recordId: row.id })),
       },
@@ -282,7 +286,7 @@ export async function writeGeometryRows(
           sourceVersionHash,
           resolutions: {
             entities: resolvedEntities({
-              [type]: canonical.id,
+              [resourceType]: canonical.id,
               division: canonical.divisionId,
               leftDivision: canonical.leftDivisionId,
               rightDivision: canonical.rightDivisionId,
@@ -376,7 +380,7 @@ export async function writeGeometryRows(
       {
         snapshotId: version.snapshotId,
         sourceReleaseId: version.releaseId,
-        recordType: type,
+        recordType: resourceType,
         operation: 'upsert',
         changes: historyRows.map(row => ({
           recordId: requireString(row.id, 'history row id'),

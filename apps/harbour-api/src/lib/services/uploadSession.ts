@@ -73,7 +73,7 @@ export async function handleRegisterUploadRequest(
     source: registered.plan.source,
     sourceVersion: registered.plan.sourceVersion,
     status: 'staged' as const,
-    type: registered.plan.resourceType,
+    resourceType: registered.plan.resourceType,
   }
 }
 

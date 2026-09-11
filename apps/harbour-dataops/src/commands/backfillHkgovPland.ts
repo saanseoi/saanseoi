@@ -255,7 +255,7 @@ async function prepareCachedArtefact(args: {
     sourceArchiveSha256: args.sourceArchiveSha256,
     sourceVersion: args.sourceVersion,
     parserContractVersion: args.parserContractVersion,
-    type: args.resourceType,
+    resourceType: args.resourceType,
   } as const
 
   if (await isValidPreparedArtefact(outputFile, manifestFile, expectedManifest)) {
@@ -460,7 +460,7 @@ async function uploadPreparedArtefact(args: {
         : {}),
       'source-version': args.release.year,
       theme: 'divisions',
-      type: args.resourceType,
+      'resource-type': args.resourceType,
       yes: true,
     },
   }

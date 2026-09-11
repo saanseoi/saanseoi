@@ -125,7 +125,7 @@ async function readPreparedDivisionsInternal(
         if (!parent) throw new Error(`Missing Planning ancestor ${id}.`)
         return {
           division_id: id,
-          type: parent.base.class,
+          class: parent.base.class,
           i18n: Object.fromEntries(
             parent.i18n.map(row => [row.locale, { name: row.name }]),
           ),

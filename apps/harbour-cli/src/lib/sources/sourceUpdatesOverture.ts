@@ -147,7 +147,7 @@ function createOvertureUpdate({
               source: 'overture',
               'source-version': version,
               theme: dataset.theme,
-              type: resourceType,
+              'resource-type': resourceType,
             },
           },
         }),

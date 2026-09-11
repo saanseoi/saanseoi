@@ -276,7 +276,7 @@ export async function listReleases(
     sourceVersion: row.sourceVersion,
     status: row.status,
     supersededByReleaseId: row.supersededByReleaseId,
-    type: row.resourceType,
+    resourceType: row.resourceType,
     updatedAt: toIsoString(row.updatedAt) ?? '',
   }))
 }

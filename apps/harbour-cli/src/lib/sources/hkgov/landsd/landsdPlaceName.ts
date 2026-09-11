@@ -32,7 +32,7 @@ export type PreparedLandsdPlaceNameUpload = {
   sourceSchemaVersion: typeof LANDSD_PLACE_NAME_SOURCE_SCHEMA_VERSION
   sourceVersion: string
   theme: 'divisions'
-  type: 'division'
+  resourceType: 'division'
 }
 
 export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
@@ -326,7 +326,7 @@ export async function prepareLandsdPlaceNameDivisionUpload(
     sourceSchemaVersion: LANDSD_PLACE_NAME_SOURCE_SCHEMA_VERSION,
     sourceVersion,
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
   }
 }
 

@@ -65,12 +65,16 @@ export async function writeGeometryRowsDurably(
   )
   const hash = createHash('sha256')
   for (const row of rows) hash.update(JSON.stringify(row)).update('\n')
+  const { publisherRows, ...retainedVersion } = version
+  hash.update('publisher-assertions\n')
+  for (const row of publisherRows ?? rows)
+    hash.update(JSON.stringify(row.source)).update('\n')
   const phase = `native-geometry-${type.toLowerCase()}-${version.transform ?? 'exact'}`
   const input = {
     context,
     releaseId: version.releaseId,
     phase,
-    inputs: { version, normalisedSha256: hash.digest('hex') },
+    inputs: { version: retainedVersion, normalisedSha256: hash.digest('hex') },
   }
   const directory = sqlDeliveryPhaseDirectory(input)
   // A retained plan already contains the exact mutations and churn. Keep a retry

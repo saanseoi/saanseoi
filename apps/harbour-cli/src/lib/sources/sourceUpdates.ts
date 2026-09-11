@@ -140,7 +140,8 @@ export function datasetName(dataset: DatasetFixture) {
 }
 
 export function requireSingleResourceType(dataset: DatasetFixture) {
-  const resourceTypes = dataset.resourceTypes ?? (dataset.type ? [dataset.type] : [])
+  const resourceTypes =
+    dataset.resourceTypes ?? (dataset.resourceType ? [dataset.resourceType] : [])
   if (resourceTypes.length !== 1) {
     throw new Error(
       `Dataset ${dataset.code} has multiple resource types; it requires a source-specific fan-out adapter.`,

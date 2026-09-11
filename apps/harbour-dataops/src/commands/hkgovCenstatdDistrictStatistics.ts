@@ -107,7 +107,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'stats',
-          type: 'divisionStatistic',
+          'resource-type': 'divisionStatistic',
           // Unreviewed publisher measures must be curated interactively.
           yes: Boolean(args.options.yes),
         },
@@ -147,7 +147,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'divisions',
-          type: 'divisionArea',
+          'resource-type': 'divisionArea',
           yes: true,
         },
       },

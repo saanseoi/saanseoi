@@ -111,12 +111,12 @@ test('actual Parquet hierarchy lookup accepts division schemas without admin_lev
     expect(lookup.size).toBe(2)
     expect(lookup.get('district')).toMatchObject({
       level: 2,
-      type: 'district',
+      class: 'district',
       i18n: { en: { name: 'District' } },
     })
     expect(lookup.get('village')).toMatchObject({
       level: 5,
-      type: 'village',
+      class: 'village',
       i18n: { en: { name: 'Village' } },
     })
   } finally {
@@ -153,7 +153,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
       await asyncBufferFromFile(filename),
       { source: 'overture', sourceVersion: '2025-09-24.0' },
     )
-    expect(earlierLookup.get(id)).toMatchObject({ level: 4, type: 'macrohood' })
+    expect(earlierLookup.get(id)).toMatchObject({ level: 4, class: 'macrohood' })
     // Reach fixture resolution without writing translations: the missing dataset
     // code is checked only after every source row has been normalised.
     const message = {
@@ -192,7 +192,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
     )
     expect(lookup.get(id)).toMatchObject({
       level: 4,
-      type: 'macrohood',
+      class: 'macrohood',
       i18n: { en: { name: 'Lok Ma Chau Loop' } },
     })
     write(3)
