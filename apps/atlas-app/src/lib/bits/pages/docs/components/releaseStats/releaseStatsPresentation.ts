@@ -8,6 +8,7 @@ import type {
   ReleaseStatsDistrictName,
   ReleaseStatsMeasure,
   ReleaseStatsPresentation,
+  LocaleCoveragePresentation,
 } from './releaseStats.types'
 
 type Row = ReleaseStat & { index: number }
@@ -318,6 +319,27 @@ export function createReleaseStatsPresentation({
         const result = [...groups]
           .map(([code, group]) => {
             const coverage = valueFor(group, 'locale_coverage', 'completeness') ?? 0
+            const provenanceDimensions = [
+              { tone: 'provided', dimension: 'locale_coverage_provided' },
+              { tone: 'inferred', dimension: 'locale_coverage_inferred' },
+              { tone: 'ai-translated', dimension: 'locale_coverage_ai_translated' },
+              {
+                tone: 'human-translated',
+                dimension: 'locale_coverage_human_translated',
+              },
+            ] as const
+            const hasProvenanceBreakdown = group.some(row =>
+              provenanceDimensions.some(({ dimension }) => row.dimension === dimension),
+            )
+            const segments: LocaleCoveragePresentation[number]['segments'] =
+              provenanceDimensions.flatMap(({ tone, dimension }) => {
+                const value = valueFor(group, dimension, 'completeness') ?? 0
+                return value > 0 ? [{ label: tone, tone, value }] : []
+              })
+            const localeSegments: LocaleCoveragePresentation[number]['segments'] =
+              !hasProvenanceBreakdown && coverage > 0
+                ? [{ label: 'provided', tone: 'provided', value: coverage }]
+                : segments
             return {
               code,
               label: copy.localeName(code),
@@ -327,27 +349,7 @@ export function createReleaseStatsPresentation({
               ),
               coverage,
               coverageLabel: formatReleaseStat(locale, coverage, 'percentage'),
-              segments: [
-                ['provided', 'locale_coverage_provided'],
-                ['inferred', 'locale_coverage_inferred'],
-                ['ai-translated', 'locale_coverage_ai_translated'],
-                ['human-translated', 'locale_coverage_human_translated'],
-              ].flatMap(([tone, dimension]) => {
-                const value = valueFor(group, dimension, 'completeness') ?? 0
-                return value > 0
-                  ? [
-                      {
-                        label: tone,
-                        tone: tone as
-                          | 'provided'
-                          | 'inferred'
-                          | 'ai-translated'
-                          | 'human-translated',
-                        value,
-                      },
-                    ]
-                  : []
-              }),
+              segments: localeSegments,
             }
           })
           .sort((a, b) => b.coverage - a.coverage)
@@ -498,6 +500,7 @@ export function createReleaseStatsPresentation({
       row.groupBy !== 'district' &&
       row.groupBy !== 'table' &&
       row.groupBy !== 'source' &&
+      !(statistics && row.groupBy === 'dataset') &&
       (row.metric === 'churn' ||
         (row.dimension === 'units' &&
           row.metric === 'count' &&
@@ -730,12 +733,38 @@ export function createReleaseStatsPresentation({
           .map(row => ({
             dimension: copy.statLabel(row.dimension),
             metric: copy.statLabel(row.metric),
-            groupValue: copy.statLabel(row.groupValue),
+            groupValue:
+              statistics && group === 'dataset'
+                ? 'Stats'
+                : copy.statLabel(row.groupValue),
             unit: row.metricUnit ?? '',
             value: formatReleaseStat(locale, row.value, row.metricUnit),
           })),
       }
     })
+  if (statistics) {
+    if (statistics.profile.localeCoverage.length)
+      addHeading('stats-profile-locale', 'Locale')
+    const structural = remainingRecordDistributions.find(
+      item => item.groupBy === 'structural',
+    )
+    const order = [
+      'stats-overview',
+      'stats-profile-coverage',
+      structural?.id,
+      'stats-profile-availability',
+      ...statistics.profile.distributions.map(item => item.id),
+      'stats-profile-locale',
+      ...genericGroups.map(item => item.id),
+    ]
+    headings.sort((a, b) => {
+      const rank = (id: string) => {
+        const index = order.indexOf(id)
+        return index < 0 ? order.length : index
+      }
+      return rank(a.id) - rank(b.id)
+    })
+  }
   return {
     placeProfile: places?.profile,
     statisticsProfile: statistics?.profile,

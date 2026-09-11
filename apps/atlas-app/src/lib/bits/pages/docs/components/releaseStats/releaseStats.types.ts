@@ -215,6 +215,13 @@ export type ReleaseStatsPresentation = {
 }
 
 export type StatisticsProfilePresentation = {
+  localeCoverage: Array<{
+    label: string
+    percentage: number
+    value: string
+    count: string
+    unverified: string
+  }>
   metrics: Array<{ label: string; value: string }>
   distributions: Array<{
     id: string

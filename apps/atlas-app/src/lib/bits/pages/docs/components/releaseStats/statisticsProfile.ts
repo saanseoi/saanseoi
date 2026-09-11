@@ -56,6 +56,7 @@ export function createStatisticsProfile(
   })
   const baseline = [...frequencies].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0]
   const profile: StatisticsProfilePresentation = {
+    localeCoverage: [],
     metrics: [
       { label: 'Geographic records', value: records },
       {
@@ -179,5 +180,32 @@ export function createStatisticsProfile(
         })),
     })
   }
+  const localeRows = take(
+    row =>
+      row.groupBy === 'locale' &&
+      ['field_labels', 'field_label_coverage', 'unverified_field_labels'].includes(
+        row.dimension ?? '',
+      ),
+  )
+  profile.localeCoverage = localeRows
+    .filter(row => row.dimension === 'field_label_coverage')
+    .map(row => ({
+      label: copy.localeName(row.groupValue ?? ''),
+      percentage: row.value,
+      value: formatReleaseStat(locale, row.value, 'percentage'),
+      count: format(
+        localeRows.find(
+          item =>
+            item.groupValue === row.groupValue && item.dimension === 'field_labels',
+        )?.value ?? 0,
+      ),
+      unverified: format(
+        localeRows.find(
+          item =>
+            item.groupValue === row.groupValue &&
+            item.dimension === 'unverified_field_labels',
+        )?.value ?? 0,
+      ),
+    }))
   return { profile, remainingStats: [...remaining] }
 }
