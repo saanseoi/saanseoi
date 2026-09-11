@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { strict as assert } from 'node:assert'
 import { currentSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import {
   PlaceRecordCache,
   recordCacheKey,

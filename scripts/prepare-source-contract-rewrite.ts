@@ -3,12 +3,12 @@ import { createWriteStream } from 'node:fs'
 import { once } from 'node:events'
 import { link, unlink, writeFile } from 'node:fs/promises'
 import { parseArgs } from 'node:util'
-import { sourceLocatorFromReferences } from '../libs/core/src/pipeline/services/sourcePayload'
+import { sourceLocatorFromReferences } from '../libs/core/src/pipeline/services/sources/sourcePayload'
 import {
   isSupplementalDivisionPayload,
   overtureSourceTables,
   rewriteOvertureSourcePayload,
-} from '../libs/core/src/pipeline/services/sourcePayloadRewrite'
+} from '../libs/core/src/pipeline/services/sources/sourcePayloadRewrite'
 
 /** Offline preparation only. Run before the sources -> sourceLocator schema migration. */
 const { values } = parseArgs({
