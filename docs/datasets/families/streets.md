@@ -1,5 +1,9 @@
 # Streets API family
 
+Native source SQL preserves unchanged open assertions, including large payloads.
+Replacement membership is compared in disjoint indexed ID ranges; several assertions for
+one publisher ID remain current when all are present in the incoming release.
+
 ## TODO: Source payload consolidation
 
 - [ ] When Streets work resumes, review moving parsed publisher attributes from
@@ -96,3 +100,33 @@ lifecycle decisions require curation.
 
 See [HKGRO OCR setup](../sources/hku-hkgro/streetName.md#local-ocr) and
 [e-Gazette processing](../sources/hkgov-gld/egazetteStreetName.md).
+
+## Local D1 with production artefacts
+
+For a fresh local initialisation, `--target local --r2 production` keeps processing and
+registrations in local D1 while retaining source and provenance objects in production
+R2. See the
+[storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
+immutable uploads and continuation requirements.
+
+## Registry metadata
+
+The Lands Department Road Centreline dataset declares EPSG:2326 for retained native
+source geometry. Document-only street products do not acquire a CRS from their canonical
+map output.
+
+## Native street CRS
+
+Street-name plates, sensitive streets, strategic streets and the five pedestrian-street
+layers use EPSG:2326 (Hong Kong 1980 Grid). Their active FileGDB catalogue entries
+declare Esri WKID 102140 and LatestWKID 2326. All 22 retained native archives agree: 12
+nameplate releases (2023-Q3 to 2026-Q2), two sensitive-street releases (2024-Q1 and
+2025-Q1), one strategic-street release (2025-Q1), and seven pedestrian-street releases
+(2024-Q2 to 2026-Q1). Deleted catalogue records are not evidence of a current layer's
+CRS.
+
+Source intake validates the active layer CRS and retains native easting/northing
+coordinates. The private FileGDB reader disables automatic WGS84 projection without
+changing other FileGDB consumers. Dataset `sourceCrs` is EPSG:2326; coordinate
+conversion belongs to a separately declared map derivative. Document-only street
+products retain a null CRS.

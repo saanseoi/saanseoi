@@ -40,8 +40,11 @@ the executed checks; missing historical counters are reported as unavailable.
 
 ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retain
 `validFromRelease`, `validToRelease` and `isCurrent`. An unchanged source version is
-reused across releases; changed and removed assertions close their validity range.
-Snapshot collections and their source-release journals are materialised separately.
+reused across releases without updating its release ID, timestamps or indexes. Changed
+and removed assertions close their validity range. The complete publisher membership,
+not the last-written release ID, determines omissions. Reappearance of a closed
+assertion requires a write. Snapshot collections and their source-release journals are
+materialised separately.
 
 ALS chronological preflight prepares each release in a separate child process.
 Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
@@ -56,9 +59,9 @@ ALS preparation and preflight fingerprints replay the selected division snapshot
 immutable history across its assigned shards. Parent membership, changed translations
 and deletions determine the lookup, independently of current-snapshot cleanup.
 
-Source-row `sources` is nullable. ALS ingestion retains supplied publisher or ingestion
-references and stores `null` when none are supplied; it does not manufacture a reference
-to the row's own synthetic identifier.
+Source-row `sourceLocator` is nullable. ALS retains the original file and feature
+position when needed for acquisition traceability. It does not repeat dataset/release
+metadata or manufacture references to canonical identifiers.
 
 Address lookup caches are scoped to the exact parent snapshot. A baseline without a
 parent never uses a retained lookup; cached unchanged-row decisions cannot substitute
@@ -167,10 +170,12 @@ eight batches, 512 data statements and 8 MB of retained payload per request. Eac
 batch keeps its own receipt; recovery checks every receipt before advancing and does not
 replay uncertain writes. Individual statements retain the 100-parameter limit.
 
-Publisher-source retirement uses repeat-safe transactions of at most 1,024 rows before
-the sealed source upserts are applied. The upserts restore this release's retained
-source versions, and the original batch receipt is written only after the full batch
-finishes. This bounds database work as well as request size.
+Publisher-source planning reads current assertions in ordered row-ID pages and seals
+only changed, new, reopened and omitted source mutations. Omission updates use at most
+96 indexed source IDs per statement. Retained plans containing release-marker retirement
+queries use repeat-safe transactions of at most 1,024 rows, advancing past the largest
+returned row ID after each batch. A restart safely excludes already closed rows. The
+sealed batch receipt is written only after its complete transaction finishes.
 
 SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
 relationships before remote delivery. History and current stages each generate their own
@@ -625,3 +630,34 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Source record response
+
+The [source record contract](../source-records.md) retains publisher attributes in
+`rawProperties`, including publisher-authored attribution. Records expose source
+identity and optional native geometry. Resource types, variants and internal acquisition
+locators are not publisher-record fields. Geometry retains the source coordinates and
+CRS; canonical geometry is available through the family’s canonical API.
+
+ALS source field mappings include nested estate phases, street location names and
+bilingual 3D arrays. Source schemas report fields present in every retained row as
+required; optional presence and explicit nullability are separate properties.
+
+## Local D1 with production artefacts
+
+For a fresh local initialisation, `--target local --r2 production` keeps processing and
+registrations in local D1 while retaining source and provenance objects in production
+R2. See the
+[storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
+immutable uploads and continuation requirements.
+
+Official-address initialisation stores the identity-history before-image in a separate
+file beside its manifest. Keep both files for reset recovery. Completion queries release
+metadata and distinct current division snapshot IDs; it does not export source or
+history shards. A missing before-image blocks reset before mutations.
+
+## Registry metadata
+
+ALS dataset processing metadata resolves the registered preparation, normalisation and
+curation rules. Each source and resource release retains its creation-time policy; ALS
+source GeoJSON geometry uses EPSG:4326.
