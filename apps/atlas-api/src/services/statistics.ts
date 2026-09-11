@@ -1,3 +1,14 @@
+import { getActiveStatisticSnapshot, statisticDatabases } from './statisticsSelection'
+import {
+  loadStatisticAreas,
+  statisticGeometryDependencies,
+  type StatisticGeometryDependencies,
+} from './statisticsGeometry'
+export {
+  getActiveStatisticSnapshot,
+  resolveStatisticReadSelection,
+  statisticDatabases,
+} from './statisticsSelection'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
@@ -10,10 +21,12 @@ import {
   listSnapshotSourceReleases,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveApiReleaseSetSnapshotsForRequest,
+  resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 
 import {
   countStatisticRecords,
+  isStatisticPublicationReady,
   getStatisticRecord,
   listStatisticFieldDefinitions,
   listStatisticMeasureDefinitions,
@@ -22,6 +35,7 @@ import {
   type StatisticFilters,
   type StatisticFieldDefinition,
   type StatisticRecord,
+  type StatisticReadSelection,
 } from '../db/statistics'
 import {
   listDivisionAreasCurrentByDivisionIds,
@@ -107,7 +121,9 @@ export type StatisticSeriesQuery = Omit<
   'filter[referencePeriod]'
 >
 
-export type StatisticServiceDependencies = {
+export type StatisticServiceDependencies = StatisticGeometryDependencies & {
+  resolveSnapshotReplayPlan: typeof resolveSnapshotReplayPlan
+  isStatisticPublicationReady: typeof isStatisticPublicationReady
   listApiReleaseSetSnapshotsForRegistryRequest: typeof listApiReleaseSetSnapshotsForRegistryRequest
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
   listSnapshotSourceReleases: typeof listSnapshotSourceReleases
@@ -123,6 +139,9 @@ export type StatisticServiceDependencies = {
 }
 
 export const defaultDependencies: StatisticServiceDependencies = {
+  ...statisticGeometryDependencies,
+  isStatisticPublicationReady,
+  resolveSnapshotReplayPlan,
   listApiReleaseSetSnapshotsForRegistryRequest,
   resolveApiReleaseSetSnapshotsForRequest,
   listSnapshotSourceReleases,
@@ -146,6 +165,7 @@ export type StatisticRouteState = {
 }
 
 export type ActiveStatisticSnapshot = {
+  readSelection: StatisticReadSelection
   region?: ApiRegion
   datasetCodes: string[]
   snapshotIds: string[]
@@ -160,6 +180,7 @@ export type ActiveStatisticSnapshot = {
 }
 
 export type StatisticRegistrySnapshot = {
+  readSelection: StatisticReadSelection
   datasetCodes: string[]
   snapshotIds: string[]
   sourceReleaseIds: string[]
@@ -190,7 +211,6 @@ type StatisticResourcePayload = {
       granularity: string
     }
     geography: StatisticRecord['geography']
-    dimensions: Record<string, string>
     values: Record<string, string>
     comparability?: Record<
       string,
@@ -198,6 +218,8 @@ type StatisticResourcePayload = {
     >
     sourceReleaseId?: string
     sourceFeatureRef?: string
+    fieldSources?: StatisticRecord['fieldSources']
+    fieldDefinitionHashes: StatisticRecord['fieldDefinitionHashes']
     createdAt?: string
     updatedAt?: string
   }
@@ -220,10 +242,11 @@ export function createIncludedStatisticFieldResource(args: {
   const { definition } = args
   return {
     type: 'statistic-fields' as const,
-    id: `${definition.datasetCode}:${definition.fieldName}`,
+    id: `${definition.datasetCode}:${definition.fieldName}:${definition.versionHash}`,
     attributes: {
       datasetCode: definition.datasetCode,
       fieldName: definition.fieldName,
+      versionHash: definition.versionHash,
       measureCode: definition.measureCode,
       sourceField: definition.sourceField,
       dimensions: definition.dimensions,
@@ -325,7 +348,7 @@ export function buildRouteState(args: {
 
 function requestedIncludes(value?: string) {
   return new Set(
-    (value ?? '')
+    (value ?? 'fields')
       .split(',')
       .map(item => item.trim())
       .filter(item => Boolean(item) && item !== 'none'),
@@ -347,6 +370,7 @@ function relatedDivisionDomain(record: StatisticRecord) {
 }
 
 function createStatisticResource(args: {
+  apiReleaseSet: string
   baseUrl: string
   definitions: Map<string, StatisticFieldDefinition>
   record: StatisticRecord
@@ -355,7 +379,7 @@ function createStatisticResource(args: {
   const comparability = Object.fromEntries(
     Object.keys(args.record.values).flatMap(fieldName => {
       const definition = args.definitions.get(
-        `${args.record.datasetCode}\u0000${fieldName}`,
+        `${args.record.datasetCode}\u0000${fieldName}\u0000${args.record.fieldDefinitionHashes[fieldName]}`,
       )
       return definition?.comparability ? [[fieldName, definition.comparability]] : []
     }),
@@ -373,13 +397,14 @@ function createStatisticResource(args: {
         granularity: args.record.referencePeriodGranularity,
       },
       geography: args.record.geography,
-      dimensions: args.record.dimensions,
       values: args.record.values,
+      fieldDefinitionHashes: args.record.fieldDefinitionHashes,
       ...(Object.keys(comparability).length > 0 ? { comparability } : {}),
       ...(args.routeState.profile === 'full'
         ? {
             sourceReleaseId: args.record.sourceReleaseId,
             sourceFeatureRef: args.record.sourceFeatureRef,
+            fieldSources: args.record.fieldSources,
             createdAt: args.record.createdAt,
             updatedAt: args.record.updatedAt,
           }
@@ -393,64 +418,9 @@ function createStatisticResource(args: {
       },
     },
     links: {
-      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/${args.record.id}`,
+      self: `${args.baseUrl}/${args.routeState.requestedVersionPath}/${args.record.id}?cohort=${encodeURIComponent(args.record.referencePeriodCode)}&releaseSet=${encodeURIComponent(args.apiReleaseSet)}`,
     },
   } satisfies StatisticResourcePayload
-}
-
-export async function getActiveStatisticSnapshot(
-  metaDb: AppEnv['Variables']['metaDb'],
-  selectors: Pick<
-    StatisticListQuery,
-    | 'region'
-    | 'catalogRevision'
-    | 'cohort'
-    | 'effectiveAt'
-    | 'knownAt'
-    | 'releaseSet'
-    | 'filter[referencePeriod]'
-  >,
-  dependencies: StatisticServiceDependencies,
-) {
-  const selection = await runWithD1ReadRetry(() =>
-    dependencies.resolveApiReleaseSetSnapshotsForRequest(
-      metaDb as never,
-      'divisionStatistic',
-      {
-        catalogRevision: selectors.catalogRevision,
-        // Statistics release sets are published per exact reference period.
-        // Keep explicit publication selectors authoritative, but make the
-        // required geography period useful without a redundant cohort param.
-        cohortKey: selectors.cohort ?? selectors['filter[referencePeriod]'],
-        domainCode: 'government',
-        effectiveAt: selectors.effectiveAt,
-        knownAt: selectors.knownAt,
-        regionCode: resolveDataRegion(selectors.region),
-        releaseSet: selectors.releaseSet,
-      },
-    ),
-  )
-  if (!selection) return null
-  const snapshotIds = selection.snapshots
-    .filter(snapshot => snapshot.snapshotResourceType === 'divisionStatistic')
-    .map(snapshot => snapshot.snapshotId)
-  if (snapshotIds.length === 0) return null
-  const sources = await runWithD1ReadRetry(() =>
-    dependencies.listSnapshotSourceReleases(metaDb as never, snapshotIds),
-  )
-  return {
-    region: resolveDataRegion(selectors.region),
-    datasetCodes: [...new Set(sources.map(source => source.datasetCode))],
-    snapshotIds,
-    sourceReleaseIds: [...new Set(sources.map(source => source.sourceReleaseId))],
-    apiReleaseSet: selection.releaseSet.code,
-    apiCatalogRevision: selection.releaseSet.apiCatalogRevision,
-    catalogPublishedAt: selection.releaseSet.catalogPublishedAt,
-    cohortKey: selection.releaseSet.cohortKey,
-    domainCode: 'government',
-    schemaVersion: selection.releaseSet.schemaVersion,
-    rulesetVersion: selection.releaseSet.rulesetVersion,
-  } satisfies ActiveStatisticSnapshot
 }
 
 export async function resolveRelatedDivisionSelection(
@@ -481,6 +451,7 @@ export async function resolveRelatedDivisionSelection(
 async function loadIncludedResources(args: {
   activeSnapshot: ActiveStatisticSnapshot
   currentDb: AppEnv['Variables']['currentDb']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   dependencies: StatisticServiceDependencies
   include?: string
   metaDb: AppEnv['Variables']['metaDb']
@@ -591,7 +562,11 @@ async function loadIncludedResources(args: {
   }
   for (const group of areaGroups.values()) {
     const areas = await runWithD1ReadRetry(() =>
-      args.dependencies.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
+      loadStatisticAreas({
+        currentDb: args.currentDb,
+        metaDb: args.metaDb,
+        historyDbsByBinding: args.historyDbsByBinding,
+        dependencies: args.dependencies,
         snapshotId: group.snapshotId,
         divisionIds: [...group.divisionIds],
         variant: group.variant,
@@ -692,7 +667,7 @@ function documentMeta(
 function definitionMap(definitions: StatisticFieldDefinition[]) {
   return new Map(
     definitions.map(definition => [
-      `${definition.datasetCode}\u0000${definition.fieldName}`,
+      `${definition.datasetCode}\u0000${definition.fieldName}\u0000${definition.versionHash}`,
       definition,
     ]),
   )
@@ -707,17 +682,20 @@ function includedStatisticFieldResources(args: {
   const fieldKeys = new Set(
     args.records.flatMap(record =>
       Object.keys(record.values).map(
-        fieldName => `${record.datasetCode}\u0000${fieldName}`,
+        fieldName =>
+          `${record.datasetCode}\u0000${fieldName}\u0000${record.fieldDefinitionHashes[fieldName]}`,
       ),
     ),
   )
-  return args.definitions
+  return [...definitionMap(args.definitions).values()]
     .filter(definition =>
-      fieldKeys.has(`${definition.datasetCode}\u0000${definition.fieldName}`),
+      fieldKeys.has(
+        `${definition.datasetCode}\u0000${definition.fieldName}\u0000${definition.versionHash}`,
+      ),
     )
     .sort((left, right) =>
-      `${left.datasetCode}\u0000${left.fieldName}`.localeCompare(
-        `${right.datasetCode}\u0000${right.fieldName}`,
+      `${left.datasetCode}\u0000${left.fieldName}\u0000${left.versionHash}`.localeCompare(
+        `${right.datasetCode}\u0000${right.fieldName}\u0000${right.versionHash}`,
       ),
     )
     .map(definition =>
@@ -730,6 +708,7 @@ function includedStatisticFieldResources(args: {
 export async function listStatistics(args: {
   currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedStatisticVersion
@@ -751,7 +730,13 @@ export async function listStatistics(args: {
     args.query,
     dependencies,
   )
-  if (!activeSnapshot) {
+  if (
+    !activeSnapshot ||
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  ) {
     return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   }
   const limit = args.query['page[limit]'] ?? 25
@@ -764,31 +749,49 @@ export async function listStatistics(args: {
   } satisfies StatisticFilters
   const [records, total] = await runWithD1ReadRetry(() =>
     Promise.all([
-      dependencies.listStatisticRecords(args.historyDbs, {
-        cohortKey: activeSnapshot.cohortKey,
-        sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-        filters,
-        limit,
-        offset,
-      }),
-      dependencies.countStatisticRecords(args.historyDbs, {
-        cohortKey: activeSnapshot.cohortKey,
-        sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-        filters,
-      }),
+      dependencies.listStatisticRecords(
+        statisticDatabases(args, activeSnapshot.readSelection),
+        {
+          cohortKey: activeSnapshot.cohortKey,
+          selection: activeSnapshot.readSelection,
+          filters,
+          limit,
+          offset,
+        },
+      ),
+      dependencies.countStatisticRecords(
+        statisticDatabases(args, activeSnapshot.readSelection),
+        {
+          cohortKey: activeSnapshot.cohortKey,
+          selection: activeSnapshot.readSelection,
+          filters,
+        },
+      ),
     ]),
   )
   const definitions = await runWithD1ReadRetry(() =>
-    dependencies.listStatisticFieldDefinitions(args.historyDbs, {
-      datasetCodes: [...new Set(records.map(record => record.datasetCode))],
-      localeSelection: routeState.localeSelection,
-      sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-    }),
+    dependencies.listStatisticFieldDefinitions(
+      statisticDatabases(args, activeSnapshot.readSelection),
+      {
+        datasetCodes: [...new Set(records.map(record => record.datasetCode))],
+        localeSelection: routeState.localeSelection,
+        records,
+        selection: activeSnapshot.readSelection,
+      },
+    ),
   )
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const definitionsByCode = definitionMap(definitions)
   const related = await loadIncludedResources({
     activeSnapshot,
     currentDb: args.currentDb,
+    historyDbsByBinding: args.historyDbsByBinding,
     dependencies,
     include: args.query.include,
     metaDb: args.metaDb,
@@ -811,6 +814,13 @@ export async function listStatistics(args: {
     field: filters.fieldName,
   }
   meta.page = { limit, offset, total }
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   return {
     status: 200,
     body: buildJsonApiListDocument({
@@ -820,6 +830,7 @@ export async function listStatistics(args: {
       total,
       data: records.map(record =>
         createStatisticResource({
+          apiReleaseSet: activeSnapshot.apiReleaseSet,
           baseUrl: url.origin,
           definitions: definitionsByCode,
           record,
@@ -843,6 +854,7 @@ export async function listStatistics(args: {
 export async function getStatisticDetail(args: {
   currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
   requestedVersionPath: RequestedStatisticVersion
@@ -865,16 +877,32 @@ export async function getStatisticDetail(args: {
     args.query,
     dependencies,
   )
-  if (!activeSnapshot) {
+  if (
+    !activeSnapshot ||
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  ) {
     return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   }
   const record = await runWithD1ReadRetry(() =>
-    dependencies.getStatisticRecord(args.historyDbs, {
-      cohortKey: activeSnapshot.cohortKey,
-      id: args.id,
-      sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-    }),
+    dependencies.getStatisticRecord(
+      statisticDatabases(args, activeSnapshot.readSelection),
+      {
+        cohortKey: activeSnapshot.cohortKey,
+        id: args.id,
+        selection: activeSnapshot.readSelection,
+      },
+    ),
   )
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   if (!record || record.referencePeriodCode !== activeSnapshot.cohortKey) {
     return {
       status: 404,
@@ -886,16 +914,28 @@ export async function getStatisticDetail(args: {
     }
   }
   const definitions = await runWithD1ReadRetry(() =>
-    dependencies.listStatisticFieldDefinitions(args.historyDbs, {
-      datasetCodes: [record.datasetCode],
-      localeSelection: routeState.localeSelection,
-      sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-    }),
+    dependencies.listStatisticFieldDefinitions(
+      statisticDatabases(args, activeSnapshot.readSelection),
+      {
+        datasetCodes: [record.datasetCode],
+        localeSelection: routeState.localeSelection,
+        records: [record],
+        selection: activeSnapshot.readSelection,
+      },
+    ),
   )
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const definitionsByCode = definitionMap(definitions)
   const related = await loadIncludedResources({
     activeSnapshot,
     currentDb: args.currentDb,
+    historyDbsByBinding: args.historyDbsByBinding,
     dependencies,
     include: args.query.include,
     metaDb: args.metaDb,
@@ -910,11 +950,19 @@ export async function getStatisticDetail(args: {
     records: [record],
     include: args.query.include,
   })
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   return {
     status: 200,
     body: buildJsonApiDetailDocument({
       url,
       data: createStatisticResource({
+        apiReleaseSet: activeSnapshot.apiReleaseSet,
         baseUrl: url.origin,
         definitions: definitionsByCode,
         record,

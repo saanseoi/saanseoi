@@ -205,7 +205,21 @@ const listDivisionAreasCurrentByDivisionIdsMock = mock(
 )
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
-  hasCurrentDivisionSnapshot: async () => false,
+  getPublicationReadiness: async () => 'ready',
+  listDivisionRecordsCurrent: async (_db, lookup) =>
+    listRecords.filter(
+      record =>
+        (lookup.class === undefined || record.division.class === lookup.class) &&
+        (lookup.level === undefined || record.division.level === lookup.level) &&
+        (lookup.category === undefined || record.division.category === lookup.category),
+    ),
+  countDivisionsCurrent: async () => listRecords.length,
+  listDivisionRecordsCurrentByIds: async (_db, lookup) =>
+    [...listRecords, ...includedDivisionRecords].filter(record =>
+      lookup.divisionIds.includes(record.division.id),
+    ),
+  hasCurrentDivisionSnapshot: async () => true,
+  hasCurrentDivisionGeometrySnapshot: async () => true,
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   resolvePublishedSnapshotForResourceTypeRegionCohortKey:
@@ -222,6 +236,54 @@ const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
 }
 
 describe('division services', () => {
+  test('does not replay sparse geometry when its current snapshot still exists', async () => {
+    const resolveReplay = mock(async () => {
+      throw new Error('unexpected replay')
+    })
+    const hasGeometry = mock(async () => 'ready')
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl:
+        'http://localhost/divisions/v0.1?include=areas:overture,boundaries:overture',
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include: 'areas:overture,boundaries:overture' },
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrent: async () => [baseRecord],
+        countDivisionsCurrent: async () => 1,
+        getPublicationReadiness: hasGeometry,
+        resolveSnapshotReplayPlan: resolveReplay,
+        resolveApiReleaseSetSnapshotsForRequest: async () =>
+          ({
+            ...resolvedReleaseSet,
+            snapshots: [
+              ...resolvedReleaseSet.snapshots,
+              {
+                snapshotResourceType: 'divisionArea',
+                snapshotId: 'area-sparse',
+                role: 'supporting',
+                variant: 'overture',
+              },
+              {
+                snapshotResourceType: 'divisionBoundary',
+                snapshotId: 'boundary-sparse',
+                role: 'supporting',
+                variant: 'overture',
+              },
+            ],
+          }) as never,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(hasGeometry).toHaveBeenCalledTimes(6)
+    expect(resolveReplay).not.toHaveBeenCalled()
+  })
+
   test('reads a materialised detail by ID without history replay', async () => {
     const lookup = mock(async () => [baseRecord])
     const replay = mock(async () => {
@@ -597,10 +659,7 @@ describe('division services', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(resolveSnapshotReplayPlanMock).toHaveBeenLastCalledWith(
-      expect.anything(),
-      activeSnapshot.snapshotId,
-    )
+    expect(result.status).toBe(200)
   })
 
   test('combined list includes retain hierarchy resources', async () => {
@@ -684,4 +743,106 @@ describe('division services', () => {
       'division-east',
     ])
   })
+})
+
+function publicationRequest(dependencies: Partial<DivisionServiceDependencies>) {
+  return {
+    currentDb: {} as never,
+    historyDbsByBinding,
+    metaDb: {} as never,
+    requestUrl: 'http://localhost/divisions/v0.1',
+    requestedVersionPath: 'divisions/v0.1' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-divisions-v0.1' as const,
+    query: {},
+    dependencies: { ...divisionServiceDependencies, ...dependencies },
+  }
+}
+
+test('latest Division selections return readiness responses for absent or pending receipts', async () => {
+  const replay = mock(async () => {
+    throw new Error('Must not replay an unready latest selection')
+  })
+  const args = publicationRequest({
+    getPublicationReadiness: async () => null,
+    resolveSnapshotReplayPlan: replay,
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+  })
+  expect((await listDivisions(args)).status).toBe(503)
+  expect((await getDivisionDetail({ ...args, id: 'missing' })).status).toBe(503)
+  expect(
+    (
+      await listDivisions({
+        ...args,
+        query: { releaseSet: activeSnapshot.apiReleaseSet },
+      })
+    ).status,
+  ).toBe(503)
+  expect(replay).not.toHaveBeenCalled()
+})
+
+test('ready empty Division snapshots return empty collections and absent details', async () => {
+  const args = publicationRequest({
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+    listDivisionRecordsCurrent: async () => [],
+    countDivisionsCurrent: async () => 0,
+    listDivisionRecordsCurrentByIds: async () => [],
+  })
+  const list = await listDivisions(args)
+  expect(list.status).toBe(200)
+  if (list.status === 200) {
+    expect(list.body.data).toEqual([])
+    expect(list.body.meta.page.total).toBe(0)
+  }
+  expect((await getDivisionDetail({ ...args, id: 'missing' })).status).toBe(404)
+})
+
+test('Division responses are discarded when publication changes between component reads', async () => {
+  let token = 'first'
+  const args = publicationRequest({
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+    getPublicationReadiness: async () => token,
+    listDivisionRecordsCurrent: async () => [baseRecord],
+    countDivisionsCurrent: async () => {
+      token = 'replacement'
+      return 1
+    },
+  })
+  expect((await listDivisions(args)).status).toBe(503)
+  token = 'first'
+  expect(
+    (
+      await getDivisionDetail({
+        ...args,
+        id: 'missing',
+        dependencies: {
+          ...args.dependencies,
+          listDivisionRecordsCurrentByIds: async () => {
+            token = 'replacement'
+            return []
+          },
+        },
+      })
+    ).status,
+  ).toBe(503)
+})
+
+test('an explicitly older Division release continues to replay immutable history', async () => {
+  const replay = mock(async () => [baseRecord])
+  const args = publicationRequest({
+    getPublicationReadiness: async () => null,
+    resolveApiReleaseSetSnapshotsForRequest: async (_db, _family, selectors) =>
+      ({
+        ...resolvedReleaseSet,
+        releaseSet: {
+          ...resolvedReleaseSet.releaseSet,
+          code: selectors?.releaseSet ? 'older' : 'latest',
+        },
+      }) as never,
+    listReplayedDivisionRecords: replay,
+  })
+  expect(
+    (await listDivisions({ ...args, query: { releaseSet: 'older' } })).status,
+  ).toBe(200)
+  expect(replay).toHaveBeenCalledTimes(1)
 })

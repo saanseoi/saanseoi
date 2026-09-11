@@ -13,7 +13,7 @@ test('source catalogues include every retained family and preserve both ALS dime
     for (const table of ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']) {
       database.exec(`CREATE TABLE ${table} (
         sourceRecordId TEXT, versionHash TEXT, validFromRelease TEXT,
-        validToRelease TEXT, rawProperties TEXT, sourceGeometry TEXT, sources TEXT
+        validToRelease TEXT, properties TEXT, sourceGeometry TEXT, sources TEXT
       )`)
     }
     database
@@ -24,13 +24,13 @@ test('source catalogues include every retained family and preserve both ALS dime
       .run('3d-occurrence', 'v2', '2026-01-01.0', '{"properties":{"floor":"1"}}')
     const entry = sourceCatalogueFor('addresses')['ds-hk-hkgov-dpo-address']!
     const rows = database
-      .query(`SELECT sourceRecordId, rawProperties FROM ${entry.tableName}`)
+      .query(`SELECT sourceRecordId, properties FROM ${entry.tableName}`)
       .all()
     expect(rows).toEqual([
-      { sourceRecordId: '2d-record', rawProperties: '{"name":"Premises"}' },
+      { sourceRecordId: '2d-record', properties: '{"name":"Premises"}' },
       {
         sourceRecordId: '3d-occurrence',
-        rawProperties: '{"properties":{"floor":"1"}}',
+        properties: '{"properties":{"floor":"1"}}',
       },
     ])
     expect(Object.keys(sourceCatalogueFor('stats'))).toHaveLength(8)
@@ -67,7 +67,7 @@ test('Planning projections share their source pin and paginate across assigned s
   try {
     for (const database of databases) {
       database.exec(`CREATE TABLE hkgovPlandPlanningCells (
-        sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+        sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
         validFromRelease TEXT, validToRelease TEXT
       )`)
     }
@@ -77,7 +77,7 @@ test('Planning projections share their source pin and paginate across assigned s
     ].entries()) {
       for (const id of ids)
         databases[index]!.query(
-          'INSERT INTO hkgovPlandPlanningCells (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, NULL)',
+          'INSERT INTO hkgovPlandPlanningCells (sourceRecordId, versionHash, properties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, NULL)',
         ).run(id, 'v1', JSON.stringify({ [id]: id }), sourceCode)
     }
     const args = {

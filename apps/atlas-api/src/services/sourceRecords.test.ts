@@ -101,7 +101,7 @@ describe('source records', () => {
       CREATE TABLE releases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
       CREATE TABLE releaseShardAssignments(releaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease);
+      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -133,7 +133,7 @@ describe('source records', () => {
       ])
     }
     sqlite.run(
-      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, rawProperties, sourceGeometry, validFromRelease, validToRelease) VALUES(?, ?, ?, ?, ?, NULL)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease) VALUES(?, ?, ?, ?, ?, NULL)',
       [
         'record',
         'hash',
@@ -185,12 +185,12 @@ describe('source records', () => {
   test('uses full source codes for areas and inventories every record without leaking another dataset', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
-      sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
       validFromRelease TEXT, validToRelease TEXT
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
-      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease) VALUES (?, ?, ?, ?, ?)',
     )
     insert.run('old', 'v1', '{"obsolete":true}', code.replace('2021', '2016'), code)
     insert.run('a', 'v1', '{"name":"One","value":1,"optional":null}', code, null)
@@ -252,7 +252,7 @@ describe('source records', () => {
   test('reads and streams exact Places source versions with pagination and geometry', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE overturePlaces (
-      sourceGeometry TEXT, sources TEXT, sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT,
+      sourceGeometry TEXT, sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
       validFromRelease TEXT, validToRelease TEXT
     )`)
     const geometry = { type: 'Point', coordinates: [114.1, 22.3] }
@@ -264,7 +264,7 @@ describe('source records', () => {
     ]) {
       sqlite
         .query(
-          'INSERT INTO overturePlaces (sourceRecordId, versionHash, rawProperties, validFromRelease, validToRelease, sourceGeometry, sources) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          'INSERT INTO overturePlaces (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, sourceGeometry, sources) VALUES (?, ?, ?, ?, ?, ?, ?)',
         )
         .run(
           requireDefined(id),
@@ -438,7 +438,7 @@ describe('source records', () => {
         DB_SOURCE_HK_2025: sourceDatabase([]),
         DB_SOURCE_HK_2026: sourceDatabase([
           {
-            rawProperties: JSON.stringify({
+            properties: JSON.stringify({
               class: 'administrative',
               id: 'division-1',
             }),
@@ -487,12 +487,12 @@ describe('source records', () => {
               all: async () => ({
                 results: [
                   {
-                    rawProperties: JSON.stringify({ id: 'division-2' }),
+                    properties: JSON.stringify({ id: 'division-2' }),
                     sourceRecordId: 'division-2',
                     versionHash: 'version-2',
                   },
                   {
-                    rawProperties: JSON.stringify({ id: 'division-1' }),
+                    properties: JSON.stringify({ id: 'division-1' }),
                     sourceRecordId: 'division-1',
                     versionHash: 'version-1',
                   },
@@ -546,7 +546,7 @@ describe('source records', () => {
                   ? []
                   : [
                       {
-                        rawProperties: JSON.stringify({ id: 'division-1' }),
+                        properties: JSON.stringify({ id: 'division-1' }),
                         sourceRecordId: 'division-1',
                         versionHash: 'version-1',
                       },
@@ -593,7 +593,7 @@ describe('source records', () => {
                   {
                     sourceRecordId: 'ss-example',
                     versionHash: 'v1',
-                    rawProperties: '{}',
+                    properties: '{}',
                   },
                 ],
                 success: true,
@@ -639,12 +639,12 @@ describe('source records', () => {
               all: async () => ({
                 results: [
                   {
-                    rawProperties: JSON.stringify({ id: 'CENSTATD:T' }),
+                    properties: JSON.stringify({ id: 'CENSTATD:T' }),
                     sourceRecordId: 'CENSTATD:T',
                     versionHash: 'version-1',
                   },
                   {
-                    rawProperties: JSON.stringify({ id: 'CENSTATD:K' }),
+                    properties: JSON.stringify({ id: 'CENSTATD:K' }),
                     sourceRecordId: 'CENSTATD:K',
                     versionHash: 'version-2',
                   },
@@ -718,7 +718,7 @@ describe('source records', () => {
         DB_SOURCE_HK_2025: sourceDatabase([]),
         DB_SOURCE_HK_2026: sourceDatabase([
           {
-            rawProperties: JSON.stringify({ class: 'administrative' }),
+            properties: JSON.stringify({ class: 'administrative' }),
             sourceGeometry: JSON.stringify(geometry),
             sourceRecordId: 'division-1',
             versionHash: 'version-1',
@@ -752,7 +752,7 @@ describe('source records', () => {
         DB_SOURCE_HK_2026: sourceDatabase(
           [
             {
-              rawProperties: JSON.stringify({ dc: 1, dc_eng: 'Central and Western' }),
+              properties: JSON.stringify({ dc: 1, dc_eng: 'Central and Western' }),
               sourceGeometry: compressJsonBrotli(geometry),
               sourceRecordId: 'CENSTATD:A',
               versionHash: 'version-1',
@@ -808,7 +808,7 @@ describe('source records', () => {
         DB_SOURCE_HK_2025: sourceDatabase([]),
         DB_SOURCE_HK_2026: sourceDatabase([
           {
-            rawProperties: JSON.stringify({ class: 'administrative' }),
+            properties: JSON.stringify({ class: 'administrative' }),
             sourceRecordId: 'division-1',
             versionHash: 'version-1',
           },
@@ -854,7 +854,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
     const row = {
       sourceRecordId: 'publisher',
       versionHash: 'hash',
-      rawProperties: '{"publisherValue":" original "}',
+      properties: '{"publisherValue":" original "}',
       sourceGeometry: JSON.stringify(geometry),
     }
     const db = tableName

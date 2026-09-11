@@ -52,9 +52,9 @@ const ADDRESS_SOURCE_RECORD_CATALOGUE = {
     releaseKey: 'version',
     randomSampleStrategy: 'uuid-pivot',
     geometryColumn: 'sourceGeometry',
-    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry
+    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, properties, sourceGeometry
       FROM hkgovAlsAddresses2d UNION ALL
-      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry
+      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, properties, sourceGeometry
       FROM hkgovAlsAddresses3d)`,
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
@@ -114,7 +114,7 @@ const STREET_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEntry>
   // into the API envelope without changing its storage or discarding evidence.
   'ds-hk-hkgov-landsd-street': {
     tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease,
-      json_object('nameEn', nameEn, 'nameZhHant', nameZhHant, 'districtCode', districtCode) AS rawProperties
+      json_object('nameEn', nameEn, 'nameZhHant', nameZhHant, 'districtCode', districtCode) AS properties
       FROM hkgovLandsdStreetBaselineRecords
       UNION ALL
       SELECT sourceRecordId, versionHash, validFromRelease, validToRelease,
@@ -123,7 +123,7 @@ const STREET_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEntry>
         'gazetteDate', gazetteDate, 'effectiveDate', effectiveDate, 'kind', kind,
         'noticeRef', noticeRef, 'previousNoticeRefs', json(previousNoticeRefs),
         'districtCodes', json(districtCodes), 'rawExtractedText', json(rawExtractedText),
-        'parserDiagnostics', json(parserDiagnostics), 'evidenceAssets', json(evidenceAssets)) AS rawProperties
+        'parserDiagnostics', json(parserDiagnostics), 'evidenceAssets', json(evidenceAssets)) AS properties
       FROM hkgovLandsdStreetNotices)`,
   },
 }

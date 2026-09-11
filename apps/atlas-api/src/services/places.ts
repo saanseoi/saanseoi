@@ -1,4 +1,10 @@
 import {
+  getPublicationReadiness,
+  guardPublicationRead,
+  hasHistoricalSelectors,
+  PublicationReadUnavailableError,
+} from '../db/publicationState'
+import {
   defaultApiLocalesByProfile,
   derivePlaceReferenceName,
   parseRequestedApiLocales,
@@ -12,7 +18,6 @@ import {
 
 import {
   countPlaceRecordsCurrent,
-  hasCurrentPlaceSnapshot,
   listPlaceRecordsCurrent,
   type PlaceLocaleValue,
   type PlaceRecord,
@@ -115,7 +120,11 @@ export type PlaceListQuery = {
 
 export type PlaceListResult =
   | { status: 200; body: PlaceListDocument }
-  | { status: 503; body: SnapshotNotReadyResponse<'place'> }
+  | {
+      status: 503
+      publicationPending?: boolean
+      body: SnapshotNotReadyResponse<'place'>
+    }
 
 function parsePlaceProfile(value?: string): PlaceProfile {
   if (value === 'compact' || value === 'map' || value === 'full') return value
@@ -364,12 +373,25 @@ async function loadIncludedDivisions(args: {
   const divisionIds = [...new Set(args.records.flatMap(record => record.divisionIds))]
   if (divisionIds.length === 0) return []
 
-  const currentRecords = await listDivisionRecordsCurrentByIds(args.currentDb, {
-    snapshotId: args.activeSnapshot.divisionSnapshotId,
-    divisionIds,
-    localeSelection: args.routeState.localeSelection,
-  })
-  if (args.historyDbsByBinding && currentRecords.length === 0) {
+  const divisionToken = await getPublicationReadiness(args.currentDb, 'division', [
+    args.activeSnapshot.divisionSnapshotId,
+  ])
+  const currentRecords =
+    divisionToken !== null
+      ? await guardPublicationRead(
+          args.currentDb,
+          'division',
+          [args.activeSnapshot.divisionSnapshotId],
+          divisionToken,
+          () =>
+            listDivisionRecordsCurrentByIds(args.currentDb, {
+              snapshotId: args.activeSnapshot.divisionSnapshotId,
+              divisionIds,
+              localeSelection: args.routeState.localeSelection,
+            }),
+        )
+      : null
+  if (!currentRecords && args.historyDbsByBinding) {
     const plan = await resolveSnapshotReplayPlan(
       args.metaDb as never,
       args.activeSnapshot.divisionSnapshotId,
@@ -404,6 +426,10 @@ async function loadIncludedDivisions(args: {
       )
   }
 
+  if (!currentRecords)
+    throw new PublicationReadUnavailableError(
+      'The selected Place divisions are not ready',
+    )
   return currentRecords.map(record =>
     createIncludedDivisionResource({
       baseUrl: args.baseUrl,
@@ -481,93 +507,125 @@ export async function listPlaces(args: {
   let records: PlaceRecord[]
   let total: number | undefined
   let hasMore: boolean | undefined
-  const useHistory =
-    args.historyDbsByBinding &&
-    !(await runWithD1ReadRetry(() =>
-      hasCurrentPlaceSnapshot(args.currentDb, activeSnapshot.snapshotId),
-    ))
-  if (useHistory && args.historyDbsByBinding) {
-    const historyDbsByBinding = args.historyDbsByBinding
-    const selected = await runWithD1ReadRetry(() =>
-      listReplayedPlacePage({
-        ...lookup,
-        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
-        historyDbsByBinding,
-        localeSelection: routeState.localeSelection,
-        metaDb: args.metaDb,
-        snapshotId: activeSnapshot.snapshotId,
-      }),
+  const publicationToken = await getPublicationReadiness(args.currentDb, 'place', [
+    activeSnapshot.snapshotId,
+  ])
+  const useHistory = publicationToken === null
+  if (useHistory) {
+    const latest = hasHistoricalSelectors(args.query)
+      ? await getActivePlaceSnapshot(args.metaDb, args.region, {})
+      : null
+    if (
+      !args.historyDbsByBinding ||
+      !latest ||
+      latest.apiReleaseSet === activeSnapshot.apiReleaseSet
     )
-    hasMore = selected.hasMore
-    records = selected.records
-  } else {
-    ;[records, total] = await runWithD1ReadRetry(() =>
-      Promise.all([
-        listPlaceRecordsCurrent(args.currentDb, lookup),
-        countPlaceRecordsCurrent(args.currentDb, {
-          snapshotId: activeSnapshot.snapshotId,
-          basicCategory: filters.basicCategory,
-          taxonomyPrimary: filters.taxonomyPrimary,
-          operatingStatus: filters.operatingStatus,
-          divisionId: filters.division,
-        }),
-      ]),
-    )
+      return {
+        status: 503,
+        publicationPending: true,
+        body: buildSnapshotNotReadyResponse('place'),
+      }
   }
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'place',
+      [activeSnapshot.snapshotId],
+      publicationToken,
+      async (): Promise<PlaceListResult> => {
+        if (useHistory && args.historyDbsByBinding) {
+          const historyDbsByBinding = args.historyDbsByBinding
+          const selected = await runWithD1ReadRetry(() =>
+            listReplayedPlacePage({
+              ...lookup,
+              divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+              historyDbsByBinding,
+              localeSelection: routeState.localeSelection,
+              metaDb: args.metaDb,
+              snapshotId: activeSnapshot.snapshotId,
+            }),
+          )
+          hasMore = selected.hasMore
+          records = selected.records
+        } else {
+          ;[records, total] = await runWithD1ReadRetry(() =>
+            Promise.all([
+              listPlaceRecordsCurrent(args.currentDb, lookup),
+              countPlaceRecordsCurrent(args.currentDb, {
+                snapshotId: activeSnapshot.snapshotId,
+                basicCategory: filters.basicCategory,
+                taxonomyPrimary: filters.taxonomyPrimary,
+                operatingStatus: filters.operatingStatus,
+                divisionId: filters.division,
+              }),
+            ]),
+          )
+        }
 
-  const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(() =>
-    loadIncludedDivisions({
-      currentDb: args.currentDb,
-      historyDbsByBinding: args.historyDbsByBinding,
-      metaDb: args.metaDb,
-      activeSnapshot,
-      records,
-      routeState,
-      include: args.query.include,
-      baseUrl: url.origin,
-    }),
-  )
-  return {
-    status: 200,
-    body: buildJsonApiListDocument({
-      url,
-      data: records.map(record =>
-        createPlaceResource({ baseUrl: url.origin, record, routeState }),
-      ),
-      included,
-      limit,
-      offset,
-      total,
-      hasMore,
-      meta: {
-        ...buildApiVersionMetadata({
-          requestedApiVersion: routeState.requestedApiVersion,
-          requestedApiFamily: routeState.requestedApiFamily,
-          resolvedApiVersion: routeState.resolvedApiVersion,
-          apiReleaseSet: activeSnapshot.apiReleaseSet,
-          schemaVersion: activeSnapshot.schemaVersion,
-          rulesetVersion: activeSnapshot.rulesetVersion,
-          profile: routeState.profile,
-        }),
-        apiCatalogRevision: activeSnapshot.apiCatalogRevision,
-        catalogPublishedAt: activeSnapshot.catalogPublishedAt,
-        cohort: activeSnapshot.cohortKey,
-        domain: 'overture',
-        region: args.region,
-        profile: routeState.profile,
-        locales: resolveApiMetaLocales(routeState.localeSelection),
-        filters,
-        page: { limit, offset, ...(total === undefined ? { hasMore } : { total }) },
+        const url = new URL(args.requestUrl)
+        const included = await runWithD1ReadRetry(() =>
+          loadIncludedDivisions({
+            currentDb: args.currentDb,
+            historyDbsByBinding: args.historyDbsByBinding,
+            metaDb: args.metaDb,
+            activeSnapshot,
+            records,
+            routeState,
+            include: args.query.include,
+            baseUrl: url.origin,
+          }),
+        )
+        return {
+          status: 200,
+          body: buildJsonApiListDocument({
+            url,
+            data: records.map(record =>
+              createPlaceResource({ baseUrl: url.origin, record, routeState }),
+            ),
+            included,
+            limit,
+            offset,
+            total,
+            hasMore,
+            meta: {
+              ...buildApiVersionMetadata({
+                requestedApiVersion: routeState.requestedApiVersion,
+                requestedApiFamily: routeState.requestedApiFamily,
+                resolvedApiVersion: routeState.resolvedApiVersion,
+                apiReleaseSet: activeSnapshot.apiReleaseSet,
+                schemaVersion: activeSnapshot.schemaVersion,
+                rulesetVersion: activeSnapshot.rulesetVersion,
+                profile: routeState.profile,
+              }),
+              apiCatalogRevision: activeSnapshot.apiCatalogRevision,
+              catalogPublishedAt: activeSnapshot.catalogPublishedAt,
+              cohort: activeSnapshot.cohortKey,
+              domain: 'overture',
+              region: args.region,
+              profile: routeState.profile,
+              locales: resolveApiMetaLocales(routeState.localeSelection),
+              filters,
+              page: {
+                limit,
+                offset,
+                ...(total === undefined ? { hasMore } : { total }),
+              },
+            },
+            permalink: buildPlacePermalink({
+              url,
+              region: args.region,
+              routeState,
+              activeSnapshot,
+              limit,
+              offset,
+            }),
+          }),
+        }
       },
-      permalink: buildPlacePermalink({
-        url,
-        region: args.region,
-        routeState,
-        activeSnapshot,
-        limit,
-        offset,
-      }),
-    }),
-  }
+    )) ?? {
+      status: 503,
+      publicationPending: true,
+      body: buildSnapshotNotReadyResponse('place'),
+    }
+  )
 }

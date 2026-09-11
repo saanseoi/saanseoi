@@ -1,3 +1,4 @@
+import { getPublicationReadiness, guardPublicationRead } from '../db/publicationState'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import type {
   CurrentDatabase,
@@ -63,19 +64,31 @@ export async function getHongKongStreetDetail(input: {
 }) {
   const snapshot = await getPublishedStreetSnapshot(input.metaDb, input.region)
   if (!snapshot) return snapshotNotReady()
-  const street = await getStreetCurrentById(input.currentDb, {
-    id: input.id,
-    snapshotId: snapshot.id,
-  })
-  if (!street) return streetNotFound()
-  return {
-    status: 200 as const,
-    body: detailDocument(
-      asStreetState(street),
-      input.requestUrl,
-      linksForStreet(input.requestUrl, input.id, street.version),
-    ),
-  }
+  const token = await getPublicationReadiness(input.currentDb, 'street', [snapshot.id])
+  if (token === null) return snapshotNotReady()
+  return (
+    (await guardPublicationRead(
+      input.currentDb,
+      'street',
+      [snapshot.id],
+      token,
+      async () => {
+        const street = await getStreetCurrentById(input.currentDb, {
+          id: input.id,
+          snapshotId: snapshot.id,
+        })
+        if (!street) return streetNotFound()
+        return {
+          status: 200 as const,
+          body: detailDocument(
+            asStreetState(street),
+            input.requestUrl,
+            linksForStreet(input.requestUrl, input.id, street.version),
+          ),
+        }
+      },
+    )) ?? snapshotNotReady()
+  )
 }
 
 export async function listHongKongStreetVersions(input: {
