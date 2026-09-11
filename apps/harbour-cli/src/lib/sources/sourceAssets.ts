@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 
-import { zipSync } from 'fflate'
+import { packageSourceReleaseFile } from './sourceReleasePackaging.ts'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
 import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
@@ -119,7 +119,6 @@ const SOURCE_PACKAGE_CACHE_ROOT = resolve(
   REPO_ROOT,
   '.local/harbour-sql/source-package-cache',
 )
-const SOURCE_PACKAGE_CONTRACT = 'lossless-zip-v1'
 
 // Miniflare persists both the local R2 bucket and D1 metadata in SQLite. Asset
 // registration is therefore serialised within one CLI process to avoid lock
@@ -403,77 +402,25 @@ async function prepareSourceReleaseAsset(
     }
   }
 
-  const inputStat = await stat(input.filePath)
-  const cacheKey = createHash('sha256')
-    .update(
-      JSON.stringify({
-        contract: SOURCE_PACKAGE_CONTRACT,
-        filePath: resolve(input.filePath),
-        mtimeMs: inputStat.mtimeMs,
-        size: inputStat.size,
-      }),
-    )
-    .digest('hex')
-  const cachedArchivePath = resolve(SOURCE_PACKAGE_CACHE_ROOT, `${cacheKey}.zip`)
-  const cachedMetadataPath = resolve(SOURCE_PACKAGE_CACHE_ROOT, `${cacheKey}.json`)
-  try {
-    const [archiveBytes, cachedMetadata] = await Promise.all([
-      readFile(cachedArchivePath),
-      readFile(cachedMetadataPath, 'utf8').then(
-        value =>
-          JSON.parse(value) as {
-            originalSha256: string
-            sha256: string
-          },
-      ),
-    ])
-    return {
-      byteLength: archiveBytes.byteLength,
-      cleanup: async () => {},
-      fileName: `${originalFileName}.zip`,
-      filePath: cachedArchivePath,
-      mediaType: 'application/zip',
-      original: {
-        byteLength: inputStat.size,
-        fileName: originalFileName,
-        mediaType: originalMediaType,
-        sha256: cachedMetadata.originalSha256,
-      },
-      packaging: 'saanseoi-lossless-zip',
-      sha256: cachedMetadata.sha256,
-    }
-  } catch (error) {
-    if (!isMissingFileError(error) && !(error instanceof SyntaxError)) throw error
-  }
-
-  const originalBytes = await readFile(input.filePath)
-  const archiveBytes = zipSync({ [safeFileName(originalFileName)]: originalBytes })
-  const fileName = `${originalFileName}.zip`
-  const originalSha256 = hash(originalBytes)
-  const sha256 = hash(archiveBytes)
-  await mkdir(SOURCE_PACKAGE_CACHE_ROOT, { recursive: true })
-  await Promise.all([
-    writeFile(cachedArchivePath, archiveBytes),
-    writeFile(
-      cachedMetadataPath,
-      `${JSON.stringify({ originalSha256, sha256 }, null, 2)}\n`,
-    ),
-  ])
-
+  const archive = await packageSourceReleaseFile(
+    input.filePath,
+    originalFileName,
+    SOURCE_PACKAGE_CACHE_ROOT,
+  )
   return {
-    byteLength: archiveBytes.byteLength,
+    byteLength: archive.byteLength,
     cleanup: async () => {},
-    fileName,
-    filePath: cachedArchivePath,
+    fileName: `${originalFileName}.zip`,
+    filePath: archive.filePath,
     mediaType: 'application/zip',
     original: {
-      byteLength: originalBytes.byteLength,
+      byteLength: archive.original.byteLength,
       fileName: originalFileName,
       mediaType: originalMediaType,
-      sha256: originalSha256,
+      sha256: archive.original.sha256,
     },
     packaging: 'saanseoi-lossless-zip',
-    sha256,
+    sha256: archive.sha256,
   }
 }
 

@@ -15,6 +15,7 @@ import {
   buildSourceReleaseCode,
   getDatasetById,
   getDatasetRecordByReleaseCode,
+  listSnapshotsForRelease,
   updateDatasetStatus,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -23,7 +24,7 @@ import { prepareDivisionVersionInsertContext } from '@repo/core/pipeline/db/divi
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { eq, metaSchema } from '@repo/db'
+import { currentSchema, eq, metaSchema } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import {
@@ -127,6 +128,7 @@ export async function processNativeSourceSqlRelease(
     resourceType: input.resourceType,
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
+  if ('completed' in registered && registered.completed) return
   const releaseId = requireString(registered.releaseId, 'releaseId')
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
@@ -602,6 +604,32 @@ async function resolveNativeSourceRelease(
           throw new Error(
             `Native source archive does not match registered release ${releaseCode}.`,
           )
+        if (input.divisionRows && existing.status === 'published') {
+          const snapshot = (
+            await listSnapshotsForRelease(
+              context.metaDb as unknown as HarbourReadableDb,
+              existing.releaseId,
+              'division',
+            )
+          ).find(snapshot => snapshot.variant === 'hkgov-landsd')
+          if (snapshot?.status === 'published') {
+            const receipt = await context.currentDb
+              .select()
+              .from(currentSchema.divisionPublicationState)
+              .where(eq(currentSchema.divisionPublicationState.snapshotId, snapshot.id))
+              .get()
+            if (
+              receipt?.status === 'current' &&
+              receipt.preparedAt &&
+              receipt.publicationToken === existing.releaseId
+            )
+              return {
+                releaseCode: existing.releaseCode,
+                releaseId: existing.releaseId,
+                completed: true,
+              }
+          }
+        }
         return { releaseCode: existing.releaseCode, releaseId: existing.releaseId }
       }
     } finally {
