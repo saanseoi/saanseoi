@@ -566,6 +566,10 @@ function createDraftSnapshotDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    CREATE TABLE releases(id TEXT PRIMARY KEY,status TEXT NOT NULL);
+    CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT NOT NULL,snapshotId TEXT NOT NULL);
+    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT NOT NULL,apiReleaseSetId TEXT NOT NULL);
+    CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT NOT NULL,regionCode TEXT NOT NULL,status TEXT NOT NULL,publishedAt TEXT NOT NULL,revision INTEGER NOT NULL);
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL UNIQUE,
@@ -1779,6 +1783,135 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
     expect(later.parentSnapshotId).toBeNull()
     sqlite.close()
+  })
+
+  for (const withdrawnSourceStatus of ['revoked', 'published'])
+    test(`parents forward ingestion to the restored catalogue branch with withdrawn source ${withdrawnSourceStatus}`, async () => {
+      const { db, sqlite } = createDraftSnapshotDb()
+      try {
+        const args = {
+          cohortKey: '2026',
+          datasetCode: 'ds-hk-overture-division',
+          datasetId: 'dataset',
+          regionCode: 'hk',
+          sourceReleaseId: 'source-a',
+          variant: 'overture',
+        }
+        const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+        sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+        const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          sourceReleaseId: 'source-b',
+        })
+        sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
+        sqlite.query('INSERT INTO releases VALUES (?,?)').run('source-a', 'published')
+        sqlite
+          .query('INSERT INTO releases VALUES (?,?)')
+          .run('source-b', withdrawnSourceStatus)
+        sqlite
+          .query('INSERT INTO snapshotSources VALUES (?,?,?)')
+          .run(a.id, 'dataset', 'source-a')
+        sqlite
+          .query('INSERT INTO snapshotSources VALUES (?,?,?)')
+          .run(b.id, 'dataset', 'source-b')
+        sqlite
+          .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
+          .run('set-a', a.id)
+        sqlite
+          .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
+          .run('set-b', b.id)
+        sqlite.exec(
+          "INSERT INTO apiCatalogRevisions VALUES ('catalog-b','api','hk','current','2026-01-01',0),('catalog-restored','api','hk','current','2026-01-02',0)",
+        )
+        sqlite.exec(
+          "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-b','set-b'),('catalog-restored','set-a')",
+        )
+        const c = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          sourceReleaseId: 'source-c',
+        })
+        expect(c.parentSnapshotId).toBe(a.id)
+        expect(c.code).toBe('ss-hk-division-2026-r2')
+        expect(
+          sqlite.query('SELECT status FROM snapshots WHERE id=?').get(b.id),
+        ).toEqual({ status: 'published' })
+        const later = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          cohortKey: '2027',
+          sourceReleaseId: 'source-later',
+        })
+        expect(later.parentSnapshotId).toBe(a.id)
+      } finally {
+        sqlite.close()
+      }
+    })
+
+  test('an empty restored catalogue resets ancestry while retaining monotonically increasing revision numbers', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    try {
+      const args = {
+        cohortKey: '2026',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset',
+        regionCode: 'hk',
+        sourceReleaseId: 'source-a',
+        variant: 'overture',
+      }
+      const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-a', a.id)
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisions VALUES ('catalog-a','api','hk','current','2026-01-01',0),('catalog-empty','api','hk','current','2026-01-02',0)",
+      )
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-a','set-a')",
+      )
+      const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        sourceReleaseId: 'source-b',
+      })
+      expect(b.parentSnapshotId).toBeNull()
+      expect(b.code).toBe('ss-hk-division-2026-r1')
+    } finally {
+      sqlite.close()
+    }
+  })
+
+  test('accepted historical cohorts remain eligible parents even when they are not the latest cohort', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    try {
+      const args = {
+        cohortKey: '2025',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset',
+        regionCode: 'hk',
+        sourceReleaseId: 'source-a',
+        variant: 'overture',
+      }
+      const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+      const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        cohortKey: '2026',
+        sourceReleaseId: 'source-b',
+      })
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-a', a.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-b', b.id)
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisions VALUES ('catalog','api','hk','current','2026-01-01',0)",
+      )
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog','set-a'),('catalog','set-b')",
+      )
+      const revision = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        sourceReleaseId: 'source-a-revised',
+      })
+      expect(revision.parentSnapshotId).toBe(a.id)
+    } finally {
+      sqlite.close()
+    }
   })
 
   test('normalises a v0 lineage code while retaining its referenced id', async () => {

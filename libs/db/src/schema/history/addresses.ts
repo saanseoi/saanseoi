@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import {
   canonicalAddress2d,
@@ -6,6 +6,7 @@ import {
   canonicalAddress2dI18n,
   canonicalAddress3d,
   canonicalAddress3dI18n,
+  jsonText,
 } from '../shared'
 import { historyI18nVersioning, historyVersioning } from './shared'
 
@@ -42,6 +43,20 @@ export const address2dI18n = sqliteTable(
       table.locale,
       table.isCurrent,
     ),
+  ],
+)
+
+/** Exact edition assertions are selected independently of canonical components. */
+export const address2dEvidence = sqliteTable(
+  'address2dEvidence',
+  {
+    addressId: text('addressId').notNull(),
+    sources: jsonText('sources').notNull(),
+    ...historyI18nVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.addressId, table.versionHash] }),
+    index('address2dEvidence_current_lookup_idx').on(table.addressId, table.isCurrent),
   ],
 )
 
