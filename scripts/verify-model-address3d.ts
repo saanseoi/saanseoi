@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { prepareAls3dCollections } from '../apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls3dPreparation'
 import { readAls3dFeatures } from '../apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls3d'
 import { validateAddress3dPreparation } from '../apps/harbour-cli/src/lib/pipeline/addresses/address3dImport'
-import { normaliseAddressRowForPipeline } from '../libs/core/src/pipeline/services/addressPipeline/normalisation'
+import { normaliseAddressRowForPipeline } from '../libs/core/src/pipeline/services/addresses/normalisation'
 
 const output = resolve('.local/hkgov-dpo/model-address3d-verification')
 await mkdir(output, { recursive: true })

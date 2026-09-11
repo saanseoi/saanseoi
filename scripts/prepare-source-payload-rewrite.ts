@@ -7,7 +7,7 @@ import {
   overtureSourceTables,
   isSupplementalDivisionPayload,
   rewriteOvertureSourcePayload,
-} from '../libs/core/src/pipeline/services/sourcePayloadRewrite'
+} from '../libs/core/src/pipeline/services/sources/sourcePayloadRewrite'
 
 const { values } = parseArgs({
   options: { database: { type: 'string' }, output: { type: 'string' } },

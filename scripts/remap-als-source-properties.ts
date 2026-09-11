@@ -2,7 +2,7 @@ import { Database } from 'bun:sqlite'
 import { writeFileSync } from 'node:fs'
 import { parseArgs } from 'node:util'
 import { resolve, sep } from 'node:path'
-import { remapAlsSourceProperties } from '../libs/core/src/pipeline/services/alsSourcePayload'
+import { remapAlsSourceProperties } from '../libs/core/src/pipeline/services/sources/alsSourcePayload'
 
 const { values } = parseArgs({
   options: {
