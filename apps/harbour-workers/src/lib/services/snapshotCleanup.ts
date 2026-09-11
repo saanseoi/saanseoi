@@ -149,9 +149,8 @@ export async function cleanupSnapshotByResourceType(
   if (search)
     guards.push(sql`NOT EXISTS (SELECT 1 FROM ${search}
     WHERE ${search.snapshotId} = ${candidate.snapshotId})`)
-  if (candidate.resourceType === 'address')
-    guards.push(sql`NOT EXISTS (
-    SELECT 1 FROM ${currentSchema.places} WHERE ${currentSchema.places.addressSnapshotId} = ${scopeId})`)
+  // Places retain logical historical dependencies and their serving content;
+  // those references do not require an Address or Division current projection.
   if (candidate.resourceType === 'street')
     guards.push(sql`NOT EXISTS (
     SELECT 1 FROM ${currentSchema.address2d} WHERE ${currentSchema.address2d.streetSnapshotId} = ${scopeId})`)
@@ -159,8 +158,6 @@ export async function cleanupSnapshotByResourceType(
     guards.push(
       sql`NOT EXISTS (SELECT 1 FROM ${currentSchema.address2d}
       WHERE ${currentSchema.address2d.divisionSnapshotId} = ${scopeId})`,
-      sql`NOT EXISTS (SELECT 1 FROM ${currentSchema.placesDivision}
-      WHERE ${currentSchema.placesDivision.divisionSnapshotId} = ${scopeId})`,
     )
   const guard = and(...guards)
   if (

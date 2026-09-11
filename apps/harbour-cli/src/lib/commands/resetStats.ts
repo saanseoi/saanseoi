@@ -162,7 +162,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
     await check(
       context.currentBinding,
       'Places reference contributed divisions',
-      `SELECT 1 FROM placesDivision WHERE divisionSnapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})) LIMIT 1`,
+      `SELECT 1 FROM placesDivision WHERE divisionSnapshotId IN (${ids}) LIMIT 1`,
     )
   }
   if (plan.dependencies.publications.some(row => row.preparedAt === null))
