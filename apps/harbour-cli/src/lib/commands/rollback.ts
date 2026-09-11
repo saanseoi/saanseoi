@@ -238,33 +238,35 @@ export async function runRollbackReleaseCommand(
       resolveTargetName(target),
       release.releaseCode,
     )
-    const sourceArtefacts: RollbackArtefact[] = dbContext.sourceTargets.map(
-      sourceTarget => ({
-        name: 'source',
-        sql: rollbackSql.source,
-        target: {
-          binding: sourceTarget.binding,
-          databaseId: sourceTarget.databaseId,
-          name: 'source',
-        },
-      }),
-    )
-    const artefacts: RollbackArtefact[] = [
+    const sourceArtefacts = dbContext.sourceTargets.map(sourceTarget => ({
+      name: 'source' as const,
+      sql: rollbackSql.source,
+      target: {
+        binding: sourceTarget.binding,
+        databaseId: sourceTarget.databaseId,
+        name: 'source' as const,
+      },
+    }))
+    const artefacts = [
       ...sourceArtefacts,
       {
-        name: 'history',
+        name: 'history' as const,
         sql: rollbackSql.history,
         target: resolveHistoryTarget(dbContext),
       },
       {
-        name: 'current',
+        name: 'current' as const,
         sql: rollbackSql.current,
         target: resolveCurrentTarget(dbContext),
       },
-      { name: 'meta', sql: rollbackSql.meta, target: resolveMetaTarget(dbContext) },
+      {
+        name: 'meta' as const,
+        sql: rollbackSql.meta,
+        target: resolveMetaTarget(dbContext),
+      },
     ]
 
-    const artefactStats = artefacts.map(artefact => ({
+    const artefactStats: RollbackArtefact[] = artefacts.map(artefact => ({
       ...artefact,
       statementCount: splitSqlStatements(artefact.sql).length,
     }))

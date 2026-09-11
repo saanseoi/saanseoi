@@ -533,6 +533,8 @@ async function countPurgeSourceRows(
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   input: {
     releaseId: string
+    resourceType: string
+    sourceVersion: string
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
