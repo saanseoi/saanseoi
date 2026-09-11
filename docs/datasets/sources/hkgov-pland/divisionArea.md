@@ -335,3 +335,7 @@ Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for exa
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
 properties. Original publisher paths and language dictionary identifiers retain their
 spelling; demographic measures about language are not locale-bearing labels.
+
+Planning Unit releases select `rs-division-hkgov-pland-pu-merge-v1`; New Town releases
+select `rs-division-hkgov-pland-new-town-merge-v1`. Both rulesets reference the shared
+geography identity, Planning normalisation and area geometry processing definitions.

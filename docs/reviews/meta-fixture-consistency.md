@@ -4,6 +4,22 @@ Reviewed the local working tree on 11 September 2026. This is a code and fixture
 not verification of deployed databases or publisher licence terms. No registry data or
 published release was changed.
 
+## Fixes completed
+
+Statistics and Streets schema descriptors and the two Planning ruleset descriptors are
+registered. Planning datasets select their matching domain rulesets, which reference
+existing processing declarations. The Streets ruleset is a release descriptor with no
+source operations; this does not add Streets processing-rule coverage.
+
+Places major-version aliases and all four implemented Streets routes have endpoint
+metadata, checked against the registered route definitions. All eight C&SD Statistics
+datasets have English, Traditional Chinese and Simplified Chinese names/descriptions.
+Unit locale keys use lowercase tags, and registry sync removes undeclared locale keys.
+
+The findings below record the audit baseline. Semantic curation-path validation,
+consolidating inline Places rule descriptions and connecting schema descriptors to
+public contract definitions remain separate work.
+
 ## Findings
 
 ### 1. Release schema and ruleset identities are not a closed catalogue
