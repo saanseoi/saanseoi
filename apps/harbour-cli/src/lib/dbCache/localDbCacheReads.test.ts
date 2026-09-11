@@ -31,7 +31,7 @@ test('completed geometry contributors can precede shared composition publication
         id: 'release',
         code: 'geometry',
         datasetId: 'contributor',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
         status: 'published',
       },
     ]

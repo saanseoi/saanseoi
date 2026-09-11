@@ -35,6 +35,7 @@ export async function writeGeometryRows(
   type: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
+    publisherRows?: Array<NonNullable<NormalisedGeometry>>
     source: GeometryUploadPlan['source']
     variant: string
     releaseId: string
@@ -52,6 +53,7 @@ export async function writeGeometryRows(
   },
   onProgress?: GeometryWriteProgress,
 ) {
+  const publisherRows = version.publisherRows ?? rows
   const now = toIsoTimestamp()
   const currentTable =
     type === 'divisionArea'
@@ -108,6 +110,11 @@ export async function writeGeometryRows(
   onProgress?.('hash geometry rows', 0, rows.length)
   for (const [index, row] of rows.entries()) {
     historyHashes.set(row.canonical.id, await hashDivisionGeometryRow(row.canonical))
+    if ((index + 1) % 32 === 0 || index + 1 === rows.length) {
+      onProgress?.('hash geometry rows', index + 1, rows.length)
+    }
+  }
+  for (const row of publisherRows) {
     if (
       !isDisplayDerivative &&
       !isCenstatdStatisticGeometry &&
@@ -118,9 +125,6 @@ export async function writeGeometryRows(
         row.source.sourceRecordId,
         await hashGeometrySourceAssertion(row.source, version.source),
       )
-    }
-    if ((index + 1) % 32 === 0 || index + 1 === rows.length) {
-      onProgress?.('hash geometry rows', index + 1, rows.length)
     }
   }
   // Churn is a property of the snapshot lineage, not of the mutable history
@@ -257,10 +261,19 @@ export async function writeGeometryRows(
     }
   await recordSourceResolutions(
     context.historyDb as unknown as HarbourWritableDb,
-    rows.flatMap(row => {
+    publisherRows.flatMap(row => {
       const sourceVersionHash = sourceHashes.get(row.source.sourceRecordId)
       if (!sourceVersionHash) return []
-      const canonical = row.canonical as Record<string, unknown>
+      const canonical = (rows.find(
+        candidate => candidate.canonical.id === row.canonical.id,
+      )?.canonical ??
+        rows.find(
+          candidate =>
+            'divisionId' in candidate.canonical &&
+            'divisionId' in row.canonical &&
+            candidate.canonical.divisionId === row.canonical.divisionId,
+        )?.canonical ??
+        row.canonical) as Record<string, unknown>
       return [
         {
           snapshotId: version.snapshotId,
@@ -287,7 +300,7 @@ export async function writeGeometryRows(
     version.source === 'hkgov-pland-new-town'
       ? []
       : await Promise.all(
-          rows.map(async row => {
+          publisherRows.map(async row => {
             const { sourceGeometry, ...sourceWithProvenance } = row.source
             const sourceAssertion = sourceWithProvenance
             return {

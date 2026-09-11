@@ -423,6 +423,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       await normalisedCache.write(normalised)
     }
 
+    const publisherRows = [...normalised]
     const syntheticAreas = await resolveSyntheticOvertureHongKongAreas(
       dbContext.currentDb,
       metaDb,
@@ -654,6 +655,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       normalised,
       {
         source: previewPlan.source,
+        publisherRows,
         variant: geometryVariant(previewPlan),
         releaseId,
         releaseCode,
@@ -739,7 +741,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       ],
       // Synthetic area rows are individual patches, so the bulk geometry rule
       // reports only the source rows it normalised.
-      outputCount: normalised.length - syntheticRows.length,
+      outputCount: publisherRows.length,
     })
     await deliverProcessingResult(target, bucket, audit.ref)
     progress.complete(
