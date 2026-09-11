@@ -9,6 +9,7 @@ import {
   beginSnapshotPublication,
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
+  getPreparedPublication,
 } from '../local/snapshotPublication.ts'
 import { buildPublicationRowCountSql } from '@repo/core/pipeline/services/publication/sql.ts'
 import { currentSchema } from '@repo/db'
@@ -79,6 +80,11 @@ test('Street native delivery preserves unchanged current rows and only writes ch
       const releaseId = `street-economy-${root.split('/').at(-1)}-${revision}`
       const phase = { context, releaseId, phase: 'street-data', inputs: { revision } }
       directories.push(dirname(sqlDeliveryPhaseDirectory(phase)))
+      const previous = await getPreparedPublication(
+        context.currentDb as never,
+        'streetPublicationState',
+        'street-scope',
+      )
       const generate = async (copy: LocalAddressDbContext) => {
         const publication = {
           table: 'streetPublicationState' as const,
@@ -86,6 +92,7 @@ test('Street native delivery preserves unchanged current rows and only writes ch
           snapshotId: `snapshot-${revision}`,
           publicationToken: releaseId,
           timestamp: `2026-09-${revision}`,
+          previous,
         }
         await beginSnapshotPublication(copy.currentDb, publication)
         const guarded = guardSnapshotPublicationWrites(copy.currentDb, publication)

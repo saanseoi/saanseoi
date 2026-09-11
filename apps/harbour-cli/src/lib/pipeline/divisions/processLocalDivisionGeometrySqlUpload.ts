@@ -721,6 +721,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           previewPlan,
           normalised,
           writeResult.churn,
+          dbContext.historyTargets as never,
         ),
       )
     }

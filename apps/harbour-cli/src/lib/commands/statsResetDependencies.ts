@@ -33,6 +33,12 @@ export async function collectStatsResetDependencies(
     meta,
     'SELECT * FROM snapshotAssemblyRuns ORDER BY id',
   )
+  const publications = await resetRows(
+    context.currentBinding,
+    ['division', 'divisionArea', 'divisionBoundary']
+      .map(family => `SELECT '${family}' AS family, * FROM ${family}PublicationState`)
+      .join(' UNION ALL '),
+  )
   const releaseIds = new Set(releases.map(row => String(row.id)))
   const selected = new Set(roots.map(row => String(row.id)))
   const geometrySnapshots = new Set(
@@ -65,14 +71,16 @@ export async function collectStatsResetDependencies(
     for (let offset = 0; offset < pending.length; offset += 50) {
       const batch = pending.slice(offset, offset + 50)
       const ids = batch.map(sqlLiteral).join(', ')
-      for (const binding of [
-        context.currentBinding,
-        ...context.historyTargets.map(target => target.binding),
-      ]) {
-        const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${ids})`
+      for (const [current, binding] of [
+        [true, context.currentBinding],
+        ...context.historyTargets.map(target => [false, target.binding] as const),
+      ] as const) {
+        const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
         const dependants = await resetRows(
           binding,
-          `SELECT DISTINCT snapshotId FROM divisionAreas WHERE divisionId IN (${divisions}) UNION SELECT DISTINCT snapshotId FROM divisionBoundaries WHERE leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})`,
+          current
+            ? `SELECT DISTINCT state.snapshotId FROM divisionAreas row JOIN divisionAreaPublicationState state ON state.scopeId=row.snapshotId WHERE row.divisionId IN (${divisions}) UNION SELECT DISTINCT state.snapshotId FROM divisionBoundaries row JOIN divisionBoundaryPublicationState state ON state.scopeId=row.snapshotId WHERE row.leftDivisionId IN (${divisions}) OR row.rightDivisionId IN (${divisions})`
+            : `SELECT DISTINCT snapshotId FROM divisionAreas WHERE divisionId IN (${divisions}) UNION SELECT DISTINCT snapshotId FROM divisionBoundaries WHERE leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})`,
         )
         for (const row of dependants) {
           if (geometrySnapshots.has(String(row.snapshotId)))
@@ -128,6 +136,7 @@ export async function collectStatsResetDependencies(
     // Retain dependency edges in the plan so confirmation revalidation detects
     // changed compositions even when their selected IDs remain the same.
     dependencies: {
+      publications: publications.filter(row => selected.has(String(row.snapshotId))),
       sources: sources.filter(
         row =>
           selected.has(String(row.snapshotId)) ||

@@ -1,3 +1,5 @@
+import { readDivisionSnapshot } from './readDivisionSnapshot.ts'
+import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
@@ -168,6 +170,7 @@ export async function buildGeometryStats(
   plan: GeometryUploadPlan,
   rows: Array<NonNullable<NormalisedGeometry>>,
   churn: GeometryChurnCounts,
+  historyTargets: readonly ReplayShard[] = [],
 ) {
   const churnStats = buildGeometryChurnStatRows(plan.resourceType, churn)
   if (isHousingMarketAreaPlan(plan)) {
@@ -190,7 +193,12 @@ export async function buildGeometryStats(
     // lifecycle churn remains useful.
     return churnStats
   }
-  const districts = await resolveGeometryDistricts(currentDb, metaDb, plan)
+  const districts = await resolveGeometryDistricts(
+    currentDb,
+    metaDb,
+    plan,
+    historyTargets,
+  )
   if (resolveProviderBridgeConfig(plan)) {
     for (const row of rows) {
       for (const divisionId of divisionReferenceIds(plan.resourceType, row)) {
@@ -281,6 +289,7 @@ async function resolveGeometryDistricts(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
+  historyTargets: readonly ReplayShard[],
 ) {
   if (resolveProviderBridgeConfig(plan)) {
     // HAD and C&SD geometries are normalised through cohort-scoped identifier
@@ -308,16 +317,12 @@ async function resolveGeometryDistricts(
     )
   }
 
-  const divisions = await currentDb
-    .select({
-      hierarchies: currentSchema.divisions.hierarchies,
-      id: currentSchema.divisions.id,
-      category: currentSchema.divisions.category,
-      class: currentSchema.divisions.class,
-    })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
-    .all()
+  const { divisions } = await readDivisionSnapshot(
+    currentDb as never,
+    metaDb,
+    snapshot.id,
+    historyTargets,
+  )
 
   return new Map(
     divisions.flatMap(division => {
