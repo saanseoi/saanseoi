@@ -10,7 +10,6 @@ import {
 import { sql } from 'drizzle-orm'
 
 import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
-import { divisions } from './divisions'
 
 export const places = sqliteTable(
   'places',
@@ -67,26 +66,23 @@ export const placesDivision = sqliteTable(
     placeId: text('placeId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     divisionId: text('divisionId').notNull(),
+    /** Retained exact dependency; independent of mutable Division serving scopes. */
+    definition: text('definition', { mode: 'json' })
+      .$type<{
+        level: number | null
+        locales: { locale: string; name: string | null }[]
+      }>()
+      .notNull(),
   },
   table => [
     primaryKey({
-      columns: [
-        table.placeSnapshotId,
-        table.placeId,
-        table.divisionSnapshotId,
-        table.divisionId,
-      ],
+      columns: [table.placeSnapshotId, table.placeId, table.divisionId],
     }),
     foreignKey({
       columns: [table.placeSnapshotId, table.placeId],
       foreignColumns: [places.snapshotId, places.id],
       name: 'placesDivision_placeSnapshotId_placeId_places_fk',
     }).onDelete('cascade'),
-    foreignKey({
-      columns: [table.divisionSnapshotId, table.divisionId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
-      name: 'placesDivision_divisionSnapshotId_divisionId_divisions_fk',
-    }),
     index('placesDivision_divisionId_idx').on(
       table.divisionSnapshotId,
       table.divisionId,
