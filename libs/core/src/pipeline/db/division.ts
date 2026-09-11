@@ -36,7 +36,7 @@ import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 const CURRENT_DIVISION_COLUMN_COUNT = 15
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 11
 const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 18
-const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 13
+const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 14
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
 type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
@@ -882,7 +882,7 @@ export async function insertDivisionVersionRows(
     assumeVersionRowsAbsent?: boolean
   },
 ) {
-  if (baseRows.length === 0) {
+  if (baseRows.length === 0 && i18nRows.length === 0) {
     return
   }
 
@@ -901,11 +901,13 @@ export async function insertDivisionVersionRows(
         snapshotId: context.snapshotId,
         isCurrent: true,
         level: row.level,
-        type: row.class,
+        class: row.class,
+        category: row.category,
+        divisionCode: row.divisionCode,
         geometry: row.geometry,
         bbox: row.bbox,
         wikidata: row.wikidata,
-        hierarchy: row.hierarchies,
+        hierarchies: row.hierarchies,
         identifiers: row.identifiers,
         cartography: row.cartography,
         sources: row.sources,
@@ -921,10 +923,9 @@ export async function insertDivisionVersionRows(
             target: [historySchema.divisions.id, historySchema.divisions.versionHash],
             set: {
               isCurrent: true,
-              sourceReleaseId: context.releaseId,
-              snapshotId: context.snapshotId,
               updatedAt: excluded('updatedAt'),
             },
+            setWhere: eq(historySchema.divisions.isCurrent, false),
           }),
     )
   }
@@ -1047,7 +1048,7 @@ async function insertDivisionVersionsI18nInChunks(
     assumeVersionRowsAbsent?: boolean
   },
 ) {
-  const chunkSize = getMaxRowsPerInsert(HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT)
+  const chunkSize = getMaxRowsPerInsert(HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT, 2)
   const statements = []
 
   for (const chunk of chunkArray(rows, chunkSize)) {
@@ -1063,17 +1064,10 @@ async function insertDivisionVersionsI18nInChunks(
               historySchema.divisionsI18n.locale,
             ],
             set: {
-              sourceReleaseId: excluded('sourceReleaseId'),
-              snapshotId: excluded('snapshotId'),
               isCurrent: true,
-              name: excluded('name'),
-              nameAlts: excluded('nameAlts'),
-              nameRules: excluded('nameRules'),
-              nameProvenance: excluded('nameProvenance'),
-              nameVariant: excluded('nameVariant'),
-              isLocaleInferred: excluded('isLocaleInferred'),
               updatedAt: excluded('updatedAt'),
             },
+            setWhere: eq(historySchema.divisionsI18n.isCurrent, false),
           }),
     )
   }
