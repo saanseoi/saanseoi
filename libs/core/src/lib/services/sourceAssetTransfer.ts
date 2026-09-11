@@ -127,7 +127,10 @@ function assertPart(part: SourceAssetPart) {
   )
     throw new Error('Invalid source transfer chunk size or hash.')
 }
-export function assertSourceAssetParts(byteLength: number, parts: SourceAssetPart[]) {
+export function assertSourceAssetParts(
+  byteLength: number,
+  parts: SourceAssetPart[],
+): asserts parts is [SourceAssetPart, ...SourceAssetPart[]] {
   if (
     !Number.isSafeInteger(byteLength) ||
     byteLength < 0 ||
@@ -234,7 +237,7 @@ export async function completeSourceAssetTransfer(
     },
   }
   if (input.parts.length === 1) {
-    await store.put(input.assetKey, await readPart(input.parts[0]!), {
+    await store.put(input.assetKey, await readPart(input.parts[0]), {
       ...options,
       sha256: input.contentHash,
       onlyIf: { etagDoesNotMatch: '*' },
