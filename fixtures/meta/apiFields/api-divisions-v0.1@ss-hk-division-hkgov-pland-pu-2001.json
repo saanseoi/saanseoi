@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8e2cfcb97b2e4f2fc91a516cf5f92348588566a0066827e9cb00ff1f022fa4d3",
+  "versionHash": "sha256:25949e585cbce05066e09ed78d889f13a3e527e07c2502524cd2a6440bd6fa02",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
   "schemaVersion": "sv-division-v1",
@@ -32,7 +32,7 @@
       "confidence": 1
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
       "sourceFieldPath": "planning_level",
       "resolverCode": "map_division_type",
@@ -86,7 +86,7 @@
       "confidence": 1
     },
     {
-      "apiField": "division.relationships.hierarchy",
+      "apiField": "division.attributes.hierarchies",
       "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
       "sourceFieldPath": "hierarchy",
       "resolverCode": "direct_copy",

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9a7c22a09578fdea641afadc7c93bddf22f50abf2fe530c46a611053e86449cb",
+  "versionHash": "sha256:b72d14e0a5a5a6d0e7a627b1ddbb852ee5f09d404c8bcd20134a2ce72af910ca",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-new-town",
   "schemaVersion": "sv-division-v1",
@@ -50,7 +50,7 @@
       "confidence": 1
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
       "sourceFieldPath": "planning_level",
       "resolverCode": "map_division_type",
@@ -104,7 +104,7 @@
       "confidence": 1
     },
     {
-      "apiField": "division.relationships.hierarchy",
+      "apiField": "division.attributes.hierarchies",
       "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
       "sourceFieldPath": "hierarchy",
       "resolverCode": "direct_copy",

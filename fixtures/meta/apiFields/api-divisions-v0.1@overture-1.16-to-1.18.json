@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:62d62e2f843b6a27b759bad15e804c9db3e577fffbc5d6ac3bb8516b7c4d71e2",
+  "versionHash": "sha256:f936e73cedfe5427442a3ee1612db9b4f5f926b3f68b2913debe4c8f997ab5db",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "schemaVersion": "sv-division-v1",
@@ -258,7 +258,7 @@
       "confidence": 0.8
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.primary",
       "resolverCode": "map_division_type",
@@ -267,7 +267,7 @@
       "confidence": 0.75
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "names.common",
       "resolverCode": "map_division_type",
@@ -276,7 +276,7 @@
       "confidence": 0.8
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "subtype",
       "resolverCode": "map_division_type",
@@ -285,7 +285,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "class",
       "resolverCode": "map_division_type",
@@ -294,7 +294,7 @@
       "confidence": 0.95
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "parent_division_id",
       "resolverCode": "map_division_type",
@@ -624,7 +624,7 @@
       "confidence": 0.9
     },
     {
-      "apiField": "division.attributes.type",
+      "apiField": "division.attributes.class",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "admin_level",
       "resolverCode": "map_division_type",
@@ -660,7 +660,7 @@
       "confidence": 0.85
     },
     {
-      "apiField": "division.relationships.hierarchy",
+      "apiField": "division.attributes.hierarchies",
       "sourceDatasetCode": "ds-hk-overture-division",
       "sourceFieldPath": "hierarchies",
       "resolverCode": "join_lookup",
