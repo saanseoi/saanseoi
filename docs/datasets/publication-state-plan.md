@@ -89,6 +89,14 @@ entries only for changed packs; publication promotes those changes into current.
 
 ## Delivery and publication
 
+All CLI family writers acquire the complete acknowledged mirror for their environment,
+including every configured history and source shard. Its manifest pins database
+identities and rejects family profiles, release-scoped caches and incomplete files.
+Preparation and metadata synchronisation respect the same writer lock and pending
+release ownership. A failed delivery preserves its original plan and baseline for
+recovery. Geometry reserves that baseline and retains a separate full preparation copy;
+local geometry work cannot advance the acknowledged mirror before remote replay.
+
 The shared scoped receipt contains `scopeId`, `snapshotId`, `publicationToken`,
 `preparedAt`, `status`, `createdAt` and `updatedAt`. A sealed delivery claims its scope
 using a unique token and the exact acknowledged predecessor snapshot and token. The
@@ -204,3 +212,11 @@ They do not establish production throughput or billed D1 writes.
 The Streets source-payload consolidation and API-family unification remain separate work
 in the [Streets family](families/streets.md). Publication state preserves publisher
 payloads, street identity and notice evidence.
+
+Current delivery uses the shared compiler across CLI families. History optimisation has
+a narrower component contract: Address, Places and CLI Division/Planning reuse
+independent unchanged base and locale versions. Streets retains its complete logical
+version timeline, including the locales belonging to each version. Independently
+inherited Street locales, sparse area/boundary source-resolution assertions and the
+exported core Division processor's history/provenance optimisation remain follow-up
+work. They do not prevent unchanged current rows from being reused.

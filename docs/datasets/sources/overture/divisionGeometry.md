@@ -299,10 +299,10 @@ boundaries use lineage/cohort scopes, preserving independent provider variants a
 retained cohorts. Current columns named `snapshotId` contain those physical scopes;
 metadata and immutable history retain logical snapshot IDs.
 
-Conditional canonical and geometry updates preserve unchanged rows and timestamps.
-Candidate SQL may still be transmitted, while equality checks prevent unchanged D1
-content-row writes. Full replacement membership removes absent components only within
-the owned scope. A new cohort has a separate initial geometry materialisation.
+Local canonical and geometry candidates preserve unchanged rows and timestamps. The
+shared compiler transmits only final content differences. Full replacement membership
+removes absent components only within the owned scope. A new cohort has a separate
+initial geometry materialisation.
 
 Delivery claims and guards the scope with its sealed publication token, validates the
 complete projection and records preparation. Publication alone grants current read
@@ -315,3 +315,10 @@ Complete source membership replaces only its lineage/cohort scope. Unchanged geo
 and source assertions generate no content mutations; a new independent cohort requires
 its initial materialisation. Binary geometry travels as bounded hexadecimal parameters
 without splitting one changed row into assembly writes.
+
+CLI Division history compares the base and each locale independently, retaining
+unchanged component versions and their original owning shards. A publication-version
+change alone does not replace canonical source provenance. Identical source
+interpretations inherit through snapshot ancestry; changed interpretations and source
+omissions remain explicit. This component optimisation applies to canonical Divisions;
+area and boundary source-resolution assertions retain their geometry lifecycle.

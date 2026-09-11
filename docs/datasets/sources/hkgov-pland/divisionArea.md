@@ -362,9 +362,9 @@ the shared deferred, incremental search finalisation; area geometry is not index
 
 Planning Unit and New Town canonical Division rows use their registered lineage scopes;
 area geometry uses lineage/cohort scopes. Current rows and localisations retain their
-physical keys when the logical snapshot advances. Conditional updates write only changed
-content, and complete replacement membership removes absent components within the owned
-scope. This saves D1 row writes even where candidate SQL is still transmitted.
+physical keys when the logical snapshot advances. The local compiler transmits only
+changed content, and complete replacement membership removes absent components within
+the owned scope.
 
 Preparation resolves exact Division dependencies through completed receipts or immutable
 history; it does not restore old Division versions into serving current tables. Each
@@ -377,3 +377,9 @@ candidates. The shared compiler sends only final keyed changes to current, histo
 source tables. The stable lineage retains unchanged base records and translations;
 removed members retire within that lineage. Publication claims and completion remain
 separate from the content difference.
+
+Canonical base and individual locale history versions inherit independently. Identical
+definitions reuse their owning history shard and original provenance even when an input
+hash also contains another component or a publication version. Real component changes
+close only the previous owning version. Repeated source interpretations inherit through
+snapshot ancestry, and explicit omissions override that inheritance.
