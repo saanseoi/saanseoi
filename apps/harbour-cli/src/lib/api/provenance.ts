@@ -136,7 +136,7 @@ export async function deliverProcessingResult(
   target: UploadTarget,
   source: ProvenanceStore,
   ref: ObjectRef,
-  onProgress?: (message: string) => void,
+  onProgress?: (message: string, retainedObjects: number) => void,
   options: { retainRemoteObject?: typeof retainRemoteR2Object } = {},
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
@@ -159,7 +159,7 @@ export async function deliverProcessingResult(
       const hash = await hashBytes(new Uint8Array(bytes))
       await uploadProvenanceObject(baseUrl, headers, hash, bytes)
       uploaded++
-      onProgress?.(`Provenance objects retained: ${uploaded}`)
+      onProgress?.(`Provenance objects retained: ${uploaded}`, uploaded)
     },
   }
   // retainObject verifies readback, so provide a bounded cache of acknowledged uploads.
@@ -180,6 +180,6 @@ export async function deliverProcessingResult(
   const manifest = await transferProcessingResult(source, remote, ref, {
     concurrency: 4,
   })
-  onProgress?.(`Registering provenance after ${uploaded} objects`)
+  onProgress?.(`Registering provenance after ${uploaded} objects`, uploaded)
   await registerProvenanceResult(baseUrl, headers, manifest.releaseId, ref)
 }

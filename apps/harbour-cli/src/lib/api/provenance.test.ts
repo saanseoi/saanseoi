@@ -158,6 +158,7 @@ test('local ingestion uploads provenance to production R2 and registers only loc
   const { store, ref } = await processingResult()
   const requests: string[] = []
   const objects: string[] = []
+  const counts: number[] = []
   globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = String(input)
     requests.push(url)
@@ -172,7 +173,7 @@ test('local ingestion uploads provenance to production R2 and registers only loc
     { remote: false, environment: 'dev', r2: 'production' },
     store,
     ref,
-    undefined,
+    (_message, count) => counts.push(count),
     {
       async retainRemoteObject(environment, key, bytes) {
         expect(environment).toBe('production')
@@ -182,6 +183,10 @@ test('local ingestion uploads provenance to production R2 and registers only loc
     },
   )
   expect(objects.length).toBeGreaterThan(0)
+  expect(counts).toEqual([
+    ...Array.from({ length: objects.length }, (_, index) => index + 1),
+    objects.length,
+  ])
   expect(requests.every(url => url.startsWith('http://localhost:8788/'))).toBe(true)
   expect(requests.at(-1)).toContain('/v1/provenance/releases/release')
 })
