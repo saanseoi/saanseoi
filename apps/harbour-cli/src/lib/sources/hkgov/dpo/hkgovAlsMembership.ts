@@ -93,10 +93,10 @@ export function membershipCollection(
 
 /** Only raw captured assertions are read here; no source feature is modified. */
 export function membershipSource(
-  record: Pick<AlsPublisherSource, 'sourceRecordId' | 'rawProperties'>,
+  record: Pick<AlsPublisherSource, 'sourceRecordId' | 'properties'>,
   kind: '2d' | '3d',
 ): AlsMembershipSource {
-  const raw = record.rawProperties ?? {}
+  const raw = record.properties ?? {}
   const units = new Set<string>()
   for (const [name, prefix] of [
     ['address3dEn', 'Eng'],
@@ -179,8 +179,33 @@ export function buildAlsMembership(input: {
           )
             sourceIds.add(source.sourceRecordId)
         }
-        if (String(item.dataset ?? '').startsWith('saanseoi-'))
-          curations.add(JSON.stringify(item))
+        if (
+          String(item.dataset ?? '').startsWith('saanseoi-') ||
+          (typeof item.curationFile === 'string' && typeof item.id === 'string')
+        ) {
+          // Existing reviewed retentions use fixture references, not a dataset
+          // label. Keep their identity and evidence without duplicating raw arrays.
+          curations.add(
+            JSON.stringify(
+              Object.fromEntries(
+                [
+                  'dataset',
+                  'id',
+                  'revision',
+                  'fixtureVersion',
+                  'curationFile',
+                  'sourceFile',
+                  'evidenceSourceVersion',
+                  'sourceVersion',
+                  'verification',
+                  'curation',
+                ]
+                  .filter(key => item[key] !== undefined)
+                  .map(key => [key, item[key]]),
+              ),
+            ),
+          )
+        }
         for (const child of Object.values(item)) visit(child)
       }
       if (captured) sourceIds.add(captured.sourceRecordId)
@@ -260,6 +285,7 @@ export function validateAlsMembership(membership: AlsMembership) {
     for (const id of path) checked.add(id)
   }
   const collections = new Set<string>()
+  const owners = new Set<string>()
   const units = new Set<string>()
   const sourceIds = new Set(membership.sources.map(source => source.id))
   if (sourceIds.size !== membership.sources.length)
@@ -267,11 +293,17 @@ export function validateAlsMembership(membership: AlsMembership) {
   for (const collection of membership.collections) {
     if (!addresses.has(collection.ownerId))
       throw new Error(`ALS dangling inventory owner ${collection.ownerId}.`)
-    for (const id of collection.unresolvedSectionIds ?? [])
+    for (const id of collection.unresolvedSectionIds ?? []) {
       if (!addresses.has(id)) throw new Error(`ALS dangling inventory section ${id}.`)
+      if (addresses.get(id)?.parentId !== collection.ownerId)
+        throw new Error(`ALS inventory section ${id} belongs to another owner.`)
+    }
     if (collections.has(collection.id))
       throw new Error(`Duplicate ALS collection ${collection.id}.`)
+    if (owners.has(collection.ownerId))
+      throw new Error(`Duplicate ALS inventory owner ${collection.ownerId}.`)
     collections.add(collection.id)
+    owners.add(collection.ownerId)
     for (const [id] of collection.units) {
       if (units.has(id)) throw new Error(`Duplicate ALS unit ${id} across inventories.`)
       units.add(id)
@@ -279,6 +311,9 @@ export function validateAlsMembership(membership: AlsMembership) {
     for (const id of collection.sourceIds)
       if (!sourceIds.has(id)) throw new Error(`ALS missing inventory source ${id}.`)
   }
+  for (const address of membership.addresses)
+    for (const id of address.sourceIds)
+      if (!sourceIds.has(id)) throw new Error(`ALS missing address source ${id}.`)
   for (const source of membership.sources)
     for (const id of source.canonicalIds)
       if (!addresses.has(id)) throw new Error(`ALS dangling source owner ${id}.`)

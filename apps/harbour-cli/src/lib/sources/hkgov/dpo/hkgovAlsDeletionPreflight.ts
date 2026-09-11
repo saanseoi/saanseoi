@@ -208,18 +208,30 @@ export function buildAlsDeletionReport(
       ids: wholeInventoryLosses.map(value => value.collectionId),
     })
   const currentSources = new Map(current.sources.map(source => [source.id, source]))
+  const currentSourceUnits = new Map(
+    current.sources
+      .filter(source => source.kind === '3d')
+      .map(source => [source.id, new Set(source.units)]),
+  )
+  const supportingSources = new Map<string, string[]>()
+  for (const source of current.sources)
+    for (const id of source.canonicalIds)
+      supportingSources.set(id, [...(supportingSources.get(id) ?? []), source.id])
   const rawSourceOmissions: Array<{
     id: string
     kind: string
     previousCanonicalIds: string[]
     retainedCanonicalIds: string[]
     disposition: string
+    retentionEvidence: Array<{ id: string; sourceIds: string[]; curations: string[] }>
   }> = []
   const retainedPublisherUnitOmissions: Array<{
     sourceId: string
     ownerId: string
     unitTokens: string[]
     curations: string[]
+    disposition: 'remaining_source_or_alias' | 'curation_retention'
+    supportingSourceIds: string[]
   }> = []
   const currentTokensByOwner = new Map<string, Set<string>>()
   for (const collection of current.collections)
@@ -234,35 +246,63 @@ export function buildAlsDeletionReport(
         source.canonicalIds.map(resolveId).filter(id => currentAddresses.has(id)),
       ),
     ].sort()
+    const retentionEvidence = retainedCanonicalIds.map(id => ({
+      id,
+      sourceIds: supportingSources.get(id) ?? [],
+      curations: currentAddresses.get(id)?.curations ?? [],
+    }))
     if (!next)
       rawSourceOmissions.push({
         id: source.id,
         kind: source.kind,
         previousCanonicalIds: source.canonicalIds,
         retainedCanonicalIds,
+        retentionEvidence,
         disposition: !source.canonicalIds.length
           ? 'unresolved_or_suppressed_source'
           : !retainedCanonicalIds.length
             ? 'canonical_retirement'
-            : retainedCanonicalIds.some(
-                  id => (currentAddresses.get(id)?.sourceIds.length ?? 0) > 0,
-                )
+            : retentionEvidence.some(value => value.sourceIds.length > 0)
               ? 'remaining_source_or_alias'
               : 'curation_retention',
       })
     if (source.kind !== '3d') continue
     const nextTokens = new Set(next?.units ?? [])
-    for (const ownerId of retainedCanonicalIds) {
+    // Reparented inventory can retain the same raw assertion and enduring units.
+    for (const ownerId of [
+      ...new Set([...retainedCanonicalIds, ...(next?.canonicalIds ?? [])]),
+    ].sort()) {
       const finalTokens = currentTokensByOwner.get(ownerId)
       const unitTokens =
         source.units?.filter(
           token => !nextTokens.has(token) && finalTokens?.has(token),
         ) ?? []
-      if (unitTokens.length)
+      const byDisposition = new Map<
+        'remaining_source_or_alias' | 'curation_retention',
+        { tokens: string[]; sources: Set<string> }
+      >()
+      for (const token of unitTokens) {
+        const supporting = (supportingSources.get(ownerId) ?? []).filter(id =>
+          currentSourceUnits.get(id)?.has(token),
+        )
+        const disposition = supporting.length
+          ? 'remaining_source_or_alias'
+          : 'curation_retention'
+        const group = byDisposition.get(disposition) ?? {
+          tokens: [],
+          sources: new Set<string>(),
+        }
+        group.tokens.push(token)
+        for (const id of supporting) group.sources.add(id)
+        byDisposition.set(disposition, group)
+      }
+      for (const [disposition, group] of byDisposition)
         retainedPublisherUnitOmissions.push({
           sourceId: source.id,
           ownerId,
-          unitTokens,
+          unitTokens: group.tokens,
+          disposition,
+          supportingSourceIds: [...group.sources].sort(),
           curations:
             current.collections.find(collection => collection.ownerId === ownerId)
               ?.curations ?? [],

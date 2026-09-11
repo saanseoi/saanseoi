@@ -127,6 +127,8 @@ test('aliases and curated publisher omissions are distinct from canonical retire
       ownerId: 'house',
       unitTokens: ['["1","101"]', '["1","102"]'],
       curations: [],
+      disposition: 'curation_retention',
+      supportingSourceIds: [],
     },
   ])
 })
@@ -201,6 +203,49 @@ test('complex retirement reports affected descendants and requires exact digest 
   }
 })
 
+test('remaining duplicate assertions and reparented curated units retain distinct evidence', () => {
+  const before = release()
+  const after = release('2024-02-01.0')
+  after.sources[0]!.id = 'replacement-source'
+  after.collections[0]!.sourceIds = ['replacement-source']
+  const report = buildAlsDeletionReport(before, after)
+  expect(report.rawSourceOmissions).toMatchObject([
+    {
+      id: 'source-3d',
+      disposition: 'remaining_source_or_alias',
+      retentionEvidence: [
+        { id: 'house', sourceIds: ['replacement-source', 'source-2d'] },
+      ],
+    },
+  ])
+  expect(report.retainedPublisherUnitOmissions).toMatchObject([
+    {
+      disposition: 'remaining_source_or_alias',
+      supportingSourceIds: ['replacement-source'],
+    },
+  ])
+
+  after.sources[0]!.id = 'source-3d'
+  after.sources[0]!.units = []
+  after.sources[0]!.canonicalIds = ['section']
+  after.addresses.push(address('section', 'section', 'house'))
+  after.collections[0]!.ownerId = 'section'
+  after.collections[0]!.sourceIds = ['source-3d']
+  after.collections[0]!.curations = ['reviewed-unit-retention']
+  const moved = buildAlsDeletionReport(before, after)
+  expect(moved.groups.unit?.removedCount).toBe(0)
+  expect(moved.retainedPublisherUnitOmissions).toEqual([
+    {
+      sourceId: 'source-3d',
+      ownerId: 'section',
+      unitTokens: ['["1","101"]', '["1","102"]'],
+      curations: ['reviewed-unit-retention'],
+      disposition: 'curation_retention',
+      supportingSourceIds: [],
+    },
+  ])
+})
+
 test('large flat deletion spikes require review even when an inventory survives', () => {
   const before = release()
   before.collections[0]!.units = Array.from({ length: 2000 }, (_, i) => [
@@ -231,7 +276,15 @@ test('final dangling parents, owner references and shared unit identities hard f
   expect(() => validateAlsMembership(invalid)).toThrow('dangling inventory owner')
   invalid.collections[0]!.ownerId = 'house'
   invalid.collections.push({ ...invalid.collections[0]!, id: 'other-inventory' })
+  expect(() => validateAlsMembership(invalid)).toThrow('Duplicate ALS inventory owner')
+  invalid.collections[1]!.ownerId = 'estate'
   expect(() => validateAlsMembership(invalid)).toThrow('Duplicate ALS unit')
+  invalid.collections.pop()
+  invalid.collections[0]!.unresolvedSectionIds = ['estate']
+  expect(() => validateAlsMembership(invalid)).toThrow('belongs to another owner')
+  invalid.collections[0]!.unresolvedSectionIds = []
+  invalid.addresses[0]!.sourceIds = ['missing-source']
+  expect(() => validateAlsMembership(invalid)).toThrow('missing address source')
 })
 
 test('raw unit tokens use captured publisher payload before inventory corrections', () => {
@@ -260,10 +313,8 @@ test('raw unit tokens use captured publisher payload before inventory correction
     },
   })
   expect(
-    membershipSource(
-      { sourceRecordId: 'source', rawProperties: raw.rawProperties },
-      '3d',
-    ).units,
+    membershipSource({ sourceRecordId: 'source', properties: raw.properties }, '3d')
+      .units,
   ).toEqual(['["1","101"]'])
 })
 
@@ -324,10 +375,36 @@ test('membership uses final canonical granularity and retains publisher-only ass
   expect(
     manifest.sources.filter(source => source.canonicalIds.length === 0),
   ).toHaveLength(1)
-  expect([...publisherSources.values()][0]!.rawProperties?.buildingNameEn).toBe(
+  expect([...publisherSources.values()][0]!.properties?.buildingNameEn).toBe(
     'RAW HOUSE',
   )
   expect(manifest.aliases).toEqual([['retired-alias', 'canonical']])
+
+  const curation = {
+    id: 'retained-house',
+    curationFile: 'hkgov-dpo-address-house-retentions.json',
+    evidenceSourceVersion: '2019-01-01.0',
+    curation: { verification: 'verified' },
+    originalAssertions: [{ feature: { huge: 'raw assertion' } }],
+  }
+  row.sources = JSON.stringify({ hkgovAlsHouseRetention: curation })
+  const retained = buildAlsMembership({
+    sourceVersion,
+    rows: [row],
+    publisherSources,
+    collections: [],
+    sources3d: [],
+    aliases: new Map(),
+  })
+  expect(retained.addresses[0]?.curations).toContain(
+    JSON.stringify({
+      id: curation.id,
+      curationFile: curation.curationFile,
+      evidenceSourceVersion: curation.evidenceSourceVersion,
+      curation: curation.curation,
+    }),
+  )
+  expect(retained.addresses[0]?.curations.join(' ')).not.toContain('huge')
 })
 
 test('upload validates prepared file hashes, source version and predecessor review', async () => {
