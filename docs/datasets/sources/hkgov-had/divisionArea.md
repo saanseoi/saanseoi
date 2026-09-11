@@ -151,3 +151,15 @@ selecting or continuing this mode.
 
 Dataset processing metadata declares the registered geography identity bridge. Releases
 retain the resolved policy at creation. Source geometry uses EPSG:4326.
+
+## Retained record identity
+
+`sourceRecordId` is the publisher `OBJECTID` rendered as a string. Intake requires a
+non-empty, unique ID for every district in the release. Canonical area IDs remain
+independent. Retained properties use names such as `objectId`, `csdiAdminAreaId`,
+`areaCode` and `shapeLength`; provenance retains the original publisher field paths.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.

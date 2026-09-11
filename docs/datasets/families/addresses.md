@@ -661,3 +661,20 @@ history shards. A missing before-image blocks reset before mutations.
 ALS dataset processing metadata resolves the registered preparation, normalisation and
 curation rules. Each source and resource release retains its creation-time policy; ALS
 source GeoJSON geometry uses EPSG:4326.
+
+## Field provenance
+
+ALS publisher leaf paths are paired with retained camelCase keys. Address identity,
+geometry, components, granularity and parent relationships include preparation and
+reviewed curation inputs. Supplementary Place addresses reference the captured
+`resolve-place-addresses` rule and the retained address decisions.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

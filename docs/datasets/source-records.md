@@ -48,12 +48,14 @@ source content hashes.
 
 ## Public record envelope
 
-Addresses, Divisions, Places and Statistics return `sourceRecordId`, `rawProperties` and
+Addresses, Divisions, Places and Statistics return `sourceRecordId`, `properties` and
 optional `geometry`. LandsD also retains its distinct native `placeNames` relationship.
-The response pin identifies the dataset and source release. Resource types and variants
-describe contributions and canonical outputs, not publisher rows; they are absent from
-this public record envelope. The private `sourceLocator` is not returned as publisher
-data. Streets retains its separate envelope and source storage.
+`properties` exposes the stored `rawProperties` object; the storage column name is
+internal. The shared source endpoint also uses `properties` for Streets. The response
+pin identifies the dataset and source release. Resource types and variants describe
+contributions and canonical outputs, not publisher rows; they are absent from this
+public record envelope. The private `sourceLocator` is not returned as publisher data.
+Streets retains its separate envelope and source storage.
 
 `include=geometry` returns the retained native geometry, never a GeoJSON Feature or
 FeatureCollection generated from the canonical entity. Coordinate values and the

@@ -11,10 +11,10 @@ For a published or superseded, non-revoked release:
   `sample=random&limit=1` selects an example; `include=geometry` includes retained
   geometry. Cursor pagination and NDJSON downloads use the same release selection.
 - `GET /{family}/v0.1/source-schema?sourceRelease={code}` inventories the top-level
-  `rawProperties` field types across every retained record in all assigned source
-  shards. It does not infer required fields or a non-null type from null-only values.
-  Multiple observed types are represented as alternatives. Nested objects and array
-  items remain open publisher values.
+  `properties` field types across every retained record in all assigned source shards.
+  It does not infer required fields or a non-null type from null-only values. Multiple
+  observed types are represented as alternatives. Nested objects and array items remain
+  open publisher values.
 
 The Schema tab uses the versioned Overture definitions where available, including their
 nested publisher annotations. Other sources display the exhaustive retained-field
@@ -41,10 +41,25 @@ publisher identifiers.
 
 ALS includes both 2D publisher records and 3D occurrences. Street feature tables retain
 their native property objects. LandsD PDF baseline and notice records expose their
-structured publisher extraction in `rawProperties`, including notice evidence and
+structured publisher extraction in `properties`, including notice evidence and
 diagnostics, without changing source storage or notice-application decisions.
 
 An empty source table or an incorrect shard assignment is an ingestion-data issue. The
 source endpoints do not substitute canonical records or records from an unrelated
 release. Repair requires the exact retained publisher evidence and correct shard
 assignment.
+
+## Retained field names
+
+Non-Street source records use camelCase property keys. Publisher spelling remains in
+API-field provenance in a dataset-scoped `publisherFields` mapping. Inputs refer to the
+retained `properties.*`, `geometry` or `sourceRecordId` path. Language dictionary keys,
+source literals, nulls and array order are preserved; ambiguous key renames fail intake.
+HAD records use the publisher `OBJECTID` as their source ID independently of canonical
+area identity. Source properties are separate from canonical publisher attribution,
+which is wrapped under the publisher key.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

@@ -392,3 +392,17 @@ immutable uploads and continuation requirements.
 Local Places continuation reuses retained inputs and completed source releases.
 Official-address matching reads English and Traditional Chinese definitions from the
 selected ALS snapshot. Local ownership-manifest completion opens only metadata.
+
+## Publisher attribution and field provenance
+
+The full Places profile returns publisher attribution as `sources: { overture: [...] }`.
+Retained source properties use camelCase keys while field provenance pairs those keys
+with original publisher paths. Localisation alternatives, access hints, trust metadata,
+first/last-seen months and full-profile snapshot/address references have explicit
+inputs. Processing rules resolve against the definitions captured by the selected
+releases.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.

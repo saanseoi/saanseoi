@@ -387,3 +387,22 @@ registrations in local D1 while retaining source and provenance objects in produ
 R2. See the
 [storage-target workflow](../d1-bootstrap.md#ingest-locally-with-production-r2) for
 immutable uploads and continuation requirements.
+
+## API field inputs
+
+Field provenance separates publisher properties from registry values, reviewed curation
+and intermediate results. Period mappings name the actual dataset fields or release
+context. Value mappings identify the individual publisher measure fields and reviewed
+curation entries. Retained property keys use camelCase, with original field spellings
+preserved in provenance and curation. Processing-rule references are pinned to the
+definitions captured by the selected releases.
+
+Public source records expose retained attributes under `properties`; `rawProperties` is
+the internal storage column. API-field inputs reference the public path through the
+shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
+their registered fixtures and are pinned by the selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

@@ -89,3 +89,13 @@ where applicable. Hierarchy labels are stored bilingual `name` values, independe
 requested locale. The example uses district administrative ancestry rather than a city
 label or source subtype. Branching paths are arrays of arrays; flattening is used only
 to locate an area, never to infer new paths.
+
+## Publisher attribution
+
+The full Places profile exposes `attributes.sources.overture`. Map-profile marker
+queries do not depend on that attribution object. Retained source property keys use
+camelCase; API provenance pairs them with original publisher paths and distinguishes
+registry and curation inputs. The guide's LLM references state this contract.
+
+Source-record examples and the Sources schema use `properties` for retained publisher
+attributes, with `geometry` and `sourceRecordId` as envelope siblings.
