@@ -10,7 +10,10 @@ import {
   selectDistrictRelevantGeometryRecords,
 } from '@repo/core/pipeline/services/metrics/geometryStats'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
+import {
+  decompressJsonBrotli,
+  MAX_BROTLI_QUALITY,
+} from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { currentSchema, historySchema } from '@repo/db'
 import { desc, eq } from 'drizzle-orm'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
@@ -53,6 +56,11 @@ export function shouldCompressCanonicalGeometry(
     source === 'hkgov-pland-pu' ||
     (source === 'hkgov-censtatd' && transform === undefined)
   )
+}
+
+/** Planning Unit display geometry can still contain large coastal coverages. */
+export function canonicalGeometryBrotliQuality(source: GeometryUploadPlan['source']) {
+  return source === 'hkgov-pland-pu' ? MAX_BROTLI_QUALITY : undefined
 }
 
 /** Only the exact source pass owns release-level geometry measurements. */

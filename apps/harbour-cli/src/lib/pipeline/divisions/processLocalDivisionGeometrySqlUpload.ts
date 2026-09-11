@@ -921,6 +921,7 @@ export {
 } from './processLocalDivisionGeometrySqlUploadReferences.ts'
 
 export {
+  canonicalGeometryBrotliQuality,
   shouldCompressCanonicalGeometry,
   shouldWriteExactGeometryReleaseStats,
   createGeometryChurnCounts,
