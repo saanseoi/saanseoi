@@ -408,7 +408,9 @@ def seed_mirror(bundle, cache_dir):
         config = (ROOT / 'apps/harbour-cli/src/lib/dbCache/localDbCacheConfig.ts').read_text()
         version = int(re.search(r'DB_CACHE_MANIFEST_VERSION = (\d+)', config).group(1))
         write_json(staging / 'manifest.json', {'cacheVersion': version, 'target': 'production',
-            'preparedAt': datetime.now(timezone.utc).isoformat(), 'files': files})
+            'preparedAt': datetime.now(timezone.utc).isoformat(), 'files': files,
+            'bindings': {binding: {'databaseId': row['database_id'], 'databaseName': row['database_name']}
+                         for binding, row in expected.items()}})
         staging.rename(cache_dir)
     finally:
         if staging.exists():

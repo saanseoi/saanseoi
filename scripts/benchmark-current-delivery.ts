@@ -61,9 +61,9 @@ try {
         }
       },
     })
-    assert.equal(result.mutationSummary.tables.DB_CURRENT?.records?.updated, 0)
+    assert.equal(result.summary.tables.DB_CURRENT?.records?.updated, 0)
     assert.equal(
-      result.mutationSummary.tables.DB_CURRENT?.locales?.updated,
+      result.summary.tables.DB_CURRENT?.locales?.updated,
       scenario === 'unchanged' ? 0 : Math.floor(count / 100),
     )
     assert.equal(
@@ -78,7 +78,7 @@ try {
       baselineBytes: (await stat(path)).size,
       scratchBytesAtEmission,
       emittedBytes,
-      mutations: result.mutationSummary,
+      mutations: result.summary,
     })
   }
   const report = {
