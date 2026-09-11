@@ -32,10 +32,12 @@ export async function handleRegisterUploadRequest(
   const registered = await registerUpload(db, {
     allowExistingDatasetStatuses: request.force
       ? request.reuseExistingRelease
-        ? ['staged', 'processing', 'published']
+        ? ['staged', 'processing']
         : ['staged', 'published']
       : request.resumeStagedRelease
-        ? ['staged']
+        ? request.reuseExistingRelease
+          ? ['staged', 'processing']
+          : ['staged']
         : request.reuseExistingRelease
           ? ['processing']
           : undefined,
