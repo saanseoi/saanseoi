@@ -35,7 +35,7 @@ export type AddressSqlImportBuildOptions = {
   runId?: string
   /** Exact Division snapshot selected while resolving this address release. */
   currentDivisionSnapshotId?: string
-  /** Address snapshot receiving the final Division alignment. */
+  /** Stable Address serving scope receiving current writes and Division alignment. */
   currentSnapshotId?: string
 }
 
@@ -465,7 +465,7 @@ export function buildAddressCurrentSqlImportFile(
         changed: row.changed,
         changedExistingId: row.changedExistingId,
         versionHash: row.versionHash,
-        snapshotId: row.base.snapshotId,
+        snapshotId: options.currentSnapshotId ?? row.base.snapshotId,
         divisionSnapshotId: row.base.divisionSnapshotId,
         streetSnapshotId: row.base.streetSnapshotId,
         streetId: row.base.streetId,
@@ -500,7 +500,7 @@ export function buildAddressCurrentSqlImportFile(
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
-          snapshotId: localised.snapshotId,
+          snapshotId: options.currentSnapshotId ?? localised.snapshotId,
           locale: localised.locale,
           formattedAddress: localised.formattedAddress,
           buildingName: localised.buildingName,
@@ -529,7 +529,10 @@ export function buildAddressCurrentSqlImportFile(
     ...buildInsertStatements(
       RESOLVED_BUILDING_LOOKUPS_TABLE,
       RESOLVED_BUILDING_LOOKUP_COLUMNS,
-      buildResolvedBuildingLookupInsertRows(artefact, runId),
+      buildResolvedBuildingLookupInsertRows(artefact, runId).map(row => ({
+        ...row,
+        snapshotId: options.currentSnapshotId ?? row.snapshotId,
+      })),
       options.maxStatementBytes,
       { mode: 'insert' },
     ),
@@ -566,6 +569,63 @@ export function buildAddressHistoryApplySqlImportFile(
     : [buildAddressResolvedStagingDropSql()]
 
   return buildSqlImportFile('history-apply', `${runId}-history-apply.sql`, statements)
+}
+
+/** Resolved omissions only: callers compare complete, curated canonical membership locally. */
+export function buildAddressRetirementSqlImportFiles(
+  message: DatasetProcessingMessage,
+  options: { addressIds: readonly string[]; scopeId: string; snapshotId: string },
+): AddressSqlImportFile[] {
+  if (options.addressIds.length === 0) return []
+  const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
+  const snapshot = sqlLiteral(options.snapshotId)
+  const release = sqlLiteral(message.releaseId ?? message.datasetId)
+  const scope = sqlLiteral(options.scopeId)
+  const historyStatements: string[] = []
+  const currentStatements: string[] = []
+  const ids = [...new Set(options.addressIds)].sort()
+  for (let offset = 0; offset < ids.length; offset += 100) {
+    const membership = `SELECT value FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))})`
+    // Locale tombstones are needed when an address later returns with fewer translations.
+    historyStatements.push(`INSERT INTO snapshotVersionChanges (
+  snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt
+)
+SELECT ${snapshot}, 'address2dI18n', addressId, locale, NULL, 'delete', ${release}, ${now}, ${now}
+FROM address2dI18n WHERE isCurrent = 1 AND addressId IN (${membership})
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;`)
+    historyStatements.push(`INSERT INTO snapshotVersionChanges (
+  snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt
+)
+SELECT ${snapshot}, 'address2d', value, '', NULL, 'delete', ${release}, ${now}, ${now}
+FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))}) WHERE 1
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;`)
+    for (const [table, key] of [
+      ['address2d', 'id'],
+      ['address2dI18n', 'addressId'],
+      ['address2dBuildingNumberLookup', 'addressId'],
+    ]) {
+      historyStatements.push(`UPDATE ${table} SET isCurrent = 0, updatedAt = ${now}
+WHERE isCurrent = 1 AND ${key} IN (${membership});`)
+    }
+    currentStatements.push(
+      `DELETE FROM address2d WHERE snapshotId = ${scope} AND id IN (${membership});`,
+    )
+  }
+  const runId = buildAddressSqlImportRunId(message)
+  return [
+    buildSqlImportFile(
+      'history-apply',
+      `${runId}-history-retirements.sql`,
+      historyStatements,
+    ),
+    buildSqlImportFile(
+      'current',
+      `${runId}-current-retirements.sql`,
+      currentStatements,
+    ),
+  ]
 }
 
 export function buildAddressSqlCleanupFile(
@@ -809,8 +869,20 @@ function buildAddressHistoryApplySql(
   const run = sqlLiteral(runId)
   const releaseId = sqlLiteral(message.releaseId ?? message.datasetId)
   const snapshot = sqlLiteral(snapshotId)
+  const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
 
   return `
+INSERT INTO snapshotVersionChanges (
+  snapshotId, recordType, recordId, locale, versionHash, operation,
+  sourceReleaseId, createdAt, updatedAt
+)
+SELECT ${snapshot}, 'address2dI18n', old.addressId, old.locale, NULL, 'delete', ${releaseId}, ${now}, ${now}
+FROM address2dI18n old
+WHERE old.isCurrent = 1
+  AND EXISTS (SELECT 1 FROM zzAddressImportResolvedRows r WHERE r.runId = ${run} AND r.changed = 1 AND r.addressId = old.addressId)
+  AND NOT EXISTS (SELECT 1 FROM zzAddressImportResolvedI18n i WHERE i.runId = ${run} AND i.addressId = old.addressId AND i.locale = old.locale)
+ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
   FROM zzAddressImportResolvedRows r
@@ -820,7 +892,7 @@ WITH changedExisting AS (
 )
 UPDATE address2d
 SET isCurrent = 0,
-  updatedAt = datetime('now')
+  updatedAt = ${now}
 FROM changedExisting
 WHERE address2d.isCurrent = 1
   AND address2d.id = changedExisting.addressId;
@@ -833,7 +905,7 @@ WITH changedExisting AS (
 )
 UPDATE address2dI18n
 SET isCurrent = 0,
-  updatedAt = datetime('now')
+  updatedAt = ${now}
 FROM changedExisting
 WHERE address2dI18n.isCurrent = 1
   AND address2dI18n.addressId = changedExisting.addressId;
@@ -846,7 +918,7 @@ WITH changedExisting AS (
 )
 UPDATE address2dBuildingNumberLookup
 SET isCurrent = 0,
-  updatedAt = datetime('now')
+  updatedAt = ${now}
 FROM changedExisting
 WHERE address2dBuildingNumberLookup.isCurrent = 1
   AND address2dBuildingNumberLookup.addressId = changedExisting.addressId;
@@ -945,7 +1017,7 @@ INSERT INTO snapshotVersionChanges (
 )
 SELECT
   ${snapshot}, 'address2d', r.addressId, '', r.versionHash, 'upsert',
-  ${releaseId}, datetime('now'), datetime('now')
+  ${releaseId}, ${now}, ${now}
 FROM zzAddressImportResolvedRows r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -960,7 +1032,7 @@ INSERT INTO snapshotVersionChanges (
 )
 SELECT
   ${snapshot}, 'address2dI18n', i.addressId, i.locale, i.versionHash, 'upsert',
-  ${releaseId}, datetime('now'), datetime('now')
+  ${releaseId}, ${now}, ${now}
 FROM zzAddressImportResolvedRows r
 INNER JOIN zzAddressImportResolvedI18n i
   ON i.runId = r.runId AND i.addressId = r.addressId
@@ -1009,7 +1081,25 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   sources = excluded.sources,
   parentAddressId = excluded.parentAddressId,
   granularity = excluded.granularity,
-  updatedAt = excluded.updatedAt;
+  updatedAt = excluded.updatedAt
+WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
+  OR address2d.streetSnapshotId IS NOT excluded.streetSnapshotId
+  OR address2d.streetId IS NOT excluded.streetId
+  OR address2d.hamletId IS NOT excluded.hamletId
+  OR address2d.microhoodId IS NOT excluded.microhoodId
+  OR address2d.villageId IS NOT excluded.villageId
+  OR address2d.neighbourhoodId IS NOT excluded.neighbourhoodId
+  OR address2d.macrohoodId IS NOT excluded.macrohoodId
+  OR address2d.townId IS NOT excluded.townId
+  OR address2d.districtId IS NOT excluded.districtId
+  OR address2d.areaId IS NOT excluded.areaId
+  OR address2d.countryId IS NOT excluded.countryId
+  OR address2d.geometry IS NOT excluded.geometry
+  OR address2d.identifiers IS NOT excluded.identifiers
+  OR address2d.bbox IS NOT excluded.bbox
+  OR address2d.sources IS NOT excluded.sources
+  OR address2d.parentAddressId IS NOT excluded.parentAddressId
+  OR address2d.granularity IS NOT excluded.granularity;
 DELETE FROM address2dI18n
 WHERE EXISTS (
   SELECT 1 FROM zzAddressImportResolvedRows r
@@ -1017,6 +1107,9 @@ WHERE EXISTS (
     AND r.changed = 1
     AND r.snapshotId = address2dI18n.snapshotId
     AND r.addressId = address2dI18n.addressId
+) AND NOT EXISTS (
+  SELECT 1 FROM zzAddressImportResolvedI18n i WHERE i.runId = ${run}
+    AND i.addressId = address2dI18n.addressId AND i.locale = address2dI18n.locale
 );
 INSERT INTO address2dI18n (
   snapshotId, addressId, locale, formattedAddress, buildingName,
@@ -1053,7 +1146,22 @@ ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
   phaseRef = excluded.phaseRef,
   estateName = excluded.estateName,
   streetName = excluded.streetName,
-  updatedAt = excluded.updatedAt;
+  updatedAt = excluded.updatedAt
+WHERE address2dI18n.formattedAddress IS NOT excluded.formattedAddress
+  OR address2dI18n.buildingName IS NOT excluded.buildingName
+  OR address2dI18n.buildingNumberExpression IS NOT excluded.buildingNumberExpression
+  OR address2dI18n.buildingNumberFrom IS NOT excluded.buildingNumberFrom
+  OR address2dI18n.buildingNumberTo IS NOT excluded.buildingNumberTo
+  OR address2dI18n.buildingNumberConnector IS NOT excluded.buildingNumberConnector
+  OR address2dI18n.blockExpression IS NOT excluded.blockExpression
+  OR address2dI18n.blockType IS NOT excluded.blockType
+  OR address2dI18n.blockRef IS NOT excluded.blockRef
+  OR address2dI18n.blockTypeBeforeNumber IS NOT excluded.blockTypeBeforeNumber
+  OR address2dI18n.phaseExpression IS NOT excluded.phaseExpression
+  OR address2dI18n.phaseName IS NOT excluded.phaseName
+  OR address2dI18n.phaseRef IS NOT excluded.phaseRef
+  OR address2dI18n.estateName IS NOT excluded.estateName
+  OR address2dI18n.streetName IS NOT excluded.streetName;
 DELETE FROM address2dBuildingNumberLookup
 WHERE EXISTS (
   SELECT 1 FROM zzAddressImportResolvedRows r
@@ -1061,6 +1169,10 @@ WHERE EXISTS (
     AND r.changed = 1
     AND r.snapshotId = address2dBuildingNumberLookup.snapshotId
     AND r.addressId = address2dBuildingNumberLookup.addressId
+) AND NOT EXISTS (
+  SELECT 1 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup WHERE lookup.runId = ${run}
+    AND lookup.addressId = address2dBuildingNumberLookup.addressId
+    AND lookup.buildingNumber = address2dBuildingNumberLookup.buildingNumber
 );
 INSERT INTO address2dBuildingNumberLookup (
   snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
@@ -1084,20 +1196,11 @@ ON CONFLICT(snapshotId, addressId, buildingNumber) DO UPDATE SET
   numericStem = excluded.numericStem,
   evidence = excluded.evidence,
   derivation = excluded.derivation,
-  updatedAt = excluded.updatedAt;
-UPDATE address2d
-SET updatedAt = (
-  SELECT r.updatedAt FROM zzAddressImportResolvedRows r
-  WHERE r.runId = ${run}
-    AND r.snapshotId = address2d.snapshotId
-    AND r.addressId = address2d.id
-)
-WHERE EXISTS (
-  SELECT 1 FROM zzAddressImportResolvedRows r
-  WHERE r.runId = ${run}
-    AND r.snapshotId = address2d.snapshotId
-    AND r.addressId = address2d.id
-);`.trim()
+  updatedAt = excluded.updatedAt
+WHERE address2dBuildingNumberLookup.numericStem IS NOT excluded.numericStem
+  OR address2dBuildingNumberLookup.evidence IS NOT excluded.evidence
+  OR address2dBuildingNumberLookup.derivation IS NOT excluded.derivation;
+`.trim()
 }
 
 function buildInsertStatements(
