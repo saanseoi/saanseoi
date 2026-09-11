@@ -135,7 +135,7 @@ test('uses the bounded family profiles for remote mirrors', () => {
   expect(countRemoteCacheWorkUnits(targets)).toBe(156)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(40)
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(104)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(56)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(55)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(50)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
     'sourceResolutions',

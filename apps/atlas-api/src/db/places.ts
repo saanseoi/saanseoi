@@ -269,7 +269,9 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       error instanceof Error &&
       `${error.message} ${error.cause}`.includes('no such table: placeSearch')
     ) {
-      throw new Error('Place search is not ready for the latest published release.')
+      throw new Error('Place search is not ready for the latest published release.', {
+        cause: error,
+      })
     }
 
     throw error

@@ -8,7 +8,9 @@ import { searchPlacesFts } from './places'
 test('Place search follows scope promotion and refuses an unindexed snapshot', async () => {
   const sqlite = new Database(':memory:')
   try {
-    const db = drizzle(sqlite) as unknown as Parameters<typeof searchPlacesFts>[0]
+    const db = drizzle({ client: sqlite }) as unknown as Parameters<
+      typeof searchPlacesFts
+    >[0]
     const lookup = { snapshotId: 'latest', query: 'Shop', locale: 'en' as const }
     await expect(searchPlacesFts(db, lookup)).rejects.toThrow(
       'Place search is not ready',
