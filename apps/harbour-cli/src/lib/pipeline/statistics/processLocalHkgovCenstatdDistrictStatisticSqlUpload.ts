@@ -216,6 +216,9 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
   const preparedSha256 = await deliveryFileSha256(preparedUpload.filePath)
   let canonicalSha256: string | undefined
   const delivery = (phase: string): SqlDeliveryPhase => ({
+    ...(['statistics-source', 'statistics-canonical'].includes(phase)
+      ? { resolvedFamily: 'statistics' as const }
+      : {}),
     nativeLocal: true,
     context,
     releaseId,
@@ -245,7 +248,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-district-source-v3',
+            contract: 'censtatd-district-source-v4',
             preparedSha256,
             releaseId,
             releaseCode,
@@ -254,12 +257,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             rowCount: plan.rowCount,
           },
           generate: () =>
-            readSourceRows(
-              preparedUpload.filePath,
-              releaseId,
-              releaseCode,
-              plan.sourceVersion,
-            ),
+            readSourceRows(preparedUpload.filePath, releaseId, plan.sourceVersion),
         }),
     )
     if (sourceRows.length !== 18 || sourceRows.length !== plan.rowCount) {
@@ -324,7 +322,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     const batches = () =>
       buildStatisticSqlBatches({
         history: { rows: historyRows, table: 'divisionStatistics' },
-        releaseCode,
+        sourceVersion: plan.sourceVersion,
         releaseId,
         source: {
           rows: sourceRows.map(sourceStatisticAssertion),
@@ -586,7 +584,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
 async function readSourceRows(
   filePath: string,
   releaseId: string,
-  releaseCode: string,
   sourceVersion: string,
 ) {
   const rows: SourceStatisticRow[] = []
@@ -596,9 +593,7 @@ async function readSourceRows(
   )) {
     rows.push(
       ...(await Promise.all(
-        batch.map(row =>
-          normaliseSourceRow(row, releaseId, releaseCode, sourceVersion),
-        ),
+        batch.map(row => normaliseSourceRow(row, releaseId, sourceVersion)),
       )),
     )
   }
@@ -618,7 +613,6 @@ function normaliseSourceRow(...args: Parameters<typeof normaliseSourceRowInterna
 async function normaliseSourceRowInternal(
   value: Record<string, unknown>,
   releaseId: string,
-  releaseCode: string,
   sourceVersion: string,
 ): Promise<SourceStatisticRow> {
   if (!Object.hasOwn(value, 'properties'))
@@ -664,7 +658,7 @@ async function normaliseSourceRowInternal(
     isCurrent: true,
     releaseId,
     updatedAt: now,
-    validFromRelease: releaseCode,
+    validFromRelease: sourceVersion,
     validToRelease: null,
     version: 1,
     versionHash: await createHash(

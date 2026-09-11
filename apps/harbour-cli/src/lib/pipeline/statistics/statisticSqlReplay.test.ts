@@ -8,7 +8,7 @@ import {
 } from './statisticSqlReplay.ts'
 
 const releaseId = 'release-2022'
-const releaseCode = 'dr-hk-hkgov-censtatd-division-statistic-2022'
+const sourceVersion = '2022'
 
 function sourceRow(sourceRecordId: string) {
   return {
@@ -20,7 +20,7 @@ function sourceRow(sourceRecordId: string) {
     sourceRecordId,
     sources: [{ dataset: 'C&SD' }],
     updatedAt: '2026-08-16T00:00:00.000Z',
-    validFromRelease: releaseCode,
+    validFromRelease: sourceVersion,
     validToRelease: null,
     version: 1,
     versionHash: `source-${sourceRecordId}`,
@@ -46,10 +46,58 @@ function historyRow(id: string) {
 }
 
 describe('buildStatisticSqlBatches', () => {
+  for (const table of [
+    'hkgovCenstatdDistrictLandAreaPopulationDensities',
+    'hkgovCenstatdStatistics',
+  ] as const)
+    test(`retains version-only validity across source revisions: ${table}`, () => {
+      const sqlite = new Database(':memory:')
+      try {
+        sqlite.exec(`CREATE TABLE ${table} (
+          createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
+          sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
+          validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
+          PRIMARY KEY (sourceRecordId, versionHash)
+        )`)
+        const replay = (version: string, hash: string) => {
+          const batches = buildStatisticSqlBatches({
+            sourceVersion: version,
+            releaseId: `release-${version}`,
+            source: {
+              table,
+              rows: [
+                {
+                  ...sourceRow('district-1'),
+                  releaseId: `release-${version}`,
+                  validFromRelease: version,
+                  versionHash: hash,
+                },
+              ],
+            },
+          })
+          for (const sql of batches.source) sqlite.exec(sql)
+        }
+        replay('2023-H1', 'first-hash')
+        replay('2023-H2', 'second-hash')
+        replay('2024-H1', 'second-hash')
+        expect(
+          sqlite
+            .query(`SELECT validFromRelease, validToRelease, isCurrent
+          FROM ${table} ORDER BY validFromRelease`)
+            .all(),
+        ).toEqual([
+          { validFromRelease: '2023-H1', validToRelease: '2023-H2', isCurrent: 0 },
+          { validFromRelease: '2023-H2', validToRelease: null, isCurrent: 1 },
+        ])
+      } finally {
+        sqlite.close()
+      }
+    })
+
   test('rejects one publisher row that exceeds the D1 statement limit', () => {
     expect(() =>
       buildStatisticSqlBatches({
-        releaseCode,
+        sourceVersion,
         releaseId,
         source: {
           rows: [
@@ -67,7 +115,7 @@ describe('buildStatisticSqlBatches', () => {
   test('replays an oversized source geometry through bounded append statements', () => {
     const sourceGeometry = { value: 'x'.repeat(100_000) }
     const batches = buildStatisticSqlBatches({
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: {
         rows: [{ ...sourceRow('district-large'), sourceGeometry }],
@@ -115,7 +163,7 @@ describe('buildStatisticSqlBatches', () => {
         rows: [historyRow('stat-2'), historyRow('stat-1')],
         table: 'divisionStatistics',
       },
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: {
         rows: [sourceRow('district-2'), sourceRow('district-1')],
@@ -144,7 +192,7 @@ describe('buildStatisticSqlBatches', () => {
           rows: [historyRow('stat-1'), historyRow('stat-2')],
           table: 'divisionStatistics',
         },
-        releaseCode,
+        sourceVersion,
         releaseId,
         source: {
           rows: [sourceRow('district-1'), sourceRow('district-2')],
@@ -157,7 +205,7 @@ describe('buildStatisticSqlBatches', () => {
   test('can be applied again after a failed release without duplicating versions', () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: {
         rows: [sourceRow('district-1')],
@@ -265,7 +313,7 @@ describe('replayStatisticSqlBatches', () => {
 
   test('replays a source-only statistic without requiring a history shard', async () => {
     const batches = buildStatisticSqlBatches({
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: { rows: [sourceRow('district-1')], table: 'hkgovCenstatdStatistics' },
     })
@@ -303,7 +351,7 @@ describe('replayStatisticSqlBatches', () => {
   test('replays identical batches locally before source then history D1 imports', async () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: {
         rows: [sourceRow('district-1')],
@@ -380,7 +428,7 @@ describe('replayStatisticSqlBatches', () => {
   test('stops before history import when remote source replay fails', async () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
-      releaseCode,
+      sourceVersion,
       releaseId,
       source: {
         rows: [sourceRow('district-1')],

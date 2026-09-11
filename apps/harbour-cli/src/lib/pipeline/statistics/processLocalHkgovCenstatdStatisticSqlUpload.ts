@@ -162,6 +162,9 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   const preparedSha256 = await deliveryFileSha256(prepared.filePath)
   let canonicalSha256: string | undefined
   const delivery = (phase: string): SqlDeliveryPhase => ({
+    ...(['statistics-source', 'statistics-canonical'].includes(phase)
+      ? { resolvedFamily: 'statistics' as const }
+      : {}),
     nativeLocal: true,
     context,
     releaseId,
@@ -186,7 +189,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-general-source-v3',
+            contract: 'censtatd-general-source-v4',
             preparedSha256,
             releaseId,
             releaseCode,
@@ -194,7 +197,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             sourceVersion: plan.sourceVersion,
             rowCount: plan.rowCount,
           },
-          generate: () => readRows(prepared.filePath, releaseId, releaseCode),
+          generate: () => readRows(prepared.filePath, releaseId, plan.sourceVersion),
         }),
     )
     if (rows.length !== plan.rowCount)
@@ -302,7 +305,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
     const batches = () =>
       buildStatisticSqlBatches({
-        releaseCode,
+        sourceVersion: plan.sourceVersion,
         releaseId,
         source: {
           rows: rows.map(sourceStatisticAssertion),
@@ -558,7 +561,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   }
 }
 
-async function* readRows(filePath: string, releaseId: string, releaseCode: string) {
+async function* readRows(filePath: string, releaseId: string, sourceVersion: string) {
   for await (const batch of readParquetObjectsInBatches(
     await asyncBufferFromFile(filePath),
     2048,
@@ -598,7 +601,7 @@ async function* readRows(filePath: string, releaseId: string, releaseCode: strin
         ...payload,
         sourceRecordId,
         releaseId,
-        validFromRelease: releaseCode,
+        validFromRelease: sourceVersion,
         validToRelease: null,
         isCurrent: true,
         version: 1,
