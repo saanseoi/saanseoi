@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "9e33d965-4a16-4ebc-baa9-b26829413099",
-  "prevIds": ["a3aed08e-8a80-4fcb-b6ff-aca11ea9e23a"],
+  "id": "591c4de6-f103-48d9-b5bb-cb9d4eb10861",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "publisherI18n",
@@ -810,7 +810,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "subType",
+      "name": "kind",
       "entityType": "columns",
       "table": "datasets"
     },
@@ -1886,6 +1886,16 @@
     },
     {
       "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resourceType",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
@@ -1910,7 +1920,17 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceFieldPath",
+      "name": "inputs",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resolverRules",
       "entityType": "columns",
       "table": "apiFieldProvenance"
     },
@@ -2251,6 +2271,16 @@
       "default": null,
       "generated": null,
       "name": "guide",
+      "entityType": "columns",
+      "table": "apiReleaseSets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "publisherFields",
       "entityType": "columns",
       "table": "apiReleaseSets"
     },
@@ -3676,31 +3706,11 @@
     },
     {
       "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "type",
-      "entityType": "columns",
-      "table": "stats"
-    },
-    {
-      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
       "generated": null,
       "name": "releaseId",
-      "entityType": "columns",
-      "table": "stats"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "snapshotId",
       "entityType": "columns",
       "table": "stats"
     },
@@ -5542,17 +5552,6 @@
       "table": "stats"
     },
     {
-      "columns": ["snapshotId"],
-      "tableTo": "snapshots",
-      "columnsTo": ["id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": false,
-      "name": "fk_stats_snapshotId_snapshots_id_fk",
-      "entityType": "fks",
-      "table": "stats"
-    },
-    {
       "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
       "columnsTo": ["id"],
@@ -6377,6 +6376,10 @@
           "isExpression": false
         },
         {
+          "value": "resourceType",
+          "isExpression": false
+        },
+        {
           "value": "apiField",
           "isExpression": false
         },
@@ -6389,7 +6392,7 @@
           "isExpression": false
         },
         {
-          "value": "sourceFieldPath",
+          "value": "inputs",
           "isExpression": false
         },
         {
@@ -6404,7 +6407,7 @@
       "isUnique": true,
       "where": null,
       "origin": "manual",
-      "name": "apiFieldProvenance_release_field_source_unique_idx",
+      "name": "apiFieldProvenance_release_resource_field_inputs_unique_idx",
       "entityType": "indexes",
       "table": "apiFieldProvenance"
     },
@@ -6412,6 +6415,10 @@
       "columns": [
         {
           "value": "apiReleaseSetId",
+          "isExpression": false
+        },
+        {
+          "value": "resourceType",
           "isExpression": false
         },
         {
@@ -7027,20 +7034,6 @@
     {
       "columns": [
         {
-          "value": "snapshotId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "stats_snapshotId_idx",
-      "entityType": "indexes",
-      "table": "stats"
-    },
-    {
-      "columns": [
-        {
           "value": "apiReleaseSetId",
           "isExpression": false
         }
@@ -7054,10 +7047,6 @@
     },
     {
       "columns": [
-        {
-          "value": "type",
-          "isExpression": false
-        },
         {
           "value": "dimension",
           "isExpression": false
@@ -7444,11 +7433,11 @@
       "table": "releaseProcessingActionChunks"
     },
     {
-      "value": "\"releaseId\" IS NOT NULL OR \"snapshotId\" IS NOT NULL OR \"apiReleaseSetId\" IS NOT NULL",
+      "value": "(\"releaseId\" IS NOT NULL) != (\"apiReleaseSetId\" IS NOT NULL)",
       "name": "stats_owner_chk",
       "entityType": "checks",
       "table": "stats"
     }
   ],
-  "renames": ["snapshotSources.sourceReleaseId->snapshotSources.resourceReleaseId"]
+  "renames": []
 }

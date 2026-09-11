@@ -1,1 +1,0 @@
-ALTER TABLE `releaseProvenance` ADD `attemptStatus` text DEFAULT 'completed' NOT NULL;

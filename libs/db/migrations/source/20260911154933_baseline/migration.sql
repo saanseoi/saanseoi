@@ -1,6 +1,6 @@
 CREATE TABLE `overtureDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -9,12 +9,13 @@ CREATE TABLE `overtureDivisionAreas` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `overtureDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `overtureDivisionBoundaries` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -23,12 +24,13 @@ CREATE TABLE `overtureDivisionBoundaries` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `overtureDivisionBoundaries_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `overtureDivisions` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -37,12 +39,13 @@ CREATE TABLE `overtureDivisions` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `overtureDivisions_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `overturePlaces` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -51,12 +54,13 @@ CREATE TABLE `overturePlaces` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `overturePlaces_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovAlsAddresses2d` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -65,12 +69,13 @@ CREATE TABLE `hkgovAlsAddresses2d` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `hkgovAlsAddresses2d_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovAlsAddresses3d` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text NOT NULL,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -79,12 +84,13 @@ CREATE TABLE `hkgovAlsAddresses3d` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceGeometry` text,
 	CONSTRAINT `hkgovAlsAddresses3d_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovLandsdPlaceNames` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -100,7 +106,6 @@ CREATE TABLE `hkgovLandsdPlaceNames` (
 --> statement-breakpoint
 CREATE TABLE `hkgovLandsdRoadCentrelines` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -109,6 +114,7 @@ CREATE TABLE `hkgovLandsdRoadCentrelines` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sources` text,
 	`sourceGeometry` text NOT NULL,
 	CONSTRAINT `hkgovLandsdRoadCentrelines_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
@@ -174,7 +180,6 @@ CREATE TABLE `hkgovLandsdStreetNotices` (
 --> statement-breakpoint
 CREATE TABLE `hkgovHydSensitiveStreets` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -183,13 +188,13 @@ CREATE TABLE `hkgovHydSensitiveStreets` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sources` text,
 	`sourceGeometry` text NOT NULL,
 	CONSTRAINT `hkgovHydSensitiveStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovHydStrategicStreets` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -198,13 +203,13 @@ CREATE TABLE `hkgovHydStrategicStreets` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sources` text,
 	`sourceGeometry` text NOT NULL,
 	CONSTRAINT `hkgovHydStrategicStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovHydStreetNamePlates` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -213,13 +218,13 @@ CREATE TABLE `hkgovHydStreetNamePlates` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sources` text,
 	`sourceGeometry` text NOT NULL,
 	CONSTRAINT `hkgovHydStreetNamePlates_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovTdPedestrianStreets` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -228,6 +233,7 @@ CREATE TABLE `hkgovTdPedestrianStreets` (
 	`isCurrent` integer NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sources` text,
 	`sourceGeometry` text NOT NULL,
 	`kind` text NOT NULL,
 	CONSTRAINT `hkgovTdPedestrianStreets_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
@@ -235,7 +241,7 @@ CREATE TABLE `hkgovTdPedestrianStreets` (
 --> statement-breakpoint
 CREATE TABLE `hkgovHadDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -250,7 +256,7 @@ CREATE TABLE `hkgovHadDivisionAreas` (
 --> statement-breakpoint
 CREATE TABLE `hkgovCenstatdDistrictLandAreaPopulationDensities` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -282,7 +288,7 @@ CREATE TABLE `hkgovCenstatdDivisionAreaDerivatives` (
 --> statement-breakpoint
 CREATE TABLE `hkgovCenstatdDivisionAreas` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -298,7 +304,7 @@ CREATE TABLE `hkgovCenstatdDivisionAreas` (
 --> statement-breakpoint
 CREATE TABLE `hkgovCenstatdStatistics` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -313,7 +319,7 @@ CREATE TABLE `hkgovCenstatdStatistics` (
 --> statement-breakpoint
 CREATE TABLE `hkgovPlandNewTowns` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
@@ -330,7 +336,7 @@ CREATE TABLE `hkgovPlandNewTowns` (
 --> statement-breakpoint
 CREATE TABLE `hkgovPlandPlanningCells` (
 	`sourceRecordId` text NOT NULL,
-	`sources` text,
+	`sourceLocator` text,
 	`rawProperties` text,
 	`versionHash` text NOT NULL,
 	`releaseId` text NOT NULL,
