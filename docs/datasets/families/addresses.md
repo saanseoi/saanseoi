@@ -5,16 +5,50 @@ envelope. Schema validation permits adding this envelope only when every other f
 retains its name, type and nullability. Native null and JSON null both denote an absent
 envelope and create no publisher provenance; malformed non-null envelopes are rejected.
 
-Address preparation verifies geographic prerequisite rows in the target database.
-Missing retained divisions and translations are restored before address delivery;
-presence in a local cache alone does not establish production readiness.
+Address ingestion uses one acknowledged local mirror for every source and target. A
+release is resolved and validated in an isolated local candidate, including Address2D,
+Address3D, source validity, provenance, geography and search dependencies. Remote D1
+receives the sealed difference between the acknowledged mirror and that candidate.
+Intermediate staging and resolution queries remain local.
 
-Remote history finalisation uses delivery batches of at most 4,096 staged addresses.
-Previous versions are retired before replacement ranges are applied, and staging is
-removed only after all ranges complete. Each delivery retains its own receipt.
+Current Address tables hold one serving projection per snapshot lineage. Their
+`snapshotId` key stores the stable scope ID; `addressPublicationState` maps that scope
+to its logical snapshot and publication readiness. Before the first delivered current
+mutation, the scope is claimed with a unique publication token and `publishing` status.
+Every current batch verifies that token in the same transaction as its mutations.
+Delivery records `preparedAt` after validating the complete Address2D and Address3D
+projection, localisations, building-number lookups and references. Publication alone
+changes the matching prepared scope to `current`, including valid empty snapshots.
+Unchanged addresses, translations and building-number lookups retain their rows and
+timestamps. Changed content updates only its affected rows. Immutable version content
+and snapshot change journals supply historical API reads, including retired records and
+omitted translations.
 
-Address3D delivers its independent source, history and current projections concurrently
-after Address2D prerequisites complete. Writes within each database remain ordered.
+The API returns a readiness response while a selected scope is being updated. Complete
+initial uploads prepare the retained history locally and deliver the final contents of
+each D1 shard, including one current projection per scope. Incremental delivery sends
+resolved inserts, updates and retirements. Batches respect statement bytes, bound
+parameters, row size and affected-row budgets; a short SQL statement is not evidence of
+bounded work. Checksums, remote receipts and local acknowledgement make the sealed
+delivery resumable.
+
+Omission from a complete source release retires that source assertion. Canonical
+membership is resolved after curations and remaining eligible source evidence; a
+provider omission is not permission to remove another source's address. Reviewed
+curations can retain a canonical address while preserving the publisher omission and the
+evidence for the retention. Invalid or incomplete preparation cannot retire the last
+accepted state.
+
+Deletion preflight compares the complete, prepared membership of consecutive releases
+and emits JSON grouped by address level. Building and complex removals, whole inventory
+loss and substantial deletion spikes require explicit review. Ordinary flat removals
+remain visible in the report and can retire automatically. Missing owners, unresolved
+parent references and inconsistent inventories fail validation independently of review.
+
+Places and Streets keep logical Address snapshot references. These references do not
+require duplicate Address rows in current storage; exact historical references resolve
+through immutable history. Places preparation must have the selected Address projection
+locally, and must not substitute a newer serving scope for a historical dependency.
 
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.
@@ -236,9 +270,9 @@ index update. Because catalogue publication is in a separate database, search ca
 `release-sets:reconcile` again to finish an interrupted finalisation.
 
 The current-database migration must precede deployment of the search reader and
-finaliser. The first successful finalisation builds the latest-only index and retires
-the snapshot-keyed `addressesFts` table. Subsequent identical finalisations write no
-search documents. This optimisation does not remove canonical snapshot copies.
+finaliser. Canonical content resolves through `addressPublicationState`, and the search
+selection retains logical snapshot IDs. Identical finalisations write no search
+documents. Both canonical and search storage reuse unchanged rows across releases.
 
 `attributes.parentAddressId` is the nullable canonical ID of a containing Address,
 available in every API profile. It records explicit containment and is versioned with

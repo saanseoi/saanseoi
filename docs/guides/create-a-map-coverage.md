@@ -71,9 +71,10 @@ needed.
   precision grid, tile overlaps are dissolved before strict-core clipping, and the
   District-clipped coverage is dissolved once before measuring. Keep the deliberate
   boundary-snap trade-off explicit.
-- Before replacing the temporary C&amp;SD population input, verify the published
-  Statistics collection's endpoint, schema, reference-year semantics and download
-  pagination.
+- Verify the published Statistics geography endpoint, the 2024 reference-period
+  selection, and both fields' resolved release-set metadata. Check explicit older
+  `releaseSet` requests against their frozen definitions. Collection examples must count
+  geography/period packs and follow pagination independently of field count.
 - Before adding the sushi example, verify the Places category vocabulary, the maximum of
   100 collection results per request, profile-specific map fields, and bounded
   pagination.

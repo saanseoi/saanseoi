@@ -163,3 +163,10 @@ Public source records expose retained attributes under `properties`; `rawPropert
 the internal storage column. API-field inputs reference the public path through the
 shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
 their registered fixtures and are pinned by the selected release.
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).

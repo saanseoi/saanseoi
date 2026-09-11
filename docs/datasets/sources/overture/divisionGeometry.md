@@ -4,6 +4,12 @@ Unchanged open source versions remain untouched across releases. Complete publis
 membership closes omissions independently of the assertion release ID. Snapshot
 materialisation and release-specific provenance remain separate from source validity.
 
+Each newly published area or boundary resource release supersedes the preceding release
+of that resource. Current snapshot cleanup removes superseded geometry once it is no
+longer required by a current or draft API release set. Historical requests replay the
+selected area or boundary snapshot from its version journal and history shards; they do
+not require every monthly geometry snapshot to remain in current storage.
+
 [Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
 2025-10-22.0 with all three Division, Division Area and Division Boundary resources.
 
@@ -53,6 +59,11 @@ losing superseded-row closures. Normalisation remains a separate stage.
 Geometry SQL uses [sealed delivery phases](../../sql-delivery.md) with source-file and
 snapshot identities. Remote delivery and exact mirror replay must complete before
 publication.
+
+Division, area and boundary delivery each own a separate publication receipt. Native
+planning and remote replay retain atomic ownership checks with their mutation batches.
+An interrupted geometry delivery leaves its receipt unprepared until the sealed replay
+and its count validation finish, including when the valid inventory is empty.
 
 Overture `division_area` and `division_boundary` parquet files are ingested as the
 `divisionArea` and `divisionBoundary` resource types. The local SQL importer accepts the
@@ -277,3 +288,10 @@ Public source records expose retained attributes under `properties`; `rawPropert
 the internal storage column. API-field inputs reference the public path through the
 shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
 their registered fixtures and are pinned by the selected release.
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).

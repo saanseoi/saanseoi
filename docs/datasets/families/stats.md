@@ -75,8 +75,9 @@ and origin-unrecorded labels remain reviewed bulk metadata.
 
 Normalisation, population scaling, geography-identity and field/localisation
 declarations live in `fixtures/meta/processing-rules/`. The canonical normalisation
-cache uses the `v1` contract and includes registered rule definitions in its identity
-alongside source inputs and reviewed metadata.
+cache uses the `censtatd-packed-statistic-normalisation-v2` contract and includes
+registered rule definitions in its identity alongside source inputs and reviewed
+metadata.
 
 Merge ruleset entries for scaling and field curation reference these same definitions;
 their resolved hashes include the declarations rather than only the reference names.
@@ -140,9 +141,20 @@ not re-upload or re-ingest uncertain batches.
 
 The Stats API family is the home for published subject-matter observations, not the
 operational ingestion and release metrics that are already called `stats` in the
-metadata database. Its canonical record is `statsRecords`: an immutable publisher
-feature and reference period, with a nullable reviewed canonical `divisionId`,
-dimensions, and a complete JSON map of its normalised measures.
+metadata database. Its canonical record is `statsRecords`: one dataset, exact reference
+period and semantic geography, with a nullable reviewed canonical `divisionId` and a
+flat JSON `values` map containing every dimension-qualified field. Analytical dimensions
+belong to the versioned field definitions. List/detail IDs and pagination identify these
+geography/period packs; maps and time series continue to select one field's values.
+
+List and detail responses include the matching versioned `statistic-fields` resources by
+default. Each definition appears once in the document's `included` array, with its
+dimensions, units and requested locale labels. Match each value's
+`fieldDefinitionHashes` entry to the definition's `versionHash`. An explicit `include`
+list replaces the default: use `include=none` to omit included resources, or
+`include=fields,divisions` to request definitions and related divisions. Response
+permalinks pin the resolved include selection. Geography and series responses retain
+their single-field shapes.
 
 The initial C&SD District Land Area, Population and Density releases write two distinct
 layers. The source shard preserves C&SD's numeric `DC` and complete source record. The
@@ -195,15 +207,44 @@ its end year. For example, a 2026 compilation row for 2016 remains raw source ev
 in the 2026 source shard while its canonical history record and snapshot belong to
 `BEFORE` and cohort `2016`.
 
-The current shard materialises the latest version independently for each stable dataset,
-source feature, and exact `referencePeriodCode`. Replaying a later compilation updates
-only the periods it contains; an omitted period does not delete an existing current
-observation. History retains every source-release-specific record revision in the
-reference period's shard.
+The current shard serves the latest published values independently for each dataset,
+exact `referencePeriodCode` and semantic geography. Geography identity includes kind,
+code, class and any stable namespace; it excludes publisher release/version and geometry
+companion vintage. Building groups use their parent Housing Market Area as a namespace.
+New annual releases preserve earlier periods. A partial revision replaces only supplied
+fields; omitted fields and geographies remain available. An explicit suppression or
+unavailable value replaces the corresponding value.
 
-Canonical-history replay uses byte-bounded `IN` updates for record identities and short,
-bounded composite predicates for dictionary identities, so each D1 import stays within
-SQLite's expression-depth limit.
+Both current and history store the same complete packs, `fieldSources` and
+`fieldDefinitionHashes`. Each field keeps the provenance of its last real value or
+definition change. A content version covers values, field meanings, canonical division
+linkage and reviewed geography metadata, including its companion. Unchanged reissues
+reuse that version without rewriting either canonical row or adding a
+snapshot-membership row for it. Source assertions and publication metadata retain the
+new release's evidence.
+
+History stores immutable complete versions only for changed packs, sharded by the
+reference period's end year. `snapshotVersionChanges` records sparse `statsRecord`
+upserts along the snapshot parent chain; a snapshot with no changed packs inherits its
+parent's complete state. Publication promotes changed selected packs into current.
+Deferred or incomplete ingestion does not replace published current data.
+
+`statsPublicationState` holds one readiness checkpoint per dataset and exact reference
+period. Its selected `snapshotId` and `publishing`/`current` status gate API reads while
+changed packs and their definitions are promoted. Earlier periods retain independent
+checkpoints; unchanged reissues update publication metadata without rewriting packs.
+
+Ordinary Stats requests use current for every reference period. Explicit release-set,
+catalogue or time selectors use history when they resolve to an older publication;
+selecting an older reference year alone does not select an older revision.
+
+The [retained-data rebuild procedure](stats-rebuild.md) prepares packed current/history
+content from consistent SQLite exports. It preserves source evidence, exact values and
+publication status, and validates replacement content before a maintenance cutover.
+
+Canonical-history replay uses immutable inserts with bounded statement sizes for packs,
+dictionary versions and sparse snapshot changes, so each D1 import stays within SQLite's
+expression-depth limit.
 
 Each source release materialises one snapshot under the uploaded dataset code for each
 distinct exact reference period. Statistics release sets use that period code as their
@@ -220,15 +261,19 @@ periods from 2016 through 2025 and the Permanent Living Quarters district period
 periods. Each primary member of a composed cohort can supply its lineage anchor;
 unreviewed source-schema combinations remain blocked.
 
-Each packed measure value stores exact decimal text (not floats), its original source
-literal, an optional `valuePrecision`, and categorical `valueCode`s. Measure and
-localised value dictionaries remain normalised because they are small shared metadata.
-The current shard keeps the latest dataset dictionaries, while each touched
-reference-year history shard keeps the source-release version used with that period's
-records. This keeps dictionary selection local to the statistics data and avoids a
-cross-shard metadata lookup. There is no multiplier column and no separate
-statistical-geography registry. Source geometry stays in provenance until a reviewed
-geometry is released through the Divisions family.
+Packed values use exact decimal strings or canonical categorical codes. The retained
+publisher assertion preserves original property names and literals; normalisation also
+records precision and status for structural release statistics. Field and measure
+dictionaries remain small, shared metadata. Both current and history retain immutable
+content versions referenced by each pack's `fieldDefinitionHashes`; a partial correction
+can therefore retain several field-definition versions in the same dataset. Field hashes
+cover analytical dimensions, statistical meaning, localisations and the linked measure
+version. Localisations share their owning field or measure hash. Readers join these
+exact versions, independently of source-release markers or `isCurrent`.
+
+Source geometry stays in provenance until a reviewed geometry is released through the
+Divisions family. There is no multiplier column or separate statistical-geography
+registry.
 
 Every C&SD publisher field requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset assigns
@@ -288,8 +333,12 @@ The reviewed schema provenance retains its declared `Null Option` as nullable
 `sourceNullOption`; SaanSeoi's observation-status normalisation remains independent. An
 intentionally unmapped canonical unit is stored as `publisher-unknown`, never inferred.
 The source-release Stats tab then exposes the release's measure dictionary with its
-definition, unit, and observation count. Its structural cards at the end show the
-reviewed statistic kinds and aggregations; `valueKind` remains an ingestion detail.
+definition, unit, and observation count. Counts come from the source resource's
+structural `observations` facts grouped by field, including unchanged reissues; they do
+not count all retained dictionary versions or require new canonical source-release
+markers. Definitions resolve through that source's snapshot ancestry and the packs'
+exact field hashes. Its structural cards at the end show the reviewed statistic kinds
+and aggregations; `valueKind` remains an ingestion detail.
 
 Permanent Living Quarters and HMA are approved source-release fan-outs. Permanent Living
 Quarters creates the three Geographic-domain level-1 areas; HMA creates the separate
@@ -328,34 +377,34 @@ flattening preserve upstream values; corrections and resolved identities remain 
 
 ## API release statistics
 
-The Stats tab describes each API release's selected Statistics sources at its exact
-reference period. Counts come from the retained history rows selected by the API,
-including its current-version filter within those sources. Supporting geometry and
-lookup sources do not contribute statistical records. Duplicate shard copies count once;
-conflicting versions, missing contributing datasets and missing field definitions stop
-calculation.
+The Stats tab describes each frozen API release at its exact reference period. Counts
+resolve its Statistics snapshots through sparse parent ancestry, including unchanged
+reissues whose snapshots contain no new packs. Exact `fieldDefinitionHashes` select
+field definitions and labels. Supporting geometry and lookup sources do not contribute
+statistical records. Duplicate shard copies count once; conflicting versions, missing
+contributing datasets and missing field definitions stop calculation.
 
-Metrics include geographic records, observations, dataset-qualified fields and measures,
-datasets, reference periods, geography types, canonical division linkage, field
-coverage, published/suppressed/unavailable values, numeric/categorical values,
-statistical kinds, aggregations and units. Field-label coverage uses the fields present
-in that cohort as its denominator; unverified labels remain explicit. Unlinked geography
-is a coverage fact, not an assertion that a match is incorrect. Publisher values remain
-strings and are never summed to produce these metrics.
+Metrics include geographic packs, observations, referenced field-definition versions,
+dataset-qualified measures, datasets, reference periods, geography types, canonical
+division linkage, field coverage, published/suppressed/unavailable values,
+numeric/categorical values, statistical kinds, aggregations and units. Field-label
+coverage uses the distinct field definitions referenced in that cohort as its
+denominator; unverified labels remain explicit. Unlinked geography is a coverage fact,
+not an assertion that a match is incorrect. Publisher values remain strings and are
+never summed to produce these metrics.
 
 Primary-record churn compares the preceding release with the same API version, domain,
-region and period granularity. Records match by dataset, geography kind/code/class and
-analytical dimensions. Changed records have different field/value mappings, canonical
-division linkage or geometry companion domain/variant. Publisher values are compared as
-literal strings, including suppression and unavailable markers; reference-period fields,
-geometry companion cohort, source provenance and version metadata do not imply a change.
+region and period granularity. Packs match by dataset and geography kind, code, class
+and namespace. Changed packs have different field/value mappings, field-definition
+hashes, canonical division linkage or geometry companion domain/variant. Values are
+compared as literal strings, including suppression and unavailable markers. Exact
+reference periods and geometry companion cohorts are excluded from this cross-period
+comparison, as are source provenance and record-version metadata.
 
-Distinct retained source copies remain separate occurrences. Within each analytical
-identity, identical payloads match first, remaining pairs count as changed, and
-unmatched occurrences count as added or removed. This preserves the primary-record
-totals even when multiple selected source releases contain the same analytical record.
-Added, changed and unchanged sum to the current count; removed, changed and unchanged
-sum to the preceding count. A first release counts every record as added.
+Within each continuing geography, identical payloads match first, remaining pairs count
+as changed, and unmatched packs count as added or removed. Added, changed and unchanged
+sum to the selected release's count; removed, changed and unchanged sum to the preceding
+count. A first release counts every pack as added.
 
 Structural changes independently count added, removed and retained field, measure and
 geography identities against that same preceding release. They do not compare numerical

@@ -47,6 +47,11 @@ source and metadata bindings. The release can resume retained payloads after
 interruption; publication follows successful local delivery and releases database
 ownership.
 
+Planning Division delivery validates canonical and localisation counts before completing
+its publication receipt. The Area companion completes its separate receipt after
+geometry delivery. Native planning retains each ownership check beside the mutations it
+guards; publication alone grants permission to serve either snapshot.
+
 Planning Unit and New Town source SQL derives its columns from the source schema.
 Publisher codes and names remain in `rawProperties`; delivery preserves the complete
 source geometry and does not synthesise redundant source columns. Planning canonical and
@@ -347,3 +352,10 @@ each domain. Names, aliases and curated codes are searchable alongside geographi
 divisions, or independently with a domain filter. Division publication participates in
 the shared deferred, incremental search finalisation; area geometry is not indexed. See
 [Division text search](../../families/divisions.md#text-search).
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).

@@ -441,11 +441,19 @@ remains a source and can seed an earlier companion, but becomes redundant for th
 API-field signature once either canonical C&SD source is present. The redundant source
 is reported with the release-set lookup rather than becoming a competing field mapping.
 
-The 2016 and 2021 C&SD variants are separate required inputs, not successive revisions
-of one source release. Each keeps its own snapshot lineage and remains available when
-the other cohort is published. Geometry churn is calculated only against a snapshot's
-declared parent; an initial C&SD cohort therefore reports all 18 district areas as
-additions and never as removals from another cohort.
+The 2016 and 2021 C&SD district cohorts are separate required inputs. They share the
+named `hkgov-censtatd-landclipped` variant and have distinct cohort keys and source
+releases. Both processed geometry resource releases remain published while their cohorts
+are available. Exact and simplified materialisations have separate variants.
+
+Current geometry storage retains the selected published snapshot for each contributing
+dataset, region, cohort and variant whose processed resource release remains published.
+Selection prefers authoritative geometry, then the latest publication and revision.
+Lookup-only sources do not retain a geometry snapshot. Current and draft API release-set
+members remain protected independently, including while a replacement is being prepared.
+Superseded rolling releases and replaced revisions are eligible for current snapshot
+cleanup. Historical geometry requests reconstruct the selected snapshot from its version
+journal and history shards after its current materialisation is removed.
 
 For Overture, locale inference, API-locale fallbacks and `CN-GD` geometry exclusions
 contribute aggregate counters to registered processor declarations, without affected
@@ -625,3 +633,18 @@ FTS5 trigrams accelerate substring matching for terms of at least three characte
 Shorter terms scan the latest indexed documents. These reads do not rewrite the index.
 The repair SQL in `libs/db/scripts/sql/rebuild-divisions-fts.sql` synchronises only the
 existing scope selection; publication/reconciliation owns release selection.
+
+## Publication readiness
+
+Current materialisations claim a publication-state receipt before delivery and mark it
+prepared only after complete delivery validation, including valid empty snapshots. The
+selected published snapshot must be ready for the API to serve it. Publication, search
+readiness and cleanup follow the shared
+[publication-state contract](../publication-state-plan.md). The next reset and reingest
+creates these receipts through normal delivery; no backfill infers readiness from
+existing records.
+
+Division delivery checks canonical and localisation counts. Native planning and remote
+replay preserve ownership checks in each mutation batch. Geometry resources have
+separate area and boundary receipts, so a retained cohort or provider variant is ready
+only when its own delivery is complete.
