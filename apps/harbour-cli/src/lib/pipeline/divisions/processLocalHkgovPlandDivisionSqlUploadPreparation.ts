@@ -137,7 +137,14 @@ async function readPreparedDivisionsInternal(
         ...record.base,
         hierarchies: materialiseDivisionHierarchies(record.base.id, [path]),
       }
-      return { ...record, base, versionHash: await createHash(base) }
+      return {
+        ...record,
+        base,
+        versionHash: await createHash({
+          base,
+          i18n: record.i18n.toSorted((a, b) => a.locale.localeCompare(b.locale)),
+        }),
+      }
     }),
   )
 }

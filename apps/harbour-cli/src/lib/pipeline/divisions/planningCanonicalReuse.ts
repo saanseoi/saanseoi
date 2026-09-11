@@ -8,6 +8,7 @@ export async function reusePlanningCanonicalProvenance(
   previous: Array<Record<string, unknown>>,
 ) {
   const byId = new Map(previous.map(row => [row.id, row]))
+  const unchangedBaseIds = new Set<string>()
   for (const record of records) {
     const before = byId.get(record.base.id)
     if (!before || !before.geometry || typeof before.versionHash !== 'string') continue
@@ -29,8 +30,13 @@ export async function reusePlanningCanonicalProvenance(
     )
       continue
     record.base.sources = before.sources as PreparedDivision['base']['sources']
-    record.versionHash = before.versionHash
+    unchangedBaseIds.add(record.base.id)
+    record.versionHash = await createHash({
+      base: record.base,
+      i18n: record.i18n.toSorted((a, b) => a.locale.localeCompare(b.locale)),
+    })
   }
+  return unchangedBaseIds
 }
 
 function withoutPublicationVersion(value: unknown): unknown {

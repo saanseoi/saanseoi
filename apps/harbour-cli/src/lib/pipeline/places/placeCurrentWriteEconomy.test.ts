@@ -147,7 +147,7 @@ test('Places delivery writes only current content changes and removals, with rec
         .all()
       expect(summary).toEqual([
         { tableName: 'places', operation: 'DELETE', n: 1 },
-        { tableName: 'placesCells', operation: 'DELETE', n: 5 },
+        { tableName: 'placesCells', operation: 'DELETE', n: 3 },
         { tableName: 'placesI18n', operation: 'DELETE', n: 3 },
       ])
       expect(local.query('SELECT DISTINCT snapshotId FROM places').all()).toEqual([

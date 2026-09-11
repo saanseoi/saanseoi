@@ -85,7 +85,6 @@ export type BuildPlaceSqlInput = {
 export type BuildPlaceSqlOptions = {
   /** Complete membership when finalising a streamed release. */
   seenSourceRecordIds?: ReadonlySet<string>
-  includeInitialStatements?: boolean
   includeRemovedPlaces?: boolean
   onProgress?: (current: number) => void
   timestamp?: string

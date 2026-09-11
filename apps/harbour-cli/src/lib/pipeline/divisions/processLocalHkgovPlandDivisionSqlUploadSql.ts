@@ -38,6 +38,7 @@ export type PlandImportTargets = {
 }
 
 export type PlandSqlState = {
+  changedCurrentBaseIds: string[]
   changedHistoryIds: string[]
   changedNativeIds: string[]
   missingHistoryIds: string[]
@@ -338,9 +339,9 @@ export async function buildPlandCurrentSql(
       ),
       geometryBuildUpsertSql(
         'divisions',
-        divisionRows.filter(row => state.changedHistoryIds.includes(row.id)) as Array<
-          Record<string, unknown>
-        >,
+        divisionRows.filter(row =>
+          state.changedCurrentBaseIds.includes(row.id),
+        ) as Array<Record<string, unknown>>,
         { current: true },
       ),
       ...state.records.map(

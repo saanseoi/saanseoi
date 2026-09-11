@@ -472,9 +472,11 @@ test('generated Places and search recover in phase order against the current sch
       )
       const dataSql = built.currentSql.join('\n')
       const searchSql =
+        "INSERT INTO placePublicationState(scopeId, snapshotId, status, publicationToken, preparedAt) VALUES ('place-lineage','snapshot','current','release','complete');\n" +
         buildPlaceSearchSyncSql([
           { scopeId: 'hk:overture:places', snapshotId: 'snapshot' },
-        ]).join(';\n') + ';'
+        ]).join(';\n') +
+        ';'
       baseline.exec(dataSql)
       baseline.exec(searchSql)
       const plan = await prepareSqlDelivery(f.directory, f.context, append =>
@@ -486,7 +488,8 @@ test('generated Places and search recover in phase order against the current sch
             executeSqlText({ databaseId: 'db', name: 'current' }, dataSql, {
               isLocal: false,
             }),
-          10_000,
+          Math.max(...built.currentSql.map(statement => Buffer.byteLength(statement))) +
+            512,
         ),
       )
       expect(plan.batches.length).toBeGreaterThan(1)

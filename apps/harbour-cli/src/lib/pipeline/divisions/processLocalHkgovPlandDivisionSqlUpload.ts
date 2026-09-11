@@ -329,6 +329,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               ? sourceSchema.sourceHkgovPlandNewTowns
               : sourceSchema.sourceHkgovPlandPlanningCells
           const {
+            changedCurrentBaseIds,
             changedHistoryIds,
             changedNativeIds,
             currentHistoryRows,
@@ -352,7 +353,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 context.historyDb as unknown as HarbourReadableDb,
                 previewPlan.source,
               )
-              await reusePlanningCanonicalProvenance(records, currentHistoryRows)
+              const reusedBaseIds = await reusePlanningCanonicalProvenance(
+                records,
+                currentHistoryRows,
+              )
+              const changedCurrentBaseIds = records
+                .filter(record => !reusedBaseIds.has(record.base.id))
+                .map(record => record.base.id)
               const historyHashById = new Map(
                 currentHistoryRows.map(row => [row.id, row.versionHash]),
               )
@@ -392,6 +399,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 .filter(id => !incomingNativeIds.has(id))
 
               return {
+                changedCurrentBaseIds,
                 changedHistoryIds,
                 changedNativeIds,
                 currentHistoryRows,
@@ -667,6 +675,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           const prepareSqlManifest = () =>
             runPlandProgressPhase(progress, 'Write', 'SQL import artefacts', () =>
               writePlandSqlArtefacts(bucket, context, previewPlan, {
+                changedCurrentBaseIds,
                 changedHistoryIds,
                 changedNativeIds,
                 missingHistoryIds,

@@ -473,7 +473,6 @@ export async function* buildPlaceSqlBatches(
     input.historyRows.map(state => [String(state.row.id), state]),
   )
   const seen = new Set<string>()
-  let yielded = false
   let processedRows = 0
 
   for await (const places of readStagedJsonBatches<EnrichedPlace>(
@@ -491,14 +490,12 @@ export async function* buildPlaceSqlBatches(
     yield await buildPlaceSql(
       { ...input, historyRows, places },
       {
-        includeInitialStatements: !yielded,
         includeRemovedPlaces: false,
         onProgress: current =>
           onProgress?.({ current: processedRows + current, phase: 'generate' }),
         timestamp,
       },
     )
-    yielded = true
     processedRows += places.length
   }
 
@@ -508,7 +505,6 @@ export async function* buildPlaceSqlBatches(
   yield await buildPlaceSql(
     { ...input, historyRows: removedHistoryRows, places: [] },
     {
-      includeInitialStatements: !yielded,
       includeRemovedPlaces: true,
       seenSourceRecordIds: seen,
       timestamp,
