@@ -5,6 +5,7 @@ import {
   listSnapshotSourceReleases,
 } from '@repo/core/db/metaRegistry'
 import { chunkArray } from '@repo/core/pipeline/utils'
+import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { DivisionHistoryTarget } from './divisionApiReleaseSetStats'
 import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'
@@ -47,7 +48,7 @@ export async function listStatisticsStatsReleases(db: HarbourReadableDb) {
   )
 }
 
-/** Follow the API's frozen source selection and exact reference period, never DB_CURRENT. */
+/** Resolve the frozen publication branch and its exact reference period. */
 export async function readStatisticsStatsData(
   metaDb: HarbourReadableDb,
   targets: DivisionHistoryTarget[],
@@ -60,71 +61,70 @@ export async function readStatisticsStatsData(
     metaDb,
     snapshots.map(row => row.snapshotId),
   )
-  const ids = [...new Set(sources.map(row => row.sourceReleaseId))]
-  if (!ids.length) throw new Error(`No Statistics source membership for ${release.id}`)
+  if (!sources.length)
+    throw new Error(`No Statistics source membership for ${release.id}`)
   const data: StatisticsStatsData = { records: [], fields: [], labels: [] }
-  for (const target of targets) {
-    const db = target.db as HarbourReadableDb
-    for (const batch of chunkArray(ids, 90)) {
-      data.records.push(
-        ...((await db
-          .select()
-          .from(historySchema.statsRecords)
-          .where(
-            and(
-              inArray(historySchema.statsRecords.sourceReleaseId, batch),
-              eq(historySchema.statsRecords.referencePeriodCode, release.cohortKey),
-              eq(historySchema.statsRecords.isCurrent, true),
-            ),
-          )
-          .all()) as RecordRow[]),
-      )
-      data.fields.push(
-        ...((await db
-          .select()
-          .from(historySchema.statsFields)
-          .where(
-            and(
-              inArray(historySchema.statsFields.sourceReleaseId, batch),
-              eq(historySchema.statsFields.isCurrent, true),
-            ),
-          )
-          .all()) as Field[]),
-      )
-      data.labels.push(
-        ...((await db
-          .select()
-          .from(historySchema.statsFieldsI18n)
-          .where(
-            and(
-              inArray(historySchema.statsFieldsI18n.sourceReleaseId, batch),
-              eq(historySchema.statsFieldsI18n.isCurrent, true),
-            ),
-          )
-          .all()) as Label[]),
-      )
-    }
-  }
-  // Duplicate physical copies are harmless; conflicting immutable identities are not.
-  const unique = <T extends { versionHash: string }>(
-    rows: T[],
-    identity: (row: T) => string,
-  ) => {
-    const found = new Map<string, T>()
-    for (const row of rows) {
-      const id = identity(row),
-        previous = found.get(id)
+  const databases = targets.map(target => target.db as HarbourReadableDb)
+  const records = new Map<string, RecordRow>()
+  for (const snapshot of snapshots) {
+    for (const row of await readStatisticSnapshotRecords(
+      metaDb,
+      databases,
+      snapshot.snapshotId,
+    )) {
+      if (row.referencePeriodCode !== release.cohortKey) continue
+      const previous = records.get(row.id)
       if (previous && previous.versionHash !== row.versionHash)
-        throw new Error(`Conflicting Statistics versions for ${id}`)
-      found.set(id, row)
+        throw new Error(`Conflicting Statistics versions for ${row.id}`)
+      records.set(row.id, row)
     }
-    return [...found.values()]
   }
-  data.records = unique(data.records, row => row.id)
-  data.fields = unique(data.fields, row => key(row.datasetCode, row.fieldName))
-  data.labels = unique(data.labels, row =>
-    key(row.datasetCode, row.fieldName, row.locale),
+  data.records = [...records.values()]
+  const used = new Set(
+    data.records.flatMap(row =>
+      Object.keys(row.values).map(field => {
+        const version = row.fieldDefinitionHashes[field]
+        if (!version)
+          throw new Error(`Missing definition version for ${row.datasetCode}:${field}`)
+        return key(row.datasetCode, field, version)
+      }),
+    ),
   )
+  const hashes = [
+    ...new Set(data.records.flatMap(row => Object.values(row.fieldDefinitionHashes))),
+  ]
+  const fields = new Map<string, Field>()
+  const labels = new Map<string, Label>()
+  for (const db of databases) {
+    for (const batch of chunkArray(hashes, 90)) {
+      const definitions = await db
+        .select()
+        .from(historySchema.statsFields)
+        .where(inArray(historySchema.statsFields.versionHash, batch))
+        .all()
+      for (const row of definitions as Field[]) {
+        const identity = key(row.datasetCode, row.fieldName, row.versionHash)
+        if (used.has(identity)) fields.set(identity, row)
+      }
+      const localisations = await db
+        .select()
+        .from(historySchema.statsFieldsI18n)
+        .where(inArray(historySchema.statsFieldsI18n.versionHash, batch))
+        .all()
+      for (const row of localisations as Label[])
+        if (used.has(key(row.datasetCode, row.fieldName, row.versionHash)))
+          labels.set(
+            key(row.datasetCode, row.fieldName, row.versionHash, row.locale),
+            row,
+          )
+    }
+  }
+  data.fields = [...fields.values()]
+  data.labels = [...labels.values()]
+  for (const identity of used)
+    if (!fields.has(identity))
+      throw new Error(`Missing retained Statistics definition ${identity}`)
+
   if (!data.records.length)
     throw new Error(`No retained Statistics records for ${release.id}`)
   for (const dataset of new Set(sources.map(row => row.datasetCode))) {
@@ -133,12 +133,7 @@ export async function readStatisticsStatsData(
         `Missing retained Statistics records for ${dataset} in ${release.cohortKey}`,
       )
   }
-  const used = new Set(
-    data.records.flatMap(row =>
-      Object.keys(row.values).map(field => key(row.datasetCode, field)),
-    ),
-  )
-  data.fields = data.fields.filter(row => used.has(key(row.datasetCode, row.fieldName)))
+
   return data
 }
 
@@ -173,7 +168,7 @@ export function buildStatisticsStatsRows(
       add(dimension, count, groupBy, value)
   }
   const fields = new Map(
-    data.fields.map(row => [key(row.datasetCode, row.fieldName), row]),
+    data.fields.map(row => [key(row.datasetCode, row.fieldName, row.versionHash), row]),
   )
   const observations: {
     field: string
@@ -183,7 +178,11 @@ export function buildStatisticsStatsRows(
   }[] = []
   for (const record of data.records)
     for (const [field, value] of Object.entries(record.values)) {
-      if (!fields.has(key(record.datasetCode, field)))
+      if (
+        !fields.has(
+          key(record.datasetCode, field, record.fieldDefinitionHashes[field] ?? ''),
+        )
+      )
         throw new Error(`Missing definition for ${record.datasetCode}:${field}`)
       observations.push({
         field: `${record.datasetCode}:${field}`,
@@ -242,7 +241,9 @@ export function buildStatisticsStatsRows(
       data.fields.map(row => row[group]),
     )
   const labels = data.labels.filter(
-    row => fields.has(key(row.datasetCode, row.fieldName)) && row.name.trim(),
+    row =>
+      fields.has(key(row.datasetCode, row.fieldName, row.versionHash)) &&
+      row.name.trim(),
   )
   for (const locale of ['en', 'zh-hant', 'zh-hans']) {
     const selected = labels.filter(row => row.locale.toLowerCase() === locale)
@@ -274,7 +275,13 @@ export function buildStatisticsStatsRows(
       measures: new Set(value.fields.map(row => key(row.datasetCode, row.measureCode))),
       geographies: new Set(
         value.records.map(row =>
-          key(row.datasetCode, row.geography.kind, row.geography.code),
+          key(
+            row.datasetCode,
+            row.geography.kind,
+            row.geography.code,
+            row.geography.class ?? '',
+            row.geography.namespace ?? '',
+          ),
         ),
       ),
     })
