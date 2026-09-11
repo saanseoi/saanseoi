@@ -73,11 +73,6 @@ export async function upsertPlaceMetadata(
     snapshotId: snapshots.snapshotId,
   })
   const environment = resolvePipelineEnvironment(target)
-  const currentShard = await resolveShardForTypeRegionYear(
-    metaDb,
-    'current',
-    environment,
-  )
   const historyShard = await resolveShardForTypeRegionYear(
     metaDb,
     'history',
@@ -92,10 +87,10 @@ export async function upsertPlaceMetadata(
     plan.regionCode,
     plan.sourceVersion.slice(0, 4),
   )
-  if (currentShard)
-    await upsertSnapshotShardAssignment(metaDb, snapshots.snapshotId, currentShard.id)
-  if (historyShard)
+  if (historyShard) {
+    await upsertSnapshotShardAssignment(metaDb, snapshots.snapshotId, historyShard.id)
     await upsertReleaseShardAssignment(metaDb, releaseId, historyShard.id)
+  }
   if (sourceShard) await upsertReleaseShardAssignment(metaDb, releaseId, sourceShard.id)
 }
 

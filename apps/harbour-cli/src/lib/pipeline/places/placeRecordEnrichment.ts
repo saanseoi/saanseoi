@@ -1,5 +1,5 @@
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { createHash } from '@repo/core/pipeline/utils'
+import { placeLocaleHash } from './placeHistory.ts'
 import { latLngToCell } from 'h3-js'
 import { PLACE_H3_LEVELS } from './processLocalPlaceSqlUploadConfig.ts'
 import type { EnrichedPlace } from './processLocalPlaceSqlUploadTypes.ts'
@@ -72,11 +72,7 @@ export async function preparePlaceProjection(row: EnrichedPlace) {
     })),
     i18nHashes: await Promise.all(
       row.place.i18n.map(localised =>
-        createHash({
-          placeVersionHash: row.versionHash,
-          locale: localised.locale,
-          localised,
-        }),
+        placeLocaleHash(localised, row.searchDependencies?.[localised.locale]),
       ),
     ),
   }
