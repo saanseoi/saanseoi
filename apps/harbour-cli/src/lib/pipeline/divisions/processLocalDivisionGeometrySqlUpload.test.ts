@@ -711,3 +711,35 @@ describe('shouldCompressCanonicalGeometry', () => {
     expect(shouldCompressCanonicalGeometry('overture', undefined)).toBeFalse()
   })
 })
+
+test('forces area and Kowloon city unions but preserves existing Hong Kong city geometry', () => {
+  const definitions = [
+    {
+      code: 'kowloon',
+      divisionId: 'kowloon-area',
+      districtDivisionIds: ['d'],
+      reconstruct: true,
+    },
+    {
+      code: 'kowloon-city',
+      divisionId: 'kowloon-city',
+      districtDivisionIds: ['d'],
+      reconstruct: true,
+    },
+    {
+      code: 'hong-kong-city',
+      divisionId: 'hong-kong-city',
+      districtDivisionIds: ['d'],
+      reconstruct: false,
+    },
+  ]
+  const existing = definitions.map(area => ({
+    canonical: { divisionId: area.divisionId },
+  }))
+  expect(
+    selectOvertureHongKongAreasWithoutSourceGeometry(definitions, existing as never),
+  ).toEqual(definitions.slice(0, 2))
+  expect(selectOvertureHongKongAreasWithoutSourceGeometry(definitions, [])).toEqual(
+    definitions,
+  )
+})

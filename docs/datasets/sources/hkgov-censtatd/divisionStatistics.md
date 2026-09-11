@@ -554,3 +554,16 @@ and provenance objects are retained in production R2, with registrations kept in
 D1. Follow the
 [storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
 selecting or continuing this mode.
+
+## Geography classification
+
+Statistics record `geography.kind` classifies the source geography (for example,
+`district` or `housing-estate`). Aggregate-query geography `kind` selects the resource
+family (`division`, `buildingGroup` or `majorHousingEstate`). These are distinct
+vocabularies, not casing variants. Source geography `class` values such as `B` and `O`
+retain their separate publisher meaning.
+
+Release statistics use `metric` for measurement classification. Exactly one of
+`releaseId` and `apiReleaseSetId` identifies the owner. Processing-audit counts use
+`metric: processing` and are preserved when ordinary measurement statistics are
+replaced.

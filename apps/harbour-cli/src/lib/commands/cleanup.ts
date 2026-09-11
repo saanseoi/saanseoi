@@ -17,7 +17,7 @@ export async function runSnapshotCleanupCommand(
     skipConfirm: boolean
   },
 ) {
-  const resourceType = resolveSnapshotCleanupResourceType(args.options.type)
+  const resourceType = resolveSnapshotCleanupResourceType(args.options['resource-type'])
   const snapshotIds = resolveSnapshotIds(args.options.snapshot)
   const delaySeconds = resolveDelaySeconds(args.options['delay-seconds'])
 

@@ -83,7 +83,7 @@ describe('filterIngestionRows', () => {
         startedAt: '2026-06-24T10:00:00.000Z',
         stats: null,
         status: 'running',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -98,7 +98,7 @@ describe('filterIngestionRows', () => {
         startedAt: '2026-06-23T10:00:00.000Z',
         stats: null,
         status: 'completed',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -113,7 +113,7 @@ describe('filterIngestionRows', () => {
         startedAt: '2026-06-22T10:00:00.000Z',
         stats: null,
         status: 'completed',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -128,7 +128,7 @@ describe('filterIngestionRows', () => {
         startedAt: '2026-06-24T09:00:00.000Z',
         stats: null,
         status: 'queued',
-        type: 'address',
+        resourceType: 'address',
       },
     ]
 
@@ -175,7 +175,7 @@ describe('formatReleaseReportTable', () => {
         sourceVersion: '2026-06-24.0',
         status: 'published',
         supersededByReleaseId: null,
-        type: 'address',
+        resourceType: 'address',
         updatedAt: '2026-06-24T12:00:00.000Z',
       },
     ]
@@ -211,7 +211,7 @@ describe('formatIngestionReportTable', () => {
           sqlArtefactCount: 4,
         },
         status: 'completed',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -230,7 +230,7 @@ describe('formatIngestionReportTable', () => {
           schemaFieldCount: 14,
         },
         status: 'completed',
-        type: 'address',
+        resourceType: 'address',
       },
     ]
 
@@ -271,7 +271,7 @@ describe('formatIngestionReportTable', () => {
           totalFiles: 178,
         },
         status: 'running',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -286,7 +286,7 @@ describe('formatIngestionReportTable', () => {
         startedAt: '2026-06-24T10:00:00.000Z',
         stats: null,
         status: 'running',
-        type: 'address',
+        resourceType: 'address',
       },
     ]
 
@@ -320,7 +320,7 @@ describe('formatStatsReportTable', () => {
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         updatedAt: '2026-06-24T12:00:00.000Z',
         value: 2,
       },
@@ -336,7 +336,7 @@ describe('formatStatsReportTable', () => {
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         updatedAt: '2026-06-24T12:00:00.000Z',
         value: 66.6,
       },
@@ -352,7 +352,7 @@ describe('formatStatsReportTable', () => {
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         updatedAt: '2026-06-24T12:00:00.000Z',
         value: 4,
       },
@@ -368,7 +368,7 @@ describe('formatStatsReportTable', () => {
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         releaseId: 'release-1',
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         updatedAt: '2026-06-24T12:00:00.000Z',
         value: 1,
       },
@@ -384,7 +384,7 @@ describe('formatStatsReportTable', () => {
         releaseCode: 'dr-hk-overture-division-2026-06-23.0',
         releaseId: 'release-2',
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         updatedAt: '2026-06-23T12:00:00.000Z',
         value: 7,
       },

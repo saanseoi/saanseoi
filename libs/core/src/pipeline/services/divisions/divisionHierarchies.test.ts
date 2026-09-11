@@ -6,7 +6,7 @@ import {
 
 const entry = (id: string, type: string): ClassifiedAncestor => ({
   division_id: id,
-  type,
+  class: type,
   i18n: { en: { name: id }, 'zh-hant': { name: id } },
 })
 const ids = (paths: Array<Array<{ id: string }>>) =>

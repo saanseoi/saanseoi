@@ -59,7 +59,7 @@ export async function listIngestRuns(
     datasetCode: options.datasetCode,
     limit: options.limit ?? 10,
     source: options.source,
-    type: options.type,
+    resourceType: options.resourceType,
   })
 
   if (releaseIds.length === 0) {
@@ -122,7 +122,7 @@ export async function listStats(
     : await listLatestStatsReleaseIds(db, {
         limit: options.limit ?? 1,
         source: options.source,
-        type: options.type,
+        resourceType: options.resourceType,
       })
 
   if (releaseIds.length === 0) {
@@ -167,7 +167,7 @@ export async function listProcessingActions(
     : await listLatestStatsReleaseIds(db, {
         limit: options.limit ?? 1,
         source: options.source,
-        type: options.type,
+        resourceType: options.resourceType,
       })
 
   if (releaseIds.length === 0) return []
@@ -276,7 +276,7 @@ export async function listReleases(
     sourceVersion: row.sourceVersion,
     status: row.status,
     supersededByReleaseId: row.supersededByReleaseId,
-    type: row.type,
+    type: row.resourceType,
     updatedAt: toIsoString(row.updatedAt) ?? '',
   }))
 }
@@ -321,7 +321,7 @@ function countReportFilterVariables(options: ReportFilters) {
     options.releaseCode,
     options.releaseId,
     options.source,
-    options.type,
+    options.resourceType,
   ].filter(value => value !== undefined).length
 }
 

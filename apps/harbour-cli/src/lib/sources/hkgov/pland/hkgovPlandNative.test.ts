@@ -89,7 +89,7 @@ describe('Planning Department native TPU SHP intake', () => {
           ),
           outputFile: join(outputDir, 'division.parquet'),
           sourceVersion: '2021',
-          type: 'division',
+          resourceType: 'division',
         }),
       ).resolves.toMatchObject({
         divisionCount: 5269,

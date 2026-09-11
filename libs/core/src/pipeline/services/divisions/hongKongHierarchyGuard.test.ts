@@ -89,7 +89,7 @@ test('district descendants may contain legitimate nested areas after the distric
   checkHongKongHierarchy(
     {
       ...child,
-      type: 'area',
+      class: 'area',
       level: 1,
       hierarchy: [sar, area, district],
     },
@@ -100,7 +100,7 @@ test('district descendants may contain legitimate nested areas after the distric
   checkHongKongHierarchy(
     {
       ...child,
-      type: 'hamlet',
+      class: 'hamlet',
       level: 6,
       hierarchy: [
         sar,

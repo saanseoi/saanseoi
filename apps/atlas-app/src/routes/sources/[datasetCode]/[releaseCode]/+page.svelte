@@ -166,7 +166,7 @@ let showBulkActions = $state(false)
 let bulkActions = $derived(
   version?.processingRules?.rulesets
     .flatMap(ruleset => ruleset.rules)
-    .filter(rule => rule.type === 'bulk') ?? [],
+    .filter(rule => rule.kind === 'bulk') ?? [],
 )
 let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
 let hasAuditFamily = $derived(

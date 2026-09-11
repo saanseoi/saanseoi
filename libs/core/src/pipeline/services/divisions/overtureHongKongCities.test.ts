@@ -44,7 +44,7 @@ test('Kowloon city retains its UUID while its administrative area has its own id
   ).not.toContain(city.id)
   expect(
     missingOvertureHongKongAreaRows(message, [...districts, source]).map(row => row.id),
-  ).toContain(overtureHongKongAreaDivisionId('kowloon'))
+  ).toContain(overtureHongKongAreaDivisionId('kowloon')!)
 })
 
 test('reconstructs two cities with independent district paths and the specified membership', () => {
@@ -83,4 +83,17 @@ test('keeps an existing Hong Kong city UUID and rejects ambiguous or incomplete 
   expect(() => missingOvertureHongKongCityRows(message, [])).toThrow(
     'expected one district',
   )
+})
+
+test('retains the missing Hong Kong city patch and its district evidence', async () => {
+  const { overtureHongKongCityRestorationActions } = await import(
+    './overtureHongKongCityRestoration'
+  )
+  const rows = missingOvertureHongKongCityRows(message, districts)
+  const actions = overtureHongKongCityRestorationActions(rows)
+  expect(actions).toHaveLength(1)
+  expect(actions[0]?.action).toBe('overture_hong_kong_city_restored')
+  expect(JSON.stringify(actions[0]?.evidence)).toContain('Eastern District')
+  expect(JSON.stringify(actions[0]?.evidence)).not.toContain('Southern District')
+  expect(overtureHongKongCityRestorationActions([])).toEqual([])
 })

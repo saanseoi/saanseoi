@@ -51,7 +51,7 @@ export function targetVersionsFromReport(
   dataset: DatasetFixture,
   rows: ReadonlyArray<
     Pick<ReleaseReportRow, 'sourceVersion' | 'status'> &
-      Partial<Pick<ReleaseReportRow, 'type' | 'hasStatisticsSnapshot'>>
+      Partial<Pick<ReleaseReportRow, 'resourceType' | 'hasStatisticsSnapshot'>>
   >,
   includeGeography = false,
 ) {
@@ -65,7 +65,7 @@ export function targetVersionsFromReport(
               candidate =>
                 candidate.sourceVersion === row.sourceVersion &&
                 isPublishedTargetRelease(candidate.status) &&
-                candidate.type === type,
+                candidate.resourceType === type,
             ),
           ),
         )
@@ -76,7 +76,8 @@ export function targetVersionsFromReport(
   // Geometry from the same publisher cohort does not establish stats readiness.
   if (dataset.theme === 'stats')
     rows = rows.filter(
-      row => row.type === 'divisionStatistic' || row.hasStatisticsSnapshot === true,
+      row =>
+        row.resourceType === 'divisionStatistic' || row.hasStatisticsSnapshot === true,
     )
   const targetVersions = new Map<string, string | null>()
   const releases = dataset.releases?.length ? dataset.releases : [undefined]

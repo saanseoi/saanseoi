@@ -2451,7 +2451,8 @@ describe('resolveActiveSnapshotForType', () => {
     `)
 
     await expect(
-      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+      resolveActiveSnapshotForType(db as never, 'place', {
+        domainCode: 'place',
         regionCode: 'hk',
       }),
     ).resolves.toMatchObject({
@@ -2460,7 +2461,8 @@ describe('resolveActiveSnapshotForType', () => {
     })
 
     await expect(
-      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+      resolveActiveSnapshotForType(db as never, 'place', {
+        domainCode: 'place',
         regionCode: 'mo',
       }),
     ).resolves.toMatchObject({
