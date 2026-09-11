@@ -184,6 +184,23 @@ database. Automatic restoration of an advanced mutable scope from history is not
 implemented by that command. A draft that never acquired a current scope can still be
 purged; a draft that replaced its predecessor requires restoration first.
 
+## Local scale evidence
+
+`bun run scripts/benchmark-current-delivery.ts` measures an isolated synthetic compiler
+workload with 100,000 base rows and two locales per row. The retained report is
+`.cache/preparation-benchmarks/current-delivery.json`. On the measured Bun 1.4.2 run:
+
+| Candidate                                    | Data mutations | Bound payload | Local compilation |
+| -------------------------------------------- | -------------: | ------------: | ----------------: |
+| Unchanged 300,000-row projection             |              0 |       0 bytes |            417 ms |
+| One English locale edited for 1% of entities |          1,000 | 137,802 bytes |            435 ms |
+
+The source file was 40,415,232 bytes. Scratch files totalled 120,381,440 bytes at the
+first changed-payload emission; this is a sample, not a measured peak. The compiler
+verifies replay equality and leaves the source file unchanged. Timings exclude source
+decoding, dependency hydration, metadata, publication receipts and network operations.
+They do not establish production throughput or billed D1 writes.
+
 The Streets source-payload consolidation and API-family unification remain separate work
 in the [Streets family](families/streets.md). Publication state preserves publisher
 payloads, street identity and notice evidence.
