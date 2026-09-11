@@ -8,8 +8,8 @@ import {
   type R2Metadata,
 } from './remoteR2Object.ts'
 
-const configPath = process.argv[2]
-const requestDirectory = process.argv[3]
+const configPath = process.argv[2] ?? ''
+const requestDirectory = process.argv[3] ?? ''
 if (!configPath || !requestDirectory)
   throw new Error('R2 worker requires a config and request directory.')
 type Request = { id: number; key: string; path: string; metadata: R2Metadata }
