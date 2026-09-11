@@ -837,7 +837,7 @@ test('geometry publication cannot hide a missing statistics release', () => {
   expect(
     targetVersionsFromReport(dataset, [
       geometry,
-      { ...geometry, type: 'divisionStatistic' },
+      { ...geometry, resourceType: 'divisionStatistic' },
     ]).get('2021'),
   ).toBe('2021')
 })

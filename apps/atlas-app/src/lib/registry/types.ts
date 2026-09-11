@@ -74,7 +74,7 @@ export type ApiRelease = {
   bulkActions?: Array<{
     id: string
     operationCode: string
-    type: 'bulk'
+    kind: 'bulk'
     sourceFieldPath?: string
     targetFieldPath?: string
     condition?: string

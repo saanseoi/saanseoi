@@ -112,7 +112,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         source: previewPlan.source,
         sourceVersion: previewPlan.sourceVersion,
         theme: previewPlan.theme,
-        type: previewPlan.resourceType,
+        resourceType: previewPlan.resourceType,
       })
     : undefined
 

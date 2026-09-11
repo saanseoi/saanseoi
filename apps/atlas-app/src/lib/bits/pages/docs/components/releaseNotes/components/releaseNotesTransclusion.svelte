@@ -20,7 +20,7 @@ type Props = {
 let { transclusion, labels, transclusions, title, children }: Props = $props()
 let trigger = $state<HTMLButtonElement | null>(null)
 let icon = $derived(
-  transclusion.type === 'definition' ? 'ion:book-outline' : 'ion:document-text-outline',
+  transclusion.kind === 'definition' ? 'ion:book-outline' : 'ion:document-text-outline',
 )
 let contentColumnAnchor = $derived.by(() => {
   const triggerElement = trigger

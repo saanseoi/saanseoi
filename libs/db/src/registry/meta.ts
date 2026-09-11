@@ -931,7 +931,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.regionCode)},
   ${sqlString(dataset.releaseType)},
   ${sqlString(dataset.releaseFrequency)},
-  ${sqlString(dataset.theme)},
+  ${sqlNullable(dataset.theme)},
   ${sqlNullable(dataset.kind)},
   ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceCrs)},

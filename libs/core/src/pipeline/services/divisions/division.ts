@@ -183,7 +183,7 @@ type DivisionHierarchyI18n = {
 type DivisionHierarchyLookupEntry = {
   i18n: DivisionHierarchyI18n
   level: number
-  type: string
+  class: string
 }
 
 export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
@@ -1228,7 +1228,7 @@ function normaliseDivisionRowInternal(
   )
   const enrichedPaths = normalisedHierarchies.map(hierarchy =>
     insertOvertureHongKongAreaIntoHierarchy({
-      division: { id, level, type },
+      division: { id, level, class: type },
       hierarchy,
       i18n,
     }),
@@ -1248,11 +1248,11 @@ function normaliseDivisionRowInternal(
           country:
             row.country ?? (options.source?.regionCode === 'hk' ? 'HK' : undefined),
           id,
-          type,
+          class: type,
           level,
           name: i18n.find(entry => entry.locale === 'en')?.name ?? undefined,
           hierarchy: (enrichedPath.hierarchy as NormalisedHierarchyEntry[]).filter(
-            entry => entry.type !== 'city',
+            entry => entry.class !== 'city',
           ),
         },
         options.hierarchyGuard,
@@ -1297,11 +1297,11 @@ type NormalisedHierarchyEntry = {
   division_id: string
   i18n: DivisionHierarchyI18n
   level: number
-  type: string
+  class: string
 }
 
 function insertOvertureHongKongAreaIntoHierarchy(input: {
-  division: { id: string; level: number | null; type: string }
+  division: { id: string; level: number | null; class: string }
   hierarchy: unknown
   i18n: DivisionI18nPayload[]
 }): {
@@ -1328,7 +1328,7 @@ function insertOvertureHongKongAreaIntoHierarchy(input: {
   // ancestors instead of inserting that same Area into its own ancestry.
   if (
     input.division.id === areaEntry.division_id &&
-    input.division.type === 'area' &&
+    input.division.class === 'area' &&
     input.division.level === 1
   ) {
     return { assignment: area, hierarchy: hierarchy.slice(0, hongKongSarIndex + 1) }
@@ -1364,11 +1364,11 @@ function resolveDistrictNameForHongKongArea(
   >,
   hierarchy: NormalisedHierarchyEntry[],
 ) {
-  if (input.division.type === 'district' && input.division.level === 2) {
+  if (input.division.class === 'district' && input.division.level === 2) {
     return input.i18n.find(row => row.locale === 'en')?.name ?? null
   }
 
-  return hierarchy.find(entry => entry.type === 'district')?.i18n.en?.name ?? null
+  return hierarchy.find(entry => entry.class === 'district')?.i18n.en?.name ?? null
 }
 
 validateDivisionPolicy(ruleFixture.parameters)
@@ -2058,7 +2058,7 @@ export async function buildDivisionHierarchyLookup(
             otSubtype,
             parentDivisionId,
           }),
-        type:
+        class:
           classification?.type ??
           resolveDivisionType({
             row,
@@ -2086,7 +2086,7 @@ export async function buildDivisionHierarchyLookup(
         deferHierarchyGuard: true,
       })
       lookup.set(normalised.base.id, {
-        type: normalised.base.class,
+        class: normalised.base.class,
         level: normalised.base.level ?? 0,
         i18n: Object.fromEntries(
           normalised.i18n
@@ -2144,7 +2144,7 @@ function normaliseDivisionHierarchies(
             lookupEntry?.i18n ??
             buildHierarchyI18nFromName(hierarchyDivisionId, record.name),
           level: lookupEntry?.level ?? resolveHierarchyDivisionLevel(rawSubtype),
-          type: lookupEntry?.type ?? resolveHierarchyDivisionType(rawSubtype),
+          type: lookupEntry?.class ?? resolveHierarchyDivisionType(rawSubtype),
         },
       ]
     })

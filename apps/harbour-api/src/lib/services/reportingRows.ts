@@ -35,7 +35,7 @@ export type ReportFilters = {
   releaseCode?: string
   releaseId?: string
   source?: string
-  type?: DatasetType
+  resourceType?: DatasetType
 }
 
 export type ReleaseContext = {
@@ -45,7 +45,7 @@ export type ReleaseContext = {
   sourceUrl: string | null
   sourceVersion: string
   cohortKey: string | null
-  type: string
+  resourceType: string
 }
 
 export type CountSpec = {
@@ -96,8 +96,8 @@ export function buildReportFilterWhereClause(options: ReportFilters) {
     conditions.push(eq(metaPublishers.code, options.source))
   }
 
-  if (options.type) {
-    conditions.push(eq(metaReleases.resourceType, options.type))
+  if (options.resourceType) {
+    conditions.push(eq(metaReleases.resourceType, options.resourceType))
   }
 
   if (conditions.length === 0) {
@@ -186,7 +186,7 @@ async function buildHistoryCountTargets(
           binding: bindingName ? resolveD1Binding(bindings, bindingName) : undefined,
           kind: 'history',
           releaseId: release.releaseId,
-          specs: resolveHistoryCountSpecs(release.type),
+          specs: resolveHistoryCountSpecs(release.resourceType),
         } satisfies CountTarget,
       ]
     }),
@@ -502,7 +502,7 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
         },
       ]
     case 'overture':
-      switch (release.type) {
+      switch (release.resourceType) {
         case 'division':
           return [
             {

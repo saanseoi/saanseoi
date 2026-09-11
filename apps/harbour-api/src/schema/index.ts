@@ -200,7 +200,7 @@ export const UploadResponseSchema = z
         examples: ['2025-09-24.0', '2026-01-20.0'],
       }),
     status: StatusSchema,
-    type: z.string().openapi({
+    resourceType: z.string().openapi({
       description: 'Theme type of the dataset (e.g., division, address)',
       examples: ['division', 'address', 'place'],
     }),
@@ -267,7 +267,7 @@ export const RegisterUploadRequestSchema = z
       sourceVersion: z.string().optional(),
       geometryStatus: z.enum(['authoritative', 'fallback']).optional(),
       theme: z.string().optional(),
-      type: z.string().optional(),
+      resourceType: z.string().optional(),
     }),
   })
   .openapi('HarbourRegisterUploadRequest')
@@ -285,7 +285,7 @@ export const LocalUploadRegistrationResponseSchema = z
     source: SourceSchema,
     status: StatusSchema,
     sourceVersion: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
     rowCount: z.number(),
   })
   .openapi('HarbourLocalUploadRegistrationResponse')
@@ -528,7 +528,7 @@ export const ReportQuerySchema = z
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
-    type: DatasetTypeQuerySchema.optional(),
+    resourceType: DatasetTypeQuerySchema.optional(),
   })
   .openapi('HarbourReportQuery')
 
@@ -537,7 +537,7 @@ export const StatsReportQuerySchema = z
     limit: z.coerce.number().int().min(1).max(100).default(1),
     releaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
-    type: DatasetTypeQuerySchema.optional(),
+    resourceType: DatasetTypeQuerySchema.optional(),
   })
   .openapi('HarbourStatsReportQuery')
 
@@ -564,7 +564,7 @@ export const IngestRunReportRowSchema = z
     startedAt: z.string(),
     stats: z.unknown().nullable(),
     status: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
   })
   .openapi('HarbourIngestRunReportRow')
 
@@ -587,7 +587,7 @@ export const StatReportRowSchema = z
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
     value: z.number(),
   })
@@ -612,7 +612,7 @@ export const ProcessingActionReportRowSchema = z
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
     summary: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
   })
   .openapi('HarbourProcessingActionReportRow')
@@ -642,7 +642,7 @@ export const ReleaseReportRowSchema = z
     sourceVersion: z.string(),
     status: z.string(),
     supersededByReleaseId: ReleaseIdSchema.nullable(),
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
   })
   .openapi('HarbourReleaseReportRow')

@@ -39,14 +39,14 @@ import { unzipSelected } from '../lib/zip.ts'
 type StatisticResourceType = 'division' | 'divisionArea' | 'divisionStatistic'
 
 export function pendingCenstatdStatisticResourceTypes(
-  rows: readonly Pick<ReleaseReportRow, 'sourceVersion' | 'status' | 'type'>[],
+  rows: readonly Pick<ReleaseReportRow, 'sourceVersion' | 'status' | 'resourceType'>[],
   sourceVersion: string,
   expectedTypes: readonly StatisticResourceType[],
 ) {
   const publishedTypes = new Set(
     rows
       .filter(row => row.sourceVersion === sourceVersion && row.status === 'published')
-      .map(row => row.type),
+      .map(row => row.resourceType),
   )
 
   return expectedTypes.filter(type => !publishedTypes.has(type))

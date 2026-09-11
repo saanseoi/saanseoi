@@ -8,7 +8,7 @@ import { buildDisplayName } from '../../../displayName'
 
 export type ClassifiedAncestor = {
   division_id: string
-  type: string
+  class: string
   i18n?: { 'zh-hant'?: { name?: string | null }; en?: { name?: string | null } }
 }
 
@@ -29,7 +29,7 @@ export function materialiseDivisionHierarchies(
         'zh-hant': entry.i18n?.['zh-hant']?.name,
         en: entry.i18n?.en?.name,
       }),
-      class: entry.type,
+      class: entry.class,
     }))
     const category = (entry: DivisionHierarchyEntry) =>
       geographicDivisionClassification(entry.class)?.category

@@ -65,7 +65,7 @@ export type PrepareHkgovPlandTpuOptions = {
   inputFile: string
   outputFile: string
   sourceVersion: string
-  type: HkgovPlandUploadType
+  resourceType: HkgovPlandUploadType
 }
 
 export type PreparedHkgovPlandTpuResult = {
@@ -77,13 +77,13 @@ export type PreparedHkgovPlandTpuResult = {
 
 type FeatureCollection = {
   features?: unknown
-  type?: unknown
+  resourceType?: unknown
 }
 
 type SourceFeature = {
   geometry?: unknown
   properties?: unknown
-  type?: unknown
+  resourceType?: unknown
 }
 
 type SourceProperties = {
@@ -177,7 +177,10 @@ async function prepareHkgovPlandTpuFeatureCollection(
     )
   }
 
-  if (payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
+  if (
+    payload.resourceType !== 'FeatureCollection' ||
+    !Array.isArray(payload.features)
+  ) {
     throw new Error(
       'Planning Department TPU input must be a GeoJSON FeatureCollection.',
     )
@@ -194,7 +197,7 @@ async function prepareHkgovPlandTpuFeatureCollection(
   const divisions = buildPlanningDivisions(cells, options.sourceVersion)
   await mkdir(dirname(resolve(options.outputFile)), { recursive: true })
 
-  if (options.type === 'division') {
+  if (options.resourceType === 'division') {
     writeDivisionParquet(resolve(options.outputFile), divisions, options.sourceVersion)
   } else {
     writeDivisionAreaParquet(
@@ -236,7 +239,10 @@ function normaliseNativeTpuFeatureCollection(
       `No registered ${HKGOV_PLAND_SOURCE} native-SHP parser profile exists for source version ${sourceVersion}.`,
     )
   }
-  if (payload.type !== 'FeatureCollection' || !Array.isArray(payload.features)) {
+  if (
+    payload.resourceType !== 'FeatureCollection' ||
+    !Array.isArray(payload.features)
+  ) {
     throw new Error('Planning Department TPU SHP input must be a FeatureCollection.')
   }
   if (!expectedRawCounts.includes(payload.features.length)) {
@@ -268,7 +274,7 @@ function normaliseNativeTpuFeatureCollection(
     features.push(feature)
   }
 
-  return { features, type: 'FeatureCollection' }
+  return { features, resourceType: 'FeatureCollection' }
 }
 
 function isFeatureCollection(value: unknown): value is FeatureCollection {
@@ -836,19 +842,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function stringColumn(name: string, data: string[], nullable = true) {
-  return { data, name, nullable, type: 'STRING' as const }
+  return { data, name, nullable, resourceType: 'STRING' as const }
 }
 
 function booleanColumn(name: string, data: boolean[], nullable = true) {
-  return { data, name, nullable, type: 'BOOLEAN' as const }
+  return { data, name, nullable, resourceType: 'BOOLEAN' as const }
 }
 
 function jsonColumn<T>(name: string, data: T[], nullable = true) {
-  return { data, name, nullable, type: 'JSON' as const }
+  return { data, name, nullable, resourceType: 'JSON' as const }
 }
 
 function geometryColumn(name: string, data: GeoJsonGeometry[], nullable = true) {
-  return { data, name, nullable, type: 'GEOMETRY' as const }
+  return { data, name, nullable, resourceType: 'GEOMETRY' as const }
 }
 
 function writeParquetFile(

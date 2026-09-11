@@ -66,7 +66,7 @@ export function buildReleaseUploadDbCacheScopeKey(options: {
   source: string
   sourceVersion: string
   theme: string
-  type: string
+  resourceType: string
 }) {
   return [
     'release-upload',
@@ -77,7 +77,7 @@ export function buildReleaseUploadDbCacheScopeKey(options: {
     options.sourceVersion.trim(),
     options.cohortKey.trim(),
     options.theme.trim().toLowerCase(),
-    options.type.trim().toLowerCase(),
+    options.resourceType.trim().toLowerCase(),
   ].join(':')
 }
 

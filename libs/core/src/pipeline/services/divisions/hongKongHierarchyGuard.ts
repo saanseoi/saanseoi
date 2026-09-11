@@ -7,7 +7,7 @@ import {
 
 type Entry = {
   division_id: string
-  type: string
+  class: string
   level: number
   i18n: { en?: { name: string } }
 }
@@ -29,7 +29,7 @@ export function checkHongKongHierarchy(
   input: {
     country?: unknown
     id: string
-    type: string
+    class: string
     level: number
     name?: string
     hierarchy: unknown
@@ -37,8 +37,8 @@ export function checkHongKongHierarchy(
   guard = createHongKongHierarchyGuard(),
 ) {
   const ancestors = Array.isArray(input.hierarchy) ? (input.hierarchy as Entry[]) : []
-  const isDistrict = input.type === 'district'
-  const districtAncestors = ancestors.filter(entry => entry.type === 'district')
+  const isDistrict = input.class === 'district'
+  const districtAncestors = ancestors.filter(entry => entry.class === 'district')
   const isHongKong =
     input.country === 'HK' ||
     ancestors.some(entry => entry.division_id === OVERTURE_HONG_KONG_SAR_DIVISION_ID)
@@ -54,12 +54,12 @@ export function checkHongKongHierarchy(
     ...ancestors,
     {
       division_id: input.id,
-      type: input.type,
+      class: input.class,
       level: input.level,
       i18n: { en: { name: input.name ?? '' } },
     },
   ]
-  const districts = path.filter(entry => entry.type === 'district')
+  const districts = path.filter(entry => entry.class === 'district')
   const [district] = districts
   if (districts.length !== 1 || !district)
     return fail('Expected exactly one district in the canonical ancestry.')
@@ -75,10 +75,10 @@ export function checkHongKongHierarchy(
   )
   if (
     sarIndex < 0 ||
-    path[sarIndex]?.type !== 'sar' ||
+    path[sarIndex]?.class !== 'sar' ||
     path[sarIndex]?.level !== 0 ||
     path[sarIndex + 1]?.division_id !== areaId ||
-    path[sarIndex + 1]?.type !== 'area' ||
+    path[sarIndex + 1]?.class !== 'area' ||
     path[sarIndex + 1]?.level !== 1 ||
     path[sarIndex + 2] !== district ||
     district.level !== 2 ||

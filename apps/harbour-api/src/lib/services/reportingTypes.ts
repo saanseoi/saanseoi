@@ -13,7 +13,7 @@ export type IngestRunReportRow = {
   startedAt: string
   stats: unknown
   status: string
-  type: string
+  resourceType: string
 }
 
 export type StatReportRow = {
@@ -28,7 +28,7 @@ export type StatReportRow = {
   releaseCode: string
   releaseId: string
   source: string
-  type: string
+  resourceType: string
   updatedAt: string
   value: number
 }
@@ -45,7 +45,7 @@ export type ProcessingActionReportRow = {
   releaseId: string
   source: string
   summary: string
-  type: string
+  resourceType: string
   updatedAt: string
 }
 
@@ -86,7 +86,7 @@ export type ReleaseReportRow = {
   sourceVersion: string
   status: string
   supersededByReleaseId: string | null
-  type: string
+  resourceType: string
   updatedAt: string
 }
 

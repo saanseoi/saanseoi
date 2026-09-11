@@ -83,13 +83,13 @@ export async function runHkgovPlandPrepCommand(
       inputFile: sourceFile,
       outputFile: divisionOutput,
       sourceVersion,
-      type: 'division',
+      resourceType: 'division',
     }),
     prepareHkgovPlandTpuParquet({
       inputFile: sourceFile,
       outputFile: divisionAreaOutput,
       sourceVersion,
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     }),
   ])
 
