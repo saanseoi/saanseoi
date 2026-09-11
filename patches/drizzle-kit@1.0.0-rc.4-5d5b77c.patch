@@ -1,0 +1,21 @@
+diff --git a/bin.cjs b/bin.cjs
+index e3dfd40876fb1057be24eb4787b42e5ddf9eb58f..4656b142f785eefb681fa8befaf9f8e4df16e53c 100755
+--- a/bin.cjs
++++ b/bin.cjs
+@@ -222448,6 +222448,16 @@ var init_connections = __esmMin((() => {
+ 				const { drizzle } = await import("drizzle-orm/sqlite-proxy");
+ 				const { migrate } = await import("drizzle-orm/sqlite-proxy/migrator");
+ 				const remoteCallback = async (sql, params, method) => {
++					// Studio table counts must avoid D1 compound SELECT limits.
++					const countQueries = sql.split(" UNION ALL ");
++					const studioCount = /^SELECT 'public' AS "schema", '(?:[^']|'')+' AS "table", COUNT\(\*\) as "count" FROM "(?:[^"]|"")+"$/;
++					if ((!params || params.length === 0) && countQueries.length > 1 && countQueries.every((query) => studioCount.test(query))) {
++						const rows = [];
++						for (const query of countQueries) {
++							rows.push(...(await remoteCallback(query, params, method)).rows);
++						}
++						return { rows };
++					}
+ 					const data = await (await fetch$1(`https://api.cloudflare.com/client/v4/accounts/${credentials.accountId}/d1/database/${credentials.databaseId}/${method === "values" ? "raw" : "query"}`, {
+ 						method: "POST",
+ 						body: JSON.stringify({
