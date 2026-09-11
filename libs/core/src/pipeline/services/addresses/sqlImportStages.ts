@@ -116,35 +116,6 @@ const LEGACY_NORMALIZED_ROWS_COLUMNS = [
   ['sourceUnit', 'TEXT'],
 ] as const
 
-const REBUILD_ADDRESSES_FTS_SQL = `
-CREATE VIRTUAL TABLE IF NOT EXISTS "addressesFts" USING fts5(
-  "snapshotId" UNINDEXED,
-  "addressId" UNINDEXED,
-  "locale" UNINDEXED,
-  "formattedAddress",
-  "buildingName",
-  "buildingNumber",
-  "blockExpression",
-  "phaseExpression",
-  "estateName",
-  "streetName"
-);
-DELETE FROM "addressesFts";
-INSERT INTO "addressesFts" (
-  "snapshotId", "addressId", "locale", "formattedAddress", "buildingName",
-  "buildingNumber", "blockExpression", "phaseExpression", "estateName", "streetName"
-)
-SELECT
-  "snapshotId", "addressId", "locale", "formattedAddress", "buildingName",
-  TRIM(
-    COALESCE("buildingNumberExpression", '') || ' ' ||
-    COALESCE("buildingNumberFrom", '') || ' ' ||
-    COALESCE("buildingNumberTo", '')
-  ),
-  "blockExpression", "phaseExpression", "estateName", "streetName"
-FROM "address2dI18n";
-`.trim()
-
 export function isAddressSqlImportOrCleanupStage(message: DatasetProcessingMessage) {
   return (
     message.resourceType === 'address' &&
@@ -272,10 +243,6 @@ export async function processAddressSqlImportOrCleanupStage(
             options,
             progress,
           ),
-      )
-
-      await runReportedPhase(harbourClient, message, 'rebuildAddressSearchIndex', () =>
-        rebuildAddressSearchIndex(metaDb, message, options),
       )
 
       return {
@@ -434,10 +401,6 @@ export async function importAddressSqlArtefacts(
     ),
   ])
 
-  await runReportedPhase(harbourClient, message, 'rebuildAddressSearchIndex', () =>
-    rebuildAddressSearchIndex(metaDb, message, options),
-  )
-
   await runReportedPhase(harbourClient, message, 'cleanupAddressSqlStaging', () =>
     cleanupSqlStaging(metaDb, message, options),
   )
@@ -538,10 +501,6 @@ export async function importAddressSqlDataArtefacts(
       )
     })(),
   ])
-
-  await runReportedPhase(harbourClient, message, 'cacheAddressSearchIndex', () =>
-    rebuildAddressSearchIndex(metaDb, message, options),
-  )
 
   await runReportedPhase(harbourClient, message, 'cacheAddressSqlCleanup', () =>
     cleanupSqlStaging(metaDb, message, options),
@@ -791,30 +750,6 @@ async function cleanupSqlStaging(
     cleanedTargets,
     targetCount: cleanedTargets.length,
   }
-}
-
-async function rebuildAddressSearchIndex(
-  metaDb: MetaDatabase,
-  message: DatasetProcessingMessage,
-  options: AddressSqlImportStageOptions,
-) {
-  const target = await resolveImportTarget(metaDb, message, 'current', options)
-  const bytes = new TextEncoder().encode(REBUILD_ADDRESSES_FTS_SQL)
-
-  if (options.isLocal) {
-    const statementCount = await execSqlWithBoundD1(target, bytes, options)
-    return { bytes: bytes.byteLength, statementCount }
-  }
-
-  await importSqlWithD1RestApi(
-    target,
-    {
-      bytes,
-      etag: createHash('md5').update(bytes).digest('hex'),
-    },
-    options,
-  )
-  return { bytes: bytes.byteLength, statementCount: 3 }
 }
 
 export async function publishImportedAddressSqlRelease(
