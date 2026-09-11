@@ -8,7 +8,7 @@ import {
   publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
-import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import {
   createTempDir,
   handlePublishDataset,
@@ -25,7 +25,7 @@ test('every resource release requires an audit, including deferred publication',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-06',
-    type: 'division',
+    resourceType: 'division',
     sourceVersion: '2026-06-24.0',
     rawObjectKey: 'division.parquet',
     originalFileName: 'division.parquet',
@@ -116,7 +116,7 @@ test('requires retained processing audits for Addresses and Places before publis
       source,
       regionCode: 'hk',
       cohortKey: '2026-06',
-      type: datasetType,
+      resourceType: datasetType,
       sourceVersion: '2026-06-24.0',
       rawObjectKey: `hk/${source}/2026-06-24.0/${datasetType}.parquet`,
       originalFileName: `${datasetType}.parquet`,
@@ -191,7 +191,7 @@ test('requires retained processing audits for Addresses and Places before publis
         source: 'overture',
         regionCode: 'hk',
         cohortKey: '2026-06',
-        type: 'division',
+        resourceType: 'division',
         sourceVersion: '2026-06-17.0',
         rawObjectKey: 'hk/overture/2026-06-17.0/division.parquet',
         originalFileName: 'division.parquet',
@@ -216,7 +216,7 @@ test('requires retained processing audits for Addresses and Places before publis
         source: 'overture',
         regionCode: 'hk',
         cohortKey: '2026-06',
-        type: 'address',
+        resourceType: 'address',
         sourceVersion: '2026-06-17.0',
         rawObjectKey: 'hk/overture/2026-06-17.0/place.parquet',
         originalFileName: 'place.parquet',
@@ -492,7 +492,7 @@ test('publishes LandsD divisions in their own API domain', async () => {
     source: 'hkgov-landsd',
     regionCode: 'hk',
     cohortKey: '2026-06',
-    type: 'division',
+    resourceType: 'division',
     sourceVersion: '2026-06-10.0',
     rawObjectKey: 'hk/hkgov-landsd/2026-06-10.0/division.geojson',
     originalFileName: 'division.geojson',

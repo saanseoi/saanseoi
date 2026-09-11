@@ -251,7 +251,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       source: release.source,
       regionCode: 'hk',
       cohortKey: sourceVersion.slice(0, 7),
-      type: release.type,
+      resourceType: release.type,
       sourceVersion: release.sourceVersion,
       rawObjectKey: `hk/${release.source}/${release.sourceVersion}/${release.type}.parquet`,
       originalFileName: `${release.type}.parquet`,

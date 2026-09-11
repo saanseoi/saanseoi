@@ -473,7 +473,7 @@ export async function handleBootstrapStatsReleaseSets(
           publishedAt: new Date().toISOString(),
           releaseSetId: releaseSet.id,
           snapshotId: candidate.snapshotId,
-          type: 'divisionStatistic',
+          resourceType: 'divisionStatistic',
           deferApiReleaseSet: true,
         })
       }
@@ -486,7 +486,7 @@ export async function handleBootstrapStatsReleaseSets(
         publishedAt: new Date().toISOString(),
         releaseSetId: releaseSet.id,
         snapshotId: finalCandidate.snapshotId,
-        type: 'divisionStatistic',
+        resourceType: 'divisionStatistic',
       })
       createdReleaseSetCodes.push(releaseSet.code)
     }
