@@ -179,3 +179,78 @@ test('native geometry resumes exact mutations including old history/source closu
     await rm(dirname(directory), { recursive: true, force: true })
   }
 })
+
+test('canonical replacement retains only real publisher geometry and resolves it to the replacement', async () => {
+  const current = new Database(':memory:')
+  const history = new Database(':memory:')
+  const source = new Database(':memory:')
+  try {
+    for (const [db, family] of [
+      [current, 'current'],
+      [history, 'history'],
+      [source, 'source'],
+    ] as const)
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations', family),
+        ),
+      )
+    const makeRow = (id: string, edge: number) => {
+      const row = normaliseDivisionAreaGeometryRow(
+        {
+          id,
+          division_id: 'kowloon-city',
+          class: 'land',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [114, 22],
+                [edge, 22],
+                [edge, 23],
+                [114, 22],
+              ],
+            ],
+          },
+        },
+        'overture',
+      )
+      if (!row) throw new Error('Missing test geometry')
+      return row
+    }
+    const publisher = makeRow('publisher-area', 115)
+    const canonical = makeRow('district-union', 116)
+    await writeGeometryRows(
+      {
+        currentDb: drizzle({ client: current, schema: currentSchema }),
+        historyDb: drizzle({ client: history, schema: historySchema }),
+        sourceDb: drizzle({ client: source, schema: sourceSchema }),
+      } as unknown as LocalAddressDbContext,
+      'divisionArea',
+      [canonical],
+      {
+        source: 'overture',
+        variant: 'overture',
+        releaseId: 'release',
+        releaseCode: 'release',
+        snapshotId: 'snapshot',
+        parentSnapshotId: null,
+        cohortKey: '2026',
+        publisherRows: [publisher],
+      },
+    )
+    expect(
+      source.query('SELECT sourceRecordId FROM overtureDivisionAreas').all(),
+    ).toEqual([{ sourceRecordId: 'publisher-area' }])
+    expect(current.query('SELECT id FROM divisionAreas').all()).toEqual([
+      { id: 'district-union' },
+    ])
+    const resolutions = history.query('SELECT resolutions FROM sourceResolutions').all()
+    expect(JSON.stringify(resolutions)).toContain('district-union')
+    expect(publisher.canonical.geometry).not.toEqual(canonical.canonical.geometry)
+  } finally {
+    current.close()
+    history.close()
+    source.close()
+  }
+})

@@ -8,7 +8,7 @@ export function printUsage() {
   saanseoi cache:rebuild --target preview|production [--table-profile divisionGeometry|planningDivisionGeometry|places] [--cohort-key YYYY]
   saanseoi cache:seed-reset --target preview|production
   saanseoi cache:completed-releases --target preview|production [--table-profile planningDivisionGeometry|places]
-  saanseoi upload <file> [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--allow-historical-cohort] [--defer-api-release-set] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
+  saanseoi upload <file> [--target local|preview|production] [--resource-type ${resourceTypes.join('|')}] [--theme ${resourceThemes.join('|')}] [--region hk|mo] [--cohort-key VALUE] [--transform simplified] [--release-notes-url URL] [--dry-run] [--continue|--force] [--allow-historical-cohort] [--defer-api-release-set] [--skip-cleanup] [--cacheArtefacts] [--validate-geometry] [--yes] [--verbose]
   saanseoi init [--target local|preview|production] [--r2 local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
   saanseoi init:minimal --target local|preview|production [--r2 local|preview|production] [--continue] [--no-cache-artefacts]
   saanseoi init:local [--no-cache-artefacts] [--skip-curation-checks]
@@ -43,7 +43,7 @@ export function printUsage() {
   saanseoi reset:places:overture [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
   saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--with-dependencies] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--defer-stats-release-set] [--include-geography] [--yes]
     --dataset selects exactly the named datasets; add --with-dependencies to include composition providers.
-  saanseoi cleanup:snapshots [--target local|preview|production] [--type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
+  saanseoi cleanup:snapshots [--target local|preview|production] [--resource-type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi release-sets:reconcile [--target local|preview|production] [--api-family FAMILY] [--region hk|mo]
   saanseoi release-sets:bootstrap-stats [--target local|preview|production] [--region hk|mo]
   saanseoi docs:new [--target local|preview|production] [--scope apiReleaseSets|releases] [--region hk|mo] [--api-family addresses|divisions|places] [--dataset CODE] [--release CODE] [--cohort-key VALUE]
@@ -55,13 +55,13 @@ export function printUsage() {
   saanseoi version:status
   saanseoi version:doctor
   saanseoi inspect [--stage normalised|resolved|operations] [--resourceType address] [--releaseCode VALUE] [--dbShard source|history|current] [--sample first|last|random] [--persist-to .local/d1/dev] [--out-dir .]
-  saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
-  saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--type TYPE]
+  saanseoi reports:ingestion [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--resource-type TYPE]
+  saanseoi reports:stats [--target local|preview|production] [--limit 1-100] [--source SOURCE] [--resource-type TYPE]
   saanseoi stats:backfill-geometry --target local|preview|production [--release RELEASE_CODE[,RELEASE_CODE...]] [--dataset DATASET_CODE[,DATASET_CODE...]] [--resource-type divisionArea|divisionBoundary|all] [--dry-run] [--refresh-cache] [--yes]
   saanseoi stats:backfill-addresses --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
   saanseoi stats:backfill-statistics --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
   saanseoi stats:backfill-divisions --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
-  saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
-  saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--type TYPE]
+  saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--resource-type TYPE]
+  saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--resource-type TYPE]
 `)
 }

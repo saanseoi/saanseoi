@@ -80,7 +80,10 @@ export function buildRegisterOptions(
         ? args.options['dataset-code']
         : undefined,
     filePath: resolve(invocationCwd, inputFile),
-    resourceType: typeof args.options.type === 'string' ? args.options.type : undefined,
+    resourceType:
+      typeof args.options['resource-type'] === 'string'
+        ? args.options['resource-type']
+        : undefined,
     theme: typeof args.options.theme === 'string' ? args.options.theme : undefined,
     regionCode:
       typeof args.options.region === 'string' ? args.options.region : undefined,
