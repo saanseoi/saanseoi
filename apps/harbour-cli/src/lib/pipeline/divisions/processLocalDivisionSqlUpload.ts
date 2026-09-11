@@ -1,3 +1,4 @@
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
@@ -63,10 +64,7 @@ import {
 } from '../local/sqlImport.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
-import {
-  applyPublishMetadataDeltaToRemoteCache,
-  resolveLocalAddressDbContext,
-} from '../../dbCache/localDbCache.ts'
+import { applyPublishMetadataDeltaToRemoteCache } from '../../dbCache/localDbCache.ts'
 import type { UploadPlan, UploadResult } from './processLocalDivisionSqlUploadTypes.ts'
 import {
   assertRemoteDivisionImportPrerequisites,
@@ -161,14 +159,12 @@ export async function processLocalDivisionSqlUpload(
     })
   }
   const resolvedTargetName = resolveTargetName(target)
-  const cacheTableProfile = 'division'
-  const remoteCacheScopeKey = undefined
 
-  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  let dbContext: Awaited<ReturnType<typeof resolveCurrentWriteContext>>
   const dbCacheStartedAt = Date.now()
 
   try {
-    dbContext = await resolveLocalAddressDbContext(
+    dbContext = await resolveCurrentWriteContext(
       target,
       previewPlan.regionCode,
       shardYear,
@@ -176,11 +172,8 @@ export async function processLocalDivisionSqlUpload(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile,
-        includePreviousShardYears: true,
-        refreshRemoteTables: false,
+
         resumeSqlDeliveryReleaseId: releaseId,
-        remoteCacheScopeKey,
       },
     )
   } catch (error) {
@@ -960,6 +953,7 @@ export async function processLocalDivisionSqlUpload(
         await refreshRemoteMetaCacheAfterReplay(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
+          releaseId,
         )
       } catch (error) {
         postPublishCacheError = normaliseError(error)

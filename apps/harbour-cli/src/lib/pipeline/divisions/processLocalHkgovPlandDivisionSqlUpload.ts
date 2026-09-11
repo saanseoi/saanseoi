@@ -1,3 +1,5 @@
+import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -22,12 +24,8 @@ import {
 import { eq } from 'drizzle-orm'
 import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
 import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
-import {
-  completeSqlDeliveryRelease,
-  assertSqlDeliveryPlanningAllowed,
-} from '../local/sqlDeliveryPending.ts'
+import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import { refreshRemoteMetaCache } from '../../dbCache/localDbCache.ts'
-import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -51,11 +49,7 @@ import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.
 import { createLocalControlClient } from '../local/localControlClient.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
-import {
-  buildReleaseUploadDbCacheScopeKey,
-  resetRemoteReleaseUploadCacheScope,
-  resolveLocalAddressDbContext,
-} from '../../dbCache/localDbCache.ts'
+import {} from '../../dbCache/localDbCache.ts'
 import type {
   CompressedPlanningDivisionGeometry,
   HkgovPlandDivisionUploadPlan,
@@ -110,45 +104,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
   )
   const shardYear = previewPlan.sourceVersion.slice(0, 4)
-  const cacheTableProfile = 'planningDivisionGeometry'
-  const remoteCacheScopeKey = target.remote
-    ? buildReleaseUploadDbCacheScopeKey({
-        cacheTableProfile,
-        cohortKey: previewPlan.cohortKey,
-        regionCode: previewPlan.regionCode,
-        shardYear,
-        source: previewPlan.source,
-        sourceVersion: previewPlan.sourceVersion,
-        theme: previewPlan.theme,
-        resourceType: previewPlan.resourceType,
-      })
-    : undefined
-
-  if (remoteCacheScopeKey) {
-    await assertSqlDeliveryPlanningAllowed(
-      resolveRemoteCacheDir(
-        target.environment === 'production' ? 'production' : 'preview',
-      ),
-      releaseId,
-    )
-    await runPlandProgressPhase(progress, 'Reset', 'release cache', () =>
-      resetRemoteReleaseUploadCacheScope(
-        target,
-        remoteCacheScopeKey,
-        cacheTableProfile,
-      ),
-    )
-  }
-
   const context = await runPlandProgressPhase(progress, 'Prepare', 'database', () =>
-    resolveLocalAddressDbContext(
+    resolveCurrentWriteContext(
       target,
       previewPlan.regionCode,
       previewPlan.sourceVersion,
       {
-        cacheTableProfile,
-        includePreviousShardYears: true,
-        remoteCacheScopeKey,
         resumeSqlDeliveryReleaseId: releaseId,
       },
     ),
@@ -255,19 +216,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         return { dataset, snapshot }
       },
     )
-    const deliveryContext = target.remote
-      ? await resolveLocalAddressDbContext(
-          target,
-          previewPlan.regionCode,
-          previewPlan.sourceVersion,
-          {
-            cacheTableProfile: 'planningDivisionGeometry',
-            includePreviousShardYears: true,
-            requireExistingRemoteCache: true,
-            resumeSqlDeliveryReleaseId: releaseId,
-          },
-        )
-      : context
+    const deliveryContext = context
     let completionCounts: PlandDeliveryCounts
     try {
       completionCounts = await deliverPlandWorkflow(
@@ -694,19 +643,17 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         refreshRemoteMetaCache(
           target.environment === 'production' ? 'production' : 'preview',
           deliveryContext.state.dbCacheDir,
+          releaseId,
         ),
       )
     }
     if (isApiReleaseSetStatsReady(publishResult)) {
       const statsContext = target.remote
-        ? await resolveLocalAddressDbContext(
+        ? await resolveCurrentWriteContext(
             target,
             previewPlan.regionCode,
             previewPlan.sourceVersion,
             {
-              cacheTableProfile: 'division',
-              includePreviousShardYears: true,
-              requireExistingRemoteCache: true,
               resumeSqlDeliveryReleaseId: releaseId,
             },
           )

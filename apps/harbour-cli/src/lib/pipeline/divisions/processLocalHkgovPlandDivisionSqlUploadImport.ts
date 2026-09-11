@@ -1,10 +1,7 @@
-import { eq } from 'drizzle-orm'
 import { readFileSync } from 'node:fs'
 import { parse } from 'comment-json'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
-import { metaSchema } from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
-import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
 import {
   importSqlArtefactKeys,
   type SqlImportExecutionOptions,
@@ -22,10 +19,6 @@ import {
 import type { OperationProgress } from '../../cli/operationProgress.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import {
-  refreshRemoteMetaCache,
-  replayRemoteCacheWithRetry,
-  resolveSharedRemoteDbCacheDir,
-  resolveLocalAddressDbContext,
   resolveShardBindingName,
   type LocalAddressDbContext,
 } from '../../dbCache/localDbCache.ts'
@@ -178,91 +171,6 @@ export async function runPlandProgressPhase<T>(
     { action, subject, totalUnits },
     reportProgress => operation(reportProgress),
   )
-}
-
-export async function replayPlandSqlIntoSharedCache(
-  target: UploadTarget,
-  bucket: LocalPipelineBucket,
-  manifest: PlandSqlArtefactManifest,
-  plan: HkgovPlandDivisionUploadPlan,
-  importOptions: SqlImportExecutionOptions,
-  release: {
-    datasetCode: string
-    rawObjectKey: string
-    releaseCode: string
-    releaseId: string
-  },
-) {
-  const targetName = target.environment === 'production' ? 'production' : 'preview'
-  const sharedContext = await resolveLocalAddressDbContext(
-    target,
-    plan.regionCode,
-    plan.sourceVersion,
-    {
-      cacheTableProfile: 'planningDivisionGeometry',
-      includePreviousShardYears: true,
-      requireExistingRemoteCache: true,
-    },
-  )
-  try {
-    const existingRelease = await sharedContext.metaDb
-      .select({ id: metaSchema.metaReleases.id })
-      .from(metaSchema.metaReleases)
-      .where(eq(metaSchema.metaReleases.code, release.releaseCode))
-      .limit(1)
-      .get()
-    if (!existingRelease) {
-      await syncStagedReleaseIntoLocalMetaCache(sharedContext.metaDb, release, plan)
-    }
-
-    const targets = resolvePlandImportTargets(sharedContext, plan.sourceVersion)
-    const localOptions: SqlImportExecutionOptions = {
-      ...importOptions,
-      accountId: undefined,
-      apiToken: undefined,
-      isLocal: true,
-    }
-    await replayRemoteCacheWithRetry(
-      targetName,
-      resolveSharedRemoteDbCacheDir(target),
-      release.releaseCode,
-      async () => {
-        await Promise.all([
-          importSqlArtefactKeys(
-            bucket,
-            targets.source,
-            [manifest.sourceKey],
-            localOptions,
-            async () => undefined,
-          ),
-          importSqlArtefactKeys(
-            bucket,
-            targets.history,
-            [manifest.historyKey],
-            localOptions,
-            async () => undefined,
-          ),
-          importSqlArtefactKeys(
-            bucket,
-            targets.current,
-            [manifest.currentKey],
-            localOptions,
-            async () => undefined,
-          ),
-          importSqlArtefactKeys(
-            bucket,
-            targets.meta,
-            [manifest.metaKey],
-            localOptions,
-            async () => undefined,
-          ),
-        ])
-      },
-    )
-  } finally {
-    sharedContext.cleanup()
-  }
-  await refreshRemoteMetaCache(targetName, resolveSharedRemoteDbCacheDir(target))
 }
 
 function resolveCloudflareAccountId(target: UploadTarget) {

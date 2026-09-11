@@ -311,6 +311,7 @@ export async function coalesceDivisionHistory(input: {
               ]),
           ),
         )
+        const asserted = new Set<string>()
         for (const [binding, candidate] of Object.entries(input.candidates)) {
           if (!binding.startsWith('DB_HISTORY')) continue
           for (const row of candidate.db
@@ -326,6 +327,7 @@ export async function coalesceDivisionHistory(input: {
               'SELECT sourceRecordId,sourceReleaseId,sourceVersionHash,resolutions FROM sourceResolutions WHERE snapshotId=?',
             )
             .all(receipt.snapshotId)) {
+            asserted.add(row.sourceRecordId)
             const previous = prior.get(row.sourceRecordId)
             if (
               previous?.sourceVersionHash === row.sourceVersionHash &&
@@ -342,6 +344,44 @@ export async function coalesceDivisionHistory(input: {
                   row.sourceVersionHash,
                 )
           }
+        }
+        const sources = Object.entries(input.candidates).filter(([binding]) =>
+          binding.startsWith('DB_SOURCE'),
+        )
+        for (const [sourceRecordId, previous] of prior) {
+          if (
+            !sources.length ||
+            asserted.has(sourceRecordId) ||
+            previous.resolutions.decisions?.some(
+              decision => decision.type === 'source_omission',
+            )
+          )
+            continue
+          const present = sources.some(([, source]) =>
+            ['overtureDivisions', 'hkgovPlandNewTowns', 'hkgovPlandPlanningCells'].some(
+              table =>
+                source.db
+                  .query(
+                    `SELECT 1 FROM ${table} WHERE sourceRecordId=? AND isCurrent=1`,
+                  )
+                  .get(sourceRecordId),
+            ),
+          )
+          if (present) continue
+          history
+            .query(`INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions)
+            VALUES(?,?,?,?,?,?) ON CONFLICT(scopeId,sourceReleaseId,sourceRecordId,sourceVersionHash) DO NOTHING`)
+            .run(
+              `snapshot:${receipt.snapshotId}`,
+              receipt.snapshotId,
+              receipt.publicationToken,
+              sourceRecordId,
+              previous.sourceVersionHash,
+              JSON.stringify({
+                entities: {},
+                decisions: [{ type: 'source_omission' }],
+              }),
+            )
         }
       }
     }
