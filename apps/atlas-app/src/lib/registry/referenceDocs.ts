@@ -183,7 +183,7 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     source: overtureDivisionHierarchyLevels,
   },
   'canonical-division-types': {
-    title: 'canonical division types',
+    title: 'canonical division classes',
     displayTitleKey: 'reference_canonical_division_types',
     source: overtureDivisionTypes,
   },

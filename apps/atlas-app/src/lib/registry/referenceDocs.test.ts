@@ -35,16 +35,15 @@ test('resolves map-guide glossary definitions and notes', () => {
   expect(authentication?.markdown).toContain('confirms <i>who</i>')
 })
 
-test('resolves division filter notes with Markdown list details', () => {
+test('resolves division taxonomy notes with Markdown table details', () => {
   const levels = getMarkdownTransclusion(
     'saanseoi:en:note/division-hierarchy-levels/v1',
   )
   const types = getMarkdownTransclusion('saanseoi:en:note/canonical-division-types/v1')
 
-  expect(levels?.markdown).toContain('- Level 1')
-  expect(levels?.markdown).toContain('Level 6')
-  expect(types?.markdown).toContain('- Root')
-  expect(types?.markdown).toMatch(/does not\s+accept an Overture subtype or class/)
+  expect(levels?.markdown).toContain('| hood           | microhood     | 6')
+  expect(types?.markdown).toContain('| administrative | sar')
+  expect(types?.markdown).toContain("publisher's `subtype` and `class`")
 })
 
 test('lists glossary definitions alphabetically without contextual notes', () => {

@@ -294,14 +294,14 @@ describe('C&SD district GML preparation', () => {
         cohortKey: '2021',
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       })
       expect(display).toMatchObject({
         cohortKey: '2021',
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
         transform: 'simplified',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       })
       expect(Number(displayMetadata.num_rows)).toBe(18)
       expect(displayRows[0]).toMatchObject({

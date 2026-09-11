@@ -47,7 +47,7 @@ test('parent failures retain one child error and still record unreported failure
         })(),
       });
       try {
-        await runInitialisationCommand({ command: 'init:addresses', options: {}, positionals: [] }, () => {});
+        await runInitialisationCommand({ command: 'init:addresses', options: { target: 'preview' }, positionals: [] }, () => {});
         process.exit(2);
       } catch (error) {
         if (error.message !== 'Initialisation failed with exit code 1.') throw error;
@@ -80,7 +80,7 @@ test('accepts the boolean artefact-cache opt-out', () => {
     };
     await runInitialisationCommand({
       command: 'init',
-      options: { 'no-cache-artefacts': true },
+      options: { 'no-cache-artefacts': true, target: 'preview' },
       positionals: [],
     }, () => {});
   `

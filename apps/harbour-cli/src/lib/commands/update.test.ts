@@ -855,10 +855,10 @@ test('statistics with requested geography requires every declared resource in th
   const stats = {
     sourceVersion: '2021',
     status: 'published',
-    type: 'divisionStatistic',
+    resourceType: 'divisionStatistic',
   }
-  const division = { ...stats, type: 'division' }
-  const area = { ...stats, type: 'divisionArea' }
+  const division = { ...stats, resourceType: 'division' }
+  const area = { ...stats, resourceType: 'divisionArea' }
   expect(targetVersionsFromReport(dataset, [stats], true).get('2021')).toBeNull()
   expect(targetVersionsFromReport(dataset, [stats, area], true).get('2021')).toBeNull()
   expect(

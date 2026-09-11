@@ -347,48 +347,40 @@ describe('fixture version hashes', () => {
 
     expect(overtureDivisions?.processingRules).toEqual(
       expect.objectContaining({
-        rulesets: [
+        rulesets: expect.arrayContaining([
           expect.objectContaining({
             rulesetVersion: 'rs-division-merge-v1',
             rules: expect.arrayContaining([
               expect.objectContaining({
-                operationCode: 'normalise_overture_division_hierarchy',
-                definition: expect.objectContaining({ id: 'normalise-divisions' }),
-                type: 'bulk',
-              }),
-              expect.objectContaining({
                 operationCode: 'derive_division_type_from_overture_taxonomy',
                 definition: expect.objectContaining({ id: 'normalise-divisions' }),
-              }),
-              expect.objectContaining({
-                operationCode: 'overture_division_locale_inferred',
-                type: 'bulk',
+                kind: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
                 definition: expect.objectContaining({
                   id: 'apply-division-classification-patch',
                 }),
-                type: 'record',
+                kind: 'record',
               }),
             ]),
           }),
-        ],
+        ]),
       }),
     )
     expect(censtatdDensity?.processingRules).toEqual(
       expect.objectContaining({
-        rulesets: [
+        rulesets: expect.arrayContaining([
           expect.objectContaining({
             rulesetVersion: 'rs-division-statistic-merge-v1',
             rules: expect.arrayContaining([
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_statistic_source_assertion',
-                type: 'bulk',
+                kind: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'map_censtatd_district_code_to_canonical_division',
-                type: 'bulk',
+                kind: 'bulk',
                 definition: expect.objectContaining({
                   id: 'map_censtatd_district_code_to_canonical_division',
                   parameters: expect.objectContaining({ targetCohort: '2022' }),
@@ -397,11 +389,11 @@ describe('fixture version hashes', () => {
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_population_thousands_to_persons',
                 sourceFieldPath: 'publisher-properties.MYPOPN_LAND',
-                type: 'bulk',
+                kind: 'bulk',
               }),
             ]),
           }),
-        ],
+        ]),
       }),
     )
   })

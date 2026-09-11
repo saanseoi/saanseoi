@@ -10,11 +10,21 @@ async function fixture(script: string) {
   await writeFile(
     workerPath,
     `
-    import { writeSync } from 'node:fs';
-    import { createInterface } from 'node:readline';
-    const input = createInterface({input:process.stdin});
+    import { readFileSync, readdirSync, rmSync, writeSync } from 'node:fs';
+    const requestDirectory = process.argv[3];
     const send = value => writeSync(3, JSON.stringify(value)+'\\n');
-    const receive = callback => input.on('line', line => callback(JSON.parse(line)));
+    let receiveRequest;
+    const receive = callback => { receiveRequest = callback; };
+    setInterval(() => {
+      if (!receiveRequest) return;
+      for (const name of readdirSync(requestDirectory).sort()) {
+        if (!name.endsWith('.json')) continue;
+        const path = requestDirectory + '/' + name;
+        const request = JSON.parse(readFileSync(path, 'utf8'));
+        rmSync(path, {force:true});
+        receiveRequest(request);
+      }
+    }, 10);
     ${script}
   `,
   )
