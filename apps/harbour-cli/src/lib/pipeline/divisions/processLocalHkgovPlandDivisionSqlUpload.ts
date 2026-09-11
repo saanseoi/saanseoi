@@ -43,7 +43,7 @@ import { deliverProcessingResult } from '../../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { createHash } from '@repo/core/pipeline/utils'
-import { sourceSchema, toIsoTimestamp } from '@repo/db'
+import { currentSchema, sourceSchema, toIsoTimestamp } from '@repo/db'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
@@ -318,6 +318,35 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             publicationDb as never,
             publication.table,
             publication.scopeId,
+          )
+          const previousI18n = await publicationDb
+            .select()
+            .from(currentSchema.divisionsI18n)
+            .where(eq(currentSchema.divisionsI18n.snapshotId, publication.scopeId))
+            .all()
+          const previousI18nByKey = new Map(
+            previousI18n.map(row => [
+              JSON.stringify([row.divisionId, row.locale]),
+              row,
+            ]),
+          )
+          const changedCurrentI18nKeys = records.flatMap(record =>
+            record.i18n
+              .filter(row => {
+                const previous = previousI18nByKey.get(
+                  JSON.stringify([record.base.id, row.locale]),
+                )
+                return (
+                  !previous ||
+                  previous.name !== row.name ||
+                  JSON.stringify(previous.nameVariant) !== JSON.stringify([row.name]) ||
+                  previous.nameAlts !== null ||
+                  previous.nameRules !== null ||
+                  previous.nameProvenance !== null ||
+                  previous.isLocaleInferred
+                )
+              })
+              .map(row => JSON.stringify([record.base.id, row.locale])),
           )
           await beginSnapshotPublication(publicationDb, publication)
           context = {
@@ -675,6 +704,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           const prepareSqlManifest = () =>
             runPlandProgressPhase(progress, 'Write', 'SQL import artefacts', () =>
               writePlandSqlArtefacts(bucket, context, previewPlan, {
+                changedCurrentI18nKeys,
                 changedCurrentBaseIds,
                 changedHistoryIds,
                 changedNativeIds,
