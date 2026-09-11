@@ -178,6 +178,7 @@ let hasAuditFamily = $derived(
 )
 let sourceRecordsAvailable = $state<boolean | null>(null)
 let sourceSampleRequest = $state(0)
+let sourceSampleInclude = $state('')
 let sourceSampleTarget = $state<string | null>(null)
 $effect(() => {
   const target = sourceRecordFamily ? `${sourceRecordFamily}:${version?.code}` : null
@@ -461,6 +462,18 @@ let actions = $derived<ReleaseNavAction[]>(
               sourceRecordsAvailable !== false
             ? [
                 {
+                  id: 'include',
+                  label: m.source_samples_include(),
+                  value: sourceSampleInclude,
+                  options: [
+                    { value: '', label: m.source_samples_include_none() },
+                    { value: 'geometry', label: 'geometry' },
+                  ],
+                  onValueChange: value => {
+                    sourceSampleInclude = value
+                  },
+                },
+                {
                   icon: 'ion:reload-outline',
                   id: 'more-samples',
                   label: m.source_show_more(),
@@ -626,8 +639,9 @@ $effect(() => {
               sourceVersion={version.sourceVersion}
             />
           {:else if activeTab === 'samples' && sourceRecordFamily}
-            {#key `${sourceRecordFamily}:${version.code}`}
+            {#key `${sourceRecordFamily}:${version.code}:${sourceSampleInclude}`}
               <SourceRecordSamples
+                includeGeometry={sourceSampleInclude === 'geometry'}
                 family={sourceRecordFamily}
                 onAvailabilityChange={available => (sourceRecordsAvailable = available)}
                 request={sourceSampleRequest}

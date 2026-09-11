@@ -229,14 +229,18 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
         description: m.source_record_schema_source_record_id_description(),
         type: 'string',
       },
-      resourceType: {
-        description: m.source_record_schema_resource_type_description(),
-        type: 'string',
-      },
-      variant: {
-        description: m.source_record_schema_variant_description(),
-        type: 'string',
-      },
+      ...(family === 'streets'
+        ? {
+            resourceType: {
+              description: m.source_record_schema_resource_type_description(),
+              type: 'string',
+            },
+            variant: {
+              description: m.source_record_schema_variant_description(),
+              type: 'string',
+            },
+          }
+        : {}),
       rawProperties: {
         ...rawProperties,
         nullable: true,
@@ -244,23 +248,15 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
           ? rawProperties.description
           : m.source_record_schema_unavailable(),
       },
-      ...(sourceSchema?.fields.some(field => field.name === 'sources')
-        ? {
-            sources: {
-              ...sourceFieldSchema(
-                sourceSchema,
-                sourceSchema.fields.find(field => field.name === 'sources')!,
-              ),
-              nullable: true,
-            },
-          }
-        : {}),
       geometry: {
         description: m.source_record_schema_geometry_description(),
         type: 'object',
       },
     },
-    required: ['sourceRecordId', 'resourceType', 'variant', 'rawProperties'],
+    required:
+      family === 'streets'
+        ? ['sourceRecordId', 'resourceType', 'variant', 'rawProperties']
+        : ['sourceRecordId', 'rawProperties'],
     type: 'object',
   }
 })
@@ -277,7 +273,7 @@ function setExpandedNodeState(path: string, expanded: boolean) {
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
     {m.source_record_schema_not_one_to_one_before()} <code>rawProperties</code>
-    {m.source_record_schema_not_one_to_one_after()}
+    {family === 'streets' ? m.source_record_schema_not_one_to_one_after() : m.source_record_schema_native_envelope_description()}
   </p>
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">

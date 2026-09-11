@@ -18,6 +18,7 @@ import { loadReleaseSamples } from '#lib/bits/pages/docs/components/releaseSampl
 
 type Props = {
   family: string
+  includeGeometry?: boolean
   onAvailabilityChange?: (available: boolean) => void
   request: number
   sourceReleaseCode: string
@@ -33,7 +34,13 @@ const apiBaseUrl = (PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replac
 const initialExamples = 1
 const examplesPerRequest = 4
 
-let { family, onAvailabilityChange, request, sourceReleaseCode }: Props = $props()
+let {
+  family,
+  includeGeometry = false,
+  onAvailabilityChange,
+  request,
+  sourceReleaseCode,
+}: Props = $props()
 let samples = $state<AddressSample[]>([])
 let collapsedSamples = $state<Set<string>>(new Set())
 let loading = $state(false)
@@ -56,6 +63,7 @@ const samplePresentation = $derived<SamplePresentation>(
 function requestUrl(limit: number) {
   const url = new URL(`${apiBaseUrl}/${family}/v0.1/sources`)
   url.searchParams.set('sourceRelease', sourceReleaseCode)
+  if (includeGeometry) url.searchParams.set('include', 'geometry')
   url.searchParams.set('sample', 'random')
   url.searchParams.set('limit', String(limit))
   return url
@@ -72,11 +80,12 @@ function toSourceSample(value: unknown) {
   // renderer's internal `fields` array into a visible record property.
   return {
     id: sourceRecordId,
-    resourceType: record.resourceType,
-    variant: record.variant,
+    ...(family === 'streets'
+      ? { resourceType: record.resourceType, variant: record.variant }
+      : {}),
     rawProperties: record.rawProperties,
     geometry: record.geometry,
-    sources: record.sources,
+    placeNames: record.placeNames,
   }
 }
 
