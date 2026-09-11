@@ -19,6 +19,20 @@ import { validateAddress3dOwners } from './address3dOwners'
 type Statement = { sql: string; params: unknown[] }
 type Target = 'current' | 'history' | 'source'
 type Collection = Extract<PreparedAls3dRecord, { kind: 'collection' }>
+export type Address3dImportShard = {
+  bindingName: string
+  execute: (statements: Statement[]) => Promise<Record<string, unknown>[]>
+}
+type PriorMembership = {
+  recordType: string
+  recordId: string
+  locale: string
+  versionHash?: string
+  shard?: { bindingName: string }
+}
+const membershipKey = (
+  row: Pick<PriorMembership, 'recordType' | 'recordId' | 'locale'>,
+) => JSON.stringify([row.recordType, row.recordId, row.locale])
 
 async function* records(path: string) {
   for await (const line of createInterface({
@@ -52,6 +66,13 @@ export async function validateAddress3dPreparation(
       manifest = row
       continue
     }
+    if (
+      (row.kind === 'source2d' || row.kind === 'source') &&
+      !Object.hasOwn(row, 'properties')
+    )
+      throw new Error(
+        'Address3D source properties are missing; prepare the ALS release again',
+      )
     if (row.kind === 'source2d') {
       if (source2dIds.has(row.sourceRecordId))
         throw new Error(`Duplicate ALS 2D source occurrence ${row.sourceRecordId}`)
@@ -220,14 +241,19 @@ export function collectionStatements(
   snapshotId: string,
   releaseId: string,
   now: string,
+  currentSnapshotId = snapshotId,
 ) {
   const {
     kind: _kind,
     locales,
     sourceRecordIds,
     processingSources,
-    ...base
+    contentHash: _preparedContentHash,
+    ...baseFields
   } = collection
+  // The prepared envelope seals the complete bilingual inventory. Stored base
+  // content has independent identity, so editing one locale leaves it open.
+  const base = { ...baseFields, contentHash: als3dHash({ units: baseFields.units }) }
   const sources = [
     ...sourceRecordIds.map(sourceRecordId => ({
       dataset: 'hkgov-dpo-als-3d',
@@ -246,15 +272,26 @@ export function collectionStatements(
     createdAt: now,
     updatedAt: now,
   }
-  const current = { ...base, sources, snapshotId, createdAt: now, updatedAt: now }
+  const current = {
+    ...base,
+    sources,
+    snapshotId: currentSnapshotId,
+    createdAt: now,
+    updatedAt: now,
+  }
   const currentStatements = [
     insert('address3d', current, 'ON CONFLICT(snapshotId,id) DO NOTHING'),
   ]
   const historyStatements = [
-    insert('address3d', history, 'ON CONFLICT(id,versionHash) DO NOTHING'),
+    insert(
+      'address3d',
+      history,
+      'ON CONFLICT(id,versionHash) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3d.isCurrent <> 1',
+    ),
     journalStatement(snapshotId, releaseId, 'address3d', base.id, '', versionHash, now),
   ]
   for (const [locale, units] of Object.entries(locales)) {
+    const localeVersionHash = als3dHash({ address3dId: base.id, locale, units })
     const fields = {
       address3dId: base.id,
       locale,
@@ -265,7 +302,7 @@ export function collectionStatements(
     currentStatements.push(
       insert(
         'address3dI18n',
-        { ...fields, snapshotId },
+        { ...fields, snapshotId: currentSnapshotId },
         'ON CONFLICT(snapshotId,address3dId,locale) DO NOTHING',
       ),
     )
@@ -275,11 +312,11 @@ export function collectionStatements(
         {
           ...fields,
           snapshotId,
-          versionHash,
+          versionHash: localeVersionHash,
           sourceReleaseId: releaseId,
           isCurrent: 1,
         },
-        'ON CONFLICT(address3dId,versionHash,locale) DO NOTHING',
+        'ON CONFLICT(address3dId,versionHash,locale) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3dI18n.isCurrent <> 1',
       ),
       journalStatement(
         snapshotId,
@@ -287,7 +324,7 @@ export function collectionStatements(
         'address3dI18n',
         base.id,
         locale,
-        versionHash,
+        localeVersionHash,
         now,
       ),
     )
@@ -326,51 +363,109 @@ export async function importAddress3dCollections(args: {
   path: string
   sourceVersion: string
   snapshotId: string
+  currentSnapshotId?: string
   releaseId: string
   expectedDigest: string
   timestamp?: string
-  priorMembership: Array<{ recordType: string; recordId: string; locale: string }>
+  priorMembership: PriorMembership[]
+  /** Complete local candidate shards, including previous years. */
+  historyShards?: Address3dImportShard[]
+  sourceShards?: Address3dImportShard[]
   execute: Awaited<ReturnType<typeof createAddress3dExecutor>>
 }) {
   const validated = await validateAddress3dPreparation(args.path, args.sourceVersion)
   if (validated.digest !== args.expectedDigest)
     throw new Error('Address3D preparation changed after validation')
   const now = args.timestamp ?? new Date().toISOString()
+  const historyShards = new Map(
+    args.historyShards?.map(shard => [shard.bindingName, shard]),
+  )
+  const sourceShards = args.sourceShards ?? [
+    {
+      bindingName: 'source',
+      execute: (statements: Statement[]) => args.execute('source', statements),
+    },
+  ]
+  const priorByKey = new Map(
+    args.priorMembership.map(prior => [membershipKey(prior), prior]),
+  )
+  const seenMembership = new Set<string>()
+  const historyExecutor = (prior: PriorMembership) => {
+    if (!prior.shard)
+      return (statements: Statement[]) => args.execute('history', statements)
+    const shard = historyShards.get(prior.shard.bindingName)
+    if (!shard)
+      throw new Error(
+        `Address3D requires prior history shard ${prior.shard.bindingName}.`,
+      )
+    return shard.execute
+  }
+  for (const prior of args.priorMembership) historyExecutor(prior)
+  const closeHistory = async (prior: PriorMembership) => {
+    if (prior.recordType !== 'address3d' && prior.recordType !== 'address3dI18n')
+      throw new Error(`Unexpected Address3D prior record type ${prior.recordType}.`)
+    const localised = prior.recordType === 'address3dI18n'
+    await historyExecutor(prior)([
+      {
+        sql: `UPDATE ${prior.recordType} SET isCurrent = 0, updatedAt = ? WHERE ${localised ? 'address3dId' : 'id'} = ?${localised ? ' AND locale = ?' : ''}${prior.versionHash ? ' AND versionHash = ?' : ''} AND isCurrent = 1`,
+        params: [
+          now,
+          prior.recordId,
+          ...(localised ? [prior.locale] : []),
+          ...(prior.versionHash ? [prior.versionHash] : []),
+        ],
+      },
+    ])
+  }
   const sourceVersions = new Map<string, string>()
   await validateAddress3dOwners(
-    args.snapshotId,
+    args.currentSnapshotId ?? args.snapshotId,
     ownerReferences(args.path),
     args.execute,
   )
   // Source versions remain open across releases. Compare membership explicitly;
   // releaseId identifies the assertion's provenance, not its last observation.
-  const remainingSources = new Map<string, Map<string, string>>()
+  type SourceVersion = {
+    versionHash: string
+    shard: Address3dImportShard
+    releaseId: string
+    validFromRelease: string
+  }
+  const remainingSources = new Map<string, Map<string, SourceVersion[]>>()
   for (const table of [
     ...(validated.source2dCount === undefined ? [] : ['hkgovAlsAddresses2d']),
     'hkgovAlsAddresses3d',
   ]) {
-    const remaining = new Map<string, string>()
-    let cursor: number | undefined
-    for (;;) {
-      const rows = await args.execute('source', [
-        {
-          sql: `SELECT rowid, sourceRecordId, versionHash FROM ${table} WHERE ${cursor === undefined ? '' : `rowid > ${cursor} AND `}isCurrent = 1 ORDER BY rowid LIMIT 1024`,
-          params: [],
-        },
-      ])
-      if (!rows.length) break
-      for (const row of rows) {
-        if (
-          typeof row.sourceRecordId !== 'string' ||
-          typeof row.versionHash !== 'string' ||
-          !Number.isSafeInteger(row.rowid)
-        )
-          throw new Error(`Invalid current ALS source identity in ${table}`)
-        if (remaining.has(row.sourceRecordId))
-          throw new Error(`Multiple current ALS assertions for ${row.sourceRecordId}`)
-        remaining.set(row.sourceRecordId, row.versionHash)
+    const remaining = new Map<string, SourceVersion[]>()
+    for (const shard of sourceShards) {
+      let cursor: number | undefined
+      for (;;) {
+        const rows = await shard.execute([
+          {
+            sql: `SELECT rowid, sourceRecordId, versionHash, releaseId, validFromRelease FROM ${table} WHERE ${cursor === undefined ? '' : `rowid > ${cursor} AND `}isCurrent = 1 ORDER BY rowid LIMIT 1024`,
+            params: [],
+          },
+        ])
+        if (!rows.length) break
+        for (const row of rows) {
+          if (
+            typeof row.sourceRecordId !== 'string' ||
+            typeof row.versionHash !== 'string' ||
+            !Number.isSafeInteger(row.rowid)
+          )
+            throw new Error(`Invalid current ALS source identity in ${table}`)
+          remaining.set(row.sourceRecordId, [
+            ...(remaining.get(row.sourceRecordId) ?? []),
+            {
+              versionHash: row.versionHash,
+              shard,
+              releaseId: String(row.releaseId),
+              validFromRelease: String(row.validFromRelease),
+            },
+          ])
+        }
+        cursor = Math.max(...rows.map(row => row.rowid as number))
       }
-      cursor = Math.max(...rows.map(row => row.rowid as number))
     }
     remainingSources.set(table, remaining)
   }
@@ -378,9 +473,12 @@ export async function importAddress3dCollections(args: {
   await args.execute('current', [
     {
       sql: 'DELETE FROM address3dI18n WHERE snapshotId = ?',
-      params: [args.snapshotId],
+      params: [args.currentSnapshotId ?? args.snapshotId],
     },
-    { sql: 'DELETE FROM address3d WHERE snapshotId = ?', params: [args.snapshotId] },
+    {
+      sql: 'DELETE FROM address3d WHERE snapshotId = ?',
+      params: [args.currentSnapshotId ?? args.snapshotId],
+    },
   ])
   for await (const record of records(args.path)) {
     if (record.kind === 'source' || record.kind === 'source2d') {
@@ -412,19 +510,75 @@ export async function importAddress3dCollections(args: {
       }
       const remaining = remainingSources.get(sourceTable)
       if (!remaining) throw new Error(`Missing source membership for ${sourceTable}`)
-      const unchanged = remaining.get(record.sourceRecordId) === record.versionHash
+      const previous = remaining.get(record.sourceRecordId) ?? []
       remaining.delete(record.sourceRecordId)
-      if (!unchanged)
+      const matches = previous
+        .filter(prior => prior.versionHash === record.versionHash)
+        .sort(
+          (a, b) =>
+            a.validFromRelease.localeCompare(b.validFromRelease) ||
+            a.shard.bindingName.localeCompare(b.shard.bindingName),
+        )
+      let existing = matches[0]
+      for (const prior of previous) {
+        if (prior === existing) continue
+        if (prior.versionHash === record.versionHash) {
+          // The 2D candidate stage can insert this year's copy before the complete
+          // publisher ledger is reconciled. Discard only that candidate duplicate.
+          if (prior.releaseId !== args.releaseId)
+            throw new Error(
+              `Duplicate retained ALS source version ${record.sourceRecordId} across shards.`,
+            )
+          await prior.shard.execute([
+            {
+              sql: `DELETE FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ? AND releaseId = ?`,
+              params: [record.sourceRecordId, prior.versionHash, args.releaseId],
+            },
+          ])
+        } else
+          await prior.shard.execute([
+            {
+              sql: `UPDATE ${sourceTable} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND versionHash = ? AND isCurrent = 1`,
+              params: [
+                args.sourceVersion,
+                now,
+                record.sourceRecordId,
+                prior.versionHash,
+              ],
+            },
+          ])
+      }
+      if (!existing) {
+        // A reappearing payload can already live in an older source shard.
+        for (const shard of sourceShards) {
+          const rows = await shard.execute([
+            {
+              sql: `SELECT versionHash, releaseId, validFromRelease FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ?`,
+              params: [record.sourceRecordId, record.versionHash],
+            },
+          ])
+          if (!rows.length) continue
+          if (existing)
+            throw new Error(
+              `Duplicate retained ALS source version ${record.sourceRecordId} across shards.`,
+            )
+          existing = {
+            versionHash: record.versionHash,
+            shard,
+            releaseId: String(rows[0]?.releaseId),
+            validFromRelease: String(rows[0]?.validFromRelease),
+          }
+        }
+        if (existing)
+          await existing.shard.execute([
+            {
+              sql: `UPDATE ${sourceTable} SET isCurrent = 1, validToRelease = NULL, updatedAt = ? WHERE sourceRecordId = ? AND versionHash = ? AND (isCurrent <> 1 OR validToRelease IS NOT NULL)`,
+              params: [now, record.sourceRecordId, record.versionHash],
+            },
+          ])
+      }
+      if (!existing)
         await args.execute('source', [
-          {
-            sql: `UPDATE ${sourceTable} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?`,
-            params: [
-              args.sourceVersion,
-              now,
-              record.sourceRecordId,
-              record.versionHash,
-            ],
-          },
           insert(
             sourceTable,
             {
@@ -434,13 +588,13 @@ export async function importAddress3dCollections(args: {
               validFromRelease: args.sourceVersion,
               validToRelease: null,
               isCurrent: 1,
-              rawProperties: record.rawProperties,
+              properties: record.properties,
               sourceGeometry: record.sourceGeometry,
               sourceLocator: sourceLocatorFromReferences(publisherSources),
               createdAt: now,
               updatedAt: now,
             },
-            `ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt WHERE ${sourceTable}.isCurrent <> 1 OR ${sourceTable}.validToRelease IS NOT NULL`,
+            `ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt WHERE ${sourceTable}.isCurrent <> 1 OR ${sourceTable}.validToRelease IS NOT NULL`,
           ),
         ])
     } else if (record.kind === 'collection') {
@@ -471,25 +625,51 @@ export async function importAddress3dCollections(args: {
         args.snapshotId,
         args.releaseId,
         now,
+        args.currentSnapshotId ?? args.snapshotId,
       )
-      await args.execute('history', historyStatements)
+      // Reuse exact versions across shard years, including their unchanged journal
+      // membership. The local planner composes the final current collection once.
+      const pendingHistory: Statement[] = []
+      for (let index = 0; index < historyStatements.length; index += 2) {
+        const statement = historyStatements[index]
+        const journal = historyStatements[index + 1]
+        if (!journal) throw new Error('Address3D history pair is incomplete.')
+        const [, , recordType, recordId, locale, versionHash] = journal.params
+        const key = membershipKey({
+          recordType: String(recordType),
+          recordId: String(recordId),
+          locale: String(locale),
+        })
+        seenMembership.add(key)
+        const prior = priorByKey.get(key)
+        if (prior?.versionHash === versionHash) continue
+        if (prior) await closeHistory(prior)
+        if (!statement) throw new Error('Address3D history row is missing.')
+        pendingHistory.push(statement, journal)
+      }
+      if (pendingHistory.length) await args.execute('history', pendingHistory)
       await args.execute('current', currentStatements)
     }
   }
   for (const [table, remaining] of remainingSources) {
-    const ids = [...remaining.keys()]
-    for (let offset = 0; offset < ids.length; offset += 96) {
-      const batch = ids.slice(offset, offset + 96)
-      await args.execute('source', [
-        {
-          sql: `UPDATE ${table} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND sourceRecordId IN (${batch.map(() => '?').join(',')})`,
-          params: [args.sourceVersion, now, ...batch],
-        },
-      ])
+    for (const shard of sourceShards) {
+      const ids = [...remaining.entries()]
+        .filter(([, versions]) => versions.some(version => version.shard === shard))
+        .map(([id]) => id)
+      for (let offset = 0; offset < ids.length; offset += 96) {
+        const batch = ids.slice(offset, offset + 96)
+        await shard.execute([
+          {
+            sql: `UPDATE ${table} SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND sourceRecordId IN (${batch.map(() => '?').join(',')})`,
+            params: [args.sourceVersion, now, ...batch],
+          },
+        ])
+      }
     }
   }
   for (const prior of args.priorMembership) {
-    if (validated.ids.has(prior.recordId)) continue
+    if (seenMembership.has(membershipKey(prior))) continue
+    await closeHistory(prior)
     await args.execute('history', [
       journalStatement(
         args.snapshotId,
