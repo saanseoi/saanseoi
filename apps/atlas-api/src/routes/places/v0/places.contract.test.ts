@@ -922,3 +922,38 @@ test('Place routes discard reads interrupted by publication', async () => {
     fixture.close()
   }
 })
+
+test('Place current responses derive last seen month from publication without rewriting the stored record', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite.exec("UPDATE places SET lastSeenMonth='2026-07'")
+    const stored = fixture.currentSqlite
+      .query('SELECT rowid,* FROM places ORDER BY id')
+      .all()
+    const list = await app.fetch(
+      new Request('http://localhost/places/v0.1?profile=full'),
+      fixture.env,
+    )
+    expect(list.status).toBe(200)
+    expect(
+      (
+        (await list.json()) as {
+          data: Array<{ attributes: { lastSeenMonth: string } }>
+        }
+      ).data.map(row => row.attributes.lastSeenMonth),
+    ).toEqual(['2026-08', '2026-08'])
+    const detail = await app.fetch(
+      new Request('http://localhost/places/v0.1/place-ramen'),
+      fixture.env,
+    )
+    expect(detail.status).toBe(200)
+    expect(await detail.json()).toMatchObject({
+      place: { lastSeenMonth: '2026-08', snapshotId: PLACE_SNAPSHOT },
+    })
+    expect(
+      fixture.currentSqlite.query('SELECT rowid,* FROM places ORDER BY id').all(),
+    ).toEqual(stored)
+  } finally {
+    fixture.close()
+  }
+})
