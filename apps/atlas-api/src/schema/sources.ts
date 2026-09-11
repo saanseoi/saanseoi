@@ -23,14 +23,17 @@ const SourceRecordCursorSchema = z
 const SourceRecordSchema = z
   .object({
     sourceRecordId: z.string(),
-    resourceType: z.string(),
-    variant: z.string(),
     rawProperties: z.object({}).loose().nullable(),
-    sources: z.array(z.object({}).loose()).nullable().optional(),
     placeNames: z.array(z.object({}).loose()).nullable().optional(),
     geometry: z.unknown().optional(),
   })
   .openapi('SourceRecord')
+
+const StreetSourceRecordSchema = SourceRecordSchema.extend({
+  sources: z.array(z.object({}).loose()).nullable().optional(),
+  resourceType: z.string(),
+  variant: z.string(),
+}).openapi('StreetSourceRecord')
 
 const SourceRecordPinSchema = z
   .object({
@@ -78,6 +81,10 @@ export const SourceRecordsResponseSchema = z
     nextCursor: z.string().nullable(),
   })
   .openapi('SourceRecordsResponse')
+
+export const StreetSourceRecordsResponseSchema = SourceRecordsResponseSchema.extend({
+  records: z.array(StreetSourceRecordSchema),
+}).openapi('StreetSourceRecordsResponse')
 
 export const SourceReleasesQuerySchema = z
   .object({
