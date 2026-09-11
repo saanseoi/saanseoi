@@ -14,8 +14,10 @@ whole release for an exact count. Tutorial clients must not require `total`.
 Publisher fields can be inspected through the source-release Schema and Samples tabs and
 the [source-record endpoints](../datasets/source-record-access.md). Tutorial marker
 queries use the canonical Places collection and its map profile; source inventories have
-their own schema and may retain publisher-coordinate geometry. Source-record access does
-not form part of the tutorial's pagination or basemap-token flow.
+their own schema and return native publisher geometry only when requested. Overture
+source geometry uses WKB bytes encoded as base64; map markers continue to use canonical
+Places coordinates. Source-record access does not form part of the tutorial's pagination
+or basemap-token flow.
 
 The Address API's `saanseoi` domain and `filter[dataset]` select the curated address
 collection independently of the Places endpoint. The tutorial's Places queries and
