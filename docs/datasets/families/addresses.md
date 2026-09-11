@@ -586,7 +586,7 @@ distinct unit count; ambiguous address ownership remains a separate review.
 [`address-granularity.json`](../../../fixtures/meta/curations/address-granularity.json)
 provides explicit overrides for ALS and supplementary Addresses. Use the canonical
 Address ID and run `establishAddressGranularity` from
-`libs/core/src/pipeline/services/addressPipeline/granularity.ts` against the corrected
+`libs/core/src/pipeline/services/addresses/granularity.ts` against the corrected
 localised components. Its transient `review.inputFingerprint` identifies that input;
 `addressGranularityFingerprint` computes the same fingerprint directly. Retain the
 reviewed decision, reason and evidence in the fixture's `overrides` array:

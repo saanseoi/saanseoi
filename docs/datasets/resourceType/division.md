@@ -186,8 +186,8 @@ Division processing computes release-level stats and stores them against the rel
 - churn stats comparing previous and current snapshots
 - quality/regression stats such as locale or name regression
 
-These are built in `libs/core/src/pipeline/services/stats.ts`, serialised into a
-dedicated `stats` SQL artefact, and imported into `DB_META`.
+These are built in `libs/core/src/pipeline/services/metrics/releaseStats.ts`, serialised
+into a dedicated `stats` SQL artefact, and imported into `DB_META`.
 
 Atlas-facing division summaries should be written as `type = apiReleaseSet` stats
 against the API release set. The standard rows are:
