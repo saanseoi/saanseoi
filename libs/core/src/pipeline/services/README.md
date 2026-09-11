@@ -3,6 +3,14 @@
 Services implement processing behaviour above `pipeline/db`, which owns database access.
 Import the module responsible for the operation directly.
 
+Each directory has a public entry point, so package consumers can depend on a domain
+without knowing its internal file layout. For example:
+
+```ts
+import { normaliseOverturePlace } from "@repo/core/pipeline/services/places";
+import { parseWkbGeometry } from "@repo/core/pipeline/services/divisions";
+```
+
 | Path          | Responsibility                                                                                                 |
 | ------------- | -------------------------------------------------------------------------------------------------------------- |
 | `addresses/`  | Address normalisation, corrections and staged source/current/history/SQL processing.                           |
