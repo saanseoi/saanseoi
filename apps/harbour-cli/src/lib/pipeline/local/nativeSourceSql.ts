@@ -264,6 +264,7 @@ export async function processNativeSourceSqlRelease(
     await refreshRemoteMetaCache(
       target.environment === 'production' ? 'production' : 'preview',
       context.state.dbCacheDir,
+      releaseId,
     )
   }
 
