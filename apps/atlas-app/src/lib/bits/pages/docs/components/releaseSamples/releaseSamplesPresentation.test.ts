@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   getUniqueAddressSamples,
+  getReleaseSampleLoadErrorMessage,
   getSampleApiPath,
   getSamplePageOffsets,
   groupAddressSamples,
@@ -117,6 +118,18 @@ describe('address release samples', () => {
     expect(getSampleApiPath('api-stats-v0.1')).toBe('/stats/v0')
     expect(supportsReleaseSamples('api-stats-v9.9')).toBe(false)
     expect(getSampleApiPath('api-stats-v9.9')).toBeNull()
+  })
+
+  test('explains when an API release snapshot is unavailable', () => {
+    expect(
+      getReleaseSampleLoadErrorMessage(503, {
+        error: 'snapshot_not_ready',
+        message: 'No active division snapshot is published.',
+      }),
+    ).toBe('No active division snapshot is published.')
+    expect(getReleaseSampleLoadErrorMessage(503, {})).toBe(
+      'Examples could not be loaded. Please try again.',
+    )
   })
 
   test('puts compactable sample ids first and collapses matching values', () => {

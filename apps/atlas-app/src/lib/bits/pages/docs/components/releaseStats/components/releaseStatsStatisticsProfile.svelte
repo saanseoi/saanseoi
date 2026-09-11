@@ -1,10 +1,14 @@
 <script lang="ts">
 import type { StatisticsProfilePresentation } from '../releaseStats.types'
-import Summary from './releaseStatsStatisticsSummary.svelte'
+import type { Snippet } from 'svelte'
+import Locale from './releaseStatsStatisticsLocale.svelte'
 import Distribution from './releaseStatsProfileDistribution.svelte'
 import Availability from './releaseStatsProfileAvailability.svelte'
 
-let { profile }: { profile: StatisticsProfilePresentation } = $props()
+let {
+  profile,
+  structural,
+}: { profile: StatisticsProfilePresentation; structural?: Snippet } = $props()
 
 let distributionColumns = $derived.by(() => {
   const columns: StatisticsProfilePresentation['distributions'][] = [[], []]
@@ -23,8 +27,6 @@ let distributionColumns = $derived.by(() => {
   return columns
 })
 </script>
-
-<Summary metrics={profile.metrics} />
 
 {#if profile.coverage}
   <section class="py-6">
@@ -77,6 +79,8 @@ let distributionColumns = $derived.by(() => {
   </section>
 {/if}
 
+{@render structural?.()}
+
 {#if profile.availability.length}
   <Availability rows={profile.availability} />
 {/if}
@@ -90,3 +94,7 @@ let distributionColumns = $derived.by(() => {
     </div>
   {/each}
 </div>
+
+{#if profile.localeCoverage.length}
+  <Locale rows={profile.localeCoverage} />
+{/if}

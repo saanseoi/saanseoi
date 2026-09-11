@@ -21,7 +21,7 @@ export type AuditBulkRule = {
   sourceCode?: string
   sourceReleaseCode?: string
   targetFieldPath?: string
-  type: 'bulk' | 'record'
+  kind: 'bulk' | 'record'
 }
 
 export type AuditRowPresentation = {

@@ -7,6 +7,7 @@ import type { ApiProfileName } from '@repo/core/apiLocales'
 import {
   getSampleApiPath,
   getSamplePageOffsets,
+  getReleaseSampleLoadErrorMessage,
   groupAddressSamples,
   sampleValueTones,
   supportsReleaseSamples,
@@ -90,8 +91,10 @@ async function getPage(offset: number, limit: number, after?: string) {
   const url = requestUrl(offset, limit)
   if (after !== undefined) url.searchParams.set('page[after]', after)
   const response = await fetch(url)
-  if (!response.ok) throw new Error(`Sample request failed with ${response.status}.`)
-  return (await response.json()) as AddressListResponse
+  const body = (await response.json()) as unknown
+  if (!response.ok)
+    throw new Error(getReleaseSampleLoadErrorMessage(response.status, body))
+  return body as AddressListResponse
 }
 
 async function loadMore(count: number) {
@@ -133,8 +136,11 @@ async function loadMore(count: number) {
     samples = [...samples, ...selected]
     sampleCount = samples.length
     if (samples.length > 1) view = 'grouped'
-  } catch {
-    errorMessage = 'Examples could not be loaded. Please try again.'
+  } catch (error) {
+    errorMessage =
+      error instanceof Error
+        ? error.message
+        : 'Examples could not be loaded. Please try again.'
   } finally {
     loading = false
   }

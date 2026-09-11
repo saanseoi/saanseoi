@@ -23,8 +23,8 @@ let { actions = [], analyticsSurface }: Props = $props()
       />
     {:else if action.options}
       <label class="inline-flex items-center gap-5">
-        {#if action.id === 'profile'}
-          <span class="font-mono text-label-md text-data-primary">profile</span>
+        {#if action.id === 'profile' || action.id === 'include'}
+          <span class="font-mono text-label-md text-data-primary">{action.id}</span>
         {:else}
           <span class="sr-only">{action.label}</span>
         {/if}

@@ -82,6 +82,19 @@ export function getSampleApiPath(apiVersion: string) {
   return sampleApiTargets[apiVersion as keyof typeof sampleApiTargets]?.path ?? null
 }
 
+export function getReleaseSampleLoadErrorMessage(status: number, body: unknown) {
+  if (
+    status === 503 &&
+    body &&
+    typeof body === 'object' &&
+    (body as { error?: unknown }).error === 'snapshot_not_ready' &&
+    typeof (body as { message?: unknown }).message === 'string'
+  ) {
+    return (body as { message: string }).message
+  }
+  return 'Examples could not be loaded. Please try again.'
+}
+
 export function getSamplePageOffsets(maximumOffset: number, count: number) {
   const offsets = new Set<number>()
   const size = Math.min(count, maximumOffset + 1)

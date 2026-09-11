@@ -49,7 +49,7 @@ function measure(node: HTMLElement) {
     ></span>
   {/each}
   <span
-    class={`absolute inset-y-0 flex font-mono text-caption font-normal tabular-nums ${labelFits === undefined ? 'invisible' : ''} ${labelFits ? 'left-0 items-center justify-end pr-2 text-data-on-primary' : 'items-center text-data-primary'}`}
+    class={`absolute inset-y-0 flex font-mono text-caption font-normal tabular-nums ${labelFits === undefined ? 'invisible' : ''} ${labelFits ? 'left-0 items-center justify-end pr-2 text-white' : 'items-center text-data-primary'}`}
     style={labelFits ? `width: ${coverage}%` : `left: ${coverage}%; transform: translateX(0.5rem)`}
     ><span bind:this={text} use:measure class="w-max">{label}</span></span
   >

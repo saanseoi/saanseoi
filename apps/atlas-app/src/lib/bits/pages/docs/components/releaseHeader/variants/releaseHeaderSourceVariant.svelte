@@ -90,7 +90,7 @@ let details = $derived.by((): Detail[] => {
       label: m.source_resource_type(),
       value: source.resourceTypes.join(', ') || m.api_release_unavailable(),
     },
-    ...(source.subType ? [{ label: m.source_subtype(), value: source.subType }] : []),
+    ...(source.kind ? [{ label: m.source_kind(), value: source.kind }] : []),
     ...(releaseNotesUrl
       ? [
           {
