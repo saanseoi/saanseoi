@@ -1,6 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import { createHash } from '@repo/core/pipeline/utils'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { materialiseSupplementaryAddressHistory } from './supplementaryAddressHistory.ts'
 import { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
@@ -115,7 +116,9 @@ test('a new lineage materialises shared components and closes them only after ev
       'address2dEvidence',
     ]
     const components = (db: Database) =>
-      tables.map(table => db.query(`SELECT * FROM ${table}`).all())
+      tables.map(table =>
+        db.query<Record<string, unknown>, []>(`SELECT * FROM ${table}`).all(),
+      )
     await publish('scope-a', 'a-first', [], addresses, 'DB_HISTORY_HK_2025')
     const originalComponents = components(old)
     const originalCurrent = [
@@ -123,7 +126,11 @@ test('a new lineage materialises shared components and closes them only after ev
       'address2dI18n',
       'address2dBuildingNumberLookup',
     ].map(table =>
-      current.query(`SELECT * FROM ${table} WHERE snapshotId='scope-a'`).all(),
+      current
+        .query<Record<string, unknown>, []>(
+          `SELECT * FROM ${table} WHERE snapshotId='scope-a'`,
+        )
+        .all(),
     )
     expect(originalComponents.map(rows => rows.length)).toEqual([1, 2, 1, 1])
     expect(
@@ -161,14 +168,45 @@ test('a new lineage materialises shared components and closes them only after ev
       { recordType: 'address2dI18n', operation: 'upsert' },
       { recordType: 'address2dI18n', operation: 'upsert' },
     ])
-    await publish('scope-a', 'a-empty', ['a-first'], [])
+    const nextAddresses = await Promise.all(
+      addresses.map(async row => {
+        const sources = row.evidence.sources.map(source => ({
+          ...source,
+          sourceReleaseId: 'next-address-source',
+          placeSourceReleaseId: 'next-place-source',
+          sourceVersion: '2026-01-21.0',
+        }))
+        return {
+          ...row,
+          current: { ...row.current, sources },
+          evidence: {
+            addressId: row.current.id,
+            sources,
+            versionHash: await createHash({ addressId: row.current.id, sources }),
+          },
+        }
+      }),
+    )
+    await publish('scope-b', 'b-second', ['b-first'], nextAddresses)
     expect(components(old)).toEqual(originalComponents)
+    const nextComponents = components(next)
+    expect(nextComponents.map(rows => rows.length)).toEqual([0, 0, 0, 1])
+    await publish('scope-a', 'a-empty', ['a-first'], [])
+    expect(components(old)).toEqual(
+      originalComponents.map((rows, index) =>
+        index === 3 ? rows.map(row => ({ ...row, isCurrent: 0 })) : rows,
+      ),
+    )
+    expect(components(next)).toEqual(nextComponents)
     expect(current.query('SELECT snapshotId FROM address2d').all()).toEqual([
       { snapshotId: 'scope-b' },
     ])
-    await publish('scope-b', 'b-empty', ['b-first'], [])
+    await publish('scope-b', 'b-empty', ['b-first', 'b-second'], [])
     expect(components(old)).toEqual(
       originalComponents.map(rows => rows.map(row => ({ ...row, isCurrent: 0 }))),
+    )
+    expect(components(next)).toEqual(
+      nextComponents.map(rows => rows.map(row => ({ ...row, isCurrent: 0 }))),
     )
     expect(current.query('SELECT * FROM address2d').all()).toEqual([])
     expect(current.query('SELECT * FROM address2dI18n').all()).toEqual([])
