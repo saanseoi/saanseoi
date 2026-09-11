@@ -150,7 +150,7 @@ function normaliseDivisionAreaGeometry(
   const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
-    geometry,
+    geometry: withoutEmbeddedBbox(geometry),
     id,
     isLand,
     isTerritorial,
@@ -211,7 +211,7 @@ function normaliseDivisionBoundaryGeometry(
   const sources = normaliseSources(row.sources, source)
   const base: GeometryBase = {
     bbox,
-    geometry,
+    geometry: withoutEmbeddedBbox(geometry),
     id,
     isLand,
     isTerritorial,
@@ -448,6 +448,12 @@ function normaliseDivisionIds(value: unknown, id: string): [string, string] {
   }
 
   return [ids[0], ids[1]]
+}
+
+/** Canonical extents live in the bbox column; retain the source object unchanged. */
+function withoutEmbeddedBbox(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  const { bbox: _bbox, ...canonical } = geometry as GeoJsonGeometry & { bbox?: unknown }
+  return canonical
 }
 
 function requireGeometry(

@@ -56,6 +56,10 @@ land/territorial flags. A boundary row contains an `id`, ordered `leftDivisionId
 normalised `type`, and the same flags. Providers may add source-specific keys, but
 canonical columns must not be silently overloaded.
 
+Canonical area and boundary geometry omits the optional embedded GeoJSON `bbox`. The
+separate `bbox` column is calculated from the canonical coordinates. Source geometry
+retains any embedded bbox as part of its original evidence.
+
 `identifiers` contains genuine provider identifiers where a provider bridge exists.
 Source versions, classifications, and other source-only fields remain available through
 the source-record API under `properties`.

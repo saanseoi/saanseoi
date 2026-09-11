@@ -86,10 +86,17 @@ the canonical names. A missing Simplified Chinese name is created only by the re
 source-release fixture process described in the Divisions family document; it is marked
 unverified until reviewed.
 
-The divisions projection is a LandsD-specific SQL concern: it selects only
-`PLACE_CLASS=Settlement` rows while retaining the full gazetteer as durable source
-evidence. This preserves the native archive provenance for both the projected division
-records and future Hydrographic/Topographic places work.
+The same intake delivers the 1,613 `PLACE_CLASS=Settlement` rows through the canonical
+division SQL pipeline before publishing the release. It passes the decoded FileGDB rows
+directly, with official relationship labels first and aliases retained as alternative
+names. Canonical geometry uses the decoded WGS84 point; native properties and EPSG:2326
+geometry remain unchanged in the complete source ledger. Each division resolves to the
+exact retained native source version.
+
+Delivery writes current rows, immutable history, localised names and source resolutions,
+then verifies row counts before completing the publication receipt. Source-ledger counts
+or snapshot metadata alone cannot make the division snapshot ready. Reconciliation
+reports the codes of snapshots missing a complete receipt.
 
 ## Publisher source boundary
 

@@ -423,11 +423,18 @@ settlements and exclusions by publisher class, including missing or unexpected c
 The [source documentation](../sources/hkgov-landsd/placeName.md#divisions-projection)
 describes the retained audit and local backfill.
 
+Native LandsD intake delivers the settlement projection and its source-version
+resolutions before publication. A completed, row-count-verified delivery receipt is
+required alongside snapshot metadata; reconciliation names any snapshot missing that
+receipt. The native archive remains the source artefact throughout canonical delivery.
+
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
 normalised geometry. Canonical geometry and bbox are persisted only in history and
 current; source records include publisher evidence, while named source derivatives
 retain their explicit transform output. Upstream bbox fields are not trusted as
-persisted geometry extents.
+persisted geometry extents. Canonical area and boundary geometry omits the optional
+embedded GeoJSON `bbox`; the separate `bbox` column holds the calculated extent. Source
+geometry retains its embedded metadata unchanged.
 
 Source-specific aggregate geometry canonicalisation is permitted only when its provider
 profile documents the triggering topology condition and the source records remain
