@@ -22,7 +22,7 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
   ],
 )
 
-/** Native New Town features with publisher labels retained in rawProperties. */
+/** Native New Town features with publisher labels retained in properties. */
 export const sourceHkgovPlandNewTowns = sqliteTable(
   'hkgovPlandNewTowns',
   {

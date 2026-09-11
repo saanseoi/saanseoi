@@ -46,7 +46,7 @@ export const sourceHkgovLandsdPlaceNames = sqliteTable(
   'hkgovLandsdPlaceNames',
   {
     ...sourceSpatialAssertionColumns(),
-    /** Native relationship rows absent from the parent feature rawProperties. */
+    /** Native relationship rows absent from the parent feature properties. */
     placeNames: jsonText<LandsdPlaceName[]>('placeNames').notNull(),
   },
   table => [
@@ -142,7 +142,7 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
 /**
  * Immutable LandsD Road Centreline source segment. Segments without publisher
  * street names are retained; only matched records become canonical street
- * geometry. Publisher attributes are preserved in rawProperties.
+ * geometry. Publisher attributes are preserved in properties.
  */
 export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',

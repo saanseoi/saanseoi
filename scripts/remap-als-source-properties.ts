@@ -30,23 +30,23 @@ try {
     if (!db.query('SELECT name FROM sqlite_master WHERE name = ?').get(table)) continue
     for (const row of db
       .query(
-        `SELECT sourceRecordId, versionHash, rawProperties FROM ${table} WHERE rawProperties LIKE '%"/%'`,
+        `SELECT sourceRecordId, versionHash, properties FROM ${table} WHERE properties LIKE '%"/%'`,
       )
       .iterate() as Iterable<{
       sourceRecordId: string
       versionHash: string
-      rawProperties: string
+      properties: string
     }>) {
       const mapped = JSON.stringify(
-        remapAlsSourceProperties(JSON.parse(row.rawProperties)),
+        remapAlsSourceProperties(JSON.parse(row.properties)),
       )
-      if (mapped === row.rawProperties) continue
+      if (mapped === row.properties) continue
       const identity = `sourceRecordId = ${quote(row.sourceRecordId)} AND versionHash = ${quote(row.versionHash)}`
       const update = (before: string, after: string) =>
-        `UPDATE ${table} SET rawProperties = ${quote(after)} WHERE ${identity} AND rawProperties = ${quote(before)};`
+        `UPDATE ${table} SET properties = ${quote(after)} WHERE ${identity} AND properties = ${quote(before)};`
       updates.push({
-        sql: update(row.rawProperties, mapped),
-        rollback: update(mapped, row.rawProperties),
+        sql: update(row.properties, mapped),
+        rollback: update(mapped, row.properties),
       })
       counts[table] = (counts[table] ?? 0) + 1
     }

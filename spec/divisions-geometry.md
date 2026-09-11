@@ -34,8 +34,8 @@ Every source adapter documents and validates:
 - source CRS, transformation to the canonical API CRS, dimensionality and geometry union
   accepted by that provider;
 - null, empty, invalid-ring, self-intersecting, and out-of-extent policies;
-- source attributes retained verbatim in `rawProperties`, including source validity
-  periods and provenance timestamps;
+- source attributes retained verbatim in `properties`, including source validity periods
+  and provenance timestamps;
 - deterministic geographic filters and explicit allowlists for exceptional records;
 - feature counts and geometry-type distributions measured from the downloaded artefact.
 

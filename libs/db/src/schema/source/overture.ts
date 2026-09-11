@@ -3,7 +3,7 @@ import { jsonText } from '../shared'
 
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
-/** Publisher payloads live only in rawProperties; projections belong to canonical tables. */
+/** Publisher payloads live only in properties; projections belong to canonical tables. */
 function overtureSourceTable<TName extends string>(name: TName) {
   return sqliteTable(
     name,

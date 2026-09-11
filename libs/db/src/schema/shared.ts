@@ -141,7 +141,7 @@ export const timestamps = {
 
 export const sourceProvenance = {
   sources: jsonText('sources'),
-  rawProperties: jsonText('rawProperties'),
+  properties: jsonText('properties'),
   version: integer('version'),
 }
 

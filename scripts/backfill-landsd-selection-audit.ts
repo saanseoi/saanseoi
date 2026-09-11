@@ -75,16 +75,16 @@ try {
       if (!binding.startsWith('DB_SOURCE_HK_')) continue
       const { results } = await (source as Db)
         .prepare(`
-        SELECT sourceRecordId, rawProperties FROM hkgovLandsdPlaceNames
+        SELECT sourceRecordId, properties FROM hkgovLandsdPlaceNames
         WHERE validFromRelease <= ? AND (validToRelease IS NULL OR validToRelease > ?)
       `)
         .bind(release.code, release.code)
-        .all<{ sourceRecordId: string; rawProperties: string }>()
+        .all<{ sourceRecordId: string; properties: string }>()
       for (const row of results) {
         if (identities.has(row.sourceRecordId))
           throw new Error(`Duplicate native source identity ${row.sourceRecordId}`)
         identities.add(row.sourceRecordId)
-        const value = JSON.parse(row.rawProperties)
+        const value = JSON.parse(row.properties)
         if (!value || typeof value !== 'object' || Array.isArray(value))
           throw new Error('Invalid native properties.')
         properties.push(value)

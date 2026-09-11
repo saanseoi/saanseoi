@@ -8,7 +8,7 @@ export const sourceHkgovAlsAddresses3d = sqliteTable(
   'hkgovAlsAddresses3d',
   {
     ...sourceAssertionColumns(),
-    rawProperties: jsonText('rawProperties').notNull(),
+    properties: jsonText('properties').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
   },
   table => [

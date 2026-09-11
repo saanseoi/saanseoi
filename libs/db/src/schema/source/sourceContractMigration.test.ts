@@ -3,18 +3,20 @@ import { Database } from 'bun:sqlite'
 import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-test('fresh source migration creates every Streets table and source payload contract', () => {
+test('fresh source migration chain creates every Streets table and source payload contract', () => {
   const root = resolve(import.meta.dir, '../../..', 'migrations/source')
-  const migration = readdirSync(root, { withFileTypes: true })
+  const migrations = readdirSync(root, { withFileTypes: true })
     .filter(entry => entry.isDirectory())
     .map(entry => entry.name)
     .sort()
-    .at(-1)
-  if (!migration) throw new Error('The source baseline migration is missing.')
+  if (migrations.length === 0)
+    throw new Error('The source baseline migration is missing.')
 
   const db = new Database(':memory:')
   try {
-    db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
+    for (const migration of migrations) {
+      db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
+    }
     const streetSchema = () =>
       db
         .query(
@@ -22,13 +24,13 @@ test('fresh source migration creates every Streets table and source payload cont
         )
         .all()
     db.exec(
-      "INSERT INTO overturePlaces (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,rawProperties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
+      "INSERT INTO overturePlaces (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,properties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
     )
     expect(streetSchema().length).toBeGreaterThan(0)
     expect(
       db
         .query(
-          'SELECT sourceRecordId,versionHash,validFromRelease,isCurrent,rawProperties,sourceLocator FROM overturePlaces',
+          'SELECT sourceRecordId,versionHash,validFromRelease,isCurrent,properties,sourceLocator FROM overturePlaces',
         )
         .get(),
     ).toEqual({
@@ -36,7 +38,7 @@ test('fresh source migration creates every Streets table and source payload cont
       versionHash: 'hash',
       validFromRelease: '2025',
       isCurrent: 0,
-      rawProperties: '{"name":"literal"}',
+      properties: '{"name":"literal"}',
       sourceLocator: '{"sourceFile":"original"}',
     })
     expect(db.query('PRAGMA integrity_check').get()).toEqual({ integrity_check: 'ok' })
