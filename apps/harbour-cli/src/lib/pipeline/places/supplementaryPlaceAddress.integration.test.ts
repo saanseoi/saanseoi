@@ -420,15 +420,24 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     )
 
     const reset = buildPlacesResetSql(await collectOwnedPlaces(db))
+    expect(
+      current
+        .query(
+          "SELECT name FROM sqlite_master WHERE name IN ('addressesFts','addressSearchFts')",
+        )
+        .all(),
+    ).toEqual([])
+    current.exec(`INSERT INTO addressSearchScopes(scopeId,snapshotId)
+      SELECT 'als', snapshotId FROM address2d WHERE id='als-citygate' LIMIT 1;`)
     current.exec('PRAGMA foreign_keys = ON;')
     current.exec(reset.currentSql)
     history.exec(reset.historySql)
     expect(current.query('SELECT id FROM address2d').all()).toEqual([
       { id: 'als-citygate' },
     ])
-    expect(current.query('SELECT DISTINCT addressId FROM addressesFts').all()).toEqual([
-      { addressId: 'als-citygate' },
-    ])
+    expect(
+      current.query('SELECT DISTINCT addressId FROM addressSearchFts').all(),
+    ).toEqual([{ addressId: 'als-citygate' }])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 0 })
     expect(history.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
       n: 0,
