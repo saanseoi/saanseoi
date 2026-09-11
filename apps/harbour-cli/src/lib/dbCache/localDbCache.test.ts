@@ -60,7 +60,7 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
 
 test('includes the Places full-text index in the current cache profile', () => {
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'places')
-  expect(tables).toContain('placesFts')
+  expect(tables).not.toContain('placesFts')
   expect(tables).toContain('placesDivision')
   expect(tables).toContain('placesCells')
   expect(tables).toContain('address2dBuildingNumberLookup')

@@ -57,7 +57,6 @@ export function resolveCacheTablesForBinding(
         'placesI18n',
         'placesDivision',
         'placesCells',
-        'placesFts',
       ]
     }
 
@@ -94,7 +93,6 @@ export function resolveCacheTablesForBinding(
       'placesI18n',
       'placesDivision',
       'placesCells',
-      'placesFts',
       'address2d',
       'address2dI18n',
       'address2dBuildingNumberLookup',

@@ -12,6 +12,7 @@ const {
   placesCells,
   placesDivision,
   placesFts,
+  placeSearchScopes,
   placesFtsMatch,
   placesI18n,
 } = currentSchema
@@ -230,6 +231,15 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
 
 export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   try {
+    const ready = await db
+      .select({ scopeId: placeSearchScopes.scopeId })
+      .from(placeSearchScopes)
+      .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
+      .get()
+    if (!ready)
+      throw new Error(
+        'FTS index is not initialised. Rebuild placesFts before using search.',
+      )
     return await db
       .select({
         placeId: places.id,
@@ -239,16 +249,17 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         brandText: placesFts.brandText,
       })
       .from(placesFts)
+      .innerJoin(placeSearchScopes, eq(placesFts.scopeId, placeSearchScopes.scopeId))
       .innerJoin(
         places,
         and(
-          eq(places.snapshotId, placesFts.snapshotId),
+          eq(places.snapshotId, placeSearchScopes.snapshotId),
           eq(places.id, placesFts.placeId),
         ),
       )
       .where(
         and(
-          eq(placesFts.snapshotId, lookup.snapshotId),
+          eq(placeSearchScopes.snapshotId, lookup.snapshotId),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
           placesFtsMatch(lookup.query),
         ),
@@ -256,7 +267,10 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
       .all()
   } catch (error) {
-    if (error instanceof Error && error.message.includes('no such table: placesFts')) {
+    if (
+      error instanceof Error &&
+      `${error.message} ${error.cause}`.includes('no such table: placeSearch')
+    ) {
       throw new Error(
         'FTS index is not initialised. Rebuild placesFts before using search.',
       )
