@@ -19,12 +19,14 @@ to its logical snapshot and publication readiness. Before the first delivered cu
 mutation, the scope is claimed with a unique publication token and `publishing` status.
 Every current batch verifies that token in the same transaction as its mutations.
 Delivery records `preparedAt` after validating the complete Address2D and Address3D
-projection, localisations, building-number lookups and references. Publication alone
-changes the matching prepared scope to `current`, including valid empty snapshots.
-Unchanged addresses, translations and building-number lookups retain their rows and
-timestamps. Changed content updates only its affected rows. Immutable version content
-and snapshot change journals supply historical API reads, including retired records and
-omitted translations.
+projection, localisations, building-number lookups and references. Local validation
+compares exact canonical IDs, parents, levels, inventory owners, sections and unit IDs
+with the reviewed membership, and rejects addresses or unit translations with no display
+content. Publication alone changes the matching prepared scope to `current`, including
+valid empty snapshots. Unchanged addresses, translations and building-number lookups
+retain their rows and timestamps. Changed content updates only its affected rows.
+Immutable version content and snapshot change journals supply historical API reads,
+including retired records and omitted translations.
 
 History components are compared independently. An Address2D component change does not
 rewrite identical base, translation or building-number content in another component.
@@ -78,10 +80,12 @@ ALS versions and keeps its completion manifest separate from full runs.
 Every published Address API release calculates added, changed, removed and unchanged
 records against the preceding compatible API release in its domain and region. Immutable
 snapshot membership and content version hashes determine churn across all assigned
-history shards. Address2D supplies the overview totals; Address3D has a separate table
-breakdown. The first release compares against an empty baseline.
-`saanseoi stats:backfill-addresses --target local` rebuilds retained release statistics,
-preparing all replacements before writing them. `--dry-run` calculates without writing.
+history shards, including each independently retained locale. Translation additions,
+changes and removals count as address changes. Address2D supplies the overview totals;
+Address3D has a separate table breakdown. The first release compares against an empty
+baseline. `saanseoi stats:backfill-addresses --target local` rebuilds retained release
+statistics, preparing all replacements before writing them. `--dry-run` calculates
+without writing.
 
 API release samples seek from a random UUID using `page[after]` and wrap to the start
 when the seek has no result. This provides varied examples, not a uniform statistical

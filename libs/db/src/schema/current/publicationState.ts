@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { timestamps } from '../shared'
 
 /** Delivery completion is separate from permission to serve a published snapshot. */
@@ -27,28 +27,24 @@ export const statsPublicationState = sqliteTable(
   table => [primaryKey({ columns: [table.datasetCode, table.referencePeriodCode] })],
 )
 
-function snapshotPublicationState(name: string) {
-  return sqliteTable(
-    name,
-    {
-      snapshotId: text('snapshotId').primaryKey(),
-      scopeId: text('scopeId').notNull(),
-      ...publicationStateColumns(),
-    },
-    table => [index(`${name}_scope_idx`).on(table.scopeId)],
-  )
+function scopedPublicationState(name: string) {
+  return sqliteTable(name, {
+    scopeId: text('scopeId').primaryKey(),
+    snapshotId: text('snapshotId').notNull().unique(),
+    ...publicationStateColumns(),
+  })
 }
 
-// Immutable snapshots can be prepared alongside a serving selection. Their small
-// receipts live as long as the retained materialisation, including empty snapshots.
-export const divisionPublicationState = snapshotPublicationState(
+// Current records use the stable scope as their storage key. The receipt alone
+// advances the logical snapshot; immutable revisions remain in history.
+export const divisionPublicationState = scopedPublicationState(
   'divisionPublicationState',
 )
-export const placePublicationState = snapshotPublicationState('placePublicationState')
-export const streetPublicationState = snapshotPublicationState('streetPublicationState')
-export const divisionAreaPublicationState = snapshotPublicationState(
+export const placePublicationState = scopedPublicationState('placePublicationState')
+export const streetPublicationState = scopedPublicationState('streetPublicationState')
+export const divisionAreaPublicationState = scopedPublicationState(
   'divisionAreaPublicationState',
 )
-export const divisionBoundaryPublicationState = snapshotPublicationState(
+export const divisionBoundaryPublicationState = scopedPublicationState(
   'divisionBoundaryPublicationState',
 )

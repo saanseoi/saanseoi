@@ -39,7 +39,52 @@ export async function beginSnapshotPublication(
   db: unknown,
   input: PublicationPreparation,
 ) {
-  await runPublicationSql(db, buildBeginPublicationSql(input))
+  const previous =
+    input.previous === undefined
+      ? await getPreparedPublication(
+          db as import('../../../lib/db/types').HarbourReadableDb,
+          input.table,
+          input.scopeId,
+        )
+      : input.previous
+  await runPublicationSql(db, buildBeginPublicationSql({ ...input, previous }))
+}
+
+/** Resolve a completed local mirror, including an acknowledged deferred publication. */
+export async function getPreparedPublication(
+  db: import('../../../lib/db/types').HarbourReadableDb,
+  table: import('./sql').PublicationTable,
+  scopeId: string,
+) {
+  return (
+    (await db
+      .select({
+        snapshotId: sql<string>`snapshotId`,
+        publicationToken: sql<string>`publicationToken`,
+      })
+      .from(sql.raw(`"${table}"`))
+      .where(
+        sql`scopeId = ${scopeId} AND preparedAt IS NOT NULL AND publicationToken <> ''`,
+      )
+      .get()) ?? null
+  )
+}
+
+/** Lookup reads retain logical revision selection while current records use stable keys. */
+export async function resolvePreparedPublicationScope(
+  db: import('../../../lib/db/types').HarbourReadableDb,
+  table: import('./sql').PublicationTable,
+  snapshotId: string,
+) {
+  const row = await db
+    .select({ scopeId: sql<string>`scopeId` })
+    .from(sql.raw(`"${table}"`))
+    .where(
+      sql`snapshotId = ${snapshotId} AND preparedAt IS NOT NULL AND publicationToken <> ''`,
+    )
+    .get()
+  if (!row) throw new Error(`Snapshot ${snapshotId} has no complete ${table} receipt.`)
+  return row.scopeId
 }
 
 export async function assertSnapshotPublication(
