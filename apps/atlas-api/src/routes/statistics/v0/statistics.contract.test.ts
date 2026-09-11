@@ -1,29 +1,13 @@
 import { describe, expect, test } from 'bun:test'
-import { Database, type SQLQueryBindings } from 'bun:sqlite'
-import { resolve } from 'node:path'
-
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
-import type { AppBindings } from '../../../types'
 import app from '../../../index'
-
-const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
-const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
-const PUBLISHED_AT = '2026-08-20T00:00:00.000Z'
-const DATASET_CODE =
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-const RELEASE_ID = 'release-statistics-population-households-2021'
-const STATISTIC_ID = 'statistic-population-households-2021-district-1'
-const HISTORICAL_DATASET_CODE =
-  'ds-hk-hkgov-censtatd-division-statistic-households-district'
-const HISTORICAL_RELEASE_ID = 'release-statistics-households-2020'
-
-type MockStatement = {
-  bind: (...values: SQLQueryBindings[]) => MockStatement
-  all: <T>() => Promise<{ results: T[]; success: true }>
-  first: <T>() => Promise<T | null>
-  raw: <T>() => Promise<T[][]>
-  run: () => Promise<{ meta: { changes: number }; success: true }>
-}
+import {
+  fixtureEnv,
+  run,
+  DATASET_CODE,
+  HISTORICAL_DATASET_CODE,
+  STATISTIC_ID,
+  RELEASE_ID,
+} from './statisticsFixtures'
 
 type StatisticsListDocument = {
   data: unknown[]
@@ -31,819 +15,264 @@ type StatisticsListDocument = {
   meta: Record<string, unknown>
 }
 
-function createMockD1(sqlite: Database): D1Database {
-  return {
-    prepare(query: string) {
-      const statement = sqlite.query(query)
-      let values: SQLQueryBindings[] = []
-      const bound: MockStatement = {
-        bind(...nextValues) {
-          values = nextValues
-          return bound
-        },
-        async all<T>() {
-          return { results: statement.all(...values) as T[], success: true }
-        },
-        async first<T>() {
-          return (statement.get(...values) as T | null) ?? null
-        },
-        async raw<T>() {
-          return (statement.all(...values) as Array<Record<string, unknown>>).map(row =>
-            Object.values(row),
-          ) as T[][]
-        },
-        async run() {
-          const result = statement.run(...values)
-          return { meta: { changes: result.changes }, success: true }
-        },
-      }
-      return bound
-    },
-  } as unknown as D1Database
-}
-
-function initSqlite(families: string[]) {
-  const sqlite = new Database(':memory:')
-  sqlite.exec('PRAGMA foreign_keys = ON;')
-  sqlite.exec(
-    loadMigrationSql(MIGRATIONS_DIR, families).replaceAll(
-      '--> statement-breakpoint',
-      '',
-    ),
-  )
-  return sqlite
-}
-
-function run(sqlite: Database, query: string, values: SQLQueryBindings[] = []) {
-  sqlite.query(query).run(...values)
-}
-
-function seedMeta(sqlite: Database) {
-  run(
-    sqlite,
-    `INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
-     VALUES (?, ?, ?, ?, ?)`,
-    [
-      'publisher-censtatd',
-      'hkgov-censtatd',
-      'publisher-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency,
-      theme, sourceVariant, versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'dataset-statistics',
-      'publisher-censtatd',
-      DATASET_CODE,
-      'hk',
-      'static',
-      'yearly',
-      'stats',
-      'official-statistics',
-      'dataset-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'api-version-stats',
-      'api-stats-v0.1',
-      'stats',
-      '0.1',
-      'current',
-      PUBLISHED_AT,
-      'api-version-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-statistics',
-      'divisionStatistic',
-      'ss-hk-division-statistic-population-households-2021',
-      '2021',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO sourceReleases (
-      id, datasetId, code, sourceVersion, cohortKey, status,
-      ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      RELEASE_ID,
-      'dataset-statistics',
-      'sr-hk-hkgov-censtatd-population-households-district-2021',
-      '2021',
-      '2021',
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO releases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      RELEASE_ID,
-      RELEASE_ID,
-      'dataset-statistics',
-      'divisionStatistic',
-      'dr-hk-hkgov-censtatd-division-statistic-population-households-district-2021',
-      '2021',
-      '2021',
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshotSources (
-      snapshotId, datasetId, resourceReleaseId, role, createdAt
-    ) VALUES (?, ?, ?, ?, ?)`,
-    ['snapshot-statistics', 'dataset-statistics', RELEASE_ID, 'primary', PUBLISHED_AT],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSets (
-      id, apiVersionId, code, regionCode, domainCode, cohortKey, revision,
-      effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-statistics',
-      'api-version-stats',
-      'data-hk-stats-2021',
-      'hk',
-      'government',
-      '2021',
-      0,
-      PUBLISHED_AT,
-      'sv-statistics-v1',
-      'rs-division-statistic-merge-v1',
-      'current',
-      PUBLISHED_AT,
-      'release-set-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSetSnapshots (
-      apiReleaseSetId, snapshotId, variant, role, isRequired,
-      cohortMatchingMode, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-statistics',
-      'snapshot-statistics',
-      DATASET_CODE,
-      'primary',
-      1,
-      'exact_ref',
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiCatalogRevisions (
-      id, apiVersionId, code, regionCode, publicationDate, revision,
-      defaultDomainCode, status, publishedAt, versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'catalog-statistics',
-      'api-version-stats',
-      'catalog-hk-stats-v0.1-2026-08-20-r0',
-      'hk',
-      '2026-08-20',
-      0,
-      'government',
-      'current',
-      PUBLISHED_AT,
-      'catalog-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
-      isDefault, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      'catalog-statistics',
-      'release-set-statistics',
-      'government',
-      '2021',
-      1,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency,
-      theme, sourceVariant, versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'dataset-statistics-historical',
-      'publisher-censtatd',
-      HISTORICAL_DATASET_CODE,
-      'hk',
-      'static',
-      'yearly',
-      'stats',
-      'official-statistics',
-      'dataset-historical-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO sourceReleases (
-      id, datasetId, code, sourceVersion, cohortKey, status,
-      ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_RELEASE_ID,
-      'dataset-statistics-historical',
-      'sr-hk-hkgov-censtatd-households-district-2020',
-      '2020',
-      '2020',
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO releases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_RELEASE_ID,
-      HISTORICAL_RELEASE_ID,
-      'dataset-statistics-historical',
-      'divisionStatistic',
-      'dr-hk-hkgov-censtatd-division-statistic-households-district-2020',
-      '2020',
-      '2020',
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-statistics-historical',
-      'divisionStatistic',
-      'ss-hk-division-statistic-households-2020',
-      '2020',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshotSources (
-      snapshotId, datasetId, resourceReleaseId, role, createdAt
-    ) VALUES (?, ?, ?, ?, ?)`,
-    [
-      'snapshot-statistics-historical',
-      'dataset-statistics-historical',
-      HISTORICAL_RELEASE_ID,
-      'primary',
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSets (
-      id, apiVersionId, code, regionCode, domainCode, cohortKey, revision,
-      effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-statistics-historical',
-      'api-version-stats',
-      'data-hk-stats-2020',
-      'hk',
-      'government',
-      '2020',
-      0,
-      '2020-01-01T00:00:00.000Z',
-      'sv-statistics-v1',
-      'rs-division-statistic-merge-v1',
-      'current',
-      PUBLISHED_AT,
-      'release-set-historical-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSetSnapshots (
-      apiReleaseSetId, snapshotId, variant, role, isRequired,
-      cohortMatchingMode, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-statistics-historical',
-      'snapshot-statistics-historical',
-      HISTORICAL_DATASET_CODE,
-      'primary',
-      1,
-      'exact_ref',
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
-      isDefault, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      'catalog-statistics',
-      'release-set-statistics-historical',
-      'government',
-      '2020',
-      0,
-      PUBLISHED_AT,
-    ],
-  )
-}
-
-function seedHistory(sqlite: Database) {
-  run(
-    sqlite,
-    `INSERT INTO statsFields (
-      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
-      aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
-      sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_DATASET_CODE,
-      'households',
-      'households',
-      'HOUSEHOLDS',
-      JSON.stringify({ sex: 'all' }),
-      null,
-      'count',
-      'total',
-      null,
-      'numeric',
-      'household',
-      'historical-field-version-hash',
-      HISTORICAL_RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsMeasures (
-      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_DATASET_CODE,
-      'households',
-      'historical-measure-version-hash',
-      HISTORICAL_RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsMeasuresI18n (
-      datasetCode, measureCode, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_DATASET_CODE,
-      'households',
-      'en',
-      'Households',
-      'Number of households.',
-      1,
-      'historical-measure-i18n-version-hash',
-      HISTORICAL_RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsFieldsI18n (
-      datasetCode, fieldName, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      HISTORICAL_DATASET_CODE,
-      'households',
-      'en',
-      'Households',
-      'Number of households.',
-      1,
-      'historical-field-i18n-version-hash',
-      HISTORICAL_RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsRecords (
-      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
-      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-      referencePeriodGranularity, referencePeriodEndYear, geography,
-      dimensions, "values",
-      versionHash, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      STATISTIC_ID,
-      DATASET_CODE,
-      RELEASE_ID,
-      'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-population-households-district/2021/District:1',
-      'division-central-western',
-      '2021',
-      null,
-      null,
-      'year',
-      '2021',
-      JSON.stringify({ kind: 'district', code: '11', class: 'A' }),
-      JSON.stringify({ sex: 'all' }),
-      JSON.stringify({ totalPopulation: '235953' }),
-      'record-version-hash',
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsFields (
-      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
-      aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
-      sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DATASET_CODE,
-      'totalPopulation',
-      'totalPopulation',
-      'T_POP',
-      JSON.stringify({ sex: 'all' }),
-      null,
-      'count',
-      'total',
-      null,
-      'numeric',
-      'person',
-      'field-version-hash',
-      RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsMeasures (
-      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DATASET_CODE,
-      'totalPopulation',
-      'measure-version-hash',
-      RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsRecords (
-      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
-      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-      referencePeriodGranularity, referencePeriodEndYear, geography,
-      dimensions, "values", versionHash, isCurrent, createdAt, updatedAt
-    )
-    SELECT
-      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
-      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-      referencePeriodGranularity, referencePeriodEndYear, geography,
-      dimensions, '{"totalPopulation":"230000"}', 'record-version-hash-superseded', 0,
-      createdAt, updatedAt
-    FROM statsRecords
-    WHERE id = ? AND isCurrent = 1`,
-    [STATISTIC_ID],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsMeasuresI18n (
-      datasetCode, measureCode, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DATASET_CODE,
-      'totalPopulation',
-      'en',
-      'Population',
-      'Number of people.',
-      1,
-      'measure-i18n-version-hash',
-      RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsRecords (
-      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
-      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-      referencePeriodGranularity, referencePeriodEndYear, geography,
-      dimensions, "values", versionHash, isCurrent, createdAt, updatedAt
-    )
-    SELECT
-      'statistic-population-households-2020-district-1', datasetCode,
-      sourceReleaseId, sourceFeatureRef, divisionId, '2020', NULL, NULL,
-      'year', '2020', geography, dimensions, "values",
-      'record-version-hash-2020', isCurrent, createdAt, updatedAt
-    FROM statsRecords
-    WHERE id = ? AND isCurrent = 1`,
-    [STATISTIC_ID],
-  )
-  run(
-    sqlite,
-    `INSERT INTO statsFieldsI18n (
-      datasetCode, fieldName, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DATASET_CODE,
-      'totalPopulation',
-      'en',
-      'Total population',
-      'Number of people.',
-      1,
-      'field-i18n-version-hash',
-      RELEASE_ID,
-      1,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  const translations = [
-    { locale: 'zh-Hant', name: '總人口', description: '人口數目。' },
-    { locale: 'zh-Hans', name: '总人口', description: '人口数目。' },
-  ] as const
-  for (const translation of translations) {
-    run(
-      sqlite,
-      `INSERT INTO statsFieldsI18n (
-        datasetCode, fieldName, locale, name, description,
-        isTranslationVerified, versionHash, sourceReleaseId,
-        isCurrent, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        DATASET_CODE,
-        'totalPopulation',
-        translation.locale,
-        translation.name,
-        translation.description,
-        1,
-        `field-i18n-${translation.locale}`,
-        RELEASE_ID,
-        1,
-        PUBLISHED_AT,
-        PUBLISHED_AT,
-      ],
-    )
-  }
-}
-
-function seedSelectedDivision(sqlite: Database) {
-  run(
-    sqlite,
-    `INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'api-version-divisions',
-      'api-divisions-v0.1',
-      'divisions',
-      '0.1',
-      'current',
-      PUBLISHED_AT,
-      'api-version-divisions-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-divisions',
-      'division',
-      'ss-hk-division-overture-2021',
-      '2021',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSets (
-      id, apiVersionId, code, regionCode, domainCode, cohortKey, revision,
-      effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-divisions',
-      'api-version-divisions',
-      'data-hk-divisions-2021',
-      'hk',
-      'geographic',
-      '2021',
-      0,
-      PUBLISHED_AT,
-      'sv-division-v1',
-      'rs-division-merge-v1',
-      'current',
-      PUBLISHED_AT,
-      'release-set-divisions-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiReleaseSetSnapshots (
-      apiReleaseSetId, snapshotId, variant, role, isRequired,
-      cohortMatchingMode, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'release-set-divisions',
-      'snapshot-divisions',
-      'overture',
-      'primary',
-      1,
-      'exact_ref',
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiCatalogRevisions (
-      id, apiVersionId, code, regionCode, publicationDate, revision,
-      defaultDomainCode, status, publishedAt, versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'catalog-divisions',
-      'api-version-divisions',
-      'catalog-hk-divisions-v0.1-2026-08-20-r0',
-      'hk',
-      '2026-08-20',
-      0,
-      'geographic',
-      'current',
-      PUBLISHED_AT,
-      'catalog-divisions-hash',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
-      isDefault, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?)`,
-    [
-      'catalog-divisions',
-      'release-set-divisions',
-      'geographic',
-      '2021',
-      1,
-      PUBLISHED_AT,
-    ],
-  )
-}
-
-function seedCurrentDivision(sqlite: Database) {
-  run(
-    sqlite,
-    `INSERT INTO divisions (
-      snapshotId, id, divisionCode, level, class, createdAt, updatedAt
-    , hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
-    [
-      'snapshot-divisions',
-      'division-central-western',
-      'CW',
-      2,
-      'district',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-}
-
-function fixtureEnv() {
-  const meta = initSqlite(['meta'])
-  const current = initSqlite(['current'])
-  const history = initSqlite(['history'])
-  const emptyHistory = initSqlite(['history'])
-  seedMeta(meta)
-  seedSelectedDivision(meta)
-  seedHistory(history)
-  seedCurrentDivision(current)
-  const env = {
-    DB_META: createMockD1(meta),
-    DB_CURRENT: createMockD1(current),
-    DB_HISTORY_HK_BEFORE: createMockD1(history),
-    DB_HISTORY_HK_2025: createMockD1(emptyHistory),
-    DB_HISTORY_HK_2026: createMockD1(emptyHistory),
-    AUTH_MODE: 'disabled',
-    ATLAS_BASE_URL: 'http://localhost:8787',
-    ENVIRONMENT: 'test',
-    API_RATE_LIMIT: { limit: async () => ({ success: true }) },
-    API_USAGE: { writeDataPoint: () => {} },
-  } as unknown as AppBindings
-  return {
-    env,
-    close: () =>
-      [meta, current, history, emptyHistory].forEach(db => {
-        db.close()
-      }),
-  }
-}
-
 describe('Statistics API responses through the Worker route', () => {
+  test('list and detail include dimension definitions by default and support include=none', async () => {
+    const fixture = fixtureEnv()
+    try {
+      for (const path of ['/stats/v0.1', `/stats/v0.1/${STATISTIC_ID}`]) {
+        for (const include of [undefined, 'fields', 'none']) {
+          const response = await app.fetch(
+            new Request(
+              `http://localhost${path}${include ? `?include=${include}` : ''}`,
+            ),
+            fixture.env,
+          )
+          expect(response.status).toBe(200)
+          const document = (await response.json()) as {
+            included?: Array<{ type: string; id: string; attributes: unknown }>
+            links: { permalink: string }
+          }
+          expect(new URL(document.links.permalink).searchParams.get('include')).toBe(
+            include ?? 'fields',
+          )
+          if (include === 'none') {
+            expect(document.included ?? []).toEqual([])
+          } else {
+            expect(document.included).toHaveLength(1)
+            expect(document.included).toMatchObject([
+              {
+                type: 'statistic-fields',
+                id: `${DATASET_CODE}:totalPopulation:field-version-hash`,
+                attributes: {
+                  fieldName: 'totalPopulation',
+                  versionHash: 'field-version-hash',
+                  dimensions: { sex: 'all' },
+                  unitCode: 'person',
+                },
+              },
+            ])
+          }
+        }
+      }
+    } finally {
+      fixture.close()
+    }
+  })
+
+  test('serves current for latest selectors and older periods without querying history', async () => {
+    const fixture = fixtureEnv()
+    try {
+      run(
+        fixture.current,
+        `UPDATE statsRecords SET "values" = '{"totalPopulation":"240000","femalePopulation":"120000"}' WHERE id = ?`,
+        [STATISTIC_ID],
+      )
+      const unavailableHistory = {
+        prepare() {
+          throw new Error('Current request queried history')
+        },
+      } as unknown as D1Database
+      const env = {
+        ...fixture.env,
+        DB_HISTORY_HK_BEFORE: unavailableHistory,
+        DB_HISTORY_HK_2025: unavailableHistory,
+        DB_HISTORY_HK_2026: unavailableHistory,
+      }
+      for (const query of [
+        '',
+        '?releaseSet=data-hk-stats-2021',
+        '?catalogRevision=catalog-hk-stats-v0.1-2026-08-20-r0',
+        '?effectiveAt=2026-08-20T00:00:00.000Z',
+      ]) {
+        const response = await app.fetch(
+          new Request(`http://localhost/stats/v0.1${query}`),
+          env,
+        )
+        expect(response.status).toBe(200)
+        expect(await response.json()).toMatchObject({
+          data: [
+            {
+              id: STATISTIC_ID,
+              attributes: {
+                values: { totalPopulation: '240000', femalePopulation: '120000' },
+              },
+            },
+          ],
+          meta: { page: { total: 1 } },
+        })
+      }
+      for (const path of [
+        `/stats/v0.1?filter[referencePeriod]=2020&filter[dataset]=${DATASET_CODE}`,
+        '/stats/v0.1/registry/fields',
+        '/stats/v0.1/geographies?filter[field]=totalPopulation&filter[referencePeriod]=2020',
+        '/stats/v0.1/series?filter[field]=totalPopulation',
+        `/stats/v0.1/${STATISTIC_ID}`,
+      ]) {
+        const response = await app.fetch(new Request(`http://localhost${path}`), env)
+        expect(response.status).toBe(200)
+      }
+    } finally {
+      fixture.close()
+    }
+  })
+
+  test('fails closed while current publication is incomplete', async () => {
+    const fixture = fixtureEnv()
+    try {
+      run(
+        fixture.current,
+        `UPDATE statsPublicationState SET status = 'publishing' WHERE referencePeriodCode = '2021'`,
+      )
+      for (const path of [
+        '/stats/v0.1',
+        `/stats/v0.1/${STATISTIC_ID}`,
+        '/stats/v0.1/registry/fields',
+        '/stats/v0.1/geographies?filter[field]=totalPopulation&filter[referencePeriod]=2021',
+        '/stats/v0.1/series?filter[field]=totalPopulation',
+      ]) {
+        const response = await app.fetch(
+          new Request(`http://localhost${path}`),
+          fixture.env,
+        )
+        expect(response.status).toBe(503)
+      }
+    } finally {
+      fixture.close()
+    }
+  })
+
+  test('reads exact old revisions from sparse history while current serves the corrected pack', async () => {
+    const fixture = fixtureEnv()
+    try {
+      const newerAt = '2026-08-21T00:00:00.000Z'
+      run(
+        fixture.meta,
+        `INSERT INTO snapshots (id, resourceType, code, cohortKey, revision, status, publishedAt, validFrom, parentSnapshotId, createdAt, updatedAt)
+        SELECT 'snapshot-statistics-revised', resourceType, code || '-r1', cohortKey, 1, status, ?, ?, id, ?, ? FROM snapshots WHERE id = 'snapshot-statistics'`,
+        [newerAt, newerAt, newerAt, newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role, createdAt)
+        SELECT 'snapshot-statistics-revised', datasetId, resourceReleaseId, role, ? FROM snapshotSources WHERE snapshotId = 'snapshot-statistics'`,
+        [newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO apiReleaseSets (id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt)
+        SELECT 'release-set-statistics-revised', apiVersionId, code || '-r1', regionCode, domainCode, cohortKey, 1, effectiveFrom, schemaVersion, rulesetVersion, status, ?, 'revised-release-hash', ?, ? FROM apiReleaseSets WHERE id = 'release-set-statistics'`,
+        [newerAt, newerAt, newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, createdAt)
+        SELECT 'release-set-statistics-revised', 'snapshot-statistics-revised', variant, role, isRequired, cohortMatchingMode, ? FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = 'release-set-statistics'`,
+        [newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO apiCatalogRevisions (id, apiVersionId, code, regionCode, publicationDate, revision, defaultDomainCode, status, publishedAt, versionHash, createdAt, updatedAt)
+        SELECT 'catalog-statistics-revised', apiVersionId, 'catalog-hk-stats-v0.1-2026-08-21-r0', regionCode, '2026-08-21', 0, defaultDomainCode, status, ?, 'revised-catalog-hash', ?, ? FROM apiCatalogRevisions WHERE id = 'catalog-statistics'`,
+        [newerAt, newerAt, newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO apiCatalogRevisionReleaseSets (apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
+        SELECT 'catalog-statistics-revised', CASE WHEN apiReleaseSetId = 'release-set-statistics' THEN 'release-set-statistics-revised' ELSE apiReleaseSetId END, domainCode, cohortKey, isDefault, ? FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId = 'catalog-statistics'`,
+        [newerAt],
+      )
+      run(
+        fixture.current,
+        `UPDATE statsRecords SET "values" = '{"totalPopulation":"250000"}', fieldDefinitionHashes = '{"totalPopulation":"revised-field-hash"}', versionHash = 'revised-pack-hash' WHERE id = ?`,
+        [STATISTIC_ID],
+      )
+      run(
+        fixture.current,
+        `INSERT INTO statsFields (datasetCode, fieldName, versionHash, measureCode, sourceField, dimensions, statisticKind, aggregation, valueKind, unitCode, createdAt, updatedAt)
+        SELECT datasetCode, fieldName, 'revised-field-hash', measureCode, sourceField, '{"sex":"all","residency":"usual"}', statisticKind, aggregation, valueKind, unitCode, createdAt, updatedAt
+        FROM statsFields WHERE datasetCode = ? AND fieldName = 'totalPopulation' AND versionHash = 'field-version-hash'`,
+        [DATASET_CODE],
+      )
+      run(
+        fixture.current,
+        `UPDATE statsPublicationState SET snapshotId = 'snapshot-statistics-revised' WHERE referencePeriodCode = '2021'`,
+      )
+      for (const [query, expected] of [
+        ['', '250000'],
+        ['?catalogRevision=catalog-hk-stats-v0.1-2026-08-20-r0', '235953'],
+        ['?knownAt=2026-08-20T00:00:00.000Z', '235953'],
+        ['?releaseSet=data-hk-stats-2021', '235953'],
+        ['?releaseSet=data-hk-stats-2021-r1', '250000'],
+      ] as const) {
+        const response = await app.fetch(
+          new Request(`http://localhost/stats/v0.1/${STATISTIC_ID}${query}`),
+          fixture.env,
+        )
+        expect(response.status).toBe(200)
+        const document = (await response.json()) as {
+          data: { links: { self: string } }
+        }
+        const historical = expected === '235953'
+        const expectedDefinition = {
+          type: 'statistic-fields',
+          id: `${DATASET_CODE}:totalPopulation:${historical ? 'field-version-hash' : 'revised-field-hash'}`,
+          attributes: {
+            dimensions: historical
+              ? { sex: 'all' }
+              : { sex: 'all', residency: 'usual' },
+          },
+        }
+        expect(document).toMatchObject({
+          data: {
+            id: STATISTIC_ID,
+            attributes: { values: { totalPopulation: expected } },
+          },
+          included: [expectedDefinition],
+        })
+        const list = await app.fetch(
+          new Request(`http://localhost/stats/v0.1${query}`),
+          fixture.env,
+        )
+        expect(list.status).toBe(200)
+        expect(await list.json()).toMatchObject({ included: [expectedDefinition] })
+        const self = await app.fetch(new Request(document.data.links.self), fixture.env)
+        expect(self.status).toBe(200)
+        expect(await self.json()).toMatchObject({
+          data: { attributes: { values: { totalPopulation: expected } } },
+        })
+      }
+      const map = await app.fetch(
+        new Request(
+          'http://localhost/stats/v0.1/geographies?filter[field]=totalPopulation&filter[referencePeriod]=2021&catalogRevision=catalog-hk-stats-v0.1-2026-08-20-r0',
+        ),
+        fixture.env,
+      )
+      expect(map.status).toBe(200)
+      expect(await map.json()).toMatchObject({ values: { CW: '235953' } })
+      const registry = await app.fetch(
+        new Request(
+          `http://localhost/stats/v0.1/registry/fields/${DATASET_CODE}/totalPopulation?releaseSet=data-hk-stats-2021&filter[version]=field-version-hash`,
+        ),
+        fixture.env,
+      )
+      expect(registry.status).toBe(200)
+      const registryDocument = (await registry.json()) as {
+        data: { links: { self: string } }
+      }
+      const registrySelfUrl = new URL(
+        registryDocument.data.links.self,
+        'http://localhost',
+      )
+      expect(registrySelfUrl.searchParams.get('catalogRevision')).toBe(
+        'catalog-hk-stats-v0.1-2026-08-20-r0',
+      )
+      const registrySelf = await app.fetch(new Request(registrySelfUrl), fixture.env)
+      expect(registrySelf.status).toBe(200)
+    } finally {
+      fixture.close()
+    }
+  })
+
   test('HK is the default and GBA selects the same Statistics publication', async () => {
     const fixture = fixtureEnv()
     try {
@@ -932,7 +361,7 @@ describe('Statistics API responses through the Worker route', () => {
         included: [
           {
             type: 'statistic-fields',
-            id: `${DATASET_CODE}:totalPopulation`,
+            id: `${DATASET_CODE}:totalPopulation:field-version-hash`,
             attributes: {
               fieldName: 'totalPopulation',
               i18n: {
@@ -1031,7 +460,7 @@ describe('Statistics API responses through the Worker route', () => {
               measureCode: 'totalPopulation',
             },
             links: {
-              self: `/stats/v0.1/registry/measures/${DATASET_CODE}/totalPopulation`,
+              self: `/stats/v0.1/registry/measures/${DATASET_CODE}/totalPopulation?filter[version]=measure-version-hash&catalogRevision=catalog-hk-stats-v0.1-2026-08-20-r0`,
             },
           },
         })

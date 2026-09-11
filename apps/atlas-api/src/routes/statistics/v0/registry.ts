@@ -28,6 +28,11 @@ import { openApiText } from '../../../lib/openapi-i18n'
 const RegistryQuerySchema = z
   .object({
     region: RegionFilterSchema,
+    'filter[version]': z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ description: 'Exact field or measure definition version hash.' }),
     catalogRevision: z
       .string()
       .min(1)
@@ -359,6 +364,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await getStatisticsRegistryManifest({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -376,6 +382,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await listStatisticsRegistryFields({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -393,6 +400,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await listStatisticsRegistryMeasures({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -411,6 +419,7 @@ export const statisticRegistryRoutes = [
       handler: async c => {
         const result = await getStatisticsRegistryMeasure({
           ...c.req.valid('param'),
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -429,6 +438,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await listStatisticsRegistryDatasets({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -446,6 +456,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await listStatisticsRegistryDimensions({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -464,6 +475,7 @@ export const statisticRegistryRoutes = [
       handler: async c => {
         const result = await getStatisticsRegistryFieldAvailability({
           ...c.req.valid('param'),
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -483,6 +495,7 @@ export const statisticRegistryRoutes = [
       handler: async c => {
         const result = await getStatisticsRegistryField({
           ...c.req.valid('param'),
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
@@ -501,6 +514,7 @@ export const statisticRegistryRoutes = [
       route,
       handler: async c => {
         const result = await searchStatisticsRegistry({
+          currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),

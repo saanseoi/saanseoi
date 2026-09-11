@@ -260,6 +260,7 @@ export const statisticRoutes = [
         const result = await listStatistics({
           currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
           requestedVersionPath: variant.requestedVersionPath,
@@ -284,6 +285,7 @@ export const statisticRoutes = [
         const result = await getStatisticDetail({
           currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
           requestedVersionPath: variant.requestedVersionPath,
