@@ -395,7 +395,7 @@ function seedCurrent(sqlite: Database) {
            hierarchies, cartography, sources, createdAt, updatedAt)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          snapshotId,
+          `scope:${snapshotId}`,
           division.id,
           null,
           division.level,
@@ -454,7 +454,7 @@ function seedCurrent(sqlite: Database) {
             (snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            snapshotId,
+            `scope:${snapshotId}`,
             division.id,
             locale,
             name,
@@ -502,7 +502,7 @@ function seedCurrent(sqlite: Database) {
          divisionId, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        row.snapshotId,
+        `scope:${row.snapshotId}`,
         row.id,
         row.variant,
         json([114.18, 22.25, 114.3, 22.35]),
@@ -680,6 +680,14 @@ function createFixtureEnvironment() {
   const history2026Sqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
   seedCurrent(currentSqlite)
+  for (const [family, dataTable] of [
+    ['division', 'divisions'],
+    ['divisionArea', 'divisionAreas'],
+    ['divisionBoundary', 'divisionBoundaries'],
+  ]) {
+    currentSqlite.exec(`INSERT INTO ${family}PublicationState(snapshotId,scopeId,status,publicationToken,preparedAt)
+      SELECT DISTINCT substr(snapshotId,7),snapshotId,'current','fixture','2026-01-01' FROM ${dataTable}`)
+  }
   seedHistory(historyBeforeSqlite, [
     'snapshot-pland-pu-2021',
     'snapshot-pland-new-town-2021',

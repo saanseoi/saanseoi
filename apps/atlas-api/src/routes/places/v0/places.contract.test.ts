@@ -23,9 +23,13 @@ type MockStatement = {
   run: () => Promise<{ meta: { changes: number }; success: true }>
 }
 
-function createMockD1(sqlite: Database): D1Database {
+function createMockD1(
+  sqlite: Database,
+  beforeRead?: (query: string) => void,
+): D1Database {
   return {
     prepare(query: string) {
+      beforeRead?.(query)
       const statement = sqlite.query(query)
       let values: SQLQueryBindings[] = []
       const bound: MockStatement = {
@@ -233,7 +237,14 @@ function seedCurrent(sqlite: Database) {
     `INSERT INTO divisions
       (snapshotId, id, level, class, createdAt, updatedAt, hierarchies)
       VALUES (?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
-    [DIVISION_SNAPSHOT, 'division-central', 2, 'district', PUBLISHED_AT, PUBLISHED_AT],
+    [
+      `scope:${DIVISION_SNAPSHOT}`,
+      'division-central',
+      2,
+      'district',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
   )
   run(
     sqlite,
@@ -241,7 +252,7 @@ function seedCurrent(sqlite: Database) {
       (snapshotId, divisionId, locale, name, isLocaleInferred, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
-      DIVISION_SNAPSHOT,
+      `scope:${DIVISION_SNAPSHOT}`,
       'division-central',
       'en',
       'Central and Western',
@@ -284,7 +295,7 @@ function seedCurrent(sqlite: Database) {
          sources, firstSeenMonth, lastSeenMonth, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        PLACE_SNAPSHOT,
+        `scope:${PLACE_SNAPSHOT}`,
         place.id,
         'release-overture-2026-08-19',
         place.point[0],
@@ -310,7 +321,7 @@ function seedCurrent(sqlite: Database) {
         (snapshotId, placeId, locale, name, brandName, freeformAddress, provenance, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        PLACE_SNAPSHOT,
+        `scope:${PLACE_SNAPSHOT}`,
         place.id,
         'en',
         place.name,
@@ -326,7 +337,12 @@ function seedCurrent(sqlite: Database) {
       `INSERT INTO placesDivision
         (placeSnapshotId, placeId, divisionSnapshotId, divisionId)
         VALUES (?, ?, ?, ?)`,
-      [PLACE_SNAPSHOT, place.id, DIVISION_SNAPSHOT, 'division-central'],
+      [
+        `scope:${PLACE_SNAPSHOT}`,
+        place.id,
+        `scope:${DIVISION_SNAPSHOT}`,
+        'division-central',
+      ],
     )
   }
 }
@@ -530,13 +546,38 @@ function seedHistory(sqlite: Database) {
 }
 
 function createFixtureEnvironment(
-  options: { historyOnly?: boolean; rejectHistory?: boolean } = {},
+  options: {
+    historyOnly?: boolean
+    rejectHistory?: boolean
+    beforeCurrentRead?: (sqlite: Database, query: string) => void
+  } = {},
 ) {
   const metaSqlite = initSqlite(['meta'])
   const currentSqlite = initSqlite(['current'])
   const historySqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
-  if (!options.historyOnly) seedCurrent(currentSqlite)
+  if (!options.historyOnly) {
+    seedCurrent(currentSqlite)
+    for (const [family, snapshotId] of [
+      ['place', PLACE_SNAPSHOT],
+      ['division', DIVISION_SNAPSHOT],
+    ] as const) {
+      run(
+        currentSqlite,
+        `INSERT INTO ${family}PublicationState(snapshotId,scopeId,status,publicationToken,preparedAt) VALUES (?,?, 'current','fixture',?)`,
+        [snapshotId, `scope:${snapshotId}`, PUBLISHED_AT],
+      )
+    }
+  } else {
+    metaSqlite.exec(`INSERT INTO apiReleaseSets
+      (id,apiVersionId,code,regionCode,domainCode,cohortKey,revision,effectiveFrom,schemaVersion,rulesetVersion,status,publishedAt,versionHash,createdAt,updatedAt)
+      SELECT id || '-latest',apiVersionId,code || '-latest',regionCode,domainCode,'2026-09-01',0,effectiveFrom,schemaVersion,rulesetVersion,status,publishedAt,versionHash,createdAt,updatedAt FROM apiReleaseSets;
+      INSERT INTO apiReleaseSetSnapshots(apiReleaseSetId,snapshotId,variant,role,isRequired,cohortMatchingMode,createdAt)
+      SELECT apiReleaseSetId || '-latest',snapshotId,variant,role,isRequired,cohortMatchingMode,createdAt FROM apiReleaseSetSnapshots;
+      UPDATE apiCatalogRevisionReleaseSets SET isDefault=0;
+      INSERT INTO apiCatalogRevisionReleaseSets(apiCatalogRevisionId,apiReleaseSetId,domainCode,cohortKey,isDefault,createdAt)
+      SELECT apiCatalogRevisionId,apiReleaseSetId || '-latest',domainCode,'2026-09-01',1,createdAt FROM apiCatalogRevisionReleaseSets;`)
+  }
   seedHistory(historySqlite)
   const historyDb = options.rejectHistory
     ? ({
@@ -546,9 +587,12 @@ function createFixtureEnvironment(
       } as unknown as D1Database)
     : createMockD1(historySqlite)
   return {
+    currentSqlite,
     env: {
       DB_META: createMockD1(metaSqlite),
-      DB_CURRENT: createMockD1(currentSqlite),
+      DB_CURRENT: createMockD1(currentSqlite, query =>
+        options.beforeCurrentRead?.(currentSqlite, query),
+      ),
       DB_HISTORY_HK_BEFORE: historyDb,
       DB_HISTORY_HK_2025: historyDb,
       DB_HISTORY_HK_2026: historyDb,
@@ -816,4 +860,65 @@ describe('Places collection through the Worker route', () => {
       fixture.close()
     }
   })
+})
+
+test('Place current endpoints reject incomplete publications while preserving empty ready selections', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    const paths = [
+      '/places/v0.1',
+      '/places/v0.1/place-ramen',
+      '/places/v0.1/by-cell/9/891f1d48803ffff',
+      '/places/v0.1/search?q=Shop',
+    ]
+    fixture.currentSqlite.exec("UPDATE placePublicationState SET status='publishing'")
+    for (const path of paths) {
+      const response = await app.fetch(
+        new Request(`http://localhost${path}`),
+        fixture.env,
+      )
+      expect(response.status).toBe(503)
+      expect(await response.json()).toMatchObject({ error: 'snapshot_not_ready' })
+    }
+    fixture.currentSqlite.exec(
+      "UPDATE placePublicationState SET status='current'; DELETE FROM placesDivision; DELETE FROM placesI18n; DELETE FROM places",
+    )
+    const empty = await app.fetch(
+      new Request('http://localhost/places/v0.1'),
+      fixture.env,
+    )
+    expect(empty.status).toBe(200)
+    expect(await empty.json()).toMatchObject({ data: [], meta: { page: { total: 0 } } })
+    const absent = await app.fetch(
+      new Request('http://localhost/places/v0.1/place-ramen'),
+      fixture.env,
+    )
+    expect(absent.status).toBe(404)
+  } finally {
+    fixture.close()
+  }
+})
+
+test('Place routes discard reads interrupted by publication', async () => {
+  let interrupted = false
+  const fixture = createFixtureEnvironment({
+    rejectHistory: true,
+    beforeCurrentRead(sqlite, query) {
+      if (!interrupted && query.includes('from "places"')) {
+        interrupted = true
+        sqlite.exec("UPDATE placePublicationState SET publicationToken='replacement'")
+      }
+    },
+  })
+  try {
+    const result = await app.fetch(
+      new Request('http://localhost/places/v0.1'),
+      fixture.env,
+    )
+    expect(interrupted).toBe(true)
+    expect(result.status).toBe(503)
+    expect(await result.json()).toMatchObject({ error: 'snapshot_not_ready' })
+  } finally {
+    fixture.close()
+  }
 })
