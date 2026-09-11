@@ -48,7 +48,6 @@ import {
   resolveMetaTarget,
   resolveRemoteTargetName,
   resolveRollbackShardHints,
-  resolveSourceTarget,
   resolveTargetName,
 } from './rollbackTargets.ts'
 import {
@@ -106,6 +105,7 @@ export async function runRollbackReleaseCommand(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
+        includeAllSourceShardYears: true,
         requireExistingRemoteCache: target.remote,
       },
     )
@@ -238,12 +238,19 @@ export async function runRollbackReleaseCommand(
       resolveTargetName(target),
       release.releaseCode,
     )
-    const artefacts = [
-      {
+    const sourceArtefacts: RollbackArtefact[] = dbContext.sourceTargets.map(
+      sourceTarget => ({
         name: 'source',
         sql: rollbackSql.source,
-        target: resolveSourceTarget(dbContext),
-      },
+        target: {
+          binding: sourceTarget.binding,
+          databaseId: sourceTarget.databaseId,
+          name: 'source',
+        },
+      }),
+    )
+    const artefacts: RollbackArtefact[] = [
+      ...sourceArtefacts,
       {
         name: 'history',
         sql: rollbackSql.history,
@@ -255,7 +262,7 @@ export async function runRollbackReleaseCommand(
         target: resolveCurrentTarget(dbContext),
       },
       { name: 'meta', sql: rollbackSql.meta, target: resolveMetaTarget(dbContext) },
-    ] as const
+    ]
 
     const artefactStats = artefacts.map(artefact => ({
       ...artefact,
@@ -264,8 +271,12 @@ export async function runRollbackReleaseCommand(
 
     await mkdir(rollbackRoot, { recursive: true })
 
-    for (const artefact of artefactStats) {
-      await writeFile(resolve(rollbackRoot, `${artefact.name}.sql`), artefact.sql)
+    for (const [index, artefact] of artefactStats.entries()) {
+      const suffix = artefact.name === 'source' ? `-${index}` : ''
+      await writeFile(
+        resolve(rollbackRoot, `${artefact.name}${suffix}.sql`),
+        artefact.sql,
+      )
     }
 
     const importOptions: SqlImportExecutionOptions = {
