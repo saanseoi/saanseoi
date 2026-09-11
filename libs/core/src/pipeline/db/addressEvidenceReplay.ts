@@ -16,7 +16,8 @@ export async function loadReplayedAddressEvidence(versions: ResolvedSnapshotVers
     const expected = new Set(
       selected.map(version => `${version.recordId}\0${version.versionHash}`),
     )
-    const db = selected[0]!.shard.db
+    const db = selected[0]?.shard.db
+    if (!db) throw new Error(`Missing Address evidence shard ${bindingName}.`)
     const found = new Set<string>()
     for (const hashes of chunkArray(
       [...new Set(selected.map(version => version.versionHash))],

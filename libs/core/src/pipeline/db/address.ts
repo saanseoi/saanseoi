@@ -597,7 +597,7 @@ export async function getReplayedAddressVersionMap(
     ),
   )
   for (const row of baseRows) {
-    if (evidence.has(row.id)) row.sources = evidence.get(row.id)!
+    if (evidence.has(row.id)) row.sources = evidence.get(row.id)
     else if (row.id.startsWith('opa-') && row.sources === null)
       throw new Error(
         `Snapshot ${snapshotId} is missing supplementary Address evidence for ${row.id}.`,

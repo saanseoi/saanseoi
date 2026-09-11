@@ -607,7 +607,8 @@ function createDraftSnapshotDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      resourceReleaseId TEXT NOT NULL
+      resourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'primary'
     );
   `)
 
@@ -1809,10 +1810,14 @@ describe('ensureDraftSnapshotForRelease', () => {
           .query('INSERT INTO releases VALUES (?,?)')
           .run('source-b', withdrawnSourceStatus)
         sqlite
-          .query('INSERT INTO snapshotSources VALUES (?,?,?)')
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
           .run(a.id, 'dataset', 'source-a')
         sqlite
-          .query('INSERT INTO snapshotSources VALUES (?,?,?)')
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
           .run(b.id, 'dataset', 'source-b')
         sqlite
           .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
@@ -1841,6 +1846,26 @@ describe('ensureDraftSnapshotForRelease', () => {
           sourceReleaseId: 'source-later',
         })
         expect(later.parentSnapshotId).toBe(a.id)
+        sqlite
+          .query('UPDATE snapshots SET parentSnapshotId=? WHERE id=?')
+          .run(b.id, c.id)
+        sqlite
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
+          .run(c.id, 'dataset', 'source-c')
+        await expect(
+          ensureDraftSnapshotForRelease(db as never, 'division', {
+            ...args,
+            sourceReleaseId: 'source-c',
+          }),
+        ).rejects.toThrow('predecessor is no longer selected')
+        await expect(
+          ensureDraftSnapshotForRelease(db as never, 'division', {
+            ...args,
+            sourceReleaseId: 'source-d',
+          }),
+        ).rejects.toThrow('predecessor is no longer selected')
       } finally {
         sqlite.close()
       }
