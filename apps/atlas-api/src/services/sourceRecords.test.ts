@@ -42,6 +42,7 @@ function metaDatabase(input?: {
   sourceVersion?: string
   sourceVariant?: string
   published?: boolean
+  bindingNames?: string[]
 }) {
   const sourceReleaseCode =
     input?.sourceReleaseCode ?? 'dr-hk-overture-division-2026-07-22.0'
@@ -63,9 +64,9 @@ function metaDatabase(input?: {
                   results:
                     input?.published === false
                       ? []
-                      : [
-                          {
-                            bindingName: 'DB_SOURCE_HK_2026',
+                      : (input?.bindingNames ?? ['DB_SOURCE_HK_2026']).map(
+                          bindingName => ({
+                            bindingName,
                             datasetCode:
                               input?.datasetCode ?? 'ds-hk-overture-division',
                             releaseId: 'source-release-id',
@@ -77,8 +78,8 @@ function metaDatabase(input?: {
                             sourceReleaseCode,
                             sourceVersion: input?.sourceVersion ?? '2026-07-22.0',
                             sourceVariant: input?.sourceVariant ?? 'overture',
-                          },
-                        ],
+                          }),
+                        ),
                 }
               },
             }
@@ -493,6 +494,39 @@ describe('source records', () => {
       )
     },
   )
+
+  test('reads Place source records from every assigned annual shard', async () => {
+    const retained = {
+      properties: JSON.stringify({ names: { primary: 'Retained' } }),
+      sourceRecordId: 'place-retained',
+      versionHash: 'retained-hash',
+    }
+    const current = {
+      properties: JSON.stringify({ names: { primary: 'Current' } }),
+      sourceRecordId: 'place-current',
+      versionHash: 'current-hash',
+    }
+    const result = await listSourceRecords({
+      env: {
+        DB_SOURCE_HK_2025: sourceDatabase([retained]),
+        DB_SOURCE_HK_2026: sourceDatabase([current]),
+      } as never,
+      family: 'places',
+      includeGeometry: false,
+      metaDb: metaDatabase({
+        bindingNames: ['DB_SOURCE_HK_2025', 'DB_SOURCE_HK_2026'],
+        datasetCode: 'ds-hk-overture-place',
+        resourceType: 'place',
+        sourceReleaseCode: 'dr-hk-overture-place-2026-07-22.0',
+      }),
+      sourceReleaseCode: 'dr-hk-overture-place-2026-07-22.0',
+    })
+
+    expect(result?.records.map(record => record.sourceRecordId)).toEqual([
+      'place-current',
+      'place-retained',
+    ])
+  })
 
   test('does not expose a stored source release before publication', async () => {
     const result = await listSourceRecords({
