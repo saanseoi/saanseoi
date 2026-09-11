@@ -1,5 +1,6 @@
 import {
   getPublicationReadiness,
+  hasSupersedingPublication,
   guardPublicationRead,
   hasHistoricalSelectors,
   PublicationReadUnavailableError,
@@ -77,6 +78,7 @@ export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
 export type DivisionProfile = ApiProfileName
 
 export type DivisionServiceDependencies = {
+  hasSupersedingPublication: typeof hasSupersedingPublication
   getPublicationReadiness: typeof getPublicationReadiness
   hasCurrentDivisionSnapshot: typeof hasCurrentDivisionSnapshot
   listDivisionRecordsCurrent: typeof listDivisionRecordsCurrent
@@ -96,6 +98,7 @@ export type DivisionServiceDependencies = {
 
 const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
   getPublicationReadiness,
+  hasSupersedingPublication,
   hasCurrentDivisionSnapshot,
   listDivisionRecordsCurrent,
   countDivisionsCurrent,
@@ -266,7 +269,16 @@ async function loadDivisionGeometry(args: {
         )
       return rows
     }
-    if (!args.allowHistory && !(kind === 'divisionArea' && args.areaSnapshotId))
+    if (
+      !args.allowHistory &&
+      !(kind === 'divisionArea' && args.areaSnapshotId) &&
+      !(await dependencies.hasSupersedingPublication(
+        args.metaDb,
+        args.currentDb,
+        kind,
+        snapshotId,
+      ))
+    )
       throw new PublicationReadUnavailableError('Geometry publication is not ready')
     const plan = await dependencies.resolveSnapshotReplayPlan(
       args.metaDb as never,

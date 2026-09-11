@@ -205,6 +205,7 @@ const listDivisionAreasCurrentByDivisionIdsMock = mock(
 )
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
+  hasSupersedingPublication: async () => false,
   getPublicationReadiness: async () => 'ready',
   listDivisionRecordsCurrent: async (_db, lookup) =>
     listRecords.filter(
