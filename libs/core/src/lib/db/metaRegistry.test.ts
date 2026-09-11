@@ -1,8 +1,9 @@
+import { initialDatasets } from '@repo/db/registry'
 import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
+import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
 import { metaSchema } from '@repo/db'
@@ -101,7 +102,8 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
       regionCode TEXT,
@@ -648,7 +650,8 @@ function createDraftReleaseSetDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiCompositionId TEXT,
       code TEXT NOT NULL,
@@ -881,7 +884,8 @@ function createCleanupCandidatesDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
       status TEXT NOT NULL
     );
@@ -926,7 +930,8 @@ function createActiveSnapshotLookupDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
       domainCode TEXT NOT NULL DEFAULT 'default',
@@ -1040,7 +1045,8 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiCompositionId TEXT,
       code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0',
@@ -1090,6 +1096,7 @@ function createPublishReleaseArtefactsDb() {
       sourceReleaseId TEXT,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
+      processingRules TEXT,
       releaseNotesUrl TEXT,
       notes TEXT,
       resourceType TEXT,
@@ -1129,12 +1136,14 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE apiFieldProvenance (
-      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+id TEXT PRIMARY KEY,
       apiReleaseSetId TEXT NOT NULL,
       apiField TEXT NOT NULL,
       variant TEXT,
       sourceDatasetId TEXT NOT NULL,
-      sourceFieldPath TEXT NOT NULL,
+      inputs TEXT NOT NULL,
+      resolverRules TEXT NOT NULL,
       resolverCode TEXT NOT NULL,
       contributionType TEXT NOT NULL,
       priority INTEGER NOT NULL,
@@ -1202,12 +1211,19 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
+  for (const dataset of initialDatasets) {
+    sqlite
+      .query(
+        `UPDATE releases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotSources ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
+      )
+      .run(JSON.stringify(dataset.processingRules), dataset.code)
+  }
 }
 
 function sortProvenanceRows(
   rows: Array<{
     apiField: string
-    sourceFieldPath: string
+    inputs: string
   }>,
 ) {
   return rows
@@ -1215,7 +1231,7 @@ function sortProvenanceRows(
     .sort(
       (left, right) =>
         left.apiField.localeCompare(right.apiField) ||
-        left.sourceFieldPath.localeCompare(right.sourceFieldPath),
+        left.inputs.localeCompare(right.inputs),
     )
 }
 
@@ -2932,7 +2948,8 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
       );
 
       CREATE TABLE apiReleaseSets (
-        id TEXT PRIMARY KEY,
+        publisherFields TEXT,
+id TEXT PRIMARY KEY,
         apiVersionId TEXT NOT NULL,
         regionCode TEXT NOT NULL,
         domainCode TEXT NOT NULL,
@@ -3171,21 +3188,34 @@ describe('publishReleaseArtefacts', () => {
 
     expect(linkedSnapshotIds).toEqual([{ snapshotId: 'snapshot-new' }])
 
+    const mapping = sqlite
+      .query('SELECT publisherFields FROM apiReleaseSets WHERE id = ?')
+      .get('release-set-1') as { publisherFields: string }
+    expect(JSON.parse(mapping.publisherFields)).toEqual(
+      divisionFixtureOverture116To118.publisherFields,
+    )
+
     const provenanceRows = sqlite
       .query(
-        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
+        'SELECT resourceType, apiField, inputs FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
       )
       .all('release-set-1') as Array<{
       apiField: string
-      sourceFieldPath: string
+      resourceType: string
+      inputs: string
     }>
 
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixtureOverture116To118.fields.map(field => ({
-          apiField: field.apiField,
-          sourceFieldPath: field.sourceFieldPath,
-        })),
+        divisionFixtureOverture116To118.resources
+          .flatMap(group =>
+            group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
+          )
+          .map(field => ({
+            apiField: field.apiField,
+            resourceType: field.resourceType,
+            inputs: JSON.stringify(field.inputs),
+          })),
       ),
     )
 

@@ -1,3 +1,4 @@
+import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
 import {
   and,
@@ -2426,20 +2427,22 @@ export function buildDeterministicSnapshotAssemblyRunId(
 export function buildDeterministicApiFieldProvenanceId(args: {
   apiReleaseSetId: string
   apiField: string
+  resourceType: string
   variant?: string | null
   contributionType: string
   priority: number
   sourceDatasetId: string
-  sourceFieldPath: string
+  inputs: ApiFieldInput[]
 }) {
   return buildDeterministicUuidV5(
     API_FIELD_PROVENANCE_ID_NAMESPACE,
     [
       args.apiReleaseSetId,
+      args.resourceType,
       args.apiField,
       args.variant ?? 'default',
       args.sourceDatasetId,
-      args.sourceFieldPath,
+      JSON.stringify(args.inputs),
       args.contributionType,
       args.priority,
     ].join(':'),
@@ -4720,6 +4723,8 @@ export async function publishReleaseArtefacts(
         .select({
           datasetCode: metaDatasets.code,
           source: metaPublishers.code,
+          releaseId: metaReleases.id,
+          processingRules: metaReleases.processingRules,
           sourceSchemaVersion: metaReleases.sourceSchemaVersion,
           sourceVersion: metaReleases.sourceVersion,
         })
@@ -4841,37 +4846,46 @@ export async function publishReleaseArtefacts(
           if (!sourceDatasetId) {
             throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
           }
+          const resolverRules = pinApiFieldRules(
+            field,
+            sourceSchemaRows.filter(row => row.datasetCode === field.sourceDatasetCode),
+          )
 
           return {
             id: buildDeterministicApiFieldProvenanceId({
               apiReleaseSetId: args.releaseSetId,
               apiField: field.apiField,
+              resourceType: field.resourceType,
               variant: field.variant,
               sourceDatasetId,
-              sourceFieldPath: field.sourceFieldPath,
+              inputs: field.inputs,
               contributionType: field.contributionType,
               priority: field.priority,
             }),
             apiReleaseSetId: args.releaseSetId,
             apiField: field.apiField,
+            resourceType: field.resourceType,
             variant: field.variant ?? null,
             sourceDatasetId,
-            sourceFieldPath: field.sourceFieldPath,
+            inputs: field.inputs,
+            resolverRules,
             resolverCode: field.resolverCode,
             contributionType: field.contributionType,
             priority: field.priority,
             confidence: field.confidence ?? null,
             versionHash: computeVersionHash({
               apiField: field.apiField,
+              resourceType: field.resourceType,
               apiReleaseSetId: args.releaseSetId,
               variant: field.variant ?? null,
               confidence: field.confidence ?? null,
               contributionType: field.contributionType,
               fixtureVersionHash: resolvedApiFieldFixture.versionHash,
               priority: field.priority,
+              resolverRules,
               resolverCode: field.resolverCode,
               sourceDatasetCode: field.sourceDatasetCode,
-              sourceFieldPath: field.sourceFieldPath,
+              inputs: field.inputs,
             }),
             createdAt: publishedAt,
             updatedAt: publishedAt,
@@ -4896,6 +4910,14 @@ export async function publishReleaseArtefacts(
         })
         .where(inArray(metaSnapshots.id, ids)),
     )
+
+    if (resolvedApiFieldFixture)
+      statements.push(
+        tx
+          .update(metaApiReleaseSets)
+          .set({ publisherFields: resolvedApiFieldFixture.publisherFields })
+          .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+      )
 
     statements.push(
       tx
