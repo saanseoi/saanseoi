@@ -4,6 +4,7 @@ import {
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
   resolvePreparedPublicationScope,
+  getPreparedPublication,
 } from '../local/snapshotPublication.ts'
 import {
   buildPublicationRowCountSql,
@@ -219,6 +220,11 @@ export async function processLocalStreetSqlUpload(
         const metaDb = context.metaDb as unknown as HarbourReadableDb &
           HarbourWritableDb
         const scopeId = snapshot.snapshotLineageId
+        const previous = await getPreparedPublication(
+          context.currentDb as unknown as HarbourReadableDb,
+          'streetPublicationState',
+          scopeId,
+        )
         if (snapshot.parentSnapshotId) {
           const parentScope = await resolvePreparedPublicationScope(
             context.currentDb as unknown as HarbourReadableDb,
@@ -234,6 +240,7 @@ export async function processLocalStreetSqlUpload(
           snapshotId: snapshot.id,
           publicationToken: releaseId,
           timestamp: now,
+          previous,
         }
         const publicationDb = context.currentDb
         await beginSnapshotPublication(publicationDb, publication)
