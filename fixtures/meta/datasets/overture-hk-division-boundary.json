@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:283a426b9b74c256f6dd203a62c18fbc3afdd3d98b818ba40ffa721b5e39b08f",
+  "versionHash": "sha256:3febe45b791d175ab7f4df2f3f7ab7f21eadcd521cc28413007d61b37c7a91f8",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
@@ -67,5 +67,6 @@
       "name": "Overture 区划边界 (香港)",
       "description": "边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:4326"
 }

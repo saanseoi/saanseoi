@@ -1,12 +1,12 @@
 {
-  "versionHash": "sha256:f54d9d1a758b3087c2a059814548f02232c805fcc0cd24867015251d9b64bb94",
+  "versionHash": "sha256:7fe7341d91ea2ff49641530f08f4dfca48638fd22e596f7d3f370328dc8b0b8c",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "subType": "new-town",
+  "kind": "new-town",
   "sourceVariant": "hkgov-pland-new-town",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],
@@ -139,6 +139,12 @@
       "locale": "zh-hans",
       "name": "新市镇规划分区（香港）",
       "description": "由规划署发布的香港新市镇规划分区资料。"
+    }
+  ],
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-official-division-processing-v1",
+      "operationCodes": ["resolve-geography-identities", "normalise-planning-divisions"]
     }
   ]
 }
