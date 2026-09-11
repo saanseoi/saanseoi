@@ -281,6 +281,12 @@ repair in source-keyed release processing actions, and stores the repaired resul
 canonical `geometry`. The CLI can also export a separately labelled `-repaired.geojson`
 diagnostic copy without altering the publisher file.
 
+The native SHP decoder adds an embedded GeoJSON `bbox` by projecting the source extent's
+corners. That extent can exclude vertices of the projected polygon. Canonical area
+geometry omits the embedded `bbox` and stores the extent calculated from every WGS84
+coordinate in the separate `bbox` column. Native source geometry retains the decoder's
+metadata unchanged.
+
 Its `sourceSchemaVersion` `1.0` is likewise an observed artefact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
 the catalogue.

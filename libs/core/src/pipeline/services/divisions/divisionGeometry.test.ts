@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
@@ -207,6 +208,61 @@ describe('division geometry normalisation', () => {
       (normalised.source.properties as Record<string, unknown>).isTerritorial,
     ).toBe(true)
   })
+
+  test.each(['Polygon', 'MultiPolygon'] as const)(
+    'omits embedded bbox from canonical %s without changing source evidence or shape hashes',
+    async type => {
+      const shape = {
+        type,
+        coordinates: type === 'Polygon' ? polygon.coordinates : [polygon.coordinates],
+      }
+      const inputGeometry = Object.freeze({ ...shape, bbox: [0.1, 0.1, 0.9, 0.9] })
+      const row = {
+        class: 'land',
+        division_id: 'division-1',
+        geometry: inputGeometry,
+        id: 'area-1',
+      }
+      const normalised = normaliseDivisionAreaGeometryRow(row)
+      const withoutBbox = normaliseDivisionAreaGeometryRow({ ...row, geometry: shape })
+      if (!normalised || !withoutBbox) throw new Error('Expected area rows.')
+
+      expect(normalised.canonical.geometry).toEqual(shape)
+      expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
+      expect(normalised.source.sourceGeometry).toEqual(inputGeometry)
+      expect(inputGeometry.bbox).toEqual([0.1, 0.1, 0.9, 0.9])
+      expect(await hashDivisionGeometryRow(normalised.canonical)).toBe(
+        await hashDivisionGeometryRow(withoutBbox.canonical),
+      )
+      expect(await hashDivisionGeometrySourceRow(normalised.source)).not.toBe(
+        await hashDivisionGeometrySourceRow(withoutBbox.source),
+      )
+    },
+  )
+
+  test.each(['LineString', 'MultiLineString'] as const)(
+    'omits embedded bbox from canonical %s while retaining the source geometry',
+    type => {
+      const line = [
+        [0, 0],
+        [1, 1],
+      ]
+      const shape = { type, coordinates: type === 'LineString' ? line : [line] }
+      const inputGeometry = Object.freeze({ ...shape, bbox: [0.1, 0.1, 0.9, 0.9] })
+      const normalised = normaliseDivisionBoundaryGeometryRow({
+        class: 'land',
+        division_ids: ['left', 'right'],
+        geometry: inputGeometry,
+        id: 'boundary-1',
+      })
+      if (!normalised) throw new Error('Expected a boundary row.')
+
+      expect(normalised.canonical.geometry).toEqual(shape)
+      expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
+      expect(normalised.source.sourceGeometry).toEqual(inputGeometry)
+      expect(inputGeometry.bbox).toEqual([0.1, 0.1, 0.9, 0.9])
+    },
+  )
 
   test('uses mixed type and explicit flags for HAD district areas', () => {
     const normalised = normaliseDivisionAreaGeometryRow(
