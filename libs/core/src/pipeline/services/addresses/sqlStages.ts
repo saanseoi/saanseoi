@@ -4,6 +4,7 @@ import { readSnapshotAssemblySql } from '../../db/snapshotAssembly'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import {
   eq,
+  currentSchema,
   metaSchema,
   type CurrentDatabase,
   type HistoryDatabase,
@@ -13,7 +14,6 @@ import {
 
 import {
   buildAlignAddressCurrentDivisionSnapshotSql,
-  materialiseReplayedAddressCurrentSnapshot,
   prepareAddressVersionInsertContext,
 } from '../../db/address'
 import { getCurrentSourceHkgovAlsAddress2dRecords } from '../../db/source'
@@ -196,47 +196,20 @@ export async function writeAddressCurrentSqlChunkStage(
     pipelineMessage.resolvedArtefactKey,
   )
   const currentDivisionSnapshotId = artefact.rows[0]?.base.divisionSnapshotId
-  const currentSnapshotId = artefact.rows[0]?.base.snapshotId
+  const currentSnapshotId =
+    pipelineMessage.addressCurrentScopeId ?? artefact.rows[0]?.base.snapshotId
   const selectedDivisionSnapshotId =
     pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
   const isFinalChunk = artefact.rowEnd >= artefact.totalRows
-  const currentFile = buildAddressCurrentSqlImportFile(
-    message,
-    artefact,
-    isFinalChunk && selectedDivisionSnapshotId && currentSnapshotId
-      ? {
-          currentDivisionSnapshotId: selectedDivisionSnapshotId,
-          currentSnapshotId,
-        }
-      : undefined,
-  )
+  const currentFile = buildAddressCurrentSqlImportFile(message, artefact, {
+    currentSnapshotId,
+    ...(isFinalChunk && selectedDivisionSnapshotId
+      ? { currentDivisionSnapshotId: selectedDivisionSnapshotId }
+      : {}),
+  })
   if (artefact.rowStart === 0 && pipelineMessage.addressHistoricalParentVersions) {
-    const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-    const versionInsertContext = await prepareAddressVersionInsertContext(
-      metaRepoDb,
-      message,
-      resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
-    )
-    if (
-      pipelineMessage.addressHistoricalParentSnapshotId !==
-      versionInsertContext.parentSnapshotId
-    ) {
-      throw new Error(
-        `Address replay parent does not match snapshot ${versionInsertContext.snapshotId}.`,
-      )
-    }
-    const divisionSnapshotId = artefact.rows[0]?.base.divisionSnapshotId
-    if (!divisionSnapshotId) {
-      throw new Error(
-        `Address snapshot ${versionInsertContext.snapshotId} has no division snapshot for historical replay.`,
-      )
-    }
-    await materialiseReplayedAddressCurrentSnapshot(
-      currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
-      versionInsertContext.snapshotId,
-      divisionSnapshotId,
-      pipelineMessage.addressHistoricalParentVersions.values(),
-      artefact.processingRunStartedAt,
+    throw new Error(
+      'Historical Address preparation requires a chronological rebuild through resolved SQL delivery.',
     )
   }
   const initFile =
@@ -245,7 +218,7 @@ export async function writeAddressCurrentSqlChunkStage(
           metaDb,
           currentDb,
           message,
-          artefact.rows[0].base.snapshotId,
+          currentSnapshotId ?? artefact.rows[0].base.snapshotId,
           selectedDivisionSnapshotId,
         )
       : null
@@ -715,81 +688,18 @@ async function writeSqlFiles(
 }
 
 async function buildCurrentSnapshotInitSqlFile(
-  metaDb: MetaDatabase,
+  _metaDb: MetaDatabase,
   _currentDb: CurrentDatabase,
   message: DatasetProcessingMessage,
   snapshotIdValue: string,
   divisionSnapshotIdValue: string | undefined,
 ): Promise<AddressSqlImportFile> {
-  const metaRepoDb = metaDb as unknown as HarbourReadableDb
-  const previousSnapshot = await metaRepoDb
-    .select({ id: metaSchema.metaSnapshots.parentSnapshotId })
-    .from(metaSchema.metaSnapshots)
-    .where(eq(metaSchema.metaSnapshots.id, snapshotIdValue))
-    .limit(1)
-    .get()
   if (!divisionSnapshotIdValue) {
     throw new Error(
-      `Address snapshot ${snapshotIdValue} has no resolved division snapshot dependency.`,
+      `Address scope ${snapshotIdValue} has no resolved division snapshot dependency.`,
     )
   }
-  const snapshotId = sqlLiteral(snapshotIdValue)
-  const clonedAt = sqlLiteral(
-    message.processingRunStartedAt ?? new Date().toISOString(),
-  )
   const statements: string[] = []
-
-  if (previousSnapshot && previousSnapshot.id !== snapshotIdValue) {
-    const previousSnapshotId = sqlLiteral(previousSnapshot.id)
-
-    statements.push(
-      `
-INSERT INTO address2d (
-  snapshotId, id, geometry, bbox, divisionSnapshotId, countryId, areaId,
-  districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
-)
-SELECT
-  ${snapshotId}, id, geometry, bbox, divisionSnapshotId, countryId, areaId,
-  districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, ${clonedAt}, ${clonedAt}
-FROM address2d
-WHERE snapshotId = ${previousSnapshotId}
-ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
-    )
-
-    statements.push(
-      `
-INSERT INTO address2dI18n (
-  snapshotId, addressId, locale, formattedAddress, buildingName,
-  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
-  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
-  phaseExpression, phaseName, phaseRef, estateName,
-  streetName, createdAt, updatedAt
-)
-SELECT
-  ${snapshotId}, addressId, locale, formattedAddress, buildingName,
-  buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
-  blockExpression, blockType, blockRef, blockTypeBeforeNumber,
-  phaseExpression, phaseName, phaseRef, estateName,
-  streetName, ${clonedAt}, ${clonedAt}
-FROM address2dI18n
-WHERE snapshotId = ${previousSnapshotId}
-ON CONFLICT(snapshotId, addressId, locale) DO NOTHING;`.trim(),
-    )
-
-    statements.push(
-      `
-INSERT INTO address2dBuildingNumberLookup (
-  snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
-)
-SELECT
-  ${snapshotId}, addressId, buildingNumber, numericStem, evidence, derivation, ${clonedAt}, ${clonedAt}
-FROM address2dBuildingNumberLookup
-WHERE snapshotId = ${previousSnapshotId}
-ON CONFLICT(snapshotId, addressId, buildingNumber) DO NOTHING;`.trim(),
-    )
-  }
 
   statements.push(
     buildAlignAddressCurrentDivisionSnapshotSql(

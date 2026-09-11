@@ -178,7 +178,9 @@ describe('address SQL import staging cleanup', () => {
 
     expect(alignmentIndex).toBeGreaterThan(applyIndex)
     expect(currentFile?.sql).toContain("divisionSnapshotId = 'division-snapshot'")
-    expect(currentFile?.sql).toContain("WHERE snapshotId = 'snapshot-address';")
+    expect(currentFile?.sql).toContain(
+      "WHERE snapshotId = 'snapshot-address'\n  AND divisionSnapshotId IS NOT 'division-snapshot';",
+    )
   })
 
   test('writes a history-apply cleanup artefact even when there are no changes', () => {
