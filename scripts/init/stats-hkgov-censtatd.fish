@@ -27,6 +27,14 @@ set -l datasets \
     ds-hk-hkgov-censtatd-division-statistic-population-households-district \
     ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
 
+# `update` owns source discovery, while the upload receives the continuation
+# proof. A resumed initialiser may re-enter only a release with no active
+# processing phase; normal runs retain the ordinary staged-only behaviour.
+set -l continuation_args
+if test "$saanseoi_init_continue" -eq 1
+    set continuation_args --force-upload
+end
+
 for dataset in $datasets
     set -l geography_args
     if test "$dataset" = ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups
@@ -37,7 +45,7 @@ for dataset in $datasets
     end
     init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
         --dataset $dataset --download --check-now --defer-stats-release-set \
-        $geography_args --yes
+        $geography_args $continuation_args --yes
 end
 
 # Source datasets frequently complete at different times for the same
