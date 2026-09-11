@@ -28,6 +28,7 @@ export {
   type EvidenceAsset,
   type AddressBlockType,
   type CanonicalStatsGeography,
+  type CanonicalStatsFieldSource,
   type StreetChangelogKind,
   type StreetEvidenceAsset,
   type StreetEvidenceAssetRole,

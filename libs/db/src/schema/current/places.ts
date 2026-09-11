@@ -10,7 +10,6 @@ import {
 import { sql } from 'drizzle-orm'
 
 import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
-import { address2d, address3d } from './addresses'
 import { divisions } from './divisions'
 
 export const places = sqliteTable(
@@ -24,16 +23,7 @@ export const places = sqliteTable(
     primaryKey({
       columns: [table.snapshotId, table.id],
     }),
-    foreignKey({
-      columns: [table.addressSnapshotId, table.address2dId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'places_addressSnapshotId_address2dId_address2d_fk',
-    }),
-    foreignKey({
-      columns: [table.addressSnapshotId, table.address3dId],
-      foreignColumns: [address3d.snapshotId, address3d.id],
-      name: 'places_addressSnapshotId_address3dId_address3d_fk',
-    }),
+    // Logical Address references are validated against immutable history during preparation.
     check(
       'places_address_snapshot_required_chk',
       sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,

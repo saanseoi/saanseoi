@@ -75,3 +75,47 @@ test('release statistics have one owner and use metric without kind', () => {
     sqlite.close()
   }
 })
+
+test('current and history share packed payloads and retain exact dictionary versions', () => {
+  const current = new Database(':memory:')
+  const history = new Database(':memory:')
+  try {
+    const migrations = resolve(import.meta.dir, '../migrations')
+    current.exec(loadMigrationSql(migrations, ['current']))
+    history.exec(loadMigrationSql(migrations, ['history']))
+    const columns = (db: Database, table: string) =>
+      db.query(`PRAGMA table_info("${table}")`).all() as Array<{
+        name: string
+        pk: number
+      }>
+    const currentColumns = columns(current, 'statsRecords').map(column => column.name)
+    const historyColumns = columns(history, 'statsRecords').map(column => column.name)
+    expect(currentColumns).not.toContain('dimensions')
+    for (const column of [
+      'values',
+      'fieldSources',
+      'fieldDefinitionHashes',
+      'versionHash',
+    ])
+      expect(currentColumns).toContain(column)
+    for (const column of currentColumns) expect(historyColumns).toContain(column)
+    expect(
+      columns(current, 'statsPublicationState')
+        .filter(column => column.pk)
+        .map(column => column.name),
+    ).toEqual(['datasetCode', 'referencePeriodCode'])
+    for (const db of [current, history]) {
+      const keys = columns(db, 'statsFields')
+        .filter(column => column.pk)
+        .sort((a, b) => a.pk - b.pk)
+        .map(column => column.name)
+      expect(keys).toEqual(['datasetCode', 'fieldName', 'versionHash'])
+      expect(columns(db, 'statsFields').map(column => column.name)).toContain(
+        'measureVersionHash',
+      )
+    }
+  } finally {
+    current.close()
+    history.close()
+  }
+})
