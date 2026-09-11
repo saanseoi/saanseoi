@@ -9,7 +9,7 @@
   "outputs": ["statsRecords.values"],
   "parameters": { "sourceField": "MYPOPN_LAND", "factor": 1000 },
   "implementation": {
-    "path": "libs/core/src/pipeline/services/statisticRules.ts",
+    "path": "libs/core/src/pipeline/services/statistics/statisticRules.ts",
     "symbol": "populationThousandsRule"
   }
 }

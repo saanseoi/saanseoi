@@ -195,7 +195,7 @@
     }
   },
   "implementation": {
-    "path": "libs/core/src/pipeline/services/division.ts",
+    "path": "libs/core/src/pipeline/services/divisions/division.ts",
     "symbol": "divisionNormalisationRule"
   }
 }

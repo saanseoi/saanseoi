@@ -9,7 +9,7 @@
   "outputs": ["places", "placesI18n"],
   "parameters": {},
   "implementation": {
-    "path": "libs/core/src/pipeline/services/place.ts",
+    "path": "libs/core/src/pipeline/services/places/place.ts",
     "symbol": "placeNormalisationRule"
   }
 }
