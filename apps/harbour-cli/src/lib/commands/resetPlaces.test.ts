@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
-import { loadMigrationSql } from '@repo/core/testing/metaFixtures'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
 
 import {
   assertPlacesCurrentResetOwnership,
@@ -19,66 +19,66 @@ import {
 function createPlacesResetCurrentDb() {
   const sqlite = new SQLiteDatabase(':memory:')
   sqlite.exec(
-    loadMigrationSql(resolve(import.meta.dir, '../../../../../../libs/db/migrations'), [
+    loadMigrationSql(resolve(import.meta.dir, '../../../../../libs/db/migrations'), [
       'current',
     ]),
   )
   for (const [scope, snapshot, addressId] of [
     ['places-address-lineage', 'address-draft', 'opa-owned'],
     ['als-lineage', 'als-snapshot', 'official'],
-  ]) {
+  ] as const) {
     sqlite
       .query(`INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES(?,?,'current','token','prepared')`)
-      .run(scope!, snapshot!)
+      .run(scope, snapshot)
     sqlite
       .query('INSERT INTO addressSearchScopes(scopeId,snapshotId) VALUES(?,?)')
-      .run(scope!, snapshot!)
+      .run(scope, snapshot)
     sqlite
       .query(
         "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES(?,?,'division')",
       )
-      .run(scope!, addressId!)
+      .run(scope, addressId)
     sqlite
       .query(
         "INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES(?,?,'en','1 TEST ROAD')",
       )
-      .run(scope!, addressId!)
+      .run(scope, addressId)
     sqlite
       .query(
         "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,evidence) VALUES(?,?,'1','source_endpoint')",
       )
-      .run(scope!, addressId!)
+      .run(scope, addressId)
   }
   for (const [scope, snapshot] of [
     ['places-lineage', 'unlinked-draft'],
     ['unrelated-place-lineage', 'unrelated-place-snapshot'],
-  ]) {
+  ] as const) {
     sqlite
       .query(`INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES(?,?,'current','token','prepared')`)
-      .run(scope!, snapshot!)
+      .run(scope, snapshot)
     sqlite
       .query('INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES(?,?)')
-      .run(scope!, snapshot!)
+      .run(scope, snapshot)
     sqlite
       .query(`INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth)
       VALUES(?,'place','release',114,22,'2026-09','2026-09')`)
-      .run(scope!)
+      .run(scope)
     sqlite
       .query(
         "INSERT INTO placesI18n(snapshotId,placeId,locale,name) VALUES(?,'place','en','Test')",
       )
-      .run(scope!)
+      .run(scope)
     sqlite
       .query(
         "INSERT INTO placesCells(snapshotId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
       )
-      .run(scope!)
+      .run(scope)
     sqlite
       .query(`INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition)
       VALUES(?,'place','division-scope','division','{}')`)
-      .run(scope!)
+      .run(scope)
   }
   return { db: createLocalHarbourDb(sqlite), sqlite }
 }

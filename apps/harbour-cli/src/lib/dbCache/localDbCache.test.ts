@@ -65,7 +65,7 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
     ['address2d', 'id'],
     ['address2dI18n', 'addressId'],
   ] as const)
-    expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', tableName!)).toEqual({
+    expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', tableName)).toEqual({
       retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'opa-%'`,
       tableName,
       whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'opa-%'`,
