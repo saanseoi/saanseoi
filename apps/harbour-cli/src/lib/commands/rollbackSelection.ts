@@ -327,8 +327,8 @@ export function prepareRollbackMetadata(
   }
   // Canonical/source rows and published snapshot evidence stay immutable and retained.
   metadata.push({
-    sql: "UPDATE releases SET status='revoked',supersededByReleaseId=NULL,updatedAt=? WHERE id=?",
-    params: [timestamp, release.id],
+    sql: "UPDATE releases SET status='revoked',revokedAt=?,revocationReason='Published rollback',supersededByReleaseId=NULL,updatedAt=? WHERE id=?",
+    params: [timestamp, timestamp, release.id],
   })
   metadata.push({
     sql: "UPDATE releases SET status='published',supersededByReleaseId=NULL,updatedAt=? WHERE supersededByReleaseId=? AND datasetId=?",

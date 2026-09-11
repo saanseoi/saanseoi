@@ -300,7 +300,7 @@ export async function runReconstructRollbackCommand(
     if (!release) throw new Error(`Release not found: ${specifier}.`)
     const directory = resolve(
       import.meta.dir,
-      '../../../../../../.local/harbour-sql/rollbacks',
+      '../../../../../.local/harbour-sql/rollbacks',
       context.state.target,
       encodeURIComponent(release.releaseId),
       'reconstruction',

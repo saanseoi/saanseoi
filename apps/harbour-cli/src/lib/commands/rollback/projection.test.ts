@@ -1,6 +1,8 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { restoreSnapshotProjection, type ProjectionResourceType } from './projection.ts'
@@ -358,13 +360,90 @@ test('restores Address2D/3D, localisations and derived number ranges using exact
   }
 })
 
+test('ALS rollback requires acknowledged exact canonical membership, including empty projections', async () => {
+  const f = fixture('address')
+  const cacheDir = mkdtempSync(join(tmpdir(), 'rollback-membership-'))
+  try {
+    insert(f.meta, 'datasets', {
+      id: 'als',
+      publisherId: 'publisher',
+      code: 'ds-hk-hkgov-dpo-address',
+      regionCode: 'hk',
+      releaseType: 'snapshot',
+      releaseFrequency: 'daily',
+      theme: 'addresses',
+      versionHash: 'als',
+    })
+    insert(f.meta, 'snapshotSources', {
+      snapshotId: 'b',
+      datasetId: 'als',
+      resourceReleaseId: 'release',
+      role: 'primary',
+    })
+    insert(f.meta, 'snapshotAssembly', {
+      id: 'assembly',
+      code: 'assembly',
+      resourceType: 'address',
+      version: 1,
+      status: 'scoped',
+      versionHash: 'assembly',
+    })
+    insert(f.meta, 'snapshotAssemblyRuns', {
+      id: 'assembly-b',
+      snapshotId: 'b',
+      snapshotAssemblyId: 'assembly',
+      status: 'selected',
+      selectionSummaryJson: { lookupSnapshotIds: { division: 'division-old' } },
+    })
+    insert(f.current, 'divisionPublicationState', {
+      scopeId: 'division-scope',
+      snapshotId: 'division-old',
+      status: 'current',
+      preparedAt: 'ready',
+      publicationToken: 'token',
+    })
+    await expect(restoreSnapshotProjection({ ...f.input, cacheDir })).rejects.toThrow(
+      'acknowledged canonical membership sidecar',
+    )
+    const directory = join(cacheDir, 'address-membership', 'scope')
+    mkdirSync(directory, { recursive: true })
+    const member = {
+      schemaVersion: 1,
+      sourceVersion: 'source',
+      addresses: [],
+      collections: [],
+      sources: [],
+      aliases: [],
+    }
+    writeFileSync(join(directory, 'b.json'), JSON.stringify(member))
+    expect(
+      (await restoreSnapshotProjection({ ...f.input, cacheDir })).counts.address2d,
+    ).toBe(0)
+    writeFileSync(
+      join(directory, 'b.json'),
+      JSON.stringify({
+        ...member,
+        addresses: [
+          { id: 'missing', parentId: null, level: 'building', sourceIds: [] },
+        ],
+      }),
+    )
+    await expect(restoreSnapshotProjection({ ...f.input, cacheDir })).rejects.toThrow(
+      'reviewed canonical membership',
+    )
+  } finally {
+    f.close()
+    rmSync(cacheDir, { recursive: true, force: true })
+  }
+})
+
 test('Street reconstruction respects active membership, coupled locales and latest changelog assertions', async () => {
   const f = fixture('street')
   try {
     for (const [id, status] of [
       ['active', 'active'],
       ['deleted', 'deleted'],
-    ]) {
+    ] as const) {
       historyRow(f.first, 'streets', { id, status, version: 1, versionHash: id })
       historyRow(f.first, 'streetsI18n', {
         streetId: id,
@@ -372,8 +451,8 @@ test('Street reconstruction respects active membership, coupled locales and late
         name: id,
         versionHash: id,
       })
-      journal(f.first, 'a', 'street', id!, id!)
-      journal(f.first, 'a', 'streetI18n', id!, id!, 'en')
+      journal(f.first, 'a', 'street', id, id)
+      journal(f.first, 'a', 'streetI18n', id, id, 'en')
     }
     historyRow(f.first, 'streetsI18n', {
       streetId: 'active',

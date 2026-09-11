@@ -254,6 +254,15 @@ export function assertProjectionForeignKeys(current: Database) {
  * History/source content is read-only; keyed delivery emits only the final differences.
  */
 export async function restoreSnapshotProjection(input: RestoreSnapshotProjectionInput) {
+  const snapshot = await input.metaDb
+    .select({ resourceType: metaSchema.metaSnapshots.resourceType })
+    .from(metaSchema.metaSnapshots)
+    .where(eq(metaSchema.metaSnapshots.id, input.snapshotId))
+    .get()
+  if (snapshot?.resourceType !== input.resourceType)
+    throw new Error(
+      `Rollback snapshot ${input.snapshotId} does not identify ${input.resourceType}.`,
+    )
   const selected = components[input.resourceType]
   const versions = await resolveValidatedProjectionVersions({
     ...input,
