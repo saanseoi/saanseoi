@@ -23,7 +23,7 @@ const receipt = {
 function database() {
   const db = new Database(':memory:')
   db.exec(
-    `CREATE TABLE divisionPublicationState(scopeId TEXT NOT NULL, snapshotId TEXT PRIMARY KEY, status TEXT NOT NULL, publicationToken TEXT NOT NULL, preparedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL); CREATE TABLE divisions(snapshotId TEXT, id TEXT);`,
+    `CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, status TEXT NOT NULL, publicationToken TEXT NOT NULL, preparedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL); CREATE TABLE divisions(snapshotId TEXT, id TEXT);`,
   )
   return db
 }
@@ -86,28 +86,43 @@ test('preparation retries do not write and cannot re-open a published snapshot',
   db.close()
 })
 
-test('preparing a second snapshot preserves the currently served snapshot receipt', () => {
+test('advancing a scope gates its stable rows and rejects stale predecessor tokens', () => {
   const db = database()
   execute(db, buildBeginPublicationSql(receipt))
   execute(db, buildCompletePublicationSql(receipt))
-  db.exec("UPDATE divisionPublicationState SET status='current'")
-  execute(
-    db,
-    buildBeginPublicationSql({
-      ...receipt,
-      snapshotId: 'next',
-      publicationToken: 'next',
-    }),
-  )
+  const next = {
+    ...receipt,
+    snapshotId: 'next',
+    publicationToken: 'next',
+    previous: {
+      snapshotId: receipt.snapshotId,
+      publicationToken: receipt.publicationToken,
+    },
+  }
+  execute(db, buildBeginPublicationSql(next))
   expect(
-    db
-      .query(
-        'SELECT snapshotId, status FROM divisionPublicationState ORDER BY snapshotId',
-      )
-      .all(),
-  ).toEqual([
-    { snapshotId: 'next', status: 'publishing' },
-    { snapshotId: 'snapshot', status: 'current' },
-  ])
+    db.query('SELECT snapshotId, status FROM divisionPublicationState').all(),
+  ).toEqual([{ snapshotId: 'next', status: 'publishing' }])
+  expect(() =>
+    execute(
+      db,
+      buildBeginPublicationSql({
+        ...next,
+        snapshotId: 'stale',
+        publicationToken: 'stale',
+      }),
+    ),
+  ).toThrow()
+  execute(db, buildCompletePublicationSql(next))
+  expect(() =>
+    execute(
+      db,
+      buildBeginPublicationSql({
+        ...next,
+        snapshotId: 'stale',
+        publicationToken: 'stale',
+      }),
+    ),
+  ).toThrow()
   db.close()
 })

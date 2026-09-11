@@ -23,7 +23,7 @@ const receipt = {
 function database() {
   const client = new Database(':memory:')
   client.exec(
-    'CREATE TABLE divisions(id TEXT PRIMARY KEY, snapshotId TEXT); CREATE TABLE divisionPublicationState(scopeId TEXT, snapshotId TEXT PRIMARY KEY, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
+    'CREATE TABLE divisions(id TEXT PRIMARY KEY, snapshotId TEXT); CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
   )
   return { client, db: drizzle({ client }) }
 }

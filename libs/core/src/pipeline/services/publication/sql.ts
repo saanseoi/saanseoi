@@ -44,9 +44,10 @@ export function buildPublicationGuardSql(input: PublicationIdentity) {
 
 /** The same sealed delivery may retry; another delivery cannot take its snapshot. */
 export function buildBeginPublicationSql(input: PublicationPreparation) {
-  const previous = input.previous
-    ? `snapshotId = ${literal(input.previous.snapshotId)} AND publicationToken = ${literal(input.previous.publicationToken)} AND preparedAt IS NOT NULL`
-    : '0'
+  const previous =
+    input.previous && input.previous.snapshotId !== input.snapshotId
+      ? `snapshotId = ${literal(input.previous.snapshotId)} AND publicationToken = ${literal(input.previous.publicationToken)} AND preparedAt IS NOT NULL`
+      : '0'
   return [
     'SELECT 1 /* saanseoi-audit-commit:start */;',
     `INSERT INTO ${tableName(input.table)} (scopeId, snapshotId, status, publicationToken, preparedAt, createdAt, updatedAt) VALUES (${literal(input.scopeId)}, ${literal(input.snapshotId)}, 'publishing', ${literal(input.publicationToken)}, NULL, ${literal(input.timestamp)}, ${literal(input.timestamp)}) ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId, status = 'publishing', publicationToken = excluded.publicationToken, preparedAt = NULL, updatedAt = excluded.updatedAt WHERE ${previous};`,

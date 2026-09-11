@@ -1,6 +1,7 @@
 import { eq, metaSnapshots } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { resolvePublicationSelections } from './publicationSelections'
+import { publicationScopeId } from './publication/scope'
 
 export const publicationFamilies = [
   'division',
@@ -74,15 +75,6 @@ export async function finalisePublishedResources(
     }
   }
   if (!families.size) return
-  const prior = new Map<PublicationFamily, PreparedPublication[]>()
-  for (const family of families) {
-    const rows = await current
-      .prepare(
-        `SELECT snapshotId, scopeId, publicationToken, preparedAt FROM ${family}PublicationState WHERE preparedAt IS NOT NULL`,
-      )
-      .all<PreparedPublication>()
-    prior.set(family, rows.results)
-  }
   const selections = await dependencies.resolvePublicationSelections(meta)
   for (const family of families) {
     const table = `${family}PublicationState`
@@ -99,6 +91,7 @@ export async function finalisePublishedResources(
           status: metaSnapshots.status,
           resourceType: metaSnapshots.resourceType,
           lineage: metaSnapshots.snapshotLineageId,
+          cohort: metaSnapshots.cohortKey,
         })
         .from(metaSnapshots)
         .where(eq(metaSnapshots.id, receipt.snapshotId))
@@ -108,8 +101,11 @@ export async function finalisePublishedResources(
         throw new Error(
           `Publication receipt family mismatch for ${receipt.snapshotId}.`,
         )
-      if (family === 'address' && snapshot.lineage !== receipt.scopeId)
-        throw new Error(`Address publication scope mismatch for ${receipt.snapshotId}.`)
+      if (
+        publicationScopeId(family, snapshot.lineage, snapshot.cohort) !==
+        receipt.scopeId
+      )
+        throw new Error(`Publication scope mismatch for ${receipt.snapshotId}.`)
       await current
         .prepare(
           `UPDATE ${table} SET status = 'current', updatedAt = ?
@@ -125,58 +121,43 @@ export async function finalisePublishedResources(
         )
         .run()
     }
-    // Only the authoritative selected set may retire a completed marker. Active
-    // delivery receipts remain protected, and no observation data is rewritten.
+    // One ready receipt owns each stable current scope. Pinned older geometry
+    // revisions in that scope use immutable history, rather than another copy.
     const ids = [...selections[family]]
     if (ids.length) {
       const ready = await current
         .prepare(
-          `SELECT snapshotId FROM ${table} WHERE status = 'current' AND preparedAt IS NOT NULL
+          `SELECT snapshotId, scopeId FROM ${table} WHERE status = 'current' AND preparedAt IS NOT NULL
          AND publicationToken <> '' AND snapshotId IN (SELECT value FROM json_each(?))`,
         )
         .bind(JSON.stringify(ids))
-        .all<{ snapshotId: string }>()
-      if (ready.results.length !== ids.length)
+        .all<{ snapshotId: string; scopeId: string }>()
+      const readyIds = new Set(ready.results.map(row => row.snapshotId))
+      if (family === 'divisionArea' || family === 'divisionBoundary') {
+        const readyScopes = new Set(ready.results.map(row => row.scopeId))
+        for (const id of ids.filter(id => !readyIds.has(id))) {
+          const snapshot = await meta
+            .select({
+              lineage: metaSnapshots.snapshotLineageId,
+              cohort: metaSnapshots.cohortKey,
+              status: metaSnapshots.status,
+            })
+            .from(metaSnapshots)
+            .where(eq(metaSnapshots.id, id))
+            .get()
+          if (
+            snapshot?.status === 'published' &&
+            readyScopes.has(
+              publicationScopeId(family, snapshot.lineage, snapshot.cohort),
+            )
+          )
+            readyIds.add(id)
+        }
+      }
+      if (readyIds.size !== ids.length)
         throw new Error(
           `Published ${family} snapshots do not have complete delivery receipts.`,
         )
     }
-    if (ids.length && family !== 'address') {
-      const candidates = (prior.get(family) ?? []).filter(
-        row => !selections[family].has(row.snapshotId),
-      )
-      if (!candidates.length) continue
-      const ancestors = await publicationAncestors(meta, ids)
-      const retired = candidates.filter(row => ancestors.has(row.snapshotId))
-      if (!retired.length) continue
-      await current
-        .prepare(
-          `DELETE FROM ${table} WHERE preparedAt IS NOT NULL
-         AND EXISTS (SELECT 1 FROM json_each(?) retired
-           WHERE json_extract(retired.value, '$.snapshotId') = ${table}.snapshotId
-             AND json_extract(retired.value, '$.publicationToken') = ${table}.publicationToken)`,
-        )
-        .bind(JSON.stringify(retired))
-        .run()
-    }
   }
-}
-
-async function publicationAncestors(meta: HarbourReadableDb, selected: string[]) {
-  const ancestors = new Set<string>()
-  const visited = new Set<string>()
-  for (const id of selected) {
-    let next: string | null = id
-    while (next && !visited.has(next)) {
-      visited.add(next)
-      const row = await meta
-        .select({ parent: metaSnapshots.parentSnapshotId })
-        .from(metaSnapshots)
-        .where(eq(metaSnapshots.id, next))
-        .get()
-      next = row?.parent ?? null
-      if (next) ancestors.add(next)
-    }
-  }
-  return ancestors
 }
