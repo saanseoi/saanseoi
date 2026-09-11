@@ -3,7 +3,6 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { sql } from 'drizzle-orm'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -15,6 +14,7 @@ import { deliverPlandWorkflow, readPlandDeliveryCounts } from './plandDelivery.t
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import {
   compressPlanningDivisionGeometry,
+  insertHistoryRows,
   replaceCurrentSnapshot,
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
 import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
@@ -116,8 +116,15 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
           '2026-09-07T00:00:00.000Z',
           () => {},
         )
-        await copy.historyDb.run(
-          sql`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('logical-snapshot','division','planning-test','','fixed','upsert','release')`,
+        await insertHistoryRows(
+          copy.historyDb as unknown as HarbourWritableDb,
+          'logical-snapshot',
+          'release',
+          '2026',
+          [record],
+          compressPlanningDivisionGeometry([record], () => {}),
+          '2026-09-12',
+          () => {},
         )
         await completeSnapshotPublication(
           copy.currentDb,

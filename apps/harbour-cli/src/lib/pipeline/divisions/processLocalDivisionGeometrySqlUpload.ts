@@ -1,3 +1,5 @@
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
+import { resolveGeometryPreparationContext } from '../../dbCache/geometryPreparationContext.ts'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { resolveIdentityCuration } from '../../identityCurations'
 import { curationDocumentsFor } from '../../curationDocuments'
@@ -41,8 +43,6 @@ import {
   invalidateRemoteDbCache,
   refreshRemoteMetaCache,
   applyPublishMetadataDeltaToRemoteCache,
-  resolveLocalAddressDbContext,
-  buildReleaseUploadDbCacheScopeKey,
 } from '../../dbCache/localDbCache.ts'
 import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
@@ -103,7 +103,6 @@ import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   completeSqlDeliveryRelease,
   readPendingSqlDelivery,
-  assertSqlDeliveryPlanningAllowed,
 } from '../local/sqlDeliveryPending.ts'
 
 /**
@@ -155,66 +154,22 @@ export async function processLocalDivisionGeometrySqlUpload(
     await bucket.seedRawObject(rawObjectKey, preparedUpload.filePath)
   }
 
-  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  let dbContext: Awaited<ReturnType<typeof resolveCurrentWriteContext>>
   const dbCacheStartedAt = Date.now()
   let reusedDbCache = false
-  const cacheTableProfile =
-    previewPlan.source === 'hkgov-pland-pu' ||
-    previewPlan.source === 'hkgov-pland-new-town'
-      ? 'planningDivisionGeometry'
-      : 'divisionGeometry'
-  const remoteCacheScopeKey = target.remote
-    ? buildReleaseUploadDbCacheScopeKey({
-        cacheTableProfile,
-        cohortKey: previewPlan.cohortKey,
-        regionCode: previewPlan.regionCode,
-        shardYear,
-        source: previewPlan.source,
-        sourceVersion: previewPlan.sourceVersion,
-        theme: previewPlan.theme,
-        resourceType: previewPlan.resourceType,
-      })
-    : undefined
-  if (target.remote)
-    await assertSqlDeliveryPlanningAllowed(
-      resolveRemoteCacheDir(
-        target.environment === 'production' ? 'production' : 'preview',
-      ),
-      releaseId,
-    )
-
   try {
-    if (target.remote) {
-      const baseline = await resolveLocalAddressDbContext(
-        target,
-        previewPlan.regionCode,
-        shardYear,
-        {
-          cacheTableProfile,
-          includeAllHistoryShardYears: true,
-          includePreviousShardYears: true,
-          refreshRemoteTables: false,
-          resumeSqlDeliveryReleaseId: releaseId,
-        },
-      )
-      baseline.cleanup()
-    }
-    dbContext = await resolveLocalAddressDbContext(
+    dbContext = await resolveGeometryPreparationContext(
       target,
       previewPlan.regionCode,
       shardYear,
       {
+        releaseId,
+        resourceType: previewPlan.resourceType,
+        preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
         onProgress(event) {
           reusedDbCache ||= event.action === 'reuse-cache'
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile,
-        remoteCacheScopeKey,
-        // Reference selection can use a later Overture cohort than this source.
-        includeAllHistoryShardYears: true,
-        includePreviousShardYears: true,
-        refreshRemoteTables: false,
-        resumeSqlDeliveryReleaseId: releaseId,
       },
     )
   } catch (error) {
@@ -802,15 +757,11 @@ export async function processLocalDivisionGeometrySqlUpload(
       ),
     )
     if (target.remote) {
-      const deliveryContext = await resolveLocalAddressDbContext(
+      const deliveryContext = await resolveCurrentWriteContext(
         target,
         previewPlan.regionCode,
         shardYear,
         {
-          cacheTableProfile,
-          includeAllHistoryShardYears: true,
-          includePreviousShardYears: true,
-          requireExistingRemoteCache: true,
           resumeSqlDeliveryReleaseId: releaseId,
         },
       )
@@ -893,6 +844,7 @@ export async function processLocalDivisionGeometrySqlUpload(
               refreshRemoteMetaCache(
                 target.environment === 'production' ? 'production' : 'preview',
                 publicationCacheDir,
+                releaseId,
               ),
           )
         }
