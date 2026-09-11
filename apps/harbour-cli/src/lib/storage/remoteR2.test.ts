@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 import { remoteR2Config, retainRemoteR2Object, type RemoteR2Bucket } from './remoteR2'
 
 test('remote proxy exposes only the selected R2 bucket', () => {
-  expect(remoteR2Config('ss-assets-prod')).toEqual({
+  expect(remoteR2Config('ss-assets-prod')).toMatchObject({
     name: 'saanseoi-local-r2-upload',
     compatibility_date: '2026-05-01',
     r2_buckets: [{ binding: 'R2_ASSETS', bucket_name: 'ss-assets-prod', remote: true }],

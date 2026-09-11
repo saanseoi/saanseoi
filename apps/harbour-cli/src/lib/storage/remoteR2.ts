@@ -27,14 +27,20 @@ const sessions = new Map<
 
 /** R2-only proxy: it has no D1 bindings and cannot register production metadata. */
 export function remoteR2Config(bucketName: string) {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
   return {
     name: 'saanseoi-local-r2-upload',
     compatibility_date: '2026-05-01',
+    ...(accountId ? { account_id: accountId } : {}),
     r2_buckets: [{ binding: 'R2_ASSETS', bucket_name: bucketName, remote: true }],
   }
 }
 
 async function openBucket(environment: 'preview' | 'production') {
+  if (!process.env.CLOUDFLARE_ACCOUNT_ID?.trim())
+    throw new Error(
+      'Production R2 uploads require CLOUDFLARE_ACCOUNT_ID in the environment.',
+    )
   const config = JSON.parse(await readFile(WRANGLER_CONFIG_PATH, 'utf8'))
   const bucket = config.env?.[environment]?.r2_buckets?.find(
     (entry: { binding: string }) => entry.binding === 'R2_ASSETS',
