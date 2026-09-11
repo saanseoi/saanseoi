@@ -30,14 +30,12 @@ export async function assertDraftPurgePublicationAvailable(
     .get()
   if (previous) return
   // A draft that never acquired the current scope can still be removed safely.
-  {
-    const ownsScope = await current
-      .select({ owned: sql<number>`1` })
-      .from(sql.raw(table))
-      .where(sql`snapshotId = ${input.snapshotId}`)
-      .get()
-    if (!ownsScope) return
-  }
+  const ownsScope = await current
+    .select({ owned: sql<number>`1` })
+    .from(sql.raw(table))
+    .where(sql`snapshotId = ${input.snapshotId}`)
+    .get()
+  if (!ownsScope) return
   throw new Error(
     `Cannot purge ${input.snapshotId}: its predecessor ${input.previousSnapshotId} has no ready current projection. Complete recovery of the draft-owned current scope before purging. Published releases use rollback reconstruction.`,
   )

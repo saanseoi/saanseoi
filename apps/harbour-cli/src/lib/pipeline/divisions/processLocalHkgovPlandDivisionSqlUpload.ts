@@ -90,7 +90,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   previewPlan: HkgovPlandDivisionUploadPlan,
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
-  options: { cacheArtefacts?: boolean; skipSnapshotCleanup?: boolean } = {},
+  options: {
+    cacheArtefacts?: boolean
+    /** Publish source data and snapshots, but leave the API release set draft. */
+    deferApiReleaseSet?: boolean
+    skipSnapshotCleanup?: boolean
+  } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
@@ -631,6 +636,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       'division snapshot',
       () =>
         client.publishDataset(releaseId, releaseCode, {
+          deferApiReleaseSet: options.deferApiReleaseSet,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
     )
@@ -645,7 +651,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         ),
       )
     }
-    if (isApiReleaseSetStatsReady(publishResult)) {
+    if (!options.deferApiReleaseSet && isApiReleaseSetStatsReady(publishResult)) {
       const statsContext = target.remote
         ? await resolveCurrentWriteContext(
             target,

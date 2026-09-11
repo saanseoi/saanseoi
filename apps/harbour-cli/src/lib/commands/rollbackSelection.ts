@@ -211,17 +211,15 @@ export function resolveRollbackSelection(meta: Database, releaseId: string) {
   )
   const currentSnapshots = [
     ...new Map(
-      selected
-        .flatMap(pair => getSnapshotMembers(meta, pair.current.id))
+      oldMembers
+        .flatMap(member => getSnapshotMembers(meta, member.apiReleaseSetId))
         .map(snapshot => [snapshot.id, snapshot]),
     ).values(),
   ]
   const previousSnapshots = [
     ...new Map(
-      selected
-        .flatMap(pair =>
-          pair.previous ? getSnapshotMembers(meta, pair.previous.id) : [],
-        )
+      newMembers
+        .flatMap(member => getSnapshotMembers(meta, member.apiReleaseSetId))
         .map(snapshot => [snapshot.id, snapshot]),
     ).values(),
   ]
@@ -245,6 +243,11 @@ export function resolveRollbackSelection(meta: Database, releaseId: string) {
     changes,
     restores,
     removedScopes,
+    defaultDomainCode: newMembers.some(
+      member => member.domainCode === catalog.defaultDomainCode,
+    )
+      ? catalog.defaultDomainCode
+      : (newMembers[0]?.domainCode ?? null),
   }
 }
 
@@ -297,7 +300,7 @@ export function prepareRollbackMetadata(
         catalog.regionCode,
         date,
         revision,
-        catalog.defaultDomainCode,
+        selection.defaultDomainCode,
         timestamp,
         computeVersionHash({ code, members: newMembers, publishedAt: timestamp }),
         timestamp,
