@@ -11,12 +11,19 @@ export type NetTablePolicy = {
   atomicGroup?: string
   /** Keep a logical collection together across tables sharing this name/key. */
   collection?: { name: string; keyColumns: string[] }
+  /** Both sides of every mutation must belong to these explicitly claimed scopes. */
+  rowScope?: { column: string; values: string[] }
 }
 
 export type NetSqlitePlanInput<T> = {
   targets: Record<
     string,
-    { path: string; databaseId?: string; tables: NetTablePolicy[] }
+    {
+      path: string
+      databaseId?: string
+      tables: NetTablePolicy[]
+      excludedTables?: string[]
+    }
   >
   generate: (candidates: Record<string, { db: Database; path: string }>) => Promise<T>
   append: (target: SqlDeliveryTarget, bytes: Uint8Array, kind: 'bound') => Promise<void>

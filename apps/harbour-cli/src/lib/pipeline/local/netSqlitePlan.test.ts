@@ -297,8 +297,8 @@ test('parameter limits fail locally and exact integer/blob values survive JSON d
     })
     expect(statements).toEqual([
       {
-        sql: 'INSERT INTO "exact" ("id","payload") VALUES (9223372036854775807,X\'00ff1122\')',
-        params: [],
+        sql: 'INSERT INTO "exact" ("id","payload") VALUES (9223372036854775807,unhex(?))',
+        params: ['00ff1122'],
       },
     ])
     const columns = Array.from({ length: 101 }, (_, index) => `c${index}`)

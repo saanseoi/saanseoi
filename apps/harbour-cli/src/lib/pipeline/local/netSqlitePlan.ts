@@ -105,6 +105,27 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       exactClients.push(db)
       db.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
       db.query('ATTACH DATABASE ? AS net_baseline').run(baseline)
+      const selected = new Set(ordered.map(table => table.policy.name))
+      const excluded = new Set(input.targets[binding]!.excludedTables ?? [])
+      const persistent = db
+        .query<{ name: string }, []>(
+          "SELECT name FROM net_baseline.sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%'",
+        )
+        .all()
+      for (const { name } of persistent) {
+        if (selected.has(name) || excluded.has(name)) continue
+        // An explicit policy is required even when an unrelated table's writes
+        // would otherwise be silently omitted from the delivered final state.
+        const changed = db
+          .query(
+            `SELECT 1 FROM (SELECT * FROM main.${q(name)} EXCEPT SELECT * FROM net_baseline.${q(name)}) UNION ALL SELECT 1 FROM (SELECT * FROM net_baseline.${q(name)} EXCEPT SELECT * FROM main.${q(name)}) LIMIT 1`,
+          )
+          .get()
+        if (changed)
+          throw new Error(
+            `Net-plan preparation changed an unowned table: ${binding}.${name}`,
+          )
+      }
       for (const table of ordered) {
         assertNetSchema(db, table)
         if (!input.bootstrap) normaliseNetIgnoredColumns(db, table)

@@ -571,7 +571,7 @@ for (const family of ['statistics', 'geometry'] as const) {
             ])
           : buildStatisticSqlBatches({
               releaseId: 'release',
-              releaseCode: 'release-code',
+              sourceVersion: '2026-09-07.0',
               source: {
                 table: 'hkgovCenstatdStatistics',
                 rows: Array.from({ length: 40 }, (_, index) => ({
@@ -586,7 +586,7 @@ for (const family of ['statistics', 'geometry'] as const) {
                   sourceRecordId: `row-${index}`,
                   sources: [],
                   sourceGeometry: null,
-                  validFromRelease: 'release-code',
+                  validFromRelease: '2026-09-07.0',
                   validToRelease: null,
                   version: 1,
                   versionHash: `hash-${index}`,

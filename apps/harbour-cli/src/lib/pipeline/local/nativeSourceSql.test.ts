@@ -24,11 +24,15 @@ test('native source fingerprints remain stable when properties are renamed', asy
     },
     sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-1' }],
   }
-  const [withProvenance] = await versionNativeSourceRows([row], 'release', 'release')
+  const [withProvenance] = await versionNativeSourceRows(
+    [row],
+    'release-id',
+    '2026-07-22.0',
+  )
   const [publisherOnly] = await versionNativeSourceRows(
     [row],
-    'release',
-    'release',
+    'release-id',
+    '2026-07-22.0',
     true,
   )
   expect(withProvenance?.versionHash).toBe(
@@ -37,6 +41,8 @@ test('native source fingerprints remain stable when properties are renamed', asy
   expect(publisherOnly?.versionHash).toBe(
     '8cf1286f8e3ffe81064622da57a9b3d0b14b02bb3db2330efa6fa52a31273c98',
   )
+  expect(withProvenance?.validFromRelease).toBe('2026-07-22.0')
+  expect(withProvenance?.releaseId).toBe('release-id')
   expect(withProvenance?.properties).toEqual({ streetCode: 7, name: 'Road' })
   expect(
     Object.keys(withProvenance ?? {}).filter(key => /properties$/i.test(key)),
@@ -63,13 +69,13 @@ test('road centreline schema reuses unchanged features across different archives
   const run = async (release: string, rows: NativeSourceRow[]) => {
     for (const sql of await buildNativeSourceSql(
       [{ name: config.name, provenance: 'required', replaceCurrentRows: true, rows }],
-      release,
+      `release-id-${release}`,
       release,
     ))
       db.exec(sql)
   }
   try {
-    await run('first', [
+    await run('2025-09-24.0', [
       {
         ...original,
         sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-1' }],
@@ -77,7 +83,7 @@ test('road centreline schema reuses unchanged features across different archives
     ])
     const firstAssertion = db.query(`SELECT * FROM "${config.name}"`).get()
     const beforeUnchanged = db.query('SELECT total_changes() AS n').get()
-    await run('second', [
+    await run('2025-10-22.0', [
       {
         ...original,
         sources: [{ dataset: 'landsd', sourceArchiveSha256: 'archive-2' }],
@@ -91,8 +97,8 @@ test('road centreline schema reuses unchanged features across different archives
           `SELECT count(*) AS n, min(validFromRelease) AS first FROM "${config.name}"`,
         )
         .get(),
-    ).toEqual({ n: 1, first: 'first' })
-    await run('third', [
+    ).toEqual({ n: 1, first: '2025-09-24.0' })
+    await run('2025-11-19.0', [
       { ...original, properties: { name: 'Changed' }, sources: null },
     ])
     expect(db.query(`SELECT count(*) AS n FROM "${config.name}"`).get()).toEqual({
@@ -100,8 +106,8 @@ test('road centreline schema reuses unchanged features across different archives
     })
     expect(
       db.query(`SELECT validToRelease FROM "${config.name}" WHERE isCurrent=0`).get(),
-    ).toEqual({ validToRelease: 'third' })
-    await run('fourth', [])
+    ).toEqual({ validToRelease: '2025-11-19.0' })
+    await run('2025-12-17.0', [])
     expect(
       db.query(`SELECT count(*) AS n FROM "${config.name}" WHERE isCurrent=1`).get(),
     ).toEqual({ n: 0 })
@@ -127,7 +133,7 @@ test('replays native polygon values and duplicate assertions without losing hist
   const run = async (rows: NativeSourceRow[], release: string) => {
     const chunks = await buildNativeSourceSql(
       [{ name: 'evidence', provenance: 'inherited', replaceCurrentRows: true, rows }],
-      release,
+      `release-id-${release}`,
       release,
     )
     for (const sql of chunks) {

@@ -10,6 +10,10 @@ import {
 } from './releaseSqlDelivery.ts'
 import { captureSqlDeliveryBatches } from './sqlDeliveryBatchCapture.ts'
 import { prepareNativeSqlDelivery, runNativeSqlDelivery } from './nativeSqlDelivery.ts'
+import { deliverResolvedSqlPhase } from './resolvedSqlPhase.ts'
+import { familyMutationTargets, type ResolvedFamily } from './familyMutationPolicy.ts'
+import { withSqlDeliveryCapture } from './sqlDeliveryCapture.ts'
+import type { PublicationTable } from '@repo/core/pipeline/services/publication/sql.ts'
 
 export type SqlDeliveryPhase = {
   context: LocalAddressDbContext
@@ -17,6 +21,8 @@ export type SqlDeliveryPhase = {
   phase: string
   inputs: Record<string, unknown>
   nativeLocal?: boolean
+  resolvedFamily?: ResolvedFamily
+  publicationTables?: PublicationTable[]
   captureOutputs?: () => Record<string, unknown>
   /** Validate family continuation data before any retained SQL is replayed. */
   validateOutputs?: (outputs: Record<string, unknown> | undefined) => unknown
@@ -40,6 +46,29 @@ export async function deliverSqlPhase(
   input: SqlDeliveryPhase,
   generate: () => Promise<unknown>,
 ) {
+  if (input.resolvedFamily) {
+    return deliverResolvedSqlPhase(
+      { ...input, targets: familyMutationTargets(input.context, input.resolvedFamily) },
+      async (_context, candidates) => {
+        const local = input.context.state.target === 'local'
+        await withSqlDeliveryCapture(
+          async (target, bytes) => {
+            const binding = local
+              ? target.databaseId
+              : Object.entries(input.context.state.bindings).find(
+                  ([, value]) => value.databaseId === target.databaseId,
+                )?.[0]
+            if (!binding || !candidates[binding])
+              throw new Error('Captured family SQL targets an unknown candidate.')
+            candidates[binding]!.execute(bytes)
+          },
+          generate,
+          local,
+        )
+        return input.captureOutputs?.() ?? {}
+      },
+    )
+  }
   if (input.context.state.target === 'local') {
     if (input.nativeLocal) {
       if (!/^[a-z0-9-]+$/.test(input.phase))
