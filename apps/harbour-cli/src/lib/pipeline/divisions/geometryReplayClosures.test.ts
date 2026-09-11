@@ -60,6 +60,12 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       remote.current.exec(
         "INSERT INTO divisionAreas VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');",
       )
+      for (const db of [local.DB_CURRENT, remote.current])
+        db?.exec("INSERT INTO divisionAreas VALUES('scope','unchanged',X'04');")
+      for (const db of [local[historyBinding], remote.history])
+        db?.exec(
+          "INSERT INTO divisionAreas VALUES('old','unchanged','inherited',1,'old',X'04'); INSERT INTO snapshotVersionChanges VALUES('old','divisionArea','unchanged','upsert','inherited');",
+        )
       local[historyBinding]?.exec(
         "INSERT INTO divisionAreas VALUES('new','changed','v2',1,'new',X'AAFF'),('original','reused','same',1,'original',X'03'); INSERT INTO snapshotVersionChanges VALUES('new','divisionArea','changed','upsert','v2'),('new','divisionArea','reused','upsert','same'),('new','divisionArea','removed','delete',NULL);",
       )
@@ -146,12 +152,13 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       ).toEqual([
         { snapshotId: 'scope', id: 'changed', geometry: new Uint8Array([0xaa, 0xff]) },
         { snapshotId: 'scope', id: 'reused', geometry: new Uint8Array([0x03]) },
+        { snapshotId: 'scope', id: 'unchanged', geometry: new Uint8Array([0x04]) },
       ])
       expect(remote.history.query('SELECT * FROM historyMutations').all()).toEqual([])
       expect(
         remote.history
           .query(
-            'SELECT recordId,operation,versionHash FROM snapshotVersionChanges ORDER BY recordId',
+            "SELECT recordId,operation,versionHash FROM snapshotVersionChanges WHERE snapshotId='new' ORDER BY recordId",
           )
           .all(),
       ).toEqual([
@@ -159,6 +166,13 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         { recordId: 'removed', operation: 'delete', versionHash: null },
         { recordId: 'reused', operation: 'upsert', versionHash: 'same' },
       ])
+      expect(
+        remote.history
+          .query(
+            "SELECT snapshotId,versionHash FROM snapshotVersionChanges WHERE recordId='unchanged'",
+          )
+          .all(),
+      ).toEqual([{ snapshotId: 'old', versionHash: 'inherited' }])
       const localHistory = local[historyBinding]
       const localSource = local[sourceBinding]
       if (!localHistory || !localSource) throw new Error('Missing fixture databases')
