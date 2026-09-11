@@ -444,7 +444,7 @@ function sqlString(value: string) {
   return `'${value.replaceAll("'", "''")}'`
 }
 
-function sqlNullable(value: string | undefined) {
+function sqlNullable(value: string | null | undefined) {
   return value == null ? 'NULL' : sqlString(value)
 }
 

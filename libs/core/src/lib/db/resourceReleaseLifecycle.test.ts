@@ -225,10 +225,10 @@ for (const order of [types, [...types].reverse()]) {
             resourceType: resource.resourceType,
             count: resource.stats[0]?.value,
           }))
-          .sort((a, b) => a.type.localeCompare(b.type)),
+          .sort((a, b) => a.resourceType.localeCompare(b.resourceType)),
       ).toEqual([
-        { type: 'divisionArea', count: 18 },
-        { type: 'divisionStatistic', count: 241155 },
+        { resourceType: 'divisionArea', count: 18 },
+        { resourceType: 'divisionStatistic', count: 241155 },
       ])
       for (const type of types) {
         const id = ids.get(type)!

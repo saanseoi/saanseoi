@@ -62,11 +62,16 @@ the source-record API under `rawProperties`.
 
 ## Domains, identity and hierarchy
 
-Use a controlled functional domain such as `administrative`, `planning`, `electoral`, or
-`geographic`; retain each provider’s raw classification separately. A division has one
-primary domain per dataset and may have explicit secondary memberships. Domain and
-relationship context are properties of hierarchy edges, so default administrative
-traversal cannot accidentally include planning or electoral edges.
+Domains identify independently published geographic, planning or statistical datasets.
+Within the geographic domain, `category` groups administrative, locality and hood
+divisions; `class` supplies the specific classification and `level` its numeric rank.
+Source classifications remain separate publisher assertions.
+
+Ingestion stores correlated administrative, locality and full paths under `hierarchies`.
+Each path contains `{ id, name, class }` ancestors, excluding self. Full paths omit city
+ancestors but retain towns, villages and hamlets. Branches preserve their evidenced
+relationships, including divisions spanning districts or hoods. API reads use these
+stored paths and labels without rebuilding ancestry.
 
 `cohortKey` identifies the source period used for selection and identity. It is separate
 from publication timestamps and release ingestion metadata. If a source later exposes a
