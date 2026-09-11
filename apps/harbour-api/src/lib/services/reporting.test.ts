@@ -673,7 +673,7 @@ function seedSourceRows(
 ) {
   sqlite.exec(`
     INSERT INTO hkgovAlsAddresses2d (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, rawProperties
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, properties
     ) VALUES (
       '${sourceRecordId}',
       'version-hash-1',
