@@ -7,9 +7,11 @@ envelope and create no publisher provenance; malformed non-null envelopes are re
 
 Address ingestion uses one acknowledged local mirror for every source and target. A
 release is resolved and validated in an isolated local candidate, including Address2D,
-Address3D, source validity, provenance, geography and search dependencies. Remote D1
-receives the sealed difference between the acknowledged mirror and that candidate.
-Intermediate staging and resolution queries remain local.
+Address3D, source validity and provenance. Remote D1 receives the sealed difference
+between the acknowledged mirror and that candidate. Intermediate staging and resolution
+queries remain local. Geographic prerequisite projections must already be present in the
+mirror; the Address mutation plan does not restore missing Division rows or
+translations. Search finalisation follows publication through its own workflow.
 
 Current Address tables hold one serving projection per snapshot lineage. Their
 `snapshotId` key stores the stable scope ID; `addressPublicationState` maps that scope
@@ -24,6 +26,19 @@ timestamps. Changed content updates only its affected rows. Immutable version co
 and snapshot change journals supply historical API reads, including retired records and
 omitted translations.
 
+History components are compared independently. An Address2D component change does not
+rewrite identical base, translation or building-number content in another component.
+Unchanged components retain their original content hash and owning history shard.
+Address3D inventory and locale payloads have independent version hashes; historical
+locale reads follow their own journal entries and shards. Snapshot journals contain only
+actual component changes and explicit retirements.
+
+ALS source interpretations in `sourceResolutions` inherit through snapshot ancestry.
+Repeated identical source hashes and resolutions need no new row. Changed resolutions,
+source reappearances and explicit `source_omission` decisions remain recorded. A source
+omission can coexist with a curated canonical retention; raw publisher evidence is
+preserved.
+
 The API returns a readiness response while a selected scope is being updated. Complete
 initial uploads prepare the retained history locally and deliver the final contents of
 each D1 shard, including one current projection per scope. Incremental delivery sends
@@ -34,7 +49,9 @@ delivery resumable.
 
 Omission from a complete source release retires that source assertion. Canonical
 membership is resolved after curations and remaining eligible source evidence; a
-provider omission is not permission to remove another source's address. Reviewed
+provider omission is not permission to remove another source's address. The implemented
+ALS adapter limits current retirements to its Address lineage; general arbitration
+between overlapping providers is not implemented by the shared SQL planner. Reviewed
 curations can retain a canonical address while preserving the publisher omission and the
 evidence for the retention. Invalid or incomplete preparation cannot retire the last
 accepted state.
@@ -45,10 +62,15 @@ loss and substantial deletion spikes require explicit review. Ordinary flat remo
 remain visible in the report and can retire automatically. Missing owners, unresolved
 parent references and inconsistent inventories fail validation independently of review.
 
-Places and Streets keep logical Address snapshot references. These references do not
-require duplicate Address rows in current storage; exact historical references resolve
-through immutable history. Places preparation must have the selected Address projection
-locally, and must not substitute a newer serving scope for a historical dependency.
+Places and Streets keep logical Address snapshot references without foreign keys that
+force duplicate Address snapshots into current storage. Historical Address API reads
+replay immutable history. The shared planner accepts table policies for other families,
+but the complete Places adapter is not implemented. Automatic local hydration of
+historical Address dependencies for Places preparation and search rebuilds is also
+unfinished. Places preparation requires the exact selected projection locally and
+rejects an advanced serving scope; it must not substitute newer Address content.
+Historical dependency hydration must be completed before claiming full Places rebuild
+support.
 
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.
@@ -77,8 +99,8 @@ ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retai
 reused across releases without updating its release ID, timestamps or indexes. Changed
 and removed assertions close their validity range. The complete publisher membership,
 not the last-written release ID, determines omissions. Reappearance of a closed
-assertion requires a write. Snapshot collections and their source-release journals are
-materialised separately.
+assertion requires a write. Canonical component and source-resolution journals record
+only the changes needed to reconstruct each snapshot.
 
 ALS chronological preflight prepares each release in a separate child process.
 Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
