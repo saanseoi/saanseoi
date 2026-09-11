@@ -154,10 +154,20 @@ export async function finalisePublishedResources(
             readyIds.add(id)
         }
       }
-      if (readyIds.size !== ids.length)
+      if (readyIds.size !== ids.length) {
+        const missing = []
+        for (const id of ids.filter(id => !readyIds.has(id))) {
+          const snapshot = await meta
+            .select({ code: metaSnapshots.code })
+            .from(metaSnapshots)
+            .where(eq(metaSnapshots.id, id))
+            .get()
+          missing.push(snapshot?.code ?? id)
+        }
         throw new Error(
-          `Published ${family} snapshots do not have complete delivery receipts.`,
+          `Published ${family} snapshots do not have complete delivery receipts: ${missing.join(', ')}.`,
         )
+      }
     }
   }
 }

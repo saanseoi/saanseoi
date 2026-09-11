@@ -471,8 +471,13 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 0 })
 
   sqlite.exec(
-    "UPDATE releases SET status = 'published' WHERE id = 'legacy-release-2022'",
+    `INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+      VALUES ('legacy-release-2022', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed')`,
   )
+  await handlePublishDataset(db, {
+    releaseId: 'legacy-release-2022',
+    deferStatsReleaseSet: true,
+  })
   const legacyReleaseSet = await ensureDraftReleaseSetForRelease(
     db,
     'divisionStatistic',

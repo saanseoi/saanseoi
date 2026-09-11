@@ -270,7 +270,7 @@ export async function handlePublishDataset(
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
           request.deferSourcePublish ? null : dataset.releaseId,
-          [],
+          undefined,
           request.deferSourcePublish
             ? []
             : await resolvePublishedSnapshotMetadataDeltas(
