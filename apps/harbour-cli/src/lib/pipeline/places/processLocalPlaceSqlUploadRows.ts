@@ -8,7 +8,7 @@ import {
   placeLocaleHash,
   reusePlaceLocaleDependencies,
 } from './placeHistory.ts'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { sourceSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import { latLngToCell } from 'h3-js'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -60,86 +60,7 @@ export async function loadCurrentPlaceSources(
   return sources
 }
 
-export async function loadCurrentPlaceHistory(
-  targets: LocalAddressDbContext['historyTargets'],
-  ownership?: { currentDb: HarbourReadableDb; scopeId: string },
-): Promise<PlaceHistoryState[]> {
-  const ownedIds = ownership
-    ? new Set(
-        (
-          await ownership.currentDb
-            .select({ id: currentSchema.places.id })
-            .from(currentSchema.places)
-            .where(eq(currentSchema.places.snapshotId, ownership.scopeId))
-            .all()
-        ).map(row => row.id),
-      )
-    : null
-  const groups = await Promise.all(
-    targets.map(async target => {
-      const db = target.db as HarbourReadableDb
-      const [rows, locales] = await Promise.all([
-        db
-          .select()
-          .from(historySchema.places)
-          .where(eq(historySchema.places.isCurrent, true))
-          .all(),
-        db
-          .select()
-          .from(historySchema.placesI18n)
-          .where(eq(historySchema.placesI18n.isCurrent, true))
-          .all(),
-      ])
-      return {
-        bindingName: target.bindingName,
-        rows: rows as (typeof historySchema.places.$inferSelect)[],
-        locales: locales as (typeof historySchema.placesI18n.$inferSelect)[],
-      }
-    }),
-  )
-  const states = new Map<string, PlaceHistoryState>()
-  for (const group of groups)
-    for (const row of group.rows) {
-      if (ownedIds && !ownedIds.has(row.id)) continue
-      if (states.has(row.id))
-        throw new Error(`Multiple current Place base versions for ${row.id}.`)
-      states.set(row.id, { bindingName: group.bindingName, row, locales: [] })
-    }
-  for (const group of groups)
-    for (const row of group.locales) {
-      if (ownedIds && !ownedIds.has(row.placeId)) continue
-      const state = states.get(row.placeId)
-      if (!state)
-        throw new Error(
-          `Current Place locale without a base: ${row.placeId}/${row.locale}.`,
-        )
-      if (!state.locales) state.locales = []
-      const locales = state.locales
-      if (locales.some(locale => locale.row.locale === row.locale))
-        throw new Error(
-          `Multiple current Place locale versions for ${row.placeId}/${row.locale}.`,
-        )
-      locales.push({ bindingName: group.bindingName, row })
-    }
-  if (ownership) {
-    const links = (await ownership.currentDb
-      .select()
-      .from(currentSchema.placesDivision)
-      .where(eq(currentSchema.placesDivision.placeSnapshotId, ownership.scopeId))
-      .all()) as (typeof currentSchema.placesDivision.$inferSelect)[]
-    for (const link of links) {
-      const state = states.get(link.placeId)
-      if (!state)
-        throw new Error(
-          `Current Place Division link without a base: ${link.placeId}/${link.divisionId}.`,
-        )
-      const divisionLinks = state.divisionLinks ?? []
-      divisionLinks.push(link)
-      state.divisionLinks = divisionLinks
-    }
-  }
-  return [...states.values()]
-}
+export { loadCurrentPlaceHistory } from './placeHistoryBaseline.ts'
 
 export async function buildPlaceSql(
   input: BuildPlaceSqlInput,

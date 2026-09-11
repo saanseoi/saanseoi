@@ -1,5 +1,6 @@
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
 import type { NetTablePolicy } from '../local/netSqlitePlan.ts'
@@ -120,6 +121,12 @@ export async function captureResolvedPlaceDelivery(input: {
         historyRows: await loadCurrentPlaceHistory(historyTargets, {
           currentDb: current.drizzle as unknown as HarbourReadableDb,
           scopeId: input.sqlInput.snapshots.snapshotLineageId,
+          replayPlan: previous
+            ? await resolveSnapshotReplayPlan(
+                input.context.metaDb as unknown as HarbourReadableDb,
+                previous.snapshotId,
+              )
+            : [],
         }),
         sourceRows: await loadCurrentPlaceSources(sourceTargets),
         sourceResolutions: await loadPreviousPlaceSourceResolutions(

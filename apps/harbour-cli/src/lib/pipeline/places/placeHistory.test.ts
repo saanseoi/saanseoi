@@ -1,4 +1,4 @@
-import { Database } from 'bun:sqlite'
+import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -62,13 +62,14 @@ function fixture() {
     ]),
   ) as Map<string, ReplayShard>
   const plan: SnapshotReplayStep[] = []
+  let revision = 0
   async function run(
     places: EnrichedPlace[],
     binding = 'old',
     source = 'source',
     divisionSnapshotId = 'division-a',
   ) {
-    const snapshotId = `revision-${plan.length + 1}`
+    const snapshotId = `revision-${++revision}`
     const input: BuildPlaceSqlInput = {
       activeHistoryBindingName: binding,
       activeSourceBindingName: source,
@@ -78,6 +79,7 @@ function fixture() {
       historyRows: await loadCurrentPlaceHistory(historyTargets, {
         currentDb: drizzle({ client: current }) as never,
         scopeId: 'scope',
+        replayPlan: plan,
       }),
       datasetId: 'dataset',
       message: {
@@ -206,7 +208,11 @@ test('Places inherit independent base, locales and source resolutions across yea
     expect(
       old.query("SELECT isCurrent FROM placesI18n WHERE locale='zh-hant'").get(),
     ).toEqual({ isCurrent: 0 })
-    const states = await loadCurrentPlaceHistory(f.historyTargets)
+    const states = await loadCurrentPlaceHistory(f.historyTargets, {
+      currentDb: drizzle({ client: f.current }) as never,
+      scopeId: 'scope',
+      replayPlan: f.plan,
+    })
     expect(states[0]?.locales?.map(locale => locale.bindingName)).toEqual(['new'])
 
     await f.run([], 'new', 'source-next')
@@ -368,6 +374,80 @@ test('Places retain historical Division definitions and only update links when t
       { operation: 'update' },
       { operation: 'delete' },
     ])
+  } finally {
+    f.close()
+  }
+})
+
+test('forward Places ingest after rollback compares the restored predecessor and retains exact new journals', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    await f.run([row])
+    const tables = ['places', 'placesI18n', 'placesCells', 'placesDivision']
+    const restoredRows = new Map(
+      tables.map(table => [
+        table,
+        f.current
+          .query<Record<string, SQLQueryBindings>, []>(`SELECT * FROM ${table}`)
+          .all(),
+      ]),
+    )
+    const originalHash = row.versionHash
+    row.place.operatingStatus = 'temporarily_closed'
+    const english = row.place.i18n.find(locale => locale.locale === 'en')
+    if (!english) throw new Error('Missing English fixture')
+    english.name = 'Revised name'
+    row.versionHash = await hashPlaceMaterialisation(row.place, {
+      addressSnapshotId: 'address',
+      divisionSnapshotId: 'division',
+      addressId: null,
+      divisionIds: [],
+    })
+    await f.run([row], 'new')
+    const retained = getDatabase(f.databases, 'new')
+      .query('SELECT count(*) AS n FROM places')
+      .get()
+    // Restore the serving projection and ancestry, retaining the revoked revision's history flags.
+    for (const table of tables.toReversed())
+      f.current.query(`DELETE FROM ${table}`).run()
+    for (const table of tables)
+      for (const original of restoredRows.get(table) ?? []) {
+        const columns = Object.keys(original)
+        f.current
+          .query(
+            `INSERT INTO ${table}(${columns.map(column => `"${column}"`).join(',')}) VALUES(${columns.map(() => '?').join(',')})`,
+          )
+          .run(...columns.map(column => original[column] ?? null))
+      }
+    f.plan.splice(1)
+    const baseline = await loadCurrentPlaceHistory(f.historyTargets, {
+      currentDb: drizzle({ client: f.current }) as never,
+      scopeId: 'scope',
+      replayPlan: f.plan,
+    })
+    expect(baseline[0]?.row.versionHash).toBe(originalHash)
+    expect(
+      baseline[0]?.locales?.find(locale => locale.row.locale === 'en')?.row.name,
+    ).toBe('Original')
+    const changed = await f.run([row], 'new')
+    expect(changed.changes.join('')).toContain('placeI18n')
+    const replayed = await resolveSnapshotVersionState(f.plan, f.shards, [
+      'place',
+      'placeI18n',
+    ])
+    expect(
+      [...replayed.values()].find(value => value.recordType === 'place')?.versionHash,
+    ).toBe(row.versionHash)
+    expect(
+      [...replayed.values()].find(
+        value => value.recordType === 'placeI18n' && value.locale === 'en',
+      )?.shard.bindingName,
+    ).toBe('new')
+    expect(
+      getDatabase(f.databases, 'new').query('SELECT count(*) AS n FROM places').get(),
+    ).toEqual(retained)
+    expect((await f.run([row], 'new')).changes).toEqual([])
   } finally {
     f.close()
   }
