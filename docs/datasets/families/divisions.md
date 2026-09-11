@@ -341,12 +341,16 @@ domain release contains only snapshots that can be returned together. Planning-d
 canonical rows therefore never need an Overture cohort in order to be published, and a
 2006 planning cohort can be backfilled even when no 2006 Overture divisions exist. New
 Town identities are cohort-scoped; Planning Unit and Overture lineages use persistent
-identity. Updater-driven Planning Department intake verifies the mirrored archive's
-managed key and SHA-256 before parsing it. TPU ingestion accepts both the original
-historical packages and CSDI's equivalent deduplicated repackages, after verifying their
-provider-cell-key coverage. Historical Planning backfills retain verified derived
-Parquet locally by archive digest and preparation contract, allowing a retry to reuse
-source reconstruction without reusing mutable release materialisation state.
+identity. New Town source record keys and `PLAND:NEWTOWN` lookup identifiers use
+lowercase English-name slugs, with spaces, slashes and punctuation collapsed to single
+hyphens. Canonical UUIDs derive independently from the cohort and normalised publisher
+name; the original trilingual labels remain in source properties. Updater-driven
+Planning Department intake verifies the mirrored archive's managed key and SHA-256
+before parsing it. TPU ingestion accepts both the original historical packages and
+CSDI's equivalent deduplicated repackages, after verifying their provider-cell-key
+coverage. Historical Planning backfills retain verified derived Parquet locally by
+archive digest and preparation contract, allowing a retry to reuse source reconstruction
+without reusing mutable release materialisation state.
 
 Published domain releases are immutable. Adding another eligible secondary snapshot to
 an already published cohort creates the next trailing composition revision (`...-0` to

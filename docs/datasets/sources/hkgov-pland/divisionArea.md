@@ -234,29 +234,37 @@ resource release for each type.
 | 2021   | [`pland_rcd_1634023103904_16865`](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865) | `NewTown_2021` |       13 |
 
 The layers publish only English, Traditional Chinese and Simplified Chinese names—no
-stable feature code. The adapter derives a normalised English-name identifier within
-each cohort and creates a deterministic UUIDv5 canonical division from that cohort-
-scoped Planning Department identity. A 2006, 2011, 2016, or 2021 New Town therefore
-coexists with (and neither replaces nor is a geometry variant of) an Overture geographic
-town. Renames and splits are intentionally separate cohort records, so no cross- cohort
-or Overture bridge is inferred. This makes the geometry selectable as
+stable feature code. The adapter derives lowercase English-name slugs for
+`hkgovPlandNewTowns.sourceRecordId` and `PLAND:NEWTOWN` lookup identifiers. Spaces,
+slashes and punctuation collapse to single hyphens, with no leading or trailing hyphens:
+`Fanling/Sheung Shui` becomes `fanling-sheung-shui` and `Sha Tin - Ma On Shan area`
+becomes `sha-tin-ma-on-shan-area`. Empty slugs and duplicate slugs within a cohort are
+rejected. The prepared division and area artefacts use the same slug in their
+`newtown_id` and source references.
+
+Canonical UUIDv5 values derive independently from the cohort and normalised English
+publisher name: lowercase, trimmed, repeated whitespace collapsed to one space, and
+spaces around hyphens removed. A 2006, 2011, 2016, or 2021 New Town therefore coexists
+with (and neither replaces nor is a geometry variant of) an Overture geographic town.
+Renames and splits are intentionally separate cohort records, so no cross- cohort or
+Overture bridge is inferred. This makes the geometry selectable as
 `areas:hkgov-pland-new-town` for the corresponding planning division release.
 
 For the 2021 cohort, the curated Planning-domain `divisionCode` is a URL-safe,
-human-readable rendering of the publisher name, such as `tsuen-wan-tsing-yi-area`. It is
+human-readable rendering of the publisher name, such as `TSUEN_WAN_TSING_YI_AREA`. It is
 a SaanSeoi code for addressing the canonical Planning division, not a Planning
 Department source identifier; C&SD's numeric New Town keys remain in their separately
 reviewed identifier bridge.
 
-New Town lookup identifiers are the importer's normalised English publisher names, not
-publisher-issued codes or curated public Division codes. The selected API release set
-determines the cohort and canonical UUIDs. Reviewed C&SD numeric New Town mappings
-remain ingestion curations.
+New Town lookup identifiers are the importer's English-name slugs, not publisher-issued
+codes or curated public Division codes. The selected API release set determines the
+cohort and canonical UUIDs. Reviewed C&SD numeric New Town mappings remain ingestion
+curations.
 
-The trilingual publisher labels are retained verbatim on the native `hkgovPlandNewTowns`
-source row as `nameEn`, `nameZhHant`, and `nameZhHans`, then normalised into the
-associated canonical planning division's `divisionI18n` rows. No source-level locale
-rows are created.
+The trilingual publisher labels are retained verbatim in the native `hkgovPlandNewTowns`
+source row's `properties.NewTown_en`, `properties.NewTown_Tc`, and
+`properties.NewTown_Sc`, then normalised into the associated canonical planning
+division's `divisionI18n` rows. No source-level locale rows are created.
 
 The downloaded New Town artefacts contain known invalid rings: Tseung Kwan O in 2006,
 2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
