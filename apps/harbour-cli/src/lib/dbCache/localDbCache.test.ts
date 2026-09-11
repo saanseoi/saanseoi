@@ -132,7 +132,7 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(157)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(156)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(40)
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(104)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(56)

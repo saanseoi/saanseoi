@@ -1,3 +1,4 @@
+import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/searchIndex'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
@@ -38,6 +39,43 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       'utf8',
     )
     db.exec(sql)
+    const original = db.query('SELECT rowid, * FROM placeSearchFts').all()
+    db.exec(
+      "INSERT INTO places SELECT 'next', id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy FROM places",
+    )
+    db.exec(
+      "INSERT INTO placesI18n SELECT 'next', placeId, locale, name, nameAlts, brandName, brandNameAlts FROM placesI18n",
+    )
+    const sync = () =>
+      db.transaction(() => {
+        for (const statement of buildPlaceSearchSyncSql([
+          { scopeId: 'hk:overture:places', snapshotId: 'next' },
+        ]))
+          db.exec(statement)
+      })()
+    const beforePromotion = db.query('SELECT total_changes() AS n').get() as {
+      n: number
+    }
+    sync()
+    expect(db.query('SELECT rowid, * FROM placeSearchFts').all()).toEqual(original)
+    expect(db.query('SELECT total_changes() AS n').get()).toEqual({
+      n: beforePromotion.n + 1,
+    })
+    const beforeRepeat = db.query('SELECT total_changes() AS n').get()
+    sync()
+    expect(db.query('SELECT total_changes() AS n').get()).toEqual(beforeRepeat)
+    expect(db.query('SELECT snapshotId FROM placeSearchScopes').get()).toEqual({
+      snapshotId: 'next',
+    })
+    expect(db.query('SELECT count(*) AS n FROM placeSearchFts').get()).toEqual({ n: 1 })
+    expect(() =>
+      db.transaction(() => {
+        db.exec("UPDATE address2dI18n SET formattedAddress = 'Failed change'")
+        sync()
+        throw new Error('injected failure')
+      })(),
+    ).toThrow('injected failure')
+    expect(db.query('SELECT rowid, * FROM placeSearchFts').all()).toEqual(original)
     expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street Unit 12 Floor 3',
     })
