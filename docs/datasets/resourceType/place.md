@@ -10,7 +10,7 @@ Place snapshots are immutable once published. A later Overture release creates a
 snapshot and only creates history versions for changed place content, localisation, or
 the recorded address reference. The source table includes the publisher payload and
 source version for audit and rollback. Publisher address components remain in the source
-record's `rawProperties`; the public Place object exposes localised `freeformAddress`
+record's `properties`; the public Place object exposes localised `freeformAddress`
 values through PlaceI18n, not an `addresses` field.
 
 PlaceI18n provenance distinguishes provided, inferred, AI-translated, and human-verified

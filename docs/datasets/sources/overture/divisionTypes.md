@@ -48,7 +48,7 @@ city. Kowloon city retains `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area 
 
 Lok Ma Chau Loop is a reviewed level-4 macrohood. Technology and science parks may be
 hoods without a locality ancestor. Source classification assertions remain in
-`rawProperties`.
+`properties`.
 
 ### ZH-HANT
 
@@ -71,7 +71,7 @@ SaanSeoi 區劃使用 `category`、`class` 及 `level`，與來源的 `subtype` 
 
 國家參照點是獨立的行政 level-0 記錄。規劃及統計類別的地理 category 為
 `null`。城市保留來源 UUID；行政大區使用獨立識別碼，即使兩者幾何相同。落馬洲河套地區是經審核的 level-4
-macrohood。科技園及科學園等 hood 不一定有聚落祖先。來源分類保留於 `rawProperties`。
+macrohood。科技園及科學園等 hood 不一定有聚落祖先。來源分類保留於 `properties`。
 
 ### ZH-HANS
 
@@ -94,4 +94,4 @@ SaanSeoi 区划使用 `category`、`class` 及 `level`，与来源的 `subtype` 
 
 国家参照点是独立的行政 level-0 记录。规划及统计类别的地理 category 为
 `null`。城市保留来源 UUID；行政大区使用独立标识码，即使两者几何相同。落马洲河套地区是经审核的 level-4
-macrohood。科技园及科学园等 hood 不一定有聚落祖先。来源分类保留于 `rawProperties`。
+macrohood。科技园及科学园等 hood 不一定有聚落祖先。来源分类保留于 `properties`。

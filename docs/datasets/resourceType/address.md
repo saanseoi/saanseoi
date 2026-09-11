@@ -81,7 +81,7 @@ numeric member, an unambiguous Roman suffix is normalised to that Arabic style a
 recorded in a release processing action. `buildingNumberConnector` is `null` because ALS
 supplies no range connector, and `bbox` is derived from the retained geometry.
 `blockRef` is text, so alphanumeric and Roman values are preserved exactly. The original
-bilingual ALS object remains available in `rawProperties` as the evidence for these
+bilingual ALS object remains available in `properties` as the evidence for these
 projections.
 
 ## API support

@@ -69,7 +69,7 @@ include both land and nautical divisions, and as such <black>isLand</black> and
 ### Dropped Fields
 
 These fields are not projected into compatibility columns or canonical attributes. They
-remain in <black>rawProperties</black> where the source row remains available for
+remain in <black>properties</black> where the source row remains available for
 auditability:
 
 #### Due to redundancy
@@ -133,7 +133,7 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 ### 捨棄欄位
 
-以下欄位不會投影為兼容性欄位或標準屬性，而會保留於 <black>rawProperties</black>
+以下欄位不會投影為兼容性欄位或標準屬性，而會保留於 <black>properties</black>
 的來源記錄中供稽核：
 
 #### 由於重複
@@ -196,7 +196,7 @@ SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區�
 
 ### 舍弃字段
 
-以下字段不会投影为兼容性字段或标准属性，而会保留在 <black>rawProperties</black>
+以下字段不会投影为兼容性字段或标准属性，而会保留在 <black>properties</black>
 的源记录中供稽核：
 
 #### 由于重复

@@ -18,9 +18,9 @@ and territorial coverage flags are true.
 
 The canonical layer normalises relationship IDs, preserves bbox and transformed
 geometry, records provider identifiers and provenance, and keeps provider flags exactly
-as received. Source-specific fields remain available through `rawProperties` and the
-source tables. External identifiers are resolved through reviewed bridge fixtures when
-they do not equal canonical IDs.
+as received. Source-specific fields remain available through `properties` and the source
+tables. External identifiers are resolved through reviewed bridge fixtures when they do
+not equal canonical IDs.
 
 Overture geometry uploads are anchored to the exact cohort of the primary division
 snapshot. Independently versioned provider variants, such as the Home Affairs Department

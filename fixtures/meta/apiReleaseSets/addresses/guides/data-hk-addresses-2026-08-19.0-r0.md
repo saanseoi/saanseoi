@@ -30,7 +30,7 @@ to the one you need.
 To inspect the original ALS object behind this release, use the
 [Addresses source-record endpoint](/docs#tag/Sources/operation/listAddressSourceRecordsV0)
 with the required `sourceRelease` query parameter. The response returns the retained
-object under `rawProperties`.
+object under `properties`.
 
 ## Requesting Data
 

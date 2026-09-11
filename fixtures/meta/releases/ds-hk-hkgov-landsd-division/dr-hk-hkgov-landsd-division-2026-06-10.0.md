@@ -66,7 +66,7 @@ future Places projection; they are not silently recast as divisions.
 
 ### Source fields
 
-Publisher keys remain in the source record's <black>rawProperties</black>. The complete
+Publisher keys remain in the source record's <black>properties</black>. The complete
 native feature and properties remain available through the source-record endpoint.
 
 ### Dropped Fields
@@ -123,7 +123,7 @@ domain。水文及地形記錄會完整保留為原生來源主張，以供未�
 
 ### 來源欄位
 
-發布者 key 會保留在來源記錄的 <black>rawProperties</black>
+發布者 key 會保留在來源記錄的 <black>properties</black>
 中。完整原生 feature 及屬性可透過來源記錄端點取得。
 
 ### 不公開欄位
@@ -178,7 +178,7 @@ domain。水文及地形记录会完整保留为原生来源断言，以供未�
 
 ### 来源字段
 
-发布者 key 会保留在源记录的 <black>rawProperties</black>
+发布者 key 会保留在源记录的 <black>properties</black>
 中。完整原生 feature 及属性可通过源记录端点取得。
 
 ### 不公开字段
