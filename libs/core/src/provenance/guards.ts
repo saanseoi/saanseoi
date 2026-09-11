@@ -79,7 +79,7 @@ export const statisticGuardDefinitions: GuardDefinition[] = [
   {
     id: 'statistic-dimension-field-uniqueness',
     summary:
-      'Fields must be unique within each source feature, reference period and dimension group.',
+      'Fields and geography metadata must be unambiguous within each dataset, exact reference period and semantic geography.',
     consequence: 'block-ingestion',
   },
 ]

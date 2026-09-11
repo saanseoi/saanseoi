@@ -1,5 +1,6 @@
 import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
+import { listRetainedGeometrySnapshotIds } from './geometrySnapshotRetention'
 import {
   and,
   buildApiCatalogRevisionCode,
@@ -3455,7 +3456,7 @@ export async function ensureDraftSnapshotForRelease(
     .limit(1)
     .get()
 
-  if (latestForCohort?.status === 'draft') {
+  if (latestForCohort?.status === 'draft' && resourceType !== 'divisionStatistic') {
     await preserveOrPromoteGeometryStatus(latestForCohort.id)
     return latestForCohort
   }
@@ -5658,20 +5659,18 @@ export async function listCurrentSnapshotCleanupCandidates(
   }
   const protectedSnapshotIds = new Set(protectedRows.map(row => row.snapshotId))
 
-  return snapshots.filter(
-    row =>
-      !protectedSnapshotIds.has(row.snapshotId) &&
-      !isExplicitlyRequestableDivisionGeometry(row.resourceType),
-  )
-}
+  if (
+    snapshots.some(
+      row =>
+        row.resourceType === 'divisionArea' || row.resourceType === 'divisionBoundary',
+    )
+  ) {
+    for (const snapshotId of await listRetainedGeometrySnapshotIds(db)) {
+      protectedSnapshotIds.add(snapshotId)
+    }
+  }
 
-/**
- * Divisions can resolve a published geometry snapshot by its explicit variant
- * and cohort, independently of the active release-set composition. Retain
- * those materialisations in the current store while they remain published.
- */
-function isExplicitlyRequestableDivisionGeometry(resourceType: ResourceType) {
-  return resourceType === 'divisionArea' || resourceType === 'divisionBoundary'
+  return snapshots.filter(row => !protectedSnapshotIds.has(row.snapshotId))
 }
 
 export async function resolveActiveSnapshotForType(
@@ -5780,6 +5779,22 @@ export async function resolveActiveSnapshotForType(
   )
 }
 
+/** A pinned Statistics revision may belong to an earlier published catalogue. */
+function statisticsReleaseSetCatalogCondition(
+  resourceType: ResourceType,
+  args: { catalogRevision?: string; releaseSet?: string; domainCode: string },
+) {
+  if (resourceType !== 'divisionStatistic' || !args.releaseSet || args.catalogRevision)
+    return undefined
+  return sql`exists (
+    select 1 from ${metaApiCatalogRevisionReleaseSets} as membership
+    join ${metaApiReleaseSets} as release_set on release_set.id = membership.apiReleaseSetId
+    where membership.apiCatalogRevisionId = ${metaApiCatalogRevisions.id}
+      and membership.domainCode = ${args.domainCode}
+      and release_set.code = ${args.releaseSet}
+  )`
+}
+
 export async function resolveApiReleaseSetForRequest(
   db: HarbourReadableDb,
   resourceType: ResourceType,
@@ -5815,6 +5830,7 @@ export async function resolveApiReleaseSetForRequest(
         eq(metaApiCatalogRevisions.apiVersionId, apiVersion.id),
         eq(metaApiCatalogRevisions.regionCode, args.regionCode),
         eq(metaApiCatalogRevisions.status, 'current'),
+        statisticsReleaseSetCatalogCondition(resourceType, args),
         args.catalogRevision
           ? eq(metaApiCatalogRevisions.code, args.catalogRevision)
           : undefined,
@@ -5927,6 +5943,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
         eq(metaApiCatalogRevisions.apiVersionId, apiVersion.id),
         eq(metaApiCatalogRevisions.regionCode, args.regionCode),
         eq(metaApiCatalogRevisions.status, 'current'),
+        statisticsReleaseSetCatalogCondition(resourceType, args),
         args.catalogRevision
           ? eq(metaApiCatalogRevisions.code, args.catalogRevision)
           : undefined,
