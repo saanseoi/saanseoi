@@ -438,6 +438,19 @@ export function resolveCachePruneOperation(
     (tableName === 'divisions' || tableName === 'divisionsI18n')
   )
     return null
+  // Supplementary roots and returning members select immutable components from
+  // earlier editions, including closed hashes. Keep those rows in local mirrors.
+  if (
+    bindingName.startsWith('DB_HISTORY_') &&
+    ['address2d', 'address2dI18n'].includes(tableName)
+  ) {
+    const id = tableName === 'address2d' ? 'id' : 'addressId'
+    return {
+      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'opa-%'`,
+      tableName,
+      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'opa-%'`,
+    }
+  }
   if (
     !/^DB_(?:HISTORY|SOURCE)_[A-Z]{2}_\d{4}$/.test(bindingName) ||
     !VERSION_TABLES_WITH_CURRENT_ROWS.has(tableName)
