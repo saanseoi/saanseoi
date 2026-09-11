@@ -5,7 +5,7 @@ import { createHash } from '@repo/core/pipeline/utils'
 import type { NormalisedDivisionArea } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { calculateGeoJsonBbox, type GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { currentSchema, metaSchema } from '@repo/db'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, ne } from 'drizzle-orm'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
@@ -202,8 +202,28 @@ export async function findIdenticalCenstatdGeometrySnapshot(
     })),
   )
 
+  const publicationTable =
+    plan.resourceType === 'divisionArea'
+      ? currentSchema.divisionAreaPublicationState
+      : currentSchema.divisionBoundaryPublicationState
   for (const candidate of candidates) {
     if (candidate.status === 'archived') continue
+    const receipt = await currentDb
+      .select({ snapshotId: publicationTable.snapshotId })
+      .from(publicationTable)
+      .where(
+        and(
+          eq(publicationTable.snapshotId, candidate.id),
+          eq(
+            publicationTable.scopeId,
+            JSON.stringify([candidate.snapshotLineageId, candidate.cohortKey]),
+          ),
+          isNotNull(publicationTable.preparedAt),
+          ne(publicationTable.publicationToken, ''),
+        ),
+      )
+      .get()
+    if (!receipt) continue
     const materialisedRows =
       plan.resourceType === 'divisionArea'
         ? await currentDb

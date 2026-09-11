@@ -70,7 +70,7 @@ export async function assertDivisionReferences(
       ? [
           {
             missingIds: [...new Set(missingIds)],
-            record: row.source.rawProperties,
+            record: row.source.properties,
           },
         ]
       : []

@@ -1,3 +1,10 @@
+import {
+  buildBeginPublicationSql,
+  buildCompletePublicationSql,
+  buildGuardedPublicationSql,
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -48,6 +55,26 @@ export async function replayGeometryIntoRemote(
     )
     const currentTable =
       plan.resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
+    const stateTable =
+      plan.resourceType === 'divisionArea'
+        ? 'divisionAreaPublicationState'
+        : 'divisionBoundaryPublicationState'
+    const receipt = skipCanonicalMaterialisation
+      ? null
+      : readGeometryCacheRows(
+          context.state.dbCacheDir,
+          currentBindingName,
+          `SELECT * FROM "${stateTable}" WHERE snapshotId = ${geometrySqlLiteral(snapshotId)}`,
+        )[0]
+    if (!skipCanonicalMaterialisation && !receipt?.preparedAt)
+      throw new Error('Geometry publication preparation is incomplete.')
+    const publication = receipt
+      ? ({
+          ...receipt,
+          table: stateTable,
+          timestamp: receipt.preparedAt,
+        } as PublicationPreparation)
+      : null
     const historyTable = currentTable
     const sourceTable = resolveGeometrySourceTable(plan)
     const currentRows = skipCanonicalMaterialisation
@@ -97,11 +124,33 @@ export async function replayGeometryIntoRemote(
               bindingName: currentBindingName,
               databaseId: context.state.bindings[currentBindingName]?.databaseId,
               name: 'current' as const,
-              sql: geometryReplayStatements(
-                currentTable,
-                currentRows,
-                geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId),
-              ),
+              sql: (function* () {
+                if (!publication)
+                  throw new Error('Missing geometry publication receipt.')
+                yield buildBeginPublicationSql(publication)
+                let count = 0
+                yield buildGuardedPublicationSql(publication, [
+                  geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId),
+                ])
+                for (const statement of geometryIterateUpsertSql(
+                  currentTable,
+                  (function* () {
+                    for (const row of currentRows) {
+                      count += 1
+                      yield row
+                    }
+                  })(),
+                ))
+                  yield buildGuardedPublicationSql(publication, [statement])
+                yield buildCompletePublicationSql({
+                  ...publication,
+                  validationSql: buildPublicationRowCountSql(
+                    currentTable,
+                    snapshotId,
+                    count,
+                  ),
+                })
+              })(),
             },
           ]
         : []),

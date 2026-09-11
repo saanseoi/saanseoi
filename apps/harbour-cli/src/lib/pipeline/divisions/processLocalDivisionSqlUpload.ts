@@ -1,3 +1,11 @@
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import {
+  buildBeginPublicationSql,
+  buildCompletePublicationSql,
+  buildGuardedPublicationSql,
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { mkdir } from 'node:fs/promises'
 import {
@@ -344,6 +352,13 @@ export async function processLocalDivisionSqlUpload(
     let sqlArtefactCount = 0
     let completionCounts: Record<string, number> = {}
     let importProgressClient: HarbourClient = harbourClient
+    const publication: PublicationPreparation = {
+      table: 'divisionPublicationState',
+      scopeId: versionInsertContext.snapshotLineageId,
+      snapshotId: versionInsertContext.snapshotId,
+      publicationToken: releaseId,
+      timestamp: processingRunStartedAt,
+    }
     const deliveryOutputs = await deliverSqlPhase(
       {
         context: dbContext,
@@ -377,11 +392,6 @@ export async function processLocalDivisionSqlUpload(
               ),
             )
           : new Map<string, DivisionVersionSnapshot>()
-        if (versionInsertContext.parentSnapshotId && currentRows.size === 0) {
-          throw new Error(
-            `Parent division snapshot ${versionInsertContext.parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
-          )
-        }
         const currentSourceRows =
           previewPlan.source === 'overture'
             ? await getMergedCurrentSourceOvertureDivisionMap(
@@ -552,6 +562,14 @@ export async function processLocalDivisionSqlUpload(
           },
           releaseCode,
         )
+
+        for (const file of [currentInitFile, currentFile]) {
+          if (file)
+            file.sql = buildGuardedPublicationSql(
+              publication,
+              splitSqlStatements(file.sql),
+            )
+        }
 
         const provenanceRetainStartedAt = Date.now()
         progress.beginPhase(
@@ -745,6 +763,11 @@ export async function processLocalDivisionSqlUpload(
               }
             },
             async () => {
+              await executeSqlText(
+                importTargets.current,
+                buildBeginPublicationSql(publication),
+                importOptions,
+              )
               const currentInitKey = manifest.currentInitKey
 
               if (currentInitKey) {
@@ -777,6 +800,25 @@ export async function processLocalDivisionSqlUpload(
                     importOptions,
                     progressReporter,
                   ),
+              )
+              await executeSqlText(
+                importTargets.current,
+                buildCompletePublicationSql({
+                  ...publication,
+                  validationSql: [
+                    buildPublicationRowCountSql(
+                      'divisions',
+                      publication.snapshotId,
+                      divisionState.processedRows,
+                    ),
+                    buildPublicationRowCountSql(
+                      'divisionsI18n',
+                      publication.snapshotId,
+                      divisionState.localisedRows,
+                    ),
+                  ].join(' AND '),
+                }),
+                importOptions,
               )
             },
             () =>

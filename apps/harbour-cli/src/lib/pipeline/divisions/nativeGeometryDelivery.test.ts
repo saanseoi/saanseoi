@@ -84,6 +84,7 @@ test('native geometry resumes exact mutations including old history/source closu
       releaseId,
       releaseCode: 'new',
       snapshotId: 'new',
+      snapshotLineageId: 'geometry-lineage',
       parentSnapshotId: 'old',
       cohortKey: '2026',
     }
@@ -113,6 +114,13 @@ test('native geometry resumes exact mutations including old history/source closu
       }),
     ).rejects.toThrow('geometry interrupted')
     expect(triggerCreated).toBe(true)
+    expect(
+      current
+        .query(
+          "SELECT status, preparedAt FROM divisionAreaPublicationState WHERE snapshotId='new'",
+        )
+        .get(),
+    ).toEqual({ status: 'publishing', preparedAt: null })
     expect(await readNativeGeometryVersion(context, releaseId, 'divisionArea')).toEqual(
       version,
     )
@@ -135,6 +143,13 @@ test('native geometry resumes exact mutations including old history/source closu
       count: 2,
     })
     expect(result.churn.byType).toBeInstanceOf(Map)
+    expect(
+      current
+        .query(
+          "SELECT status, preparedAt IS NOT NULL AS prepared FROM divisionAreaPublicationState WHERE snapshotId='new'",
+        )
+        .get(),
+    ).toEqual({ status: 'publishing', prepared: 1 })
     expect(
       history
         .query(
@@ -234,6 +249,7 @@ test('canonical replacement retains only real publisher geometry and resolves it
         releaseId: 'release',
         releaseCode: 'release',
         snapshotId: 'snapshot',
+        snapshotLineageId: 'geometry-lineage',
         parentSnapshotId: null,
         cohortKey: '2026',
         publisherRows: [publisher],
