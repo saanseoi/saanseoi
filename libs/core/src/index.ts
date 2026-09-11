@@ -1,4 +1,5 @@
 export * from './codes'
+export * from './displayName'
 export * from './types'
 export * from './urls'
 export * from './releases'

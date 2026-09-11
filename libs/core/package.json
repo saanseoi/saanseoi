@@ -12,6 +12,7 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./displayName": "./src/displayName.ts",
     "./provenance/auditPageIndex": "./src/provenance/auditPageIndex.ts",
     "./provenance/auditAlsDecisions": "./src/provenance/auditAlsDecisions.ts",
     "./provenance/auditSearch": "./src/provenance/auditSearch.ts",
