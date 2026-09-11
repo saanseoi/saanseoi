@@ -603,6 +603,7 @@ export async function processLocalPlaceSqlUpload(
         await refreshRemoteMetaCache(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
+          releaseId,
         )
         if (!postPublishCacheError)
           await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)

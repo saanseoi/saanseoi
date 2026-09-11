@@ -13,6 +13,7 @@ import { deliveryFileSha256, sha256 } from '../local/sqlDeliveryFiles.ts'
 import type { PlaceAddress3dReadObserver } from './placeAddress3d.ts'
 import { createPlaceAddress3dMatcher } from './placeAddress3d'
 import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
+import { resolvePlaceDivisionDependency } from './placeSnapshotDependencies.ts'
 import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -39,7 +40,7 @@ import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressR
 import { createHash } from '@repo/core/pipeline/utils'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { currentSchema, metaSchema } from '@repo/db'
-import { and, eq, ne, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { mapWithConcurrency } from '../local/orchestrator.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import type {
@@ -206,76 +207,7 @@ export async function resolvePlaceSnapshots(
       `Places preparation requires a locally replayed projection of historical Address snapshot ${address.id}; the current serving scope has advanced.`,
     )
 
-  const addressRow = await currentDb
-    .select({
-      divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
-    })
-    .from(currentSchema.address2d)
-    .where(
-      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${address.id})`,
-    )
-    .limit(1)
-    .get()
-  if (!addressRow?.divisionSnapshotId) {
-    throw new Error(
-      `Selected Places address snapshot ${address.id} has no division snapshot from which to derive Place divisions.`,
-    )
-  }
-
-  const inconsistentAddress = await currentDb
-    .select({ id: currentSchema.address2d.id })
-    .from(currentSchema.address2d)
-    .where(
-      and(
-        sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${address.id})`,
-        ne(currentSchema.address2d.divisionSnapshotId, addressRow.divisionSnapshotId),
-      ),
-    )
-    .limit(1)
-    .get()
-  if (inconsistentAddress) {
-    throw new Error(
-      `Selected Places address snapshot ${address.id} contains multiple division snapshots; refusing to build an ambiguous Place index.`,
-    )
-  }
-
-  const divisionPublication = await currentDb
-    .select({ snapshotId: currentSchema.divisionPublicationState.snapshotId })
-    .from(currentSchema.divisionPublicationState)
-    .where(
-      and(
-        eq(
-          currentSchema.divisionPublicationState.scopeId,
-          addressRow.divisionSnapshotId,
-        ),
-        sql`${currentSchema.divisionPublicationState.preparedAt} is not null`,
-      ),
-    )
-    .get()
-  if (!divisionPublication)
-    throw new Error(
-      `Places require the complete Division projection ${addressRow.divisionSnapshotId}.`,
-    )
-  const division = await metaDb
-    .select({
-      id: metaSchema.metaSnapshots.id,
-      status: metaSchema.metaSnapshots.status,
-    })
-    .from(metaSchema.metaSnapshots)
-    .where(
-      and(
-        eq(metaSchema.metaSnapshots.id, divisionPublication.snapshotId),
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
-        eq(metaSchema.metaSnapshots.status, 'published'),
-      ),
-    )
-    .limit(1)
-    .get()
-  if (!division) {
-    throw new Error(
-      `Places require the published division snapshot ${addressRow.divisionSnapshotId} selected by address snapshot ${address.id}.`,
-    )
-  }
+  const division = await resolvePlaceDivisionDependency(metaDb, currentDb, address.id)
   if (!recordedAddressId)
     await recordPlaceAddressAssembly(metaDb, {
       snapshotId: place.id,

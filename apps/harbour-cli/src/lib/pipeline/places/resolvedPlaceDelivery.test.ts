@@ -300,11 +300,13 @@ test('verified bootstrap mirror plans an actual Place delta without changing its
     const config = join(f.root, 'bootstrap-targets.json')
     const bundle = join(f.root, 'bundle')
     const mirrorRoot = join(f.root, 'production-mirror')
-    await Bun.write(spec, JSON.stringify(f.context.state.files))
+    const files = f.context.state.files
+    if (!files) throw new Error('Missing bootstrap fixture files')
+    await Bun.write(spec, JSON.stringify(files))
     await Bun.write(
       config,
       JSON.stringify({
-        d1_databases: Object.keys(f.context.state.files).map((binding, index) => ({
+        d1_databases: Object.keys(files).map((binding, index) => ({
           binding,
           database_name: binding.toLowerCase(),
           database_id: `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,

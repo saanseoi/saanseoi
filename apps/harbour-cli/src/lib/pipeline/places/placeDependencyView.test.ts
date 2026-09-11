@@ -13,6 +13,8 @@ import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
 import { readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
+import { resolvePlaceDivisionDependency } from './placeSnapshotDependencies.ts'
+import { currentSchema } from '@repo/db'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const init = (family: 'meta' | 'history' | 'current') => {
@@ -31,6 +33,118 @@ const insert = (db: Database, table: string, row: Record<string, unknown>) => {
     ) as never[]),
   )
 }
+
+test('empty exact Address dependencies resolve from metadata and reject missing or substituted Division selections', async () => {
+  const meta = init('meta')
+  const history = init('history')
+  const current = init('current')
+  let view: PlaceDependencyView | undefined
+  try {
+    for (const [id, resourceType] of [
+      ['empty-address', 'address'],
+      ['empty-division', 'division'],
+      ['unrecorded-address', 'address'],
+    ])
+      insert(meta, 'snapshots', {
+        id,
+        code: id,
+        resourceType,
+        cohortKey: '2025',
+        status: 'published',
+      })
+    insert(meta, 'dataShards', {
+      id: 'history',
+      shardType: 'history',
+      regionCode: 'hk',
+      year: '2025',
+      environment: 'preview',
+      databaseName: 'history',
+      databaseId: 'history',
+      bindingName: 'DB_HISTORY',
+      status: 'active',
+      versionHash: 'history',
+    })
+    for (const snapshotId of ['empty-address', 'empty-division'])
+      insert(meta, 'snapshotShardAssignments', { snapshotId, dataShardId: 'history' })
+    insert(meta, 'snapshotAssembly', {
+      id: 'assembly',
+      code: 'assembly',
+      resourceType: 'address',
+      version: 1,
+      status: 'scoped',
+      versionHash: 'assembly',
+    })
+    insert(meta, 'snapshotAssemblyRuns', {
+      id: 'empty',
+      snapshotId: 'empty-address',
+      snapshotAssemblyId: 'assembly',
+      status: 'selected',
+      selectionSummaryJson: { lookupSnapshotIds: { division: 'empty-division' } },
+    })
+    const metaDb = createLocalHarbourDb(meta)
+    view = await PlaceDependencyView.create({
+      metaDb,
+      historyTargets: [
+        { bindingName: 'DB_HISTORY', db: createLocalHarbourDb(history) },
+      ],
+    })
+    const dependencyDb = await view.prepare('empty-address')
+    expect(
+      await resolvePlaceDivisionDependency(metaDb, dependencyDb, 'empty-address'),
+    ).toEqual({ id: 'empty-division' })
+    expect(await dependencyDb.select().from(currentSchema.address2d).all()).toEqual([])
+    await expect(view.prepare('unrecorded-address')).rejects.toThrow(
+      'no recorded exact Division dependency',
+    )
+    insert(current, 'divisionPublicationState', {
+      scopeId: 'division-scope',
+      snapshotId: 'newer-division',
+      status: 'current',
+      publicationToken: 'new',
+      preparedAt: 'complete',
+    })
+    await expect(
+      resolvePlaceDivisionDependency(
+        metaDb,
+        createLocalHarbourDb(current),
+        'empty-address',
+      ),
+    ).rejects.toThrow('complete exact Division projection empty-division')
+    insert(current, 'addressPublicationState', {
+      scopeId: 'address-scope',
+      snapshotId: 'empty-address',
+      status: 'current',
+      publicationToken: 'old',
+      preparedAt: 'complete',
+    })
+    current.exec("UPDATE divisionPublicationState SET snapshotId='empty-division'")
+    insert(current, 'address2d', {
+      snapshotId: 'address-scope',
+      id: 'inconsistent',
+      divisionSnapshotId: 'other-scope',
+    })
+    await expect(
+      resolvePlaceDivisionDependency(
+        metaDb,
+        createLocalHarbourDb(current),
+        'empty-address',
+      ),
+    ).rejects.toThrow('different Division dependency')
+    current.exec("UPDATE address2d SET divisionSnapshotId='division-scope'")
+    expect(
+      await resolvePlaceDivisionDependency(
+        metaDb,
+        createLocalHarbourDb(current),
+        'empty-address',
+      ),
+    ).toEqual({ id: 'empty-division' })
+  } finally {
+    await view?.close()
+    meta.close()
+    history.close()
+    current.close()
+  }
+})
 
 test('exact historical Place dependencies replay independent locale shards and survive fresh and incremental FTS', async () => {
   const meta = init('meta')
