@@ -114,16 +114,21 @@ record's detailed source evidence. Detail requests resolve IDs across both membe
 Direct ALS matches create no duplicate supplementary Address.
 
 `GET /addresses/v0/search` requires a declared `match` mode, so callers can make the
-precision/recall trade-off visible in their request. `exact` searches only published
-building-number aliases; `range` also accepts the importer’s auditable derived range
-members. A bare numeric stem therefore does not match a suffixed range. `prefix` and
-`full-text` search the rebuilt bilingual address index, while `component` requires one
-of `formatted`, `building`, `number`, `block`, `phase`, `estate`, or `street` and
-searches only that indexed component. Search treats canonical block abbreviations and
-their English long forms as equivalent: `BLK`/block, `BLDG`/building, `TWR`/tower,
-`HSE`/house, and `APT`/apartment (including plurals). The response records the query and
-mode in document metadata. The index is rebuilt whenever the address snapshot changes
-and is not an independent source of canonical data.
+precision/recall trade-off visible in their request. Search supports only the latest
+published release; historical selectors return `400 historical_search_unavailable`. Use
+list and detail endpoints for historical addresses. The incremental index is finalised
+once after a successful upload sequence.
+
+The `match` mode determines precision: `exact` searches only published building-number
+aliases; `range` also accepts the importer’s auditable derived range members. A bare
+numeric stem therefore does not match a suffixed range. `prefix` and `full-text` search
+the rebuilt bilingual address index, while `component` requires one of `formatted`,
+`building`, `number`, `block`, `phase`, `estate`, or `street` and searches only that
+indexed component. Search treats canonical block abbreviations and their English long
+forms as equivalent: `BLK`/block, `BLDG`/building, `TWR`/tower, `HSE`/house, and
+`APT`/apartment (including plurals). The response records the query and mode in document
+metadata. The index is rebuilt whenever the address snapshot changes and is not an
+independent source of canonical data.
 
 The `compact` and `default` profiles return localised formatted addresses, `map` adds
 point geometry and bounding boxes, and `full` adds identifiers, source attribution, and

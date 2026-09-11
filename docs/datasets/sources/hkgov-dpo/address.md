@@ -1,5 +1,13 @@
 # HKGov DPO ALS addresses
 
+ALS upload sequences defer Address search finalisation until all selected source
+releases succeed. Without `--defer-api-release-set`, `hkgov-dpo:ingest` reconciles once
+at the end, including when completed releases are skipped on retry. With that option,
+the enclosing initialiser performs reconciliation. A curation stop or failed upload
+leaves the existing search index intact. Search indexes only the current published
+selection and applies differences in indexed content; advancing a snapshot alone does
+not rewrite its search documents.
+
 Unchanged open ALS assertions retain their original release ID and timestamps. Source
 retirement compares complete incoming membership, with indexed omission updates;
 retained retirement plans traverse row IDs monotonically in bounded transactions.
