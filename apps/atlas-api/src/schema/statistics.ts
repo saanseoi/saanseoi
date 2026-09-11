@@ -109,6 +109,15 @@ const StatisticResourceSchema = z
           }),
         geography: z
           .object({
+            namespace: z
+              .string()
+              .optional()
+              .openapi({
+                description: openApiText(
+                  'openapi_statistics_geography_namespace_description',
+                ),
+                examples: ['housing-market-area:Central'],
+              }),
             kind: z.string().openapi({
               description: openApiText('openapi_statistics_geography_kind_description'),
               examples: ['area', 'district', 'building-group', 'housing-estate'],
@@ -161,10 +170,20 @@ const StatisticResourceSchema = z
           .openapi({
             description: openApiText('openapi_statistics_geography_description'),
           }),
-        dimensions: z.record(z.string(), z.string()).openapi({
-          description: openApiText('openapi_statistics_dimensions_description'),
-          examples: [{ 'housing-sector': 'public-rental' }, { sex: 'all' }, {}],
+        fieldDefinitionHashes: z.record(z.string(), z.string()).openapi({
+          description: openApiText(
+            'openapi_statistics_field_definition_hashes_description',
+          ),
         }),
+        fieldSources: z
+          .record(
+            z.string(),
+            z.object({ sourceReleaseId: z.string(), sourceFeatureRef: z.string() }),
+          )
+          .optional()
+          .openapi({
+            description: openApiText('openapi_statistics_field_sources_description'),
+          }),
         values: z.record(z.string(), z.string()).openapi({
           description: openApiText('openapi_statistics_values_description'),
           examples: [
@@ -299,7 +318,8 @@ const IncludeSchema = z
   .optional()
   .openapi({
     description: openApiText('openapi_statistics_include_description'),
-    examples: ['fields,divisions', 'areas:hkgov-censtatd', 'none'],
+    default: 'fields',
+    examples: ['fields', 'fields,divisions', 'areas:hkgov-censtatd', 'none'],
   })
 
 const CommonQueryShape = {
@@ -567,6 +587,7 @@ const IncludedStatisticResourceSchema = z.union([
             ),
             examples: ['QTR_PRH', 't_ma', 'POPN_D'],
           }),
+          versionHash: z.string(),
           dimensions: z.record(z.string(), z.string()).openapi({
             description: openApiText('openapi_statistics_field_dimensions_description'),
             examples: [{ 'housing-sector': 'public-rental' }, { sex: 'all' }, {}],
