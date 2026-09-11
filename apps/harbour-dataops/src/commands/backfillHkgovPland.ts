@@ -47,7 +47,7 @@ type PreparedArtefactManifest = {
   sourceArchiveSha256: string
   sourceVersion: string
   parserContractVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
   outputByteLength: number
   outputSha256: string
 }
@@ -56,7 +56,7 @@ type NativePlandPrepare = (options: {
   inputFile: string
   outputFile: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) => Promise<unknown>
 
 const PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION = 1
@@ -198,7 +198,7 @@ export async function runHkgovPlandBackfillCommand(
           source,
           sourceArchiveSha256,
           sourceVersion: release.year,
-          type,
+          resourceType: type,
         }),
       )
     }
@@ -216,7 +216,7 @@ export async function runHkgovPlandBackfillCommand(
         release,
         source,
         target,
-        type,
+        resourceType: type,
         forceUpload: continueUpload,
         runUploadCommand: dependencies.runUploadCommand,
       })
@@ -240,7 +240,7 @@ async function prepareCachedArtefact(args: {
   source: string
   sourceArchiveSha256: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) {
   const cacheDirectory = join(
     args.cacheRoot,
@@ -249,18 +249,18 @@ async function prepareCachedArtefact(args: {
     args.sourceArchiveSha256,
     args.sourceVersion,
   )
-  const outputFile = join(cacheDirectory, `${args.type}.parquet`)
-  const manifestFile = join(cacheDirectory, `${args.type}.manifest.json`)
+  const outputFile = join(cacheDirectory, `${args.resourceType}.parquet`)
+  const manifestFile = join(cacheDirectory, `${args.resourceType}.manifest.json`)
   const expectedManifest = {
     sourceArchiveSha256: args.sourceArchiveSha256,
     sourceVersion: args.sourceVersion,
     parserContractVersion: args.parserContractVersion,
-    type: args.type,
+    type: args.resourceType,
   } as const
 
   if (await isValidPreparedArtefact(outputFile, manifestFile, expectedManifest)) {
     console.log(
-      `Reusing cached prepared ${args.source} ${args.sourceVersion} ${args.type} geometry.`,
+      `Reusing cached prepared ${args.source} ${args.sourceVersion} ${args.resourceType} geometry.`,
     )
     return outputFile
   }
@@ -268,11 +268,11 @@ async function prepareCachedArtefact(args: {
   await mkdir(cacheDirectory, { recursive: true })
   const temporaryOutputFile = join(
     cacheDirectory,
-    `.${args.type}-${randomUUID()}.parquet`,
+    `.${args.resourceType}-${randomUUID()}.parquet`,
   )
   const temporaryManifestFile = join(
     cacheDirectory,
-    `.${args.type}-${randomUUID()}.manifest.json`,
+    `.${args.resourceType}-${randomUUID()}.manifest.json`,
   )
 
   try {
@@ -280,7 +280,7 @@ async function prepareCachedArtefact(args: {
       inputFile: args.inputFile,
       outputFile: temporaryOutputFile,
       sourceVersion: args.sourceVersion,
-      type: args.type,
+      resourceType: args.resourceType,
     })
     const output = await readFile(temporaryOutputFile)
     const outputStats = await stat(temporaryOutputFile)
@@ -320,7 +320,7 @@ async function isValidPreparedArtefact(
       manifest.sourceArchiveSha256 !== expected.sourceArchiveSha256 ||
       manifest.sourceVersion !== expected.sourceVersion ||
       manifest.parserContractVersion !== expected.parserContractVersion ||
-      manifest.type !== expected.type ||
+      manifest.resourceType !== expected.resourceType ||
       typeof manifest.outputByteLength !== 'number' ||
       !isSha256(manifest.outputSha256)
     ) {
@@ -401,7 +401,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         inputFile: sourceArchivePath,
         outputFile: type === 'division' ? divisionFile : divisionAreaFile,
         sourceVersion,
-        type,
+        resourceType: type,
       })
     }
     const invocationCwd = process.env.INIT_CWD ?? process.cwd()
@@ -414,7 +414,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         sourceArchiveKey,
         sourceArchiveSha256,
         target,
-        type,
+        resourceType: type,
         forceUpload: false,
         runUploadCommand: dependencies.runUploadCommand,
       })
@@ -432,7 +432,7 @@ async function uploadPreparedArtefact(args: {
   sourceArchiveKey?: string
   sourceArchiveSha256?: string
   target: UploadTarget
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
 }) {
@@ -460,7 +460,7 @@ async function uploadPreparedArtefact(args: {
         : {}),
       'source-version': args.release.year,
       theme: 'divisions',
-      type: args.type,
+      type: args.resourceType,
       yes: true,
     },
   }
@@ -473,8 +473,8 @@ async function uploadPreparedArtefact(args: {
     // A Planning Department division snapshot is the required referent for its
     // companion area release. Keep it materialised while this cohort's area is
     // uploaded; the area publication can then schedule ordinary cleanup.
-    skipSnapshotCleanup: args.type === 'division',
-    validateGeometry: args.type === 'divisionArea',
+    skipSnapshotCleanup: args.resourceType === 'division',
+    validateGeometry: args.resourceType === 'divisionArea',
   })
 }
 
