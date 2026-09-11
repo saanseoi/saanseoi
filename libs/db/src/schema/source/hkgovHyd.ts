@@ -1,12 +1,12 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
-import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
+import { streetSourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
 /** Street Name Plate (`SNP`) point assertions maintained by the Highways Department. */
 export const sourceHkgovHydStreetNamePlates = sqliteTable(
   'hkgovHydStreetNamePlates',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -18,7 +18,7 @@ export const sourceHkgovHydStreetNamePlates = sqliteTable(
 export const sourceHkgovHydSensitiveStreets = sqliteTable(
   'hkgovHydSensitiveStreets',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -30,7 +30,7 @@ export const sourceHkgovHydSensitiveStreets = sqliteTable(
 export const sourceHkgovHydStrategicStreets = sqliteTable(
   'hkgovHydStrategicStreets',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
