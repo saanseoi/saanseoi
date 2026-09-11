@@ -45,17 +45,22 @@ test('Street native delivery preserves unchanged current rows and only writes ch
     state: { target: 'local', files, dbCacheDir: root, bindings: {} },
   } as unknown as LocalAddressDbContext
   try {
-    current.exec(
-      loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
-        'current',
-      ]),
-    )
+    for (const [binding, db] of Object.entries(databases))
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations'),
+          [
+            binding === 'DB_CURRENT'
+              ? 'current'
+              : binding === 'DB_META'
+                ? 'meta'
+                : binding === 'DB_HISTORY'
+                  ? 'history'
+                  : 'source',
+          ],
+        ),
+      )
     current.exec(`CREATE TABLE audit(tableName TEXT,operation TEXT);`)
-    for (const table of ['streets', 'streetsI18n', 'streetChangelog'])
-      for (const operation of ['INSERT', 'UPDATE', 'DELETE'])
-        current.exec(
-          `CREATE TRIGGER audit_${table}_${operation} AFTER ${operation} ON ${table} BEGIN INSERT INTO audit VALUES ('${table}','${operation}'); END`,
-        )
     const street = (id: string): PreparedMaterialisedStreet => ({
       id,
       status: 'active',
@@ -116,6 +121,11 @@ test('Street native delivery preserves unchanged current rows and only writes ch
             buildPublicationRowCountSql('streetsI18n', 'street-scope', locales),
           ].join(' AND '),
         )
+        for (const table of ['streets', 'streetsI18n', 'streetChangelog'])
+          for (const operation of ['INSERT', 'UPDATE', 'DELETE'])
+            current.exec(
+              `CREATE TRIGGER audit_${table}_${operation} AFTER ${operation} ON ${table} BEGIN INSERT INTO audit VALUES ('${table}','${operation}'); END`,
+            )
         return {
           importedRows: rows.length,
           changedRows: rows.length,
@@ -129,6 +139,9 @@ test('Street native delivery preserves unchanged current rows and only writes ch
       })
       expect(current.query('SELECT count(*) AS n FROM audit').get()).toEqual(writes)
       await completeSqlDeliveryRelease(root, releaseId)
+      for (const table of ['streets', 'streetsI18n', 'streetChangelog'])
+        for (const operation of ['INSERT', 'UPDATE', 'DELETE'])
+          current.exec(`DROP TRIGGER audit_${table}_${operation}`)
     }
     await run(1, initial, 2, 4)
     current.exec('DELETE FROM audit')

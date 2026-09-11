@@ -125,7 +125,7 @@ export async function listCurrentMaterialisedStreets(
 export async function closeSourceVersions(
   db: HarbourWritableDb,
   records: PreparedStreet[],
-  releaseCode: string,
+  sourceVersion: string,
   now: string,
 ) {
   const baselineIds = records
@@ -137,7 +137,7 @@ export async function closeSourceVersions(
     await Promise.all([
       db
         .update(sourceSchema.sourceHkgovLandsdStreetBaselineRecords)
-        .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
+        .set({ isCurrent: false, updatedAt: now, validToRelease: sourceVersion })
         .where(
           and(
             eq(sourceSchema.sourceHkgovLandsdStreetBaselineRecords.isCurrent, true),
@@ -155,7 +155,7 @@ export async function closeSourceVersions(
     await Promise.all([
       db
         .update(sourceSchema.sourceHkgovLandsdStreetNotices)
-        .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
+        .set({ isCurrent: false, updatedAt: now, validToRelease: sourceVersion })
         .where(
           and(
             eq(sourceSchema.sourceHkgovLandsdStreetNotices.isCurrent, true),
@@ -168,7 +168,7 @@ export async function closeSourceVersions(
         .run(),
       db
         .update(sourceSchema.sourceHkgovLandsdStreetNoticeApplications)
-        .set({ isCurrent: false, updatedAt: now, validToRelease: releaseCode })
+        .set({ isCurrent: false, updatedAt: now, validToRelease: sourceVersion })
         .where(
           and(
             eq(sourceSchema.sourceHkgovLandsdStreetNoticeApplications.isCurrent, true),
@@ -614,7 +614,7 @@ export async function insertHistoryStreetChangelog(
 export async function insertSourceRows(
   db: HarbourWritableDb,
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
   records: PreparedStreet[],
   now: string,
 ) {
@@ -645,7 +645,7 @@ export async function insertSourceRows(
           sourceRecordId: record.base.id,
           sources: [{ dataset: 'hkgov-landsd', sourceKind: 'streetBaseline' }],
           updatedAt: now,
-          validFromRelease: releaseCode,
+          validFromRelease: sourceVersion,
           validToRelease: null,
           versionHash: record.sourceHash,
         })),
@@ -659,7 +659,7 @@ export async function insertSourceRows(
           isCurrent: true,
           releaseId,
           updatedAt: now,
-          validFromRelease: releaseCode,
+          validFromRelease: sourceVersion,
           validToRelease: null,
         },
       })
@@ -709,7 +709,7 @@ export async function insertSourceRows(
             },
           ],
           updatedAt: now,
-          validFromRelease: releaseCode,
+          validFromRelease: sourceVersion,
           validToRelease: null,
           versionHash: record.sourceHash,
         })),
@@ -723,7 +723,7 @@ export async function insertSourceRows(
           isCurrent: true,
           releaseId,
           updatedAt: now,
-          validFromRelease: releaseCode,
+          validFromRelease: sourceVersion,
           validToRelease: null,
         },
       })
@@ -743,7 +743,7 @@ export async function insertSourceRows(
             retainedDescriptions: record.application?.retainedDescriptions ?? null,
             sourceRecordId: record.base.id,
             updatedAt: now,
-            validFromRelease: releaseCode,
+            validFromRelease: sourceVersion,
             validToRelease: null,
             versionHash: record.sourceHash,
           })),
@@ -757,7 +757,7 @@ export async function insertSourceRows(
             isCurrent: true,
             releaseId,
             updatedAt: now,
-            validFromRelease: releaseCode,
+            validFromRelease: sourceVersion,
             validToRelease: null,
           },
         })
