@@ -36,6 +36,11 @@ one publisher ID remain current when all are present in the incoming release.
 
 ## Source storage and publication
 
+Source `validFromRelease` and `validToRelease` values contain the release's
+`sourceVersion` only, such as `2026-09-01.0`. Dataset identity belongs to the source
+table or collection; `releaseId` retains the metadata reference. Validity intervals
+include their starting version and exclude their closing version.
+
 Road Centreline source rows use `(sourceRecordId, versionHash)` with release-validity
 columns. Native feature hashes exclude archive provenance, so a replacement archive does
 not create new versions of unchanged publisher properties and geometry.
