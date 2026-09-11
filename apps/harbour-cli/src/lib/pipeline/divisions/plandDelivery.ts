@@ -32,6 +32,7 @@ export async function deliverPlandWorkflow(
   const result = await deliverResolvedSqlPhase(
     {
       ...input,
+      resolvedFamily: 'division',
       targets: familyMutationTargets(input.context, 'division'),
       publicationTables: ['divisionPublicationState'],
       validateOutputs: readPlandDeliveryCounts,

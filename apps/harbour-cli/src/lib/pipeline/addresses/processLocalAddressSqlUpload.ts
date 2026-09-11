@@ -1,6 +1,5 @@
 import { mkdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { HistoryDatabase } from '@repo/db'
 import { captureResolvedAddressDelivery } from './resolvedAddressDelivery.ts'
@@ -93,7 +92,7 @@ import {
   runNativeSqlDelivery,
 } from '../local/nativeSqlDelivery.ts'
 import { runReportedSqlImportPhase } from '../local/sqlImport.ts'
-import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
 import {
   assertRemoteAddressImportPrerequisites,
@@ -206,14 +205,12 @@ export async function processLocalAddressSqlUpload(
   const resolvedTargetName = resolveTargetName(target)
   // Every dataset writer uses the same complete mirror; family subsets cannot
   // establish shared ownership or preserve other sources' materialisations.
-  const cacheTableProfile = undefined
-  const remoteCacheScopeKey = undefined
 
-  let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>
+  let dbContext: Awaited<ReturnType<typeof resolveCurrentWriteContext>>
   const dbCacheStartedAt = Date.now()
 
   try {
-    dbContext = await resolveLocalAddressDbContext(
+    dbContext = await resolveCurrentWriteContext(
       target,
       previewPlan.regionCode,
       shardYear,
@@ -222,13 +219,6 @@ export async function processLocalAddressSqlUpload(
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
-        cacheTableProfile,
-        includeAllHistoryShardYears: true,
-        includePreviousShardYears: shouldIncludePreviousShardYears(
-          previewPlan.cohortKey,
-        ),
-        refreshRemoteTables: false,
-        remoteCacheScopeKey,
       },
     )
   } catch (error) {
@@ -279,7 +269,8 @@ export async function processLocalAddressSqlUpload(
           publishClient: remoteHarbourClient,
         },
       )
-  const initialMessage: DatasetProcessingMessage = {
+  const initialMessage: AddressPipelineMessage = {
+    addressDivisionSnapshotId: preparationAudit.divisionSnapshotId,
     datasetId,
     datasetCode,
     rawObjectKey,
@@ -904,6 +895,7 @@ export async function processLocalAddressSqlUpload(
         await refreshRemoteMetaCacheAfterReplay(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
+          releaseId,
         )
         if (!postPublishCacheError)
           await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
