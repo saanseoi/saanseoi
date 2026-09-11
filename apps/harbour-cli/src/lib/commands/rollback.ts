@@ -359,6 +359,8 @@ export async function runRollbackReleaseCommand(
         await verifyPurgeResult(dbContext, {
           apiReleaseSetId: releaseSet.id,
           releaseId: release.releaseId,
+          resourceType,
+          sourceVersion: release.sourceVersion,
           snapshotId: snapshot.id,
           tables: rollbackPlan,
         })

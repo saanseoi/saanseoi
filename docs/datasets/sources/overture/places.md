@@ -2,8 +2,9 @@
 
 Open source assertions with matching hashes require no release-membership update.
 Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
-Same-release replay leaves open source assertions untouched; a year-shard rollover
-materialises the new shard copy and closes the old shard assertion.
+Same-release replay leaves open source assertions untouched; a year-shard rollover keeps
+unchanged assertions in their owning shard and assigns the release every source shard
+containing a retained assertion.
 
 Canonical comparison follows the serving predecessor's exact snapshot journals and
 owning history shards, including after a published rollback. Retained publisher versions
@@ -37,19 +38,22 @@ history/current tables. The publisher's integer record version is retained only 
 `properties.version`; `versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
-prepared source shard. Unchanged records already in the active shard remain untouched.
-New, changed, returning and shard-rollover records send full payloads to the active
-shard; changed assertions close in their original shard. Finalisation compares incoming
-membership with the selected predecessor's source resolutions, including source-only
-removals and empty releases. Other datasets' source assertions remain outside this
-membership boundary. The sealed plan contains final keyed differences and is reused
-unchanged for remote delivery, local replay and interrupted recovery.
+prepared source shard. Unchanged records remain untouched in their owning shard. New,
+changed and returning records send full payloads to the active shard; changed assertions
+close in their original shard. Release metadata assigns every shard containing one of
+these retained assertions, so source-record reads and validity counts cover the complete
+release without annual payload copies. Finalisation compares incoming membership with
+the selected predecessor's source resolutions, including source-only removals and empty
+releases. Other datasets' source assertions remain outside this membership boundary. The
+sealed plan contains final keyed differences and is reused unchanged for remote
+delivery, local replay and interrupted recovery.
 
 Canonical base and locale history versions inherit independently. Unchanged reissues add
 no history versions, journal entries or source resolutions. Changed interpretations and
 explicit `source_omission` entries override inherited snapshot ancestry. Snapshot
-journal assignments point to the owning history shard. Source copies at a year-shard
-boundary are the accepted exception to unchanged-source write economy.
+journal assignments point to the owning history shard. A year-shard boundary does not
+create a source copy for an unchanged Place assertion; source-shard assignments retain
+the complete set of owners for each release, including older annual shards.
 
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their

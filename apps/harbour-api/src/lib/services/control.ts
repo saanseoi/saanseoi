@@ -9,6 +9,7 @@ import {
   resolveLatestReleaseSetForTypeDomainCohort,
   resolveReleaseSetForRelease,
   updateDatasetStatus,
+  publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import { datasetVariantForSource, type RegionCode, type ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -261,11 +262,21 @@ export async function handlePublishDataset(
       }
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')
+        for (const snapshot of snapshots) {
+          if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
+        }
       }
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
           request.deferSourcePublish ? null : dataset.releaseId,
+          [],
+          request.deferSourcePublish
+            ? []
+            : await resolvePublishedSnapshotMetadataDeltas(
+                db,
+                snapshots.map(snapshot => snapshot.id),
+              ),
         ),
         phase: null,
         releaseCode: dataset.releaseCode,

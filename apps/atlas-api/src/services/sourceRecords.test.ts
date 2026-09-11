@@ -508,8 +508,8 @@ describe('source records', () => {
     }
     const result = await listSourceRecords({
       env: {
-        DB_SOURCE_HK_2025: sourceDatabase([retained]),
-        DB_SOURCE_HK_2026: sourceDatabase([current]),
+        DB_SOURCE_HK_2025: sourceDatabase([retained], 'overturePlaces'),
+        DB_SOURCE_HK_2026: sourceDatabase([current], 'overturePlaces'),
       } as never,
       family: 'places',
       includeGeometry: false,
