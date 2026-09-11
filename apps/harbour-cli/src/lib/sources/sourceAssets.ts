@@ -485,10 +485,6 @@ function mediaTypeForSourceReleaseFile(fileName: string) {
   }
 }
 
-function isMissingFileError(error: unknown) {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT'
-}
-
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {
   const r2 = resolveR2Target(target)
   return `${resolveAtlasBaseUrl(r2 === 'local' ? target.environment : r2)}/v0/assets/${assetId}`
@@ -796,19 +792,6 @@ async function deleteLocalSourceAssetObject(objectKey: string) {
     throw new Error(
       (stderr || stdout || 'Local R2 source asset deletion failed.').trim(),
     )
-}
-
-function isUploadedSourceAsset(value: unknown): value is {
-  assetId: string
-  assetUrl: string
-  status: 'existing' | 'uploaded'
-} {
-  return (
-    Boolean(value) &&
-    typeof value === 'object' &&
-    typeof (value as { assetId?: unknown }).assetId === 'string' &&
-    typeof (value as { assetUrl?: unknown }).assetUrl === 'string'
-  )
 }
 
 function isLinkedSourceAsset(value: unknown): value is {

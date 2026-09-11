@@ -377,6 +377,19 @@ complete unadorned initial release set. Bootstrap considers every published Stat
 source and selects its linked `divisionStatistic` snapshots, so a source whose primary
 artefact is C&SD geometry contributes both its geometry and its Statistics periods.
 
+A completed `--defer-stats-release-set` upload publishes its resource snapshots after
+the retained processing audit succeeds. It leaves API catalogue selection and current
+Statistics values unchanged. A later revision of the same lineage and reference period
+inherits that completed snapshot, preserving omitted fields, their provenance and
+omitted geographies. Deferring source publication as well leaves those snapshots draft.
+
+Bootstrap selects the unique completed descendant for each variant and period. Draft,
+unaudited, failed or revoked revisions cannot supply deferred inheritance; competing
+completed branches stop ingestion and bootstrap. An existing catalogue anchors the
+accepted branch, so an archived publication cannot override a catalogue rollback.
+Earlier snapshot history remains available, and bootstrap remains idempotent for an
+already published cohort.
+
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
 statistical-geography cohort.

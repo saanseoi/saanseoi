@@ -107,6 +107,13 @@ The usual implementation files are:
 Source-specific preparation must finish before the central upload dispatcher selects a
 processor. It must not write source, history, current or metadata tables directly.
 
+Remote registration for every resource family opens the same acknowledged full mirror
+used by current-write planning. The mirror must contain every configured source and
+history shard, match the selected environment and database identities, and retain its
+prepared generation. A family table profile, scoped cache or missing shard fails before
+registration. Upload never rebuilds that baseline implicitly. Resume retained SQL
+delivery first; seed or rebuild the full mirror explicitly when required.
+
 ## 3. Retain the source evidence and register the upload
 
 For automated discovery, wire the dataset into
@@ -137,6 +144,32 @@ Direct upload uses the same path:
 perform preflight, register or resume the staged release, seed the raw object and select
 one processing strategy. The request to Harbour creates the source release; it does not
 make that release published.
+
+Publisher source files are hashed through bounded reads. Remote retention uses 8 MiB
+chunks, each verified against its SHA-256 before R2 acknowledges it. Chunk receipts live
+in the selected bucket under a scope derived from the immutable asset key. Repeating an
+upload checks those receipts and sends only missing chunks. Changed files, keys or
+destinations cannot reuse another transfer's receipts.
+
+Harbour checks the ordered chunks against the full-file SHA-256 before assembling the
+destination object. It then registers asset metadata and removes completed staging
+chunks. A lost completion response or failed metadata write is recovered by verifying
+the persisted object on retry. A declared hash in object metadata alone is insufficient
+proof. Interrupted staging chunks remain available for recovery; do not remove them
+while an upload may resume.
+
+The transfer contract accepts up to 10,000 chunks (80,000 MiB per ZIP or Parquet). The
+Worker reserves 40,000 subrequests and 300 seconds of CPU for verification and assembly;
+these bounds are not a measured throughput guarantee. Loose GML and GeoJSON are packaged
+with streaming ZIP compression and a content-verified local cache; files of 4 GiB or
+more must arrive as ZIP or Parquet. Local D1 with remote R2 uses the same verification
+through its R2-only proxy and keeps metadata writes local.
+
+The private HTTP contract is `GET`/`PUT /v1/assets/parts/{scope}/{hash}` for chunk
+receipts and raw chunk bytes, followed by JSON `POST /v1/assets` containing the file
+metadata, size and ordered chunk hashes. CLI and Harbour API releases must support the
+same contract. Transient requests retry within a bounded attempt count; a later command
+invocation resumes from the retained receipts.
 
 ## 4. Write the source record
 
