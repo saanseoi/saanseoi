@@ -69,7 +69,7 @@ test('source properties migration preserves every populated payload table and ve
           for (const field of fields) expect(values).toHaveProperty(field)
           db.query(
             `INSERT INTO "${table}" (${fields.map(field => `"${field}"`).join(',')}) VALUES (${fields.map(() => '?').join(',')})`,
-          ).run(...fields.map(field => values[field]!))
+          ).run(...fields.map(field => values[field] ?? null))
         }
         return [
           table,

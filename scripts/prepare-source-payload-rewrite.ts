@@ -9,6 +9,7 @@ import {
   rewriteOvertureSourcePayload,
 } from '../libs/core/src/pipeline/services/sources/sourcePayloadRewrite'
 
+// This offline converter reads the pre-migration rawProperties/sources schema.
 const { values } = parseArgs({
   options: { database: { type: 'string' }, output: { type: 'string' } },
   strict: true,
@@ -55,44 +56,41 @@ try {
     )
     for (const row of db
       .query(
-        `SELECT sourceRecordId, versionHash, rawProperties, sources, ${columns.has('sourceGeometry') ? 'sourceGeometry' : 'NULL AS sourceGeometry'} FROM ${table}`,
+        `SELECT sourceRecordId, versionHash, rawProperties AS properties, sources, ${columns.has('sourceGeometry') ? 'sourceGeometry' : 'NULL AS sourceGeometry'} FROM ${table}`,
       )
       .iterate() as Iterable<{
       sourceRecordId: string
       versionHash: string
-      rawProperties: string
+      properties: string
       sources: string | null
       sourceGeometry: string | null
     }>) {
-      if (row.rawProperties == null) continue
-      const rawProperties = parse(row.rawProperties)
-      if (
-        table === 'overtureDivisions' &&
-        isSupplementalDivisionPayload(rawProperties)
-      ) {
+      if (row.properties == null) continue
+      const properties = parse(row.properties)
+      if (table === 'overtureDivisions' && isSupplementalDivisionPayload(properties)) {
         report.supplementalRowsRequiringUpstreamReplay++
         continue
       }
       const replacement = rewriteOvertureSourcePayload({
         ...row,
-        rawProperties,
+        properties,
         sources: parse(row.sources),
         sourceGeometry: parse(row.sourceGeometry),
       })
       if (!replacement) continue
-      const properties = JSON.stringify(replacement.rawProperties)
-      const statement = `UPDATE ${table} SET rawProperties = ${literal(properties)}, sourceGeometry = ${literal(json(replacement.sourceGeometry))}, sources = ${literal(json(null))} WHERE sourceRecordId = ${literal(row.sourceRecordId)} AND versionHash = ${literal(row.versionHash)} AND rawProperties = ${literal(row.rawProperties)} AND sourceGeometry IS ${literal(row.sourceGeometry)} AND sources IS ${literal(row.sources)};\n`
+      const propertiesJson = JSON.stringify(replacement.properties)
+      const statement = `UPDATE ${table} SET rawProperties = ${literal(propertiesJson)}, sourceGeometry = ${literal(json(replacement.sourceGeometry))}, sources = ${literal(json(null))} WHERE sourceRecordId = ${literal(row.sourceRecordId)} AND versionHash = ${literal(row.versionHash)} AND rawProperties = ${literal(row.properties)} AND sourceGeometry IS ${literal(row.sourceGeometry)} AND sources IS ${literal(row.sources)};\n`
       if (outputError) throw outputError
       if (!output.write(statement)) await once(output, 'drain')
       report.rewrittenRows += 1
-      report.rawBytesBefore += Buffer.byteLength(row.rawProperties)
-      report.rawBytesAfter += Buffer.byteLength(properties)
+      report.rawBytesBefore += Buffer.byteLength(row.properties)
+      report.rawBytesAfter += Buffer.byteLength(propertiesJson)
       report.jsonBytesBefore +=
-        Buffer.byteLength(row.rawProperties) +
+        Buffer.byteLength(row.properties) +
         Buffer.byteLength(row.sources ?? '') +
         Buffer.byteLength(row.sourceGeometry ?? '')
       report.jsonBytesAfter +=
-        Buffer.byteLength(properties) +
+        Buffer.byteLength(propertiesJson) +
         Buffer.byteLength(json(null) ?? '') +
         Buffer.byteLength(json(replacement.sourceGeometry) ?? '')
     }

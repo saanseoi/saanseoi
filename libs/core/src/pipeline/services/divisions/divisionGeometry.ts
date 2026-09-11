@@ -2,6 +2,7 @@ import { retainSourceProperties } from '../sources/retainedProperties'
 import {
   overtureSourcePayload,
   sourceLocatorFromReferences,
+  sourceRecordHashInput,
 } from '../sources/sourcePayload'
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
 import { registerRule, ProcessingGuardError } from '../../../provenance'
@@ -317,8 +318,8 @@ export function hashDivisionGeometryRow(
   return createHash(stableJsonStringify(buildDivisionGeometryHashInput(row)))
 }
 
-export function hashDivisionGeometrySourceRow(row: unknown) {
-  return createHash(stableJsonStringify(row))
+export function hashDivisionGeometrySourceRow(row: Record<string, unknown>) {
+  return createHash(stableJsonStringify(sourceRecordHashInput(row)))
 }
 
 function buildIdentifiers(
