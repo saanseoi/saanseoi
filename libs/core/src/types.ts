@@ -32,7 +32,7 @@ export type DatasetRecord = {
   geometryStatus: GeometryStatus
   theme: string
   type: string
-  subType: string | null
+  kind: string | null
   sourceVariant: string
   source: string
   sourceVersion: string
@@ -130,6 +130,8 @@ export type RegisterUploadOptions = {
   reuseExistingRelease?: boolean
   /** Allows an explicit retry after processing was interrupted with no active phase. */
   resumeInterruptedProcessingRelease?: boolean
+  /** CLI-only ownership proof after checksum/receipt recovery of this exact release. */
+  recoveredSqlDeliveryReleaseId?: string
   /** Allows an independent historical cohort to be registered after a newer cohort. */
   allowHistoricalCohort?: boolean
 }

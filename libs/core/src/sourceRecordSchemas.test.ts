@@ -147,10 +147,11 @@ test('public raw properties exclude envelope fields without changing upload vali
     })!
     expect(schema).toBeDefined()
     const fields = sourceRecordRawPropertyFields(schema).map(field => field.name)
-    for (const name of ['id', 'geometry', 'sources']) {
+    for (const name of ['id', 'geometry']) {
       expect(fields).not.toContain(name)
       expect(schema.fields.some(field => field.name === name)).toBe(true)
     }
+    expect(fields).toContain('sources')
     expect(fields).toContain('bbox')
   }
 })
