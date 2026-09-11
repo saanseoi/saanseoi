@@ -8,14 +8,14 @@ import {
   upsertSnapshotSource,
 } from '@repo/core/db/metaRegistry'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
-import { handlePublishDataset } from '../../../../../harbour-api/src/lib/services/control'
-import { handleBootstrapStatsReleaseSets } from '../../../../../harbour-api/src/lib/services/controlReconciliation'
-import { planCanonicalStatistics } from './planCanonicalStatistics'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
+import { handlePublishDataset } from './control'
+import { handleBootstrapStatsReleaseSets } from './controlReconciliation'
+import { planCanonicalStatistics } from '../../../../harbour-cli/src/lib/pipeline/statistics/planCanonicalStatistics'
 import { initialDatasets } from '@repo/db/registry'
-import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
+import type { CanonicalStatsRows } from '../../../../harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics'
 
-const migrations = resolve(import.meta.dir, '../../../../../../libs/db/migrations')
+const migrations = resolve(import.meta.dir, '../../../../../libs/db/migrations')
 const datasetCode =
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
 
