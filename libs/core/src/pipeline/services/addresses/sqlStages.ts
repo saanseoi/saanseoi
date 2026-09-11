@@ -48,6 +48,7 @@ import {
   type AddressSqlImportFile,
 } from './sqlImport'
 import { logStructuredInfo } from '../../logging'
+import { resolvePreparedPublicationScope } from '../publication/execute'
 
 export async function normaliseAddressSqlChunkStage(
   metaDb: MetaDatabase,
@@ -200,11 +201,17 @@ export async function writeAddressCurrentSqlChunkStage(
     pipelineMessage.addressCurrentScopeId ?? artefact.rows[0]?.base.snapshotId
   const selectedDivisionSnapshotId =
     pipelineMessage.addressDivisionSnapshotId ?? currentDivisionSnapshotId
-  const isFinalChunk = artefact.rowEnd >= artefact.totalRows
+  const currentDivisionScopeId = selectedDivisionSnapshotId
+    ? await resolvePreparedPublicationScope(
+        currentDb as unknown as HarbourReadableDb,
+        'divisionPublicationState',
+        selectedDivisionSnapshotId,
+      )
+    : undefined
   const currentFile = buildAddressCurrentSqlImportFile(message, artefact, {
     currentSnapshotId,
-    ...(isFinalChunk && selectedDivisionSnapshotId
-      ? { currentDivisionSnapshotId: selectedDivisionSnapshotId }
+    ...(currentDivisionScopeId
+      ? { currentDivisionSnapshotId: currentDivisionScopeId }
       : {}),
   })
   if (artefact.rowStart === 0 && pipelineMessage.addressHistoricalParentVersions) {
@@ -219,7 +226,7 @@ export async function writeAddressCurrentSqlChunkStage(
           currentDb,
           message,
           currentSnapshotId ?? artefact.rows[0].base.snapshotId,
-          selectedDivisionSnapshotId,
+          currentDivisionScopeId,
         )
       : null
   const initArtefactKeys = initFile

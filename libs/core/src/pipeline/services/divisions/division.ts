@@ -3,6 +3,7 @@ import {
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
   assertPublishedSnapshotMaterialised,
+  getPreparedPublication,
 } from '../publication/execute'
 import {
   buildPublicationRowCountSql,
@@ -343,6 +344,11 @@ export async function processDivisionDataset(
     timestamp: new Date().toISOString(),
   }
   const currentScopeId = publication.scopeId
+  publication.previous = await getPreparedPublication(
+    currentRepoDb,
+    publication.table,
+    currentScopeId,
+  )
   const divisionCodeAssignments = await timings.measure(
     'loadDivisionCodeAssignmentsMs',
     () => loadDivisionCodeAssignments(metaRepoDb),

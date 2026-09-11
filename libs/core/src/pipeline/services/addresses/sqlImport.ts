@@ -466,7 +466,8 @@ export function buildAddressCurrentSqlImportFile(
         changedExistingId: row.changedExistingId,
         versionHash: row.versionHash,
         snapshotId: options.currentSnapshotId ?? row.base.snapshotId,
-        divisionSnapshotId: row.base.divisionSnapshotId,
+        divisionSnapshotId:
+          options.currentDivisionSnapshotId ?? row.base.divisionSnapshotId,
         streetSnapshotId: row.base.streetSnapshotId,
         streetId: row.base.streetId,
         hamletId: row.base.hamletId,
