@@ -31,6 +31,8 @@ export async function resolveValidatedProjectionVersions(input: {
   if (shards.size !== input.historyTargets.length)
     throw new Error('Rollback history bindings must be unique.')
   const plan = await resolveSnapshotReplayPlan(input.metaDb, input.snapshotId)
+  const lastAssertionOrder = new Map<string, number>()
+  let assertionOrder = 0
   for (const step of plan) {
     const assignments = await input.metaDb
       .select()
@@ -75,10 +77,20 @@ export async function resolveValidatedProjectionVersions(input: {
             `Snapshot ${step.snapshotId} has conflicting history shard journals for ${key}.`,
           )
         observed.set(key, assertion)
+        lastAssertionOrder.set(
+          `${row.recordType}\u0000${row.recordId}\u0000${row.locale}`,
+          assertionOrder++,
+        )
       }
     }
   }
-  return resolveSnapshotVersionState(plan, shards, input.recordTypes)
+  const state = await resolveSnapshotVersionState(plan, shards, input.recordTypes)
+  return new Map(
+    [...state].sort(
+      ([left], [right]) =>
+        (lastAssertionOrder.get(left) ?? 0) - (lastAssertionOrder.get(right) ?? 0),
+    ),
+  )
 }
 
 /** Fetch by exact component identity, locale and hash from its journal owner. */
