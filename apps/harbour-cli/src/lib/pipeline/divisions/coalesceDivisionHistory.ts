@@ -2,6 +2,7 @@ import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 import { decodeStoredGeoJsonGeometry } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
 import type { ResolvedSqlCandidates } from '../local/resolvedSqlPlan.ts'
 
@@ -74,16 +75,10 @@ function semantic(row: Row) {
     ),
   )
 }
-function lookup(
-  db: Database,
-  table: string,
-  columns: readonly string[],
-  row: Row,
-  current = false,
-) {
+function lookup(db: Database, table: string, columns: readonly string[], row: Row) {
   return db
     .query<Row, SQLQueryBindings[]>(
-      `SELECT * FROM ${quote(table)} WHERE ${columns.map(column => `${quote(column)} IS ?`).join(' AND ')}${current ? ' AND isCurrent=1' : ''}`,
+      `SELECT * FROM ${quote(table)} WHERE ${columns.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
     )
     .all(...columns.map(column => row[column] ?? null))
 }
@@ -145,6 +140,25 @@ export async function coalesceDivisionHistory(input: {
       if (canonical(previous) === canonical(receipt)) continue
       if (!receipt.preparedAt)
         throw new Error('Cannot coalesce an incomplete Division publication.')
+      const meta = input.candidates.DB_META?.drizzle
+      if (previous?.snapshotId && !meta)
+        throw new Error('Division history replay requires the metadata mirror.')
+      const previousPlan = previous?.snapshotId
+        ? await resolveSnapshotReplayPlan(meta as never, previous.snapshotId)
+        : []
+      const namedBaselines = new Map(
+        [...baselines]
+          .filter(([binding]) => binding.startsWith('DB_HISTORY'))
+          .map(([bindingName, db]) => [
+            bindingName,
+            { bindingName, db: drizzle({ client: db }) as never },
+          ]),
+      )
+      const previousVersions = await resolveSnapshotVersionState(
+        previousPlan,
+        namedBaselines,
+        policies.map(policy => policy.recordType),
+      )
       const owned = (id: SQLQueryBindings) =>
         Boolean(
           baseline
@@ -158,21 +172,35 @@ export async function coalesceDivisionHistory(input: {
         const previousComponent = (identity: Row) => {
           if (
             !baseline
-              .query('SELECT 1 FROM divisions WHERE snapshotId=? AND id=?')
-              .get(receipt.scopeId, identity[policy.id] ?? null)
+              .query(
+                `SELECT 1 FROM ${quote(policy.table)} WHERE snapshotId=? AND ${policy.identity.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
+              )
+              .get(
+                receipt.scopeId,
+                ...policy.identity.map(column => identity[column] ?? null),
+              )
           )
             return undefined
-          const found: Array<{ binding: string; row: Row }> = []
-          for (const [binding, db] of baselines) {
-            if (binding === 'DB_CURRENT') continue
-            for (const row of lookup(db, policy.table, policy.identity, identity, true))
-              found.push({ binding, row })
-          }
-          if (found.length > 1)
+          const version = previousVersions.get(
+            `${policy.recordType}\0${identity[policy.id]}\0${policy.table === 'divisionsI18n' ? identity.locale : ''}`,
+          )
+          if (!version)
             throw new Error(
-              `Ambiguous current Division component ${policy.table}/${identity[policy.id]}.`,
+              `Missing selected Division component ${policy.table}/${identity[policy.id]}.`,
             )
-          return found[0]
+          const binding = version.shard.bindingName
+          const db = baselines.get(binding)
+          const row =
+            db &&
+            lookup(db, policy.table, policy.primary, {
+              ...identity,
+              versionHash: version.versionHash,
+            })[0]
+          if (!row)
+            throw new Error(
+              `Missing selected Division content ${policy.table}/${identity[policy.id]} in ${binding}.`,
+            )
+          return { binding, row }
         }
         for (const [binding, candidate] of Object.entries(input.candidates)) {
           if (!binding.startsWith('DB_HISTORY')) continue
@@ -296,20 +324,9 @@ export async function coalesceDivisionHistory(input: {
         }
       }
       if (previous?.snapshotId) {
-        const meta = input.candidates.DB_META?.drizzle
-        if (!meta)
-          throw new Error('Division provenance replay requires the metadata mirror.')
-        const plan = await resolveSnapshotReplayPlan(meta as never, previous.snapshotId)
         const prior = await resolveSnapshotSourceResolutions(
-          plan,
-          new Map(
-            [...baselines]
-              .filter(([binding]) => binding.startsWith('DB_HISTORY'))
-              .map(([bindingName, db]) => [
-                bindingName,
-                { bindingName, db: drizzle({ client: db }) as never },
-              ]),
-          ),
+          previousPlan,
+          namedBaselines,
         )
         const asserted = new Set<string>()
         for (const [binding, candidate] of Object.entries(input.candidates)) {

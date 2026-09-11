@@ -5,6 +5,7 @@ import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { createLocalExecBinding } from '../../dbCache/localDbCache'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows'
 
@@ -13,6 +14,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
     const current = new Database(':memory:')
     const history = new Database(':memory:')
     const source = new Database(':memory:')
+    const meta = new Database(':memory:')
     for (const [db, family] of [
       [current, 'current'],
       [history, 'history'],
@@ -24,9 +26,17 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           [family],
         ),
       )
+    meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT);
+      CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
+      CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
+      INSERT INTO dataShards VALUES('history','DB_HISTORY');`)
+    const historyDb = drizzle({ client: history, schema: historySchema })
     const context = {
       currentDb: drizzle({ client: current, schema: currentSchema }),
-      historyDb: drizzle({ client: history, schema: historySchema }),
+      historyDb,
+      historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
+      historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
+      metaDb: drizzle({ client: meta }),
       sourceDb: drizzle({ client: source, schema: sourceSchema }),
     } as unknown as LocalAddressDbContext
     current.exec(`CREATE TABLE writes(operation TEXT,id TEXT);
@@ -74,6 +84,10 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         parentSnapshotId,
         cohortKey,
       })
+      meta.query('INSERT INTO snapshots VALUES(?,?)').run(snapshotId, parentSnapshotId)
+      meta
+        .query('INSERT INTO snapshotShardAssignments VALUES(?,?)')
+        .run(snapshotId, 'history')
       return {
         ...result,
         writes: current
@@ -108,5 +122,6 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       current.close()
       history.close()
       source.close()
+      meta.close()
     }
   })

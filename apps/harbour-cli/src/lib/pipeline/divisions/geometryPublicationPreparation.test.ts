@@ -6,6 +6,7 @@ import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import { findIdenticalCenstatdGeometrySnapshot } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
@@ -61,11 +62,19 @@ function fixture() {
     )
   meta.exec(`CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,regionCode TEXT,variant TEXT);
     CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT,snapshotLineageId TEXT,resourceType TEXT,cohortKey TEXT,status TEXT,revision INTEGER);
+    CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
+    CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
+    INSERT INTO dataShards VALUES('history','DB_HISTORY');
+    INSERT INTO snapshotShardAssignments VALUES('parent','history');
     INSERT INTO snapshotLineages VALUES('lineage','hk','hkgov-censtatd');
     INSERT INTO snapshots VALUES('parent',NULL,'lineage','divisionArea','2021','published',1);`)
+  const historyDb = drizzle({ client: history, schema: historySchema })
   const context = {
     currentDb: drizzle({ client: current, schema: currentSchema }),
-    historyDb: drizzle({ client: history, schema: historySchema }),
+    historyDb,
+    historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
+    historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
+    metaDb: drizzle({ client: meta }),
     sourceDb: drizzle({ client: source, schema: sourceSchema }),
   } as unknown as LocalAddressDbContext
   return {
