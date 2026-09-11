@@ -83,8 +83,8 @@ even where they do not affect the feature being explained.
 
 This is an independently versioned <black>{{ domainCode }}</black> domain, not a filter
 over the default geographic collection. It contains the Lands Department settlement
-place-name division snapshot; records from other domains are never mixed into the
-result.
+place-name division snapshot; collection and detail responses do not mix in records from
+other domains.
 
 This domain contains settlement place names only. Hydrographic and Topographic source
 records remain outside the Divisions projection.

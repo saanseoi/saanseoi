@@ -83,8 +83,8 @@ even where they do not affect the feature being explained.
 
 This is an independently versioned <black>{{ domainCode }}</black> domain, not a filter
 over the default geographic collection. It contains the Planning Department New Town
-division snapshot and its exact area companion; records from other domains are never
-mixed into the result.
+division snapshot and its exact area companion; collection and detail responses do not
+mix in records from other domains.
 
 New Towns are planning geographies, not District Council districts. Identities are
 cohort-scoped and are not substituted for Planning Units or Overture divisions.
