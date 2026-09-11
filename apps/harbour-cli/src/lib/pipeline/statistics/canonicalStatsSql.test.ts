@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import {
   buildCanonicalStatsSqlBatches,
@@ -224,7 +225,117 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
     expect(batches.current).toEqual([])
   })
+
+  test('replays an oversized current packed record through bounded append statements', () => {
+    const record = packedRecord({ id: 'stats:large-current' })
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [{ rows: [record], table: 'statsRecords' }],
+      history: [],
+      dictionaries: [],
+    })
+    const statements = sqlStatements(batches.current)
+    expect(statements.length).toBeGreaterThan(2)
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const database = new Database(':memory:')
+    database.exec(currentRecordsTableSql)
+    for (const statement of statements) database.exec(statement)
+    expect(
+      JSON.parse(
+        (
+          database.query('SELECT "values" FROM statsRecords').get() as {
+            values: string
+          }
+        ).values,
+      ),
+    ).toEqual(record.values)
+    database.close()
+  })
+
+  test('retries an oversized immutable packed record without appending its value twice', () => {
+    const record = {
+      ...packedRecord({ id: 'stats:large-history' }),
+      isCurrent: true,
+      versionHash: 'history-version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows: [record], table: 'statsRecords' }],
+      dictionaries: [],
+    })
+    const statements = sqlStatements(batches.history[0]?.batches ?? [])
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const database = new Database(':memory:')
+    database.exec(historyRecordsTableSql)
+    for (const statement of statements) database.exec(statement)
+    for (const statement of statements) database.exec(statement)
+    expect(
+      database.query('SELECT "values", isCurrent FROM statsRecords').get(),
+    ).toEqual({ isCurrent: 1, values: JSON.stringify(record.values) })
+    database.close()
+  })
 })
+
+function packedRecord({ id }: { id: string }) {
+  return {
+    createdAt: '2026-09-12T00:00:00.000Z',
+    datasetCode: 'stats',
+    fieldDefinitionHashes: {},
+    fieldSources: {},
+    geography: { kind: 'district', code: 'one' },
+    id,
+    referencePeriodCode: '2024',
+    referencePeriodEnd: null,
+    referencePeriodEndYear: '2024',
+    referencePeriodGranularity: 'year',
+    referencePeriodStart: null,
+    sourceFeatureRef: 'district:one',
+    sourceReleaseId: 'release',
+    updatedAt: '2026-09-12T00:00:00.000Z',
+    values: { publisherPayload: 'x'.repeat(100_000) },
+    versionHash: '',
+    divisionId: null,
+  }
+}
+
+function sqlStatements(batches: string[]) {
+  return batches.flatMap(batch =>
+    batch
+      .split(/(?<=;)\n/)
+      .map(statement => statement.trim())
+      .filter(Boolean),
+  )
+}
+
+const currentRecordsTableSql = `
+  CREATE TABLE statsRecords (
+    id TEXT PRIMARY KEY, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
+    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    referencePeriodStart TEXT, referencePeriodEnd TEXT,
+    referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
+    geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
+    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL
+  );
+`
+
+const historyRecordsTableSql = `
+  CREATE TABLE statsRecords (
+    id TEXT NOT NULL, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
+    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    referencePeriodStart TEXT, referencePeriodEnd TEXT,
+    referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
+    geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
+    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
+    PRIMARY KEY (id, versionHash)
+  );
+`
 
 describe('replayCanonicalStatsSqlBatches', () => {
   test('checks remote prerequisites before mutating the local cache', async () => {
