@@ -112,7 +112,7 @@ Relevant fixture groups:
 `apiFields/` fixture files may still carry a representative snapshot code in the
 filename:
 
-- `api-divisions-v0.1@overture-1.16-to-1.18.json`
+- `api-divisions-v0.1@geographic-v2.json`
 
 Applicability is defined by fixture metadata, not only by the filename.
 
