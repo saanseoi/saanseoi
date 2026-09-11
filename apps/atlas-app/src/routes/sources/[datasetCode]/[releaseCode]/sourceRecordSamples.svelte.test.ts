@@ -35,8 +35,10 @@ test('renders the first source record without fetching surplus candidates', asyn
       JSON.stringify({
         records: [
           {
-            rawProperties: { name: 'Example division' },
-            sources: [{ dataset: 'OpenStreetMap' }],
+            rawProperties: {
+              name: 'Example division',
+              sources: [{ dataset: 'OpenStreetMap' }],
+            },
             resourceType: 'division',
             sourceRecordId: 'record-1',
             variant: 'default',
@@ -54,10 +56,8 @@ test('renders the first source record without fetching surplus candidates', asyn
   })
 
   await expect.element(screen.getByText('record-1')).toBeVisible()
-  await expect.element(screen.getByText('resourceType')).toBeVisible()
-  await expect.element(screen.getByText('division')).toBeVisible()
-  await expect.element(screen.getByText('variant')).toBeVisible()
-  await expect.element(screen.getByText('default')).toBeVisible()
+  await expect.element(screen.getByText('resourceType')).not.toBeInTheDocument()
+  await expect.element(screen.getByText('variant')).not.toBeInTheDocument()
   await expect
     .element(screen.getByRole('button', { name: 'Collapse rawProperties' }))
     .toBeVisible()
@@ -148,6 +148,38 @@ test('keeps the first sample in place while more samples load', async () => {
     expect(screen.container.querySelectorAll('section > div > div')).toHaveLength(1)
   } finally {
     resolveMore?.(new Response(JSON.stringify({ records: [] })))
+    vi.unstubAllGlobals()
+  }
+})
+
+test('requests and presents native geometry when included', async () => {
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        records: [
+          {
+            sourceRecordId: 'native-record',
+            rawProperties: { name: 'Publisher' },
+            geometry: { encoding: 'wkb-base64', data: 'AQID' },
+          },
+        ],
+      }),
+    ),
+  )
+  vi.stubGlobal('fetch', fetch)
+  try {
+    const screen = await render(SourceRecordSamples, {
+      family: 'places',
+      includeGeometry: true,
+      request: 0,
+      sourceReleaseCode: 'dr-hk-overture-place-2026-08-19.0',
+    })
+    await expect.element(screen.getByText('native-record')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith(
+      expect.objectContaining({ search: expect.stringContaining('include=geometry') }),
+    )
+    await expect.element(screen.getByText('geometry', { exact: true })).toBeVisible()
+  } finally {
     vi.unstubAllGlobals()
   }
 })

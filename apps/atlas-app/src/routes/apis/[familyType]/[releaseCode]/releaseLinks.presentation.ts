@@ -121,7 +121,7 @@ export function buildApiReleaseLinksPresentation(
           requestLabel: m.source_released_as_request(),
           title: [
             `v${source.sourceVersion}`,
-            ...(source.subType ? [humaniseCode(source.subType)] : []),
+            ...(source.kind ? [humaniseCode(source.kind)] : []),
           ].join(' · '),
           titleColour: 'var(--data-primary)',
         }
