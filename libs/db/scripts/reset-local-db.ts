@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { withDeliveryLock } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryFiles.ts'
 import { invalidateSqlDeliveryReleases } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryGeneration.ts'
 import { readPendingSqlDelivery } from '../../../apps/harbour-cli/src/lib/pipeline/local/sqlDeliveryPending.ts'
+import { assertLocalR2Stopped } from './local-r2-owners.ts'
 
 const scriptDir = resolve(fileURLToPath(new URL('.', import.meta.url)))
 type ResetStep = { pending: string; success: string; command: string[] }
@@ -21,6 +22,7 @@ export async function resetLocalDb(
   const executeStep = options.executeStep ?? (step => runStep(step, repoRoot))
   await withDeliveryLock(resolve(cacheDir, 'sql-delivery-lock'), async () => {
     if (dbFamily === 'all') {
+      await assertLocalR2Stopped(repoRoot)
       const pending = await readPendingSqlDelivery(cacheDir)
       if (pending) await invalidateSqlDeliveryReleases(cacheDir, [pending.releaseId])
     }
@@ -52,6 +54,7 @@ export async function resetLocalDb(
     })
 
     if (dbFamily !== 'all') return
+    await assertLocalR2Stopped(repoRoot)
     const startedAt = Date.now()
     const progress = spinner({ withGuide: false })
     progress.start('Clearing local upload state')
