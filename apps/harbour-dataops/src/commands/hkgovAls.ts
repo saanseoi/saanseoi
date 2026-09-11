@@ -31,6 +31,7 @@ import {
 } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
 import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
@@ -383,7 +384,7 @@ export async function runHkgovAlsIngestCommand(
       target,
       {
         ...(options.allowHistoricalCohort ? { allowHistoricalCohort: true } : {}),
-        deferApiReleaseSet: args.options['defer-api-release-set'] === true,
+        deferApiReleaseSet: true,
         dryRun: Boolean(args.options['dry-run']),
         divisionCohortKey,
         forceUpload: Boolean(args.options.force),
@@ -400,6 +401,17 @@ export async function runHkgovAlsIngestCommand(
       history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
       await writeJson(historyFile, history)
     }
+  }
+  if (!args.options['dry-run'] && !args.options['defer-api-release-set']) {
+    await runReconcileDraftReleaseSetsCommand(
+      {
+        command: 'release-sets:reconcile',
+        positionals: [],
+        options: { 'api-family': 'addresses', region: 'hk' },
+      },
+      target,
+      printUsage,
+    )
   }
 }
 

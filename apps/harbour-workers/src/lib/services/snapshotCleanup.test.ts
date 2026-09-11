@@ -3,6 +3,27 @@ import { currentSchema } from '@repo/db'
 
 import { cleanupSnapshotByResourceType } from './snapshotCleanup'
 
+test('retains a snapshot still serving the published search index', async () => {
+  const db = {
+    select: () => ({
+      from: () => ({
+        where: () => ({
+          get: async () => ({ scopeId: 'als' }),
+        }),
+      }),
+    }),
+    delete: () => {
+      throw new Error('must preserve search snapshot')
+    },
+  }
+  expect(
+    await cleanupSnapshotByResourceType(db as never, {
+      resourceType: 'address',
+      snapshotId: 'old',
+    }),
+  ).toBe(false)
+})
+
 test('deletes every street-owned table in one batch', async () => {
   const deletedTables: unknown[] = []
   let batchSize = 0
