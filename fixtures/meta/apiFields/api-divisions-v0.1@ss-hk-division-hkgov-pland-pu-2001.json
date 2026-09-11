@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:25949e585cbce05066e09ed78d889f13a3e527e07c2502524cd2a6440bd6fa02",
+  "versionHash": "sha256:65f851f0ac653b3453c5c7396b77a167e797e01dc073b7b0f0a6b79b7112a16e",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
   "schemaVersion": "sv-division-v1",
@@ -161,6 +161,15 @@
       "sourceFieldPath": "source",
       "resolverCode": "derive_variant_from_source",
       "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "division.attributes.category",
+      "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+      "sourceFieldPath": "planning_level",
+      "resolverCode": "join_lookup",
+      "contributionType": "resolver-input",
       "priority": 0,
       "confidence": 1
     }
