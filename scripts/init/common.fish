@@ -155,32 +155,13 @@ function init_load_completed_release_codes
         return 0
     end
 
-    set -l database_name ss-meta-db-preview
-    set -l wrangler_args \
-        --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
-        --env preview --local --persist-to "$saanseoi_init_repo/.local/d1/dev" --json
-
-    if test "$saanseoi_init_target" = production
-        set database_name ss-meta-db-prod
-        set wrangler_args \
-            --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
-            --env production --remote --json
-    else if test "$saanseoi_init_target" = preview
-        set database_name ss-meta-db-preview
-        set wrangler_args \
-            --config "$saanseoi_init_repo/apps/harbour-api/wrangler.jsonc" \
-            --env preview --remote --json
-    end
-
-    set -l output (bun x wrangler d1 execute $database_name $wrangler_args \
-        --command "SELECT code FROM releases WHERE status IN ('published', 'superseded');" 2>&1)
-
-    if test $status -ne 0
+    set -l output (SAANSEOI_INIT_GUIDES= ./bin/saanseoi cache:completed-releases --target local 2>&1)
+    set -l command_status $status
+    if test $command_status -ne 0
         string join \n -- $output >&2
-        return 1
+        return $command_status
     end
-
-    set -g saanseoi_init_completed_release_codes (string join \n -- $output | jq -r '.[0].results[]?.code')
+    set -g saanseoi_init_completed_release_codes $output
 end
 
 function init_is_completed_release
