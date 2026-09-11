@@ -9,7 +9,7 @@
   "outputs": ["divisionBoundaries"],
   "parameters": {},
   "implementation": {
-    "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
+    "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
     "symbol": "divisionBoundaryGeometryRule"
   },
   "dependencyIds": ["exclude-division-geometry"]

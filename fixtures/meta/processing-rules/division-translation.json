@@ -9,7 +9,7 @@
   "outputs": ["division-i18n"],
   "parameters": {},
   "implementation": {
-    "path": "libs/core/src/pipeline/services/divisionTranslationRule.ts",
+    "path": "libs/core/src/pipeline/services/divisions/divisionTranslationRule.ts",
     "symbol": "divisionTranslationRule"
   },
   "review": {

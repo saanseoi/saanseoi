@@ -9,7 +9,7 @@
   "outputs": ["divisions.type", "divisions.level"],
   "parameters": {},
   "implementation": {
-    "path": "libs/core/src/pipeline/services/divisionClassificationPatch.ts",
+    "path": "libs/core/src/pipeline/services/divisions/divisionClassificationPatch.ts",
     "symbol": "divisionClassificationRule"
   },
   "review": {

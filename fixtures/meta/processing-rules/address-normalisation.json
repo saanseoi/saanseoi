@@ -9,7 +9,7 @@
   "outputs": ["address2d", "address2dI18n"],
   "parameters": {},
   "implementation": {
-    "path": "libs/core/src/pipeline/services/addressPipeline/normalisation.ts",
+    "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
     "symbol": "addressNormalisationRule"
   }
 }

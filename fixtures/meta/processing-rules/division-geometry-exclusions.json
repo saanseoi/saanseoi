@@ -12,7 +12,7 @@
     "excludedAreaDivisionIds": ["fb68fc73-3ac6-41c9-a692-22fcf20cb5be"]
   },
   "implementation": {
-    "path": "libs/core/src/pipeline/services/divisionGeometry.ts",
+    "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
     "symbol": "divisionGeometryExclusionRule"
   }
 }
