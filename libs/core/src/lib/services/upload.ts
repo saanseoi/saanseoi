@@ -1240,7 +1240,11 @@ async function assertExistingDatasetCanBeReuploaded(
   )
   const activePhase = runs.find(run => run.status === 'running')
 
-  if (processCompleted && !activePhase) return
+  const recoveredOwner =
+    options.recoveredSqlDeliveryReleaseId === existingDataset.releaseId ||
+    (options.reuseExistingRelease &&
+      options.allowExistingDatasetStatuses?.includes('processing'))
+  if ((processCompleted || recoveredOwner) && !activePhase) return
 
   const datasetIdentifier = formatDatasetIdentifier(
     existingDataset.datasetCode,
