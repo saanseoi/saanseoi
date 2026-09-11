@@ -88,6 +88,10 @@ SQL generation uses the release-scoped planning mirror.
 confirmed imports into the shared mirror before publication. Recovery targets that
 shared mirror, not the disposable planning clone.
 
+Geometry metadata replay leaves identical rows untouched, including release assignments,
+processing actions and statistics shared by exact and simplified phases. Changed
+lifecycle, provenance and statistics fields still apply in statement order.
+
 This profile records the Planning Department source-specific adapter. The source-neutral
 geometry contract remains in
 [`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).
