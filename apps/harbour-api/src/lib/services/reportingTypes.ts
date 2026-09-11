@@ -100,8 +100,9 @@ export type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
 }
 
 export type CountTarget = {
-  binding: D1Database | undefined
+  bindings: D1Database[]
   kind: 'history' | 'source'
   releaseId: string
+  sourceVersion: string
   specs: CountSpec[]
 }
