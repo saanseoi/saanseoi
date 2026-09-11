@@ -1,6 +1,7 @@
 import { readFile, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { buildDeterministicReleaseId } from '@repo/core/db/metaRegistry'
+import { acknowledgeSqlDeliveryMirrorFiles } from './sqlDeliveryMirrorFiles.ts'
 import {
   readDeliveryPlan,
   readDeliveryProgress,
@@ -127,6 +128,10 @@ export async function completeSqlDeliveryRelease(cacheDir: string, releaseId: st
 async function completeLocked(cacheDir: string, releaseId: string) {
   const pending = await readPendingSqlDelivery(cacheDir)
   if (pending?.releaseId !== releaseId) return false
+  const acknowledged: Array<{
+    directory: string
+    plan: NonNullable<Awaited<ReturnType<typeof readDeliveryPlan>>>
+  }> = []
   for (const directory of pending.directories) {
     const plan = await readDeliveryPlan(directory)
     if (!plan) throw new Error('Cannot clear an incomplete SQL delivery plan.')
@@ -146,7 +151,9 @@ async function completeLocked(cacheDir: string, releaseId: string) {
     ) {
       return false
     }
+    acknowledged.push({ directory, plan })
   }
+  await acknowledgeSqlDeliveryMirrorFiles(acknowledged)
   await rm(join(cacheDir, NAME))
   return true
 }

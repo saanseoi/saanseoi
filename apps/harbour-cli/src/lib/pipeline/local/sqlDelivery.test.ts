@@ -460,6 +460,7 @@ test('generated Places and search recover in phase order against the current sch
             sourceVersion: '2026-08-19.0',
           } as Parameters<typeof buildPlaceSql>[0]['message'],
           snapshots: {
+            snapshotLineageId: 'place-lineage',
             snapshotId: 'snapshot',
             addressSnapshotId: 'address',
             divisionSnapshotId: 'division',
@@ -556,7 +557,7 @@ for (const family of ['statistics', 'geometry'] as const) {
         family === 'geometry'
           ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
           : `CREATE TABLE hkgovCenstatdStatistics (
-            createdAt TEXT, isCurrent INTEGER, rawProperties TEXT, releaseId TEXT,
+            createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
             sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
             PRIMARY KEY(sourceRecordId,versionHash));`
@@ -574,7 +575,7 @@ for (const family of ['statistics', 'geometry'] as const) {
                   createdAt: '2026-09-07',
                   updatedAt: '2026-09-07',
                   isCurrent: true,
-                  rawProperties: {
+                  properties: {
                     label: `香港 O'Brien; ${index}`,
                     value: 'x'.repeat(5000),
                   },

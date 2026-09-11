@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
@@ -9,7 +9,12 @@ import {
   readPendingSqlDelivery,
   registerPendingSqlDelivery,
 } from './sqlDeliveryPending.ts'
-import { prepareSqlDelivery, withDeliveryLock } from './sqlDeliveryFiles.ts'
+import {
+  prepareSqlDelivery,
+  sha256,
+  withDeliveryLock,
+  writeDeliveryFile,
+} from './sqlDeliveryFiles.ts'
 import { buildDeterministicReleaseId } from '@repo/core/db/metaRegistry'
 
 test('malformed pending markers cannot be mistaken for an unowned cache', async () => {
@@ -143,6 +148,109 @@ test('completion rejects a marker pointing to another release plan', async () =>
       'does not belong',
     )
     expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('missing, corrupt or incomplete payloads never establish acknowledged membership', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pending-membership-'))
+  try {
+    const directory = join(root, 'plan')
+    const sql = Buffer.from('SELECT 1;')
+    const membership = '{"ids":["accepted"]}'
+    const plan = await prepareSqlDelivery(
+      directory,
+      {
+        environment: 'production',
+        releaseId: 'release',
+        phase: 'data',
+        inputs: {},
+        cacheDir: root,
+        cachePreparedAt: 'fixed',
+      },
+      async append => {
+        await append({ databaseId: 'database', bindingName: 'CURRENT' }, sql)
+        await writeFile(join(directory, 'membership.json'), membership)
+        return {
+          acknowledgedMirrorFiles: [
+            {
+              file: 'membership.json',
+              mirrorFile: 'mirror.json',
+              sha256: sha256(membership),
+            },
+          ],
+        }
+      },
+    )
+    await registerPendingSqlDelivery(root, 'release', directory)
+    const progress = { version: 1, planId: plan.id, local: {}, remote: {} } as {
+      version: number
+      planId: string
+      local: Record<string, { completedAt: string; durationMs: number }>
+      remote: Record<string, { status: string; uploadMs: number; executionMs: number }>
+    }
+    expect(await completeSqlDeliveryRelease(root, 'release')).toBe(false)
+    progress.local['0'] = { completedAt: 'now', durationMs: 0 }
+    await writeDeliveryFile(directory, 'progress.json', JSON.stringify(progress))
+    expect(await completeSqlDeliveryRelease(root, 'release')).toBe(false)
+    progress.remote['0'] = { status: 'complete', uploadMs: 0, executionMs: 0 }
+    await writeDeliveryFile(directory, 'progress.json', JSON.stringify(progress))
+    for (const corrupt of [false, true]) {
+      if (corrupt) await writeFile(join(directory, '0.sql'), 'corrupt')
+      else await rm(join(directory, '0.sql'))
+      await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow()
+      await expect(readFile(join(root, 'mirror.json'))).rejects.toThrow('ENOENT')
+      expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+    }
+    await writeFile(join(directory, '0.sql'), sql)
+    expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
+    expect(await readFile(join(root, 'mirror.json'), 'utf8')).toBe(membership)
+    expect(await readPendingSqlDelivery(root)).toBeNull()
+    expect(await completeSqlDeliveryRelease(root, 'release')).toBe(false)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('partial mirror promotion retains ownership and retry completes exact membership', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pending-mirror-retry-'))
+  try {
+    await writeFile(join(root, 'first.json'), 'old')
+    await mkdir(join(root, 'second.json'))
+    const directory = join(root, 'plan')
+    await prepareSqlDelivery(
+      directory,
+      {
+        environment: 'local',
+        releaseId: 'release',
+        phase: 'empty',
+        inputs: {},
+        cacheDir: root,
+        cachePreparedAt: 'fixed',
+      },
+      async () => {
+        await writeFile(join(directory, 'membership.json'), 'accepted')
+        return {
+          acknowledgedMirrorFiles: ['first.json', 'second.json'].map(mirrorFile => ({
+            file: 'membership.json',
+            mirrorFile,
+            sha256: sha256('accepted'),
+          })),
+        }
+      },
+    )
+    await registerPendingSqlDelivery(root, 'release', directory)
+    await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow()
+    expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+    await expect(
+      assertSqlDeliveryPlanningAllowed(root, 'next-release'),
+    ).rejects.toThrow('unfinished')
+    await rm(join(root, 'second.json'), { recursive: true })
+    expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
+    expect(await readFile(join(root, 'first.json'), 'utf8')).toBe('accepted')
+    expect(await readFile(join(root, 'second.json'), 'utf8')).toBe('accepted')
+    expect(await readPendingSqlDelivery(root)).toBeNull()
   } finally {
     await rm(root, { recursive: true, force: true })
   }

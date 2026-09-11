@@ -9,7 +9,7 @@ const columns = [
   'validFromRelease',
   'validToRelease',
   'isCurrent',
-  'rawProperties',
+  'properties',
   'sourceGeometry',
   'sources',
   'createdAt',
