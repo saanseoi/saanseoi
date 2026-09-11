@@ -13,12 +13,13 @@ import {
 import {
   prepareLandsdPlaceNameDivisionUpload,
   landsdSettlementDivisionRows,
+  type NativeLandsdPlaceName,
   readLandsdPlaceNameArchive,
 } from './landsdPlaceName.ts'
 
 describe('LandsD native Place Name FileGDB intake', () => {
   test('official relationship names precede aliases without modifying native properties', () => {
-    const feature = {
+    const feature: NativeLandsdPlaceName = {
       id: '123',
       type: 'Feature' as const,
       geometry: { type: 'Point' as const, coordinates: [114.15, 22.28] },

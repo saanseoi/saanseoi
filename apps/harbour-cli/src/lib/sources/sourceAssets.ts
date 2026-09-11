@@ -1,5 +1,8 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { createWriteStream, constants } from 'node:fs'
+import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 
 import { packageSourceReleaseFile } from './sourceReleasePackaging.ts'
@@ -146,38 +149,56 @@ export async function downloadAndPrepareSourceAsset(input: {
     response.headers.get('content-type') ??
     'application/octet-stream'
   const fileName = input.fileName ?? fileNameFromUrl(input.url, mediaType)
-  return prepareSourceAsset({
-    bytes: new Uint8Array(await response.arrayBuffer()),
-    downloadedAt: input.downloadedAt,
-    fileName,
-    mediaType,
-    outputDir: input.outputDir,
-    role: input.role,
-    sourcePageLocale: input.sourcePageLocale,
-    sourcePageUrl: input.sourcePageUrl,
-    url: input.url,
-  })
+  if (!response.body) throw new Error('Source asset download has no body.')
+  await mkdir(input.outputDir, { recursive: true })
+  const temporary = join(
+    input.outputDir,
+    `source-download-${crypto.randomUUID()}.partial`,
+  )
+  try {
+    await pipeline(Readable.fromWeb(response.body), createWriteStream(temporary))
+    return await prepareSourceAsset({
+      filePath: temporary,
+      downloadedAt: input.downloadedAt,
+      fileName,
+      mediaType,
+      outputDir: input.outputDir,
+      role: input.role,
+      sourcePageLocale: input.sourcePageLocale,
+      sourcePageUrl: input.sourcePageUrl,
+      url: input.url,
+    })
+  } finally {
+    await rm(temporary, { force: true })
+  }
 }
 
-export async function prepareSourceAsset(input: {
-  bytes: Uint8Array
-  downloadedAt: string
-  fileName: string
-  mediaType: string
-  outputDir: string
-  role: Exclude<SourceAssetRole, 'manifest'>
-  sourcePageLocale?: 'en' | 'zh-Hant'
-  sourcePageUrl?: string
-  url: string
-}): Promise<PreparedSourceAsset> {
-  const sha256 = hash(input.bytes)
+export async function prepareSourceAsset(
+  input: (
+    | { bytes: Uint8Array; filePath?: never }
+    | { filePath: string; bytes?: never }
+  ) & {
+    downloadedAt: string
+    fileName: string
+    mediaType: string
+    outputDir: string
+    role: Exclude<SourceAssetRole, 'manifest'>
+    sourcePageLocale?: 'en' | 'zh-Hant'
+    sourcePageUrl?: string
+    url: string
+  },
+): Promise<PreparedSourceAsset> {
+  const content = input.bytes
+    ? { sha256: hash(input.bytes), byteLength: input.bytes.byteLength }
+    : await inspectSourceAssetFile(input.filePath)
+  const sha256 = content.sha256
   const fileName = safeFileName(input.fileName)
   const objectKey = buildSourceAssetObjectKey(sha256, fileName)
   const filePath = join(resolve(input.outputDir), `${sha256}-${fileName}`)
   const manifest: SourceAssetManifest = {
     schemaVersion: 1,
     artefact: {
-      byteLength: input.bytes.byteLength,
+      byteLength: content.byteLength,
       mediaType: input.mediaType,
       objectKey,
       role: input.role,
@@ -200,7 +221,8 @@ export async function prepareSourceAsset(input: {
   const manifestFilePath = `${filePath}.manifest.json`
 
   await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, input.bytes)
+  if (input.bytes) await writeFile(filePath, input.bytes)
+  else await copyFile(input.filePath, filePath, constants.COPYFILE_FICLONE)
   await writeFile(manifestFilePath, manifestBytes)
   return {
     fileName,
