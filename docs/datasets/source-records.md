@@ -10,6 +10,12 @@ Snapshot-specific materialisation and provenance are recorded separately.
 This contract covers Addresses, Divisions, Places and Statistics. Streets retains its
 separate source contract.
 
+Source validity columns store only the owning release's version component, for example
+`2025-09-24.0`, `2021` or `2025-Q1`. The interval is inclusive at `validFromRelease` and
+exclusive at `validToRelease`; null means open. `releaseId` provides the release
+association. Dataset prefixes and resource suffixes do not belong in validity values.
+This interval representation also applies to Streets.
+
 ## Publisher assertions
 
 Source tables retain a publisher assertion under `(sourceRecordId, versionHash)`.
