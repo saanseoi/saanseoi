@@ -10,6 +10,15 @@ test('remote proxy exposes only the selected R2 bucket', () => {
   })
 })
 
+test('local source retention config has no remote bindings or D1 capability', () => {
+  const config = remoteR2Config('ss-assets-preview', false)
+  expect(config.r2_buckets).toEqual([
+    { binding: 'R2_ASSETS', bucket_name: 'ss-assets-preview', remote: false },
+  ])
+  expect('d1_databases' in config).toBe(false)
+  expect('account_id' in config).toBe(false)
+})
+
 test('immutable uploads verify bytes and avoid duplicate writes', async () => {
   let stored: Uint8Array | undefined
   let writes = 0
