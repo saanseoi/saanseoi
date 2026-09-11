@@ -289,37 +289,156 @@ function buildUpsertStatements(
   return [...rowsByColumns.entries()].flatMap(([key, groupedRows]) => {
     const columns = key.split('\u0000')
     const prefix = `INSERT INTO ${identifier(table)} (${columns.map(identifier).join(', ')}) VALUES `
-    const suffix = immutable
-      ? `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO NOTHING;`
-      : [
-          `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO UPDATE SET`,
-          columns
-            .filter(column => !conflictColumns.includes(column))
-            .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
-            .join(', '),
-          ';',
-        ].join(' ')
     const statements: string[] = []
     let values: string[] = []
 
     for (const row of groupedRows) {
       const value = `(${columns.map(column => sqlValue(row[column])).join(', ')})`
-      const candidate = `${prefix}${[...values, value].join(', ')} ${suffix}`
+      const candidate = `${prefix}${[...values, value].join(', ')} ${upsertSuffix(
+        columns,
+        conflictColumns,
+        immutable,
+      )}`
       if (Buffer.byteLength(candidate) > SQL_STATEMENT_BYTE_LIMIT) {
-        if (values.length === 0) {
-          throw new Error(
-            `A ${table} canonical statistic row exceeds the D1 SQL statement limit.`,
+        if (values.length) {
+          statements.push(
+            `${prefix}${values.join(', ')} ${upsertSuffix(
+              columns,
+              conflictColumns,
+              immutable,
+            )}`,
           )
+          values = []
         }
-        statements.push(`${prefix}${values.join(', ')} ${suffix}`)
-        values = [value]
+        statements.push(
+          ...buildOversizedRowStatements(
+            table,
+            columns,
+            row,
+            conflictColumns,
+            immutable,
+          ),
+        )
         continue
       }
       values.push(value)
     }
-    if (values.length) statements.push(`${prefix}${values.join(', ')} ${suffix}`)
+    if (values.length)
+      statements.push(
+        `${prefix}${values.join(', ')} ${upsertSuffix(
+          columns,
+          conflictColumns,
+          immutable,
+        )}`,
+      )
     return statements
   })
+}
+
+function buildOversizedRowStatements(
+  table: CanonicalStatsTable,
+  columns: string[],
+  row: Row,
+  conflictColumns: string[],
+  immutable: boolean,
+) {
+  const baseRow = { ...row }
+  const splitColumns = columns
+    .filter(column => !conflictColumns.includes(column) && canAppendValue(row[column]))
+    .sort(
+      (left, right) =>
+        Buffer.byteLength(sqlText(row[right])) - Buffer.byteLength(sqlText(row[left])),
+    )
+  const appendedColumns: string[] = []
+  for (const column of splitColumns) {
+    baseRow[column] = ''
+    appendedColumns.push(column)
+    if (
+      Buffer.byteLength(
+        singleUpsertStatement(table, columns, baseRow, conflictColumns, immutable),
+      ) <= SQL_STATEMENT_BYTE_LIMIT
+    )
+      break
+  }
+  if (!appendedColumns.length)
+    throw new Error(
+      `A ${table} canonical statistic row exceeds the D1 SQL statement limit.`,
+    )
+
+  if (immutable) {
+    if (!Object.hasOwn(baseRow, 'isCurrent'))
+      throw new Error(
+        `An oversized immutable ${table} canonical statistic row must include isCurrent.`,
+      )
+    baseRow.isCurrent = false
+  }
+  const baseStatement = singleUpsertStatement(
+    table,
+    columns,
+    baseRow,
+    conflictColumns,
+    immutable,
+  )
+  if (Buffer.byteLength(baseStatement) > SQL_STATEMENT_BYTE_LIMIT)
+    throw new Error(
+      `A ${table} canonical statistic row exceeds the D1 SQL statement limit.`,
+    )
+
+  const predicate = conflictColumns
+    .map(column => `${identifier(column)} = ${sqlValue(row[column])}`)
+    .join(' AND ')
+  const appendPredicate = immutable ? `${predicate} AND "isCurrent" = 0` : predicate
+  const statements = [baseStatement]
+  for (const column of appendedColumns) {
+    const text = sqlText(row[column])
+    statements.push(
+      ...chunkSqlText(text, chunk =>
+        [
+          `UPDATE ${identifier(table)} SET ${identifier(column)} = ${identifier(column)} || ${sqlValue(chunk)}`,
+          `WHERE ${appendPredicate};`,
+        ].join(' '),
+      ),
+    )
+  }
+  if (immutable)
+    statements.push(
+      [
+        `UPDATE ${identifier(table)} SET "isCurrent" = ${sqlValue(row.isCurrent)}`,
+        `WHERE ${predicate} AND "isCurrent" = 0;`,
+      ].join(' '),
+    )
+  return statements
+}
+
+function singleUpsertStatement(
+  table: CanonicalStatsTable,
+  columns: string[],
+  row: Row,
+  conflictColumns: string[],
+  immutable: boolean,
+) {
+  return [
+    `INSERT INTO ${identifier(table)} (${columns.map(identifier).join(', ')})`,
+    `VALUES (${columns.map(column => sqlValue(row[column])).join(', ')})`,
+    upsertSuffix(columns, conflictColumns, immutable),
+  ].join(' ')
+}
+
+function upsertSuffix(
+  columns: string[],
+  conflictColumns: string[],
+  immutable: boolean,
+) {
+  if (immutable)
+    return `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO NOTHING;`
+  return [
+    `ON CONFLICT (${conflictColumns.map(identifier).join(', ')}) DO UPDATE SET`,
+    columns
+      .filter(column => !conflictColumns.includes(column))
+      .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
+      .join(', '),
+    ';',
+  ].join(' ')
 }
 
 function currentConflictColumns(table: CanonicalStatsTable) {
@@ -397,6 +516,42 @@ function chunkSql(statements: string[]) {
   return output
 }
 
+function chunkSqlText(value: string, buildStatement: (chunk: string) => string) {
+  const codePoints = [...value]
+  const chunks: string[] = []
+  let offset = 0
+  while (offset < codePoints.length) {
+    let low = offset + 1
+    let high = Math.min(codePoints.length, offset + 65_536)
+    let end = offset
+    while (low <= high) {
+      const middle = Math.floor((low + high) / 2)
+      const candidate = codePoints.slice(offset, middle).join('')
+      if (Buffer.byteLength(buildStatement(candidate)) <= SQL_STATEMENT_BYTE_LIMIT) {
+        end = middle
+        low = middle + 1
+      } else {
+        high = middle - 1
+      }
+    }
+    if (end === offset)
+      throw new Error('A canonical statistic value exceeds the D1 SQL statement limit.')
+    chunks.push(codePoints.slice(offset, end).join(''))
+    offset = end
+  }
+  return chunks.map(chunk => buildStatement(chunk))
+}
+
+function canAppendValue(value: unknown) {
+  if (value === null || value === undefined) return false
+  try {
+    sqlText(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function identifier(value: string) {
   if (!/^[A-Za-z][A-Za-z0-9]*$/.test(value))
     throw new Error(`Unsafe SQL identifier: ${value}.`)
@@ -413,6 +568,14 @@ function sqlValue(value: unknown): string {
   }
   const text = typeof value === 'string' ? value : JSON.stringify(value)
   return `'${text.replaceAll("'", "''")}'`
+}
+
+function sqlText(value: unknown) {
+  if (typeof value === 'string') return value
+  const text = JSON.stringify(value)
+  if (text === undefined)
+    throw new Error('Cannot write an unserialisable canonical statistic value.')
+  return text
 }
 
 function requiredString(value: unknown, field: string) {
