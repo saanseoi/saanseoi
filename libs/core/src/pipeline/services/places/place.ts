@@ -1,4 +1,5 @@
 import { createHash } from '../../utils'
+import referenceNameFixture from '../../../../../../fixtures/meta/processing-rules/place-reference-name.json'
 
 export type PlaceI18nRecord = {
   accessHint?: string | null
@@ -71,7 +72,7 @@ export type NormalisedPlace = {
   phones: unknown
   addresses: string[] | null
   confidence: number | null
-  sources: unknown[]
+  sources: { overture: unknown[] }
   firstSeenMonth: string
   lastSeenMonth: string
   i18n: PlaceI18nRecord[]
@@ -142,7 +143,7 @@ function normaliseOverturePlaceInternal(
     phones: jsonValue(row.phones),
     addresses: buildPlaceAddresses(row.addresses),
     confidence: asNumber(row.confidence),
-    sources: sourceValues,
+    sources: { overture: sourceValues },
     firstSeenMonth: month,
     lastSeenMonth: month,
     i18n: mergePlaceI18n(names, brandNames, addressNames),
@@ -356,6 +357,17 @@ export function normalisePlaceText(value: string) {
  * stable Place identifier.  This is deliberately a projection over i18n rows.
  */
 export function derivePlaceReferenceName(
+  localisations: Array<Pick<PlaceI18nRecord, 'locale' | 'name'>>,
+) {
+  return placeReferenceNameRule.execute(localisations)
+}
+
+export const placeReferenceNameRule = registerRule(
+  ruleDeclarationFromFixture(referenceNameFixture),
+  composePlaceReferenceName,
+)
+
+function composePlaceReferenceName(
   localisations: Array<Pick<PlaceI18nRecord, 'locale' | 'name'>>,
 ) {
   const nonEmpty = localisations.filter(

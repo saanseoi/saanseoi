@@ -43,6 +43,7 @@ describe('Overture place normalisation', () => {
     )
 
     expect(place).not.toBeNull()
+    expect(place?.sources).toEqual({ overture: [{ dataset: 'openstreetmap' }] })
     expect(place?.firstSeenMonth).toBe('2026-08')
     expect(place?.basicCategory).toBe('food_service')
     expect(place?.taxonomyPrimary).toBe('restaurant')

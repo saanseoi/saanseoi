@@ -1,3 +1,4 @@
+import { retainSourceProperties } from '../sources/retainedProperties'
 import {
   overtureSourcePayload,
   sourceLocatorFromReferences,
@@ -169,7 +170,7 @@ function normaliseDivisionAreaGeometry(
         source === 'overture'
           ? null
           : sourceLocatorFromReferences(normaliseSourceReferences(row.sources)),
-      sourceRecordId: id,
+      sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
     },
@@ -231,7 +232,7 @@ function normaliseDivisionBoundaryGeometry(
         source === 'overture'
           ? null
           : sourceLocatorFromReferences(normaliseSourceReferences(row.sources)),
-      sourceRecordId: id,
+      sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
       sourceGeometry: sourceGeometry(row, source),
     },
   }
@@ -390,7 +391,7 @@ function sourceRawProperties(row: Record<string, unknown>, source: string) {
   if (!isRecord(properties)) {
     throw new Error(`${source} district area requires publisher \`source_properties\`.`)
   }
-  return { ...properties }
+  return retainSourceProperties(properties) as Record<string, unknown>
 }
 
 function sourceGeometry(row: Record<string, unknown>, source: string) {
@@ -634,4 +635,13 @@ function asOptionalBoolean(value: unknown) {
 
 function asOptionalInteger(value: unknown) {
   return typeof value === 'number' && Number.isInteger(value) ? value : null
+}
+
+function hadPublisherId(row: Record<string, unknown>) {
+  const properties = row.source_properties as Record<string, unknown> | undefined
+  const id = properties?.OBJECTID
+  if ((typeof id !== 'number' && typeof id !== 'string') || !String(id).trim()) {
+    throw new Error('HAD publisher record requires OBJECTID.')
+  }
+  return String(id)
 }
