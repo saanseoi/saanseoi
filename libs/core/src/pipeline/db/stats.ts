@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import { getDatasetRecordByReleaseId } from '../../lib/db/metaRegistry'
@@ -48,7 +48,7 @@ export async function replaceDatasetStatsAndReturnRows(
       .where(
         and(
           eq(metaSchema.stats.releaseId, dataset.releaseId),
-          eq(metaSchema.stats.kind, 'release'),
+          sql`${metaSchema.stats.metric} != 'processing'`,
         ),
       ),
   ])
@@ -98,7 +98,7 @@ export async function replaceReleaseStatsDimension(
       .where(
         and(
           eq(metaSchema.stats.releaseId, dataset.releaseId),
-          eq(metaSchema.stats.kind, 'release'),
+          sql`${metaSchema.stats.metric} != 'processing'`,
           eq(metaSchema.stats.dimension, dimension),
         ),
       ),

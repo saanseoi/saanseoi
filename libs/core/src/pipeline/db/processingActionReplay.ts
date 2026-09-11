@@ -95,7 +95,7 @@ export function buildAuditReplaySql(
     ...materialised.actions.map(row => insert('releaseProcessingActions', row)),
     ...(materialised.stats
       ? [
-          `DELETE FROM "stats" WHERE "releaseId" = ${literal(releaseId)} AND "kind" = 'processing';`,
+          `DELETE FROM "stats" WHERE "releaseId" = ${literal(releaseId)} AND "metric" = 'processing';`,
           ...materialised.stats.map(row => insert('stats', row)),
         ]
       : []),
@@ -120,7 +120,7 @@ export async function readAuditReplaySql(
     .where(
       and(
         eq(metaSchema.stats.releaseId, releaseId),
-        eq(metaSchema.stats.kind, 'processing'),
+        eq(metaSchema.stats.metric, 'processing'),
       ),
     )
     .all()) as ReleaseStatsRow[]

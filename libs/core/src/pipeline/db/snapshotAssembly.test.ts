@@ -7,7 +7,7 @@ import {
   recordSnapshotAssemblyRun,
   upsertSnapshotSource,
 } from '../../lib/db/metaRegistry'
-import { recordPlaceAddressAssembly } from '../services/placeAddressAssembly'
+import { recordPlaceAddressAssembly } from '../services/places/placeAddressAssembly'
 import { readSnapshotAssemblySql } from './snapshotAssembly'
 
 const now = '2026-09-07T00:00:00.000Z'

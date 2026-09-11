@@ -175,7 +175,6 @@ for (const order of [types, [...types].reverse()]) {
         for (let retry = 0; retry < 2; retry++) {
           await replaceDatasetStats(db, releaseId, [
             {
-              kind: 'release',
               dimension: 'records',
               metric: 'count',
               metricUnit: 'records',

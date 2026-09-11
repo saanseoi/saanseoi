@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import declaration from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
 import { ruleDeclarationFromFixture } from './ruleFixture'
 import { registerRule } from './auditTypes'
-import { populationThousandsRule } from '../pipeline/services/statisticRules'
+import { populationThousandsRule } from '../pipeline/services/statistics/statisticRules'
 
 test('JSON fixture declarations are validated and frozen with their execution parameters', () => {
   expect(declaration).toEqual(populationThousandsRule.declaration)

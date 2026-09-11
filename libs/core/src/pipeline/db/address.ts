@@ -35,7 +35,7 @@ import {
   runWithWriteRetry,
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
-import { buildAddressBuildingNumberLookupRows } from '../services/addressPipeline/normalisation'
+import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
 
 const CURRENT_ADDRESS2D_COLUMN_COUNT = 22
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
