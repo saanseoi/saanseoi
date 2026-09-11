@@ -6,6 +6,9 @@ import type { HarbourWritableDb } from '@repo/core/db/types'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import {
   closeSourceVersions,
+  closeStreetOwnedVersions,
+  insertHistoryRows,
+  insertHistoryI18nRows,
   insertSourceRows,
 } from './processLocalStreetSqlUploadRows.ts'
 import type { PreparedStreet } from './processLocalStreetSqlUploadTypes.ts'
@@ -118,3 +121,83 @@ test.each(['baseline', 'notice', 'historical-notice'] as const)(
     }
   },
 )
+
+test('Street rollover closes source and canonical versions in their owning year and journals only the active shard', async () => {
+  const old = new Database(':memory:'),
+    active = new Database(':memory:')
+  try {
+    for (const db of [old, active])
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations'),
+          ['source', 'history'],
+        ),
+      )
+    const previous = drizzle({ client: old }) as unknown as HarbourWritableDb
+    const next = drizzle({ client: active }) as unknown as HarbourWritableDb
+    const record = street('notice')
+    await insertSourceRows(previous, 'release-old', '2025-01.0', [record], 'original')
+    const canonical = {
+      id: 'street',
+      status: 'active' as const,
+      version: 1,
+      districtIds: [],
+      deletedAt: null,
+      gazetteDate: null,
+      sources: {},
+      versionHash: 'original-street',
+      i18n: record.i18n,
+    }
+    await insertHistoryRows(previous, 'old', 'release-old', [canonical], 'original')
+    await insertHistoryI18nRows(previous, 'old', 'release-old', [canonical], 'original')
+    await closeStreetOwnedVersions({
+      sourceDb: next,
+      historyDb: next,
+      sourceTargets: [{ db: previous }, { db: next }],
+      historyTargets: [{ db: previous }, { db: next }],
+      records: [record],
+      streetIds: ['street'],
+      sourceVersion: '2026-01.0',
+      snapshotId: 'next',
+      now: 'later',
+    })
+    expect(
+      old.query('SELECT isCurrent,validToRelease FROM hkgovLandsdStreetNotices').get(),
+    ).toEqual({ isCurrent: 0, validToRelease: '2026-01.0' })
+    expect(
+      old
+        .query(
+          'SELECT isCurrent,validToRelease FROM hkgovLandsdStreetNoticeApplications',
+        )
+        .get(),
+    ).toEqual({ isCurrent: 0, validToRelease: '2026-01.0' })
+    expect(old.query('SELECT isCurrent FROM streets').get()).toEqual({ isCurrent: 0 })
+    expect(old.query('SELECT DISTINCT isCurrent FROM streetsI18n').all()).toEqual([
+      { isCurrent: 0 },
+    ])
+    expect(
+      old
+        .query(
+          "SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId='next'",
+        )
+        .get(),
+    ).toEqual({ n: 0 })
+    expect(
+      active
+        .query(
+          'SELECT snapshotId,recordType,recordId,operation FROM snapshotVersionChanges',
+        )
+        .all(),
+    ).toEqual([
+      {
+        snapshotId: 'next',
+        recordType: 'street',
+        recordId: 'street',
+        operation: 'delete',
+      },
+    ])
+  } finally {
+    old.close()
+    active.close()
+  }
+})

@@ -188,6 +188,7 @@ export async function closeHistoryVersions(
   ids: string[],
   snapshotId: string,
   now: string,
+  recordChanges = true,
 ) {
   const uniqueIds = [...new Set(ids)]
   for (const idsChunk of chunkArray(uniqueIds, 90)) {
@@ -215,12 +216,49 @@ export async function closeHistoryVersions(
         .run(),
     ])
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    recordType: 'street',
-    operation: 'delete',
-    changes: uniqueIds.map(recordId => ({ recordId })),
-  })
+  if (recordChanges)
+    await recordSnapshotVersionChanges(db, {
+      snapshotId,
+      recordType: 'street',
+      operation: 'delete',
+      changes: uniqueIds.map(recordId => ({ recordId })),
+    })
+}
+
+/** Close superseded components in their owning shards; the new journal has one owner. */
+export async function closeStreetOwnedVersions(input: {
+  sourceDb: HarbourWritableDb
+  historyDb: HarbourWritableDb
+  sourceTargets: Array<{ db: HarbourWritableDb }>
+  historyTargets: Array<{ db: HarbourWritableDb }>
+  records: PreparedStreet[]
+  streetIds: string[]
+  sourceVersion: string
+  snapshotId: string
+  now: string
+}) {
+  const sources = new Set([
+    input.sourceDb,
+    ...input.sourceTargets.map(target => target.db),
+  ])
+  const histories = new Set([
+    input.historyDb,
+    ...input.historyTargets.map(target => target.db),
+  ])
+  await Promise.all([
+    ...[...sources].map(db =>
+      closeSourceVersions(db, input.records, input.sourceVersion, input.now),
+    ),
+    ...[...histories].map(db =>
+      closeHistoryVersions(
+        db,
+        input.streetIds,
+        input.snapshotId,
+        input.now,
+        db === input.historyDb,
+      ),
+    ),
+  ])
 }
 
 export async function replaceCurrentStreetRows(

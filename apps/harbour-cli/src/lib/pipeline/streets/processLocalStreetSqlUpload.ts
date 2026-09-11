@@ -57,8 +57,7 @@ import {
   validatePreparedStreets,
 } from './processLocalStreetSqlUploadPreparation.ts'
 import {
-  closeHistoryVersions,
-  closeSourceVersions,
+  closeStreetOwnedVersions,
   insertHistoryI18nRows,
   insertHistoryRows,
   insertHistoryStreetChangelog,
@@ -296,18 +295,21 @@ export async function processLocalStreetSqlUpload(
           ),
         )
 
-        await closeSourceVersions(
-          context.sourceDb as unknown as HarbourWritableDb,
-          changedSourceRecords,
-          dataset.sourceVersion,
+        await closeStreetOwnedVersions({
+          sourceDb: context.sourceDb as unknown as HarbourWritableDb,
+          historyDb: context.historyDb as unknown as HarbourWritableDb,
+          sourceTargets: context.sourceTargets as unknown as Array<{
+            db: HarbourWritableDb
+          }>,
+          historyTargets: context.historyTargets as unknown as Array<{
+            db: HarbourWritableDb
+          }>,
+          records: changedSourceRecords,
+          streetIds: changedMaterialisedStreets.map(record => record.id),
+          sourceVersion: dataset.sourceVersion,
+          snapshotId: snapshot.id,
           now,
-        )
-        await closeHistoryVersions(
-          context.historyDb as unknown as HarbourWritableDb,
-          changedMaterialisedStreets.map(record => record.id),
-          snapshot.id,
-          now,
-        )
+        })
         await replaceCurrentStreetRows(
           context.currentDb as unknown as HarbourWritableDb,
           scopeId,
