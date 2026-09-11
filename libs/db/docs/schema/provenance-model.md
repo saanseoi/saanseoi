@@ -86,23 +86,53 @@ Scope:
 - NOT per entity row
 
 Bundled mappings in `fixtures/meta/apiFields/` use the public resource field names and
-may cover several exact source-schema signatures. Resolution selects an explicit lineage
-anchor and retains only contributions from datasets in the selected release set. The
-resolved mapping has its own content hash. A fixture match does not imply that every
-mapped source contributes to every entity.
+are named `{apiVersion}@{domainCode}-v{mappingVersion}.json`, using registered domain
+codes. `mappingVersion` versions our mapping independently of publisher schemas.
+Increment it when retained paths, inputs or transformation semantics materially change.
+Compatible upstream changes extend the reviewed coverage of the same mapping version.
+
+`publisherSchemaRanges` declares inclusive `min` and `max` versions for each dataset.
+Comparison is numeric by version component; unknown future versions are not implicitly
+accepted. `lineageAnchors` declares each snapshot once, without publisher schema
+versions. `sourceCompositions` declares the required `datasetCodes` and references
+applicable anchors through `anchorSnapshotVersions`. Selection requires a composition
+associated with the matching anchor and versions within the declared ranges. Exact
+selected publisher versions remain pinned on the published release. The nearest matching
+lineage anchor wins, with mapping version breaking equal-depth ties. Only selected
+datasets contribute to the published provenance. The resolved mapping has its own
+content hash. A fixture match does not imply that every mapped source contributes to
+every entity.
+
+Upload preflight checks the incoming dataset schema against these ranges before
+confirmation or dispatch, including dry runs and deferred publication. The check does
+not widen ranges or substitute for publication's complete composition, lineage and
+rule-pin validation. Uncovered API domains remain outside the preflight's scope.
 
 Each fixture declares `publisherFields` once per source dataset. Keys are paths in the
 public source record, such as `properties.hkgovCsuId`, `sourceRecordId` or `geometry`;
 values are original publisher paths. An array lists alternative publisher locations for
 a retained key. Selection and merge behaviour belongs exclusively to processing rules;
-this mapping does not duplicate their definitions.
+this mapping does not duplicate their definitions. Arrays and dictionaries are mapped
+once at the parent, such as `properties.divisionIds` → `division_ids` and
+`properties.names.common` → `names.common`. Input lookup uses the most specific mapping
+and preserves descendant keys and numeric indices, so `[1]` and `.zh-hk` remain part of
+the resolved publisher path. Explicit descendant mappings are needed when a child name
+differs from the publisher spelling; they override the parent. Alternative publisher
+paths each receive the same descendant suffix.
 
-Contributions use a separate `resourceType` and a resource-relative `apiField`, such as
+Single-resource fixtures declare `resourceType` once at the top level. Mixed fixtures
+use `resources`, each containing one `resourceType` and its `fields`. Authored fields do
+not repeat the resource type. The loader expands that scope into publication rows for
+identity and lookup. Fields use a resource-relative `apiField`, such as
 `attributes.identifiers.hkgovCsuId`. Each input consists of `origin` and `fieldPath`;
-source inputs must resolve in the contribution dataset's publisher mapping. Registry,
-curation and intermediate origins identify their own field paths. Constants carry
-`value`. The previous address snapshot ID is registry context; records read from that
-snapshot are a separate intermediate dependency.
+source inputs must resolve in the contribution dataset's publisher mapping. Curation
+paths use camelCase context names defined in `libs/db/src/apiFieldCurationContexts.ts`,
+for example `divisionClassification` maps to the existing `division-classification`
+context identifier. Collection contexts remain collections; they do not imply one
+curation fixture. Dataset codes and publisher field names inside selectors preserve
+their spelling. Registry, curation and intermediate origins identify their own field
+paths. Constants carry `value`. The previous address snapshot ID is registry context;
+records read from that snapshot are a separate intermediate dependency.
 
 Publication stores the shared mapping once on `apiReleaseSets.publisherFields` and
 includes the fixture hash in contribution hashes. Resource type participates in
@@ -217,11 +247,13 @@ empty arrays and strings, while `merge_first_non_empty` selects a non-empty cand
 `derive_release_month` extracts the year-month from a dated release version.
 `compose_identifier` concatenates the declared literal and identifier inputs in order.
 
-Retained source properties use collision-checked camelCase names. Publisher values,
-nulls, array order and language dictionary keys remain intact. Publisher mapping values
-use the publisher spelling; source inputs use retained public paths. A change to
-retained naming requires rebuilding retained source assertions and their dependent
-materialisations; publishing a fixture alone does not rewrite them.
+Retained source properties use collision-checked camelCase names. Locale-bearing labels
+end in `En`, `ZhHant` or `ZhHans` and appear last in `publisherFields`, ordered by base
+name and then locale. `sourceRecordId` and `geometry` appear first; other properties are
+alphabetical. Publisher values, nulls, array order and language dictionary keys remain
+intact. Publisher mapping values use the publisher spelling; source inputs use retained
+public paths. A change to retained naming requires rebuilding retained source assertions
+and their dependent materialisations; publishing a fixture alone does not rewrite them.
 
 The provenance schema migrations target an empty provenance table in a rebuilt
 pre-release database. They intentionally do not manufacture provenance from the removed
