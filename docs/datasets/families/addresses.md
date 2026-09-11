@@ -69,10 +69,15 @@ normalised preparation artefacts and history retain the selected logical snapsho
 current writers resolve those selections through completed publication receipts. API
 responses map physical references back to logical snapshot IDs.
 
-The Address planner delivers final row differences. Other families can use conditional
-current SQL that leaves unchanged rows untouched, as described in the shared
-[publication-state contract](../publication-state-plan.md). These approaches share
-storage scopes and readiness rules without requiring identical delivery planners.
+All CLI families deliver final row differences through the shared compiler, with
+family-specific membership and dependency validation under the
+[publication-state contract](../publication-state-plan.md).
+
+Published rollback reconstructs the exact predecessor from retained history and the
+reviewed ALS membership sidecar, including Address3D inventories and building-number
+lookups. A composed rollback restores Division and Street prerequisites before Address
+and validates all current references before sealing. Retained source assertions and
+history remain available; only the serving projection and publication selection change.
 
 Historical Address API reads replay immutable history. Preparation requires the exact
 selected dependency to have a completed local receipt; it rejects an advanced current

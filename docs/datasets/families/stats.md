@@ -9,6 +9,13 @@ Source-shard assignments use the four-digit year of the publisher version, inclu
 versions with quarter or half-year suffixes. Canonical history uses each observation's
 reference-period end year independently.
 
+Published rollback restores packed observations and their referenced immutable field and
+measure definitions for each affected dataset and exact period. Other datasets and
+reference periods retain their current rows. The period's publication state is
+`restoring` during sealed delivery, which blocks ordinary publication until rollback
+finishes. Retained history and publisher assertions remain intact. See the shared
+[rollback and recovery contract](../publication-state-plan.md#reset-and-reingest).
+
 [Minimal initialisation](../minimal-initialisation.md) selects at most two distinct
 configured versions per source dataset, including their companion resources.
 
