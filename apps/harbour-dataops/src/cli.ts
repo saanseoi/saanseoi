@@ -9,6 +9,7 @@ import {
 import { terminalSafeText } from './lib/terminal.ts'
 import { installInterruptHandler } from '../../harbour-cli/src/lib/cli/interrupt.ts'
 import { installInitialisationIndent } from '../../harbour-cli/src/lib/cli/initialisationIndent.ts'
+import { disposeRemoteR2 } from '../../harbour-cli/src/lib/storage/remoteR2.ts'
 
 function printUsage() {
   console.log(`  Usage:
@@ -232,6 +233,7 @@ async function main() {
 const disposeInterruptHandler = installInterruptHandler()
 
 main()
+  .finally(disposeRemoteR2)
   .then(() => {
     disposeInterruptHandler()
   })
