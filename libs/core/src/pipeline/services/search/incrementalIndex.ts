@@ -131,6 +131,19 @@ export async function synchroniseSearchIndexes(
   const statements: string[] = []
   for (const definition of definitions) {
     const scopes = await resolvePublishedSearchScopes(db, definition)
+    if (scopes.length) {
+      const selected = literal(JSON.stringify(scopes))
+      // The guard and FTS replacement share one D1 transaction. A concurrent
+      // importer therefore cannot leave a ready search marker over partial data.
+      statements.push(`SELECT CASE WHEN NOT EXISTS (
+        SELECT 1 FROM json_each(${selected}) selected WHERE NOT EXISTS (
+          SELECT 1 FROM ${definition.resourceType}PublicationState publication
+          WHERE publication.snapshotId = json_extract(selected.value, '$.snapshotId')
+            AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
+            AND publication.publicationToken <> ''
+        )
+      ) THEN 1 ELSE abs(-9223372036854775808) END`)
+    }
     statements.push(...buildSearchSyncSql(definition, scopes))
   }
   if (statements.length)
