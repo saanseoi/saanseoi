@@ -48,7 +48,7 @@ export async function listIngestRuns(
       startedAt: ingestRuns.startedAt,
       stats: ingestRuns.stats,
       status: ingestRuns.status,
-      type: metaReleases.resourceType,
+      resourceType: metaReleases.resourceType,
     })
     .from(ingestRuns)
     .innerJoin(metaReleases, eq(ingestRuns.releaseId, metaReleases.id))
@@ -107,7 +107,7 @@ export async function listStats(
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       source: metaPublishers.code,
-      type: metaReleases.resourceType,
+      resourceType: metaReleases.resourceType,
       updatedAt: stats.updatedAt,
       value: stats.value,
     })
@@ -151,7 +151,7 @@ export async function listProcessingActions(
       releaseCode: metaReleases.code,
       releaseId: metaReleases.id,
       source: metaPublishers.code,
-      type: metaReleases.resourceType,
+      resourceType: metaReleases.resourceType,
       updatedAt: releaseProcessingActions.updatedAt,
     })
     .from(releaseProcessingActions)
@@ -233,7 +233,7 @@ export async function listReleases(
       sourceVersion: metaReleases.sourceVersion,
       status: metaReleases.status,
       supersededByReleaseId: metaReleases.supersededByReleaseId,
-      type: metaReleases.resourceType,
+      resourceType: metaReleases.resourceType,
       updatedAt: metaReleases.updatedAt,
     })
     .from(metaReleases)
