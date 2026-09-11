@@ -8,6 +8,7 @@ import {
   listCurrentApiCompositionMembersForType,
   listApiReleaseSetSnapshots,
   resolveLatestReleaseSetForTypeDomainCohort,
+  resolveAcceptedStatisticSnapshotParent,
 } from '@repo/core/db/metaRegistry'
 import { datasetVariantForSource } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -363,6 +364,7 @@ export async function handleBootstrapStatsReleaseSets(
       Array<{
         dataset: NonNullable<Awaited<ReturnType<typeof getDatasetRecordByReleaseId>>>
         snapshotId: string
+        lineageId: string
         variant: string
       }>
     >()
@@ -378,18 +380,42 @@ export async function handleBootstrapStatsReleaseSets(
       })
       if (!memberVariants.has(variant)) continue
 
-      const snapshots = await listSnapshotsForRelease(
-        db,
-        sourceRelease.id,
-        'divisionStatistic',
-        {
-          variant,
-        },
-      )
+      const snapshots = await db
+        .select({
+          id: metaSchema.metaSnapshots.id,
+          cohortKey: metaSchema.metaSnapshots.cohortKey,
+          lineageId: metaSchema.metaSnapshotLineages.id,
+        })
+        .from(metaSchema.metaSnapshots)
+        .innerJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
+        .innerJoin(
+          metaSnapshotSources,
+          eq(metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+        )
+        .where(
+          and(
+            eq(metaSnapshotSources.resourceReleaseId, sourceRelease.id),
+            eq(metaSnapshotSources.role, 'primary'),
+            eq(metaSchema.metaSnapshots.resourceType, 'divisionStatistic'),
+            eq(metaSchema.metaSnapshots.status, 'published'),
+            eq(metaSchema.metaSnapshotLineages.variant, variant),
+          ),
+        )
+        .all()
       for (const snapshot of snapshots) {
-        if (snapshot.status === 'archived') continue
         const candidates = candidatesByCohort.get(snapshot.cohortKey) ?? []
-        candidates.push({ dataset, snapshotId: snapshot.id, variant })
+        candidates.push({
+          dataset,
+          snapshotId: snapshot.id,
+          lineageId: snapshot.lineageId,
+          variant,
+        })
         candidatesByCohort.set(snapshot.cohortKey, candidates)
       }
     }
@@ -437,15 +463,27 @@ export async function handleBootstrapStatsReleaseSets(
         continue
       }
 
-      const snapshotIdsByVariant = new Map<string, string>()
+      const selectedByVariant = new Map<string, (typeof candidates)[number]>()
       for (const candidate of candidates) {
-        const previousSnapshotId = snapshotIdsByVariant.get(candidate.variant)
-        if (previousSnapshotId && previousSnapshotId !== candidate.snapshotId) {
+        const previous = selectedByVariant.get(candidate.variant)
+        if (previous && previous.lineageId !== candidate.lineageId) {
           throw new ControlRequestError(
-            `Cannot bootstrap Statistics cohort ${cohortKey}: multiple snapshots are available for ${candidate.variant}.`,
+            `Cannot bootstrap Statistics cohort ${cohortKey}: multiple lineages are available for ${candidate.variant}.`,
           )
         }
-        snapshotIdsByVariant.set(candidate.variant, candidate.snapshotId)
+        if (previous) continue
+        const head = await resolveAcceptedStatisticSnapshotParent(
+          db,
+          candidate.lineageId,
+          cohortKey,
+        )
+        const selected = head && candidates.find(row => row.snapshotId === head.id)
+        if (!selected) {
+          throw new ControlRequestError(
+            `Cannot bootstrap Statistics cohort ${cohortKey}: no completed predecessor is available for ${candidate.variant}.`,
+          )
+        }
+        selectedByVariant.set(candidate.variant, selected)
       }
 
       const releaseSet = await ensureDraftReleaseSetForRelease(
@@ -454,13 +492,11 @@ export async function handleBootstrapStatsReleaseSets(
         { cohortKey, regionCode },
         { domainCode: 'government' },
       )
-      const orderedCandidates = candidates
-        .slice()
-        .sort(
-          (left, right) =>
-            left.variant.localeCompare(right.variant) ||
-            left.snapshotId.localeCompare(right.snapshotId),
-        )
+      const orderedCandidates = [...selectedByVariant.values()].sort(
+        (left, right) =>
+          left.variant.localeCompare(right.variant) ||
+          left.snapshotId.localeCompare(right.snapshotId),
+      )
       const finalCandidate = orderedCandidates.at(-1)
       if (!finalCandidate) continue
 

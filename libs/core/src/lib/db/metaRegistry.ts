@@ -1,5 +1,6 @@
 import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
+export { resolveAcceptedStatisticSnapshotParent } from './statisticSnapshotParent'
 import {
   assertAcceptedDraftSnapshotParent,
   resolveAcceptedSnapshotParent,
