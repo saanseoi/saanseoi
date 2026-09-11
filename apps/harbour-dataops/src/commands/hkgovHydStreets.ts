@@ -113,7 +113,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         },
       ],
       theme: 'streets',
-      type: 'street',
+      resourceType: 'street',
     })
     return
   }
@@ -155,7 +155,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       },
     ],
     theme: 'streets',
-    type: 'street',
+    resourceType: 'street',
   })
 }
 

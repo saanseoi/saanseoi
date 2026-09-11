@@ -73,7 +73,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
       },
     ],
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
   })
 }
 
@@ -199,7 +199,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
       },
     ],
     theme: 'streets',
-    type: 'street',
+    resourceType: 'street',
   })
 }
 

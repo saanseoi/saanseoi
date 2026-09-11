@@ -48,13 +48,13 @@ export async function runHkgovPlandPrepCommand(
         inputFile: sourceFile,
         outputFile: divisionOutput,
         sourceVersion,
-        type: 'division',
+        resourceType: 'division',
       }),
       prepareHkgovPlandNewTownParquet({
         inputFile: sourceFile,
         outputFile: divisionAreaOutput,
         sourceVersion,
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       }),
     ])
     note(
