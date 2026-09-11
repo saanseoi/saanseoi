@@ -4,6 +4,7 @@ import {
   guardSnapshotPublicationWrites,
 } from '../local/snapshotPublication.ts'
 import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
+import { reusePlanningCanonicalProvenance } from './planningCanonicalReuse.ts'
 import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
@@ -351,6 +352,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 context.historyDb as unknown as HarbourReadableDb,
                 previewPlan.source,
               )
+              await reusePlanningCanonicalProvenance(records, currentHistoryRows)
               const historyHashById = new Map(
                 currentHistoryRows.map(row => [row.id, row.versionHash]),
               )

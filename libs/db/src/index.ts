@@ -64,4 +64,5 @@ export {
   or,
   sql,
   type AnyColumn,
+  type SQL,
 } from 'drizzle-orm'

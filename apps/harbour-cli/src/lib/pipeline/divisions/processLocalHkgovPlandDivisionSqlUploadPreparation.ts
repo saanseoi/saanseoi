@@ -33,6 +33,8 @@ export async function listCurrentHistoryRows(
   const rows = await db
     .select({
       id: historySchema.divisions.id,
+      geometry: historySchema.divisions.geometry,
+      bbox: historySchema.divisions.bbox,
       divisionCode: historySchema.divisions.divisionCode,
       identifiers: historySchema.divisions.identifiers,
       level: historySchema.divisions.level,
