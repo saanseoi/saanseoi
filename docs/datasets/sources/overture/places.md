@@ -193,6 +193,13 @@ sequence and commits each payload with its receipt in one transaction.
 
 ## Supplementary address materialisation
 
+Supplementary Address SQL is resolved on isolated mirror copies and delivered as final
+row differences. The `addressPublicationState` lineage is claimed before current
+mutations; each batch verifies its publication token. Complete 2D/3D, localisation and
+reference validation supplies preparation evidence, including an empty accepted set.
+Publication makes the matching prepared lineage ready. Repeated unchanged content does
+not rewrite its current rows.
+
 The Places-ingest extension creates Overture Places supplementary Address rows. It is
 deliberately a two-phase part of Places ingestion: analyse the Place source release
 first, then materialise accepted supplementary Address rows before finalising the Place
@@ -523,6 +530,11 @@ selecting or continuing this mode.
 Local Places continuation reuses retained inputs and completed source releases.
 Official-address matching reads English and Traditional Chinese definitions from the
 selected ALS snapshot. Local ownership-manifest completion opens only metadata.
+
+Place delivery checks records, localisations, spatial cells and division links before
+completing its publication receipt. Import preparation may read an acknowledged ALS
+snapshot from the local mirror while API publication is deferred; public reads still
+require that snapshot's publication state to be `current`.
 
 ## Registry metadata
 

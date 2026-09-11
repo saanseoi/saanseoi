@@ -19,17 +19,47 @@ subject to schema-drift rejection. An absent publisher envelope may be encoded a
 null or JSON null. Both mean that the prepared row carries no publisher assertion;
 neither creates source evidence.
 
-ALS preparation restores its selected geographic snapshot from immutable history. For
-remote targets, it checks division and translation keys directly in D1 and delivers
-missing rows before accepting the local projection as ready. Restoration inserts only
-missing rows and verifies their presence after delivery.
+ALS preparation restores its selected geographic snapshot from immutable history in the
+isolated local candidate. Missing division rows and translations form part of the sealed
+resolved writes. Remote D1 performs delivery and receipt checks; identity matching,
+ownership validation and source-omission comparisons use the local mirror.
 
-ALS history application is bounded by staged row ranges, including translations,
-building-number lookups and snapshot-version changes. Small SQL text does not imply
-small database work: each remote apply batch covers at most 4,096 addresses.
+Address2D and Address3D are fully prepared before delivery starts. Current storage uses
+one stable scope per Address lineage, with `addressPublicationState` identifying the
+logical snapshot and publication status. Delivery claims the scope before changing
+current data, guards each batch with its publication token and records preparation only
+after complete projection validation. Publication marks the matching prepared scope
+ready; interrupted delivery remains unavailable until its sealed plan resumes. Unchanged
+content remains open without timestamp touches or snapshot copies. Changed content and
+explicit retirement journals preserve exact historical membership. Search uses the same
+scope mapping.
 
-Address3D delivery preserves batch order within each database and runs independent
-source, history and current projections concurrently after Address2D delivery.
+Complete publisher omission retires the omitted source assertion. Curations can retain
+the canonical address without erasing that source event. Preflight compares final
+prepared canonical membership after alias, hierarchy and curation processing. It groups
+retirements by address level, separates provider omissions from canonical retirements,
+and stops for unreviewed building/complex loss, whole-inventory loss and substantial
+removal spikes. Invalid parent and owner references always fail validation. Flat
+removals remain reportable even when no review stop is required.
+
+Preparation retains `<prepared>.membership.json` alongside the prepared data. It records
+raw publisher IDs and unit tokens before curation, final canonical identities and
+levels, parent references, bilingual labels, map coordinates, aliases and compact 3D
+collections. Prepared 2D and 3D hashes bind the membership to the uploaded contents.
+
+Chronological review writes `.local/hkgov-dpo/deletions/<sourceVersion>.json`, including
+predecessor and current membership digests, per-level previous and removed counts,
+percentages, parent chains, map links, descendant counts and curated retentions. Any
+building, complex, phase, site or section retirement requires review, as does whole
+inventory loss. A deletion spike is at least 100 removals and at least 5% at a level, or
+at least 1,000 removals at a level.
+
+Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, with
+`schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
+`previousSourceVersion`, `reason` and `reviewedAt`. Neither `--yes` nor
+`--skip-curation-checks` bypasses this gate. Changed prepared data or membership
+requires a fresh review. Ingestion retains the acknowledged membership as
+`address-membership.json` for the next comparison.
 
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
@@ -201,26 +231,22 @@ rules do not copy publisher rows or canonical outputs. Publication requires regi
 provenance and completed delivery retries reuse the same retained graph. See the
 [processing provenance contract](../../processing-provenance.md).
 
-Local ALS delivery retains separate 2D SQL and grouped 3D bound plans. Owner validation
-precedes initial 3D mutation capture, and replay uses the sealed parameters without
-regenerating committed collections. Local publication follows successful delivery of
-both outputs; the release retains database ownership until lookup-cache finalisation.
-
-ALS Address3D delivery groups independent history, current and source writes into
-bounded requests. Each database retains generation order and each collection stays
-within one transaction. The local mirror replays the same retained statements after
-remote confirmation.
+ALS delivery prepares Address2D, grouped Address3D and publisher assertions in the same
+isolated local candidate. Owner and section validation precede the sealed remote plan.
+The plan contains final keyed mutations, and publication follows successful delivery of
+all outputs. The acknowledged mirror advances only after the remote receipts are
+reconciled; interrupted delivery resumes the retained payload and timestamps.
 
 Remote transport groups up to eight consecutive pending batches on the same database
 within a 512-data-statement and 8 MB retained-payload budget. This includes the retained
 2D publisher ledger. Grouping preserves each sealed batch's receipt, statement order and
 bound parameters; committed batches are not resubmitted on recovery.
 
-Source-version retirement is bounded to 1,024 rows per transaction. For a uniform
-publisher-upsert batch, prior-release rows can be retired before its upserts because
-those upserts restore every retained current-release version using the same sealed
-timestamps. Interrupted retirement resumes by selecting only still-current prior rows;
-the original receipt remains the completion marker for the full source batch.
+Local source-version retirement runs in bounded transactions. The final remote plan
+contains only source assertions whose open state or payload differs from the
+acknowledged mirror, using the sealed release timestamp. Unchanged assertions retain
+their original validity start and content. Receipt checks determine whether interrupted
+delivery needs to send a batch again.
 
 ALS supplies bilingual premise addresses. The
 [import specification](../../internal/hkgov/address.md) describes source preparation,
@@ -243,21 +269,21 @@ manual overrides and how changed evidence reopens review.
 ## SQL delivery
 
 Grouped Address3D ingestion validates all owners and unresolved sections against the
-selected 2D snapshot before clearing or writing collections. Lookups stream in groups of
-at most 99 references, reserving the remaining D1 parameter for the snapshot. Missing
-owners and sections without exactly one reviewed parent match block ingestion; batching
-does not infer or change parent relationships.
+selected 2D projection before writing collections. Lookups stream in groups of at most
+99 references, reserving the remaining D1 parameter for the snapshot. Missing owners and
+sections without exactly one reviewed parent match block ingestion; batching does not
+infer or change parent relationships.
 
-ALS retains separate sealed delivery plans for Address 2D SQL and grouped Address3D
-bound batches. Source checksums bind these plans to their preparation; local replay uses
-the exact remote payloads and timestamps. Database receipts allow recovery after a lost
+The shared local planner seals the complete Address2D, Address3D and source/provenance
+result against the acknowledged mirror. Source checksums, schema and baseline identity
+bind the delivery to its preparation. Database receipts allow recovery after a lost
 acknowledgement. See [resumable SQL delivery](../../sql-delivery.md).
 
-The local D1 mirror supplies the identity and version context for ALS SQL preparation.
-Source, history and current artefacts retain that resolved context for remote import and
-local replay. Each history/current stage builds only its target's SQL. Insert batching
-counts escaped UTF-8 bytes incrementally, including punctuation and statement
-terminators, and rejects an individual row that cannot fit within the statement limit.
+Initial uploads export the complete prepared database contents, retaining immutable
+history and a single final current projection per lineage. Subsequent uploads compile
+only resolved changes. SQL staging is local preparation state and is excluded from the
+remote plan. Insert batching counts escaped UTF-8 bytes, punctuation and statement
+terminators, and rejects an individual row that cannot fit within D1 limits.
 
 ## Component correction fixture
 

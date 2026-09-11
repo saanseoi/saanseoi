@@ -73,3 +73,10 @@ layout, missing OCR runtime, or damaged retrieval can be corrected deliberately.
 - [e-Gazette search](https://egazette.gld.gov.hk/en/search-gazette)
 - [e-Gazette important notices](https://egazette.gld.gov.hk/en/important-notices)
 - [LandsD Government Notices and Plans for Street Naming](https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html)
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).

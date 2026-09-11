@@ -55,6 +55,15 @@ polygons alongside census, by-census and annual statistics. These are statistica
 geographies: each geometry release is retained for its reference-year cohort and must
 not be represented as an evergreen administrative boundary.
 
+Each independently published geometry resource release retains its selected current
+snapshot per cohort and variant. The 2016 and 2021 census releases share
+`hkgov-censtatd-landclipped` and use distinct cohort keys; each also has a
+`hkgov-censtatd-landclipped:simplified` materialisation. A correction within one cohort
+can replace that cohort's selected snapshot without displacing the other census.
+Retention follows the processed geometry resource release, independently of publication
+of the source package's statistics output. Superseded snapshots remain reconstructable
+from history.
+
 | Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                                                  |
 | ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
 | 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
@@ -350,3 +359,14 @@ Housing Market Area Division search selects the latest published default in
 the shared deferred, incremental search finalisation. District geometry variants do not
 create duplicate search documents. See
 [Division text search](../../families/divisions.md#text-search).
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).
+
+Identical-geometry reuse requires a completed receipt for the candidate snapshot as well
+as matching canonical values. A completed local mirror remains eligible while
+publication is deferred; an interrupted delivery cannot become a reuse baseline.

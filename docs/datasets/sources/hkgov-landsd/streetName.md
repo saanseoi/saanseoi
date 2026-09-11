@@ -111,3 +111,14 @@ enrich the same identities without becoming their source of truth.
 - [Traditional Chinese notices and plans](https://www.landsd.gov.hk/tc/survey-mapping/mapping/street-geographical-place-naming/street-naming.html)
 - [Gazetted Street Name list](https://www.landsd.gov.hk/doc/en/street-name/Gazetted_Street_Name.pdf)
 - [Hong Kong e-Gazette](../hkgov-gld/egazetteStreetName.md)
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).
+
+Sealed Street delivery replays current, history and metadata mutations to the selected
+target before publication. Its completion check covers active streets, localisations and
+changelog entries, excluding deleted localisations from the active inventory.

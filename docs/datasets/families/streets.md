@@ -45,11 +45,12 @@ the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 
 Native feature source tables retain publisher attributes in `rawProperties`, native
 geometry separately, and identity, release history and provenance in the source
-envelope. TD's layer kind identifies the source collection. Names, descriptions,
-coordinates and classifications are not duplicated as extracted source columns. PDF
-baseline and notice records retain structured extracted evidence because these
-publishers supply documents, not feature-property objects; notice applications retain
-the audit decision separately from canonical street state.
+envelope. Retained source-property keys use the shared camelCase convention while
+publisher values remain unchanged. TD's layer kind identifies the source collection.
+Names, descriptions, coordinates and classifications are not duplicated as extracted
+source columns. PDF baseline and notice records retain structured extracted evidence
+because these publishers supply documents, not feature-property objects; notice
+applications retain the audit decision separately from canonical street state.
 
 The Streets family publishes persistent logical street identities. Its first release is
 the current Lands Department gazetted street-name register: one active street per
@@ -148,3 +149,17 @@ coordinates. The private FileGDB reader disables automatic WGS84 projection with
 changing other FileGDB consumers. Dataset `sourceCrs` is EPSG:2326; coordinate
 conversion belongs to a separately declared map derivative. Document-only street
 products retain a null CRS.
+
+## Publication readiness
+
+Current materialisations claim a publication-state receipt before delivery and mark it
+prepared only after complete delivery validation, including valid empty snapshots. The
+selected published snapshot must be ready for the API to serve it. Publication, search
+readiness and cleanup follow the shared
+[publication-state contract](../publication-state-plan.md). The next reset and reingest
+creates these receipts through normal delivery; no backfill infers readiness from
+existing records.
+
+Street delivery seals current, history and metadata mutations for resumable local or
+remote replay. Preparation validates active streets, their localisations and changelog
+entries; deleted localisations do not count towards the active inventory.

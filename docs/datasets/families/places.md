@@ -416,3 +416,17 @@ Public source records expose retained attributes under `properties`; `rawPropert
 the internal storage column. API-field inputs reference the public path through the
 shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
 their registered fixtures and are pinned by the selected release.
+
+## Publication readiness
+
+Current materialisations claim a publication-state receipt before delivery and mark it
+prepared only after complete delivery validation, including valid empty snapshots. The
+selected published snapshot must be ready for the API to serve it. Publication, search
+readiness and cleanup follow the shared
+[publication-state contract](../publication-state-plan.md). The next reset and reingest
+creates these receipts through normal delivery; no backfill infers readiness from
+existing records.
+
+Place delivery validates records, localisations, spatial cells and division links before
+marking preparation complete. Supplementary Address delivery has its own receipt; both
+selected projections must be ready before publication finalises the Place search index.

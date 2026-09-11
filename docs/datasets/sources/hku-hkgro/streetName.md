@@ -150,3 +150,10 @@ selection also has parsed facts and lifecycle/identity decisions.
 
 - [HKGRO annual Government Gazette browsing](https://sunzi.lib.hku.hk/hkgro/browse.jsp)
 - [Hong Kong e-Gazette historical street-name notices](../hkgov-gld/egazetteStreetName.md)
+
+## Publication readiness
+
+Canonical current delivery validates its complete snapshot before recording preparation
+in the relevant `*PublicationState` table. Publication alone marks that preparation
+ready for API reads. Empty snapshots require the same explicit completion evidence. See
+the [publication-state contract](../../publication-state-plan.md).
