@@ -296,8 +296,6 @@ export async function insertSourceRows(
       cells.map(async cell => ({
         sourceRecordId: cell.sourceRecordId,
         properties: retainSourceProperties(cell.properties),
-        wasGeometryRepaired: cell.wasGeometryRepaired,
-        repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
         sourceLocator: { layer: 'TPUSU' },
         versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
@@ -334,8 +332,6 @@ export async function insertSourceRows(
       sourceRecordId: town.sourceRecordId,
       properties: retainSourceProperties(town.properties),
       sourceGeometry: town.sourceGeometry,
-      wasGeometryRepaired: town.wasGeometryRepaired,
-      repairedGeometry: town.repairedGeometry,
       sourceLocator: null,
       versionHash: await createHash(nativeSourcePayloadHashInput(town)),
       releaseId,

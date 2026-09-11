@@ -95,6 +95,34 @@ describe('Planning Department native TPU SHP intake', () => {
         divisionCount: 5269,
         sourceFeatureCount: 5088,
       })
+      const file = await asyncBufferFromFile(join(outputDir, 'division.parquet'))
+      const rows = await parquetReadObjects({
+        file,
+        compressors,
+        columns: ['planning_level', 'source_properties'],
+      })
+      const cells = rows
+        .filter(row => row.planning_level === 'subunit')
+        .flatMap(
+          row =>
+            jsonRecord(row.source_properties).sourceFeatures as Array<{
+              sourceRecordId: string
+              tpuCode: string
+              subunitCode: string
+              properties: unknown
+              sourceGeometry: unknown
+            }>,
+        )
+      expect(cells).toHaveLength(5088)
+      expect(new Set(cells.map(cell => cell.sourceRecordId)).size).toBe(5088)
+      for (const cell of cells) {
+        const prefix = `PLAND:${cell.tpuCode}:${cell.subunitCode}:`
+        expect(cell.sourceRecordId.startsWith(prefix)).toBe(true)
+        expect(cell.sourceRecordId.slice(prefix.length)).toMatch(/^[1-9]\d*$/)
+        expect(cell.properties).toBeDefined()
+        expect(cell.sourceGeometry).toBeDefined()
+        expect(cell).not.toHaveProperty('repairedGeometry')
+      }
     } finally {
       await rm(outputDir, { force: true, recursive: true })
     }

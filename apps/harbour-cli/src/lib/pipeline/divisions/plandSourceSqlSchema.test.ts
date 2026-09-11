@@ -49,6 +49,8 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'])
           input.query(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>
         ).map(row => row.name),
       )
+      expect(plandSourceSqlColumns(source)).not.toContain('repairedGeometry')
+      expect(plandSourceSqlColumns(source)).not.toContain('wasGeometryRepaired')
       const sql = await buildPlandSourceSql(
         { sourceDb: createLocalHarbourDb(input) } as never,
         { source, sourceVersion: '2001' } as never,
@@ -100,8 +102,7 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'] as const)
             ],
           ],
         },
-        repairedGeometry: null,
-        wasGeometryRepaired: false,
+        wasGeometryRepaired: true,
       }
       await insertSourceRows(
         db as never,
@@ -111,6 +112,13 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'] as const)
         source,
         '2026-09-12T00:00:00.000Z',
         () => {},
+      )
+      const stored = input.query(`SELECT * FROM ${table}`).get()
+      expect(stored).not.toHaveProperty('repairedGeometry')
+      expect(stored).not.toHaveProperty('wasGeometryRepaired')
+      expect(stored).toHaveProperty(
+        'sourceGeometry',
+        JSON.stringify(record.sourceGeometry),
       )
       await closeNativeSourceRows(
         db as never,

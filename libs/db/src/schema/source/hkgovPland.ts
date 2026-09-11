@@ -1,20 +1,12 @@
-import { integer, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
-import { jsonText } from '../shared'
 import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
-/**
- * Native CSDI TPU/subunit features. `repairedGeometry` records the explicitly
- * approved buffer(0) repair, keyed to this exact publisher feature version.
- */
+/** Native CSDI TPU/subunit features with unchanged publisher geometry. */
 export const sourceHkgovPlandPlanningCells = sqliteTable(
   'hkgovPlandPlanningCells',
   {
     ...sourceSpatialAssertionColumns(),
-    wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-    repairedGeometry: jsonText('repairedGeometry'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -27,10 +19,6 @@ export const sourceHkgovPlandNewTowns = sqliteTable(
   'hkgovPlandNewTowns',
   {
     ...sourceSpatialAssertionColumns(),
-    wasGeometryRepaired: integer('wasGeometryRepaired', { mode: 'boolean' })
-      .notNull()
-      .default(false),
-    repairedGeometry: jsonText('repairedGeometry'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

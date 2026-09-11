@@ -180,8 +180,7 @@ async function normalisePreparedDivision(
   const versionHash = await createHash(base)
   const cells =
     level === 'subunit' ? normalisePlanningCells(sourceProperties.sourceFeatures) : []
-  const newTown =
-    level === 'newtown' ? normaliseNewTown(sourceProperties, i18n, geometry) : null
+  const newTown = level === 'newtown' ? normaliseNewTown(sourceProperties, i18n) : null
   return {
     base,
     cells,
@@ -227,7 +226,6 @@ function normalisePlanningCells(value: unknown): PreparedDivision['cells'] {
     return {
       ppuCode: requireString(cell.ppuCode, `sourceFeatures[${index}].ppuCode`),
       properties: cell.properties ?? null,
-      repairedGeometry: cell.repairedGeometry ?? null,
       sourceRecordId: requireString(
         cell.sourceRecordId,
         `sourceFeatures[${index}].sourceRecordId`,
@@ -247,7 +245,6 @@ function normalisePlanningCells(value: unknown): PreparedDivision['cells'] {
 function normaliseNewTown(
   sourceProperties: Record<string, unknown>,
   i18n: Array<{ locale: string; name: string }>,
-  geometry: unknown,
 ) {
   const name = (locale: string) =>
     i18n.find(entry => entry.locale === locale)?.name ?? null
@@ -256,7 +253,6 @@ function normaliseNewTown(
     nameZhHans: requireString(name('zh-hans'), 'New Town Simplified Chinese name'),
     nameZhHant: requireString(name('zh-hant'), 'New Town Traditional Chinese name'),
     properties: asRecord(sourceProperties.sourceFeature).properties ?? null,
-    repairedGeometry: sourceProperties.was_geometry_repaired ? geometry : null,
     sourceGeometry: requireValue(
       sourceProperties.source_geometry,
       'New Town source geometry',

@@ -244,6 +244,12 @@ describe('C&SD native statistics archives', () => {
         })
         expect(divisions[0]).toHaveProperty('parent_division_id', '')
         expect(divisions[0]).not.toHaveProperty('canonical_level')
+        for (const division of divisions) {
+          const properties = JSON.parse(String(division.source_properties))
+          expect(JSON.parse(String(division.identifiers))).toEqual({
+            hkgovCenstatd: { code: properties.hma },
+          })
+        }
       }
     }
     for (const area of overtureHongKongAreas) {

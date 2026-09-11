@@ -359,7 +359,9 @@ geometry selected at the latest compatible cohort and linked to the Overture ide
 snapshot. HMA is its domain's primary canonical division input, paired with the required
 native `hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
 Division level, so the generated Division record has no `level` value and an empty
-hierarchy.
+hierarchy. HMA Division identifiers retain only `hkgovCenstatd.code`. The
+`housing-market-area` classification is carried by `class` and the prepared
+`canonical_type`, independently of the source identifier.
 
 The Statistics launch-bootstrap mode passes `--defer-stats-release-set`, so it uses the
 Statistics-only branch unless the operator also passes `--include-geography`. This keeps
