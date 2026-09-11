@@ -1,3 +1,4 @@
+import { overtureHongKongCityRestorationActions } from './overtureHongKongCityRestoration'
 import type { AsyncBuffer } from 'hyparquet'
 
 import type { DatasetProcessingMessage } from '../../../types'
@@ -69,6 +70,7 @@ export async function* readDivisionRowsWithFixtures(
       rows,
       processingActions: [
         ...kowloonRestorationActions(sourceRows, rows),
+        ...overtureHongKongCityRestorationActions(rows),
         ...overtureHongKongAreaRestorationActions(sourceRows, rows),
       ],
     }

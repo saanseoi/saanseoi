@@ -1,4 +1,8 @@
 import {
+  overtureHongKongCityRestorationDeclaration,
+  overtureHongKongCityRestorationFixture,
+} from './overtureHongKongCityRestoration'
+import {
   retainAuditResult,
   retainObject,
   type BulkAudit,
@@ -123,6 +127,11 @@ export async function retainDivisionProvenance(
       declaration: overtureHongKongAreaRestorationDeclaration,
       fixture: overtureHongKongAreaRestorationFixture,
       reason: overtureHongKongAreaRestorationFixture.reason,
+    },
+    [overtureHongKongCityRestorationFixture.id]: {
+      declaration: overtureHongKongCityRestorationDeclaration,
+      fixture: overtureHongKongCityRestorationFixture,
+      reason: overtureHongKongCityRestorationFixture.reason,
     },
     ...(input.patchDefinitions ?? {}),
   }
