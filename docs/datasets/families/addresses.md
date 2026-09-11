@@ -213,35 +213,21 @@ inputs to the Parquet digest in an `.audit.json` sidecar. Publication requires
 registered provenance, and delivery retries transfer the completed retained graph. See
 the [processing provenance contract](../processing-provenance.md).
 
-Local 2D and grouped 3D ingestion retain native SQL plans and transactional receipts.
-Restarting a local 2D workflow reuses its retained generation message; 3D plans preserve
-bound values and collection transaction boundaries. Publication follows both deliveries.
+Local and remote Address ingestion use one `sql-delivery-address` plan for Address2D,
+Address3D and publisher assertions. The isolated candidate resolves identities,
+versions, omissions and snapshot relationships before the compiler seals their final
+keyed mutations. Source retirement scans and staging writes remain local; only changed,
+new, reopened and omitted source assertions produce remote mutations.
 
-Local and remote grouped Address3D delivery batch independent database targets
-separately, retaining per-database statement order and whole-collection transaction
-boundaries. See [SQL delivery](../sql-delivery.md) for receipts and recovery.
+Each database retains its statement order, and each current Address3D collection stays
+within one bounded transaction. Statements and batches respect the resolved compiler's
+parameter, SQL-byte, row-size and payload limits. Oversized rows or atomic collections
+fail preparation before delivery starts.
 
-Remote Address3D transport combines consecutive pending batches for one database, up to
-eight batches, 512 data statements and 8 MB of retained payload per request. Each sealed
-batch keeps its own receipt; recovery checks every receipt before advancing and does not
-replay uncertain writes. Individual statements retain the 100-parameter limit.
-
-Publisher-source planning reads current assertions in ordered row-ID pages and seals
-only changed, new, reopened and omitted source mutations. Omission updates use at most
-96 indexed source IDs per statement. Retained plans containing release-marker retirement
-queries use repeat-safe transactions of at most 1,024 rows, advancing past the largest
-returned row ID after each batch. A restart safely excludes already closed rows. The
-sealed batch receipt is written only after its complete transaction finishes.
-
-SQL ingestion uses the local D1 mirror to resolve identities, versions and snapshot
-relationships before remote delivery. History and current stages each generate their own
-SQL artefact. Insert statements are bounded by escaped UTF-8 bytes, with oversized
-individual rows rejected during generation. Remote delivery and local cache replay apply
-the generated artefacts in their required dependency order.
-
-Address 2D SQL and grouped Address3D bound batches use sealed
-[delivery plans and receipts](../sql-delivery.md), with independent remote delivery and
-local replay checkpoints. Recovery uses the original payloads and prepared timestamps.
+The sealed [delivery plan and receipts](../sql-delivery.md) preserve the generation
+message, bound values, prepared timestamps and separate remote/local checkpoints.
+Recovery reconciles receipts before advancing and reuses the original payloads.
+Publication follows successful delivery of the complete Address result.
 
 Address3D owner and unresolved-section validation streams bounded lookups against the
 selected Address2D snapshot before any Address3D writes. Each query reserves one bound
