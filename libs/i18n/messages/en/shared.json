@@ -2892,7 +2892,7 @@
   "openapi_source_record_sample_description": "Return an independent random sample from the selected source release. Random samples cannot be combined with a cursor or NDJSON streaming.",
   "openapi_source_record_api_release_set_pin_description": "Null for a canonical sourceRelease pin, which is intentionally independent of an API release set.",
   "openapi_source_record_snapshot_pin_description": "Null for a canonical sourceRelease pin, which is intentionally independent of a snapshot.",
-  "openapi_statistics_include_description": "Include field definitions, related divisions and/or division-area geometry. Field definitions include the requested locale labels. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.",
+  "openapi_statistics_include_description": "Defaults to fields: each versioned field definition is included once with its dimensions and requested locale labels. An explicit include list replaces this default; use none to omit included resources, or fields,divisions to include both. Unqualified areas resolve per statistic geography; qualified areas request one exact provider variant.",
   "openapi_statistics_dataset_filter_description": "Optional dataset override. Omit it to resolve one dataset from the field and geography filters.",
   "openapi_source_records_ndjson_description": "A newline-delimited stream of source records.",
   "openapi_source_records_list_description": "List source records for one exact source release, or stream them as NDJSON.",
