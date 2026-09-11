@@ -91,7 +91,7 @@ describe('stats rows', () => {
         groupValue: 'en',
         metric: 'completeness',
         metricUnit: 'percentage',
-        kind: 'release',
+
         value: 50,
       }),
     )
@@ -237,7 +237,7 @@ describe('stats rows', () => {
       expect.objectContaining({
         dimension: 'added_count',
         metric: 'churn',
-        kind: 'release',
+
         value: 2,
       }),
     )
@@ -247,7 +247,7 @@ describe('stats rows', () => {
         groupBy: 'table',
         groupValue: 'address2dI18n',
         metric: 'count',
-        kind: 'release',
+
         value: 18,
       }),
     )

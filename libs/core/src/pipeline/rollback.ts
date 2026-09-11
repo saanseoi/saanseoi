@@ -58,7 +58,7 @@ export function buildDraftReleasePurgeSql(
 }
 
 export function describeLatestReleaseRollbackPlan(
-  input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
+  input: Pick<LatestReleaseRollbackInput, 'source' | 'resourceType'>,
 ): LatestReleaseRollbackPlan {
   const plan = resolveRollbackPlan(input)
 
@@ -288,7 +288,7 @@ function buildPurgeMetaSql(input: LatestReleaseRollbackInput) {
 }
 
 function resolveRollbackPlan(
-  input: Pick<LatestReleaseRollbackInput, 'source' | 'type'>,
+  input: Pick<LatestReleaseRollbackInput, 'source' | 'resourceType'>,
 ): RollbackPlan {
   const resourcePlan = rollbackPlans[input.resourceType]
 

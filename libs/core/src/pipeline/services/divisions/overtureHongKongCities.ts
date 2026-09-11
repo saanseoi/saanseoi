@@ -28,7 +28,7 @@ export const overtureHongKongCities = [
 ] as const
 
 export function missingOvertureHongKongCityRows(
-  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
+  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   sourceRows: readonly Record<string, unknown>[],
 ): Record<string, unknown>[] {
   if (

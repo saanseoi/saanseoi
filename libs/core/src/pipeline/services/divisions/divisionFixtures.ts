@@ -24,7 +24,7 @@ type DivisionRowBatch = {
  * and address rows must be able to resolve their canonical IDs in that snapshot.
  */
 export function getSupplementalDivisionFixtureRows(
-  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
+  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
 ): DivisionFixtureRow[] {
   if (
     message.source !== 'overture' ||
@@ -39,7 +39,7 @@ export function getSupplementalDivisionFixtureRows(
 
 export async function* readDivisionRowsWithFixtures(
   file: AsyncBuffer,
-  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
+  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   batchSize: number,
 ): AsyncGenerator<DivisionRowBatch> {
   const sourceRows: DivisionFixtureRow[] = []
