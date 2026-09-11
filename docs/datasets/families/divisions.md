@@ -1,5 +1,40 @@
 # Divisions dataset family
 
+## Classification and stored ancestry
+
+Geographic divisions expose `category`, `class` and `level`. Administrative classes are
+`sar` (0), `area` (1) and `district` (2); localities are `city` (1), `town` (3),
+`village` (5) and `hamlet` (6); hoods are `macrohood` (4), `neighbourhood` (5) and
+`microhood` (6). The separate country anchor remains administrative. Planning and
+statistical domains retain their domain-specific classes with no geographic category.
+Levels can be shared and skipped; a hood does not require a city parent.
+
+Ingestion stores `hierarchies.administrative`, `hierarchies.locality` and
+`hierarchies.full` as arrays of ancestor paths. Every entry is `{ id, name, class }`.
+Paths run broadest to narrowest and exclude the division itself. Locality paths retain
+the nearest locality and its hood ancestry; full paths combine administrative ancestry
+with that locality/hood path, omitting only a city. Paths preserve source correlations:
+multiple districts or hoods do not create a Cartesian product of invented paths. `name`
+is Traditional Chinese followed by English, trimmed and deduplicated, or the one
+available name; absent names are null. The API returns these stored paths without
+ancestor lookups or locale-dependent label construction. Optional `include=hierarchy`
+loads the distinct ancestor resources, including cities, in `included`.
+
+Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
+SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
+`17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses
+`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`. The `KL` statistical code identifies the area,
+not the city. Kowloon city and area share the same district-union geometry. Hong Kong
+city retains its source identity and geometry when present; its missing identity or
+geometry is reconstructed from Central and Western, Wan Chai and Eastern districts. Hong
+Kong Island area also includes Southern District. Publisher assertions remain unchanged
+and reconstruction evidence is retained separately.
+
+The current/history schema requires these materialised paths. Populated databases need a
+separately authorised rebuild and reingestion; generated schema migrations do not
+reconstruct names, city identities or branching in existing snapshots. Do not publish an
+old flat hierarchy as the new contract.
+
 Open source versions with unchanged hashes retain their release ID, validity and
 timestamps. Publisher membership determines omissions independently of release markers.
 Geometry source and derivative conflict updates run only for closed assertions; closing
@@ -79,11 +114,11 @@ divisions.
 
 Hong Kong Area insertion is a bulk normalisation rule, not a patch or curation. A
 separate `hong-kong-sar-area-district-hierarchy` guard checks the resulting ancestry for
-districts and district descendants. It requires exactly one recognised Area between the
-Hong Kong SAR and district, rejects conflicting or duplicate ancestors, and blocks
-unresolved mappings for review. Non-district branches do not acquire invented district
-parents. Audit retains checked/failed counts separately from the rule's assignment
-count.
+districts and district descendants. For each source path, it requires exactly one
+recognised Area between the Hong Kong SAR and district, rejects conflicting or duplicate
+ancestors, and blocks unresolved mappings for review. Non-district branches do not
+acquire invented district parents. Audit retains checked/failed counts separately from
+the rule's assignment count.
 
 Reviewed supplemental replacements are resolved before row processing. For an identity
 being replaced, the hierarchy guard checks the final replacement after normalisation;
