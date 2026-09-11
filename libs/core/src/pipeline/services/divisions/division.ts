@@ -1,3 +1,5 @@
+import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
+import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
 import { geographicDivisionClassification, emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from './divisionHierarchies'
 import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
@@ -1991,9 +1993,11 @@ function collectLocalisedRuleValues(
  */
 export async function buildDivisionHierarchyLookup(
   file: AsyncBuffer,
-  source: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>,
+  source: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
+    Partial<Pick<DatasetProcessingMessage, 'regionCode'>>,
 ) {
   const lookup = new Map<string, DivisionHierarchyLookupEntry>()
+  const sourceRows: Record<string, unknown>[] = []
   const schema = resolveSourceRecordSchema({ ...source, resourceType: 'division' })
   if (source.source === 'overture' && !schema) {
     throw new Error(`No accepted Overture division schema for ${source.sourceVersion}.`)
@@ -2006,6 +2010,7 @@ export async function buildDivisionHierarchyLookup(
   for await (const batch of readParquetObjectsInBatches(file, DIVISION_BATCH_SIZE, {
     columns,
   })) {
+    sourceRows.push(...batch)
     for (const row of batch) {
       const id = asNonEmptyString(row.id)
 
@@ -2065,6 +2070,32 @@ export async function buildDivisionHierarchyLookup(
     }
   }
 
+  if (source.source === 'overture' && source.regionCode === 'hk') {
+    const message = {
+      source: 'overture',
+      regionCode: 'hk',
+      resourceType: 'division',
+    } as const
+    const supplemental = [
+      ...missingOvertureHongKongAreaRows(message, sourceRows),
+      ...missingOvertureHongKongCityRows(message, sourceRows),
+    ]
+    for (const row of supplemental) {
+      const normalised = normaliseDivisionRow(row, {
+        hierarchyLookup: lookup,
+        deferHierarchyGuard: true,
+      })
+      lookup.set(normalised.base.id, {
+        type: normalised.base.class,
+        level: normalised.base.level ?? 0,
+        i18n: Object.fromEntries(
+          normalised.i18n
+            .filter(entry => entry.name)
+            .map(entry => [entry.locale, { name: entry.name! }]),
+        ),
+      })
+    }
+  }
   return lookup
 }
 
