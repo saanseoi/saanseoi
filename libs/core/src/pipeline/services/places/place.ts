@@ -174,11 +174,7 @@ export async function hashNormalisedPlace(place: NormalisedPlace) {
   })
 }
 
-/**
- * Hashes the complete place materialisation, including the reference snapshots
- * used for its address and division joins. Reference snapshots are part of the
- * published result even when the linked canonical IDs remain unchanged.
- */
+/** Base content inherits independently of locales and publication provenance. */
 export async function hashPlaceMaterialisation(
   place: NormalisedPlace,
   references: {
@@ -187,20 +183,37 @@ export async function hashPlaceMaterialisation(
     addressId: string | null
     divisionIds: string[]
     contentHash?: string
+    addressDependencyHash?: string | null
+    effectiveLng?: number
+    effectiveLat?: number
     address3dId?: string | null
     address3dUnitId?: string | null
     address3dMembership?: 'established' | 'unresolved' | null
   },
 ) {
   return createHash({
-    contentHash: references.contentHash ?? (await hashNormalisedPlace(place)),
-    addressSnapshotId: references.addressSnapshotId,
-    divisionSnapshotId: references.divisionSnapshotId,
+    id: place.id,
+    lng: references.effectiveLng ?? place.lng,
+    lat: references.effectiveLat ?? place.lat,
+    bbox: place.bbox,
+    operatingStatus: place.operatingStatus,
+    basicCategory: place.basicCategory,
+    taxonomyPrimary: place.taxonomyPrimary,
+    taxonomyHierarchy: place.taxonomyHierarchy,
+    taxonomyAlternates: place.taxonomyAlternates,
+    wikidataId: place.wikidataId,
+    websites: place.websites,
+    socials: place.socials,
+    emails: place.emails,
+    phones: place.phones,
+    addresses: place.addresses,
+    confidence: place.confidence,
+    addressDependencyHash: references.addressDependencyHash ?? null,
     addressId: references.addressId,
     address3dId: references.address3dId ?? null,
     address3dUnitId: references.address3dUnitId ?? null,
     address3dMembership: references.address3dMembership ?? null,
-    divisionIds: references.divisionIds,
+    divisionIds: [...new Set(references.divisionIds)].sort(),
   })
 }
 

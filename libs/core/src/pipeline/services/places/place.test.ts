@@ -319,7 +319,7 @@ test('counts locale conflicts from transient resolver evidence', () => {
   })
 })
 
-test('changes the materialisation hash when a reference snapshot changes', async () => {
+test('base materialisation ignores reference publication churn but tracks dependency content', async () => {
   const place = normaliseOverturePlace(
     {
       id: 'place-1',
@@ -343,5 +343,24 @@ test('changes the materialisation hash when a reference snapshot changes', async
     divisionIds: ['division-id'],
   })
 
-  expect(second).not.toBe(first)
+  expect(second).toBe(first)
+  const changed = await hashPlaceMaterialisation(place, {
+    addressSnapshotId: 'address-2',
+    divisionSnapshotId: 'division-2',
+    addressId: 'address-id',
+    divisionIds: ['division-id'],
+    addressDependencyHash: 'changed-content',
+  })
+  expect(changed).not.toBe(first)
+  place.i18n[0]!.name = 'Changed translation'
+  place.sources = { revised: 'publisher assertion' }
+  place.lastSeenMonth = '2027-01'
+  expect(
+    await hashPlaceMaterialisation(place, {
+      addressSnapshotId: 'address-3',
+      divisionSnapshotId: 'division-3',
+      addressId: 'address-id',
+      divisionIds: ['division-id'],
+    }),
+  ).toBe(first)
 })
