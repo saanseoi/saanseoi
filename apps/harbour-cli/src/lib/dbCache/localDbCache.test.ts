@@ -59,6 +59,9 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionsI18n')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'divisions')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
+  expect(
+    resolveCachePruneOperation('DB_HISTORY_HK_2025', 'address2dEvidence'),
+  ).toBeNull()
 })
 
 test('omits the derived Places full-text index from the current cache profile', () => {
@@ -67,10 +70,12 @@ test('omits the derived Places full-text index from the current cache profile', 
   expect(tables).toContain('placesDivision')
   expect(tables).toContain('placesCells')
   expect(tables).toContain('address2dBuildingNumberLookup')
+  expect(tables).not.toContain('address2dEvidence')
   const historyTables = resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'places')
   expect(historyTables).not.toContain('placesDivision')
   expect(historyTables).not.toContain('placesCells')
   expect(historyTables).toContain('address2dBuildingNumberLookup')
+  expect(historyTables).toContain('address2dEvidence')
 })
 
 test('the full mirror includes every Address table in current and history storage', () => {
@@ -84,6 +89,7 @@ test('the full mirror includes every Address table in current and history storag
       'address3dI18n',
     ])
       expect(full).toContain(table)
+    expect(full.includes('address2dEvidence')).toBe(binding !== 'DB_CURRENT')
   }
 })
 
@@ -109,6 +115,7 @@ test('omits the rebuilt Address full-text index from the mirror profile', () => 
   expect(tables).toContain('address2dBuildingNumberLookup')
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'address')).toEqual([
     'address2d',
+    'address2dEvidence',
     'address2dI18n',
     'address2dBuildingNumberLookup',
     'address3d',
@@ -135,10 +142,10 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(163)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(166)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(107)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(59)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(110)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(62)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(54)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
     'sourceResolutions',

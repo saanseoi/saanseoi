@@ -47,6 +47,8 @@ export const REMOTE_GEOMETRY_QUERY_CONCURRENCY = 4
 
 export const REMOTE_CACHE_PARTIAL_DIR = '.partial'
 
+// Supplementary Address evidence retains superseded rows: published snapshot
+// journals select the exact edition provenance independently of component content.
 export const VERSION_TABLES_WITH_CURRENT_ROWS = new Set([
   'address2d',
   'address2dI18n',

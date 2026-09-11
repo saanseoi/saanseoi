@@ -184,6 +184,7 @@ export function resolveCacheTablesForBinding(
         'places',
         'placesI18n',
         'address2d',
+        'address2dEvidence',
         'address2dI18n',
         'address2dBuildingNumberLookup',
         'sourceResolutions',
@@ -194,6 +195,7 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'address') {
       return [
         'address2d',
+        'address2dEvidence',
         'address2dI18n',
         'address2dBuildingNumberLookup',
         'address3d',
@@ -228,6 +230,7 @@ export function resolveCacheTablesForBinding(
       'divisions',
       'divisionsI18n',
       'address2d',
+      'address2dEvidence',
       'places',
       'placesI18n',
       'address2dI18n',
