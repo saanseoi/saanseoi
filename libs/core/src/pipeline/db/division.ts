@@ -32,9 +32,9 @@ import {
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
-const CURRENT_DIVISION_COLUMN_COUNT = 14
+const CURRENT_DIVISION_COLUMN_COUNT = 15
 const CURRENT_DIVISION_I18N_COLUMN_COUNT = 10
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 17
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 18
 const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 13
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
@@ -68,19 +68,9 @@ function excluded(column: string) {
 }
 
 function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
-  if (!Array.isArray(hierarchy) || hierarchy.length === 0) {
-    return null
-  }
-
-  const parent = hierarchy[hierarchy.length - 1]
-  if (!parent || typeof parent !== 'object') {
-    return null
-  }
-
-  const divisionId = (parent as Record<string, unknown>).division_id
-  return typeof divisionId === 'string' && divisionId.trim().length > 0
-    ? divisionId
-    : null
+  const paths = (hierarchy as import('@repo/db').DivisionHierarchies | null)?.full ?? []
+  const ids = [...new Set(paths.flatMap(path => path.at(-1)?.id ?? []))].sort()
+  return ids.length ? JSON.stringify(ids) : null
 }
 
 export async function getMergedCurrentDivisionVersionMap(
@@ -153,11 +143,12 @@ export async function getCurrentDivisionVersionMap(
       bbox: historySchema.divisions.bbox,
       cartography: historySchema.divisions.cartography,
       geometry: historySchema.divisions.geometry,
-      hierarchy: historySchema.divisions.hierarchy,
+      hierarchies: historySchema.divisions.hierarchies,
       identifiers: historySchema.divisions.identifiers,
       level: historySchema.divisions.level,
       sources: historySchema.divisions.sources,
-      type: historySchema.divisions.type,
+      category: historySchema.divisions.category,
+      class: historySchema.divisions.class,
       versionHash: historySchema.divisions.versionHash,
       wikidata: historySchema.divisions.wikidata,
     })
@@ -221,8 +212,8 @@ export async function getCurrentDivisionVersionMap(
           geometry: row.geometry as GeoJsonGeometry | null,
           id: row.id,
           localisedRows: localisedRows,
-          parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
-          type: row.type,
+          parentId: resolveParentDivisionIdFromHierarchy(row.hierarchies),
+          type: row.class,
           versionHash: row.versionHash,
         } satisfies DivisionVersionSnapshot,
       ] as const
@@ -249,11 +240,12 @@ export async function getDivisionVersionMapForSnapshot(
       bbox: currentSchema.divisions.bbox,
       cartography: currentSchema.divisions.cartography,
       geometry: currentSchema.divisions.geometry,
-      hierarchy: currentSchema.divisions.hierarchy,
+      hierarchies: currentSchema.divisions.hierarchies,
       identifiers: currentSchema.divisions.identifiers,
       level: currentSchema.divisions.level,
       sources: currentSchema.divisions.sources,
-      type: currentSchema.divisions.type,
+      category: currentSchema.divisions.category,
+      class: currentSchema.divisions.class,
       wikidata: currentSchema.divisions.wikidata,
     })
     .from(currentSchema.divisions)
@@ -298,8 +290,8 @@ export async function getDivisionVersionMapForSnapshot(
             id: row.id,
             localisedRows,
             ownerShardKeys,
-            parentId: resolveParentDivisionIdFromHierarchy(row.hierarchy),
-            type: row.type,
+            parentId: resolveParentDivisionIdFromHierarchy(row.hierarchies),
+            type: row.class,
             versionHash: await createHash(options.buildDivisionBaseHashInput(row)),
           } satisfies DivisionVersionSnapshot,
         ] as const
@@ -428,9 +420,10 @@ export async function cloneDivisionCurrentSnapshot(
             snapshotId: sql<string>`${toSnapshotId}`,
             id: currentSchema.divisions.id,
             level: currentSchema.divisions.level,
-            type: currentSchema.divisions.type,
+            category: currentSchema.divisions.category,
+            class: currentSchema.divisions.class,
             wikidata: currentSchema.divisions.wikidata,
-            hierarchy: currentSchema.divisions.hierarchy,
+            hierarchies: currentSchema.divisions.hierarchies,
             identifiers: currentSchema.divisions.identifiers,
             cartography: currentSchema.divisions.cartography,
             sources: currentSchema.divisions.sources,
@@ -920,11 +913,11 @@ export async function insertDivisionVersionRows(
         snapshotId: context.snapshotId,
         isCurrent: true,
         level: row.level,
-        type: row.type,
+        type: row.class,
         geometry: row.geometry,
         bbox: row.bbox,
         wikidata: row.wikidata,
-        hierarchy: row.hierarchy,
+        hierarchy: row.hierarchies,
         identifiers: row.identifiers,
         cartography: row.cartography,
         sources: row.sources,

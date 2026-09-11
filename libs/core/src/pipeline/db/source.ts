@@ -346,19 +346,6 @@ async function deleteMissingCurrentSourceRowsByReleaseId<
   return closedRows
 }
 
-export async function advanceSourceOvertureDivisionRelease(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  releaseId: string,
-) {
-  await advanceCurrentSourceRelease(
-    db,
-    sourceSchema.sourceOvertureDivisions,
-    sourceRecordIds,
-    releaseId,
-  )
-}
-
 export async function insertSourceOvertureDivisionVersions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert>,
@@ -717,10 +704,10 @@ async function insertVersionRows<TTable>(
         ? statement.onConflictDoNothing()
         : statement.onConflictDoUpdate({
             target: target as never,
+            setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
             set: {
               isCurrent: true,
               releaseId: excluded('releaseId'),
-              validFromRelease: excluded('validFromRelease'),
               validToRelease: null,
               updatedAt: new Date().toISOString(),
             } as never,
@@ -729,52 +716,4 @@ async function insertVersionRows<TTable>(
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-async function advanceCurrentSourceRelease<
-  TTable extends {
-    isCurrent: unknown
-    releaseId: unknown
-    sourceRecordId: unknown
-    updatedAt: unknown
-  },
->(db: SourceDatabase, table: TTable, sourceRecordIds: string[], releaseId: string) {
-  if (sourceRecordIds.length === 0) {
-    return
-  }
-
-  const now = new Date().toISOString()
-  const statements = []
-
-  for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 3))) {
-    statements.push(
-      db
-        .update(table as never)
-        .set({
-          releaseId,
-          updatedAt: now,
-        } as never)
-        .where(
-          and(
-            eq(table.isCurrent as never, true),
-            inArray(table.sourceRecordId as never, chunk),
-          ),
-        ),
-    )
-  }
-
-  await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-export async function advanceSourceHkgovAlsAddress2dRelease(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  releaseId: string,
-) {
-  await advanceCurrentSourceRelease(
-    db,
-    sourceSchema.sourceHkgovAlsAddresses2d,
-    sourceRecordIds,
-    releaseId,
-  )
 }
