@@ -16,6 +16,7 @@ export function startR2Process(
     workerPath?: string
     startupTimeoutMs?: number
     requestTimeoutMs?: number
+    persistPath?: string
     onProgress?: (message: string) => void
   } = {},
 ) {
@@ -27,6 +28,7 @@ export function startR2Process(
         fileURLToPath(new URL('./remoteR2Worker.ts', import.meta.url)),
       configPath,
       requestDirectory,
+      ...(options.persistPath ? [options.persistPath] : []),
     ],
     {
       stdio: ['ignore', 'pipe', 'pipe', 'pipe'],

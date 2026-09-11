@@ -12,6 +12,7 @@ import {
 
 const configPath = process.argv[2] ?? ''
 const requestDirectory = process.argv[3] ?? ''
+const persistPath = process.argv[4]
 if (!configPath || !requestDirectory)
   throw new Error('R2 worker requires a config and request directory.')
 type Request = {
@@ -100,8 +101,8 @@ function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
 try {
   proxy = await getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket & SourceAssetStore }>({
     configPath,
-    persist: false,
-    remoteBindings: true,
+    persist: persistPath ? { path: persistPath } : false,
+    remoteBindings: !persistPath,
   })
   const bucket = proxy.env.R2_ASSETS
   requestPoller = setInterval(() => consumeRequests(bucket), 10)
