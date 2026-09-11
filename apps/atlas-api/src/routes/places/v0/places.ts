@@ -1,3 +1,4 @@
+import { withPlacePublication } from '../../../services/places'
 import {
   getPublicationReadiness,
   guardPublicationRead,
@@ -316,12 +317,13 @@ async function activePlaceSnapshot(c: Context<AppEnv>, regionCode: 'hk' | 'mo') 
       regionCode,
     }),
   )
-  return (
-    selection?.snapshots.find(
-      snapshot =>
-        snapshot.snapshotResourceType === 'place' && snapshot.role === 'primary',
-    ) ?? null
+  const snapshot = selection?.snapshots.find(
+    snapshot =>
+      snapshot.snapshotResourceType === 'place' && snapshot.role === 'primary',
   )
+  return snapshot && selection
+    ? { ...snapshot, cohortKey: selection.releaseSet.cohortKey }
+    : null
 }
 
 async function setActiveSnapshotAttribution(c: Context<AppEnv>, snapshotId: string) {
@@ -402,7 +404,10 @@ async function handlePlaceDetail(
         )
         return c.json(
           {
-            place: toPlaceApiRecord(place, derivePlaceReferenceName(i18n)),
+            place: toPlaceApiRecord(
+              withPlacePublication(place, activeSnapshot.cohortKey),
+              derivePlaceReferenceName(i18n),
+            ),
             i18n: i18n.map(toPlaceI18nApiRecord),
             divisions,
           },
