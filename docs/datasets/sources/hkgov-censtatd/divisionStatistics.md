@@ -385,6 +385,13 @@ release set is published during that run. Where one C&SD source also publishes
 its linked `divisionStatistic` snapshots are independently selected for Statistics
 cohort bootstrap.
 
+The complete 2016 Statistics composition contains Population and Households and
+Subdivided Units. The complete 2021 composition also contains Housing Market Areas and
+Building Groups, Major Housing Estates and New Towns. Each member can supply the primary
+snapshot lineage for its cohort's API-field mapping. The mapping requires the exact
+reviewed source combination and publisher schema versions, independently of which member
+is selected first.
+
 ## Source-release statistics and geography audit
 
 Every C&SD statistics source release stores only structural release facts: validated
