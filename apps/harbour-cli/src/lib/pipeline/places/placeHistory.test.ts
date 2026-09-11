@@ -244,7 +244,7 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
         )
         .get(),
     ).toEqual({ revision: 'address-a' })
-    row.searchDependencies.en!.addressText = 'Revised building translation'
+    row.searchDependencies.en!.divisionText = 'Revised Division translation'
     const revised = await f.run([row], 'new')
     expect(revised.changes.join('')).toContain('placeI18n')
     expect(
