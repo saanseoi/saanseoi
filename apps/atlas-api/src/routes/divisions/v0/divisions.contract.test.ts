@@ -389,14 +389,15 @@ function seedCurrent(sqlite: Database) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (snapshotId, id, identifiers, level, type, geometry, bbox, wikidata,
-           hierarchy, cartography, sources, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (snapshotId, id, identifiers, level, category, class, geometry, bbox, wikidata,
+           hierarchies, cartography, sources, createdAt, updatedAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           snapshotId,
           division.id,
           null,
           division.level,
+          division.type === 'locality' ? 'locality' : 'administrative',
           division.type,
           json({ type: 'Point', coordinates: division.point }),
           json([
@@ -406,7 +407,37 @@ function seedCurrent(sqlite: Database) {
             division.point[1] + 0.01,
           ]),
           null,
-          json(division.hierarchy),
+          json({
+            administrative: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+            locality: [],
+            full: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+          }),
           json({ kind: 'label-center' }),
           json(sources),
           timestamp,
@@ -530,13 +561,14 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (id, identifiers, level, type, geometry, bbox, wikidata, hierarchy, cartography,
+          (id, identifiers, level, category, class, geometry, bbox, wikidata, hierarchies, cartography,
            sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           division.id,
           null,
           division.level,
+          division.type === 'locality' ? 'locality' : 'administrative',
           division.type,
           json({ type: 'Point', coordinates: division.point }),
           json([
@@ -546,7 +578,37 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             division.point[1] + 0.01,
           ]),
           null,
-          json(division.hierarchy),
+          json({
+            administrative: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+            locality: [],
+            full: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+          }),
           json({ kind: 'label-center' }),
           json({
             overture: [
@@ -676,7 +738,7 @@ const requestCases = [
   },
   {
     name: 'filters and pagination through app.fetch',
-    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[divisionType]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[class]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
   },
   {
     name: 'invalid request through app.fetch',

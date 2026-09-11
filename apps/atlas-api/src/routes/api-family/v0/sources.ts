@@ -5,6 +5,7 @@ import {
   ErrorResponseSchema,
   SourceRecordsQuerySchema,
   SourceRecordsResponseSchema,
+  StreetSourceRecordsResponseSchema,
   SourceReleasesQuerySchema,
   SourceReleasesResponseSchema,
   ValidationErrorOpenAPIResponse,
@@ -127,7 +128,10 @@ function sourceRecordsRouteConfig(
       200: {
         content: {
           'application/json': {
-            schema: SourceRecordsResponseSchema,
+            schema:
+              family === 'streets'
+                ? StreetSourceRecordsResponseSchema
+                : SourceRecordsResponseSchema,
           },
           'application/x-ndjson': {
             schema: z.string().openapi({

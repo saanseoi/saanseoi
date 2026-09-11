@@ -6,7 +6,14 @@ exports[`Divisions API responses through the Worker route default list through a
     "data": [
       {
         "attributes": {
+          "category": "administrative",
+          "class": "country",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [],
+            "full": [],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "China",
@@ -16,7 +23,6 @@ exports[`Divisions API responses through the Worker route default list through a
             },
           },
           "level": 0,
-          "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -24,16 +30,35 @@ exports[`Divisions API responses through the Worker route default list through a
         "links": {
           "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "sar",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Hong Kong SAR",
@@ -43,7 +68,6 @@ exports[`Divisions API responses through the Worker route default list through a
             },
           },
           "level": 0,
-          "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -51,25 +75,45 @@ exports[`Divisions API responses through the Worker route default list through a
         "links": {
           "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "district",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Eastern District",
@@ -79,7 +123,6 @@ exports[`Divisions API responses through the Worker route default list through a
             },
           },
           "level": 2,
-          "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -87,33 +130,55 @@ exports[`Divisions API responses through the Worker route default list through a
         "links": {
           "self": "http://localhost/divisions/v0.1/division-east",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "locality",
+          "class": "locality",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "A Kung Ngam",
@@ -123,7 +188,6 @@ exports[`Divisions API responses through the Worker route default list through a
             },
           },
           "level": 3,
-          "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -131,36 +195,7 @@ exports[`Divisions API responses through the Worker route default list through a
         "links": {
           "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-east",
-                "meta": {
-                  "name": "Eastern District",
-                  "subType": "region",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -213,6 +248,8 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "country",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -220,6 +257,11 @@ exports[`Divisions API responses through the Worker route current alias and map 
               35.8,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [],
+            "full": [],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -230,7 +272,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
             },
           },
           "level": 0,
-          "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -238,11 +279,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
         "links": {
           "self": "http://localhost/divisions/v0/division-country-cn",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
@@ -256,6 +293,8 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "sar",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -263,6 +302,27 @@ exports[`Divisions API responses through the Worker route current alias and map 
               22.32,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -273,7 +333,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
             },
           },
           "level": 0,
-          "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -281,20 +340,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
         "links": {
           "self": "http://localhost/divisions/v0/division-hk-sar",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
@@ -308,6 +354,8 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "district",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -315,6 +363,37 @@ exports[`Divisions API responses through the Worker route current alias and map 
               22.28,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -325,7 +404,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
             },
           },
           "level": 2,
-          "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -333,28 +411,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
         "links": {
           "self": "http://localhost/divisions/v0/division-east",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
@@ -368,6 +425,8 @@ exports[`Divisions API responses through the Worker route current alias and map 
           "cartography": {
             "kind": "label-center",
           },
+          "category": "locality",
+          "class": "locality",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -375,6 +434,47 @@ exports[`Divisions API responses through the Worker route current alias and map 
               22.2788,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -385,7 +485,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
             },
           },
           "level": 3,
-          "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -393,36 +492,7 @@ exports[`Divisions API responses through the Worker route current alias and map 
         "links": {
           "self": "http://localhost/divisions/v0/division-a-kung-ngam",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-east",
-                "meta": {
-                  "name": "Eastern District",
-                  "subType": "region",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -466,7 +536,14 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
     "data": [
       {
         "attributes": {
+          "category": "administrative",
+          "class": "country",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [],
+            "full": [],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "China",
@@ -476,7 +553,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             },
           },
           "level": 0,
-          "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -484,16 +560,35 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         "links": {
           "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "sar",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Hong Kong SAR",
@@ -503,7 +598,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             },
           },
           "level": 0,
-          "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -520,24 +614,45 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
               },
             ],
           },
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
         },
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "district",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Eastern District",
@@ -547,7 +662,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             },
           },
           "level": 2,
-          "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -572,32 +686,55 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
               },
             ],
           },
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
         },
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "locality",
+          "class": "locality",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "A Kung Ngam",
@@ -607,7 +744,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
             },
           },
           "level": 3,
-          "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -615,36 +751,7 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
         "links": {
           "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-east",
-                "meta": {
-                  "name": "Eastern District",
-                  "subType": "region",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -770,6 +877,8 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         "cartography": {
           "kind": "label-center",
         },
+        "category": "locality",
+        "class": "locality",
         "createdAt": "2025-09-24T00:00:00.000Z",
         "geometry": {
           "coordinates": [
@@ -777,6 +886,47 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
             22.2788,
           ],
           "type": "Point",
+        },
+        "hierarchies": {
+          "administrative": [
+            [
+              {
+                "class": "country",
+                "id": "division-country-cn",
+                "name": "中国",
+              },
+              {
+                "class": "sar",
+                "id": "division-hk-sar",
+                "name": "Hong Kong SAR",
+              },
+              {
+                "class": "district",
+                "id": "division-east",
+                "name": "Eastern District",
+              },
+            ],
+          ],
+          "full": [
+            [
+              {
+                "class": "country",
+                "id": "division-country-cn",
+                "name": "中国",
+              },
+              {
+                "class": "sar",
+                "id": "division-hk-sar",
+                "name": "Hong Kong SAR",
+              },
+              {
+                "class": "district",
+                "id": "division-east",
+                "name": "Eastern District",
+              },
+            ],
+          ],
+          "locality": [],
         },
         "i18n": {
           "en": {
@@ -808,7 +958,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
             },
           ],
         },
-        "type": "locality",
         "updatedAt": "2025-09-24T00:00:00.000Z",
         "wikidataId": null,
       },
@@ -816,36 +965,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       "links": {
         "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
       },
-      "relationships": {
-        "hierarchy": {
-          "data": [
-            {
-              "id": "division-country-cn",
-              "meta": {
-                "name": "中国",
-                "subType": "country",
-              },
-              "type": "divisions",
-            },
-            {
-              "id": "division-hk-sar",
-              "meta": {
-                "name": "Hong Kong SAR",
-                "subType": "dependency",
-              },
-              "type": "divisions",
-            },
-            {
-              "id": "division-east",
-              "meta": {
-                "name": "Eastern District",
-                "subType": "region",
-              },
-              "type": "divisions",
-            },
-          ],
-        },
-      },
+      "relationships": {},
       "type": "divisions",
     },
     "included": [
@@ -860,6 +980,8 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "country",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -867,6 +989,11 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               35.8,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [],
+            "full": [],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -898,7 +1025,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -906,11 +1032,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         "links": {
           "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
@@ -924,6 +1046,8 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "sar",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -931,6 +1055,27 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               22.32,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -962,7 +1107,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -970,20 +1114,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         "links": {
           "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
@@ -997,6 +1128,8 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           "cartography": {
             "kind": "label-center",
           },
+          "category": "administrative",
+          "class": "district",
           "createdAt": "2025-09-24T00:00:00.000Z",
           "geometry": {
             "coordinates": [
@@ -1004,6 +1137,37 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               22.28,
             ],
             "type": "Point",
+          },
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "locality": [],
           },
           "i18n": {
             "en": {
@@ -1035,7 +1199,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1043,28 +1206,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         "links": {
           "self": "http://localhost/divisions/v0.1/division-east",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -1102,7 +1244,14 @@ exports[`Divisions API responses through the Worker route planning domain throug
     "data": [
       {
         "attributes": {
+          "category": "administrative",
+          "class": "country",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [],
+            "full": [],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "China",
@@ -1112,7 +1261,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
             },
           },
           "level": 0,
-          "type": "country",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1120,16 +1268,35 @@ exports[`Divisions API responses through the Worker route planning domain throug
         "links": {
           "self": "http://localhost/divisions/v0.1/division-country-cn",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "sar",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Hong Kong SAR",
@@ -1139,7 +1306,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
             },
           },
           "level": 0,
-          "type": "sar",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1147,25 +1313,45 @@ exports[`Divisions API responses through the Worker route planning domain throug
         "links": {
           "self": "http://localhost/divisions/v0.1/division-hk-sar",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "administrative",
+          "class": "district",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "Eastern District",
@@ -1175,7 +1361,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
             },
           },
           "level": 2,
-          "type": "district",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1183,33 +1368,55 @@ exports[`Divisions API responses through the Worker route planning domain throug
         "links": {
           "self": "http://localhost/divisions/v0.1/division-east",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
       {
         "attributes": {
+          "category": "locality",
+          "class": "locality",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "A Kung Ngam",
@@ -1219,7 +1426,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
             },
           },
           "level": 3,
-          "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1227,36 +1433,7 @@ exports[`Divisions API responses through the Worker route planning domain throug
         "links": {
           "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-east",
-                "meta": {
-                  "name": "Eastern District",
-                  "subType": "region",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -1300,7 +1477,50 @@ exports[`Divisions API responses through the Worker route filters and pagination
     "data": [
       {
         "attributes": {
+          "category": "locality",
+          "class": "locality",
           "createdAt": "2025-09-24T00:00:00.000Z",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "full": [
+              [
+                {
+                  "class": "country",
+                  "id": "division-country-cn",
+                  "name": "中国",
+                },
+                {
+                  "class": "sar",
+                  "id": "division-hk-sar",
+                  "name": "Hong Kong SAR",
+                },
+                {
+                  "class": "district",
+                  "id": "division-east",
+                  "name": "Eastern District",
+                },
+              ],
+            ],
+            "locality": [],
+          },
           "i18n": {
             "en": {
               "name": "A Kung Ngam",
@@ -1310,7 +1530,6 @@ exports[`Divisions API responses through the Worker route filters and pagination
             },
           },
           "level": 3,
-          "type": "locality",
           "updatedAt": "2025-09-24T00:00:00.000Z",
           "wikidataId": null,
         },
@@ -1318,36 +1537,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
         "links": {
           "self": "http://localhost/divisions/v0.1/division-a-kung-ngam",
         },
-        "relationships": {
-          "hierarchy": {
-            "data": [
-              {
-                "id": "division-country-cn",
-                "meta": {
-                  "name": "中国",
-                  "subType": "country",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-hk-sar",
-                "meta": {
-                  "name": "Hong Kong SAR",
-                  "subType": "dependency",
-                },
-                "type": "divisions",
-              },
-              {
-                "id": "division-east",
-                "meta": {
-                  "name": "Eastern District",
-                  "subType": "region",
-                },
-                "type": "divisions",
-              },
-            ],
-          },
-        },
+        "relationships": {},
         "type": "divisions",
       },
     ],
@@ -1355,9 +1545,9 @@ exports[`Divisions API responses through the Worker route filters and pagination
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
-      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&filter%5BdivisionType%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5BdivisionType%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5Bclass%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
+      "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&filter%5Bclass%5D=locality&filter%5Blevel%5D=3&filter%5Bparent%5D=division-east&include=none&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=1&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
+      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&filter%5Blevel%5D=3&filter%5Bclass%5D=locality&filter%5Bparent%5D=division-east&page%5Blimit%5D=1&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -1366,7 +1556,7 @@ exports[`Divisions API responses through the Worker route filters and pagination
       "cohort": "2025-09-24.0",
       "domain": "geographic",
       "filters": {
-        "divisionType": "locality",
+        "divisionClass": "locality",
         "level": 3,
         "parent": "division-east",
       },
