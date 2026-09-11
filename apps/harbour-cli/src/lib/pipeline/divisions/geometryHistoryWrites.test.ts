@@ -211,6 +211,11 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
           )
           .get(),
       ).toEqual({ n: 2 })
+      await f.write('grandchild', 'child', rows, { binding: 'next' })
+      expect(f.journal(f.next, 'grandchild')).toEqual([])
+      expect(
+        (await f.replay('grandchild')).map(version => version.shard.bindingName),
+      ).toEqual(['DB_HISTORY_2025', 'DB_HISTORY_2025'])
     } finally {
       f.close()
     }
@@ -300,15 +305,16 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
       await f.write('child', 'root', [geometry(kind, 'a'), geometry(kind, 'c')], {
         binding: 'next',
         merge: true,
+        cohortKey: '2027',
       })
       expect(f.journal(f.next, 'child')).toEqual([
         { recordId: 'c', operation: 'upsert' },
       ])
-      expect(f.current.query(`SELECT id FROM ${f.table} ORDER BY id`).all()).toEqual([
-        { id: 'a' },
-        { id: 'b' },
-        { id: 'c' },
-      ])
+      expect(
+        f.current
+          .query(`SELECT id FROM ${f.table} WHERE snapshotId=? ORDER BY id`)
+          .all(JSON.stringify(['lineage', '2027'])),
+      ).toEqual([{ id: 'a' }, { id: 'b' }, { id: 'c' }])
       expect(
         (await f.replay('child')).map(version => [
           version.recordId,
@@ -330,6 +336,7 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
     'missing content',
     'incomplete journal',
     'wrong content hash',
+    'wrong selected projection',
   ] as const)
     test(`${kind} rejects ${problem} in its parent before writing`, async () => {
       const f = fixture(kind)
@@ -348,10 +355,21 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
           f.old.exec("DELETE FROM snapshotVersionChanges WHERE recordId='b'")
         if (problem === 'wrong content hash')
           f.old.exec(`UPDATE ${f.table} SET type='maritime' WHERE id='b'`)
+        if (problem === 'wrong selected projection')
+          f.current.exec(`UPDATE ${f.table} SET type='maritime' WHERE id='b'`)
         const before = f.state()
+        const message = {
+          'missing assignment': 'no retained history assignment',
+          'unavailable shard': 'requires unavailable history binding',
+          'missing content': 'Missing exact geometry parent content',
+          'incomplete journal': 'membership does not match its selected projection',
+          'wrong content hash': 'content hash mismatch for b',
+          'wrong selected projection':
+            'membership does not match its selected projection',
+        }[problem]
         await expect(
           f.write('child', 'root', rows, { binding: 'next' }),
-        ).rejects.toThrow()
+        ).rejects.toThrow(message)
         expect(f.state()).toEqual(before)
       } finally {
         f.close()

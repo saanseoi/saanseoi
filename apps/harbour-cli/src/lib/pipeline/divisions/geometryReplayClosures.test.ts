@@ -110,7 +110,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
               sourceVersion: '2026-01',
               releaseCode: 'new-code',
               cohortKey: '2026',
-              rowCount: 1,
+              rowCount: 2,
               theme: 'divisions',
               resourceType: 'divisionArea',
               ...(sourceName === 'hkgov-censtatd'
