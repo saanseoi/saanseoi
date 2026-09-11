@@ -1,4 +1,5 @@
 import { and, eq, inArray, sql } from 'drizzle-orm'
+import { currentRowChangedSql } from '../services/publication/currentWrites'
 
 import type { DatasetProcessingMessage } from '../../types'
 import { datasetVariantForSource, identityModeForSource } from '../../codes'
@@ -65,14 +66,6 @@ export type DivisionVersionInsertContext = {
 
 function excluded(column: string) {
   return sql.raw(`excluded.${column}`)
-}
-
-function currentPayloadChanged(table: string, columns: readonly string[]) {
-  return sql.raw(
-    columns
-      .map(column => `"${table}"."${column}" IS NOT excluded."${column}"`)
-      .join(' OR '),
-  )
 }
 
 const divisionPayloadColumns = [
@@ -430,65 +423,6 @@ export async function prepareDivisionVersionInsertContext(
   }
 }
 
-export async function cloneDivisionCurrentSnapshot(
-  db: HarbourReadableDb & HarbourWritableDb,
-  fromSnapshotId: string,
-  toSnapshotId: string,
-) {
-  if (fromSnapshotId === toSnapshotId) {
-    return
-  }
-
-  const now = new Date().toISOString()
-
-  await runStatementBatchWithWriteRetry(db, [
-    db
-      .insert(currentSchema.divisions)
-      .select(
-        db
-          .select({
-            snapshotId: sql<string>`${toSnapshotId}`,
-            id: currentSchema.divisions.id,
-            level: currentSchema.divisions.level,
-            category: currentSchema.divisions.category,
-            class: currentSchema.divisions.class,
-            wikidata: currentSchema.divisions.wikidata,
-            hierarchies: currentSchema.divisions.hierarchies,
-            identifiers: currentSchema.divisions.identifiers,
-            cartography: currentSchema.divisions.cartography,
-            sources: currentSchema.divisions.sources,
-            geometry: currentSchema.divisions.geometry,
-            bbox: currentSchema.divisions.bbox,
-            createdAt: sql<string>`${now}`,
-            updatedAt: sql<string>`${now}`,
-          })
-          .from(currentSchema.divisions)
-          .where(eq(currentSchema.divisions.snapshotId, fromSnapshotId)),
-      )
-      .onConflictDoNothing(),
-    db
-      .insert(currentSchema.divisionsI18n)
-      .select(
-        db
-          .select({
-            snapshotId: sql<string>`${toSnapshotId}`,
-            divisionId: currentSchema.divisionsI18n.divisionId,
-            locale: currentSchema.divisionsI18n.locale,
-            name: currentSchema.divisionsI18n.name,
-            nameVariant: currentSchema.divisionsI18n.nameVariant,
-            nameAlts: currentSchema.divisionsI18n.nameAlts,
-            nameRules: currentSchema.divisionsI18n.nameRules,
-            isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
-            createdAt: sql<string>`${now}`,
-            updatedAt: sql<string>`${now}`,
-          })
-          .from(currentSchema.divisionsI18n)
-          .where(eq(currentSchema.divisionsI18n.snapshotId, fromSnapshotId)),
-      )
-      .onConflictDoNothing(),
-  ])
-}
-
 export async function countDivisionCurrentSnapshotRows(
   db: HarbourReadableDb,
   snapshotId: string,
@@ -840,7 +774,7 @@ export async function upsertDivisionCurrentStates(
               updatedAt: excluded('updatedAt'),
               wikidata: excluded('wikidata'),
             },
-            setWhere: currentPayloadChanged('divisions', divisionPayloadColumns),
+            setWhere: currentRowChangedSql('divisions', divisionPayloadColumns),
           }),
     )
   }
@@ -1075,10 +1009,7 @@ async function insertDivisionsI18nInChunks(
               isLocaleInferred: excluded('isLocaleInferred'),
               updatedAt: excluded('updatedAt'),
             },
-            setWhere: currentPayloadChanged(
-              'divisionsI18n',
-              divisionI18nPayloadColumns,
-            ),
+            setWhere: currentRowChangedSql('divisionsI18n', divisionI18nPayloadColumns),
           }),
     )
   }
