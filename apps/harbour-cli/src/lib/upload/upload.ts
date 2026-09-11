@@ -1,4 +1,4 @@
-import { dirname } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import type { ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
@@ -23,6 +23,7 @@ import {
   readPendingSqlDelivery,
 } from '../pipeline/local/sqlDeliveryPending.ts'
 import { runSqlDeliveryCommand } from '../commands/sqlDelivery.ts'
+import { readDeliveryPlan } from '../pipeline/local/sqlDeliveryFiles.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -142,6 +143,32 @@ export async function resumePendingSqlDeliveryForUpload(
     cacheDir,
   )
   if (!pending) return false
+
+  const environment = !target.remote
+    ? 'local'
+    : target.environment === 'production'
+      ? 'production'
+      : 'preview'
+  // Check every retained phase before replaying any of them. A missing later
+  // phase must not leave recovery partially applied or discard cache ownership.
+  for (const directory of pending.directories) {
+    const plan = await readDeliveryPlan(directory)
+    if (!plan) {
+      throw new Error(
+        `SQL delivery for ${pending.releaseId} is missing its sealed plan at ${directory}. ` +
+          'The pending ownership marker has been retained. Restore the matching plan and payloads only if the databases have not been reset; otherwise reconcile the completed reset before retrying.',
+      )
+    }
+    if (
+      plan.context.releaseId !== pending.releaseId ||
+      resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
+      plan.context.environment !== environment
+    ) {
+      throw new Error(
+        `Pending SQL delivery plan at ${directory} does not belong to release ${pending.releaseId}, cache ${cacheDir} and target ${environment}; refusing to replay it.`,
+      )
+    }
+  }
 
   console.log(`Resuming retained SQL delivery for ${pending.releaseId}.`)
   for (const directory of pending.directories) {
