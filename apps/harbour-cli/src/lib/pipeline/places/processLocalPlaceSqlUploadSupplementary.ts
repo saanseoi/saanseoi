@@ -44,6 +44,7 @@ import {
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import {
   buildSupplementaryAddressRows,
+  assertSupplementaryAddressRows,
   ADDRESS_DIVISION_FIELDS,
   SUPPLEMENTARY_ADDRESS_VARIANT,
 } from './supplementaryPlaceAddressRows.ts'
@@ -966,58 +967,4 @@ function temporaryPath(path: string) {
   return `${path}.${process.pid}.${crypto.randomUUID()}.tmp`
 }
 
-async function assertSupplementaryAddressRows(
-  db: HarbourReadableDb,
-  snapshotId: string,
-  expected: Awaited<ReturnType<typeof buildSupplementaryAddressRows>>,
-) {
-  const rows = await db
-    .select()
-    .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
-    .all()
-  const localisations = await db
-    .select()
-    .from(currentSchema.address2dI18n)
-    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
-    .all()
-  if (
-    rows.length !== expected.length ||
-    localisations.length !== expected.reduce((count, row) => count + row.i18n.length, 0)
-  ) {
-    throw new Error(
-      'Supplementary snapshot is missing materialised Address rows or localisations.',
-    )
-  }
-  const byId = new Map(rows.map(row => [row.id, row]))
-  const byLocale = new Map(
-    localisations.map(row => [`${row.addressId}:${row.locale}`, row]),
-  )
-  for (const row of expected) {
-    for (const [actual, wanted] of [
-      [byId.get(row.current.id), row.current],
-      ...row.i18n.map(
-        value => [byLocale.get(`${value.addressId}:${value.locale}`), value] as const,
-      ),
-    ] as const) {
-      if (
-        !actual ||
-        (await createHash(
-          Object.fromEntries(
-            Object.keys(wanted).map(key => [
-              key,
-              key === 'snapshotId'
-                ? row.current.snapshotId
-                : (actual as Record<string, unknown>)[key],
-            ]),
-          ),
-        )) !== (await createHash(wanted))
-      ) {
-        throw new Error(
-          `Supplementary Address ${row.current.id} cannot be reproduced from its materialised row.`,
-        )
-      }
-    }
-  }
-}
 import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
