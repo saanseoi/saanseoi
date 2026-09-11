@@ -5,14 +5,56 @@ import { tmpdir } from 'node:os'
 import { describe, expect, test } from 'bun:test'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
-import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/divisions/division'
+import {
+  buildDivisionHierarchyLookup,
+  normaliseDivisionRow,
+} from '@repo/core/pipeline/services/divisions/division'
 
 import {
   prepareLandsdPlaceNameDivisionUpload,
+  landsdSettlementDivisionRows,
   readLandsdPlaceNameArchive,
 } from './landsdPlaceName.ts'
 
 describe('LandsD native Place Name FileGDB intake', () => {
+  test('official relationship names precede aliases without modifying native properties', () => {
+    const feature = {
+      id: '123',
+      type: 'Feature' as const,
+      geometry: { type: 'Point', coordinates: [114.15, 22.28] },
+      sourceGeometry: { type: 'Point', coordinates: [832000, 816000] },
+      properties: {
+        GEO_NAME_ID: '123',
+        PLACE_CLASS: 'Settlement',
+        PLACE_TYPE: 'Village',
+      },
+      placeNames: [
+        { nameEn: 'Alias', nameZhHant: '別名', status: 'Alias' as const },
+        { nameEn: 'Official', nameZhHant: '正名', status: 'Official' as const },
+      ],
+    }
+    const original = structuredClone(feature)
+    const [row] = landsdSettlementDivisionRows([feature])
+    expect(row).toBeDefined()
+    const normalised = normaliseDivisionRow(row!)
+    expect(normalised.i18n).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Official', nameAlts: 'Alias' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '正名', nameAlts: '別名' }),
+      ]),
+    )
+    expect(normalised.base.geometry).toEqual(feature.geometry)
+    expect(feature).toEqual(original)
+    expect(
+      landsdSettlementDivisionRows([
+        {
+          ...feature,
+          properties: { ...feature.properties, PLACE_CLASS: 'Topographic' },
+        },
+      ]),
+    ).toEqual([])
+  })
+
   test('joins GEO_PLACE_NAME geometry to the publisher PLACE_NAME labels', async () => {
     const repoRoot = resolve(import.meta.dir, '../../../../../../..')
     const features = await readLandsdPlaceNameArchive(
