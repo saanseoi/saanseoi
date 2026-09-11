@@ -1,3 +1,4 @@
+import type { QueueSendOptions } from '@cloudflare/workers-types'
 import type { HarbourJobMessage, RegionCode, ResourceType } from '@repo/core'
 import type {
   ApiReleaseSetMetadataDelta,
