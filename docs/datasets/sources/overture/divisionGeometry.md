@@ -196,30 +196,24 @@ draft until the counterpart arrives.
 
 ## Reviewed Hong Kong area patches
 
-If the scoped Overture division input omits Hong Kong Island, Kowloon or the New
-Territories, the division processor creates a reviewed level-1 identity from the
-configured district members. The generated row carries the stable canonical ID and the
-corresponding Wikidata ID: `Q3248921`, `Q239143`, or `Q596660`. Kowloon deliberately
-reuses Overture's historic ID `17009785-57fd-4e5b-af86-2d27352e4718`, rather than a new
-synthetic identifier. Whether Overture supplies the identity or not, each recognised
-area receives an individual `divisionArea` geometry patch when its source area geometry
-is absent. That patch is the union of its district land geometries, with the configured
-Shenzhen Bay Port exclusion, and is returned by the Divisions API with
-`include=areas:overture`.
+Administrative areas use independent deterministic identities and district-union
+geometries. Hong Kong Island combines Central and Western, Wan Chai, Eastern and
+Southern. Kowloon area combines its five districts. New Territories combines its nine
+districts and the reviewed Lok Ma Chau Loop identity
+`222b7818-970a-491d-98b6-b88d8c6f0161`, with the Shenzhen Bay Port exclusion. All
+configured inputs must resolve.
 
-The New Territories geometry union includes Lok Ma Chau Loop as an additional land
-geometry input alongside its nine statutory districts. Its identity and land geometry
-must both resolve before restoration can complete; the audit records all ten inputs. The
-geometry patch selects the reviewed identity `222b7818-970a-491d-98b6-b88d8c6f0161`; a
-same-named lower-level locality is not an alternative geometry input.
+Kowloon city retains UUID `17009785-57fd-4e5b-af86-2d27352e4718` and receives the same
+district-union geometry as Kowloon area (`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`). Hong
+Kong city retains an existing source city and its geometry; when absent, its identity
+and geometry are reconstructed from Central and Western, Wan Chai and Eastern, excluding
+Southern.
 
-When an Overture cohort omits Kowloon, the division ingestion audit retains its
-restoration as an individual application of the patch fixture; the Hong Kong Island and
-New Territories identity restorations follow the same rule. The geometry audit retains
-one individual `overture_hong_kong_area_geometry_restored` application for each missing
-area geometry. The bulk normalisation count remains the source-row count; patched rows
-are not added to that rule's output count. No application is inferred for historical
-releases without recorded ingestion evidence.
+Canonical area and Kowloon city geometries use the configured unions even when source
+polygons exist. Publisher geometries remain retained as source assertions. Supplemental
+identities do not create publisher rows. Identity and geometry patches retain their
+district evidence in the processing audit. Bulk source normalisation counts do not
+include supplemental rows.
 
 ## Scoped parent fixture
 
