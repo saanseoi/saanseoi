@@ -18,6 +18,7 @@ import type {
 } from './processLocalPlaceSqlUploadTypes.ts'
 import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
 import {
+  MAX_SQL_BYTES,
   PLACE_H3_LEVELS,
   PLACE_SQL_BATCH_SIZE,
 } from './processLocalPlaceSqlUploadConfig.ts'
@@ -99,7 +100,7 @@ export async function buildPlaceSql(
         `DELETE FROM places WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
       ]
     : []
-  const currentInserts = new PlaceProjectionSql()
+  const currentInserts = new PlaceProjectionSql(MAX_SQL_BYTES - 4096)
   const changeInserts = new PlaceProjectionSql()
   const historySqlByBinding = new Map<string, string[]>()
   const sourceSqlByBinding = new Map<string, string[]>()
@@ -120,6 +121,7 @@ export async function buildPlaceSql(
     return created
   }
 
+  const publicationCounts = { localisedRows: 0, divisionLinks: 0, cells: 0 }
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
@@ -164,7 +166,7 @@ export async function buildPlaceSql(
           {
             sourceRecordId: place.id,
             sourceLocator: overtureSourcePayload(place.raw).sourceLocator,
-            rawProperties: overtureSourcePayload(place.raw).rawProperties,
+            properties: overtureSourcePayload(place.raw).properties,
             sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
             versionHash: row.sourcePayloadHash,
             releaseId: input.message.releaseId,
@@ -215,6 +217,7 @@ export async function buildPlaceSql(
         h3Level,
         h3Cell: latLngToCell(lat, lng, h3Level),
       }))) {
+      publicationCounts.cells += 1
       currentInserts.add('placesCells', {
         snapshotId: input.snapshots.snapshotId,
         id: place.id,
@@ -230,6 +233,7 @@ export async function buildPlaceSql(
           locale: localised.locale,
           localised,
         }))
+      publicationCounts.localisedRows += 1
       currentInserts.add('placesI18n', {
         snapshotId: input.snapshots.snapshotId,
         placeId: place.id,
@@ -259,6 +263,7 @@ export async function buildPlaceSql(
       })
     }
     for (const divisionId of row.divisionIds) {
+      publicationCounts.divisionLinks += 1
       currentInserts.add('placesDivision', {
         placeSnapshotId: input.snapshots.snapshotId,
         placeId: place.id,
@@ -410,6 +415,7 @@ export async function buildPlaceSql(
   }
 
   return {
+    publicationCounts,
     currentSql: [...currentSql, ...currentInserts.finish()],
     historySqlByBinding,
     sourceSqlByBinding,

@@ -1,3 +1,10 @@
+import {
+  buildBeginPublicationSql,
+  buildCompletePublicationSql,
+  buildGuardedPublicationSql,
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import type { UploadTarget } from '../../cli/options.ts'
 import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
 import {
@@ -125,9 +132,28 @@ export async function importPlaceSqlBatches(
     })
     return
   }
+  if (!input.snapshots.snapshotLineageId)
+    throw new Error('Place publication requires its snapshot lineage.')
+  const publication: PublicationPreparation = {
+    table: 'placePublicationState',
+    scopeId: input.snapshots.snapshotLineageId,
+    snapshotId: input.snapshots.snapshotId,
+    publicationToken: required(input.message.releaseId, 'releaseId'),
+    timestamp,
+  }
+  await executeSqlText(targets.current, buildBeginPublicationSql(publication), options)
+  let localisedRows = 0
+  let divisionLinks = 0
+  let cells = 0
   let completedBatches = 0
   for await (const sql of buildPlaceSqlBatches(input, path, timestamp, onProgress)) {
     const batchEnd = Math.min(totalRows, (completedBatches + 1) * PLACE_SQL_BATCH_SIZE)
+    localisedRows += sql.publicationCounts.localisedRows
+    divisionLinks += sql.publicationCounts.divisionLinks
+    cells += sql.publicationCounts.cells
+    sql.currentSql = sql.currentSql.map(statement =>
+      buildGuardedPublicationSql(publication, [statement]),
+    )
     await importPlaceSqlChunks(targets, sql, options, (completed, total) =>
       onProgress?.({
         current: batchEnd,
@@ -141,6 +167,28 @@ export async function importPlaceSqlBatches(
       phase: 'import',
     })
   }
+  await executeSqlText(
+    targets.current,
+    buildCompletePublicationSql({
+      ...publication,
+      validationSql: [
+        buildPublicationRowCountSql('places', publication.snapshotId, totalRows),
+        buildPublicationRowCountSql(
+          'placesI18n',
+          publication.snapshotId,
+          localisedRows,
+        ),
+        buildPublicationRowCountSql(
+          'placesDivision',
+          publication.snapshotId,
+          divisionLinks,
+          'placeSnapshotId',
+        ),
+        buildPublicationRowCountSql('placesCells', publication.snapshotId, cells),
+      ].join(' AND '),
+    }),
+    options,
+  )
 }
 
 export async function runPlaceProgressPhase<T>(

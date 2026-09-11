@@ -47,6 +47,7 @@ function input(places: EnrichedPlace[]): BuildPlaceSqlInput {
       releaseId: 'release-new',
     } as BuildPlaceSqlInput['message'],
     snapshots: {
+      snapshotLineageId: 'place-lineage',
       snapshotId: 'snapshot',
       addressSnapshotId: 'address',
       divisionSnapshotId: 'division',
@@ -61,14 +62,14 @@ function database() {
   db.exec(`CREATE TABLE overturePlaces (
     sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
-    sourceLocator TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
+    sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
     PRIMARY KEY (sourceRecordId, versionHash));`)
   return db
 }
 
 function seed(db: Database, id: string, hash = 'same', current = 1) {
   db.query(
-    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, rawProperties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, properties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).run(
     id,
     hash,
@@ -130,7 +131,7 @@ test('source deltas preserve unchanged assertions across shards, close changes a
       ['removed', { bindingName: 'old', versionHash: 'same' }],
     ])
     const sql = await buildPlaceSql(data, { timestamp: 'now' })
-    expect(sql.sourceSqlByBinding.get('old')?.join('')).not.toContain('rawProperties')
+    expect(sql.sourceSqlByBinding.get('old')?.join('')).not.toContain('properties')
     let previousChanges: unknown[] = []
     for (let replay = 0; replay < 2; replay++) {
       for (const [binding, statements] of sql.sourceSqlByBinding) {
@@ -144,14 +145,14 @@ test('source deltas preserve unchanged assertions across shards, close changes a
       expect(
         active
           .query(
-            'SELECT releaseId, validFromRelease, createdAt, rawProperties, isCurrent FROM overturePlaces WHERE sourceRecordId = ?',
+            'SELECT releaseId, validFromRelease, createdAt, properties, isCurrent FROM overturePlaces WHERE sourceRecordId = ?',
           )
           .get("unchanged'quoted"),
       ).toEqual({
         releaseId: 'release-old',
         validFromRelease: '2025-01-01.0',
         createdAt: 'original',
-        rawProperties: '{"retained":true}',
+        properties: '{"retained":true}',
         isCurrent: 1,
       })
       expect(

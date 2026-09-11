@@ -3,6 +3,7 @@ import { MAX_SQL_BYTES } from './processLocalPlaceSqlUploadConfig.ts'
 
 /** Only independent snapshot projection inserts may be regrouped. */
 export class PlaceProjectionSql {
+  constructor(private readonly maxBytes = MAX_SQL_BYTES) {}
   private groups = new Map<
     string,
     {
@@ -29,7 +30,7 @@ export class PlaceProjectionSql {
       this.groups.set(key, group)
     }
     const bytes = Buffer.byteLength(row) + (group.rows.length ? 1 : 0)
-    if (group.rows.length && group.bytes + bytes > MAX_SQL_BYTES) {
+    if (group.rows.length && group.bytes + bytes > this.maxBytes) {
       group.statements.push(prefix + group.rows.join(',') + suffix)
       group.rows = []
       group.bytes = Buffer.byteLength(prefix + suffix)

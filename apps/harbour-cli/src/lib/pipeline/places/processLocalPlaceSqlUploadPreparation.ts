@@ -39,7 +39,7 @@ import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressR
 import { createHash } from '@repo/core/pipeline/utils'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { currentSchema, metaSchema } from '@repo/db'
-import { and, eq, ne } from 'drizzle-orm'
+import { and, eq, ne, sql } from 'drizzle-orm'
 import { mapWithConcurrency } from '../local/orchestrator.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import type {
@@ -189,13 +189,29 @@ export async function resolvePlaceSnapshots(
         { variant: 'default' },
       )))
   if (!address) throw new Error('Places require a published address snapshot.')
+  const scope = await currentDb
+    .select({ scopeId: currentSchema.addressPublicationState.scopeId })
+    .from(currentSchema.addressPublicationState)
+    .where(
+      and(
+        eq(currentSchema.addressPublicationState.snapshotId, address.id),
+        sql`${currentSchema.addressPublicationState.preparedAt} is not null`,
+      ),
+    )
+    .get()
+  if (!scope)
+    throw new Error(
+      `Places preparation requires a locally replayed projection of historical Address snapshot ${address.id}; the current serving scope has advanced.`,
+    )
 
   const addressRow = await currentDb
     .select({
       divisionSnapshotId: currentSchema.address2d.divisionSnapshotId,
     })
     .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, address.id))
+    .where(
+      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${address.id})`,
+    )
     .limit(1)
     .get()
   if (!addressRow?.divisionSnapshotId) {
@@ -209,7 +225,7 @@ export async function resolvePlaceSnapshots(
     .from(currentSchema.address2d)
     .where(
       and(
-        eq(currentSchema.address2d.snapshotId, address.id),
+        sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${address.id})`,
         ne(currentSchema.address2d.divisionSnapshotId, addressRow.divisionSnapshotId),
       ),
     )
@@ -257,6 +273,7 @@ export async function resolvePlaceSnapshots(
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,
     snapshotId: place.id,
+    snapshotLineageId: place.snapshotLineageId,
   }
 }
 
@@ -388,12 +405,14 @@ export async function stageEnrichedPlaces(
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,
       neighbourhoodId: currentSchema.address2d.neighbourhoodId,
-      snapshotId: currentSchema.address2d.snapshotId,
+      snapshotId: sql<string>`${snapshots.addressSnapshotId}`,
       townId: currentSchema.address2d.townId,
       villageId: currentSchema.address2d.villageId,
     })
     .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, snapshots.addressSnapshotId))
+    .where(
+      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshots.addressSnapshotId})`,
+    )
     .all()
   const divisionIds = new Set(
     (

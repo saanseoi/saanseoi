@@ -73,6 +73,7 @@ export type BuildPlaceSqlInput = {
     addressSnapshotId: string
     divisionSnapshotId: string
     snapshotId: string
+    snapshotLineageId: string
   }
   places: EnrichedPlace[]
   historyRows: PlaceHistoryState[]

@@ -1,3 +1,4 @@
+import { deliverResolvedAddressSqlPhase } from '../addresses/resolvedAddressSqlPhase.ts'
 import type { PlaceRecordCache } from './placeRecordCache.ts'
 import {
   mkdir,
@@ -284,12 +285,14 @@ async function prepareSupplementaryAddressesLocked(
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,
       neighbourhoodId: currentSchema.address2d.neighbourhoodId,
-      snapshotId: currentSchema.address2d.snapshotId,
+      snapshotId: sql<string>`${input.snapshots.addressSnapshotId}`,
       townId: currentSchema.address2d.townId,
       villageId: currentSchema.address2d.villageId,
     })
     .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, input.snapshots.addressSnapshotId))
+    .where(
+      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
+    )
     .all()) as unknown as Pick<
     typeof currentSchema.address2d.$inferSelect,
     | 'areaId'
@@ -323,7 +326,7 @@ async function prepareSupplementaryAddressesLocked(
     .from(currentSchema.address2dI18n)
     .where(
       and(
-        eq(currentSchema.address2dI18n.snapshotId, input.snapshots.addressSnapshotId),
+        sql`${currentSchema.address2dI18n.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
         inArray(currentSchema.address2dI18n.locale, ['en', 'zh-hant']),
       ),
     )
@@ -582,6 +585,9 @@ async function prepareSupplementaryAddressesLocked(
     regionCode: input.plan.regionCode,
     variant: SUPPLEMENTARY_ADDRESS_VARIANT,
   })
+  const currentScopeId = snapshot.snapshotLineageId
+  if (!currentScopeId)
+    throw new Error(`Supplementary Address snapshot ${snapshot.id} has no lineage.`)
   const addresses = await buildSupplementaryAddressRows({
     resolutions: supplementaryResolutions,
     officialAddresses: officialById,
@@ -652,7 +658,7 @@ async function prepareSupplementaryAddressesLocked(
         'Published supplementary snapshot differs from curation; create a release revision.',
       )
     }
-    await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+    await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
     await input.retainAudit(releaseId, datasetCode, {
       materialisationHash,
       fixture,
@@ -716,12 +722,15 @@ async function prepareSupplementaryAddressesLocked(
     if (currentShard)
       await upsertSnapshotShardAssignment(db, snapshot.id, currentShard.id)
     if (historyShard) await upsertReleaseShardAssignment(db, releaseId, historyShard.id)
-    await deliverSqlPhase(
+    await deliverResolvedAddressSqlPhase(
       {
         context: input.context,
         releaseId: input.releaseId,
-        phase: 'places-address-data',
+        phase: 'places-address-publication-data',
         nativeLocal: true,
+        scopeId: currentScopeId,
+        snapshotId: snapshot.id,
+        expectedCount: addresses.length,
         inputs: { materialisationHash, snapshotId: snapshot.id },
       },
       async () => {
@@ -737,9 +746,9 @@ async function prepareSupplementaryAddressesLocked(
           )
         }
         const currentSql = [
-          `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(snapshot.id)};`,
-          `DELETE FROM address2dI18n WHERE snapshotId = ${lit(snapshot.id)};`,
-          `DELETE FROM address2d WHERE snapshotId = ${lit(snapshot.id)};`,
+          `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId = ${lit(currentScopeId)};`,
+          `DELETE FROM address2dI18n WHERE snapshotId = ${lit(currentScopeId)};`,
+          `DELETE FROM address2d WHERE snapshotId = ${lit(currentScopeId)};`,
         ]
         for (const target of input.targets.historyByBinding.values()) {
           await importSupplementarySql(
@@ -762,14 +771,19 @@ async function prepareSupplementaryAddressesLocked(
             updatedAt: now,
           }
           currentSql.push(
-            insertSql('address2d', { ...row.current, createdAt: now, updatedAt: now }),
+            insertSql('address2d', {
+              ...row.current,
+              snapshotId: currentScopeId,
+              createdAt: now,
+              updatedAt: now,
+            }),
           )
           historySql.push(insertSql('address2d', { ...row.canonical, ...version }))
           for (const lookup of buildAddressBuildingNumberLookupRows(row.i18n)) {
             currentSql.push(
               insertSql('address2dBuildingNumberLookup', {
                 ...lookup,
-                snapshotId: snapshot.id,
+                snapshotId: currentScopeId,
                 createdAt: now,
                 updatedAt: now,
               }),
@@ -795,7 +809,7 @@ async function prepareSupplementaryAddressesLocked(
             currentSql.push(
               insertSql('address2dI18n', {
                 ...value,
-                snapshotId: snapshot.id,
+                snapshotId: currentScopeId,
                 createdAt: now,
                 updatedAt: now,
               }),
@@ -842,7 +856,7 @@ async function prepareSupplementaryAddressesLocked(
       },
     )
     input.onStage?.('verify supplementary Address rows')
-    await assertSupplementaryAddressRows(currentDb, snapshot.id, addresses)
+    await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
     await input.retainAudit(releaseId, datasetCode, {
       materialisationHash,
       fixture,
@@ -1025,7 +1039,14 @@ async function assertSupplementaryAddressRows(
       if (
         !actual ||
         (await createHash(
-          Object.fromEntries(Object.keys(wanted).map(key => [key, actual[key]])),
+          Object.fromEntries(
+            Object.keys(wanted).map(key => [
+              key,
+              key === 'snapshotId'
+                ? row.current.snapshotId
+                : (actual as Record<string, unknown>)[key],
+            ]),
+          ),
         )) !== (await createHash(wanted))
       ) {
         throw new Error(
