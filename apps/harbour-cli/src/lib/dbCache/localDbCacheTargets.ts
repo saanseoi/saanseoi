@@ -144,6 +144,7 @@ export async function resetRemoteReleaseUploadCacheScope(
     join(cacheDir, 'manifest.json'),
     JSON.stringify(
       {
+        bindings: sharedManifest.bindings,
         cacheVersion: DB_CACHE_MANIFEST_VERSION,
         cacheScopeKey,
         cacheTableProfile,

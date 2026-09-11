@@ -35,6 +35,15 @@ export async function ensureRemoteCachePaths(
     cacheTableProfile?: CacheTableProfile
   } = {},
 ) {
+  const bindings = Object.fromEntries(
+    targets.map(record => [
+      record.bindingName,
+      {
+        databaseId: record.databaseId,
+        databaseName: record.databaseName,
+      },
+    ]),
+  )
   const cacheDir = resolveRemoteCacheDir(target, options.remoteCacheScopeKey)
   await assertSqlDeliveryPlanningAllowed(cacheDir, options.resumeSqlDeliveryReleaseId)
   const manifestPath = join(cacheDir, 'manifest.json')
@@ -72,6 +81,13 @@ export async function ensureRemoteCachePaths(
     existingManifest &&
     existingManifest.cacheVersion === DB_CACHE_MANIFEST_VERSION &&
     existingManifest.target === target &&
+    targets.every(
+      record =>
+        existingManifest.bindings?.[record.bindingName]?.databaseId ===
+          record.databaseId &&
+        existingManifest.bindings?.[record.bindingName]?.databaseName ===
+          record.databaseName,
+    ) &&
     existingManifest.cacheScopeKey === options.remoteCacheScopeKey &&
     isCacheTableProfileCompatible(
       existingManifest.cacheTableProfile,
@@ -97,6 +113,7 @@ export async function ensureRemoteCachePaths(
       )
       const manifest: DbCacheManifest = {
         ...existingManifest,
+        bindings: { ...existingManifest.bindings, ...bindings },
         cacheScopeKey: options.remoteCacheScopeKey,
         cacheTableProfile: options.cacheTableProfile,
         files,
@@ -131,6 +148,7 @@ export async function ensureRemoteCachePaths(
     Object.keys(reusableFiles).length === targets.length
   ) {
     const manifest: DbCacheManifest = {
+      bindings,
       cacheVersion: DB_CACHE_MANIFEST_VERSION,
       cacheScopeKey: options.remoteCacheScopeKey,
       cacheTableProfile: options.cacheTableProfile,
@@ -189,6 +207,7 @@ export async function ensureRemoteCachePaths(
   }
 
   const manifest: DbCacheManifest = {
+    bindings,
     cacheVersion: DB_CACHE_MANIFEST_VERSION,
     cacheScopeKey: options.remoteCacheScopeKey,
     cacheTableProfile: options.cacheTableProfile,

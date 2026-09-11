@@ -14,6 +14,7 @@ export type D1TargetRecord = {
 }
 
 export type DbCacheManifest = {
+  bindings: Record<string, { databaseId: string | null; databaseName: string }>
   cacheVersion: number
   cacheScopeKey?: string
   cacheTableProfile?: CacheTableProfile
