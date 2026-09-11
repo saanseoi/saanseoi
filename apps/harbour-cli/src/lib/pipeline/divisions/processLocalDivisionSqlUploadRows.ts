@@ -345,70 +345,35 @@ ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
   )
 }
 
-export async function buildDivisionCurrentInitSqlFile(
-  parentSnapshotId: string | null,
-  snapshotId: string,
-  clonedAt: string,
-) {
-  const statements: string[] = []
-
-  if (parentSnapshotId && parentSnapshotId !== snapshotId) {
-    statements.push(
-      `
-INSERT INTO divisions (
-  snapshotId, id, divisionCode, level, class, category, wikidata, hierarchies,
-  cartography, sources, geometry, bbox, createdAt, updatedAt
-)
-SELECT
-  ${sqlLiteral(snapshotId)}, id, divisionCode, level, class, category, wikidata, hierarchies,
-  cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
-FROM divisions
-WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
-ON CONFLICT(snapshotId, id) DO NOTHING;`.trim(),
-    )
-    statements.push(
-      `
-INSERT INTO divisionsI18n (
-  snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules,
-  nameProvenance, isLocaleInferred, createdAt, updatedAt
-)
-SELECT
-  ${sqlLiteral(snapshotId)}, divisionId, locale, name, nameVariant, nameAlts, nameRules,
-  nameProvenance, isLocaleInferred, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
-FROM divisionsI18n
-WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
-ON CONFLICT(snapshotId, divisionId, locale) DO NOTHING;`.trim(),
-    )
-  }
-
-  if (statements.length === 0) {
-    return null
-  }
-
-  return buildSqlImportFile('current', `${snapshotId}-current-init.sql`, statements)
-}
-
 export async function buildDivisionCurrentSqlFile(
   message: DatasetProcessingMessage,
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
+  scopeId = state.snapshotId,
 ) {
   const baseRows: Record<string, SqlValue>[] = []
   const i18nRows: Record<string, SqlValue>[] = []
-  const changedIds: string[] = []
+  const removedI18nStatements: string[] = []
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
       if (!record.currentChanged) {
         continue
       }
 
-      changedIds.push(record.id)
+      const incomingLocales = new Set(record.canonicalI18n.map(row => row.locale))
+      for (const previous of state.currentRows.get(record.id)?.localisedRows ?? []) {
+        if (incomingLocales.has(previous.locale)) continue
+        removedI18nStatements.push(
+          `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(scopeId)} AND divisionId = ${sqlLiteral(record.id)} AND locale = ${sqlLiteral(previous.locale)};`,
+        )
+      }
 
       if (record.baseChanged) {
         baseRows.push({
-          snapshotId: state.snapshotId,
+          snapshotId: scopeId,
           id: record.id,
           divisionCode: record.base.divisionCode,
+          identifiers: jsonText(record.base.identifiers),
           level: record.base.level,
           class: record.base.class,
           category: record.base.category,
@@ -425,7 +390,7 @@ export async function buildDivisionCurrentSqlFile(
 
       i18nRows.push(
         ...record.canonicalI18n.map(localised => ({
-          snapshotId: state.snapshotId,
+          snapshotId: scopeId,
           divisionId: record.id,
           locale: localised.locale,
           name: localised.name ?? null,
@@ -449,6 +414,7 @@ export async function buildDivisionCurrentSqlFile(
         'snapshotId',
         'id',
         'divisionCode',
+        'identifiers',
         'level',
         'class',
         'category',
@@ -465,6 +431,8 @@ export async function buildDivisionCurrentSqlFile(
       {
         suffix: `
 ON CONFLICT(snapshotId, id) DO UPDATE SET
+  divisionCode = excluded.divisionCode,
+  identifiers = excluded.identifiers,
   level = excluded.level,
   class = excluded.class,
   category = excluded.category,
@@ -477,7 +445,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   updatedAt = excluded.updatedAt`.trim(),
       },
     ),
-    ...buildDeleteCurrentI18nStatements(state.snapshotId, changedIds),
+    ...removedI18nStatements,
     ...buildInsertStatements(
       'divisionsI18n',
       [
@@ -503,10 +471,16 @@ ON CONFLICT(snapshotId, divisionId, locale) DO UPDATE SET
   nameRules = excluded.nameRules,
   nameProvenance = excluded.nameProvenance,
   isLocaleInferred = excluded.isLocaleInferred,
-  updatedAt = excluded.updatedAt`.trim(),
+  updatedAt = excluded.updatedAt
+WHERE divisionsI18n.name IS NOT excluded.name
+  OR divisionsI18n.nameVariant IS NOT excluded.nameVariant
+  OR divisionsI18n.nameAlts IS NOT excluded.nameAlts
+  OR divisionsI18n.nameRules IS NOT excluded.nameRules
+  OR divisionsI18n.nameProvenance IS NOT excluded.nameProvenance
+  OR divisionsI18n.isLocaleInferred IS NOT excluded.isLocaleInferred`.trim(),
       },
     ),
-    ...buildDeleteCurrentDivisionStatements(state.snapshotId, missingIds),
+    ...buildDeleteCurrentDivisionStatements(scopeId, missingIds),
   ]
 
   return buildSqlImportFile(

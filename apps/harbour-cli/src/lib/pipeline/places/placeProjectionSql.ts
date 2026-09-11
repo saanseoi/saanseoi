@@ -3,7 +3,10 @@ import { MAX_SQL_BYTES } from './processLocalPlaceSqlUploadConfig.ts'
 
 /** Only independent snapshot projection inserts may be regrouped. */
 export class PlaceProjectionSql {
-  constructor(private readonly maxBytes = MAX_SQL_BYTES) {}
+  constructor(
+    private readonly maxBytes = MAX_SQL_BYTES,
+    private readonly currentProjection = false,
+  ) {}
   private groups = new Map<
     string,
     {
@@ -16,7 +19,12 @@ export class PlaceProjectionSql {
   >()
 
   add(table: string, values: Record<string, unknown>) {
-    const [prefix, row, suffix] = insertSqlParts(table, values)
+    const [prefix, row, suffix] = insertSqlParts(
+      table,
+      values,
+      false,
+      this.currentProjection,
+    )
     const key = prefix + suffix
     let group = this.groups.get(key)
     if (!group) {

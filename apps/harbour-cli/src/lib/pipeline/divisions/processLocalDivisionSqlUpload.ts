@@ -1,4 +1,5 @@
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -104,7 +105,6 @@ import {
   buildDivisionSqlState,
 } from './processLocalDivisionSqlUploadPreparation.ts'
 import {
-  buildDivisionCurrentInitSqlFile,
   buildDivisionCurrentSqlFile,
   buildDivisionHistorySqlFile,
   buildDivisionSourceSqlFile,
@@ -375,10 +375,15 @@ export async function processLocalDivisionSqlUpload(
           progress.message(`Division SQL delivery: ${completed}/${total} batches`),
       },
       async () => {
+        publication.previous = await getPreparedPublication(
+          dbContext.currentDb,
+          publication.table,
+          publication.scopeId,
+        )
         const currentRows = versionInsertContext.parentSnapshotId
           ? await getDivisionVersionMapForSnapshot(
               dbContext.currentDb as never,
-              versionInsertContext.parentSnapshotId,
+              publication.scopeId,
               {
                 buildDivisionBaseHashInput,
                 normaliseDivisionI18nSnapshotRow,
@@ -410,6 +415,7 @@ export async function processLocalDivisionSqlUpload(
           dbContext.currentDb,
           currentRows,
           versionInsertContext.parentSnapshotId,
+          publication.scopeId,
         )
         if (!target.remote) {
           progress.complete(
@@ -536,11 +542,7 @@ export async function processLocalDivisionSqlUpload(
           releaseCode,
         )
 
-        const currentInitFile = await buildDivisionCurrentInitSqlFile(
-          versionInsertContext.parentSnapshotId,
-          divisionState.snapshotId,
-          initialMessage.processingRunStartedAt ?? processingRunStartedAt,
-        )
+        const currentInitFile = null
         const currentFile = await runLocalStreamingPhase(
           progress,
           harbourClient,
@@ -552,7 +554,12 @@ export async function processLocalDivisionSqlUpload(
             colorRed('current'),
           ),
           reportProgress =>
-            buildDivisionCurrentSqlFile(initialMessage, divisionState, reportProgress),
+            buildDivisionCurrentSqlFile(
+              initialMessage,
+              divisionState,
+              reportProgress,
+              publication.scopeId,
+            ),
         )
         await harbourClient.stageCompleted(
           releaseId,
@@ -808,12 +815,12 @@ export async function processLocalDivisionSqlUpload(
                   validationSql: [
                     buildPublicationRowCountSql(
                       'divisions',
-                      publication.snapshotId,
+                      publication.scopeId,
                       divisionState.processedRows,
                     ),
                     buildPublicationRowCountSql(
                       'divisionsI18n',
-                      publication.snapshotId,
+                      publication.scopeId,
                       divisionState.localisedRows,
                     ),
                   ].join(' AND '),

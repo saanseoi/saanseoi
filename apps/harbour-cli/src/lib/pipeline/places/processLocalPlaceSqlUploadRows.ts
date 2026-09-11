@@ -89,18 +89,20 @@ export async function buildPlaceSql(
   input: BuildPlaceSqlInput,
   options: BuildPlaceSqlOptions = {},
 ) {
-  const includeInitialStatements = options.includeInitialStatements ?? true
   const includeRemovedPlaces = options.includeRemovedPlaces ?? true
   const now = options.timestamp ?? new Date().toISOString()
-  const currentSql: string[] = includeInitialStatements
-    ? [
-        `DELETE FROM placesCells WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-        `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(input.snapshots.snapshotId)};`,
-        `DELETE FROM placesI18n WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-        `DELETE FROM places WHERE snapshotId = ${lit(input.snapshots.snapshotId)};`,
-      ]
-    : []
-  const currentInserts = new PlaceProjectionSql(MAX_SQL_BYTES - 4096)
+  const scopeId = input.snapshots.snapshotLineageId
+  if (!scopeId) throw new Error('Places require a stable current scope.')
+  const currentSql: string[] = []
+  const currentInserts = new PlaceProjectionSql(MAX_SQL_BYTES - 4096, true)
+  const referenceScope = (snapshotId: string) => {
+    const scope = input.referenceScopes?.get(snapshotId)
+    if (!scope)
+      throw new Error(
+        `Places require a complete current reference scope for snapshot ${snapshotId}.`,
+      )
+    return scope
+  }
   const changeInserts = new PlaceProjectionSql()
   const historySqlByBinding = new Map<string, string[]>()
   const sourceSqlByBinding = new Map<string, string[]>()
@@ -182,11 +184,11 @@ export async function buildPlaceSql(
       )
     }
     currentInserts.add('places', {
-      snapshotId: input.snapshots.snapshotId,
+      snapshotId: scopeId,
       id: place.id,
       releaseId: unchanged ? previous.row.releaseId : input.message.releaseId,
       addressSnapshotId: row.address2dId
-        ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+        ? referenceScope(row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
         : null,
       address2dId: row.address2dId,
       address3dId: row.address3dId,
@@ -213,14 +215,26 @@ export async function buildPlaceSql(
       createdAt: now,
       updatedAt: now,
     })
-    for (const { h3Level, h3Cell } of row.projection?.cells ??
+    const projectedCells =
+      row.projection?.cells ??
       PLACE_H3_LEVELS.map(h3Level => ({
         h3Level,
         h3Cell: latLngToCell(lat, lng, h3Level),
-      }))) {
+      }))
+    const rowScope = `snapshotId = ${lit(scopeId)}`
+    currentSql.push(
+      `DELETE FROM placesI18n WHERE ${rowScope} AND placeId = ${lit(place.id)}${place.i18n.length ? ` AND locale NOT IN (${place.i18n.map(row => lit(row.locale)).join(',')})` : ''};`,
+    )
+    currentSql.push(
+      `DELETE FROM placesCells WHERE ${rowScope} AND id = ${lit(place.id)}${projectedCells.length ? ` AND NOT (${projectedCells.map(cell => `(h3Level = ${cell.h3Level} AND h3Cell = ${lit(cell.h3Cell)})`).join(' OR ')})` : ''};`,
+    )
+    currentSql.push(
+      `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND NOT (divisionSnapshotId = ${lit(referenceScope(input.snapshots.divisionSnapshotId))} AND divisionId IN (${row.divisionIds.map(lit).join(',')}))` : ''};`,
+    )
+    for (const { h3Level, h3Cell } of projectedCells) {
       publicationCounts.cells += 1
       currentInserts.add('placesCells', {
-        snapshotId: input.snapshots.snapshotId,
+        snapshotId: scopeId,
         id: place.id,
         h3Level,
         h3Cell,
@@ -236,7 +250,7 @@ export async function buildPlaceSql(
         }))
       publicationCounts.localisedRows += 1
       currentInserts.add('placesI18n', {
-        snapshotId: input.snapshots.snapshotId,
+        snapshotId: scopeId,
         placeId: place.id,
         locale: localised.locale,
         name: localised.name,
@@ -266,9 +280,9 @@ export async function buildPlaceSql(
     for (const divisionId of row.divisionIds) {
       publicationCounts.divisionLinks += 1
       currentInserts.add('placesDivision', {
-        placeSnapshotId: input.snapshots.snapshotId,
+        placeSnapshotId: scopeId,
         placeId: place.id,
-        divisionSnapshotId: input.snapshots.divisionSnapshotId,
+        divisionSnapshotId: referenceScope(input.snapshots.divisionSnapshotId),
         divisionId,
       })
     }
@@ -408,6 +422,10 @@ export async function buildPlaceSql(
     // alone cannot distinguish retained rows from removed rows.
     const seenSourceIds =
       options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
+    for (const predicate of missingPlaceMembershipPredicates([...seenSourceIds]))
+      currentSql.push(
+        `DELETE FROM places WHERE snapshotId = ${lit(scopeId)} AND ${predicate};`,
+      )
     for (const bindingName of input.sourceBindingNames)
       for (const predicate of missingSourceMembershipPredicates([...seenSourceIds]))
         sourceStatements(bindingName).push(
@@ -422,6 +440,27 @@ export async function buildPlaceSql(
     sourceSqlByBinding,
     changes: changeInserts.finish(),
   }
+}
+
+function missingPlaceMembershipPredicates(ids: string[]) {
+  const sorted = [...new Set(ids)].sort((a, b) =>
+    Buffer.compare(Buffer.from(a), Buffer.from(b)),
+  )
+  if (!sorted.length) return ['1 = 1']
+  const predicates: string[] = []
+  for (let offset = 0; offset < sorted.length; offset += 96) {
+    const batch = sorted.slice(offset, offset + 96)
+    const first = batch[0]!
+    const next = sorted[offset + 96]
+    predicates.push(
+      [
+        ...(offset ? [`id >= ${lit(first)}`] : []),
+        ...(next === undefined ? [] : [`id < ${lit(next)}`]),
+        `id NOT IN (${batch.map(lit).join(',')})`,
+      ].join(' AND '),
+    )
+  }
+  return predicates
 }
 
 export async function* buildPlaceSqlBatches(

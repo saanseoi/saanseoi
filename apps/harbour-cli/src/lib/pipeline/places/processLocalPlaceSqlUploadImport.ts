@@ -5,6 +5,10 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import { getPreparedPublication } from '../local/snapshotPublication.ts'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { currentSchema, sql as drizzleSql } from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
 import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
 import {
@@ -88,13 +92,39 @@ export async function importPlaceSqlBatches(
   },
 ) {
   if (delivery) {
+    const prepareInput = async () => {
+      const db = delivery.context.currentDb as unknown as HarbourReadableDb
+      const referenceScopes = new Map<string, string>()
+      for (const table of [
+        currentSchema.addressPublicationState,
+        currentSchema.divisionPublicationState,
+      ]) {
+        const rows = await db
+          .select({ scopeId: table.scopeId, snapshotId: table.snapshotId })
+          .from(table)
+          .where(
+            drizzleSql`${table.preparedAt} is not null and ${table.publicationToken} <> ''`,
+          )
+          .all()
+        for (const row of rows) referenceScopes.set(row.snapshotId, row.scopeId)
+      }
+      return {
+        ...input,
+        referenceScopes,
+        publicationPrevious: await getPreparedPublication(
+          db,
+          'placePublicationState',
+          input.snapshots.snapshotLineageId,
+        ),
+      }
+    }
     if (delivery.context.state.target === 'local') {
       await deliverSqlPhase(
         { ...delivery, phase: 'places-data', nativeLocal: true },
-        () =>
+        async () =>
           importPlaceSqlBatches(
             targets,
-            input,
+            await prepareInput(),
             path,
             totalRows,
             timestamp,
@@ -108,10 +138,10 @@ export async function importPlaceSqlBatches(
       await prepareReleaseSqlDelivery({
         ...delivery,
         phase: 'places-data',
-        generate: captureSql =>
+        generate: async captureSql =>
           importPlaceSqlBatches(
             targets,
-            input,
+            await prepareInput(),
             path,
             totalRows,
             timestamp,
@@ -140,6 +170,7 @@ export async function importPlaceSqlBatches(
     snapshotId: input.snapshots.snapshotId,
     publicationToken: required(input.message.releaseId, 'releaseId'),
     timestamp,
+    previous: input.publicationPrevious ?? null,
   }
   await executeSqlText(targets.current, buildBeginPublicationSql(publication), options)
   let localisedRows = 0
@@ -172,19 +203,15 @@ export async function importPlaceSqlBatches(
     buildCompletePublicationSql({
       ...publication,
       validationSql: [
-        buildPublicationRowCountSql('places', publication.snapshotId, totalRows),
-        buildPublicationRowCountSql(
-          'placesI18n',
-          publication.snapshotId,
-          localisedRows,
-        ),
+        buildPublicationRowCountSql('places', publication.scopeId, totalRows),
+        buildPublicationRowCountSql('placesI18n', publication.scopeId, localisedRows),
         buildPublicationRowCountSql(
           'placesDivision',
-          publication.snapshotId,
+          publication.scopeId,
           divisionLinks,
           'placeSnapshotId',
         ),
-        buildPublicationRowCountSql('placesCells', publication.snapshotId, cells),
+        buildPublicationRowCountSql('placesCells', publication.scopeId, cells),
       ].join(' AND '),
     }),
     options,
@@ -287,15 +314,30 @@ export function insertSqlParts(
   table: string,
   values: Record<string, unknown>,
   preserveOpenVersion = false,
+  currentProjection = false,
 ): [string, string, string] {
   const entries = Object.entries(values).filter(([, value]) => value !== undefined)
   const updates = preserveOpenVersion
     ? entries.filter(([key]) => !['createdAt', 'validFromRelease'].includes(key))
-    : entries
+    : currentProjection
+      ? entries.filter(([key]) => key !== 'createdAt')
+      : entries
   return [
     `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES `,
     `(${entries.map(([, value]) => sqlValue(value)).join(', ')})`,
-    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${preserveOpenVersion ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL` : ''};`,
+    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
+      preserveOpenVersion
+        ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
+        : currentProjection
+          ? ` WHERE ${currentRowChangedSqlText(
+              table,
+              entries.map(([key]) => key),
+              table === 'places'
+                ? ['createdAt', 'updatedAt', 'releaseId', 'lastSeenMonth']
+                : undefined,
+            )}`
+          : ''
+    };`,
   ]
 }
 
