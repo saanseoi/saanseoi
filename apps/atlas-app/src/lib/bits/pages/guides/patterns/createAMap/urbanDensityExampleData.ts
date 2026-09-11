@@ -1,10 +1,13 @@
+import type { DivisionHierarchies } from '@repo/db'
 import type { MultiPolygon, Polygon } from 'geojson'
 
 import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 
 type DivisionAttributes = {
   level: number
-  type: 'district'
+  class: 'district'
+  category: 'administrative'
+  hierarchies: DivisionHierarchies
   divisionCode: string
   i18n: { en: { name: string } }
 }
@@ -12,15 +15,6 @@ type DivisionAttributes = {
 type Division = {
   id: string
   attributes: DivisionAttributes
-  relationships: {
-    hierarchy: {
-      data: Array<{
-        id: string
-        meta: { name: string; subType: string }
-        type: string
-      }>
-    }
-  }
 }
 
 type IncludedDivision = {
@@ -28,7 +22,9 @@ type IncludedDivision = {
   id: string
   attributes: {
     level: number
-    type: 'sar' | 'area'
+    class: 'sar' | 'area'
+    category: 'administrative'
+    hierarchies: DivisionHierarchies
     divisionCode?: string
     i18n: { en: { name: string } }
   }
@@ -93,20 +89,25 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
       id: `${area.id}-${divisionCode}`,
       attributes: {
         level: 2,
-        type: 'district',
-        divisionCode,
-        i18n: { en: { name: districtNameByCode[divisionCode] } },
-      },
-      relationships: {
-        hierarchy: {
-          data: [
-            {
-              type: 'divisions',
-              id: area.id,
-              meta: { subType: 'area', name },
-            },
+        class: 'district',
+        category: 'administrative',
+        hierarchies: {
+          administrative: [
+            [
+              { id: hongKongId, name: 'Hong Kong SAR', class: 'sar' },
+              { id: area.id, name, class: 'area' },
+            ],
+          ],
+          locality: [],
+          full: [
+            [
+              { id: hongKongId, name: 'Hong Kong SAR', class: 'sar' },
+              { id: area.id, name, class: 'area' },
+            ],
           ],
         },
+        divisionCode,
+        i18n: { en: { name: districtNameByCode[divisionCode] } },
       },
     })),
   ),
@@ -116,7 +117,9 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
       id: hongKongId,
       attributes: {
         level: 0,
-        type: 'sar',
+        class: 'sar',
+        category: 'administrative',
+        hierarchies: { administrative: [], locality: [], full: [] },
         i18n: { en: { name: 'Hong Kong' } },
       },
     },
@@ -125,7 +128,13 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
       id: area.id,
       attributes: {
         level: 1,
-        type: 'area' as const,
+        class: 'area' as const,
+        category: 'administrative' as const,
+        hierarchies: {
+          administrative: [[{ id: hongKongId, name: 'Hong Kong SAR', class: 'sar' }]],
+          locality: [],
+          full: [[{ id: hongKongId, name: 'Hong Kong SAR', class: 'sar' }]],
+        },
         divisionCode:
           name === 'Hong Kong Island' ? 'HK' : name === 'Kowloon' ? 'KL' : 'NT',
         i18n: { en: { name } },
@@ -212,14 +221,14 @@ export function calculateUrbanDensityMetrics(
 ) {
   const districts = response.data.map(division => {
     const code = division.attributes.divisionCode
-    const area = division.relationships.hierarchy.data.find(
-      item => item.meta.subType === 'area',
-    )
+    const area = division.attributes.hierarchies.administrative
+      .flat()
+      .find(item => item.class === 'area')
 
     if (!area) throw new Error(`No Area ancestor for ${code}`)
     return {
       code,
-      area: area.meta.name,
+      area: area.name!,
       population: Number(populationByDistrict[code]),
       landAreaSqKm: Number(landAreaByDistrict[code]),
     }

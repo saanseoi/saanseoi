@@ -22,8 +22,9 @@ const selectedIncluded = $derived(
 )
 
 const areaName = (division: (typeof divisions)[number]) =>
-  division.relationships.hierarchy.data.find(item => item.meta.subType === 'area')?.meta
-    .name ?? '—'
+  division.attributes.hierarchies.administrative
+    .flat()
+    .find(item => item.class === 'area')?.name ?? '—'
 
 const isGeometryResource = (
   resource: (typeof included)[number],
@@ -37,7 +38,7 @@ const divisionName = (code: string) =>
 const includedLabel = (resource: (typeof included)[number]) =>
   isGeometryResource(resource)
     ? resource.attributes.divisionCode
-    : (resource.attributes.divisionCode ?? resource.attributes.type.toUpperCase())
+    : (resource.attributes.divisionCode ?? resource.attributes.class.toUpperCase())
 
 const geometryPath = (geometry: Geometry) => {
   const rings =
@@ -178,8 +179,8 @@ const geometryPath = (geometry: Geometry) => {
             <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
               <dt class="text-white/40">level</dt>
               <dd>{selectedDivision.attributes.level}</dd>
-              <dt class="text-white/40">type</dt>
-              <dd>{selectedDivision.attributes.type}</dd>
+              <dt class="text-white/40">class</dt>
+              <dd>{selectedDivision.attributes.class}</dd>
               <dt class="text-white/40">divisionCode</dt>
               <dd>{selectedDivision.attributes.divisionCode}</dd>
               <dt class="text-white/40">i18n.en.name</dt>
@@ -277,8 +278,8 @@ const geometryPath = (geometry: Geometry) => {
               {:else}
                 <dt class="text-white/40">level</dt>
                 <dd>{selectedIncluded.attributes.level}</dd>
-                <dt class="text-white/40">type</dt>
-                <dd>{selectedIncluded.attributes.type}</dd>
+                <dt class="text-white/40">class</dt>
+                <dd>{selectedIncluded.attributes.class}</dd>
                 {#if selectedIncluded.attributes.divisionCode}
                   <dt class="text-white/40">divisionCode</dt>
                   <dd>{selectedIncluded.attributes.divisionCode}</dd>
