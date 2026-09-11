@@ -89,7 +89,7 @@ describe('evaluateDivisionAssumptions', () => {
 
       const warnings = await checkOvertureUploadAssumptions(filePath, {
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         regionCode: 'hk',
       } as never)
 

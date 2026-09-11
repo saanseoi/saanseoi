@@ -52,13 +52,11 @@ Infer the AI route from the environment in which you are running:
 - If you are an agentic LLM with permission to inspect and edit project files, record
   \`ai-access=agentic\`. You are the working agent; do not ask the user to choose an
   agent tool, VPN access, terminal experience, or code editor. Inspect the operating
-  system and shell only when needed to adapt commands. The user is expected to read and
-  manipulate files through the agent interface.
+  system and shell only when needed to adapt commands. The user is expected to manipulate
+  files through the agent interface.
 - If you are a non-agentic LLM without project-file access, record \`ai-access=web\`.
   You are the chat guide; do not ask the user to choose a Chat AI service or VPN. Ask
   only for the environment decisions needed to give accurate local instructions.
-
-The agent or chat service identity is not a new user decision in a full handover.
 
 ### 3. Working environment
 
@@ -73,7 +71,7 @@ For a non-agentic LLM, establish these in order:
 
 For an agentic LLM, inspect the operating system and shell when commands depend on them,
 but do not ask for terminal experience or code-editor selection. The user is expected to
-read and manipulate files through the agent interface, so editor setup is not part of
+manipulate files through the agent interface, so editor setup is not part of
 the agentic handover.
 
 ### 4. Destination-specific platform

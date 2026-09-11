@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process'
+import { mkdtempSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { createInterface } from 'node:readline'
-import type { Writable, Readable } from 'node:stream'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import type { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import type { R2Metadata } from './remoteR2Object.ts'
 
@@ -16,16 +19,17 @@ export function startR2Process(
     onProgress?: (message: string) => void
   } = {},
 ) {
+  const requestDirectory = mkdtempSync(join(tmpdir(), 'saanseoi-r2-ipc-'))
   const child = spawn(
     'node',
     [
       options.workerPath ??
         fileURLToPath(new URL('./remoteR2Worker.ts', import.meta.url)),
       configPath,
+      requestDirectory,
     ],
     {
-      stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
-      detached: process.platform !== 'win32',
+      stdio: ['ignore', 'pipe', 'pipe', 'pipe'],
       env: process.env,
     },
   )
@@ -54,8 +58,7 @@ export function startR2Process(
   const exited = new Promise<void>(resolve => child.once('exit', () => resolve()))
   const signal = (value: NodeJS.Signals) => {
     try {
-      if (process.platform !== 'win32' && child.pid) process.kill(-child.pid, value)
-      else child.kill(value)
+      child.kill(value)
     } catch {
       /* The owned process may already have exited. */
     }
@@ -142,10 +145,20 @@ export function startR2Process(
             }, options.requestTimeoutMs ?? 120_000),
           }
           pending.set(id, item)
-          const input = child.stdin as Writable
-          input.write(`${JSON.stringify({ id, key, path, metadata })}\n`, error => {
-            if (error) fail(error)
-          })
+          const requestPath = join(requestDirectory, `${id}.json`)
+          const temporaryPath = `${requestPath}.tmp`
+          try {
+            writeFileSync(temporaryPath, JSON.stringify({ id, key, path, metadata }))
+            renameSync(temporaryPath, requestPath)
+          } catch (error) {
+            fail(
+              new Error(
+                `Cannot send request to Node R2 adapter: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              ),
+            )
+          }
         })
       })
       queue = result.catch(() => {})
@@ -166,6 +179,7 @@ export function startR2Process(
         ])
       } finally {
         if (timer) clearTimeout(timer)
+        rmSync(requestDirectory, { force: true, recursive: true })
       }
     },
   }

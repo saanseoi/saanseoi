@@ -76,7 +76,7 @@ describe('HAD district GeoJSON preparation', () => {
         sourceSchemaVersion: '1.2',
         sourceVersion: '2022',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       })
       expect(Number(metadata.num_rows)).toBe(18)
       expect(rows[0]).toMatchObject({

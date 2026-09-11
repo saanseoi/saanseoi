@@ -226,7 +226,7 @@ describe('binary geometry cache mirror', () => {
           ],
           destinationPath,
           dumpPaths: [dumpPath],
-          type: 'import-dumps',
+          kind: 'import-dumps',
         }),
       )
       const workerPath = join(import.meta.dir, 'sqliteCacheWorker.ts')

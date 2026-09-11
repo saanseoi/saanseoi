@@ -1982,7 +1982,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -1997,7 +1997,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'dr-hk-hkgov-pland-division-new-town-2006',
         source: 'hkgov-pland-new-town',
         sourceVersion: '2006',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-new-town/2006/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -2145,7 +2145,7 @@ describe('source release lifecycle status', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -2408,12 +2408,13 @@ describe('resolveActiveSnapshotForType', () => {
         ('api-version-place', 'api-places-v0.1');
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, schemaVersion, rulesetVersion, status, publishedAt, createdAt
+        id, apiVersionId, code, domainCode, schemaVersion, rulesetVersion, status, publishedAt, createdAt
       ) VALUES
         (
           'release-set-hk',
           'api-version-place',
           'rs-hk-place-2026-05',
+          'place',
           'sv-place-v1',
           'rs-place-v1',
           'current',
@@ -2424,6 +2425,7 @@ describe('resolveActiveSnapshotForType', () => {
           'release-set-mo',
           'api-version-place',
           'rs-mo-place-2026-05',
+          'place',
           'sv-place-v1',
           'rs-place-v1',
           'current',
