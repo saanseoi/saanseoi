@@ -1,4 +1,5 @@
 import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import { divisionSearchRoutes } from './search'
 import {
   emptyRegionCollection,
   regionNotFound,
@@ -144,6 +145,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
 )
 
 export const divisionRoutes = [
+  ...divisionSearchRoutes,
   ...divisionListRouteConfigs.map((routeConfig, index) =>
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,

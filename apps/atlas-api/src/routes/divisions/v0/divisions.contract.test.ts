@@ -5,6 +5,8 @@ import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import type { AppBindings } from '../../../types'
 import app from '../../../index'
+import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb'
+import { finalisePublishedSearch } from '@repo/core/pipeline/services/search/finalise'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
@@ -705,6 +707,8 @@ function createFixtureEnvironment() {
 
   return {
     env,
+    metaSqlite,
+    currentSqlite,
     close() {
       metaSqlite.close()
       currentSqlite.close()
@@ -747,6 +751,76 @@ const requestCases = [
 ] as const
 
 describe('Divisions API responses through the Worker route', () => {
+  test('search finalises across domains, honours opt-in ancestors and serves both API versions', async () => {
+    const f = createFixtureEnvironment()
+    try {
+      f.metaSqlite.exec("UPDATE apiCatalogRevisions SET defaultDomainCode='geographic'")
+      f.metaSqlite.exec('UPDATE apiCatalogRevisionReleaseSets SET isDefault=1')
+      const db = createLocalHarbourDb(f.metaSqlite)
+      const current = {
+        prepare: (sql: string) => ({ sql }) as unknown as D1PreparedStatement,
+        batch: async (statements: D1PreparedStatement[]) =>
+          f.currentSqlite.transaction(() => {
+            for (const statement of statements)
+              f.currentSqlite.exec((statement as unknown as { sql: string }).sql)
+          })(),
+      }
+      const request = (path: string) =>
+        app.fetch(new Request('http://localhost' + path), f.env)
+      await finalisePublishedSearch(db, current, {
+        deferred: true,
+        publishedFamilies: ['divisions'],
+      })
+      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
+      await finalisePublishedSearch(db, current, {
+        pendingReleaseSetCodes: ['pending'],
+        publishedFamilies: ['divisions'],
+      })
+      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
+      await finalisePublishedSearch(db, current, { publishedFamilies: ['divisions'] })
+      for (const version of ['v0', 'v0.1']) {
+        const response = await request('/divisions/' + version + '/search?q=Eastern')
+        expect(response.status).toBe(200)
+        const body = (await response.json()) as {
+          results: { domain: string; divisionId: string; match: string }[]
+        }
+        expect(new Set(body.results.map(r => r.domain)).size).toBe(3)
+        expect(body.results.every(r => r.match === 'self')).toBe(true)
+        const ancestors = await request(
+          '/divisions/' + version + '/search?q=Eastern&ancestors=true',
+        )
+        const expanded = (await ancestors.json()) as typeof body
+        expect(expanded.results.some(r => r.match === 'ancestor')).toBe(true)
+        const filtered = await request(
+          '/divisions/' + version + '/search?q=Eastern&domain=hkgov-pland-pu',
+        )
+        expect(
+          ((await filtered.json()) as typeof body).results.map(r => r.domain),
+        ).toEqual(['hkgov-pland-pu'])
+      }
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&releaseSet=old')).status,
+      ).toBe(422)
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&ancestors=yes')).status,
+      ).toBe(422)
+      expect(
+        (await (await request('/divisions/v0/search?q=Eastern&region=mo')).json()) as {
+          results: unknown[]
+        },
+      ).toEqual({ results: [] })
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&access_token=pk.fixture'))
+          .status,
+      ).toBe(200)
+      const before = f.currentSqlite.query('SELECT total_changes() AS n').get()
+      // Reconciliation retries finalisation even when nothing newly publishes.
+      await finalisePublishedSearch(db, current)
+      expect(f.currentSqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
+    } finally {
+      f.close()
+    }
+  })
   test('HK is the default and GBA selects the same published records', async () => {
     const fixture = createFixtureEnvironment()
     try {

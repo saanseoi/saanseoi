@@ -2,11 +2,13 @@ import { expect, test } from 'bun:test'
 import { initialApiEndpoints } from '@repo/db/registry'
 import { placeRoutes } from '../routes/places/v0/places'
 import { streetRoutes } from '../routes/streets/v0/streets'
+import { divisionRoutes } from '../routes/divisions/v0/divisions'
 
-test('Places and Streets endpoint fixtures match registered route paths and operation IDs', () => {
+test('Places, Streets and Divisions endpoint fixtures match registered route paths and operation IDs', () => {
   for (const [version, routes] of [
     ['api-places-v0.1', placeRoutes],
     ['api-streets-v0.1', streetRoutes],
+    ['api-divisions-v0.1', divisionRoutes],
   ] as const) {
     const expected = routes.map(({ route }) => ({
       method: route.method.toUpperCase(),
