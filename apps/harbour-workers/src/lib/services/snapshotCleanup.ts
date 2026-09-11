@@ -88,6 +88,14 @@ export async function cleanupSnapshotByResourceType(
       await deletePlaceSnapshot(db, candidate.snapshotId)
       return true
     case 'address':
+      if (
+        await db
+          .select({ scopeId: currentSchema.addressSearchScopes.scopeId })
+          .from(currentSchema.addressSearchScopes)
+          .where(eq(currentSchema.addressSearchScopes.snapshotId, candidate.snapshotId))
+          .get()
+      )
+        return false
       if (await addressSnapshotHasCurrentDependents(db, candidate.snapshotId)) {
         return false
       }
@@ -145,9 +153,6 @@ async function deletePlaceSnapshot(db: AtomicWritableDb, snapshotId: string) {
 
 async function deleteAddressSnapshot(db: AtomicWritableDb, snapshotId: string) {
   await runStatementsInGroups(db, [
-    db
-      .delete(currentSchema.addressesFts)
-      .where(eq(currentSchema.addressesFts.snapshotId, snapshotId)),
     db
       .delete(currentSchema.address3dI18n)
       .where(eq(currentSchema.address3dI18n.snapshotId, snapshotId)),

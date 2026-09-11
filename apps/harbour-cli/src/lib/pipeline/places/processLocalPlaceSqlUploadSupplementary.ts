@@ -840,18 +840,6 @@ async function prepareSupplementaryAddressesLocked(
           for (const sql of chunkStatements(statements))
             await importSupplementarySql(target, sql, input.importOptions)
         }
-        input.onStage?.('rebuild supplementary Address search index')
-        await importSupplementarySql(
-          input.targets.current,
-          readFileSync(
-            resolve(
-              import.meta.dir,
-              '../../../../../../libs/db/scripts/sql/rebuild-addresses-fts.sql',
-            ),
-            'utf8',
-          ),
-          input.importOptions,
-        )
       },
     )
     input.onStage?.('verify supplementary Address rows')
