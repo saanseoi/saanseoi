@@ -34,12 +34,7 @@ export const statsFields = sqliteTable(
   { ...canonicalStatsField, ...historyStatisticVersioning },
   table => [
     primaryKey({
-      columns: [
-        table.datasetCode,
-        table.fieldName,
-        table.sourceReleaseId,
-        table.versionHash,
-      ],
+      columns: [table.datasetCode, table.fieldName, table.versionHash],
     }),
     index('statsFields_current_lookup_idx').on(
       table.datasetCode,
@@ -54,12 +49,7 @@ export const statsMeasures = sqliteTable(
   { ...canonicalStatsMeasure, ...historyStatisticVersioning },
   table => [
     primaryKey({
-      columns: [
-        table.datasetCode,
-        table.measureCode,
-        table.sourceReleaseId,
-        table.versionHash,
-      ],
+      columns: [table.datasetCode, table.measureCode, table.versionHash],
     }),
     index('statsMeasures_current_lookup_idx').on(
       table.datasetCode,
@@ -74,13 +64,7 @@ export const statsMeasuresI18n = sqliteTable(
   { ...canonicalStatsMeasureI18n, ...historyStatisticVersioning },
   table => [
     primaryKey({
-      columns: [
-        table.datasetCode,
-        table.measureCode,
-        table.locale,
-        table.sourceReleaseId,
-        table.versionHash,
-      ],
+      columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
     }),
   ],
 )
@@ -90,13 +74,7 @@ export const statsFieldsI18n = sqliteTable(
   { ...canonicalStatsFieldI18n, ...historyStatisticVersioning },
   table => [
     primaryKey({
-      columns: [
-        table.datasetCode,
-        table.fieldName,
-        table.locale,
-        table.sourceReleaseId,
-        table.versionHash,
-      ],
+      columns: [table.datasetCode, table.fieldName, table.locale, table.versionHash],
     }),
   ],
 )
@@ -111,7 +89,6 @@ export const statsValuesI18n = sqliteTable(
         table.dimensionCode,
         table.valueCode,
         table.locale,
-        table.sourceReleaseId,
         table.versionHash,
       ],
     }),

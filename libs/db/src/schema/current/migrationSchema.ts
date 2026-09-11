@@ -6,6 +6,7 @@ export {
   address3d,
   address3dI18n,
   addressSearchScopes,
+  addressPublicationState,
 } from './addresses'
 export * from './divisions'
 export * from './streets'
@@ -21,3 +22,4 @@ export {
 export * from './divisionGeometry'
 export * from './divisionStatistics'
 export * from './statistics'
+export * from './publicationState'

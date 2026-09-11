@@ -209,6 +209,8 @@ export const canonicalDivisionStatistic = {
 }
 
 export type CanonicalStatsGeography = {
+  /** Disambiguates publisher geography codes that are only unique within a parent. */
+  namespace?: string
   /**
    * Reviewed geometry companion for `include=areas` and `include=divisions`.
    *
@@ -227,6 +229,11 @@ export type CanonicalStatsGeography = {
   class?: string
 }
 
+export type CanonicalStatsFieldSource = {
+  sourceReleaseId: string
+  sourceFeatureRef: string
+}
+
 /** Canonical structured period fields shared by source and API statistic rows. */
 export const statisticsReferencePeriod = {
   referencePeriodCode: text('referencePeriodCode').notNull(),
@@ -236,7 +243,7 @@ export const statisticsReferencePeriod = {
   referencePeriodEndYear: text('referencePeriodEndYear').notNull(),
 }
 
-/** Shared feature-level context and packed values for a statistic record. */
+/** One dataset, exact period and semantic geography, shared by current and history. */
 export const canonicalStatsRecord = {
   id: text('id').notNull(),
   datasetCode: text('datasetCode').notNull(),
@@ -246,10 +253,16 @@ export const canonicalStatsRecord = {
   /** Present only after a reviewed bridge to a canonical division exists. */
   divisionId: text('divisionId'),
   ...statisticsReferencePeriod,
-  /** Reviewed feature-level geography; source variants remain distinguished by `sourceFeatureRef`. */
+  /** Reviewed geography identity and its explicitly selected geometry companion. */
   geography: jsonText<CanonicalStatsGeography>('geography').notNull(),
-  /** Curated analytical dimensions, keyed by dimension code. */
-  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Provenance of the last real change to each retained field. */
+  fieldSources: jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources')
+    .notNull()
+    .default({}),
+  /** Immutable field definitions, including dimensions and localised metadata. */
+  fieldDefinitionHashes: jsonText<Record<string, string>>('fieldDefinitionHashes')
+    .notNull()
+    .default({}),
   /** Publisher literals keyed by the stable reviewed field name. */
   values: jsonText<Record<string, string>>('values').notNull(),
 }
@@ -319,6 +332,8 @@ export const canonicalStatsMeasure = {
 
 export const canonicalStatsField = {
   ...canonicalStatsMeasure,
+  /** Immutable measure metadata paired with this field definition. */
+  measureVersionHash: text('measureVersionHash').notNull().default(''),
   fieldName: text('fieldName').notNull(),
   sourceField: text('sourceField').notNull(),
   /** Curated analytical dimensions associated with this source field. */

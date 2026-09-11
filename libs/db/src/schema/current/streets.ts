@@ -9,7 +9,6 @@ import {
 } from 'drizzle-orm/sqlite-core'
 
 import { canonicalStreet, canonicalStreetI18n, timestamps } from '../shared'
-import { address2d } from './addresses'
 
 export const streets = sqliteTable(
   'streets',
@@ -69,11 +68,7 @@ export const streetsAddress = sqliteTable(
       foreignColumns: [streets.snapshotId, streets.id],
       name: 'streetsAddress_streetSnapshotId_streetId_streets_fk',
     }).onDelete('cascade'),
-    foreignKey({
-      columns: [table.addressSnapshotId, table.addressId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'streetsAddress_addressSnapshotId_addressId_address2d_fk',
-    }).onDelete('cascade'),
+    // Logical Address references are validated against immutable history during preparation.
     index('streetsAddress_addressId_idx').on(table.addressSnapshotId, table.addressId),
   ],
 )
