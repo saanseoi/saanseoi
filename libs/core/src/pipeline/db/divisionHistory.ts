@@ -10,7 +10,11 @@ import {
   runStatementsInGroupsWithWriteRetry,
   stableJsonStringify,
 } from '../utils'
-import type { DivisionBaseRecord, DivisionVersionSnapshot } from './division'
+import type {
+  DivisionBaseRecord,
+  DivisionVersionSnapshot,
+  insertDivisionVersionRows,
+} from './division'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 import {
   resolveSnapshotSourceResolutions,
@@ -57,6 +61,58 @@ export function divisionLocaleContent(row: DivisionI18nPayload) {
   }
 }
 
+/** The runtime processor and its writer share one independent-component decision. */
+export async function planDivisionHistoryChanges(input: {
+  base: DivisionBaseRecord
+  i18n: DivisionI18nPayload[]
+  previous?: DivisionVersionSnapshot
+  components: ReadonlyMap<string, DivisionHistoryComponent>
+  versionHash: string
+  churnHash: string
+}) {
+  const baseChanged = input.previous?.versionHash !== input.versionHash
+  const currentChanged = input.previous?.churnHash !== input.churnHash
+  const baseRows: Parameters<typeof insertDivisionVersionRows>[2] = []
+  const i18nRows: Parameters<typeof insertDivisionVersionRows>[3] = []
+  const closures: Array<DivisionHistoryComponent & { omitted?: boolean }> = []
+  if (!currentChanged)
+    return { baseChanged, currentChanged, baseRows, i18nRows, closures }
+  if (baseChanged) {
+    baseRows.push({ ...input.base, versionHash: input.versionHash })
+    const prior = input.components.get(divisionHistoryKey(input.base.id))
+    if (prior) closures.push(prior)
+  }
+  const previousLocales = new Map(
+    input.previous?.localisedRows.map(row => [row.locale, row]),
+  )
+  const nextLocales = new Set(input.i18n.map(row => row.locale))
+  for (const localised of input.i18n) {
+    const prior = previousLocales.get(localised.locale)
+    const content = divisionLocaleContent(localised)
+    if (
+      prior &&
+      stableJsonStringify(divisionLocaleContent(prior)) === stableJsonStringify(content)
+    )
+      continue
+    const owned = input.components.get(
+      divisionHistoryKey(input.base.id, localised.locale),
+    )
+    if (owned) closures.push(owned)
+    i18nRows.push({
+      ...content,
+      versionHash: await createHash(content),
+      createdAt: input.base.updatedAt,
+      updatedAt: input.base.updatedAt,
+    })
+  }
+  for (const prior of previousLocales.values()) {
+    if (nextLocales.has(prior.locale)) continue
+    const owned = input.components.get(divisionHistoryKey(input.base.id, prior.locale))
+    if (owned) closures.push({ ...owned, omitted: true })
+  }
+  return { baseChanged, currentChanged, baseRows, i18nRows, closures }
+}
+
 /** A single handle is unambiguous; cross-shard replay requires explicit bindings. */
 export async function identifyDivisionHistoryShards(
   plan: SnapshotReplayStep[],
@@ -77,9 +133,10 @@ export async function identifyDivisionHistoryShards(
     return result
   }
   const unique = [...new Set(databases)]
-  if (required.size === 1 && unique.length === 1) {
-    const bindingName = [...required][0]!
-    return new Map([[bindingName, { bindingName, db: unique[0]! }]])
+  const [bindingName] = required
+  const [db] = unique
+  if (required.size === 1 && unique.length === 1 && bindingName && db) {
+    return new Map([[bindingName, { bindingName, db }]])
   }
   throw new Error(
     'Cross-shard Division replay requires options.historyShards with explicit binding names.',
@@ -102,7 +159,8 @@ export async function loadDivisionHistoryBaseline(input: {
   for (const step of input.plan) {
     const seen = new Set<string>()
     for (const binding of new Set(step.shards.map(row => row.bindingName))) {
-      const shard = input.shards.get(binding)!
+      const shard = input.shards.get(binding)
+      if (!shard) throw new Error(`Missing Division history binding ${binding}.`)
       let cursor: { recordType: string; recordId: string; locale: string } | undefined
       while (true) {
         const table = historySchema.snapshotVersionChanges
@@ -185,19 +243,19 @@ export async function loadDivisionHistoryBaseline(input: {
           throw new Error('Missing retained Division history component content.')
         for (const row of rows) {
           const id = String(recordType === 'division' ? row.id : row.divisionId)
-          const current = input.current.get(id)!
+          const current = input.current.get(id)
+          if (!current) throw new Error(`Missing current Division ${id}.`)
+          const localised = current.localisedRows.find(
+            item => item.locale === row.locale,
+          )
           const equal =
             recordType === 'division'
               ? (await createHash(input.baseHashInput(row as DivisionBaseRecord))) ===
                 current.versionHash
-              : stableJsonStringify(
-                  divisionLocaleContent(row as DivisionI18nPayload),
-                ) ===
+              : Boolean(localised) &&
                 stableJsonStringify(
-                  divisionLocaleContent(
-                    current.localisedRows.find(item => item.locale === row.locale)!,
-                  ),
-                )
+                  divisionLocaleContent(row as DivisionI18nPayload),
+                ) === stableJsonStringify(localised && divisionLocaleContent(localised))
           if (!equal)
             throw new Error(
               `Division parent history content differs from current: ${id}/${row.locale ?? ''}.`,
