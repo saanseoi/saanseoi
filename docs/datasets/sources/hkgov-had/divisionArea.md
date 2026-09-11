@@ -1,5 +1,9 @@
 # Home Affairs Department District Boundary area ingestion
 
+Native source replay preserves open matching versions without rewriting release
+metadata. Complete replacement membership closes omissions and superseded hashes through
+indexed source-ID predicates.
+
 Geometry processing retains registered rule declarations, counts and selected identity
 curation fixtures in the [R2 audit](../../processing-provenance.md). D1 registers the
 manifest and attempt status. Audit provides lazy fixture inspection and guard outcomes;
@@ -43,13 +47,13 @@ Dataset package and does not use the CSDI GeoJSON file API as input.
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its File
 Geodatabase `DCD` layer is required to contain 18 Polygon district features with
 `AREA_ID`, `AREA_CODE`, and `AREA_TYPE`. The mirrored archive's managed key and SHA-256
-are included in every source record's `sources` provenance and carried into canonical
-geometry provenance; the importer reads that local archive rather than the converted
-GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved
-through the versioned `curations/identity/` fixture for resource type `division`,
-authority `hkgov-had`, cohort `2022`, and the administrative domain. The source release
-is `dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source
-schema version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
+are retained by release acquisition metadata and carried into canonical geometry
+provenance; the importer reads that local archive rather than the converted GeoJSON
+delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through
+the versioned `curations/identity/` fixture for resource type `division`, authority
+`hkgov-had`, cohort `2022`, and the administrative domain. The source release is
+`dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source schema
+version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
 The managed ZIP is linked after resource-release registration through the release's
 canonical source-release lineage, so its download remains available independently of the
@@ -124,3 +128,26 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+The FileGDB DCD reader retains native EPSG:2326 geometry separately from the projected
+canonical geometry, matching the two representations by publisher `AREA_ID`.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+Dataset processing metadata declares the registered geography identity bridge. Releases
+retain the resolved policy at creation. Source geometry uses EPSG:4326.

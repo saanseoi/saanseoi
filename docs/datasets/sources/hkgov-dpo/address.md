@@ -1,5 +1,9 @@
 # HKGov DPO ALS addresses
 
+Unchanged open ALS assertions retain their original release ID and timestamps. Source
+retirement compares complete incoming membership, with indexed omission updates;
+retained retirement plans traverse row IDs monotonically in bounded transactions.
+
 The prepared `publisherSource` envelope carries untouched publisher provenance. Its
 nullable UTF-8 addition is permitted by schema validation only when all other prepared
 fields match the recorded schema. Other additions, removals and type changes remain
@@ -668,3 +672,36 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+ALS source properties use locale-prefixed flat names, including `enPhaseName`,
+`zhHantPhaseNo`, `enStreetLocationName` and `zhHantStreetLocationName`. The publisher's
+repeated 3D addresses remain arrays under `en3dAddress` and `zhHant3dAddress`; their
+grouping and literal values are preserved. The release schema distinguishes absent
+optional fields from explicit null values.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+Official-address initialisation stores the identity-history before-image in a separate
+file beside its manifest. Keep both files for reset recovery. Completion queries release
+metadata and distinct current division snapshot IDs; it does not export source or
+history shards. A missing before-image blocks reset before mutations.
+
+## Registry metadata
+
+Dataset processing metadata declares the registered ALS preparation, normalisation and
+curation rules. Releases retain the resolved policy at creation. Source GeoJSON geometry
+uses EPSG:4326; publisher easting and northing properties retain their separate
+coordinate evidence.

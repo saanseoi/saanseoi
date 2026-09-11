@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Unchanged open source versions remain untouched across releases. Complete publisher
+membership closes omissions independently of the assertion release ID. Snapshot
+materialisation and release-specific provenance remain separate from source validity.
+
 [Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
 2025-10-22.0 with all three Division, Division Area and Division Boundary resources.
 
@@ -25,9 +29,9 @@ prerequisite lookup recognises only sealed plans owned by the pending release; i
 not clear ownership or allow another release to bypass unfinished work.
 
 Source areas and boundaries retain publisher attributes in `rawProperties`, original
-geometry in `sourceGeometry` and attribution in `sources`. Source columns track identity
-and release validity; classification and land/territorial flags are projected only into
-canonical tables.
+native geometry in `sourceGeometry` and attribution in `rawProperties.sources`. Source
+columns track identity and release validity; classification and land/territorial flags
+are projected only into canonical tables.
 
 Geometry snapshots retain effective source rules, lookup selections and assembly runs.
 Replay includes recipe parents under the
@@ -165,12 +169,13 @@ The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
 source rows retain Overture version and source-only attributes inside `rawProperties`,
-with original attribution in `sources`, geometry in `sourceGeometry` and release
-tracking alongside them. The publisher version is accessible as `rawProperties.version`.
-Canonical rows expose normalised left/right or division references, `type` (`land`,
-`maritime`, or `mixed`), geometry, bbox, and land/territorial flags. `mixed` is derived
-when both source flags are true, including the known upstream Overture records where the
-source class alone would otherwise suggest `land` or `maritime`.
+with original attribution in `rawProperties.sources`, native geometry in
+`sourceGeometry` and release tracking alongside them. The publisher version is
+accessible as `rawProperties.version`. Canonical rows expose normalised left/right or
+division references, `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and
+land/territorial flags. `mixed` is derived when both source flags are true, including
+the known upstream Overture records where the source class alone would otherwise suggest
+`land` or `maritime`.
 
 Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
 include nullable integer `admin_level`. It is accepted by preflight and retained in
@@ -243,3 +248,26 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+Publisher `sources` stays in `rawProperties`; WKB geometry is retained as a lossless
+base64 value with an explicit `wkb-base64` encoding.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+Overture division, division-area and division-boundary dataset metadata declares
+EPSG:4326 for source geometry.

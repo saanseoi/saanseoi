@@ -80,3 +80,19 @@ source.
 - [CSDI Strategic Street](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178)
 - [CSDI Pedestrian Streets](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742)
 - [CSDI GeoSpatial Services](https://portal.csdi.gov.hk/csdi-webpage/doc/GeoSpatialServices/)
+
+## Native street CRS
+
+Street-name plates, sensitive streets, strategic streets and the five pedestrian-street
+layers use EPSG:2326 (Hong Kong 1980 Grid). Their active FileGDB catalogue entries
+declare Esri WKID 102140 and LatestWKID 2326. All 22 retained native archives agree: 12
+nameplate releases (2023-Q3 to 2026-Q2), two sensitive-street releases (2024-Q1 and
+2025-Q1), one strategic-street release (2025-Q1), and seven pedestrian-street releases
+(2024-Q2 to 2026-Q1). Deleted catalogue records are not evidence of a current layer's
+CRS.
+
+Source intake validates the active layer CRS and retains native easting/northing
+coordinates. The private FileGDB reader disables automatic WGS84 projection without
+changing other FileGDB consumers. Dataset `sourceCrs` is EPSG:2326; coordinate
+conversion belongs to a separately declared map derivative. Document-only street
+products retain a null CRS.

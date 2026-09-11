@@ -1,5 +1,20 @@
 # Overture Places
 
+Open source assertions with matching hashes require no release-membership update.
+Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
+Same-release replay leaves open source assertions untouched; a year-shard rollover
+materialises the new shard copy and closes the old shard assertion.
+
+Unchanged records also reuse local normalisation, Address analysis and enrichment across
+releases. The cache checks source content, official reference data, applicable curation
+and processing implementations; changed dependencies require fresh work. Observation
+dates and snapshot ownership are assigned to the incoming release. Address reviews and
+ledger operations remain mandatory. H3 cells and localisation hashes are reused when
+their inputs match, and snapshot projection inserts are batched within the statement
+byte limit. See
+[incremental Place preparation](../../families/places.md#incremental-place-preparation)
+for cache ownership, invalidation and the isolated benchmark.
+
 [Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
 2025-10-22.0 in full, with a separate completion manifest for the bounded sample.
 
@@ -7,14 +22,16 @@ The full remote mirror includes the Places current, history and source tables, i
 the current search indexes and Street–Address links. Decision analysis uses an exact
 Place-ID, address-fingerprint and source-release index over the retained ledger. Review
 appends and ledger replacement refresh that index while retaining first-match decision
-precedence.
+precedence. Historical decision lookups use a Place-ID index, then apply the same
+release and fingerprint filters within that Place's decisions; unrelated ledger rows are
+not scanned for each observation.
 
 The source table stores publisher attributes in `rawProperties`, with publisher
-identity, original `sourceGeometry`, `sources` and version/release tracking alongside
-it. Each publisher value is retained once. Normalised names, coordinates, categories,
-brand, contacts and addresses are projected only into canonical history/current tables.
-The publisher's integer record version is retained only in `rawProperties.version`;
-`versionHash` identifies the stored payload.
+identity, original `sourceGeometry`, private acquisition locators and version/release
+tracking alongside it. Each publisher value is retained once. Normalised names,
+coordinates, categories, brand, contacts and addresses are projected only into canonical
+history/current tables. The publisher's integer record version is retained only in
+`rawProperties.version`; `versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records already in the active shard update release
@@ -477,3 +494,29 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+Publisher `sources` stays in `rawProperties`; WKB geometry is retained as a lossless
+base64 value with an explicit `wkb-base64` encoding.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+Local Places continuation reuses retained inputs and completed source releases.
+Official-address matching reads English and Traditional Chinese definitions from the
+selected ALS snapshot. Local ownership-manifest completion opens only metadata.
+
+## Registry metadata
+
+Overture Places dataset metadata declares EPSG:4326 for source geometry.
