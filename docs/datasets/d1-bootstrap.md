@@ -211,10 +211,17 @@ completed directory. An existing destination is rejected; there is no replacemen
 reset flag. This step makes no remote export and does not deploy Worker bindings.
 
 The verified initial database set and this mirror form the baseline for subsequent
-resolved Address uploads. Retain both the mirror and its acknowledged membership
-history. All later writers must use the same local controller. The complete Places
-adapter and historical Address dependency hydration for Places preparation/search still
-require implementation; bootstrap does not add that capability.
+resolved family uploads. The manifest pins the complete binding set and its destination
+database identities. Retain both the mirror and its acknowledged membership history. All
+later writers use the same local controller and prepare candidates on separate copies;
+only acknowledged delivery advances the mirror. Places can replay exact historical
+Address dependencies in its disposable preparation view.
+
+The isolated bootstrap-to-Places integration fixture exports and verifies a complete
+database set, seeds its mirror and compiles a locale-only delta. It checks that the base
+Place and publisher assertion remain untouched and that preparation preserves both the
+imported mirror and the original local database until replay. This is offline evidence;
+production imports still require their actual destination verification receipts.
 
 ## Verify the API and switch bindings
 
