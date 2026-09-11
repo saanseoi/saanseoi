@@ -645,7 +645,7 @@ export async function buildAddressMetaSqlFile(
         'createdAt',
         'updatedAt',
       ],
-      releaseStatsRows.filter(row => row.kind !== 'processing'),
+      releaseStatsRows.filter(row => row.metric !== 'processing'),
       `ON CONFLICT(id) DO UPDATE SET
   type = excluded.type,
   releaseId = excluded.releaseId,

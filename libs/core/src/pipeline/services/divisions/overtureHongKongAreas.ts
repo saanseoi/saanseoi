@@ -111,7 +111,7 @@ export function buildOvertureHongKongAreaHierarchyEntry(area: OvertureHongKongAr
 }
 
 export function missingOvertureHongKongAreaRows(
-  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'type'>,
+  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   sourceRows: readonly Record<string, unknown>[],
 ) {
   if (

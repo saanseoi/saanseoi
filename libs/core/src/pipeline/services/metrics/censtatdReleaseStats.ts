@@ -131,7 +131,7 @@ export function buildCenstatdReleaseStats(
       groupValue: grouping?.groupValue ?? null,
       metric,
       metricUnit: 'count',
-      kind: 'release',
+
       updatedAt: createdAt,
       value,
     })
@@ -348,7 +348,7 @@ export function buildCenstatdStructuralChurnStats(
         groupValue,
         metric: 'churn',
         metricUnit: 'count',
-        kind: 'release',
+
         updatedAt: createdAt,
         value,
       })

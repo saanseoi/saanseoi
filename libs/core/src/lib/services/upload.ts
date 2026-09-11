@@ -564,7 +564,10 @@ function ensureChronologicalUpload(
 
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
-  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
   nextInspection: UploadInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
@@ -621,7 +624,7 @@ async function ensureSchemaCompatible(
 
 async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
-  plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
+  plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'resourceType'>,
 ) {
   // HKGov ALS can establish pre-GERS address cohorts from a reviewed future
   // identity bridge. Overture is therefore preferred, but not a hard source
@@ -888,7 +891,10 @@ export function createRawObjectKey(plan: UploadPlan) {
 
 function isAllowedKnownSchemaTransition(
   latestDataset: DatasetRecord,
-  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
   previousFingerprint: string,
   nextInspection: UploadInspection,
 ) {
@@ -978,7 +984,10 @@ function isAllowedKnownSchemaTransition(
 
 function matchesKnownOverturePlaceSchemaTransition(
   latestDataset: DatasetRecord,
-  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
   previousFingerprint: string,
   nextInspection: UploadInspection,
 ) {

@@ -6327,7 +6327,7 @@ function normaliseOptionalJsonText(
 
 async function requireDatasetDefinition(
   db: HarbourReadableDb,
-  plan: Pick<UploadPlan, 'datasetCode' | 'source' | 'type'>,
+  plan: Pick<UploadPlan, 'datasetCode' | 'source' | 'resourceType'>,
 ) {
   const dataset =
     ((await db
