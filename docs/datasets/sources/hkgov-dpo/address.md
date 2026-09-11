@@ -19,10 +19,12 @@ subject to schema-drift rejection. An absent publisher envelope may be encoded a
 null or JSON null. Both mean that the prepared row carries no publisher assertion;
 neither creates source evidence.
 
-ALS preparation restores its selected geographic snapshot from immutable history in the
-isolated local candidate. Missing division rows and translations form part of the sealed
-resolved writes. Remote D1 performs delivery and receipt checks; identity matching,
-ownership validation and source-omission comparisons use the local mirror.
+ALS source preparation reads the selected geographic snapshot from immutable history.
+The Address delivery candidate requires its Division projection and translations to
+already exist in the local mirror. Its owned mutation tables cover Addresses, source
+assertions and provenance; it does not restore or upload missing Division rows. Prepare
+those dependencies through the geographic workflow. Identity matching, ownership
+validation and source-omission comparisons use the local mirror.
 
 Address2D and Address3D are fully prepared before delivery starts. Current storage uses
 one stable scope per Address lineage, with `addressPublicationState` identifying the
@@ -33,6 +35,15 @@ ready; interrupted delivery remains unavailable until its sealed plan resumes. U
 content remains open without timestamp touches or snapshot copies. Changed content and
 explicit retirement journals preserve exact historical membership. Search uses the same
 scope mapping.
+
+Address2D base, locale and building-number history are compared independently,
+preserving the original hash and owning shard of unchanged component rows. Address3D
+base inventory and each locale payload have independent version hashes. Locale-only
+changes leave the base inventory open, and historical locale reads follow the matching
+locale journal entry. Source interpretations inherit along snapshot ancestry; identical
+interpretations produce no repeated `sourceResolutions` row. Source changes and explicit
+`source_omission` decisions remain auditable even when a curation retains the canonical
+address.
 
 Complete publisher omission retires the omitted source assertion. Curations can retain
 the canonical address without erasing that source event. Preflight compares final
@@ -58,8 +69,13 @@ Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, 
 `schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
 `previousSourceVersion`, `reason` and `reviewedAt`. Neither `--yes` nor
 `--skip-curation-checks` bypasses this gate. Changed prepared data or membership
-requires a fresh review. Ingestion retains the acknowledged membership as
-`address-membership.json` for the next comparison.
+requires a fresh review. Delivery retains a sealed `address-membership.json` inside its
+`sql-delivery-address` directory. After acknowledgement, the mirror receives
+`address-membership/<scopeId>/<snapshotId>.json`. The next release requires that exact
+predecessor file and checks its Address2D IDs, Address3D owners and unit IDs against the
+mirror. A prepared sidecar alone cannot establish the predecessor. Missing or mismatched
+acknowledged membership requires a chronological local rebuild. The upload also retains
+its final comparison as `address-deletions.json` in the release directory.
 
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
@@ -274,16 +290,20 @@ selected 2D projection before writing collections. Lookups stream in groups of a
 sections without exactly one reviewed parent match block ingestion; batching does not
 infer or change parent relationships.
 
-The shared local planner seals the complete Address2D, Address3D and source/provenance
-result against the acknowledged mirror. Source checksums, schema and baseline identity
-bind the delivery to its preparation. Database receipts allow recovery after a lost
-acknowledgement. See [resumable SQL delivery](../../sql-delivery.md).
+One `sql-delivery-address` plan seals the complete Address2D, Address3D and
+source/provenance result against the acknowledged mirror. Source checksums, schema and
+baseline identity bind the delivery to its preparation. Database receipts allow recovery
+after a lost acknowledgement. See [resumable SQL delivery](../../sql-delivery.md).
 
 Initial uploads export the complete prepared database contents, retaining immutable
 history and a single final current projection per lineage. Subsequent uploads compile
 only resolved changes. SQL staging is local preparation state and is excluded from the
-remote plan. Insert batching counts escaped UTF-8 bytes, punctuation and statement
-terminators, and rejects an individual row that cannot fit within D1 limits.
+remote plan. The resolved mutation compiler checks 100 parameters, 100,000 SQL bytes and
+a conservative 2,000,000-byte logical-row budget. Address batches reserve space for the
+publication guard and contain at most 63 data statements and slightly less than 4 MiB of
+retained payload. A current Address3D collection stays within one bounded transaction;
+an oversized collection fails preparation. These bounds do not remove D1's database-size
+or execution-time limits.
 
 ## Component correction fixture
 

@@ -1,9 +1,11 @@
 # ALS estate hierarchy and Address3D review
 
-Local and remote Address3D SQL delivery group independent history/current target writes
-without splitting a collection. Native plans bound pending groups and commit each
-payload with its receipt; retries reuse the exact bound statements. Review decisions and
-owner validation remain prerequisites to preparation.
+Address3D is prepared with Address2D and publisher assertions in one isolated local
+candidate. One sealed Address delivery plan contains the resulting keyed changes across
+source, history and current databases. Current collection mutations stay together in a
+bounded transaction, and retries reuse the sealed payload and receipt. Inventory and
+locale version hashes are independent. Review decisions and owner validation remain
+prerequisites to preparation.
 
 ## Scope and evidence
 
@@ -547,8 +549,9 @@ kB/135 kB localised payloads. Its isolated temporary table was removed; no appli
 release was published. The local report is `.local/hkgov-dpo/address3d-d1-probe.json`.
 
 The Harbour CLI validates the sidecar, source version and Parquet seal, writes source,
-history and current collections before publication, and rejects unsupported queued SQL
-import. Database reset scripts replay generated migration files; generation does not
-apply them. These schema artefacts target a fresh reset, not preservation of an existing
-per-unit dataset. Do not publish until remaining source ownership gates have been
-resolved and a full release preparation/import succeeds.
+history and current collection changes into the local candidate before sealing remote
+delivery, and rejects unsupported queued SQL import. Database reset scripts replay
+generated migration files; generation does not apply them. These schema artefacts target
+a fresh reset, not preservation of an existing per-unit dataset. Do not publish until
+remaining source ownership gates have been resolved and a full release
+preparation/import succeeds.
