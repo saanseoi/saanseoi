@@ -35,6 +35,7 @@ export async function replayGeometryIntoRemote(
   preparedSha256: string,
   releaseCode: string,
   currentChanges?: Awaited<ReturnType<typeof writeGeometryRows>>['currentChanges'],
+  deliveryContext = context,
 ) {
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
@@ -257,7 +258,7 @@ export async function replayGeometryIntoRemote(
   try {
     await deliverSqlPhase(
       {
-        context,
+        context: deliveryContext,
         releaseId,
         phase: `division-geometry-${plan.resourceType.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
           plan.transform ?? 'exact',

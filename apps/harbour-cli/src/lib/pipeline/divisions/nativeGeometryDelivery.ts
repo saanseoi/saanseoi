@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { join } from 'node:path'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { captureNativePlanningCopy } from '../local/nativePlanningCopy.ts'
 import {
@@ -17,7 +18,6 @@ export async function readNativeGeometryVersion(
   type: Parameters<typeof writeGeometryRows>[1],
   transform?: 'simplified',
 ) {
-  if (context.state.target !== 'local') return null
   const plan = await readDeliveryPlan(
     sqlDeliveryPhaseDirectory({
       context,
@@ -44,13 +44,22 @@ export async function readNativeGeometryVersion(
 export async function writeGeometryRowsDurably(
   ...[context, type, rows, version, onProgress]: Parameters<typeof writeGeometryRows>
 ) {
-  if (context.state.target !== 'local')
-    return writeGeometryRows(context, type, rows, version, onProgress)
-  const files = context.state.files
-  const history = context.historyBinding?.bindingName
-  const source = context.sourceBinding?.bindingName
-  if (!files || !history || !source)
+  const history =
+    context.historyBinding?.bindingName ??
+    context.historyTargets.find(target => target.db === context.historyDb)?.bindingName
+  const source =
+    context.sourceBinding?.bindingName ??
+    context.sourceTargets.find(target => target.db === context.sourceDb)?.bindingName
+  if (!history || !source)
     throw new Error('Native geometry delivery requires named local database files.')
+  const files =
+    context.state.files ??
+    Object.fromEntries(
+      ['DB_CURRENT', history, source].map(binding => [
+        binding,
+        join(context.state.dbCacheDir, `${binding}.sqlite`),
+      ]),
+    )
   const targets = Object.fromEntries(
     [
       ['DB_CURRENT', currentSchema],

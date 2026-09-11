@@ -287,11 +287,19 @@ test('offline conversion retains published revisions, deduplicates definitions, 
       'utf8',
     ),
   )
-  let packedMigration = false
-  for (const sql of migrationSql('history')) {
-    if (sql.includes('ADD `fieldDefinitionHashes`')) packedMigration = true
-    if (packedMigration) restored.exec(sql.replaceAll('--> statement-breakpoint', ''))
+  // The clean-start migration baseline is already packed. Retained input schemas
+  // are fixture evidence, not part of the generated migration chain.
+  const packed = new Database(join(output, 'DB_HISTORY_HK_BEFORE.stats.sqlite'), {
+    readonly: true,
+  })
+  for (const table of retainedTables) {
+    restored.exec(`DROP TABLE ${table}`)
+    const definition = packed
+      .query("SELECT sql FROM sqlite_master WHERE type='table' AND name=?")
+      .get(table) as { sql: string }
+    restored.exec(definition.sql)
   }
+  packed.close()
   restored.exec(readFileSync(join(output, 'DB_HISTORY_HK_BEFORE.stats.sql'), 'utf8'))
   expect(restored.query('SELECT value FROM unrelatedRetainedData').get()).toEqual({
     value: 'preserved',
@@ -374,11 +382,36 @@ test('Building Group namespaces come from retained publisher profiles and unknow
 function legacyDb(path: string, family: 'current' | 'history') {
   const db = new Database(path)
   for (const sql of migrationSql(family)) {
-    if (sql.includes('ADD `fieldDefinitionHashes`')) break
     db.exec(sql.replaceAll('--> statement-breakpoint', ''))
   }
+  for (const table of retainedTables) db.exec(`DROP TABLE ${table}`)
+  const version =
+    'versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT'
+  db.exec(`
+    CREATE TABLE statsRecords(id TEXT, datasetCode TEXT, sourceFeatureRef TEXT, divisionId TEXT,
+      referencePeriodCode TEXT, referencePeriodStart TEXT, referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
+      referencePeriodGranularity TEXT, geography TEXT, dimensions TEXT, "values" TEXT, ${version});
+    CREATE TABLE statsFields(datasetCode TEXT, fieldName TEXT, sourceField TEXT, measureCode TEXT,
+      dimensions TEXT, comparability TEXT, sourceNullOption TEXT, statisticKind TEXT, aggregation TEXT,
+      aggregationPercentile REAL, periodicity TEXT, denominatorFieldName TEXT, valueKind TEXT, unitCode TEXT, ${version});
+    CREATE TABLE statsMeasures(datasetCode TEXT, measureCode TEXT, ${version});
+    CREATE TABLE statsFieldsI18n(datasetCode TEXT, fieldName TEXT, locale TEXT, name TEXT, description TEXT,
+      isTranslationVerified INTEGER, ${version});
+    CREATE TABLE statsMeasuresI18n(datasetCode TEXT, measureCode TEXT, locale TEXT, name TEXT, description TEXT,
+      isTranslationVerified INTEGER, ${version});
+    CREATE TABLE statsValuesI18n(datasetCode TEXT, dimensionCode TEXT, valueCode TEXT, locale TEXT, name TEXT, ${version});
+  `)
   return db
 }
+
+const retainedTables = [
+  'statsRecords',
+  'statsFields',
+  'statsFieldsI18n',
+  'statsMeasures',
+  'statsMeasuresI18n',
+  'statsValuesI18n',
+]
 
 function migrationSql(family: 'current' | 'history') {
   const directory = join(root, 'libs/db/migrations', family)

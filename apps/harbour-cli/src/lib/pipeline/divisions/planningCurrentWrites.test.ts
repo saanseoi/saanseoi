@@ -12,6 +12,7 @@ import {
 import { buildPlandCurrentSql } from './processLocalHkgovPlandDivisionSqlUploadSql'
 import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUploadTypes'
 import { reusePlanningCanonicalProvenance } from './planningCanonicalReuse'
+import { createHash } from '@repo/core/pipeline/utils'
 
 test('Planning canonical reuse and local/remote current delivery skip an unchanged publication', async () => {
   const mirror = new Database(':memory:')
@@ -67,6 +68,10 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
     sourceCellIds: [],
   })
   const first = make('first')
+  first.versionHash = await createHash({
+    base: first.base,
+    i18n: first.i18n.toSorted((a, b) => a.locale.localeCompare(b.locale)),
+  })
   const compressed = compressPlanningDivisionGeometry([first], () => {})
   const publish = async (
     record: PreparedDivision,
@@ -95,6 +100,7 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       releaseId: snapshotId,
       releaseCode: snapshotId,
       changedHistoryIds: changed ? ['one'] : [],
+      changedCurrentBaseIds: changed ? ['one'] : [],
       changedNativeIds: [],
       missingHistoryIds: [],
       missingNativeIds: [],

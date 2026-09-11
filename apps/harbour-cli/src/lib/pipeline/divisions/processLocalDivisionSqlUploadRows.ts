@@ -6,7 +6,11 @@ import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sour
 import type { DatasetProcessingMessage } from '@repo/core'
 import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
-import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
+import {
+  chunkArray,
+  getMaxItemsPerInClause,
+  stableJsonStringify,
+} from '@repo/core/pipeline/utils'
 import type {
   DivisionSqlState,
   SqlValue,
@@ -389,19 +393,29 @@ export async function buildDivisionCurrentSqlFile(
       }
 
       i18nRows.push(
-        ...record.canonicalI18n.map(localised => ({
-          snapshotId: scopeId,
-          divisionId: record.id,
-          locale: localised.locale,
-          name: localised.name ?? null,
-          nameVariant: jsonText(localised.nameVariant),
-          nameAlts: localised.nameAlts ?? null,
-          nameRules: jsonText(localised.nameRules),
-          nameProvenance: localised.nameProvenance,
-          isLocaleInferred: localised.isLocaleInferred,
-          createdAt: record.base.updatedAt,
-          updatedAt: record.base.updatedAt,
-        })),
+        ...record.canonicalI18n
+          .filter(
+            localised =>
+              stableJsonStringify(localised) !==
+              stableJsonStringify(
+                state.currentRows
+                  .get(record.id)
+                  ?.localisedRows.find(row => row.locale === localised.locale),
+              ),
+          )
+          .map(localised => ({
+            snapshotId: scopeId,
+            divisionId: record.id,
+            locale: localised.locale,
+            name: localised.name ?? null,
+            nameVariant: jsonText(localised.nameVariant),
+            nameAlts: localised.nameAlts ?? null,
+            nameRules: jsonText(localised.nameRules),
+            nameProvenance: localised.nameProvenance,
+            isLocaleInferred: localised.isLocaleInferred,
+            createdAt: record.base.updatedAt,
+            updatedAt: record.base.updatedAt,
+          })),
       )
     }
   })
