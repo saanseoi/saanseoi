@@ -1,5 +1,5 @@
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AccessAttribution } from './accessAnalytics'
@@ -43,13 +43,12 @@ type SourceRecordRow = {
 }
 
 export type SourceRecord = {
-  sources?: Record<string, unknown>[] | null
   placeNames?: Record<string, unknown>[] | null
   geometry?: unknown
   rawProperties: Record<string, unknown> | null
-  resourceType: string
+  resourceType?: string
   sourceRecordId: string
-  variant: string
+  variant?: string
 }
 
 export type SourceRecordPin = {
@@ -279,7 +278,7 @@ async function readShardSourceRecordPage(args: {
     : ''
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.sourcesColumn ? 'sources' : 'NULL'} AS sources, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -341,7 +340,7 @@ async function readUuidPivotSourceRecordPage(args: {
   const readRange = async (operator: '>=' | '<', limit: number) => {
     const statement = args.sourceDb
       .prepare(
-        `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.sourcesColumn ? 'sources' : 'NULL'} AS sources, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+        `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
          FROM ${args.entry.tableName}
          WHERE validFromRelease <= ?
            AND (validToRelease IS NULL OR validToRelease > ?)
@@ -379,7 +378,7 @@ async function readRandomOrderedSourceRecordPage(args: {
       : 'NULL AS sourceGeometry'
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.sourcesColumn ? 'sources' : 'NULL'} AS sources, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -414,16 +413,17 @@ function toSourceRecord(
   release: SourceReleaseRow,
   entry: SourceRecordCatalogueEntry,
   includeGeometry: boolean,
+  family: SourceFamily,
 ): SourceRecord {
   const rawProperties = parseRawProperties(row.rawProperties)
   const record: SourceRecord = {
     rawProperties,
-    resourceType: release.resourceType,
     sourceRecordId: row.sourceRecordId,
-    variant: release.sourceVariant,
+    ...(family === 'streets'
+      ? { resourceType: release.resourceType, variant: release.sourceVariant }
+      : {}),
   }
 
-  if (entry.sourcesColumn) record.sources = parseObjectArray(row.sources, 'sources')
   if (entry.nativeNamesColumn)
     record.placeNames = parseObjectArray(row.placeNames, 'placeNames')
 
@@ -539,7 +539,13 @@ export async function listSourceRecords(args: {
       sourceReleaseCode: resolved.release.sourceReleaseCode,
     },
     records: pageRows.map(row =>
-      toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry),
+      toSourceRecord(
+        row,
+        resolved.release,
+        resolved.entry,
+        args.includeGeometry,
+        args.family,
+      ),
     ),
   }
 }
@@ -559,19 +565,35 @@ export async function getSourceRecordSchema(args: {
     sourceDbs.map(async sourceDb => {
       const statement = sourceDb
         .prepare(`
-    SELECT field.key AS name, field.type AS type
-    FROM ${entry.tableName} AS record, json_each(record.rawProperties) AS field
-    WHERE record.validFromRelease <= ?
-      AND (record.validToRelease IS NULL OR record.validToRelease > ?)
-      AND record.validFromRelease >= ?
+    WITH records AS (
+      SELECT rawProperties FROM ${entry.tableName} AS record
+      WHERE record.validFromRelease <= ?
+        AND (record.validToRelease IS NULL OR record.validToRelease > ?)
+        AND record.validFromRelease >= ?
+    )
+    SELECT field.key AS name, field.type AS type, COUNT(field.key) AS occurrences,
+      (SELECT COUNT(*) FROM records) AS total
+    FROM records AS record LEFT JOIN json_each(record.rawProperties) AS field ON true
     GROUP BY field.key, field.type
     ORDER BY field.key, field.type
   `)
         .bind(...sourceValidityValues(resolved))
-      return runWithD1ReadRetry(() => statement.all<{ name: string; type: string }>())
+      return runWithD1ReadRetry(() =>
+        statement.all<{
+          name: string | null
+          type: string
+          occurrences: number
+          total: number
+        }>(),
+      )
     }),
   )
   const fields = new Map<string, Set<string>>()
+  const occurrences = new Map<string, number>()
+  const total = results.reduce(
+    (sum, result) => sum + (result.results[0]?.total ?? 0),
+    0,
+  )
   const types: Record<string, string> = {
     text: 'string',
     integer: 'integer',
@@ -583,6 +605,8 @@ export async function getSourceRecordSchema(args: {
     null: 'null',
   }
   for (const field of results.flatMap(result => result.results)) {
+    if (field.name == null) continue
+    occurrences.set(field.name, (occurrences.get(field.name) ?? 0) + field.occurrences)
     const values = fields.get(field.name) ?? new Set<string>()
     values.add(types[field.type] ?? field.type)
     fields.set(field.name, values)
@@ -590,6 +614,7 @@ export async function getSourceRecordSchema(args: {
   return {
     type: 'object' as const,
     additionalProperties: true,
+    required: [...fields.keys()].filter(name => occurrences.get(name) === total),
     properties: Object.fromEntries(
       [...fields].map(([name, values]) => {
         const nonNull = [...values].filter(type => type !== 'null')
@@ -684,7 +709,7 @@ export async function streamSourceRecordsNdjson(args: {
         pageIndex += 1
         controller.enqueue(
           encoder.encode(
-            `${JSON.stringify(toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry))}\n`,
+            `${JSON.stringify(toSourceRecord(row, resolved.release, resolved.entry, args.includeGeometry, args.family))}\n`,
           ),
         )
 

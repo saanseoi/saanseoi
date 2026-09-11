@@ -45,40 +45,23 @@ const resolvedReleaseSet = {
 }
 
 const normalisedHierarchy = [
-  {
-    division_id: 'division-hk-sar',
-    i18n: {
-      en: {
-        name: 'Hong Kong SAR',
-      },
-      'zh-hant': {
-        name: '香港特別行政區',
-      },
-    },
-    level: 0,
-    type: 'sar',
-  },
-  {
-    division_id: 'division-east',
-    i18n: {
-      en: {
-        name: 'Eastern District',
-      },
-      'zh-hant': {
-        name: '東區',
-      },
-    },
-    level: 2,
-    type: 'district',
-  },
+  { id: 'division-hk-sar', name: '香港特別行政區 Hong Kong SAR', class: 'sar' },
+  { id: 'division-east', name: '東區 Eastern District', class: 'district' },
 ]
+const hierarchies = {
+  administrative: [normalisedHierarchy],
+  locality: [],
+  full: [normalisedHierarchy],
+}
 
 const baseRecord: DivisionRecord = {
   division: {
     snapshotId: activeSnapshot.snapshotId,
     id: 'division-a-kung-ngam',
     level: 3,
-    type: 'locality',
+    class: 'locality',
+    category: 'locality',
+    hierarchies,
     geometry: {
       type: 'Point',
       coordinates: [114.2262, 22.2788],
@@ -86,7 +69,6 @@ const baseRecord: DivisionRecord = {
     bbox: [114.22, 22.27, 114.23, 22.28],
     identifiers: null,
     wikidataId: 'Q123456',
-    hierarchy: normalisedHierarchy,
     cartography: {
       kind: 'label-center',
     },
@@ -124,12 +106,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-country-cn',
       level: 0,
-      type: 'country',
+      class: 'country',
+      category: 'administrative',
       geometry: null,
       bbox: null,
       identifiers: null,
       wikidataId: null,
-      hierarchy: [{ ids: ['division-country-cn'] }],
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -146,12 +129,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-hk-sar',
       level: 0,
-      type: 'sar',
+      class: 'sar',
+      category: 'administrative',
       geometry: null,
       bbox: null,
       identifiers: null,
       wikidataId: null,
-      hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar'] }],
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -168,12 +152,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-east',
       level: 2,
-      type: 'district',
+      class: 'district',
+      category: 'administrative',
       geometry: null,
       bbox: null,
       identifiers: null,
       wikidataId: null,
-      hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar', 'division-east'] }],
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -441,17 +426,20 @@ describe('division services', () => {
       }
 
       expect(resource.attributes.level).toBe(3)
-      expect(resource.attributes.type).toBe('locality')
+      expect(resource.attributes.class).toBe('locality')
       expect('divisionType' in resource.attributes).toBe(false)
       expect('parent' in resource.relationships).toBe(false)
-      expect(
-        resource.relationships.hierarchy.data.map(hierarchy => hierarchy.id),
-      ).toEqual(['division-hk-sar', 'division-east'])
+      expect(resource.attributes.hierarchies.full[0]?.map(entry => entry.id)).toEqual([
+        'division-hk-sar',
+        'division-east',
+      ])
 
       if (profile === 'compact') {
         expect(resource.attributes).toEqual({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           i18n: {
             en: {
               name: 'A Kung Ngam',
@@ -466,7 +454,9 @@ describe('division services', () => {
       if (profile === 'default') {
         expect(resource.attributes).toMatchObject({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           wikidataId: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
@@ -479,7 +469,9 @@ describe('division services', () => {
       if (profile === 'map') {
         expect(resource.attributes).toMatchObject({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           wikidataId: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
@@ -499,7 +491,9 @@ describe('division services', () => {
       if (profile === 'full') {
         expect(resource.attributes).toEqual({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           snapshotId: activeSnapshot.snapshotId,
           geometry: {
             type: 'Point',
@@ -628,13 +622,13 @@ describe('division services', () => {
       historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/divisions/v0.1?include=hierarchy,areas:overture&filter[divisionType]=locality',
+        'http://localhost/divisions/v0.1?include=hierarchy,areas:overture&filter[class]=locality',
       requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: {
         include: 'hierarchy,areas:overture',
-        'filter[divisionType]': 'locality',
+        'filter[class]': 'locality',
       },
       dependencies: divisionServiceDependencies,
     })
@@ -684,24 +678,7 @@ describe('division services', () => {
       return
     }
 
-    expect(result.body.data.relationships.hierarchy.data).toEqual([
-      {
-        type: 'divisions',
-        id: 'division-hk-sar',
-        meta: {
-          name: 'Hong Kong SAR',
-          subType: 'sar',
-        },
-      },
-      {
-        type: 'divisions',
-        id: 'division-east',
-        meta: {
-          name: 'Eastern District',
-          subType: 'district',
-        },
-      },
-    ])
+    expect(result.body.data.attributes.hierarchies).toEqual(hierarchies)
     expect(result.body.included?.map(resource => resource.id)).toEqual([
       'division-hk-sar',
       'division-east',

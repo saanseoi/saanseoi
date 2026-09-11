@@ -1,3 +1,5 @@
+import { emptyDivisionHierarchies, type DivisionHierarchies } from '@repo/db'
+import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
 import type { ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
@@ -105,21 +107,14 @@ function asDivisionBoundaryGeometry(value: unknown): DivisionBoundaryGeometry | 
     : null
 }
 
-type DivisionHierarchyResourceIdentifier = {
-  type: 'divisions'
-  id: string
-  meta?: {
-    name?: string
-    subType?: string
-  }
-}
-
 type DivisionResourcePayload = {
   type: 'divisions'
   id: string
   attributes: {
     level: number | null
-    type: string
+    class: string
+    category: import('@repo/db').DivisionCategory | null
+    hierarchies: DivisionHierarchies
     divisionCode?: string
     snapshotId?: string
     geometry?: DivisionGeometry | null
@@ -134,9 +129,6 @@ type DivisionResourcePayload = {
     i18n?: DivisionRecord['i18n']
   }
   relationships: {
-    hierarchy: {
-      data: DivisionHierarchyResourceIdentifier[]
-    }
     areas?: { data: Array<{ type: 'division-areas'; id: string }> }
     boundaries?: { data: Array<{ type: 'division-boundaries'; id: string }> }
   }
@@ -195,7 +187,8 @@ export type DivisionRouteState = {
 
 export type DivisionFilters = {
   level?: number
-  divisionType?: string
+  divisionClass?: string
+  category?: import('@repo/db').DivisionCategory
   parent?: string
 }
 
@@ -286,7 +279,8 @@ export type DivisionListQuery = {
   'page[limit]'?: number
   'page[offset]'?: number
   'filter[level]'?: number
-  'filter[divisionType]'?: string
+  'filter[class]'?: string
+  'filter[category]'?: import('@repo/db').DivisionCategory
   'filter[parent]'?: string
 }
 
@@ -414,120 +408,13 @@ function projectDivisionI18n(
   return Object.fromEntries(projectedEntries)
 }
 
-export function buildDivisionHierarchyRelationshipData(
+export function storedDivisionHierarchyIdentifiers(
   divisionId: string,
-  hierarchy: unknown,
-): DivisionHierarchyResourceIdentifier[] {
-  if (!Array.isArray(hierarchy)) {
-    return []
-  }
-
-  const objectChain = hierarchy.flatMap(entry => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      return []
-    }
-
-    const record = entry as Record<string, unknown>
-    const id =
-      typeof record.division_id === 'string'
-        ? record.division_id
-        : typeof record.divisionId === 'string'
-          ? record.divisionId
-          : typeof record.id === 'string'
-            ? record.id
-            : null
-
-    const normalisedId = id?.trim()
-
-    if (!normalisedId) {
-      return []
-    }
-
-    const normalisedI18n =
-      record.i18n && typeof record.i18n === 'object' && !Array.isArray(record.i18n)
-        ? (record.i18n as Record<string, unknown>)
-        : null
-    const englishI18n =
-      normalisedI18n?.en &&
-      typeof normalisedI18n.en === 'object' &&
-      !Array.isArray(normalisedI18n.en)
-        ? (normalisedI18n.en as Record<string, unknown>)
-        : null
-    const zhHantI18n =
-      normalisedI18n?.['zh-hant'] &&
-      typeof normalisedI18n['zh-hant'] === 'object' &&
-      !Array.isArray(normalisedI18n['zh-hant'])
-        ? (normalisedI18n['zh-hant'] as Record<string, unknown>)
-        : null
-    const name =
-      typeof record.name === 'string'
-        ? record.name
-        : typeof englishI18n?.name === 'string'
-          ? englishI18n.name
-          : typeof zhHantI18n?.name === 'string'
-            ? zhHantI18n.name
-            : undefined
-    const rawSubType =
-      typeof record.subType === 'string'
-        ? record.subType
-        : typeof record.subtype === 'string'
-          ? record.subtype
-          : typeof record.type === 'string'
-            ? record.type
-            : null
-
-    return {
-      type: 'divisions' as const,
-      id: normalisedId,
-      meta:
-        name || rawSubType
-          ? {
-              ...(name ? { name } : {}),
-              ...(rawSubType ? { subType: rawSubType } : {}),
-            }
-          : undefined,
-    }
-  })
-
-  if (objectChain.length > 0) {
-    return objectChain.filter(entry => entry.id !== divisionId)
-  }
-
-  const candidateIdChains = hierarchy
-    .map(entry => {
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-        return []
-      }
-
-      const ids = (entry as Record<string, unknown>).ids
-
-      return Array.isArray(ids)
-        ? ids.flatMap(value => {
-            if (typeof value !== 'string') {
-              return []
-            }
-
-            const id = value.trim()
-            return id ? [id] : []
-          })
-        : []
-    })
-    .filter(ids => ids.length > 0)
-
-  if (candidateIdChains.length === 0) {
-    return []
-  }
-
-  const ids = candidateIdChains.reduce((selected, current) =>
-    current.length > selected.length ? current : selected,
-  )
-
-  return ids
-    .filter(id => id !== divisionId)
-    .map(id => ({
-      type: 'divisions' as const,
-      id,
-    }))
+  hierarchies: DivisionHierarchies | null,
+) {
+  return divisionHierarchyEntries(hierarchies)
+    .filter(entry => entry.id !== divisionId)
+    .map(entry => ({ type: 'divisions' as const, id: entry.id }))
 }
 
 export function matchesDivisionFilters(
@@ -536,15 +423,12 @@ export function matchesDivisionFilters(
 ) {
   if (filters.level !== undefined && record.division.level !== filters.level)
     return false
-  if (filters.divisionType && record.division.type !== filters.divisionType)
+  if (filters.divisionClass && record.division.class !== filters.divisionClass)
     return false
+  if (filters.category && record.division.category !== filters.category) return false
   if (!filters.parent) return true
-  const hierarchy = record.division.hierarchy
-  const parent = Array.isArray(hierarchy) ? hierarchy.at(-1) : null
-  return (
-    parent !== null &&
-    typeof parent === 'object' &&
-    (parent as Record<string, unknown>).division_id === filters.parent
+  return record.division.hierarchies.full.some(
+    path => path.at(-1)?.id === filters.parent,
   )
 }
 
@@ -559,7 +443,9 @@ export function createDivisionResource(args: {
   const { division, i18n } = record
   const attributes: DivisionResourcePayload['attributes'] = {
     level: division.level,
-    type: division.type,
+    class: division.class,
+    category: division.category,
+    hierarchies: division.hierarchies,
     ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
   }
 
@@ -592,9 +478,6 @@ export function createDivisionResource(args: {
     id: division.id,
     attributes,
     relationships: {
-      hierarchy: {
-        data: buildDivisionHierarchyRelationshipData(division.id, division.hierarchy),
-      },
       ...(args.areas
         ? {
             areas: {

@@ -28,7 +28,7 @@ import {
 } from './accessAnalytics'
 import {
   buildDetailDocument,
-  buildDivisionHierarchyRelationshipData,
+  storedDivisionHierarchyIdentifiers,
   buildDivisionRouteState,
   buildListDocument,
   buildSnapshotNotReadyDivisionResponse,
@@ -267,9 +267,9 @@ async function loadIncludedHierarchyRecords(args: {
   const hierarchyIds = [
     ...new Set(
       args.records.flatMap(record =>
-        buildDivisionHierarchyRelationshipData(
+        storedDivisionHierarchyIdentifiers(
           record.division.id,
-          record.division.hierarchy,
+          record.division.hierarchies,
         ).map(hierarchy => hierarchy.id),
       ),
     ),
@@ -393,7 +393,8 @@ export async function listDivisions(args: {
 
   const filters = {
     level: args.query['filter[level]'],
-    divisionType: args.query['filter[divisionType]'],
+    divisionClass: args.query['filter[class]'],
+    category: args.query['filter[category]'],
     parent: args.query['filter[parent]'],
   } satisfies DivisionFilters
   const matchingRecords = replayedRecords
@@ -401,7 +402,7 @@ export async function listDivisions(args: {
     .sort(
       (left, right) =>
         (left.division.level ?? -1) - (right.division.level ?? -1) ||
-        left.division.type.localeCompare(right.division.type) ||
+        left.division.class.localeCompare(right.division.class) ||
         left.division.id.localeCompare(right.division.id),
     )
   const lookup = {
@@ -409,7 +410,8 @@ export async function listDivisions(args: {
     limit,
     offset,
     level: filters.level,
-    type: filters.divisionType,
+    class: filters.divisionClass,
+    category: filters.category,
     parentId: filters.parent,
     localeSelection: routeState.localeSelection,
   }
@@ -425,9 +427,9 @@ export async function listDivisions(args: {
     const divisionIds = [
       ...new Set(
         records.flatMap(record =>
-          buildDivisionHierarchyRelationshipData(
+          storedDivisionHierarchyIdentifiers(
             record.division.id,
-            record.division.hierarchy,
+            record.division.hierarchies,
           ).map(parent => parent.id),
         ),
       ),
@@ -653,9 +655,9 @@ export async function getDivisionDetail(args: {
         dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
           snapshotId: activeDivisionSnapshot.snapshotId,
           snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-          divisionIds: buildDivisionHierarchyRelationshipData(
+          divisionIds: storedDivisionHierarchyIdentifiers(
             record.division.id,
-            record.division.hierarchy,
+            record.division.hierarchies,
           ).map(parent => parent.id),
           localeSelection: routeState.localeSelection,
         }),
