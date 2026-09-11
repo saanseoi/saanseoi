@@ -237,6 +237,23 @@ export async function resolvePlaceSnapshots(
     )
   }
 
+  const divisionPublication = await currentDb
+    .select({ snapshotId: currentSchema.divisionPublicationState.snapshotId })
+    .from(currentSchema.divisionPublicationState)
+    .where(
+      and(
+        eq(
+          currentSchema.divisionPublicationState.scopeId,
+          addressRow.divisionSnapshotId,
+        ),
+        sql`${currentSchema.divisionPublicationState.preparedAt} is not null`,
+      ),
+    )
+    .get()
+  if (!divisionPublication)
+    throw new Error(
+      `Places require the complete Division projection ${addressRow.divisionSnapshotId}.`,
+    )
   const division = await metaDb
     .select({
       id: metaSchema.metaSnapshots.id,
@@ -245,7 +262,7 @@ export async function resolvePlaceSnapshots(
     .from(metaSchema.metaSnapshots)
     .where(
       and(
-        eq(metaSchema.metaSnapshots.id, addressRow.divisionSnapshotId),
+        eq(metaSchema.metaSnapshots.id, divisionPublication.snapshotId),
         eq(metaSchema.metaSnapshots.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),
       ),
@@ -419,7 +436,9 @@ export async function stageEnrichedPlaces(
       await currentDb
         .select({ id: currentSchema.divisions.id })
         .from(currentSchema.divisions)
-        .where(eq(currentSchema.divisions.snapshotId, snapshots.divisionSnapshotId))
+        .where(
+          sql`${currentSchema.divisions.snapshotId} = (select ${currentSchema.divisionPublicationState.scopeId} from ${currentSchema.divisionPublicationState} where ${currentSchema.divisionPublicationState.snapshotId} = ${snapshots.divisionSnapshotId} and ${currentSchema.divisionPublicationState.preparedAt} is not null)`,
+        )
         .all()
     ).map(row => row.id),
   )

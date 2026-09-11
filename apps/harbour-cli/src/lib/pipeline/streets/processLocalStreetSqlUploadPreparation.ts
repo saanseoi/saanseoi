@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import type { RegionCode } from '@repo/core'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -380,7 +380,19 @@ export async function loadCanonicalDistricts(
         eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
       ),
     )
-    .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+    .innerJoin(
+      currentSchema.divisionPublicationState,
+      eq(
+        currentSchema.divisions.snapshotId,
+        currentSchema.divisionPublicationState.scopeId,
+      ),
+    )
+    .where(
+      and(
+        eq(currentSchema.divisionPublicationState.snapshotId, snapshot.id),
+        sql`${currentSchema.divisionPublicationState.preparedAt} is not null`,
+      ),
+    )
     .all()
   const byId = new Map<string, LandsdStreetCanonicalDistrict>()
   for (const row of rows) {
