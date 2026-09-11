@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { buildAddressBaseHashInput } from '@repo/core/pipeline/services/addresses/normalisation'
+import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay'
 
 type Row = Record<string, string | number | null>
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`
@@ -68,11 +69,17 @@ export function coalesceAddressHistory(input: {
   snapshotId: string
   scopeId: string
   now: string
+  prior: readonly (Pick<
+    ResolvedSnapshotVersion,
+    'recordType' | 'recordId' | 'locale' | 'versionHash'
+  > & {
+    shard: { bindingName: string }
+  })[]
 }) {
   const target = input.candidates[input.historyBinding]!.db
   const baselines = new Map<string, Database>()
   target.exec(
-    'CREATE TEMP TABLE addressHistoryBaseline(identity TEXT PRIMARY KEY,binding TEXT NOT NULL,contents TEXT NOT NULL); CREATE TEMP TABLE addressHistoryPending(seq INTEGER PRIMARY KEY,contents TEXT NOT NULL); CREATE TEMP TABLE addressHistoryScope(id TEXT PRIMARY KEY); CREATE TEMP TABLE addressHistoryChanged(id TEXT PRIMARY KEY);',
+    'CREATE TEMP TABLE addressHistoryBaseline(identity TEXT PRIMARY KEY,binding TEXT NOT NULL,contents TEXT NOT NULL); CREATE TEMP TABLE addressHistoryPending(seq INTEGER PRIMARY KEY,contents TEXT NOT NULL); CREATE TEMP TABLE addressHistoryScope(id TEXT PRIMARY KEY); CREATE TEMP TABLE addressHistoryChanged(id TEXT,versionHash TEXT,PRIMARY KEY(id,versionHash));',
   )
   const replace = (
     db: Database,
@@ -87,27 +94,21 @@ export function coalesceAddressHistory(input: {
         .map(column => `${quote(column)}=excluded.${quote(column)}`)
         .join(',')}`).run(...columns.map(column => row[column]!))
   }
+  const currentBaseline = new Database(input.files.DB_CURRENT!, {
+    readonly: true,
+    create: false,
+  })
   try {
-    const currentBaseline = new Database(input.files.DB_CURRENT!, {
-      readonly: true,
-      create: false,
-    })
-    try {
-      target.transaction(() => {
-        const insert = target.query('INSERT INTO addressHistoryScope VALUES(?)')
-        for (const row of currentBaseline
-          .query<{ id: string }, [string]>(
-            'SELECT id FROM address2d WHERE snapshotId=?',
-          )
-          .iterate(input.scopeId))
-          insert.run(row.id)
-      })()
-    } finally {
-      currentBaseline.close()
-    }
+    target.transaction(() => {
+      const insert = target.query('INSERT INTO addressHistoryScope VALUES(?)')
+      for (const row of currentBaseline
+        .query<{ id: string }, [string]>('SELECT id FROM address2d WHERE snapshotId=?')
+        .iterate(input.scopeId))
+        insert.run(row.id)
+    })()
     target
       .query(
-        "INSERT INTO addressHistoryChanged SELECT DISTINCT recordId FROM snapshotVersionChanges WHERE snapshotId=? AND recordType IN ('address2d','address2dI18n') AND operation='upsert'",
+        "INSERT INTO addressHistoryChanged SELECT DISTINCT recordId,versionHash FROM snapshotVersionChanges WHERE snapshotId=? AND recordType IN ('address2d','address2dI18n') AND operation='upsert'",
       )
       .run(input.snapshotId)
     for (const [binding, path] of Object.entries(input.files))
@@ -118,30 +119,81 @@ export function coalesceAddressHistory(input: {
         'DELETE FROM addressHistoryBaseline; DELETE FROM addressHistoryPending;',
       )
       const insert = target.query('INSERT INTO addressHistoryBaseline VALUES(?,?,?)')
-      for (const [binding, db] of baselines)
-        target.transaction(() => {
-          for (const row of db
-            .query<Row, []>(`SELECT * FROM ${policy.table} WHERE isCurrent=1`)
-            .iterate())
+      target.transaction(() => {
+        if (policy.recordType) {
+          for (const version of input.prior) {
             if (
-              target
+              version.recordType !== policy.recordType ||
+              !target
                 .query('SELECT 1 FROM addressHistoryScope WHERE id=?')
-                .get(row[policy.id]!)
+                .get(version.recordId)
             )
-              insert.run(identity(row, policy.identity), binding, JSON.stringify(row))
-        })()
+              continue
+            const binding = version.shard.bindingName
+            const db = baselines.get(binding)
+            if (!db)
+              throw new Error(`Missing selected Address history shard ${binding}.`)
+            const key: Row = {
+              [policy.id]: version.recordId,
+              versionHash: version.versionHash,
+              locale: version.locale,
+            }
+            const row = db
+              .query<Row, Array<string | number | null>>(
+                `SELECT * FROM ${policy.table} WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
+              )
+              .get(...policy.primary.map(column => key[column]!))
+            if (!row)
+              throw new Error(
+                `Missing selected Address component ${policy.table}/${version.recordId} in ${binding}.`,
+              )
+            insert.run(identity(row, policy.identity), binding, JSON.stringify(row))
+          }
+        } else {
+          // Derived lookup rows have no independent snapshot journal. Match the
+          // serving projection's exact content, which rollback rebuilds from locales.
+          for (const row of currentBaseline
+            .query<Row, [string]>(
+              'SELECT * FROM address2dBuildingNumberLookup WHERE snapshotId=?',
+            )
+            .iterate(input.scopeId)) {
+            let retained = false
+            for (const [binding, db] of baselines) {
+              for (const candidate of db
+                .query<Row, Array<string | number | null>>(
+                  'SELECT * FROM address2dBuildingNumberLookup WHERE addressId=? AND buildingNumber=? ORDER BY createdAt,versionHash',
+                )
+                .iterate(row.addressId!, row.buildingNumber!)) {
+                if (semantic(candidate) !== semantic(row)) continue
+                insert.run(
+                  identity(candidate, policy.identity),
+                  binding,
+                  JSON.stringify(candidate),
+                )
+                retained = true
+                break
+              }
+              if (retained) break
+            }
+          }
+        }
+      })()
       const queue = target.query(
         'INSERT INTO addressHistoryPending(contents) VALUES(?)',
       )
       target.transaction(() => {
-        for (const row of target
-          .query<
-            Row,
-            []
-          >(`SELECT v.* FROM ${policy.table} v WHERE v.isCurrent=1 AND EXISTS
-          (SELECT 1 FROM addressHistoryChanged c WHERE c.id=v.${policy.id})`)
-          .iterate())
-          queue.run(JSON.stringify(row))
+        const rows = policy.recordType
+          ? target
+              .query<Row, [string, string]>(
+                `SELECT v.* FROM ${policy.table} v JOIN snapshotVersionChanges j ON j.recordId=v.${policy.id} AND j.versionHash=v.versionHash ${policy.recordType === 'address2dI18n' ? 'AND j.locale=v.locale' : ''} WHERE j.snapshotId=? AND j.recordType=? AND j.operation='upsert'`,
+              )
+              .iterate(input.snapshotId, policy.recordType)
+          : target
+              .query<Row, []>(
+                `SELECT v.* FROM ${policy.table} v WHERE EXISTS (SELECT 1 FROM addressHistoryChanged c WHERE c.id=v.${policy.id} AND c.versionHash=v.versionHash)`,
+              )
+              .iterate()
+        for (const row of rows) queue.run(JSON.stringify(row))
       })()
       for (const entry of target
         .query<{ contents: string }, []>(
@@ -237,6 +289,7 @@ export function coalesceAddressHistory(input: {
       }
     }
   } finally {
+    currentBaseline.close()
     for (const db of baselines.values()) db.close()
     target.exec(
       'DROP TABLE temp.addressHistoryBaseline; DROP TABLE temp.addressHistoryPending; DROP TABLE temp.addressHistoryScope; DROP TABLE temp.addressHistoryChanged;',

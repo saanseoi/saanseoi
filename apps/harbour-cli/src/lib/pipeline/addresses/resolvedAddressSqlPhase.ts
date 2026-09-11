@@ -1,4 +1,5 @@
 import type { AddressPublicationReceipt } from '@repo/core/pipeline/db/addressPublication'
+import type { Database } from 'bun:sqlite'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
@@ -32,7 +33,7 @@ export async function deliverResolvedAddressSqlPhase(
     snapshotId: string
     expectedCount: number
   },
-  generate: () => Promise<unknown>,
+  generate: (candidates: Record<string, { db: Database }>) => Promise<unknown>,
 ) {
   const files = input.context.state.files
   if (!files) throw new Error('Resolved Address delivery requires local mirror files.')
@@ -130,7 +131,7 @@ export async function deliverResolvedAddressSqlPhase(
                 )
                 .immediate()
             },
-            generate,
+            () => generate(candidates),
             local,
           )
           validateResolvedAddressProjection(current, input.scopeId, input.expectedCount)
