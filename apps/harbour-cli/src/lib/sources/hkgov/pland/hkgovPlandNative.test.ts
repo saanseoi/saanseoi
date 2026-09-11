@@ -159,7 +159,7 @@ describe('Planning Department native New Town SHP intake', () => {
       })
       const prepared = preparedRows.find(
         row =>
-          jsonRecord(row.identifiers)['PLAND:NEWTOWN'] === 'tsuen wan-tsing yi area',
+          jsonRecord(row.identifiers)['PLAND:NEWTOWN'] === 'tsuen-wan-tsing-yi-area',
       )
       const [bridgeFixture, divisionCodeFixture] = await Promise.all([
         readFixture<IdentifierBridgeFixture>(
@@ -174,7 +174,7 @@ describe('Planning Department native New Town SHP intake', () => {
 
       expect(prepared).toMatchObject({
         id: 'd0b06deb-4842-507b-8284-a3254615e5aa',
-        identifiers: { 'PLAND:NEWTOWN': 'tsuen wan-tsing yi area' },
+        identifiers: { 'PLAND:NEWTOWN': 'tsuen-wan-tsing-yi-area' },
         source_version: '2021',
       })
       expect(bridge?.canonicalId).toBe(prepared?.id)

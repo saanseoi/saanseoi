@@ -278,83 +278,86 @@ describe('Planning Department backfills', () => {
     }
   })
 
-  test('rebuilds version 1 cached artefacts when the preparation contract changes', async () => {
-    const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
-    const previousMinimal = process.env.SAANSEOI_INIT_MINIMAL
-    const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
-    const output = Buffer.from('prepared parquet')
-    try {
-      process.env.SAANSEOI_INIT_MINIMAL = '1'
-      const archive = await readFile(
-        resolve(
-          import.meta.dir,
-          '../../../../data/hkgov/csdi/archive/pland_rcd_1636535158118_80594/2023-Q4/source.zip',
-        ),
-      )
-      const archiveHash = createHash('sha256').update(archive).digest('hex')
-      const cacheDirectory = join(
-        cacheRoot,
-        'hkgov-pland-pu',
-        'v1',
-        archiveHash,
-        '2001',
-      )
-      await mkdir(cacheDirectory, { recursive: true })
-      for (const resourceType of ['division', 'divisionArea'] as const) {
-        await writeFile(join(cacheDirectory, `${resourceType}.parquet`), output)
-        await writeFile(
-          join(cacheDirectory, `${resourceType}.manifest.json`),
-          JSON.stringify({
-            schemaVersion: 1,
-            sourceArchiveSha256: archiveHash,
-            sourceVersion: '2001',
-            parserContractVersion: '1',
-            resourceType,
-            outputByteLength: output.byteLength,
-            outputSha256: createHash('sha256').update(output).digest('hex'),
-          }),
+  test.each(['1', '2'])(
+    'rebuilds version %s cached artefacts when the preparation contract changes',
+    async previousContractVersion => {
+      const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
+      const previousMinimal = process.env.SAANSEOI_INIT_MINIMAL
+      const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+      const output = Buffer.from('prepared parquet')
+      try {
+        process.env.SAANSEOI_INIT_MINIMAL = '1'
+        const archive = await readFile(
+          resolve(
+            import.meta.dir,
+            '../../../../data/hkgov/csdi/archive/pland_rcd_1636535158118_80594/2023-Q4/source.zip',
+          ),
         )
-      }
+        const archiveHash = createHash('sha256').update(archive).digest('hex')
+        const cacheDirectory = join(
+          cacheRoot,
+          'hkgov-pland-pu',
+          `v${previousContractVersion}`,
+          archiveHash,
+          '2001',
+        )
+        await mkdir(cacheDirectory, { recursive: true })
+        for (const resourceType of ['division', 'divisionArea'] as const) {
+          await writeFile(join(cacheDirectory, `${resourceType}.parquet`), output)
+          await writeFile(
+            join(cacheDirectory, `${resourceType}.manifest.json`),
+            JSON.stringify({
+              schemaVersion: 1,
+              sourceArchiveSha256: archiveHash,
+              sourceVersion: '2001',
+              parserContractVersion: previousContractVersion,
+              resourceType,
+              outputByteLength: output.byteLength,
+              outputSha256: createHash('sha256').update(output).digest('hex'),
+            }),
+          )
+        }
 
-      const dependencies = {
-        prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
-        preparedArtefactCacheRoot: cacheRoot,
-        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
-        runUploadCommand: runUploadCommandMock,
-      }
-      const args = {
-        command: 'hkgov-pland:backfill' as const,
-        positionals: [],
-        options: { target: 'preview' },
-      }
-      const target = { environment: 'preview' as const, remote: true }
+        const dependencies = {
+          prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+          preparedArtefactCacheRoot: cacheRoot,
+          runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
+          runUploadCommand: runUploadCommandMock,
+        }
+        const args = {
+          command: 'hkgov-pland:backfill' as const,
+          positionals: [],
+          options: { target: 'preview' },
+        }
+        const target = { environment: 'preview' as const, remote: true }
 
-      await runHkgovPlandBackfillCommand(
-        args,
-        target,
-        'pu',
-        () => undefined,
-        dependencies,
-      )
-      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
-        prepareCalls + 4,
-      )
-      await runHkgovPlandBackfillCommand(
-        args,
-        target,
-        'pu',
-        () => undefined,
-        dependencies,
-      )
-      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
-        prepareCalls + 4,
-      )
-    } finally {
-      if (previousMinimal === undefined) delete process.env.SAANSEOI_INIT_MINIMAL
-      else process.env.SAANSEOI_INIT_MINIMAL = previousMinimal
-      await rm(cacheRoot, { force: true, recursive: true })
-    }
-  })
+        await runHkgovPlandBackfillCommand(
+          args,
+          target,
+          'pu',
+          () => undefined,
+          dependencies,
+        )
+        expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+          prepareCalls + 4,
+        )
+        await runHkgovPlandBackfillCommand(
+          args,
+          target,
+          'pu',
+          () => undefined,
+          dependencies,
+        )
+        expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+          prepareCalls + 4,
+        )
+      } finally {
+        if (previousMinimal === undefined) delete process.env.SAANSEOI_INIT_MINIMAL
+        else process.env.SAANSEOI_INIT_MINIMAL = previousMinimal
+        await rm(cacheRoot, { force: true, recursive: true })
+      }
+    },
+  )
 
   test('continues a remote backfill from that target’s completed releases', async () => {
     const target = { environment: 'production' as const, remote: true }

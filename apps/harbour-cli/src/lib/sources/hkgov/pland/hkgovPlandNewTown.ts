@@ -115,9 +115,9 @@ export async function exportRepairedHkgovPlandNewTownGeoJson(options: {
  * Prepare a New Town GeoJSON artefact for the cohort-scoped planning-division
  * and geometry uploaders.
  * The CSDI GeoJSON delivery is WGS84 even though the catalogue service is
- * published in EPSG:2326. It has no upstream stable feature ID, so `id` is a
- * deterministic, cohort-scoped normalised English name retained as the provider
- * identifier and used to derive the canonical UUIDv5.
+ * published in EPSG:2326. It has no upstream stable feature ID, so source keys
+ * use an English-name slug. Canonical UUIDv5 values use the cohort and
+ * normalised publisher name independently of the source key's formatting.
  */
 export async function prepareHkgovPlandNewTownParquet(options: {
   inputFile: string
@@ -412,9 +412,14 @@ function writeDivisionAreaParquet(
 }
 
 function canonicalDivisionId(row: NewTownRow, sourceVersion: string) {
+  const name = row.names.en
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\s*-\s*/g, '-')
   return buildDeterministicUuidV5(
     CANONICAL_DIVISION_ID_NAMESPACE,
-    `hkgov-pland-new-town:hk:planning:${sourceVersion}:${row.id}`,
+    `hkgov-pland-new-town:hk:planning:${sourceVersion}:${name}`,
   )
 }
 
@@ -457,11 +462,16 @@ function normaliseFeature(value: unknown, index: number): NewTownRow {
 }
 
 function normaliseProviderId(value: string) {
-  return value
-    .trim()
+  const id = value
     .toLowerCase()
-    .replace(/\s+/g, ' ')
-    .replace(/\s*-\s*/g, '-')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  if (!id) {
+    throw new Error(
+      `Planning Department New Town name ${JSON.stringify(value)} cannot form a source record identifier.`,
+    )
+  }
+  return id
 }
 
 function requireName(value: unknown, field: string, index: number) {

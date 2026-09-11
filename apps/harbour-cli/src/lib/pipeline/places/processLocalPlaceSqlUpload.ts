@@ -297,21 +297,28 @@ export async function processLocalPlaceSqlUpload(
         ),
       stagedPlaces.includedRows,
     )
+    const sourceRows = await runPlaceProgressPhase(
+      progress,
+      'Prepare',
+      'Place source hashes',
+      () => loadCurrentPlaceSources(context.sourceTargets),
+    )
+    const activeHistoryBindingName = findTargetBindingName(
+      context.historyTargets,
+      context.historyDb,
+    )
+    const activeSourceBindingName = findTargetBindingName(
+      context.sourceTargets,
+      context.sourceDb,
+    )
+    const sourceShardNames = [
+      activeSourceBindingName,
+      ...new Set([...sourceRows.values()].map(row => row.bindingName)),
+    ]
     const sqlInput: BuildPlaceSqlInput = {
-      sourceRows: await runPlaceProgressPhase(
-        progress,
-        'Prepare',
-        'Place source hashes',
-        () => loadCurrentPlaceSources(context.sourceTargets),
-      ),
-      activeHistoryBindingName: findTargetBindingName(
-        context.historyTargets,
-        context.historyDb,
-      ),
-      activeSourceBindingName: findTargetBindingName(
-        context.sourceTargets,
-        context.sourceDb,
-      ),
+      sourceRows,
+      activeHistoryBindingName,
+      activeSourceBindingName,
       sourceBindingNames: context.sourceTargets.map(target => target.bindingName),
       datasetId,
       message,
@@ -327,7 +334,7 @@ export async function processLocalPlaceSqlUpload(
       context,
       releaseId,
       inputs: {
-        sourceSqlStrategy: 'changed-payloads-v1',
+        sourceSqlStrategy: 'cross-shard-source-continuity-v1',
         message,
         snapshots,
         enrichedSha256: await deliveryFileSha256(stagedEnrichedPlaces.path),
@@ -357,6 +364,7 @@ export async function processLocalPlaceSqlUpload(
         releaseId,
         previewPlan,
         target,
+        { sourceBindingNames: sourceShardNames },
       ),
     )
     if (target.remote) {
