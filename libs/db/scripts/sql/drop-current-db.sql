@@ -2,6 +2,9 @@ PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
+DROP TABLE IF EXISTS `addressSearchFts`;
+DROP TABLE IF EXISTS `addressSearchScopes`;
+DROP TABLE IF EXISTS `addressesFts`;
 
 DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `divisionStatistics`;
