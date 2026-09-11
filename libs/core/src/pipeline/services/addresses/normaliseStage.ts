@@ -62,7 +62,7 @@ export async function normaliseAddressChunkStage(
         releaseId: message.releaseId ?? message.datasetId,
         source: message.source,
         sourceVersion: message.sourceVersion,
-        type: message.type,
+        type: message.resourceType,
       })
     },
   })) {

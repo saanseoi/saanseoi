@@ -131,7 +131,7 @@ describe('api field fixtures', () => {
       f => f.apiVersion === 'api-divisions-v0.1',
     )) {
       const paths = fixture.fields.map(field => field.apiField)
-      expect(paths).toContain('division.attributes.type')
+      expect(paths).toContain('division.attributes.class')
       for (const path of paths) {
         expect(path).not.toMatch(
           /attributes\.(divisionType|subtype|divisionClass|wikidata|overture)(\.|$)/,

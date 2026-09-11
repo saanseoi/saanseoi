@@ -3094,7 +3094,7 @@ describe('publishReleaseArtefacts', () => {
       publishedAt: '2026-06-29T00:00:00.000Z',
       releaseSetId: 'release-set-1',
       snapshotId: 'snapshot-new',
-      type: 'division',
+      resourceType: 'division',
     })
 
     expect(catalogRevision).toMatchObject({
@@ -3292,7 +3292,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-08-20T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-censtatd',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
         updateDatasetRelease: false,
       }),
     ).resolves.toBeNull()
@@ -3369,7 +3369,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-new',
-        type: 'division',
+        resourceType: 'division',
       }),
     ).rejects.toThrow(
       /API field fixture not found\. Lookup:\n\{[\s\S]*"sourceSchemas"[\s\S]*\}/,
@@ -3460,7 +3460,7 @@ describe('publishReleaseArtefacts', () => {
           publishedAt: '2026-06-29T00:00:00.000Z',
           releaseSetId: 'release-set-1',
           snapshotId: 'snapshot-new',
-          type: 'division',
+          resourceType: 'division',
         }),
       ).rejects.toThrow(
         'No overture source schema mapping found for sourceVersion=2026-06-24.0.',
@@ -3540,7 +3540,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-new',
-        type: 'division',
+        resourceType: 'division',
       })
     } finally {
       globalThis.fetch = originalFetch

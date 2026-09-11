@@ -28,7 +28,7 @@ export function getSupplementalDivisionFixtureRows(
 ): DivisionFixtureRow[] {
   if (
     message.source !== 'overture' ||
-    message.type !== 'division' ||
+    message.resourceType !== 'division' ||
     message.regionCode !== 'hk'
   ) {
     return []

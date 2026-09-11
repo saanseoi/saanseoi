@@ -32,7 +32,7 @@ const message = {
   source: 'hkgov-dpo',
   sourceVersion: '2025-09.0',
   theme: 'addresses',
-  type: 'address',
+  resourceType: 'address',
 } satisfies DatasetProcessingMessage
 
 const resolvedArtefact = {

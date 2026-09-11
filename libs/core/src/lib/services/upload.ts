@@ -159,13 +159,13 @@ function normaliseSource(candidate?: string | null) {
 
 function normaliseUploadFileName(
   filePath: string,
-  type: ResourceType,
+  resourceType: ResourceType,
   providedOriginalFileName?: string,
 ) {
   const originalFileName =
     providedOriginalFileName?.trim() || fileNameFromPath(filePath)
   const { extension } = splitFileNameParts(originalFileName)
-  const resourceSlug = resourceTypeCodeSlug(type)
+  const resourceSlug = resourceTypeCodeSlug(resourceType)
 
   return {
     originalFileName,
@@ -635,7 +635,7 @@ function resolveUploadPlan(
   resolvedInspection: UploadInspection,
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
-  const typeFromFlag = normaliseType(options.type)
+  const typeFromFlag = normaliseType(options.resourceType)
   const typeFromFilename = inferTypeFromFilename(options.filePath)
   const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
@@ -744,7 +744,7 @@ function resolveUploadPlan(
     cohortKey,
     shardYear: options.shardYear?.trim() || undefined,
     theme,
-    type,
+    resourceType: type,
     source,
     sourceVersion: resolvedSourceVersion,
     geometryStatus: options.geometryStatus,
@@ -831,12 +831,19 @@ export async function planUpload(
   })
 
   const {
-    plan: { datasetCode, releaseCode, regionCode, source, sourceVersion, type },
+    plan: {
+      datasetCode,
+      releaseCode,
+      regionCode,
+      source,
+      sourceVersion,
+      resourceType: type,
+    },
   } = preparedUpload
   const existingDataset = await getDatasetById(db, releaseCode)
 
   if (existingDataset) {
-    if (existingDataset.type !== type) {
+    if (existingDataset.resourceType !== type) {
       throw new Error(`Resource release ${releaseCode} cannot change resource type.`)
     }
     await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
@@ -894,8 +901,8 @@ function isAllowedKnownSchemaTransition(
     nextPlan.datasetCode === latestDataset.datasetCode &&
     latestDataset.source === 'hkgov-dpo' &&
     nextPlan.source === 'hkgov-dpo' &&
-    latestDataset.type === 'address' &&
-    nextPlan.type === 'address' &&
+    latestDataset.resourceType === 'address' &&
+    nextPlan.resourceType === 'address' &&
     previousSchema &&
     !previousSchema.some(field => field.name === 'publisherSource')
   ) {
@@ -919,8 +926,8 @@ function isAllowedKnownSchemaTransition(
     nextPlan.datasetCode === latestDataset.datasetCode &&
     latestDataset.source === 'hkgov-censtatd' &&
     nextPlan.source === 'hkgov-censtatd' &&
-    latestDataset.type === 'divisionStatistic' &&
-    nextPlan.type === 'divisionStatistic' &&
+    latestDataset.resourceType === 'divisionStatistic' &&
+    nextPlan.resourceType === 'divisionStatistic' &&
     previousSchema &&
     matchesCenstatdDensityReferencePeriodTransition(
       previousSchema,
@@ -945,13 +952,13 @@ function isAllowedKnownSchemaTransition(
 
   if (
     latestDataset.source !== 'overture' ||
-    !divisionTypes.has(latestDataset.type) ||
-    latestDataset.type !== nextPlan.type
+    !divisionTypes.has(latestDataset.resourceType) ||
+    latestDataset.resourceType !== nextPlan.resourceType
   ) {
     return false
   }
 
-  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.type)) {
+  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.resourceType)) {
     return false
   }
 
@@ -980,8 +987,8 @@ function matchesKnownOverturePlaceSchemaTransition(
     nextPlan.datasetCode !== latestDataset.datasetCode ||
     latestDataset.source !== 'overture' ||
     nextPlan.source !== 'overture' ||
-    latestDataset.type !== 'place' ||
-    nextPlan.type !== 'place' ||
+    latestDataset.resourceType !== 'place' ||
+    nextPlan.resourceType !== 'place' ||
     compareSourceVersion(latestDataset.sourceVersion, nextPlan.sourceVersion) >= 0
   ) {
     return false

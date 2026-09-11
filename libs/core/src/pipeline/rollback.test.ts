@@ -12,7 +12,7 @@ describe('latest release rollback SQL', () => {
       snapshotId: 'snapshot-new',
       source: 'overture',
       sourceVersion: '2026-05-20.0',
-      type: 'division',
+      resourceType: 'division',
     })
 
     expect(sql.current).toContain(
@@ -54,7 +54,7 @@ describe('latest release rollback SQL', () => {
       snapshotId: 'address-snapshot-new',
       source: 'hkgov-dpo',
       sourceVersion: '2026-06-25.0',
-      type: 'address',
+      resourceType: 'address',
     })
 
     expect(sql.current).toContain(
@@ -90,7 +90,7 @@ describe('latest release rollback SQL', () => {
       snapshotId: 'snapshot-draft',
       source: 'hkgov-pland-new-town',
       sourceVersion: '2006',
-      type: 'division',
+      resourceType: 'division',
     })
 
     expect(sql.source).toBe(
@@ -121,7 +121,7 @@ describe('latest release rollback SQL', () => {
       snapshotId: 'snapshot-draft',
       source: 'hkgov-pland-pu',
       sourceVersion: '2006',
-      type: 'division',
+      resourceType: 'division',
     })
     expect(planningCellSql.source).toBe(
       "DELETE FROM hkgovPlandPlanningCells WHERE releaseId = 'release-draft';\n",
@@ -137,7 +137,7 @@ describe('latest release rollback SQL', () => {
       snapshotId: 'places-snapshot-new',
       source: 'overture',
       sourceVersion: '2026-08-19.0',
-      type: 'place',
+      resourceType: 'place',
     })
 
     const placesDelete = 'DELETE FROM places WHERE'
@@ -166,7 +166,7 @@ describe('latest release rollback SQL', () => {
         snapshotId: 'snapshot-new',
         source: 'unknown',
         sourceVersion: '2026-05-20.0',
-        type: 'address',
+        resourceType: 'address',
       }),
     ).toThrow('Rollback is not implemented for source unknown/address.')
   })

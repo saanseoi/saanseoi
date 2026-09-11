@@ -79,3 +79,57 @@ Tables:
 - `dataShards`
 - `releaseShardAssignments`
 - `snapshotShardAssignments` (history shards containing each snapshot journal delta)
+
+## Metadata contracts
+
+`datasets.kind` identifies the product subdivision, for example `district`, `new-town`
+or `pu`. It is independent of the dataset's `resourceTypes`.
+
+`sourceCrs` describes the retained source geometry. Populate it from verified source
+formats and decoding contracts. Document-only products may have no CRS; unknown values
+remain null. ALS GeoJSON uses EPSG:4326 even though its properties also contain HK80
+coordinate evidence. Lands Department native place-name and road-centreline geometries
+use EPSG:2326. Overture geometry uses EPSG:4326. HyD street-name plates, sensitive
+streets, strategic streets and TD pedestrian streets also retain EPSG:2326 coordinates
+from their native FileGDB layers.
+
+`datasets.processingRules` contains the current resolved policy. `sourceReleases` and
+`releases` retain the policy at creation for reproducibility. These are intentional
+copies: dataset synchronisation must not rewrite historic release policy. Registered
+rule declarations supply exact definitions, interfaces, parameters and implementation
+references; processing actions retain the decisions and counts actually produced.
+Missing historical rules cannot be reconstructed by copying today's registry policy.
+
+`sourceReleases.rawObjectKey` locates the retained publisher artefact or shared prepared
+input. `releases.rawObjectKey` locates the resource's ingestion input. A multi-resource
+source can own an archive while its resources point to different derived files. Complete
+missing staged source keys without replacing an existing archive reference.
+
+`publicationDate` accepts a calendar date. A year or half-year cohort remains in
+`cohortKey` and `sourceVersion`; it does not imply a publication day.
+
+Snapshot shard assignments locate journal deltas. A draft snapshot can exist before its
+history shard is assigned. Audit missing assignments together with snapshot status and
+publication state; table counts alone do not prove a broken published snapshot.
+`snapshots.notes` is optional free-text annotation. Validity closure updates `validTo`
+and does not automatically populate notes.
+
+`stats.kind` classifies facts as `release`, `processing` or `apiReleaseSet`. Facts
+belong to a resource release or an API release set. Presentation calculations can read a
+snapshot while retaining ownership on the API release set. There is no snapshot-owned
+stats producer or `stats.snapshotId` column.
+
+## Auditing and metadata repair
+
+Run `bun scripts/audit-meta-schema.ts /path/to/META.sqlite /path/to/repair.sql` from the
+repository root. The command opens the target read-only, prints JSON findings and
+optionally writes reviewable repair SQL. It supports the schema before and after the
+`kind` migration. Run it again after repair and check remaining unknown metadata.
+
+The repair plan fills missing source keys only when all child resource keys agree,
+copies processing rules only from retained related-release evidence, and normalises
+Planning Department release-stat ownership labels. It does not rewrite existing rule
+values, guess multi-resource archive keys, assign draft shards or manufacture missing
+publication dates. Apply schema changes and metadata repairs with ingestion writers
+stopped and a retained database backup. Published source resources may be `superseded`;
+that status still satisfies completed historical materialisation.

@@ -31,7 +31,7 @@ export function buildSourceDatasetId(message: DatasetProcessingMessage) {
   }
 
   const source = message.source === 'hkgov-dpo' ? 'hkgov' : message.source
-  return `${source}-${message.regionCode}-${message.type}`
+  return `${source}-${message.regionCode}-${message.resourceType}`
 }
 
 export type CurrentSourceRecord = {

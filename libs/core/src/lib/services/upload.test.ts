@@ -240,7 +240,7 @@ async function assertAdminLevelTransitionAllowed(
     regionCode: 'hk',
     cohortKey: '2026-01',
     theme: 'divisions',
-    type: resourceType,
+    resourceType: resourceType,
     sourceVersion: '2026-01-21.0',
     rawObjectKey: `hk/overture/2026-01-21.0/${resourceName}.parquet`,
     originalFileName: `${resourceName}.parquet`,
@@ -395,7 +395,7 @@ describe('upload', () => {
       sourceVersion: '2025-09-24.0',
     })
 
-    expect(planned.plan.type).toBe('address')
+    expect(planned.plan.resourceType).toBe('address')
     expect(planned.plan.theme).toBe('addresses')
     expect(planned.plan.inferredFrom.type).toBe('filename')
     expect(planned.plan.inferredFrom.theme).toBe('filename')
@@ -446,7 +446,7 @@ describe('upload', () => {
       },
       source: 'hkgov-had',
       sourceVersion: '2022',
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     })
 
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-division-area-district')
@@ -475,7 +475,7 @@ describe('upload', () => {
       },
       source: 'hkgov-censtatd',
       sourceVersion: '2022',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
     })
 
     expect(planned.plan.datasetCode).toBe(
@@ -496,7 +496,7 @@ describe('upload', () => {
       source: 'hkgov-censtatd',
       sourceVersion: '2022',
       theme: 'divisions',
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     })
     expect(geometry.plan.releaseCode).toBe(
       'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionArea',
@@ -523,7 +523,7 @@ describe('upload', () => {
       },
       source: 'hkgov-pland-pu',
       sourceVersion: '2001',
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     })
 
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-pland-division-pu')
@@ -575,7 +575,7 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(result.plan.type).toBe('division')
+    expect(result.plan.resourceType).toBe('division')
     expect(result.plan.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
 
@@ -666,7 +666,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       originalFileName: 'division.parquet',
       rawObjectKey: fixtureFile,
@@ -751,7 +751,7 @@ describe('upload', () => {
     db.close()
 
     expect(planned.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(planned.plan.type).toBe('division')
+    expect(planned.plan.resourceType).toBe('division')
     expect(planned.plan.fileName).toBe('division.parquet')
   })
 
@@ -939,7 +939,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
@@ -1010,7 +1010,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
@@ -1103,7 +1103,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1144,7 +1144,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-01',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1199,7 +1199,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2025-09-24.0',
       theme: 'places',
-      type: 'place',
+      resourceType: 'place',
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'hk/overture/2025-09-24.0/place.parquet',
       originalFileName: 'place.parquet',
@@ -1231,7 +1231,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2025-10-22.0',
       theme: 'places',
-      type: 'place',
+      resourceType: 'place',
       sourceVersion: '2025-10-22.0',
       rawObjectKey: 'hk/overture/2025-10-22.0/place.parquet',
       originalFileName: 'place.parquet',
@@ -1278,7 +1278,7 @@ describe('upload', () => {
       filePath: fixtureFile,
       inspection: censtatdDensityLegacyInspection,
       theme: 'stats',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
       sourceVersion: '2024',
       rawObjectKey: 'hk/hkgov-censtatd/2024/density.parquet',
     })
@@ -1292,7 +1292,7 @@ describe('upload', () => {
       source: 'hkgov-censtatd',
       sourceVersion: '2024',
       theme: 'stats',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
       allowExistingDatasetStatuses: ['published'],
       resolveSchemaFingerprint: async () =>
         createSchemaFingerprint(censtatdDensityLegacyInspection),
@@ -1321,7 +1321,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-02',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-02-18.0',
       rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1363,7 +1363,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-01',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1410,7 +1410,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1449,7 +1449,7 @@ Reconcile the schema before uploading this dataset.`)
         regionCode: 'hk',
         cohortKey: '2026-05',
         theme: 'divisions',
-        type: 'division',
+        resourceType: 'division',
         sourceVersion: '2026-05-20.0',
         rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
         originalFileName: 'division.parquet',
@@ -1516,7 +1516,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1571,7 +1571,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1613,7 +1613,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1627,7 +1627,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-06',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-06-24.0',
       rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1642,7 +1642,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-07',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-07-24.0',
       rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
       originalFileName: 'division.parquet',

@@ -34,7 +34,7 @@ export function missingOvertureHongKongCityRows(
   if (
     message.regionCode !== 'hk' ||
     message.source !== 'overture' ||
-    message.type !== 'division'
+    message.resourceType !== 'division'
   )
     return []
   return overtureHongKongCities.flatMap(city => {

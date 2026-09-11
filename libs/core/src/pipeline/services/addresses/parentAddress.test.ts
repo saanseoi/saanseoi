@@ -16,7 +16,7 @@ test('SQL imports retain and clear parent links in current and versioned history
   const snapshotId = 'address-snapshot'
   const timestamp = '2026-09-06T00:00:00Z'
   const message = {
-    type: 'address',
+    resourceType: 'address',
     source: 'hkgov-dpo',
     regionCode: 'hk',
     releaseId: 'address-release',

@@ -312,7 +312,7 @@ export async function processDivisionDataset(
   )
   if (
     message.source === 'overture' &&
-    message.type === 'division' &&
+    message.resourceType === 'division' &&
     message.regionCode === 'hk'
   ) {
     await timings.measure('validateDroppedDivisionSourceFieldsMs', () =>
@@ -577,7 +577,7 @@ export async function processDivisionDataset(
         })
       }
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
-      if (message.source === 'overture' && message.type === 'division') {
+      if (message.source === 'overture' && message.resourceType === 'division') {
         processingActions.push(
           ...buildOvertureDivisionLocaleProcessingActions({
             canonicalI18n,
@@ -986,7 +986,7 @@ export async function processDivisionDataset(
     sourceUnchangedRows,
     sourceVersion: message.sourceVersion,
     ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
-    type: message.type,
+    type: message.resourceType,
   })
 
   return {
