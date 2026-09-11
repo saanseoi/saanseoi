@@ -169,7 +169,7 @@ describe('Planning Department native New Town SHP intake', () => {
       ])
       const bridge = bridgeFixture.mappings.find(mapping => mapping.externalId === '28')
       const divisionCode = divisionCodeFixture.assignments.find(
-        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+        assignment => assignment.divisionCode === 'TSUEN_WAN_TSING_YI_AREA',
       )
 
       expect(prepared).toMatchObject({

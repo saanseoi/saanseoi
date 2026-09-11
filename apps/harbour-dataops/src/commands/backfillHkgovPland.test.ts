@@ -4,12 +4,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
-const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
+const preparedTypes: Array<{ sourceVersion: string; resourceType: string }> = []
 const preparedInputs: string[] = []
 const uploadedTypes: Array<{
   skipSnapshotCleanup: boolean
   sourceVersion: string
-  type: string
+  resourceType: string
 }> = []
 let divisionPublishComplete = false
 
@@ -18,10 +18,13 @@ const prepareHkgovPlandTpuNativeShpZipMock = mock(
     inputFile: string
     outputFile: string
     sourceVersion: string
-    type: string
+    resourceType: string
   }) => {
     preparedInputs.push(options.inputFile)
-    preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
+    preparedTypes.push({
+      sourceVersion: options.sourceVersion,
+      resourceType: options.resourceType,
+    })
     await mkdir(dirname(options.outputFile), { recursive: true })
     await writeFile(options.outputFile, 'prepared parquet')
     return {
@@ -35,19 +38,19 @@ const prepareHkgovPlandTpuNativeShpZipMock = mock(
 
 const runUploadCommandMock = mock(
   async (
-    _args: { options: { 'source-version'?: unknown; type?: unknown } },
+    _args: { options: { 'source-version'?: unknown; 'resource-type'?: unknown } },
     _target: unknown,
     options: { skipSnapshotCleanup: boolean },
   ) => {
     const sourceVersion = String(_args.options['source-version'])
-    const type = String(_args.options.type)
+    const resourceType = String(_args.options['resource-type'])
     uploadedTypes.push({
       skipSnapshotCleanup: options.skipSnapshotCleanup,
       sourceVersion,
-      type,
+      resourceType,
     })
 
-    if (type === 'division') {
+    if (resourceType === 'division') {
       await Promise.resolve()
       divisionPublishComplete = true
       return
@@ -87,7 +90,7 @@ describe('Planning Department backfills', () => {
               return new Set(
                 ['2001', '2006', '2011', '2016', '2021'].flatMap(year =>
                   ['division', 'division-area'].map(
-                    type => `dr-hk-hkgov-pland-${type}-${kind}-${year}`,
+                    resourceType => `dr-hk-hkgov-pland-${resourceType}-${kind}-${year}`,
                   ),
                 ),
               )
@@ -136,16 +139,36 @@ describe('Planning Department backfills', () => {
       ),
     )
     expect(uploadedTypes).toEqual([
-      { skipSnapshotCleanup: true, sourceVersion: '2001', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2001', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2006', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2006', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2011', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2011', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2016', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2016', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2021', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2021', type: 'divisionArea' },
+      { skipSnapshotCleanup: true, sourceVersion: '2001', resourceType: 'division' },
+      {
+        skipSnapshotCleanup: false,
+        sourceVersion: '2001',
+        resourceType: 'divisionArea',
+      },
+      { skipSnapshotCleanup: true, sourceVersion: '2006', resourceType: 'division' },
+      {
+        skipSnapshotCleanup: false,
+        sourceVersion: '2006',
+        resourceType: 'divisionArea',
+      },
+      { skipSnapshotCleanup: true, sourceVersion: '2011', resourceType: 'division' },
+      {
+        skipSnapshotCleanup: false,
+        sourceVersion: '2011',
+        resourceType: 'divisionArea',
+      },
+      { skipSnapshotCleanup: true, sourceVersion: '2016', resourceType: 'division' },
+      {
+        skipSnapshotCleanup: false,
+        sourceVersion: '2016',
+        resourceType: 'divisionArea',
+      },
+      { skipSnapshotCleanup: true, sourceVersion: '2021', resourceType: 'division' },
+      {
+        skipSnapshotCleanup: false,
+        sourceVersion: '2021',
+        resourceType: 'divisionArea',
+      },
     ])
   })
 
