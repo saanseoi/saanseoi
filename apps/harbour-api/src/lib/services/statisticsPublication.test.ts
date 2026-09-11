@@ -155,6 +155,22 @@ function fixture() {
 }
 
 describe('packed statistic publication', () => {
+  test('publication cannot acquire an exact period reserved by rollback', async () => {
+    const f = fixture()
+    f.snapshot('base', null)
+    f.record('base', 'north', 'north-1', '10')
+    await f.promote('base')
+    f.snapshot('later', 'base')
+    f.record('later', 'north', 'north-2', '11')
+    f.current.exec("UPDATE statsPublicationState SET status='restoring'")
+    f.clearWrites()
+    await expect(f.promote('later')).rejects.toThrow('sealed rollback')
+    await expect(f.promote('base')).rejects.toThrow('sealed rollback')
+    expect(f.writes()).toEqual([])
+    expect(f.current.query('SELECT status FROM statsPublicationState').get()).toEqual({
+      status: 'restoring',
+    })
+  })
   test('promotes initial packs with definitions, then writes no records for an unchanged reissue', async () => {
     const f = fixture()
     f.snapshot('base', null)
