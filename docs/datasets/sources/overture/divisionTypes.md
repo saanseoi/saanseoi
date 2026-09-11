@@ -1,4 +1,4 @@
-# canonical division types
+# Canonical division classes
 
 The `division-normalisation.json` processing fixture owns subtype/class mappings,
 hierarchy classifications, ordered level tokens, reviewed Hong Kong area identity
@@ -11,7 +11,7 @@ branch IDs. Level-token branches distinguish subtype, class and administrative-l
 matches. Locality mappings are counted separately for level and class; class fallback
 does not count its supporting level lookup a second time. Bulk matched counts count only
 selected branches, and changed counts compare canonical results with raw source `level`
-and `type` values. Unselected branches retain zeroes. Missing historical conditions or
+and `class` values. Unselected branches retain zeroes. Missing historical conditions or
 counts remain **not recorded**.
 
 Local division ingestion reports provenance retention and delivery after SQL generation.

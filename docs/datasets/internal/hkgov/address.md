@@ -135,8 +135,8 @@ affected group or record, including the selected canonical ALS record and ignore
 variants where applicable. Reports decode the complete evidence. Inspect both through:
 
 ```bash
-saanseoi reports:stats --source hkgov-dpo --type address
-saanseoi reports:processing-actions --source hkgov-dpo --type address
+saanseoi reports:stats --source hkgov-dpo --resource-type address
+saanseoi reports:processing-actions --source hkgov-dpo --resource-type address
 ```
 
 The source release also persists presentation stats after consolidation: address count

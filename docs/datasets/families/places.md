@@ -181,7 +181,7 @@ thresholds, identity decisions and retry behaviour.
 The normal upload lifecycle is shared with the other API families:
 
 ```sh
-./bin/saanseoi upload <place-parquet> --type place --theme places \
+./bin/saanseoi upload <place-parquet> --resource-type place --theme places \
   --source overture --source-version YYYY-MM-DD.0 --cohort-key YYYY-MM-DD.0
 ```
 
