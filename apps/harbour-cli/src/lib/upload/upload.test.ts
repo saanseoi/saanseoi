@@ -10,6 +10,8 @@ import {
   scheduleSnapshotCleanup,
 } from './upload.ts'
 import type { UploadTarget } from '../cli/options.ts'
+import { prepareSqlDelivery } from '../pipeline/local/sqlDeliveryFiles.ts'
+import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 
 const target: UploadTarget = {
   environment: 'production',
@@ -30,6 +32,13 @@ describe('upload helpers', () => {
     const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-'))
     const calls: string[] = []
     try {
+      for (const phase of ['first', 'second']) {
+        await prepareSqlDelivery(
+          join(root, phase),
+          recoveryContext(root, phase),
+          async () => {},
+        )
+      }
       await writeFile(
         join(root, 'pending-sql-delivery.json'),
         JSON.stringify({
@@ -59,6 +68,133 @@ describe('upload helpers', () => {
       await rm(root, { recursive: true, force: true })
     }
   })
+
+  for (const missingPhase of ['first', 'second']) {
+    test(`missing ${missingPhase} SQL plan blocks every replay and retains ownership`, async () => {
+      const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-missing-'))
+      const calls: string[] = []
+      try {
+        const pending = {
+          releaseId: 'retained-release',
+          directories: [join(root, 'first'), join(root, 'second')],
+        }
+        for (const phase of ['first', 'second']) {
+          if (phase === missingPhase) continue
+          await prepareSqlDelivery(
+            join(root, phase),
+            recoveryContext(root, phase),
+            async () => {},
+          )
+        }
+        await writeFile(
+          join(root, 'pending-sql-delivery.json'),
+          JSON.stringify(pending),
+        )
+
+        await expect(
+          resumePendingSqlDeliveryForUpload(
+            { remote: true, environment: 'preview' },
+            root,
+            {
+              resolveCacheDir: async () => root,
+              runSqlDeliveryCommand: async args => {
+                calls.push(String(args.options.plan))
+              },
+            },
+          ),
+        ).rejects.toThrow(join(root, missingPhase))
+        expect(calls).toEqual([])
+        expect(await readPendingSqlDelivery(root)).toEqual(pending)
+      } finally {
+        await rm(root, { recursive: true, force: true })
+      }
+    })
+  }
+
+  test('corrupt SQL in a later plan blocks every replay and retains ownership', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-corrupt-'))
+    const calls: string[] = []
+    try {
+      const pending = {
+        releaseId: 'retained-release',
+        directories: [join(root, 'first'), join(root, 'second')],
+      }
+      for (const phase of ['first', 'second']) {
+        await prepareSqlDelivery(
+          join(root, phase),
+          recoveryContext(root, phase),
+          async append => {
+            await append(
+              { bindingName: 'DB_META', databaseId: 'meta' },
+              Buffer.from('SELECT 1;'),
+            )
+          },
+        )
+      }
+      await writeFile(join(root, 'second', '0.sql'), 'SELECT 2;')
+      await writeFile(join(root, 'pending-sql-delivery.json'), JSON.stringify(pending))
+
+      await expect(
+        resumePendingSqlDeliveryForUpload(
+          { remote: true, environment: 'preview' },
+          root,
+          {
+            resolveCacheDir: async () => root,
+            runSqlDeliveryCommand: async args => {
+              calls.push(String(args.options.plan))
+            },
+          },
+        ),
+      ).rejects.toThrow('has changed')
+      expect(calls).toEqual([])
+      expect(await readPendingSqlDelivery(root)).toEqual(pending)
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  })
+
+  for (const mismatch of ['owner', 'cache', 'environment']) {
+    test(`a later SQL plan with the wrong ${mismatch} blocks every replay`, async () => {
+      const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-mismatch-'))
+      const calls: string[] = []
+      try {
+        const pending = {
+          releaseId: 'retained-release',
+          directories: [join(root, 'first'), join(root, 'second')],
+        }
+        for (const phase of ['first', 'second']) {
+          const context = recoveryContext(root, phase)
+          if (phase === 'second') {
+            if (mismatch === 'owner') context.releaseId = 'another-release'
+            if (mismatch === 'cache') context.cacheDir = join(root, 'another-cache')
+            if (mismatch === 'environment') context.environment = 'production'
+          }
+          await prepareSqlDelivery(join(root, phase), context, async () => {})
+        }
+        await writeFile(
+          join(root, 'pending-sql-delivery.json'),
+          JSON.stringify(pending),
+        )
+
+        await expect(
+          resumePendingSqlDeliveryForUpload(
+            { remote: true, environment: 'preview' },
+            root,
+            {
+              resolveCacheDir: async () => root,
+              runSqlDeliveryCommand: async args => {
+                calls.push(String(args.options.plan))
+              },
+            },
+          ),
+        ).rejects.toThrow()
+        expect(calls).toEqual([])
+        expect(await readPendingSqlDelivery(root)).toEqual(pending)
+      } finally {
+        await rm(root, { recursive: true, force: true })
+      }
+    })
+  }
 
   test('returns without recovery when the cache has no pending delivery', async () => {
     const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-empty-'))
@@ -225,6 +361,20 @@ describe('upload helpers', () => {
     })
   })
 })
+
+function recoveryContext(
+  root: string,
+  phase: string,
+): Parameters<typeof prepareSqlDelivery>[1] {
+  return {
+    cacheDir: root,
+    cachePreparedAt: 'fixed',
+    environment: 'preview',
+    inputs: {},
+    phase,
+    releaseId: 'retained-release',
+  }
+}
 
 function previewResult() {
   return {
