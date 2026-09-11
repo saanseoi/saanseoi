@@ -20,6 +20,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 import { prepareDivisionVersionInsertContext } from '@repo/core/pipeline/db/division'
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { eq, metaSchema } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
@@ -418,7 +419,7 @@ async function prepareNativeDivisionMetaSql(
   ])
 }
 
-function buildMetaInsertStatements(
+export function buildMetaInsertStatements(
   table: string,
   columns: readonly string[],
   rows: readonly Record<string, unknown>[],
@@ -431,7 +432,7 @@ function buildMetaInsertStatements(
         .map(
           column => `${quoteIdentifier(column)} = excluded.${quoteIdentifier(column)}`,
         )
-        .join(', ')}`
+        .join(', ')} WHERE ${currentRowChangedSqlText(table, columns, [])}`
     : ' ON CONFLICT DO NOTHING'
   return rows.map(
     row =>
