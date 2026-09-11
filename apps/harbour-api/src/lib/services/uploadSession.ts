@@ -54,7 +54,7 @@ export async function handleRegisterUploadRequest(
     sourceVersion: request.plan.sourceVersion,
     geometryStatus: request.plan.geometryStatus,
     theme: request.plan.theme,
-    type: request.plan.type,
+    resourceType: request.plan.type,
   })
 
   if (!registered.datasetId || !registered.releaseId) {
@@ -73,7 +73,7 @@ export async function handleRegisterUploadRequest(
     source: registered.plan.source,
     sourceVersion: registered.plan.sourceVersion,
     status: 'staged' as const,
-    type: registered.plan.type,
+    type: registered.plan.resourceType,
   }
 }
 

@@ -86,7 +86,7 @@ if (mode === '--apply')
           [6, 'subunits'],
         ] as const) {
           meta
-            .query(`INSERT INTO stats (id,type,releaseId,dimension,metric,metricUnit,value,groupBy,groupValue)
+            .query(`INSERT INTO stats (id,kind,releaseId,dimension,metric,metricUnit,value,groupBy,groupValue)
             VALUES (?, 'division', ?, 'units', 'count', 'rows', ?, 'unit_distribution', ?)`)
             .run(
               crypto.randomUUID(),
