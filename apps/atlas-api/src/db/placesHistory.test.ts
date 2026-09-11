@@ -443,7 +443,7 @@ test('historical Places resolve independently inherited locales across years and
         divisionSnapshotId: 'unused',
         snapshotId,
         resolveDivisions: false,
-        localeSelection: { mode: 'all', locales: [] },
+        localeSelection: { mode: 'all', locales: ['*'] },
         recordIds: ['place'],
         metaDb: createLocalHarbourDb(meta),
         historyDbsByBinding: {
