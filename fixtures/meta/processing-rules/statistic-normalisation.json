@@ -4,7 +4,7 @@
   "id": "normalise-censtatd-statistics",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Choose the published fields to use, read their values and reporting periods, then group them by place, period and reviewed categories.",
+  "summary": "Choose the published fields to use, read their values and reporting periods, then pack every reviewed category into one record per dataset, place and exact period.",
   "inputs": ["publisher-properties", "statistic-field-curations"],
   "outputs": [
     "statsRecords",
