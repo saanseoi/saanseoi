@@ -35,6 +35,10 @@ requires the exact retained publisher properties: the tool reads the parent Hous
 Market Area from that source profile and rejects missing or ambiguous evidence. It does
 not derive a parent from a Building Group code.
 
+Retained publisher profiles use version-only `validFromRelease` and `validToRelease`
+boundaries. The reader compares these with the selected release's `sourceVersion`,
+preserving complete annual, half-year and other publisher version identifiers.
+
 The tool accepts dimension-level canonical observations, including observations whose
 schema has gained empty packed-definition columns. It uses each source release's
 selected retained dictionary definitions; superseded local processing assertions are

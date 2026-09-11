@@ -1,5 +1,10 @@
 # Planning Department TPU and subunit areas
 
+Planning Cell and New Town source validity stores the source version in
+`validFromRelease` and `validToRelease`, for example `2001` and `2006`. Native source
+inserts and closures use the selected release's `sourceVersion`; full dataset release
+codes remain in release metadata.
+
 Shared native source SQL preserves unchanged open versions and closes only omitted or
 superseded assertions. Multiple incoming assertions for one publisher ID are compared
 together before any version is closed.
