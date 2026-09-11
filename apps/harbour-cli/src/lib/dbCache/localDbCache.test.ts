@@ -58,7 +58,7 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
 })
 
-test('includes the Places full-text index in the current cache profile', () => {
+test('omits the derived Places full-text index from the current cache profile', () => {
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'places')
   expect(tables).not.toContain('placesFts')
   expect(tables).toContain('placesDivision')

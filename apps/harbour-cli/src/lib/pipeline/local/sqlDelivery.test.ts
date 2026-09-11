@@ -470,9 +470,10 @@ test('generated Places and search recover in phase order against the current sch
         { timestamp: '2026-09-07T00:00:00Z' },
       )
       const dataSql = built.currentSql.join('\n')
-      const searchSql = buildPlaceSearchSyncSql([
-        { scopeId: 'hk:overture:places', snapshotId: 'snapshot' },
-      ]).join(';\n')
+      const searchSql =
+        buildPlaceSearchSyncSql([
+          { scopeId: 'hk:overture:places', snapshotId: 'snapshot' },
+        ]).join(';\n') + ';'
       baseline.exec(dataSql)
       baseline.exec(searchSql)
       const plan = await prepareSqlDelivery(f.directory, f.context, append =>

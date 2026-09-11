@@ -602,6 +602,13 @@ Every basemap and style reference reads the public key from
 https://saanseoi.hk/api-keys, then ask them to provide the resulting \`pk.\` key so you
 can configure the local environment. Never log or commit it.
 
+## Places discovery
+
+Places text search uses the latest published regional release. Search results include
+names and linked address, street and division text. If search returns HTTP 503 with
+\`fts_not_ready\`, retry after publication finalisation completes. Historical release
+selection belongs to the collection API.
+
 ## Existing-data renderer references
 
 ${geoJsonReferences.join('\n\n')}

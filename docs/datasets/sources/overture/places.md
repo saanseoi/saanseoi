@@ -19,12 +19,11 @@ for cache ownership, invalidation and the isolated benchmark.
 2025-10-22.0 in full, with a separate completion manifest for the bounded sample.
 
 The full remote mirror includes the Places current, history and source tables, including
-the current search indexes and Street–Address links. Decision analysis uses an exact
-Place-ID, address-fingerprint and source-release index over the retained ledger. Review
-appends and ledger replacement refresh that index while retaining first-match decision
-precedence. Historical decision lookups use a Place-ID index, then apply the same
-release and fingerprint filters within that Place's decisions; unrelated ledger rows are
-not scanned for each observation.
+Street–Address links. Decision analysis uses an exact Place-ID, address-fingerprint and
+source-release index over the retained ledger. Review appends and ledger replacement
+refresh that index while retaining first-match decision precedence. Historical decision
+lookups use a Place-ID index, then apply the same release and fingerprint filters within
+that Place's decisions; unrelated ledger rows are not scanned for each observation.
 
 The source table stores publisher attributes in `rawProperties`, with publisher
 identity, original `sourceGeometry`, private acquisition locators and version/release
@@ -56,8 +55,8 @@ and revalidated Address3D lookup contents. Missing collections are dependencies 
 adding units within a snapshot invalidates affected enrichment.
 
 Local Place and supplementary Address SQL use native delivery plans. The supplementary
-materialisation is verified after receipt-backed replay, and search is rebuilt after the
-local Place data is reconciled. Review decisions are not skipped by SQL recovery.
+materialisation is verified after receipt-backed replay. Published search finalises
+after the complete upload sequence. Review decisions are not skipped by SQL recovery.
 
 The dataset stores its supported outputs in the `datasets.resourceTypes` JSON array.
 Supplementary Address registration atomically appends `address` only when absent,
@@ -74,11 +73,19 @@ building. A bounded invocation-local cache includes the Address snapshot in each
 is discarded between runs. It retains no failed database reads and does not freeze
 Address data across retries.
 
-Search delivery recreates the derived `placesFts` virtual table from the current Place
-projection. It supports recovery after data delivery and before the local search replay;
-the retained search payload runs after the mirror's Place data has been reconciled.
+Places search uses `placeSearchFts` with stable region/domain/lineage scopes mapped to
+the latest published snapshots in `placeSearchScopes`. Finalisation compares names,
+brands, taxonomy and linked Address, unit, Street and Division text. Unchanged documents
+cause no FTS writes, including across snapshot promotion. Division names are ordered
+deterministically before aggregation.
 
-Places metadata, search and supplementary Address SQL are retained as receipt-backed
+Standalone publication finalises Place and supplementary Address indexes together.
+Deferred upload sequences finalise once during release-set reconciliation after every
+release is ready. Failed finalisation can be retried through reconciliation; search
+returns `503 fts_not_ready` until the latest snapshot mapping is ready. Planning mirrors
+omit these derived indexes.
+
+Places metadata and supplementary Address SQL are retained as receipt-backed
 [delivery phases](../../sql-delivery.md). Supplementary SQL capture excludes policy
 review and row verification. Search derives unit text from the linked `address3dUnitId`
 within the localised collection, using a formatting override when present.
