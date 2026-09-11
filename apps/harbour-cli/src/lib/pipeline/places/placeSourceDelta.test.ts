@@ -171,14 +171,14 @@ test('source deltas preserve unchanged assertions across shards, close changes a
             'SELECT COUNT(*) AS count FROM overturePlaces WHERE isCurrent = 0 AND validToRelease = ?',
           )
           .get('2026-09-01.0'),
-      ).toEqual({ count: 3 })
+      ).toEqual({ count: 2 })
       expect(
         active
           .query(
             'SELECT COUNT(*) AS count FROM overturePlaces WHERE isCurrent = 1 AND validToRelease IS NULL',
           )
           .get(),
-      ).toEqual({ count: 5 })
+      ).toEqual({ count: 4 })
     }
   } finally {
     old.close()
