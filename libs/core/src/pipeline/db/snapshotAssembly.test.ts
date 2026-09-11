@@ -93,12 +93,30 @@ test('fresh ingestion records all inputs, refreshes one draft run and replays it
     expect(run(local.sqlite).snapshotAssemblyId).toBe(final.snapshotAssemblyId)
     const sql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join('\n')
     target.sqlite.exec(sql)
+    const changes = target.sqlite.query('SELECT total_changes() AS count').get()
     target.sqlite.exec(sql)
+    expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(
+      changes,
+    )
     expect(run(target.sqlite).selectionSummaryJson).toBe(final.selectionSummaryJson)
     expect(target.sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
       target.sqlite.query('SELECT * FROM snapshotAssemblySources').all(),
     ).toHaveLength(3)
+    local.sqlite.exec(
+      "UPDATE snapshotAssemblyRuns SET anchorReleaseId=NULL,status='planning'",
+    )
+    const changedSql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join(
+      '\n',
+    )
+    target.sqlite.exec(changedSql)
+    expect(run(target.sqlite).anchorReleaseId).toBeNull()
+    expect(run(target.sqlite).status).toBe('planning')
+    const changedCount = target.sqlite.query('SELECT total_changes() AS count').get()
+    target.sqlite.exec(changedSql)
+    expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(
+      changedCount,
+    )
   } finally {
     local.sqlite.close()
     target.sqlite.close()

@@ -6193,6 +6193,8 @@ export async function insertIngestRun(
     .run()
 }
 
+const INGEST_RUN_HEARTBEAT_INTERVAL_MS = 60_000
+
 export async function ensureIngestRunStarted(
   db: HarbourReadableDb & HarbourWritableDb,
   releaseId: string,
@@ -6201,6 +6203,12 @@ export async function ensureIngestRunStarted(
   startedAt: string,
 ) {
   const now = toIsoTimestamp(startedAt)
+  const heartbeatCutoff = new Date(
+    Date.parse(now) - INGEST_RUN_HEARTBEAT_INTERVAL_MS,
+  ).toISOString()
+
+  // Keep retries atomic with terminal transitions. Identical running reports only
+  // refresh the heartbeat once a minute; progress and error recovery write at once.
   await db
     .insert(ingestRuns)
     .values({
@@ -6215,54 +6223,24 @@ export async function ensureIngestRunStarted(
       createdAt: now,
       updatedAt: now,
     })
-    .onConflictDoNothing({
+    .onConflictDoUpdate({
       target: [ingestRuns.releaseId, ingestRuns.phase],
-    })
-    .run()
-
-  const existingRun =
-    ((await db
-      .select({
-        runId: ingestRuns.runId,
-        status: ingestRuns.status,
-      })
-      .from(ingestRuns)
-      .where(and(eq(ingestRuns.releaseId, releaseId), eq(ingestRuns.phase, phase)))
-      .limit(1)
-      .get()) as { runId: string; status: string } | undefined) ?? null
-
-  if (!existingRun) {
-    return
-  }
-
-  if (existingRun.status === 'running') {
-    await db
-      .update(ingestRuns)
-      .set({
-        stats: normaliseOptionalJsonText(stats),
+      set: {
+        status: 'running',
+        stats: sql`excluded.stats`,
         error: null,
+        startedAt: sql`CASE WHEN ${ingestRuns.status} = 'error' THEN excluded.startedAt ELSE ${ingestRuns.startedAt} END`,
+        finishedAt: sql`CASE WHEN ${ingestRuns.status} = 'error' THEN NULL ELSE ${ingestRuns.finishedAt} END`,
         updatedAt: now,
-      })
-      .where(eq(ingestRuns.runId, existingRun.runId))
-      .run()
-    return
-  }
-
-  if (existingRun.status !== 'error') {
-    return
-  }
-
-  await db
-    .update(ingestRuns)
-    .set({
-      status: 'running',
-      stats: normaliseOptionalJsonText(stats),
-      error: null,
-      startedAt,
-      finishedAt: null,
-      updatedAt: now,
+      },
+      setWhere: sql`${ingestRuns.status} = 'error' OR (
+        ${ingestRuns.status} = 'running' AND (
+          ${ingestRuns.stats} IS NOT excluded.stats
+          OR ${ingestRuns.error} IS NOT NULL
+          OR ${ingestRuns.updatedAt} <= ${heartbeatCutoff}
+        )
+      )`,
     })
-    .where(eq(ingestRuns.runId, existingRun.runId))
     .run()
 }
 

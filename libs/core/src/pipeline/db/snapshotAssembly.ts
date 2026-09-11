@@ -9,6 +9,7 @@ import {
 } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import type { ResourceType } from '../../types'
+import { currentRowChangedSqlText } from '../services/publication/currentWrites'
 
 const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
 const {
@@ -257,7 +258,7 @@ function insertSql(table: string, row: Record<string, unknown>, updateKey?: stri
     ? `ON CONFLICT (${quote(updateKey)}) DO UPDATE SET ${columns
         .filter(key => key !== updateKey)
         .map(key => `${quote(key)} = excluded.${quote(key)}`)
-        .join(', ')}`
+        .join(', ')} WHERE ${currentRowChangedSqlText(table, columns, [])}`
     : 'ON CONFLICT DO NOTHING'
   return `INSERT INTO ${quote(table)} (${columns.map(quote).join(', ')}) VALUES (${columns.map(key => literal(row[key])).join(', ')}) ${conflict};`
 }
