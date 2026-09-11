@@ -50,6 +50,10 @@ Replay SQL streams from mirror-table iterators during plan preparation. Bounded
 statement packing preserves row order and oversized-geometry append semantics. Retained
 plans reuse payloads without reading the replay tables again.
 
+Geometry metadata replay leaves identical rows untouched. Changes to release
+assignments, processing actions, statistics and other replayed fields still apply in
+order under the [SQL delivery contract](../../sql-delivery.md).
+
 Replay selects immutable canonical content through the snapshot's upsert journal keys.
 Delete journals determine removed membership. Source closures made by the release use
 exact record and version keys, including their timestamps, without retransmitting

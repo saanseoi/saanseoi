@@ -33,6 +33,20 @@ A sealed plan is immutable. Recovery reads retained payloads without calculating
 replacement SQL from a partially updated mirror. Changed checksums, target configuration
 or mirror generation stop recovery.
 
+Ingest phases that do not explicitly reopen completed work start with one atomic
+conditional upsert. A fresh phase inserts its running row once. An unchanged running
+report updates its heartbeat only when at least 60 seconds have elapsed since the last
+update; changed progress statistics or a cleared error update immediately. Restarting an
+errored phase reuses its run, resets its start time and clears its error and finish
+time. Completed phases retain their state. Explicitly reopening phases keep their own
+restart behaviour.
+
+Geometry and native source metadata replay compare every proposed update value with the
+stored value using null-safe predicates. Identical release assignments, processing
+actions, statistics and other replayed metadata rows do not update. Changed lifecycle,
+provenance and statistics values still apply in statement order, including intermediate
+states required by the workflow.
+
 ## Resolved Address preparation
 
 All Address sources upload from the same machine and share its acknowledged mirror. The

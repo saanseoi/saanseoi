@@ -34,6 +34,10 @@ records removals as delete journals. Source assertions closed by the release rec
 updates matching exact versions and closure timestamps without retransmitting older
 source geometry.
 
+Geometry metadata replay skips updates to identical rows while retaining ordered changes
+to lifecycle, provenance and statistics fields under the
+[SQL delivery contract](../../sql-delivery.md).
+
 Parented area revisions follow the
 [geometry membership contract](../../families/divisions.md#publication-readiness):
 validated identical parent members inherit without payload or child journal writes;
