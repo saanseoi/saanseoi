@@ -1,0 +1,9 @@
+{
+  "versionHash": "sha256:7f14b652f7d91a7bc72e59e045658b9a80a5abc0d6bc4c4a44ae02d3750f8d85",
+  "code": "rs-street-merge-v1",
+  "resourceType": "street",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Street release composition version. No source processing operations are selected by this descriptor.",
+  "mergeRules": []
+}
