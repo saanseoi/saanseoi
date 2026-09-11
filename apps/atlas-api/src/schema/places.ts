@@ -157,24 +157,11 @@ const PlaceSourceSchema = z
     description: openApiText('openapi_places_sources_description'),
   })
 
-const PlaceSourceArraySchema = z
-  .array(PlaceSourceSchema)
+const PlaceSourcesSchema = z
+  .object({ overture: z.array(PlaceSourceSchema) })
   .nullable()
   .openapi({
     description: openApiText('openapi_places_sources_description'),
-    examples: [
-      [
-        {
-          property: '',
-          dataset: 'meta',
-          license: 'CDLA-Permissive-2.0',
-          record_id: '110864367186379',
-          update_time: '2025-09-15T07:00:00.000Z',
-          confidence: 0.6096840190952489,
-        },
-      ],
-      null,
-    ],
   }) as z.ZodType<unknown>
 
 const PlaceTaxonomyHierarchySchema = z
@@ -430,7 +417,7 @@ const PlaceSchema = z
     confidence: z.union([ConfidenceScoreSchema, z.null()]).openapi({
       description: openApiText('openapi_places_confidence_description'),
     }),
-    sources: PlaceSourceArraySchema,
+    sources: PlaceSourcesSchema,
     firstSeenMonth: z.string().openapi({
       description: openApiText('openapi_places_first_seen_month_description'),
     }),
@@ -851,7 +838,7 @@ const PlaceCollectionAttributesSchema = z
         description: openApiText('openapi_places_address_3d_id_description'),
         examples: [null],
       }),
-    sources: PlaceSourceArraySchema.optional().openapi({
+    sources: PlaceSourcesSchema.optional().openapi({
       description: openApiText('openapi_places_sources_description'),
       examples: [
         [

@@ -34,6 +34,24 @@ function hasPath(schema: Schema, path: string[]): boolean {
 }
 
 describe('API field provenance contract paths', () => {
+  test('every exposed Places attribute and localisation field has provenance', () => {
+    const schema = z.toJSONSchema(PlacesListResponseSchema) as Schema
+    const attributes = schema.properties?.data?.items?.properties?.attributes
+    const locale = attributes?.properties?.i18n?.additionalProperties as Schema
+    const fields = listApiFieldFixtures()
+      .filter(f => f.apiVersion === 'api-places-v0.1')
+      .flatMap(f => f.fields.map(field => field.apiField))
+    const covered = (path: string) =>
+      fields.some(field => field === path || field.startsWith(path + '.'))
+    expect(attributes?.properties).toBeDefined()
+    for (const field of Object.keys(attributes?.properties ?? {})) {
+      expect(covered(`attributes.${field}`), field).toBe(true)
+    }
+    for (const field of Object.keys(locale.properties ?? {})) {
+      expect(covered(`attributes.i18n.*.${field}`), field).toBe(true)
+    }
+  })
+
   test('every documented resource field exists in the public schema', () => {
     const statistics = z.toJSONSchema(StatisticDetailResponseSchema) as Schema
     const statisticField = statistics.properties?.included?.items?.anyOf?.find(
@@ -59,7 +77,8 @@ describe('API field provenance contract paths', () => {
     }
     for (const fixture of listApiFieldFixtures()) {
       for (const field of fixture.fields) {
-        const [resource, ...path] = field.apiField.split('.')
+        const resource = field.resourceType
+        const path = field.apiField.split('.')
         const schema = resource ? schemas[resource] : undefined
         expect(schema, field.apiField).toBeDefined()
         expect(schema && hasPath(schema, path), field.apiField).toBe(true)

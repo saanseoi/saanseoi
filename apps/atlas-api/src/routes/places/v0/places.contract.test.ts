@@ -297,7 +297,7 @@ function seedCurrent(sqlite: Database) {
         json([]),
         json(['https://example.com']),
         0.9,
-        json([{ dataset: 'overture', record_id: place.id }]),
+        json({ overture: [{ dataset: 'overture', record_id: place.id }] }),
         '2026-08',
         '2026-08',
         PUBLISHED_AT,
@@ -808,6 +808,7 @@ describe('Places collection through the Worker route', () => {
       expect(attributes).toMatchObject({
         snapshotId: PLACE_SNAPSHOT,
         releaseId: 'release-overture-2026-08-19',
+        sources: { overture: [expect.objectContaining({ dataset: 'overture' })] },
         geometry: { type: 'Point', coordinates: [114.155, 22.285] },
       })
       expect(body.meta.locales).toEqual(['*'])

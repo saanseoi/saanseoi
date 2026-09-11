@@ -38,7 +38,7 @@ let {
   sourceVersion,
 }: Props = $props()
 let expandedNodeStates = $state<Record<string, boolean>>({
-  'SourceRecord.rawProperties': true,
+  'SourceRecord.properties': true,
 })
 let expandAllToken = $state(0)
 let retainedSchema = $state<OpenApiSchema | null>(null)
@@ -156,7 +156,7 @@ function sourceFieldSchema(
 let recordSchema = $derived.by((): OpenApiSchema | null => {
   if (!sourceSchema && !retainedSchema && !measures.length) return null
 
-  const rawProperties: OpenApiSchema = sourceSchema
+  const properties: OpenApiSchema = sourceSchema
     ? {
         description: m.source_record_schema_raw_properties_description(),
         properties: Object.fromEntries(
@@ -190,12 +190,12 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
           type: 'object',
         }
 
-  if (!sourceSchema && rawProperties.properties) {
+  if (!sourceSchema && properties.properties) {
     const measuresByField = new Map(
       measures.map(measure => [measure.sourceField, measure]),
     )
-    rawProperties.properties = Object.fromEntries(
-      Object.entries(rawProperties.properties).map(([field, schema]) => {
+    properties.properties = Object.fromEntries(
+      Object.entries(properties.properties).map(([field, schema]) => {
         const measure = measuresByField.get(field)
         const description = sourceRecordFieldDescription(sourceReleaseCode, field)
         if (description) return [field, { ...schema, description }]
@@ -241,11 +241,11 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
             },
           }
         : {}),
-      rawProperties: {
-        ...rawProperties,
+      properties: {
+        ...properties,
         nullable: true,
-        description: Object.keys(rawProperties.properties ?? {}).length
-          ? rawProperties.description
+        description: Object.keys(properties.properties ?? {}).length
+          ? properties.description
           : m.source_record_schema_unavailable(),
       },
       geometry: {
@@ -255,8 +255,8 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     },
     required:
       family === 'streets'
-        ? ['sourceRecordId', 'resourceType', 'variant', 'rawProperties']
-        : ['sourceRecordId', 'rawProperties'],
+        ? ['sourceRecordId', 'resourceType', 'variant', 'properties']
+        : ['sourceRecordId', 'properties'],
     type: 'object',
   }
 })
@@ -272,7 +272,7 @@ function setExpandedNodeState(path: string, expanded: boolean) {
   </p>
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {m.source_record_schema_not_one_to_one_before()} <code>rawProperties</code>
+    {m.source_record_schema_not_one_to_one_before()} <code>properties</code>
     {family === 'streets' ? m.source_record_schema_not_one_to_one_after() : m.source_record_schema_native_envelope_description()}
   </p>
 
