@@ -233,10 +233,12 @@ describe('api field fixtures', () => {
 
   test('covers materialised C&SD reference-period cohorts with exact signatures', () => {
     const population = 'population-households-district'
+    const subdividedUnits = 'subdivided-units-district'
     const cohorts: Array<[string, string[], string[]?]> = [
       ...['2016', '2017', '2018', '2019', '2020', '2025'].map(
         year => [year, [population]] as [string, string[]],
       ),
+      ['2016', [population, subdividedUnits]],
       [
         '2021',
         [
@@ -244,6 +246,16 @@ describe('api field fixtures', () => {
           'major-housing-estates',
           'new-towns',
           population,
+        ],
+      ],
+      [
+        '2021',
+        [
+          'housing-market-areas-building-groups',
+          'major-housing-estates',
+          'new-towns',
+          population,
+          subdividedUnits,
         ],
       ],
       ['2022', [population], ['land-area-population-density-district', population]],
@@ -274,6 +286,20 @@ describe('api field fixtures', () => {
           resolveApiFieldFixture({
             ...lookup,
             sourceSchemas: { ...sourceSchemas, 'unreviewed-source': '1.0' },
+          }),
+        ).toBeNull()
+        expect(
+          resolveApiFieldFixture({
+            ...lookup,
+            sourceSchemas: Object.fromEntries(
+              Object.keys(sourceSchemas).map(code => [code, '2.0']),
+            ),
+          }),
+        ).toBeNull()
+        expect(
+          resolveApiFieldFixture({
+            ...lookup,
+            lineageSnapshotVersions: ['unrelated-branch'],
           }),
         ).toBeNull()
       }
