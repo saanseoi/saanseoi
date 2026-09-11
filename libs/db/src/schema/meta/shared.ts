@@ -39,7 +39,6 @@ export const stats = sqliteTable(
   'stats',
   {
     id: text('id').primaryKey(),
-    kind: text('kind').notNull(),
     releaseId: text('releaseId').references(() => metaReleases.id),
     apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
       onDelete: 'cascade',
@@ -56,7 +55,6 @@ export const stats = sqliteTable(
     index('stats_releaseId_idx').on(table.releaseId),
     index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
-      table.kind,
       table.dimension,
       table.metric,
       table.groupBy,
@@ -64,7 +62,7 @@ export const stats = sqliteTable(
     ),
     check(
       'stats_owner_chk',
-      sql`${table.releaseId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
+      sql`(${table.releaseId} IS NOT NULL) != (${table.apiReleaseSetId} IS NOT NULL)`,
     ),
   ],
 )
