@@ -112,6 +112,16 @@ export async function validateResolvedPlaces(
       )
     if (
       db
+        .query(`SELECT 1 FROM placesI18n l JOIN places p ON p.snapshotId=l.snapshotId AND p.id=l.placeId
+      WHERE p.snapshotId=? AND p.address2dId IS NOT NULL
+      AND (l.searchDependencyText IS NULL OR json_extract(l.searchDependencyText,'$.addressSnapshotId') IS NULL) LIMIT 1`)
+        .get(scopeId)
+    )
+      throw new Error(
+        'Linked Places are missing retained exact search dependency evidence.',
+      )
+    if (
+      db
         .query(`SELECT 1 FROM placesI18n p JOIN expectedPlaceLocales e ON p.placeId=e.placeId AND p.locale=e.locale WHERE p.snapshotId=? AND (
       COALESCE(json_extract(p.searchDependencyText,'$.addressText'),'') IS NOT e.addressText OR
       COALESCE(json_extract(p.searchDependencyText,'$.divisionText'),'') IS NOT e.divisionText OR

@@ -44,6 +44,7 @@ import {
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import {
   buildSupplementaryAddressRows,
+  ADDRESS_DIVISION_FIELDS,
   SUPPLEMENTARY_ADDRESS_VARIANT,
 } from './supplementaryPlaceAddressRows.ts'
 import { createHash } from '@repo/core/pipeline/utils'
@@ -601,6 +602,54 @@ async function prepareSupplementaryAddressesLocked(
     sourceVersion: input.plan.sourceVersion,
     datasetId,
   })
+  if (input.dependencyDb && addresses.length) {
+    const selectedDivision = await db
+      .select({ scopeId: metaSchema.metaSnapshots.snapshotLineageId })
+      .from(metaSchema.metaSnapshots)
+      .where(eq(metaSchema.metaSnapshots.id, input.snapshots.divisionSnapshotId))
+      .get()
+    if (!selectedDivision?.scopeId)
+      throw new Error(
+        'Supplementary Addresses require a recorded Division serving scope.',
+      )
+    const servingDivision = await currentDb
+      .select({ scopeId: currentSchema.divisionPublicationState.scopeId })
+      .from(currentSchema.divisionPublicationState)
+      .where(
+        and(
+          eq(currentSchema.divisionPublicationState.scopeId, selectedDivision.scopeId),
+          isNotNull(currentSchema.divisionPublicationState.preparedAt),
+        ),
+      )
+      .get()
+    if (!servingDivision)
+      throw new Error(
+        'Supplementary Addresses require a complete current Division scope.',
+      )
+    const selectedIds = [
+      ...new Set(
+        addresses.flatMap(row =>
+          ADDRESS_DIVISION_FIELDS.flatMap(field => row.current[field] ?? []),
+        ),
+      ),
+    ]
+    const present = await currentDb
+      .select({ id: currentSchema.divisions.id })
+      .from(currentSchema.divisions)
+      .where(
+        and(
+          eq(currentSchema.divisions.snapshotId, servingDivision.scopeId),
+          sql`${currentSchema.divisions.id} in (select value from json_each(${JSON.stringify(selectedIds)}))`,
+        ),
+      )
+      .all()
+    if (new Set(present.map(row => row.id)).size !== selectedIds.length)
+      throw new Error(
+        'Supplementary Address derivation contains Division IDs absent from its current serving scope; review the reference before delivery.',
+      )
+    for (const row of addresses)
+      row.current.divisionSnapshotId = servingDivision.scopeId
+  }
   const materialisedAddressIds = new Set(addresses.map(row => row.current.id))
   const activeAddressIds = new Set<string>()
   for (const target of input.context.historyTargets) {

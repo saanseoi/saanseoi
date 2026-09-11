@@ -13,6 +13,7 @@ import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFi
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import type { NetStatement } from '../local/netSqlitePlanTypes.ts'
 import { captureResolvedPlaceDelivery } from './resolvedPlaceDelivery.ts'
+import { importPlaceSqlBatches } from './processLocalPlaceSqlUploadImport.ts'
 import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 import type {
   BuildPlaceSqlInput,
@@ -169,9 +170,9 @@ async function setup() {
         })()
       }
     }
-    return { ...output, batches, execute, path }
+    return { ...output, batches, execute, path, input }
   }
-  return { root, clients, current, history, source, meta, row, run }
+  return { root, clients, current, history, source, meta, row, run, context }
 }
 
 test('full Places compiler delivers only final changes across current, history and source', () =>
@@ -226,4 +227,39 @@ test('equal counts with wrong Places identity fail exact membership validation',
     await expect(
       validateResolvedPlaces(f.current, initial.path, 'scope', 1),
     ).rejects.toThrow('exact membership')
+  }))
+
+test('native Places integration retries the retained final plan without generating against changed input', () =>
+  fixture(async f => {
+    const prepared = await f.run(1, [f.row])
+    const delivery = {
+      directory: join(f.root, 'native-delivery'),
+      context: f.context,
+      releaseId: 'revision-1',
+      inputs: { snapshotId: 'revision-1', inputDigest: 'sealed-fixture' },
+    }
+    const apply = () =>
+      importPlaceSqlBatches(
+        {} as Parameters<typeof importPlaceSqlBatches>[0],
+        prepared.input,
+        prepared.path,
+        1,
+        'revision-1',
+        { isLocal: true },
+        undefined,
+        delivery,
+      )
+    await apply()
+    const data = f.current.query('SELECT * FROM places').all()
+    const receipts = f.current
+      .query('SELECT * FROM harbourSqlDeliveryReceipts ORDER BY planId,batchIndex')
+      .all()
+    await Bun.write(prepared.path, 'not valid JSON')
+    await apply()
+    expect(f.current.query('SELECT * FROM places').all()).toEqual(data)
+    expect(
+      f.current
+        .query('SELECT * FROM harbourSqlDeliveryReceipts ORDER BY planId,batchIndex')
+        .all(),
+    ).toEqual(receipts)
   }))

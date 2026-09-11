@@ -10,7 +10,9 @@ import {
 } from '../../../../../atlas-api/src/db/places.ts'
 import { PlaceDependencyView } from './placeDependencyView.ts'
 import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
-import { readFileSync } from 'node:fs'
+import { readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const init = (family: 'meta' | 'history' | 'current') => {
@@ -36,6 +38,10 @@ test('exact historical Place dependencies replay independent locale shards and s
   const after = init('history')
   const current = init('current')
   let view: PlaceDependencyView | undefined
+  const staged = join(
+    tmpdir(),
+    `place-dependency-validation-${crypto.randomUUID()}.jsonl`,
+  )
   try {
     for (const [id, kind, parent] of [
       ['a0', 'address', null],
@@ -263,6 +269,10 @@ test('exact historical Place dependencies replay independent locale shards and s
       releaseId: 'release',
       addressSnapshotId: 'a1',
       address2dId: 'building',
+      addressDependencyHash: dependencies.addressDependencyHash,
+      address3dId: 'collection',
+      address3dUnitId: 'chosen',
+      address3dMembership: 'established',
       lng: 114,
       lat: 22,
       firstSeenMonth: '2025-01',
@@ -290,6 +300,38 @@ test('exact historical Place dependencies replay independent locale shards and s
     ).toEqual([
       { divisionId: 'country', level: null, locale: 'en', name: 'Historic country' },
     ])
+    await Bun.write(
+      staged,
+      JSON.stringify({
+        place: { id: 'shop', i18n: [{ locale: 'en' }] },
+        projection: { cells: [] },
+        addressSnapshotId: 'a1',
+        address2dId: 'building',
+        address3dId: 'collection',
+        address3dUnitId: 'chosen',
+        divisionIds: ['country'],
+        ...dependencies,
+      }),
+    )
+    await validateResolvedPlaces(current, staged, 'place-scope', 1)
+    current.exec(
+      "UPDATE placesI18n SET searchDependencyText=json_set(searchDependencyText,'$.addressText','Wrong current text')",
+    )
+    await expect(
+      validateResolvedPlaces(current, staged, 'place-scope', 1),
+    ).rejects.toThrow('exact search dependency text')
+    current
+      .query('UPDATE placesI18n SET searchDependencyText=?')
+      .run(JSON.stringify(dependencies.searchDependencies.en))
+    current.exec(
+      "UPDATE placesDivision SET definition=json_set(definition,'$.level',9)",
+    )
+    await expect(
+      validateResolvedPlaces(current, staged, 'place-scope', 1),
+    ).rejects.toThrow('exact Division definitions')
+    current
+      .query('UPDATE placesDivision SET definition=?')
+      .run(JSON.stringify(dependencies.divisionDefinitions.country))
     insert(current, 'placeSearchScopes', { scopeId: 'search', snapshotId: 'p' })
     const rebuild = readFileSync(
       join(
@@ -320,6 +362,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       'Missing exact Place Address unit',
     )
   } finally {
+    rmSync(staged, { force: true })
     await view?.close()
     for (const db of [meta, before, after, current]) db.close()
   }
