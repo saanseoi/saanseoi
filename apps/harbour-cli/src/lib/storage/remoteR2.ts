@@ -15,6 +15,7 @@ const sessions = new Map<
   string,
   Promise<{
     retain(key: string, bytes: Uint8Array, metadata: R2Metadata): Promise<void>
+    retainFile(key: string, path: string, metadata: R2Metadata): Promise<void>
     dispose(): Promise<void>
   }>
 >()
@@ -53,6 +54,9 @@ async function openBucket(environment: 'preview' | 'production') {
     await client.ready
     let sequence = 0
     return {
+      retainFile(key: string, path: string, metadata: R2Metadata) {
+        return client.retain(key, path, metadata, { sourceFile: true })
+      },
       async retain(key: string, bytes: Uint8Array, metadata: R2Metadata) {
         // Transfer payloads by file, avoiding JSON/base64 expansion across IPC.
         const path = join(directory, `${++sequence}.object`)
@@ -97,4 +101,15 @@ export async function retainRemoteR2Object(
   const session = sessions.get(environment) ?? openBucket(environment)
   sessions.set(environment, session)
   await (await session).retain(key, bytes, metadata)
+}
+
+export async function retainRemoteR2File(
+  environment: 'preview' | 'production',
+  key: string,
+  path: string,
+  metadata: R2Metadata,
+) {
+  const session = sessions.get(environment) ?? openBucket(environment)
+  sessions.set(environment, session)
+  await (await session).retainFile(key, path, metadata)
 }

@@ -403,14 +403,10 @@ test('production R2 retains objects but registers IDs only in local metadata', a
       putObject: async () => {
         localWrites++
       },
-      retainRemoteObject: async (
-        environment: string,
-        key: string,
-        body: Uint8Array,
-      ) => {
+      retainRemoteFile: async (environment: string, key: string, path: string) => {
         expect(environment).toBe('production')
         expect(key).toBe(upload.metadata.assetKey)
-        expect(body).toEqual(bytes)
+        expect(new Uint8Array(await readFile(path))).toEqual(bytes)
         remoteWrites++
       },
     }

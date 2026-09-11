@@ -2,6 +2,8 @@
 import { createWriteStream, readFileSync, readdirSync, rmSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { getPlatformProxy } from 'wrangler'
+import { retainSourceFileInBucket } from './remoteR2SourceFile.ts'
+import type { SourceAssetStore } from '../../../../../libs/core/src/lib/services/sourceAssetTransfer.ts'
 import {
   retainObjectInBucket,
   type RemoteR2Bucket,
@@ -12,13 +14,23 @@ const configPath = process.argv[2] ?? ''
 const requestDirectory = process.argv[3] ?? ''
 if (!configPath || !requestDirectory)
   throw new Error('R2 worker requires a config and request directory.')
-type Request = { id: number; key: string; path: string; metadata: R2Metadata }
+type Request = {
+  id: number
+  key: string
+  path: string
+  metadata: R2Metadata
+  sourceFile?: boolean
+}
 const output = createWriteStream('', { fd: 3 })
 const send = (value: object) => {
   output.write(`${JSON.stringify(value)}\n`)
 }
 let proxy:
-  | Awaited<ReturnType<typeof getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket }>>>
+  | Awaited<
+      ReturnType<
+        typeof getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket & SourceAssetStore }>
+      >
+    >
   | undefined
 let chain = Promise.resolve()
 let closing = false
@@ -38,7 +50,7 @@ async function close() {
 process.once('SIGTERM', () => void close())
 process.once('SIGINT', () => void close())
 
-function consumeRequests(bucket: RemoteR2Bucket) {
+function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
   for (const fileName of readdirSync(requestDirectory).sort()) {
     if (!fileName.endsWith('.json')) continue
     const requestPath = `${requestDirectory}/${fileName}`
@@ -56,14 +68,24 @@ function consumeRequests(bucket: RemoteR2Bucket) {
     }
     chain = chain.then(async () => {
       try {
-        const bytes = await readFile(request.path)
-        await retainObjectInBucket(
-          bucket,
-          request.key,
-          bytes,
-          request.metadata,
-          operation => send({ type: 'progress', id: request.id, operation }),
-        )
+        const progress = (operation: string) =>
+          send({ type: 'progress', id: request.id, operation })
+        if (request.sourceFile)
+          await retainSourceFileInBucket(
+            bucket,
+            request.key,
+            request.path,
+            request.metadata,
+            progress,
+          )
+        else
+          await retainObjectInBucket(
+            bucket,
+            request.key,
+            await readFile(request.path),
+            request.metadata,
+            progress,
+          )
         send({ type: 'done', id: request.id })
       } catch (error) {
         send({
@@ -76,7 +98,7 @@ function consumeRequests(bucket: RemoteR2Bucket) {
   }
 }
 try {
-  proxy = await getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket }>({
+  proxy = await getPlatformProxy<{ R2_ASSETS: RemoteR2Bucket & SourceAssetStore }>({
     configPath,
     persist: false,
     remoteBindings: true,

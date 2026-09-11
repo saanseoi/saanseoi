@@ -110,6 +110,7 @@ export function startR2Process(
     const item = reply.id === undefined ? undefined : pending.get(reply.id)
     if (!item) return
     if (reply.type === 'progress') {
+      item.timer.refresh()
       item.operation = reply.operation ?? 'working'
       options.onProgress?.(`R2 ${item.operation}: ${item.key}`)
       return
@@ -125,7 +126,12 @@ export function startR2Process(
   let queue: Promise<unknown> = Promise.resolve()
   return {
     ready,
-    retain(key: string, path: string, metadata: R2Metadata) {
+    retain(
+      key: string,
+      path: string,
+      metadata: R2Metadata,
+      requestOptions: { sourceFile?: boolean } = {},
+    ) {
       const result = queue.then(async () => {
         await ready
         if (stopped) throw new Error('R2 adapter is stopped.')
@@ -148,7 +154,16 @@ export function startR2Process(
           const requestPath = join(requestDirectory, `${id}.json`)
           const temporaryPath = `${requestPath}.tmp`
           try {
-            writeFileSync(temporaryPath, JSON.stringify({ id, key, path, metadata }))
+            writeFileSync(
+              temporaryPath,
+              JSON.stringify({
+                id,
+                key,
+                path,
+                metadata,
+                ...(requestOptions.sourceFile ? { sourceFile: true } : {}),
+              }),
+            )
             renameSync(temporaryPath, requestPath)
           } catch (error) {
             fail(

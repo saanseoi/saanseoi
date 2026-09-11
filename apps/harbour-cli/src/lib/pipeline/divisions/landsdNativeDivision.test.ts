@@ -83,7 +83,7 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
         },
       } as never,
       message,
-      createLocalHarbourDb(meta),
+      createLocalHarbourDb(meta) as never,
       new Map(),
       new Map(),
       'snapshot',

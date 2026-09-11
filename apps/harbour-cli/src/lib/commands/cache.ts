@@ -1,13 +1,12 @@
-import { inArray, metaSchema } from '@repo/db'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
-  withLocalMetaDb,
   readRemoteCachedCompletedReleaseCodes,
   rebuildRemoteDbCache,
   seedRemoteDbCacheAfterReset,
   updateDbCacheProgress,
   type CacheTableProfile,
 } from '../dbCache/localDbCache.ts'
+import { readLocalCompletedReleaseCodes } from '../dbCache/localDbCacheReads.ts'
 import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
@@ -139,15 +138,7 @@ export async function runCacheCompletedReleasesCommand(
     ? await readRemoteCachedCompletedReleaseCodes(target, {
         allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
       })
-    : await withLocalMetaDb(async db =>
-        (
-          await db
-            .select({ code: metaSchema.metaReleases.code })
-            .from(metaSchema.metaReleases)
-            .where(inArray(metaSchema.metaReleases.status, ['published', 'superseded']))
-            .all()
-        ).map(row => row.code),
-      )
+    : await readLocalCompletedReleaseCodes()
   if (releaseCodes.length > 0) {
     process.stdout.write(`${releaseCodes.join('\n')}\n`)
   }
