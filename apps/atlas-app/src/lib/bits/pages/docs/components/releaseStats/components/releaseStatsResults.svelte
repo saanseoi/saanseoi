@@ -31,14 +31,20 @@ let {
 } = $props()
 </script>
 <div class="grid gap-6">
-  {#if presentation.overview && !presentation.statisticsProfile}
+  {#if presentation.overview}
     <Overview overview={presentation.overview} {labels} />
   {/if}
   {#if presentation.placeProfile}
     <PlacesProfile profile={presentation.placeProfile} />
   {/if}
   {#if presentation.statisticsProfile}
-    <StatisticsProfile profile={presentation.statisticsProfile} />
+    <StatisticsProfile profile={presentation.statisticsProfile}>
+      {#snippet structural()}
+        {#each presentation.recordDistributions.filter(item => item.groupBy === 'structural') as distribution}
+          <TypeDistribution {distribution} {labels} />
+        {/each}
+      {/snippet}
+    </StatisticsProfile>
   {/if}
   {#if presentation.districtDistribution}
     <District districtDistribution={presentation.districtDistribution} {labels} />
@@ -64,7 +70,7 @@ let {
   {#if presentation.measures}
     <Measures measures={presentation.measures} />
   {/if}
-  {#each presentation.recordDistributions as distribution}
+  {#each presentation.recordDistributions.filter(item => !presentation.statisticsProfile || item.groupBy !== 'structural') as distribution}
     <TypeDistribution {distribution} {labels} />
   {/each}
   {#if presentation.processing}

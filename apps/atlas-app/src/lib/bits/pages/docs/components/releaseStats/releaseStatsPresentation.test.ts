@@ -86,6 +86,27 @@ describe('createReleaseStatsPresentation', () => {
     )
     expect(model.headings.some(heading => heading.id === 'stats-locale')).toBe(false)
   })
+  test('treats legacy locale coverage without provenance rows as source-provided', () => {
+    const model = present([
+      {
+        dimension: 'locale_count',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 10,
+      },
+      {
+        dimension: 'locale_coverage',
+        metric: 'completeness',
+        groupBy: 'locale',
+        groupValue: 'en',
+        value: 100,
+      },
+    ])
+    expect(model.localeCoverage?.[0]?.segments).toEqual([
+      { label: 'provided', tone: 'provided', value: 100 },
+    ])
+  })
   test('shows all statistical records as added only for a first-release baseline', () => {
     const input = {
       resourceType: 'divisionStatistic',
