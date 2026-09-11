@@ -369,6 +369,15 @@ export async function seedRemoteDbCacheAfterReset(
         {
           cacheVersion: DB_CACHE_MANIFEST_VERSION,
           files,
+          bindings: Object.fromEntries(
+            targets.map(record => [
+              record.bindingName,
+              {
+                databaseId: record.databaseId,
+                databaseName: record.databaseName,
+              },
+            ]),
+          ),
           preparedAt: new Date().toISOString(),
           target: targetName,
         } satisfies DbCacheManifest,

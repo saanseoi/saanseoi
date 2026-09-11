@@ -49,7 +49,6 @@ import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.
 import { createLocalControlClient } from '../local/localControlClient.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
-import {} from '../../dbCache/localDbCache.ts'
 import type {
   CompressedPlanningDivisionGeometry,
   HkgovPlandDivisionUploadPlan,
@@ -103,7 +102,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   await runPlandProgressPhase(progress, 'Prepare', 'workspace', () =>
     bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
   )
-  const shardYear = previewPlan.sourceVersion.slice(0, 4)
   const context = await runPlandProgressPhase(progress, 'Prepare', 'database', () =>
     resolveCurrentWriteContext(
       target,

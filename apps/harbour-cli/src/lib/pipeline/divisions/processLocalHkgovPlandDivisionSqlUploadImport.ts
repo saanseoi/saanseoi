@@ -31,7 +31,6 @@ import type {
   PlandImportTargets,
   PlandSqlArtefactManifest,
 } from './processLocalHkgovPlandDivisionSqlUploadSql.ts'
-import type { HkgovPlandDivisionUploadPlan } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 
 export function resolvePlandImportOptions(
   target: UploadTarget,

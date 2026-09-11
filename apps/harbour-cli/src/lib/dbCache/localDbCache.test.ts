@@ -16,6 +16,9 @@ import {
   countRemoteCacheWorkUnits,
   groupCacheExportTables,
 } from './localDbCacheMirror.ts'
+import { withDeliveryLock } from '../pipeline/local/sqlDeliveryFiles.ts'
+import { registerPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+import { invalidateRemoteDbCache } from './localDbCacheReplay.ts'
 
 test('groups regular exports while keeping binary geometry schema-only', () => {
   expect(
@@ -169,6 +172,65 @@ afterEach(() => {
   for (const cacheDir of tempCacheDirs.splice(0)) {
     rmSync(cacheDir, { force: true, recursive: true })
   }
+})
+
+test('publication metadata respects pending ownership and the shared writer lock', async () => {
+  mkdirSync(cacheRoot, { recursive: true })
+  const cacheDir = mkdtempSync(resolve(cacheRoot, 'metadata-ownership-test-'))
+  tempCacheDirs.push(cacheDir)
+  const sqlite = new Database(resolve(cacheDir, 'DB_META.sqlite'))
+  sqlite.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+  sqlite.exec(
+    "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES('snapshot','snapshot','place','2025','draft')",
+  )
+  sqlite.close()
+  const publishResult: PublishDatasetResult = {
+    metadataDelta: {
+      releases: [],
+      snapshots: [
+        {
+          id: 'snapshot',
+          status: 'published',
+          publishedAt: 'now',
+          validFrom: 'now',
+          validTo: null,
+        },
+      ],
+    },
+    phase: null,
+    releaseCode: 'release',
+    releaseId: 'owner',
+    status: 'current',
+  }
+  const lock = resolve(cacheDir, 'sql-delivery-lock')
+  await withDeliveryLock(lock, async () => {
+    await registerPendingSqlDelivery(cacheDir, 'owner', resolve(cacheDir, 'plan'))
+    await expect(
+      applyPublishMetadataDeltaToRemoteCache('preview', cacheDir, publishResult),
+    ).rejects.toThrow()
+  })
+  await expect(
+    applyPublishMetadataDeltaToRemoteCache('preview', cacheDir, {
+      ...publishResult,
+      releaseId: 'other',
+    }),
+  ).rejects.toThrow('unfinished SQL delivery')
+  const before = new Database(resolve(cacheDir, 'DB_META.sqlite'), { readonly: true })
+  expect(before.query('SELECT status FROM snapshots').get()).toEqual({
+    status: 'draft',
+  })
+  before.close()
+  await applyPublishMetadataDeltaToRemoteCache('preview', cacheDir, publishResult)
+  const after = new Database(resolve(cacheDir, 'DB_META.sqlite'), { readonly: true })
+  expect(after.query('SELECT status FROM snapshots').get()).toEqual({
+    status: 'published',
+  })
+  after.close()
+  await Bun.write(resolve(cacheDir, 'manifest.json'), 'retained')
+  await expect(invalidateRemoteDbCache('preview', cacheDir)).rejects.toThrow(
+    'unfinished SQL delivery',
+  )
+  expect(await Bun.file(resolve(cacheDir, 'manifest.json')).text()).toBe('retained')
 })
 
 test('inserts an API release set that was created during deferred publication', async () => {

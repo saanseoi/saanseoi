@@ -22,12 +22,17 @@ export async function requireFullAcknowledgedMirror(
     manifest.cacheScopeKey !== undefined ||
     manifest.cacheTableProfile !== undefined ||
     !manifest.preparedAt ||
-    targets.some(
-      record =>
-        !manifest.files[record.bindingName] ||
-        resolve(manifest.files[record.bindingName]!) !==
-          resolve(cacheDir, `${record.bindingName}.sqlite`),
-    ) ||
+    Object.keys(manifest.files).length !== targets.length ||
+    Object.keys(manifest.bindings ?? {}).length !== targets.length ||
+    targets.some(record => {
+      const path = manifest.files[record.bindingName]
+      return (
+        manifest.bindings?.[record.bindingName]?.databaseId !== record.databaseId ||
+        manifest.bindings?.[record.bindingName]?.databaseName !== record.databaseName ||
+        !path ||
+        resolve(path) !== resolve(cacheDir, `${record.bindingName}.sqlite`)
+      )
+    }) ||
     !(await doCachedFilesExist(manifest.files, targets))
   ) {
     throw new Error(
@@ -67,6 +72,7 @@ export async function resolveCurrentWriteContext(
     )
     const context = await open()
     context.state.preparedAt = manifest.preparedAt
+    context.state.bindings = manifest.bindings
     return context
   })
 }

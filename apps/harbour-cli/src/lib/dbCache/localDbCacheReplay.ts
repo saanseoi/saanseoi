@@ -13,18 +13,47 @@ import {
 import { exportRemoteDatabase, importDatabaseDumpsToSqlite } from './localDbCacheIo.ts'
 import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts'
 import type { RemoteCacheReplayJournal } from './localDbCacheTypes.ts'
-import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+import {
+  assertSqlDeliveryPlanningAllowed,
+  readPendingSqlDelivery,
+} from '../pipeline/local/sqlDeliveryPending.ts'
+import { withDeliveryLock } from '../pipeline/local/sqlDeliveryFiles.ts'
+import { readManifest } from './localDbCacheManifest.ts'
 
 export async function refreshRemoteMetaCache(
   target: 'preview' | 'production',
   cacheDir: string,
+  releaseId?: string,
 ) {
+  return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), () =>
+    refreshRemoteMetaCacheLocked(target, cacheDir, releaseId),
+  )
+}
+
+/** Caller holds the mirror-wide delivery lock, including recovery before local replay. */
+export async function refreshRemoteMetaCacheLocked(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  releaseId?: string,
+) {
+  assertRemoteCacheDirectory(target, cacheDir)
+  await assertSqlDeliveryPlanningAllowed(cacheDir, releaseId)
   const targetRecord = (await resolveD1Targets(target)).find(
     record => record.bindingName === 'DB_META',
   )
 
   if (!targetRecord) {
     throw new Error(`Could not resolve DB_META for ${target}.`)
+  }
+  const manifest = await readManifest(join(cacheDir, 'manifest.json'))
+  if (
+    manifest?.target !== target ||
+    manifest.bindings?.DB_META?.databaseId !== targetRecord.databaseId ||
+    manifest.bindings?.DB_META?.databaseName !== targetRecord.databaseName
+  ) {
+    throw new Error(
+      'Metadata refresh target differs from the acknowledged mirror binding.',
+    )
   }
 
   await mkdir(CACHE_ROOT, { recursive: true })
@@ -53,6 +82,17 @@ export async function refreshRemoteMetaCache(
 
 /** Applies the publish response to the local mirror without another D1 export. */
 export async function applyPublishMetadataDeltaToRemoteCache(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  publishResult: PublishDatasetResult,
+) {
+  return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), async () => {
+    await assertSqlDeliveryPlanningAllowed(cacheDir, publishResult.releaseId)
+    return applyPublishMetadataDeltaLocked(target, cacheDir, publishResult)
+  })
+}
+
+async function applyPublishMetadataDeltaLocked(
   target: 'preview' | 'production',
   cacheDir: string,
   publishResult: PublishDatasetResult,
@@ -196,6 +236,19 @@ export async function invalidateRemoteDbCache(
   cacheDir: string,
   reason?: string,
 ) {
+  return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), async () => {
+    await assertSqlDeliveryPlanningAllowed(cacheDir)
+    return invalidateRemoteDbCacheLocked(target, cacheDir, reason)
+  })
+}
+
+/** Caller holds the mirror-wide delivery lock. Pending plans are always retained. */
+export async function invalidateRemoteDbCacheLocked(
+  target: 'preview' | 'production',
+  cacheDir: string,
+  reason?: string,
+) {
+  await assertSqlDeliveryPlanningAllowed(cacheDir)
   if (!cacheDir.startsWith(resolveRemoteCacheDir(target))) {
     throw new Error(`Refusing to invalidate cache outside the ${target} cache root.`)
   }
