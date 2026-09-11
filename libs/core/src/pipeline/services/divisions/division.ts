@@ -1,3 +1,13 @@
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  guardSnapshotPublicationWrites,
+  assertPublishedSnapshotMaterialised,
+} from '../publication/execute'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '../publication/sql'
 import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
 import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
 import { geographicDivisionClassification, emptyDivisionHierarchies } from '@repo/db'
@@ -307,7 +317,7 @@ export async function processDivisionDataset(
   const debugEnabled = resolveDebugEnabled(process.env.DEBUG)
   const timings = createOperationTimer(debugEnabled)
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-  const currentRepoDb = currentDb as unknown as HarbourReadableDb & HarbourWritableDb
+  let currentRepoDb = currentDb as unknown as HarbourReadableDb & HarbourWritableDb
   const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
   const file = await timings.measure('loadParquetBufferMs', () =>
     createAsyncBufferFromR2(bucket, message.rawObjectKey),
@@ -326,6 +336,15 @@ export async function processDivisionDataset(
     'prepareVersionInsertContextMs',
     () => prepareDivisionVersionInsertContext(metaRepoDb, message, environment),
   )
+  const publication: PublicationPreparation = {
+    table: 'divisionPublicationState',
+    scopeId: versionInsertContext.snapshotLineageId,
+    snapshotId: versionInsertContext.snapshotId,
+    publicationToken: versionInsertContext.releaseId,
+    timestamp: new Date().toISOString(),
+  }
+  await beginSnapshotPublication(currentDb, publication)
+  currentRepoDb = guardSnapshotPublicationWrites(currentRepoDb, publication)
   const divisionCodeAssignments = await timings.measure(
     'loadDivisionCodeAssignmentsMs',
     () => loadDivisionCodeAssignments(metaRepoDb),
@@ -375,13 +394,13 @@ export async function processDivisionDataset(
       0,
     )
 
-    if (activeSnapshotRowCount === 0) {
-      throw new Error(
-        `Parent division snapshot ${parentSnapshotId} is not materialised in current storage; refusing to branch from another snapshot.`,
-      )
-    }
+    await assertPublishedSnapshotMaterialised(
+      currentRepoDb,
+      'divisionPublicationState',
+      parentSnapshotId,
+    )
 
-    if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
+    if (activeSnapshotRowCount !== currentRows.size) {
       const traceState = await getDivisionCurrentSnapshotTraceState(
         currentRepoDb,
         parentSnapshotId,
@@ -411,10 +430,7 @@ export async function processDivisionDataset(
       )
     }
 
-    if (
-      expectedI18nRowCount > 0 &&
-      activeSnapshotI18nRowCount !== expectedI18nRowCount
-    ) {
+    if (activeSnapshotI18nRowCount !== expectedI18nRowCount) {
       throw new Error(
         `Parent division snapshot ${parentSnapshotId} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
       )
@@ -991,6 +1007,18 @@ export async function processDivisionDataset(
     resourceType: message.resourceType,
   })
 
+  await completeSnapshotPublication(
+    currentDb,
+    publication,
+    [
+      buildPublicationRowCountSql('divisions', publication.snapshotId, processedRows),
+      buildPublicationRowCountSql(
+        'divisionsI18n',
+        publication.snapshotId,
+        localisedRows,
+      ),
+    ].join(' AND '),
+  )
   return {
     deletedRows,
     insertedVersions,
