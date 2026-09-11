@@ -295,7 +295,14 @@ function buildUpsertStatements(
     for (const column of chunkedColumns) {
       const value = values[column]
       if (value === null || value === undefined) continue
-      const inlineValues = { ...values, [column]: null, isCurrent: false }
+      const inlineValues = {
+        ...values,
+        // Source geometry is non-null in the C&SD district-area table. Start
+        // chunked values with the matching empty SQL type, then append before
+        // allowing the version to become current.
+        [column]: binaryValue(value) ? new Uint8Array() : '',
+        isCurrent: false,
+      }
       const baseStatement = buildUpsertStatement(
         table,
         columns,
