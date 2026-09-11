@@ -405,6 +405,10 @@ export function validateResolvedAddressProjection(
     OR a.unitCount <= 0 OR json_array_length(a.units) <> a.unitCount
     OR EXISTS (SELECT 1 FROM address3dI18n i WHERE i.snapshotId=a.snapshotId AND i.address3dId=a.id AND
       ((SELECT count(*) FROM json_each(i.units)) <> a.unitCount OR EXISTS
+        (SELECT 1 FROM json_each(i.units) translation WHERE
+          TRIM(COALESCE(json_extract(translation.value,'$.formattedAddressPart'),
+            COALESCE(json_extract(translation.value,'$.floorExpression'),'') ||
+            COALESCE(json_extract(translation.value,'$.unitExpression'),''))) = '') OR EXISTS
         (SELECT 1 FROM json_each(a.units) unit WHERE NOT EXISTS
           (SELECT 1 FROM json_each(i.units) translation WHERE translation.key=json_extract(unit.value,'$.id')))))) LIMIT 1`)
     .get(scopeId)

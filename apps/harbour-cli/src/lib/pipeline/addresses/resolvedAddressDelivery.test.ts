@@ -395,6 +395,16 @@ test('combined Address planning seals only final changes and rejects incomplete 
       }),
     ).rejects.toThrow('reviewed canonical membership')
     expect(appended).toBe(0)
+    current.exec(`INSERT INTO address3d(snapshotId,id,address2dId,contentHash,unitCount,units,unresolvedSectionIds,sources)
+      VALUES('scope','inventory','a','hash',1,'[{"id":"unit"}]','[]','[]');
+      INSERT INTO address3dI18n(snapshotId,address3dId,locale,units) VALUES('scope','inventory','en','{"unit":{}}');`)
+    expect(() => validateResolvedAddressProjection(current, 'scope', 1)).toThrow(
+      'incomplete Address3D',
+    )
+    current.exec(
+      `UPDATE address3dI18n SET units='{"unit":{"floorExpression":"1/F","unitExpression":"A"}}'`,
+    )
+    expect(() => validateResolvedAddressProjection(current, 'scope', 1)).not.toThrow()
     current.exec("UPDATE address2dI18n SET formattedAddress='   '")
     expect(() => validateResolvedAddressProjection(current, 'scope', 1)).toThrow(
       'without localised values',
