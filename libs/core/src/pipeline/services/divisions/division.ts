@@ -664,7 +664,7 @@ export async function processDivisionDataset(
             validToRelease: null,
             isCurrent: true,
             sourceLocator: overtureSourcePayload(row).sourceLocator,
-            rawProperties: overtureSourcePayload(row).rawProperties,
+            properties: overtureSourcePayload(row).properties,
             sourceGeometry: overtureSourcePayload(row).sourceGeometry,
           })
         } else if (currentSource) {

@@ -34,10 +34,10 @@ planning mirror. If an interrupted owning release needs to be re-entered directl
 prerequisite lookup recognises only sealed plans owned by the pending release; it does
 not clear ownership or allow another release to bypass unfinished work.
 
-Source areas and boundaries retain publisher attributes in `rawProperties`, original
-native geometry in `sourceGeometry` and attribution in `rawProperties.sources`. Source
-columns track identity and release validity; classification and land/territorial flags
-are projected only into canonical tables.
+Source areas and boundaries retain publisher attributes in `properties`, original native
+geometry in `sourceGeometry` and attribution in `properties.sources`. Source columns
+track identity and release validity; classification and land/territorial flags are
+projected only into canonical tables.
 
 Geometry snapshots retain effective source rules, lookup selections and assembly runs.
 Replay includes recipe parents under the
@@ -140,7 +140,7 @@ Hong Kong clipping artefact.
 ## Source and canonical mapping
 
 Source rows preserve the Overture `id` as `sourceRecordId`, publisher `sources`,
-`version`, `subtype`, `class`, and land/territorial flags. `rawProperties` retains the
+`version`, `subtype`, `class`, and land/territorial flags. `properties` retains the
 decoded publisher attributes, including the native ordered `division_ids`/`division_id`
 relationships and dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`,
 and `perspectives`). Publisher geometry is retained once in `sourceGeometry`, and
@@ -152,18 +152,18 @@ evidence for retained Division and Place IDs and reports unmatched IDs explicitl
 
 Boundary canonical rows normalise `division_ids[0]` and `[1]` to left/right division
 IDs; area rows normalise `division_id`. Source-only `version`, `subtype`, and `class`
-remain in `rawProperties`; canonical rows expose enriched Overture source provenance,
+remain in `properties`; canonical rows expose enriched Overture source provenance,
 `type` (`land`, `maritime`, or `mixed`), bbox, geometry, and the source land/territorial
 flags. Boundary rows require exactly two distinct division IDs and null `perspectives`.
 
 | Source field                                        | Area treatment                                      | Boundary treatment                                    |
 | --------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
 | `id`, `bbox`, `geometry`                            | retain exactly                                      | retain exactly                                        |
-| `version`, `subtype`, `class`                       | retain in `rawProperties`                           | retain in `rawProperties`                             |
+| `version`, `subtype`, `class`                       | retain in `properties`                              | retain in `properties`                                |
 | `sources`                                           | retain and enrich as `{ overture: ... }`            | retain and enrich as `{ overture: ... }`              |
 | `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`          | normalise from `is_land`, `is_territorial`            |
 | `division_id`, `division_ids`                       | retain only in source evidence; derive canonical ID | retain only in source evidence; derive left/right IDs |
-| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties`   | drop after preflight; preserve in `rawProperties`     |
+| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `properties`      | drop after preflight; preserve in `properties`        |
 | `names`                                             | drop as redundant with the referenced division      | —                                                     |
 | `is_disputed`, `perspectives`                       | —                                                   | drop; `perspectives` must be null in preflight        |
 
@@ -179,19 +179,19 @@ actions.
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
-source rows retain Overture version and source-only attributes inside `rawProperties`,
-with original attribution in `rawProperties.sources`, native geometry in
-`sourceGeometry` and release tracking alongside them. The publisher version is
-accessible as `rawProperties.version`. Canonical rows expose normalised left/right or
-division references, `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and
+source rows retain Overture version and source-only attributes inside `properties`, with
+original attribution in `properties.sources`, native geometry in `sourceGeometry` and
+release tracking alongside them. The publisher version is accessible as
+`properties.version`. Canonical rows expose normalised left/right or division
+references, `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and
 land/territorial flags. `mixed` is derived when both source flags are true, including
 the known upstream Overture records where the source class alone would otherwise suggest
 `land` or `maritime`.
 
 Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
 include nullable integer `admin_level`. It is accepted by preflight and retained in
-`rawProperties`; canonical geometry rows do not expose it because the referenced
-division is the canonical owner of that administrative-level attribute.
+`properties`; canonical geometry rows do not expose it because the referenced division
+is the canonical owner of that administrative-level attribute.
 
 When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
 `overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the
@@ -252,7 +252,7 @@ planning domains are published separately and are never mixed into this release.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 
@@ -284,10 +284,10 @@ Publisher attributes are retained with camelCase keys, including `divisionId`,
 provenance. Source geometry stays in its envelope; public bounding boxes are derived
 from processed geometry. Canonical attribution is wrapped under `overture`.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 ## Publication readiness
 

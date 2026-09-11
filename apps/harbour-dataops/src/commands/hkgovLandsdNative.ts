@@ -48,7 +48,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   const features = await readLandsdPlaceNameArchive(bytes)
   const rows = features.map(feature => ({
     placeNames: feature.placeNames,
-    rawProperties: feature.properties,
+    properties: feature.properties,
     sourceGeometry: feature.sourceGeometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
     sources: [provenance(input, 'GEO_PLACE_NAME')],
@@ -175,7 +175,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   }
   requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
-    rawProperties: record.rawProperties,
+    properties: record.properties,
     sourceGeometry: record.sourceGeometry,
     sourceRecordId: record.sourceRecordId,
     sources: [provenance(input, archive.layerName)],

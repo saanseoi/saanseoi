@@ -17,7 +17,7 @@ const source = {
   publisherSource: {
     sourceRecordId: 'source-theme-village',
     versionHash: 'source-hash',
-    rawProperties: {
+    properties: {
       enBuildingName: 'NGONG PING THEME VILLAGE',
       zhHantBuildingName: '昂平市集',
       hkgovCsuId: '0810113017T20060614',
@@ -180,7 +180,7 @@ test.each(['sql', 'direct'] as const)(
       db.exec(`CREATE TABLE hkgovAlsAddresses2d (
       sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
       validToRelease TEXT, isCurrent INTEGER, sourceLocator TEXT,
-      rawProperties TEXT, sourceGeometry TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
+      properties TEXT, sourceGeometry TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
       PRIMARY KEY (sourceRecordId, versionHash)
     )`)
       if (mode === 'sql') {
@@ -205,12 +205,10 @@ test.each(['sql', 'direct'] as const)(
           { ...message, artefactKey: 'normalised-address' } as DatasetProcessingMessage,
         )
       }
-      const saved = db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get() as {
-        rawProperties: string
+      const saved = db.query('SELECT properties FROM hkgovAlsAddresses2d').get() as {
+        properties: string
       }
-      expect(JSON.parse(saved.rawProperties)).toEqual(
-        source.publisherSource.rawProperties,
-      )
+      expect(JSON.parse(saved.properties)).toEqual(source.publisherSource.properties)
     } finally {
       db.close()
     }

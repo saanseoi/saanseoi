@@ -15,7 +15,7 @@ test('LandsD resolutions select exact native versions with bounded queries, inde
       ]),
     )
     const insert = sqlite.prepare(
-      'INSERT INTO hkgovLandsdPlaceNames (sourceRecordId,versionHash,releaseId,validFromRelease,validToRelease,isCurrent,sourceGeometry,placeNames,rawProperties) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovLandsdPlaceNames (sourceRecordId,versionHash,releaseId,validFromRelease,validToRelease,isCurrent,sourceGeometry,placeNames,properties) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     )
     const rows = Array.from({ length: 150 }, (_, index) => ({
       id: `canonical-${index}`,

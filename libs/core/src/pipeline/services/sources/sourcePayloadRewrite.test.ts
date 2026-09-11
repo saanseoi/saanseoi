@@ -9,7 +9,7 @@ test('retained Overture payloads can be relocated without losing upstream values
   expect(() =>
     rewriteOvertureSourcePayload({
       sourceRecordId: 'fixture',
-      rawProperties: { fixture: { code: 'overture-hk-prc-country-anchor' } },
+      properties: { fixture: { code: 'overture-hk-prc-country-anchor' } },
       sources: null,
       sourceGeometry: null,
     }),
@@ -23,13 +23,13 @@ test('retained Overture payloads can be relocated without losing upstream values
   }
   const result = rewriteOvertureSourcePayload({
     sourceRecordId: input.id,
-    rawProperties: input,
+    properties: input,
     sourceGeometry: null,
     sources: input.sources,
   })!
   expect({
     id: input.id,
-    ...result.rawProperties,
+    ...result.properties,
     geometry: result.sourceGeometry,
   }).toEqual(input)
   expect(
@@ -42,7 +42,7 @@ test('retained Overture payloads can be relocated without losing upstream values
   expect(
     rewriteOvertureSourcePayload({
       sourceRecordId: input.id,
-      rawProperties: input,
+      properties: input,
       sourceGeometry: null,
       sources: { overture: input.sources },
     }),
@@ -50,7 +50,7 @@ test('retained Overture payloads can be relocated without losing upstream values
   expect(() =>
     rewriteOvertureSourcePayload({
       sourceRecordId: 'different',
-      rawProperties: input,
+      properties: input,
       sourceGeometry: null,
       sources: input.sources,
     }),
@@ -58,7 +58,7 @@ test('retained Overture payloads can be relocated without losing upstream values
   expect(() =>
     rewriteOvertureSourcePayload({
       sourceRecordId: input.id,
-      rawProperties: input,
+      properties: input,
       sourceGeometry: null,
       sources: [{ dataset: 'different' }],
     }),
@@ -71,8 +71,8 @@ test('rewrite command is read-only and its SQL preserves identity, history and S
   const output = join(directory, 'review.sql')
   const db = new Database(databasePath)
   try {
-    db.exec(`CREATE TABLE overturePlaces (sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT, sources TEXT, sourceGeometry TEXT, validFromRelease TEXT, validToRelease TEXT, isCurrent INTEGER);
-      CREATE TABLE streetEvidence (rawProperties TEXT);
+    db.exec(`CREATE TABLE overturePlaces (sourceRecordId TEXT, versionHash TEXT, properties TEXT, sources TEXT, sourceGeometry TEXT, validFromRelease TEXT, validToRelease TEXT, isCurrent INTEGER);
+      CREATE TABLE streetEvidence (properties TEXT);
       INSERT INTO streetEvidence VALUES ('{"id":"keep","geometry":"keep"}');`)
     const publisher = {
       id: "publisher's-id",
@@ -118,18 +118,18 @@ test('rewrite command is read-only and its SQL preserves identity, history and S
     db.exec(sql)
     expect(
       (
-        db.query('SELECT rawProperties FROM overturePlaces').get() as {
-          rawProperties: string
+        db.query('SELECT properties FROM overturePlaces').get() as {
+          properties: string
         }
-      ).rawProperties,
-    ).toBe(before.rawProperties as string)
+      ).properties,
+    ).toBe(before.properties as string)
     db.query('UPDATE overturePlaces SET sources = ?').run(before.sources as string)
     db.exec(sql)
     db.exec(sql)
     const after = db.query('SELECT * FROM overturePlaces').get() as typeof before
     expect(after).toEqual({
       ...before,
-      rawProperties: JSON.stringify({
+      properties: JSON.stringify({
         sources: publisher.sources,
         names: publisher.names,
         version: 2,
@@ -138,7 +138,7 @@ test('rewrite command is read-only and its SQL preserves identity, history and S
       sourceGeometry: JSON.stringify(publisher.geometry),
     })
     expect(db.query('SELECT * FROM streetEvidence').get()).toEqual({
-      rawProperties: '{"id":"keep","geometry":"keep"}',
+      properties: '{"id":"keep","geometry":"keep"}',
     })
     const report = JSON.parse(await readFile(`${output}.json`, 'utf8'))
     expect(report.rewrittenRows).toBe(1)

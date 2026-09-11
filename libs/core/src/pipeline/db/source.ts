@@ -41,7 +41,7 @@ export type CurrentSourceRecord = {
 }
 
 export type CurrentHkgovAlsAddress2dRecord = CurrentSourceRecord & {
-  rawProperties: Record<string, unknown> | null
+  properties: Record<string, unknown> | null
 }
 
 function excluded(column: string) {
@@ -126,7 +126,7 @@ export async function getCurrentSourceHkgovAlsAddress2dRecords(
     rows.push(
       ...((await db
         .select({
-          rawProperties: sourceSchema.sourceHkgovAlsAddresses2d.rawProperties,
+          properties: sourceSchema.sourceHkgovAlsAddresses2d.properties,
           sourcePayloadHash: sourceSchema.sourceHkgovAlsAddresses2d.versionHash,
           sourceRecordId: sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId,
         })

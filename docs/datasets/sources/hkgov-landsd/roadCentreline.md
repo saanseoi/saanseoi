@@ -1,6 +1,6 @@
 # LandsD Road Centreline
 
-Source rows retain native `rawProperties` and `sourceGeometry` with source identity,
+Source rows retain native `properties` and `sourceGeometry` with source identity,
 release history and provenance. Extracted names, street codes and classifications are
 used during canonical processing without parallel columns in source storage.
 
@@ -15,13 +15,13 @@ labelling, not legal road boundaries.
 
 SaanSeoi retains every publisher segment as native evidence: its `objectId`,
 `streetCode`, optional `streetType`, paired `nameEn`/`nameZhHant` labels, complete
-native `rawProperties`, and EPSG:2326 `sourceGeometry`. EPSG:2326 is recorded once in
-the archived release manifest rather than repeated on every source row. Publisher labels
+native `properties`, and EPSG:2326 `sourceGeometry`. EPSG:2326 is recorded once in the
+archived release manifest rather than repeated on every source row. Publisher labels
 remain paired on the source record; they are not expanded into source locale rows.
 
 Street codes accept publisher text or integer values. Native integer `STREETCODE` values
 are stored as decimal text; text codes retain leading zeroes. The original value and
-type remain in `rawProperties`. Missing or invalid codes stop ingestion.
+type remain in `properties`. Missing or invalid codes stop ingestion.
 
 Each segment is matched to the selected published LandsD street snapshot using an exact
 normalised English-name match. Where it is needed to disambiguate identical English

@@ -78,7 +78,7 @@ async function writeHkgovSourceRows(
   currentSourceRows: Map<
     string,
     {
-      rawProperties: Record<string, unknown> | null
+      properties: Record<string, unknown> | null
       sourcePayloadHash: string | null
     }
   >,
@@ -120,7 +120,7 @@ async function writeHkgovSourceRows(
       sourceLocator: sourceLocatorFromReferences(
         readAlsPublisherSource(row.raw)!.sources,
       ),
-      rawProperties: readAlsPublisherSource(row.raw)!.rawProperties,
+      properties: readAlsPublisherSource(row.raw)!.properties,
       sourceGeometry: readAlsPublisherSource(row.raw)!.sourceGeometry,
     } satisfies typeof sourceSchema.sourceHkgovAlsAddresses2d.$inferInsert
 

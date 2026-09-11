@@ -74,10 +74,10 @@ The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisi
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
 projected fields. The source record includes the publisher's original attribute object
-in `rawProperties` and its native geometry in `sourceGeometry`; normalised delivery
-fields and the redundant GeoJSON feature wrapper are not persisted. Publisher
-identifiers also remain only in `rawProperties`: indexed source columns are reserved for
-record identity and release history, not canonical division lookup.
+in `properties` and its native geometry in `sourceGeometry`; normalised delivery fields
+and the redundant GeoJSON feature wrapper are not persisted. Publisher identifiers also
+remain only in `properties`: indexed source columns are reserved for record identity and
+release history, not canonical division lookup.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
@@ -127,7 +127,7 @@ than mutating the earlier publication.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 
@@ -159,10 +159,10 @@ non-empty, unique ID for every district in the release. Canonical area IDs remai
 independent. Retained properties use names such as `objectId`, `csdiAdminAreaId`,
 `areaCode` and `shapeLength`; provenance retains the original publisher field paths.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 ## Publication readiness
 

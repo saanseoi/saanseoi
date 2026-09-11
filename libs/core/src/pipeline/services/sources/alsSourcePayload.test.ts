@@ -17,7 +17,7 @@ test('publisher envelope preserves complete evidence', () => {
     sourceRecordId: 'source',
     versionHash: 'hash',
     sources: [],
-    rawProperties: {},
+    properties: {},
     sourceGeometry: null,
   }
   expect(readAlsPublisherSource({ publisherSource: JSON.stringify(source) })).toEqual(

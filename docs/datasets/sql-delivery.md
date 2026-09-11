@@ -7,12 +7,16 @@ counts, and canonical imports also retain their SQL artefact count. Family valid
 check these outputs before native or remote replay starts. Missing or invalid counts
 stop delivery without executing the retained SQL.
 
-Address 2D, grouped Address3D, Divisions, Statistics and Places SQL delivery use the
-local D1 mirror as their planning context. Each delivery phase seals every payload
-before sending writes.
+Address2D, Address3D, Divisions, Statistics and Places SQL delivery use local database
+state for preparation. Each delivery phase seals every payload before sending writes.
+The Address adapter prepares its full result in isolated SQLite copies and compiles the
+final differences from the acknowledged mirror. Other families retain their own
+preparation adapters; using the delivery engine alone does not give them the Address
+adapter's write economy.
 
 Plans live below `.local/harbour-sql/releases/{target}/{releaseCode}/`, in
-`sql-delivery-address`, `sql-delivery-address3d` or `sql-delivery-places`. Each contains
+`sql-delivery-address` or `sql-delivery-places`. The Address plan includes both
+Address2D and Address3D together with their source and provenance writes. Each contains
 the files below. Division, geometry, Statistics and Places auxiliary phases live under
 `.local/harbour-sql/deliveries/{target}/release-{encodedReleaseId}/{phase}/`.
 
@@ -20,7 +24,7 @@ Each plan contains:
 
 - `plan.json`: release, environment, mirror generation, frozen inputs, ordered targets,
   payload byte lengths and SHA-256 checksums;
-- numbered `.sql` files, or `.json` files containing bound Address3D statements;
+- numbered `.sql` files or `.json` files containing resolved bound statements;
 - `progress.json`: separate remote/local checkpoints, upload filenames, bookmarks and
   timing counters and available D1 row usage;
 - `lock.sqlite`: an advisory lock that SQLite releases when the process exits.
@@ -28,6 +32,50 @@ Each plan contains:
 A sealed plan is immutable. Recovery reads retained payloads without calculating
 replacement SQL from a partially updated mirror. Changed checksums, target configuration
 or mirror generation stop recovery.
+
+## Resolved Address preparation
+
+All Address sources upload from the same machine and share its acknowledged mirror. The
+Address adapter copies every required data shard locally, runs Address2D and Address3D
+preparation against those copies, resolves omissions and source provenance, and
+validates the complete current projection before sealing any delivery. It compares only
+its owned tables, leaving other families outside the Address plan. Its geographical
+prerequisite rows must already exist; the Address plan does not hydrate Division tables.
+
+The shared SQLite compiler computes keyed inserts, updates and deletes. Identical rows
+produce no mutations, repeated intermediate writes collapse to their final result, and
+changes confined to ignored timestamp columns preserve the baseline values. Component
+history and unchanged source resolutions inherit from earlier snapshots and shards.
+Staging tables, local journals and resolution scans stay local. The sealed report
+records before/after counts, inserts, updates, deletes, unchanged rows, statement counts
+and payload bytes by table and target.
+
+Each bound statement is limited to 100 parameters and 100,000 SQL bytes; logical rows
+use a conservative 2,000,000-byte budget. Address batches reserve one statement and
+payload space for their publication guard, allowing at most 63 data statements and
+`4 MiB - 4 KiB` of retained payload. Current Address3D collection changes are kept
+within one transaction and rejected if they exceed that budget. Foreign-key ordering,
+integrity checks and exact primary keys bound the generated work. D1 execution-time,
+database-size and index-write costs still apply.
+
+Current Address tables use stable lineage keys. Delivery claims
+`addressPublicationState` with a publication token before applying current mutations,
+guards every current batch and records completion only after projection validation.
+Publication then marks the prepared scope current. The maintenance window lasts until
+the selected scope and its publication are ready. Historical Address API reads replay
+immutable component journals instead of requiring current snapshot copies.
+
+The plan retains `address-membership.json` as a checksummed output. Acknowledgement
+installs it at `<mirror>/address-membership/<scopeId>/<snapshotId>.json`. The next
+release verifies that file and the mirror's actual Address2D and Address3D membership
+before planning omissions. Review reports and approvals are described in the
+[ALS source runbook](./sources/hkgov-dpo/address.md). Missing predecessor evidence or an
+incremental branch from an older snapshot requires a chronological local rebuild.
+
+The compiler also supports final-row delivery from an empty baseline. The complete D1
+bootstrap workflow exports the prepared schema and persistent contents for all shards.
+The complete Places adapter and automatic historical Address hydration for Places
+preparation/search are unfinished; they are not implied by this generic interface.
 
 ## Local SQL execution
 
@@ -82,11 +130,11 @@ Local Places data, search and supplementary Address data use native plans. Suppl
 review and policy decisions remain outside SQL capture. Search follows committed Place
 data, and the owning Places workflow clears its local pending marker only after success.
 
-Address 2D artefacts and grouped Address3D bound writes use native plans for local
-ingestion. Retained Address 2D plans supply the frozen generation message and timestamp
-on workflow restart. Address3D still performs owner reads during first preparation;
-mutations are sealed as parameterised collection payloads. Both phases finish before
-publication, and successful local lookup-cache finalisation releases ownership.
+Local Address ingestion uses the same complete resolved plan for Address2D, Address3D
+and publisher assertions. Retained plans supply the frozen generation message,
+timestamps and outputs on workflow restart. Owner reads occur during isolated local
+preparation. Publication follows successful delivery, and the owning workflow releases
+its reservation only after acknowledgement and finalisation.
 
 ## Receipts
 
@@ -127,20 +175,15 @@ continuously. Recovery never follows a replacement upload URL or sends another i
 request, and only a matching database receipt permits advancement.
 
 Local recovery verifies remote receipts and skips locally committed batches. It never
-repeats remote writes. Independent Address 2D database groups may execute concurrently,
-preserving each database's order. Address3D keeps collection transaction boundaries,
-parameter limits and prepared timestamps.
+repeats remote writes. Independent database groups may execute concurrently while
+preserving each database's order. Address delivery uses the resolved compiler's bounded
+transactions; it does not deliver a second Address3D plan after Address2D completes.
 
-Address3D explicitly groups bound collections independently by database. Alternating
-history/current collection writes therefore share bounded requests while retaining each
-database's statement order. A collection is never split between requests. SQL payloads
-flush all pending bound groups as an ordering barrier; other producers retain
-adjacent-only batching unless they explicitly declare independent target writes.
-
-Native Address3D delivery uses the same independent-target opt-in. Pending groups hold
-up to 64 statements or 16 MiB of serialised collections per target, with a 64 MiB
-aggregate buffer budget. A larger atomic collection is emitted directly rather than
-split. Ordinary SQL flushes all groups before execution order can cross that boundary.
+The shared bound executor supports independent-target grouping for producers that opt
+in. Native pending groups hold up to 64 statements or 16 MiB per target, with a 64 MiB
+aggregate buffer budget. Ordinary SQL flushes pending groups as an ordering barrier.
+These executor ceilings do not override the smaller limits of the resolved Address
+compiler or authorise splitting an atomic collection.
 
 Run `bun run scripts/benchmark-native-bound-delivery.ts` for three alternating local
 control/grouped comparisons on identical synthetic collections. It measures durable
@@ -286,7 +329,12 @@ compressed upload size. A bootstrap workflow must target empty, verified databas
 publish only after all shards and artefacts pass cross-reference checks. The
 [initial D1 bootstrap runbook](./d1-bootstrap.md) provides destination-creation, local
 export, restore-validation and guarded import commands for the complete shard set.
-Artefact verification and Worker publication remain separate steps.
+Bundles retain a checksummed SQLite mirror of each exported shard and acknowledged ALS
+membership. Successful remote checks record each SQL checksum in
+`verified-imports.json`. After all shards verify and the destination bindings are
+configured, `seed-mirror` installs those retained files into a new production mirror
+directory without another remote export. It never replaces an existing mirror. Artefact
+verification and Worker publication remain separate steps.
 
 ## Local benchmark
 

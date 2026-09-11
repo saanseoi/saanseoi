@@ -20,11 +20,11 @@ export function isSupplementalDivisionPayload(raw: Record<string, unknown>) {
 /** Lossless storage relocation. ALS prepared rows require upstream replay instead. */
 export function rewriteOvertureSourcePayload(row: {
   sourceRecordId: string
-  rawProperties: Record<string, unknown>
+  properties: Record<string, unknown>
   sourceGeometry: unknown
   sources: unknown
 }) {
-  const raw = row.rawProperties
+  const raw = row.properties
   if (isSupplementalDivisionPayload(raw))
     throw new Error(
       `Supplemental division requires upstream replay: ${row.sourceRecordId}`,

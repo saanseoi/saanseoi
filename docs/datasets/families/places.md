@@ -13,12 +13,12 @@ replay bounded batches until the requested page and one further match are found.
 `meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
 until it is absent. Filters apply before selecting page members.
 
-Source Place records retain publisher attributes in `rawProperties`, alongside source
+Source Place records retain publisher attributes in `properties`, alongside source
 identity, original `sourceGeometry`, `sources` and release history. Normalised
 coordinates, names, taxonomy, contact details and addresses belong to canonical
 history/current tables; source tables do not duplicate those fields. Publisher record
-versions remain in `rawProperties.version`; source history uses content hashes and
-release validity.
+versions remain in `properties.version`; source history uses content hashes and release
+validity.
 
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
@@ -381,7 +381,7 @@ in-place relink.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Source record response
 
@@ -412,10 +412,10 @@ first/last-seen months and full-profile snapshot/address references have explici
 inputs. Processing rules resolve against the definitions captured by the selected
 releases.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 ## Publication readiness
 

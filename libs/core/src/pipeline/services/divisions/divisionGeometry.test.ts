@@ -172,15 +172,15 @@ describe('division geometry normalisation', () => {
       expect(normalised.source).not.toHaveProperty(field)
     }
     expect<unknown>(normalised.source.sourceGeometry).toEqual(polygon)
-    expect(normalised.source.rawProperties).not.toHaveProperty('geometry')
-    expect(normalised.source.rawProperties).toHaveProperty('sources', [])
-    expect(normalised.source.rawProperties).not.toHaveProperty('id')
-    expect(normalised.source.rawProperties).toMatchObject({
+    expect(normalised.source.properties).not.toHaveProperty('geometry')
+    expect(normalised.source.properties).toHaveProperty('sources', [])
+    expect(normalised.source.properties).not.toHaveProperty('id')
+    expect(normalised.source.properties).toMatchObject({
       bbox: [99, 99, 100, 100],
       class: 'land',
     })
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).isTerritorial,
+      (normalised.source.properties as Record<string, unknown>).isTerritorial,
     ).toBe(true)
   })
 
@@ -221,11 +221,11 @@ describe('division geometry normalisation', () => {
         areaCode: 'CW',
       },
     })
-    expect((normalised.source.rawProperties as Record<string, unknown>).areaCode).toBe(
+    expect((normalised.source.properties as Record<string, unknown>).areaCode).toBe(
       'CW',
     )
-    expect(normalised.source.rawProperties).not.toHaveProperty('theme')
-    expect(normalised.source.rawProperties).not.toHaveProperty('source_feature')
+    expect(normalised.source.properties).not.toHaveProperty('theme')
+    expect(normalised.source.properties).not.toHaveProperty('source_feature')
     expect(normalised.source.sourceLocator).toBeNull()
     expect(normalised.source.sourceGeometry).toMatchObject(polygon)
   })
@@ -267,7 +267,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.sources).toEqual({
       hkgovCenstatd: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
     })
-    expect(normalised.source.rawProperties).toEqual({
+    expect(normalised.source.properties).toEqual({
       dc: 11,
       dcZhHant: '中西區',
       dcClass: 'A',
@@ -300,7 +300,7 @@ describe('division geometry normalisation', () => {
     })
   })
 
-  test('retains the complete Overture boundary source row in rawProperties', () => {
+  test('retains the complete Overture boundary source row in properties', () => {
     const normalised = normaliseDivisionBoundaryGeometryRow({
       class: 'maritime',
       division_ids: ['division-1', 'division-2'],
@@ -320,10 +320,10 @@ describe('division geometry normalisation', () => {
 
     expect(normalised.canonical.type).toBe('mixed')
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).isTerritorial,
+      (normalised.source.properties as Record<string, unknown>).isTerritorial,
     ).toBe(true)
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).divisionIds,
+      (normalised.source.properties as Record<string, unknown>).divisionIds,
     ).toEqual(['division-1', 'division-2'])
   })
 })

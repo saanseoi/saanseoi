@@ -165,7 +165,7 @@ function normaliseDivisionAreaGeometry(
       divisionId,
     },
     source: {
-      rawProperties: sourceRawProperties(row, source),
+      properties: sourceProperties(row, source),
       sourceLocator:
         source === 'overture'
           ? null
@@ -227,7 +227,7 @@ function normaliseDivisionBoundaryGeometry(
       rightDivisionId: divisionIds[1],
     },
     source: {
-      rawProperties: sourceRawProperties(row, source),
+      properties: sourceProperties(row, source),
       sourceLocator:
         source === 'overture'
           ? null
@@ -383,8 +383,8 @@ function normaliseSources(value: unknown, source: string) {
     : undefined
 }
 
-function sourceRawProperties(row: Record<string, unknown>, source: string) {
-  if (source === 'overture') return overtureSourcePayload(row).rawProperties
+function sourceProperties(row: Record<string, unknown>, source: string) {
+  if (source === 'overture') return overtureSourcePayload(row).properties
   if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return { ...row }
 
   const properties = row.source_properties

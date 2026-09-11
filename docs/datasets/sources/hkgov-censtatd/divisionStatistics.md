@@ -434,7 +434,7 @@ versioned division merge ruleset. It is a versioned description of the determini
 bridge operation, while any record-specific exception remains a release processing
 action with its own evidence.
 
-Source records retain the complete publisher attributes in `rawProperties`, native
+Source records retain the complete publisher attributes in `properties`, native
 geometry, identity, release history and provenance. Publisher labels, district codes,
 measure values and normalised reference periods are not duplicated as source columns.
 Canonical fields and API localisation belong to canonical history/current tables.
@@ -511,7 +511,7 @@ with the full identity available on hover.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## API release statistics
 
@@ -596,10 +596,10 @@ area quarters use `PERIOD`, district quarters combine `YEAR` and `QUARTER`, and 
 products use release context. Registry dataset/release IDs and reviewed field metadata
 have explicit origins. Value-kind classification is derived from parsed observations.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
 
 Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other

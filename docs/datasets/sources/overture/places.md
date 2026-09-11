@@ -25,16 +25,16 @@ refresh that index while retaining first-match decision precedence. Historical d
 lookups use a Place-ID index, then apply the same release and fingerprint filters within
 that Place's decisions; unrelated ledger rows are not scanned for each observation.
 
-The source table stores publisher attributes in `rawProperties`, with publisher
-identity, original `sourceGeometry`, private acquisition locators and version/release
-tracking alongside it. Each publisher value is retained once. Normalised names,
-coordinates, categories, brand, contacts and addresses are projected only into canonical
+The source table stores publisher attributes in `properties`, with publisher identity,
+original `sourceGeometry`, private acquisition locators and version/release tracking
+alongside it. Each publisher value is retained once. Normalised names, coordinates,
+categories, brand, contacts and addresses are projected only into canonical
 history/current tables. The publisher's integer record version is retained only in
-`rawProperties.version`; `versionHash` identifies the stored payload.
+`properties.version`; `versionHash` identifies the stored payload.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records already in the active shard update release
-membership through bounded ID batches without resending `rawProperties`. New, changed,
+membership through bounded ID batches without resending `properties`. New, changed,
 returning and shard-rollover records send full payloads to the active shard so each
 release remains readable from its assigned source shard; changed assertions are closed
 in their original shard. After all input chunks, finalisation closes current assertions
@@ -132,8 +132,8 @@ The complete publisher `addresses` value is included in the source record. A loc
 `freeformAddress` is materialised on the matching PlaceI18n row; the public Place object
 does not expose an `addresses` field. The structured `address.freeform`,
 `address.locality`, `address.country`, `address.region`, and `address.postcode` values
-remain in `rawProperties`; they are observational source values and are not
-authoritative inputs to any parsed canonical field or relationship.
+remain in `properties`; they are observational source values and are not authoritative
+inputs to any parsed canonical field or relationship.
 
 Overture address identifiers are not treated as SaanSeoi ALS identifiers and are ignored
 for Place-to-address matching. Place ingestion parses the address `freeform` value
@@ -507,7 +507,7 @@ Without the scoped option, identity review blocks publication.
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
-`rawProperties`.
+`properties`.
 
 ## Publisher record envelope
 
@@ -549,7 +549,7 @@ wrapped as `{ "overture": [...] }`; the full profile exposes this publisher obje
 Localisation and reviewed address decisions are processing inputs rather than direct
 copies of publisher objects.
 
-Public source records expose retained attributes under `properties`; `rawProperties` is
-the internal storage column. API-field inputs reference the public path through the
-shared dataset-scoped `publisherFields` mapping. Processing-rule definitions remain in
-their registered fixtures and are pinned by the selected release.
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.

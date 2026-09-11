@@ -19,7 +19,7 @@ test('contract preparation is read-only, reversible and excludes Streets and uns
       'hkgovLandsdRoadCentrelines',
     ]) {
       db.exec(
-        `CREATE TABLE ${table} (sourceRecordId TEXT, versionHash TEXT, rawProperties TEXT, sources TEXT, sourceGeometry TEXT)`,
+        `CREATE TABLE ${table} (sourceRecordId TEXT, versionHash TEXT, properties TEXT, sources TEXT, sourceGeometry TEXT)`,
       )
     }
     const attribution = [{ dataset: 'OSM', property: '', record_id: 'literal-id' }]
@@ -96,9 +96,9 @@ test('contract preparation is read-only, reversible and excludes Streets and uns
     db.exec(sql)
     db.exec(sql)
     const row = db
-      .query('SELECT rawProperties,sources,versionHash FROM overtureDivisions')
-      .get() as { rawProperties: string; sources: null; versionHash: string }
-    expect(JSON.parse(row.rawProperties)).toEqual({
+      .query('SELECT properties,sources,versionHash FROM overtureDivisions')
+      .get() as { properties: string; sources: null; versionHash: string }
+    expect(JSON.parse(row.properties)).toEqual({
       names: { primary: ' 原始 ' },
       version: 2,
       sources: [{ dataset: 'OSM', property: '', recordId: 'literal-id' }],

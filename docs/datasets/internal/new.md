@@ -99,7 +99,7 @@ populations during processing.
 
 Follow the family’s established column order and reuse shared schema/versioning
 fragments. For every source field, record one of: retain exactly, normalise, enrich,
-drop after a preflight check, or retain only in `rawProperties`.
+drop after a preflight check, or retain only in `properties`.
 
 At minimum, geometry source rows normally include source ID, bbox, source geometry,
 source provenance/version, raw properties and provider relationship IDs. Canonical area
@@ -182,7 +182,7 @@ Before declaring the source complete, verify:
 2. Which domain(s), cohort/validity period and hierarchy relationships apply?
 3. What is the deterministic identifier bridge and review process?
 4. Which source fields are retained, normalised, enriched, dropped, or kept in
-   `rawProperties`?
+   `properties`?
 5. What CRS/geometry union and validity policy applies?
 6. Is the snapshot required for publication or optional at the family level?
 7. What API relationship/include and provider-selection behaviour is required?
