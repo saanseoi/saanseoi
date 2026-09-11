@@ -99,6 +99,11 @@ and can be inspected or recovered with `sql:status` or `sql:resume --target loca
 Family ingestion entry points must explicitly prepare native plans; the executor alone
 does not make a local workflow resumable.
 
+The full local database reset holds the cache-wide delivery lock through database reset
+and upload-state cleanup. It removes the pending ownership marker only after the reset
+succeeds and local plans, release artefacts and R2 state are cleared. A failed reset
+retains the marker; a reset of one database family also retains it.
+
 Native preparation holds the cache-wide delivery lock while checking ownership,
 registering database identities and sealing SQL. A successfully prepared plan reserves
 the cache for its release before replay starts. Competing preparation or replay fails
@@ -208,6 +213,13 @@ confirmation and before opening the planning mirror. It uses the same checksum, 
 generation and receipt checks as explicit `sql:resume`, and does not run during a dry
 run. If the owning release is not yet published, the marker remains until that release
 workflow completes.
+
+Before any automatic replay, every referenced plan must exist and match the marker's
+release, cache directory and target environment. Missing plans stop recovery with the
+owning release and exact directory in the error; the marker remains in place. Restore
+matching plans and payloads only when the target databases still belong to that
+delivery. After a database reset, reconcile the reset's ownership cleanup instead of
+restoring SQL from the old database state.
 
 Release completion holds the same cache-wide lock as phase registration while checking
 plans and clearing ownership. Every registered plan must belong to that release and
