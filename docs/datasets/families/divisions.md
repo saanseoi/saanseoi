@@ -579,3 +579,49 @@ Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for exa
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
 properties. Original publisher paths and language dictionary identifiers retain their
 spelling; demographic measures about language are not locale-bearing labels.
+
+## Text search
+
+`GET /divisions/v0.1/search?q=水埗` searches the latest published catalogue selection
+across all supported Division domains. `/divisions/v0/search` is the current-version
+alias. Supply `domain=geographic`, `hkgov-censtatd-hma`, `hkgov-pland-pu`,
+`hkgov-pland-new-town` or `hkgov-landsd` to restrict the search. A domain without a
+published selection contributes no results. Region defaults to Hong Kong; `region=gba`
+uses Hong Kong data, and `region=mo` selects Macao independently.
+
+Search matches localised names, alternate names, name-rule values and curated
+`divisionCode` values. English partial text is case-insensitive; Chinese substrings can
+contain one or more characters. Punctuation separates search terms. All terms must
+match, and FTS operators and SQL wildcards are not query syntax. Queries allow at most
+120 characters and eight terms. Optional `locale` restricts the matching localisation;
+otherwise all localisations participate. Code-only records without localised names use
+`locale=und` in results.
+
+Ancestor names are excluded unless `ancestors=true`. This option searches the stored
+names from all materialised hierarchy paths; it performs no inferred ancestry or live
+ancestor-name lookup. Direct matches rank ahead of ancestor matches, followed by exact
+name/code and name-prefix matches. Results contain one entry per Division ID and domain,
+with `match=self` or `match=ancestor`, the matched localisation, snapshot ID, name,
+code, class, category and level. The same division can occur in several domains. `limit`
+defaults to 20 and is bounded to 100. Historical selectors are rejected with HTTP 422;
+historical list and detail access remain available separately.
+
+Search finalisation selects each domain's published default for each region. The
+`divisionSearchScopes` table maps stable region/domain/lineage scopes to snapshots, and
+`divisionSearchFts` contains only their current search documents. Finalisation compares
+complete projected content and atomically deletes removed/changed documents, inserts
+new/changed documents and promotes scope mappings. Unchanged snapshot promotion writes
+only the mapping. Names, aliases, codes and stored ancestor text all participate in
+change detection.
+
+Standalone publication finalises search after publication. Deferred upload sequences
+finalise once during release-set reconciliation, after all pending sets are ready.
+Reconciliation also retries a failed finalisation when no new sets need publishing.
+Search returns HTTP 503 `fts_not_ready` until every requested published scope is ready.
+Cleanup preserves snapshots referenced by search scopes. Apply the generated current
+schema migration and run release-set reconciliation to initialise an existing database.
+
+FTS5 trigrams accelerate substring matching for terms of at least three characters.
+Shorter terms scan the latest indexed documents. These reads do not rewrite the index.
+The repair SQL in `libs/db/scripts/sql/rebuild-divisions-fts.sql` synchronises only the
+existing scope selection; publication/reconciliation owns release selection.

@@ -101,3 +101,7 @@ Source-record examples and the Sources schema use `properties` for retained publ
 attributes, with `geometry` and `sourceRecordId` as envelope siblings. Places discovery
 references specify latest-release-only text search and the temporary `503 fts_not_ready`
 response during publication finalisation.
+
+Division discovery references cover `/divisions/v0.1/search`, all-domain search,
+optional domain/locale filters, partial English and Chinese text, and opt-in ancestor
+matching. Search is limited to the latest published release selection.
