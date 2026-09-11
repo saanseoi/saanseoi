@@ -59,6 +59,8 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionsI18n')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'divisions')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'address2d')).toBeNull()
+  expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'address2dI18n')).toBeNull()
   for (const [tableName, id] of [
     ['address2d', 'id'],
     ['address2dI18n', 'addressId'],

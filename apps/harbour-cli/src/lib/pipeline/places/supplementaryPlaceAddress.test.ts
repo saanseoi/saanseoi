@@ -616,6 +616,18 @@ describe('supplementary Place Address policy', () => {
       null,
     )
     expect(resolution.tier).toBe('supplementary')
+    const accepted = resolution.entry
+    const english = accepted?.values[0]
+    if (!accepted || !english) throw new Error('Expected accepted Address values.')
+    accepted.values.push({
+      ...english,
+      locale: 'zh-hant',
+      formattedAddress: '達東路20號東薈城名店倉',
+      buildingName: '東薈城名店倉',
+      streetName: '達東路',
+    })
+    Object.assign(accepted, supplementaryIdentity(accepted.values))
+    resolution.addressId = accepted.addressId
     const base = {
       id: citygate.addressId,
       snapshotId: 'als-selected',
@@ -661,10 +673,11 @@ describe('supplementary Place Address policy', () => {
     })
     expect(components(dependency)).toEqual(components(first))
     expect(dependency.evidence.versionHash).not.toBe(first.evidence.versionHash)
-    const supportingPlace = analyse(
-      observation('Citygate Outlets, 20 Tat Tung Road', 'p2'),
-      null,
-    )
+    const supportingPlace = {
+      ...structuredClone(resolution),
+      placeId: 'p2',
+      entry: { ...structuredClone(accepted), placeId: 'p2' },
+    }
     const supported = await build({ resolutions: [supportingPlace, resolution] })
     expect(components(supported)).toEqual(components(first))
     expect(supported.evidence.versionHash).not.toBe(first.evidence.versionHash)
@@ -685,6 +698,9 @@ describe('supplementary Place Address policy', () => {
     const localised = await build({ resolutions: [changedLocale] })
     expect(localised.versionHash).toBe(first.versionHash)
     expect(localised.i18nVersionHashes.en).not.toBe(first.i18nVersionHashes.en)
+    expect(localised.i18nVersionHashes['zh-hant']).toBe(
+      first.i18nVersionHashes['zh-hant'],
+    )
     expect(localised.lookups).toEqual(first.lookups)
     const division = await build({
       officialAddresses: new Map([

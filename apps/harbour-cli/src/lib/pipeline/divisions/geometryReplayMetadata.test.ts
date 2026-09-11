@@ -8,7 +8,11 @@ import { withSqlDeliveryCapture } from '../local/sqlDeliveryCapture.ts'
 import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
 import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
 import type { NetStatement } from '../local/netSqlitePlanTypes.ts'
-import { generateGeometryReplaySql } from './processLocalDivisionGeometrySqlUploadReplay.ts'
+import {
+  generateGeometryReplaySql,
+  geometryBuildUpsertSql,
+} from './processLocalDivisionGeometrySqlUploadReplay.ts'
+import { MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES } from './processLocalDivisionGeometrySqlUploadConfig.ts'
 
 const tables = {
   snapshotLineages: 'id TEXT PRIMARY KEY, variant TEXT, versionHash TEXT',
@@ -224,4 +228,32 @@ test('geometry metadata replay resumes a partial second variant and carries real
     expect(changes(remote)).toBe(afterRecovery)
     expect(remote.query('PRAGMA foreign_key_check').all()).toEqual([])
   })
+})
+
+test('oversized metadata replay retains complete content when the existing chunk placeholder matches', () => {
+  const db = new Database(':memory:')
+  db.exec(`CREATE TABLE snapshotAssemblyRuns(id TEXT PRIMARY KEY,snapshotId TEXT,selectionSummaryJson TEXT);
+    INSERT INTO snapshotAssemblyRuns VALUES('run','snapshot','');`)
+  const row = {
+    id: 'run',
+    snapshotId: 'snapshot',
+    selectionSummaryJson: JSON.stringify({
+      evidence: '香港'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES),
+    }),
+  }
+  try {
+    const sql = geometryBuildUpsertSql('snapshotAssemblyRuns', [row], {
+      skipUnchanged: true,
+    })
+    for (const statement of sql.split('\n'))
+      expect(Buffer.byteLength(statement)).toBeLessThanOrEqual(
+        MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
+      )
+    executeNativeSqlStatements(db, sql)
+    expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
+    executeNativeSqlStatements(db, sql)
+    expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
+  } finally {
+    db.close()
+  }
 })

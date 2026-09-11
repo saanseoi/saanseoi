@@ -441,7 +441,7 @@ export function resolveCachePruneOperation(
   // Supplementary roots and returning members select immutable components from
   // earlier editions, including closed hashes. Keep those rows in local mirrors.
   if (
-    bindingName.startsWith('DB_HISTORY_') &&
+    /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(bindingName) &&
     ['address2d', 'address2dI18n'].includes(tableName)
   ) {
     const id = tableName === 'address2d' ? 'id' : 'addressId'
