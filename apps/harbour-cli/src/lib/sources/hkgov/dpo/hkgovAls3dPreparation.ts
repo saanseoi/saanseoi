@@ -44,7 +44,7 @@ export type PreparedAls3dRecord =
       kind: 'source'
       sourceRecordId: string
       versionHash: string
-      rawProperties: unknown
+      properties: unknown
       sourceGeometry: unknown
       sources: unknown[]
     }

@@ -52,7 +52,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       mid_year_population: populationInPeople(properties.MYPOPN_LAND, index),
       name_en: text(properties.DC_ENG, 'DC_ENG', index),
       name_zh_hant: text(properties.DC_CHI, 'DC_CHI', index),
-      raw_properties: JSON.stringify(properties),
+      properties: JSON.stringify(properties),
       reference_period_code: referencePeriod.code,
       reference_period_end: referencePeriod.end,
       reference_period_end_year: referencePeriod.endYear,
@@ -105,8 +105,8 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
             rows.map(row => row.name_zh_hant),
           ),
           stringColumn(
-            'raw_properties',
-            rows.map(row => row.raw_properties),
+            'properties',
+            rows.map(row => row.properties),
           ),
           stringColumn(
             'reference_period_code',

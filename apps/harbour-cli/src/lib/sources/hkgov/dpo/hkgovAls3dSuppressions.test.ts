@@ -187,8 +187,8 @@ test.skipIf(!existsSync(rawPath))(
           .split('\n')
           .map(line => JSON.parse(line))
         const sources = records.filter(record => record.kind === 'source')
-        expect(sources.map(record => record.rawProperties)).toEqual(
-          features.map(feature => alsSourcePayload(feature).rawProperties),
+        expect(sources.map(record => record.properties)).toEqual(
+          features.map(feature => alsSourcePayload(feature).properties),
         )
         expect(
           sources.filter(record =>

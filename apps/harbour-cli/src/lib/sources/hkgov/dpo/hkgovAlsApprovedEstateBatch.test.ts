@@ -125,12 +125,10 @@ test.skipIf(!existsSync(root))(
           .trim()
           .split('\n')
           .map(line => JSON.parse(line))
-        expect(
-          records.filter(r => r.kind === 'source').map(r => r.rawProperties),
-        ).toEqual(
+        expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
           raw3d.map(
             (feature: Parameters<typeof alsSourcePayload>[0]) =>
-              alsSourcePayload(feature).rawProperties,
+              alsSourcePayload(feature).properties,
           ),
         )
         expect(JSON.stringify(input)).toBe(rawOriginal)

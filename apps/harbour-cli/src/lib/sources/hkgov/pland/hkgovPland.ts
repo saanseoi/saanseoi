@@ -398,7 +398,7 @@ function buildPlanningDivision(
               spuCode: cell.spu,
               subunitCode: cell.subunit,
               tpuCode: cell.tpu,
-              rawProperties: cell.originalFeature.properties ?? null,
+              properties: cell.originalFeature.properties ?? null,
               repairedGeometry: cell.repaired ? cell.geometry : null,
               sourceGeometry: cell.originalGeometry,
               sourceRecordId: cell.sourceRecordId,

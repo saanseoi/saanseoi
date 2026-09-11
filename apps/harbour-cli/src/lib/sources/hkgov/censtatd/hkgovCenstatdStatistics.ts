@@ -456,7 +456,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
             rows.map(row => referencePeriodFor(row.properties, input.sourceVersion)),
           ),
           strings(
-            'raw_properties',
+            'properties',
             rows.map(row => JSON.stringify(row.properties)),
           ),
           strings(

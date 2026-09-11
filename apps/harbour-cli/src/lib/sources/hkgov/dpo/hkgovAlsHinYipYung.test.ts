@@ -167,8 +167,8 @@ test('future Yip Wong retains four collections until revoked with unverified pro
       .map(line => JSON.parse(line))
     const publisherRows = retained.filter(row => row.kind === 'source')
     expect(publisherRows).toHaveLength(1)
-    expect(publisherRows[0].rawProperties).toEqual(
-      alsSourcePayload(requireDefined(wo.evidence3d.at(-1)).feature).rawProperties,
+    expect(publisherRows[0].properties).toEqual(
+      alsSourcePayload(requireDefined(wo.evidence3d.at(-1)).feature).properties,
     )
     expect(publisherRows[0].sources).not.toEqual(
       expect.arrayContaining([

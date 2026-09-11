@@ -114,7 +114,7 @@ describe('LandsD Road Centreline matching', () => {
       expect(result.records).toHaveLength(archive.sourceFeatureCount)
       for (const record of result.records) {
         expect(record.streetCode).toBe(
-          String(record.rawProperties.STREET_CODE ?? record.rawProperties.STREETCODE),
+          String(record.properties.STREET_CODE ?? record.properties.STREETCODE),
         )
       }
     }
@@ -127,7 +127,7 @@ describe('LandsD Road Centreline matching', () => {
       streets: [],
     })
     expect(result.records[0]?.streetCode).toBe(String(streetCode))
-    expect(result.records[0]?.rawProperties.STREET_CODE).toBe(streetCode)
+    expect(result.records[0]?.properties.STREET_CODE).toBe(streetCode)
   })
 
   test.each([null, undefined, '', 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
@@ -222,7 +222,7 @@ describe('LandsD Road Centreline matching', () => {
       expect.objectContaining({
         nameEn: null,
         nameZhHant: null,
-        rawProperties: expect.objectContaining({ STREET_CENTRELINE_ID: 1 }),
+        properties: expect.objectContaining({ STREET_CENTRELINE_ID: 1 }),
         sourceRecordId: 'release:1',
         streetId: null,
       }),

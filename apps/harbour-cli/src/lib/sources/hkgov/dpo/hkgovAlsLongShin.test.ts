@@ -122,9 +122,9 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
         .trim()
         .split('\n')
         .map(s => JSON.parse(s))
-      expect(
-        records.filter(r => r.kind === 'source').map(r => r.rawProperties),
-      ).toEqual(source.map(feature => alsSourcePayload(feature).rawProperties))
+      expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
+        source.map(feature => alsSourcePayload(feature).properties),
+      )
       for (const c of records.filter(r => r.kind === 'collection')) {
         expect(c.address2dId).not.toBe(complex.id)
         expect(c.unresolvedSectionIds).toEqual([])

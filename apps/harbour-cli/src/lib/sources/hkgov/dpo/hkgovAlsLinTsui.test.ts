@@ -90,12 +90,10 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
         .trim()
         .split('\n')
         .map(line => JSON.parse(line))
-      expect(
-        records.filter(r => r.kind === 'source').map(r => r.rawProperties),
-      ).toEqual(
+      expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
         inventory.map(
           (feature: Parameters<typeof alsSourcePayload>[0]) =>
-            alsSourcePayload(feature).rawProperties,
+            alsSourcePayload(feature).properties,
         ),
       )
     } finally {
