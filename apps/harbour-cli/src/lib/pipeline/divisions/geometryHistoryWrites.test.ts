@@ -94,15 +94,18 @@ function fixture(kind: DivisionGeometryKind) {
   ) as unknown as Map<string, ReplayShard>
   const table = kind === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
   const publicationTable = `${kind}PublicationState`
-  const selectContext = (binding: 'old' | 'next') => ({
-    ...context,
-    historyDb: historyTargets[binding === 'old' ? 0 : 1]!
-      .db as unknown as LocalAddressDbContext['historyDb'],
-    historyBinding: createLocalExecBinding(
-      binding === 'old' ? old : next,
-      `DB_HISTORY_${binding === 'old' ? '2025' : '2026'}`,
-    ),
-  })
+  const selectContext = (binding: 'old' | 'next') => {
+    const target = historyTargets[binding === 'old' ? 0 : 1]
+    if (!target) throw new Error('Missing geometry fixture history target')
+    return {
+      ...context,
+      historyDb: target.db as unknown as LocalAddressDbContext['historyDb'],
+      historyBinding: createLocalExecBinding(
+        binding === 'old' ? old : next,
+        `DB_HISTORY_${binding === 'old' ? '2025' : '2026'}`,
+      ),
+    }
+  }
   async function write(
     snapshotId: string,
     parentSnapshotId: string | null,
@@ -158,7 +161,7 @@ function fixture(kind: DivisionGeometryKind) {
     ]),
     source
       .query(
-        `SELECT * FROM overture${table[0]!.toUpperCase()}${table.slice(1)} ORDER BY sourceRecordId,versionHash`,
+        `SELECT * FROM overture${table.charAt(0).toUpperCase()}${table.slice(1)} ORDER BY sourceRecordId,versionHash`,
       )
       .all(),
   ]
@@ -224,11 +227,13 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
   test(`${kind} replays changes, removals and reappearance independently of history current flags`, async () => {
     const f = fixture(kind)
     try {
-      const original = [geometry(kind, 'a'), geometry(kind, 'b'), geometry(kind, 'c')]
-      await f.write('root', null, original)
+      const original = geometry(kind, 'a')
+      const unchanged = geometry(kind, 'b')
+      const reappearing = geometry(kind, 'c')
+      await f.write('root', null, [original, unchanged, reappearing])
       f.old.exec(`UPDATE ${f.table} SET isCurrent=0`)
       const changed = geometry(kind, 'a', 116)
-      await f.write('child', 'root', [changed, original[1]!], { binding: 'next' })
+      await f.write('child', 'root', [changed, unchanged], { binding: 'next' })
       expect(f.journal(f.next, 'child')).toEqual([
         { recordId: 'a', operation: 'upsert' },
         { recordId: 'c', operation: 'delete' },
@@ -242,10 +247,10 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
         ['a', 'DB_HISTORY_2026'],
         ['b', 'DB_HISTORY_2025'],
       ])
-      expect((await f.replay('child'))[0]!.versionHash).toBe(
+      expect((await f.replay('child'))[0]?.versionHash).toBe(
         await hashDivisionGeometryRow(changed.canonical),
       )
-      await f.write('reappeared', 'child', [changed, original[1]!, original[2]!], {
+      await f.write('reappeared', 'child', [changed, unchanged, reappearing], {
         binding: 'next',
       })
       expect(f.journal(f.next, 'reappeared')).toEqual([
@@ -267,8 +272,8 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
       ])
       const root = await f.replay('root')
       expect(root.map(version => version.recordId)).toEqual(['a', 'b', 'c'])
-      expect(root[0]!.versionHash).toBe(
-        await hashDivisionGeometryRow(original[0]!.canonical),
+      expect(root[0]?.versionHash).toBe(
+        await hashDivisionGeometryRow(original.canonical),
       )
     } finally {
       f.close()
