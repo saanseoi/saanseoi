@@ -1,3 +1,4 @@
+import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { readFileSync } from 'node:fs'
@@ -611,9 +612,11 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   return Promise.all(
     rows.map(async row => {
       const payload = { ...row } as T & {
+        rawProperties?: unknown
         sourceLocator?: Record<string, unknown> | null
       }
       if (separatePublisherEnvelope) {
+        payload.rawProperties = retainSourceProperties(payload.rawProperties)
         payload.sourceLocator = sourceLocatorFromReferences(payload.sources)
         delete payload.sources
       }

@@ -85,7 +85,7 @@ export async function writeGeometryRows(
           row.source.rawProperties &&
           typeof row.source.rawProperties === 'object' &&
           !Array.isArray(row.source.rawProperties) &&
-          'dc_class' in row.source.rawProperties
+          'dcClass' in row.source.rawProperties
         ),
     )
   onProgress?.(

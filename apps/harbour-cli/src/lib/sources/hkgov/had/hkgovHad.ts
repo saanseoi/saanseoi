@@ -91,6 +91,13 @@ export async function prepareHkgovHadDistrictUpload(
   const rows = payload.features.map((feature, index) =>
     normaliseHkgovHadDistrictFeature(feature, index, options.sourceArchive),
   )
+  const publisherIds = rows.map(row => row.source_properties.OBJECTID)
+  if (
+    publisherIds.some(id => id == null || !String(id).trim()) ||
+    new Set(publisherIds.map(String)).size !== rows.length
+  ) {
+    throw new Error('HAD records require unique publisher OBJECTID values.')
+  }
   if (rows.length !== 18) {
     throw new Error(
       `HAD district input must contain the 18 Hong Kong district areas; found ${rows.length}.`,

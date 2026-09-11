@@ -100,6 +100,14 @@ describe('HAD district GeoJSON preparation', () => {
         },
       ])
       expect(rows[0]).not.toHaveProperty('source_feature')
+      features[1]!.properties.OBJECTID = features[0]!.properties.OBJECTID
+      await writeFile(
+        inputFile,
+        JSON.stringify({ features, type: 'FeatureCollection' }),
+      )
+      await expect(
+        prepareHkgovHadDistrictUpload(inputFile, outputDir, '2022'),
+      ).rejects.toThrow('unique publisher OBJECTID')
     } finally {
       await rm(inputDir, { force: true, recursive: true })
       await rm(outputDir, { force: true, recursive: true })

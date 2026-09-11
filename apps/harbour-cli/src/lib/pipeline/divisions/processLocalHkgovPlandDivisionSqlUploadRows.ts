@@ -1,3 +1,4 @@
+import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { and, eq, inArray } from 'drizzle-orm'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordSourceResolutions } from '@repo/core/pipeline/db/sourceResolutions'
@@ -310,7 +311,7 @@ export async function insertSourceRows(
     const rows = await Promise.all(
       cells.map(async cell => ({
         sourceRecordId: cell.sourceRecordId,
-        rawProperties: cell.rawProperties,
+        rawProperties: retainSourceProperties(cell.rawProperties),
         wasGeometryRepaired: cell.wasGeometryRepaired,
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
@@ -347,7 +348,7 @@ export async function insertSourceRows(
   const rows = await Promise.all(
     towns.map(async town => ({
       sourceRecordId: town.sourceRecordId,
-      rawProperties: town.rawProperties,
+      rawProperties: retainSourceProperties(town.rawProperties),
       sourceGeometry: town.sourceGeometry,
       wasGeometryRepaired: town.wasGeometryRepaired,
       repairedGeometry: town.repairedGeometry,

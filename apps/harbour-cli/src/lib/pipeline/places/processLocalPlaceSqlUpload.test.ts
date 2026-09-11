@@ -257,7 +257,7 @@ describe('Places SQL materialisation', () => {
             phones: null,
             addresses: ['1 Example Road'],
             confidence: 0.9,
-            sources: [{ dataset: 'openstreetmap' }],
+            sources: { overture: [{ dataset: 'openstreetmap' }] },
             firstSeenMonth: '2026-08',
             lastSeenMonth: '2026-08',
             i18n: [
