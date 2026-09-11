@@ -527,7 +527,7 @@ function seedCurrent(sqlite: Database) {
        leftDivisionId, rightDivisionId, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      'snapshot-overture-2025-boundary-overture',
+      'scope:snapshot-overture-2025-boundary-overture',
       'boundary-overture-division-east',
       'overture',
       json([114.18, 22.25, 114.3, 22.35]),
