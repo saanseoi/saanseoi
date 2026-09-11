@@ -5,6 +5,12 @@ updates. Changed source hashes close explicitly; bounded same-release membership
 handle source omissions. Large source geometry is assembled only for incomplete or
 closed rows. Canonical Statistics revisions retain omitted values and geographies.
 
+Published rollback reconstructs each affected exact period from retained packed history,
+including its referenced immutable dictionaries. It leaves other periods and source
+assertions intact. The period's temporary `restoring` publication state prevents
+ordinary promotion from taking over an interrupted rollback; recovery resumes its sealed
+plan.
+
 Both native Statistics source tables store only the publisher version in
 `validFromRelease` and `validToRelease`, for example `2023-H2`. These boundaries use the
 complete `sourceVersion`; source dataset prefixes and resource-child suffixes belong to

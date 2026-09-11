@@ -1,5 +1,12 @@
 # Divisions dataset family
 
+Published rollback reconstructs exact base, locale, area and boundary predecessors from
+retained journals and their owning history shards. It preserves unrelated domains and
+cohorts, validates dependent current families, and seals only actual serving-row
+changes. Source assertions, history and published compositions remain retained.
+Readiness and search finalisation follow the shared
+[rollback and recovery contract](../publication-state-plan.md#reset-and-reingest).
+
 ## Classification and stored ancestry
 
 Geographic divisions expose `category`, `class` and `level`. Administrative classes are

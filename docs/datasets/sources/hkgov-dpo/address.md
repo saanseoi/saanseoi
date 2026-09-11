@@ -36,6 +36,11 @@ content remains open without timestamp touches or snapshot copies. Changed conte
 explicit retirement journals preserve exact historical membership. Search uses the same
 scope mapping.
 
+Published rollback replays the exact retained Address predecessor and its reviewed ALS
+membership sidecar. A composed restoration prepares Division and Street dependencies
+before Address, then validates the complete current candidate. The sealed delivery
+restores serving selection while retaining publisher evidence and historical versions.
+
 Current Division and Street references contain physical scope IDs. Preparation and
 history retain logical snapshot IDs, and the writer resolves each exact selected
 reference through a completed receipt. Missing or advanced dependency projections fail
