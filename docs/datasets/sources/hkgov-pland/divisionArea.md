@@ -88,9 +88,10 @@ SQL generation uses the release-scoped planning mirror.
 confirmed imports into the shared mirror before publication. Recovery targets that
 shared mirror, not the disposable planning clone.
 
-Geometry metadata replay leaves identical rows untouched, including release assignments,
-processing actions and statistics shared by exact and simplified phases. Changed
-lifecycle, provenance and statistics fields still apply in statement order.
+Ordinary geometry metadata upserts leave identical rows untouched, including release
+assignments, processing actions and statistics shared by exact and simplified phases.
+Changed lifecycle, provenance and statistics fields still apply in statement order; see
+[SQL delivery](../../sql-delivery.md) for the oversized-row exception.
 
 This profile records the Planning Department source-specific adapter. The source-neutral
 geometry contract remains in

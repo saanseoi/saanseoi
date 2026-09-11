@@ -240,11 +240,11 @@ Remote geometry delivery generates SQL from lazy mirror-table iterators inside t
 sealed-plan preparation callback. A retained plan skips those reads. Statement packing
 tracks UTF-8 byte counts incrementally and closes the iterator on interruption.
 
-Geometry metadata upserts update only when a replayed value differs, including changes
-to or from `null`. Exact and simplified phases can repeat release assignments,
-processing actions and statistics without updating identical rows. Changed lifecycle,
-provenance and statistics values still replay in order; see
-[SQL delivery](../sql-delivery.md).
+Ordinary geometry metadata upserts update only when a replayed value differs, including
+changes to or from `null`. Exact and simplified phases can repeat release assignments,
+processing actions and statistics within the statement limit without updating identical
+rows. Changed lifecycle, provenance and statistics values still replay in order; see
+[SQL delivery](../sql-delivery.md) for the oversized-row exception.
 
 Remote replay selects immutable canonical versions through the snapshot's upsert journal
 keys; delete journals determine removed membership. Source closures update exact source
