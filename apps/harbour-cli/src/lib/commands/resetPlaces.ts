@@ -757,7 +757,10 @@ async function assertPlacesResetStillSafe(
       'Refusing reset: Places snapshots no longer exactly match the initialisation manifest.',
     )
 
-  await assertPlacesCurrentResetOwnership(context.currentDb as HarbourReadableDb, owned)
+  await assertPlacesCurrentResetOwnership(
+    context.currentDb as unknown as HarbourReadableDb,
+    owned,
+  )
 
   for (const target of context.historyTargets) {
     const unexpectedHistory = await (target.db as HarbourReadableDb)

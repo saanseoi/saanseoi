@@ -791,13 +791,6 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     )
 
     const reset = buildPlacesResetSql(await collectOwnedPlaces(db))
-    for (const table of [
-      'address2d',
-      'address2dI18n',
-      'address2dBuildingNumberLookup',
-      'address2dEvidence',
-    ])
-      historyNext.exec(`DELETE FROM ${table} WHERE snapshotId='other-snapshot'`)
     expect(
       current
         .query(
@@ -826,8 +819,13 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       history.query('SELECT count(*) AS n FROM snapshotVersionChanges').get(),
     ).toEqual({ n: 0 })
     expect(
-      historyNext.query('SELECT count(*) AS n FROM address2dEvidence').get(),
+      historyNext
+        .query(
+          "SELECT count(*) AS n FROM address2dEvidence WHERE snapshotId <> 'other-snapshot'",
+        )
+        .get(),
     ).toEqual({ n: 0 })
+    expect(foreignComponents()).toEqual(foreignBeforeWithdrawal)
   } finally {
     meta.close()
     current.close()
