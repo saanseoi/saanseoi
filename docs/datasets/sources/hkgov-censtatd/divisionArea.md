@@ -381,3 +381,8 @@ scope. See the [publication-state contract](../../publication-state-plan.md).
 Identical-geometry reuse requires a completed receipt for the candidate snapshot as well
 as matching canonical values. A completed local mirror remains eligible while
 publication is deferred; an interrupted delivery cannot become a reuse baseline.
+
+Area and HMA candidate preparation uses the shared final-difference compiler. A
+contribution merges its supplied geometry into the exact cohort scope; it does not
+remove independent cohorts or inherited companion members. Canonical equality can reuse
+a complete snapshot while retaining the new publisher assertion separately.

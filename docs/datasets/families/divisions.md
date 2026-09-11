@@ -643,16 +643,20 @@ existing scope selection; publication/reconciliation owns release selection.
 
 Current Division records and localisations use the stable snapshot lineage as their
 physical `snapshotId`. `divisionPublicationState` has one receipt per lineage and maps
-it to the logical published snapshot. Conditional updates preserve unchanged content and
-timestamps; removed records and translations are deleted only within the complete
-replacement's scope. Candidate SQL may still be transmitted for unchanged rows.
+it to the logical published snapshot. Division and Planning preparation runs on isolated
+local candidates. The shared final-difference compiler preserves unchanged content and
+timestamps, and delivers only keyed inserts, changed columns and removals within the
+complete replacement's scope. Source assertions and history remain in their owning
+shards; metadata and publication receipts retain their separate lifecycle operations.
 
 Area and boundary projections use separate lineage/cohort scopes and publication
 receipts. Provider variants retain their own lineages. A revision updates only changed
 geometry in its scope; a different retained cohort requires its own materialisation.
-Ingestion resolves the exact selected Division dependency through a completed receipt or
-immutable history, without restoring historical Division rows into serving current
-storage.
+Geometry uses the same local candidate compiler for native delivery and remote replay.
+C&SD companion contributions merge within their cohort; ordinary complete geometry
+releases replace membership within their own scope. Ingestion resolves the exact
+selected Division dependency through a completed receipt or immutable history, without
+restoring historical Division rows into serving current storage.
 
 Delivery validates canonical and localisation counts, and each current mutation batch
 checks its sealed publication token. Completion records preparation; metadata

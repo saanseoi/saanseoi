@@ -610,3 +610,10 @@ Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for exa
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
 properties. Original publisher paths and language dictionary identifiers retain their
 spelling; demographic measures about language are not locale-bearing labels.
+
+Source and canonical history SQL is applied to isolated local candidates and compiled
+into final keyed changes before delivery. Statistics retains its separate sparse
+publication promotion: dataset and exact reference period select packed geography
+records, older periods remain current, and partial revisions preserve omitted fields and
+geographies. This membership boundary is distinct from complete inventory replacement in
+Division and Place datasets.

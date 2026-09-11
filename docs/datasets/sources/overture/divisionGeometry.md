@@ -309,3 +309,9 @@ complete projection and records preparation. Publication alone grants current re
 permission, including for empty snapshots. Exact older geometry can replay from
 immutable history when the selected scope has advanced. See the
 [publication-state contract](../../publication-state-plan.md).
+
+Local candidate preparation and remote replay use the shared final-difference compiler.
+Complete source membership replaces only its lineage/cohort scope. Unchanged geometry
+and source assertions generate no content mutations; a new independent cohort requires
+its initial materialisation. Binary geometry travels as bounded hexadecimal parameters
+without splitting one changed row into assembly writes.
