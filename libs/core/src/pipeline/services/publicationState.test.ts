@@ -165,7 +165,9 @@ describe('publication completion', () => {
       f.current.exec(
         "DELETE FROM divisionPublicationState WHERE snapshotId = 'interrupted'",
       )
-      await expect(f.finalise()).rejects.toThrow('complete delivery receipts')
+      await expect(f.finalise()).rejects.toThrow(
+        'complete delivery receipts: interrupted.',
+      )
       expect(f.writes()).toBe(0)
     } finally {
       f.close()

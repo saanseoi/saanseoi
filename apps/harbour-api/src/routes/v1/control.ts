@@ -2,6 +2,7 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import { finalisePublishedSearch } from '@repo/core/pipeline/services/search/finalise'
 import { finalisePublishedResources } from '@repo/core/pipeline/services/publicationState'
 import { finalisePublishedStatistics } from '../../lib/services/statisticsPublication'
+import { scheduleReconciledSnapshotCleanup } from '../../lib/services/controlCleanup'
 
 import {
   handleBootstrapStatsReleaseSets,
@@ -397,6 +398,7 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
         ...options,
         pendingReleaseSetCodes: result.pendingReleaseSetCodes,
       })
+      await scheduleReconciledSnapshotCleanup(db, c.env.DATASET_QUEUE, request)
       await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
       const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)

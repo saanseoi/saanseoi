@@ -13,7 +13,10 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts'
-import { readLandsdPlaceNameArchive } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/landsdPlaceName.ts'
+import {
+  landsdSettlementDivisionRows,
+  readLandsdPlaceNameArchive,
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/landsdPlaceName.ts'
 import {
   normaliseRoadCentrelineFeatures,
   readLandsdRoadCentrelineArchive,
@@ -59,6 +62,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
     archiveSha256: input.sha256,
     cohortKey: input.sourceVersion,
     datasetCode: PLACE_NAME_DATASET,
+    divisionRows: landsdSettlementDivisionRows(features),
     releaseNotesUrl: input.releaseNotesUrl,
     recoverPublishedRelease: true,
     rowCount: rows.length,
