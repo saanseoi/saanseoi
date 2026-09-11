@@ -45,15 +45,15 @@ describe('TD pedestrian street native FileGDB intake', () => {
     expect(layers.Full_Time_Pedestrian_Street.features[0]).toEqual({
       geometry: expect.objectContaining({ type: 'Polygon' }),
       properties: {
-        EN_Description: 'Full-Time Pedestrian Street',
-        End_Time: undefined,
-        OBJECTID: 44,
-        Region: 'HK',
-        SC_Description: '全日行人专用街道',
-        SHAPE_Area: 2706.6111331315583,
-        SHAPE_Length: 656.3103296592857,
-        Start_Time: undefined,
-        TC_Description: '全日行人專用街道',
+        descriptionEn: 'Full-Time Pedestrian Street',
+        descriptionZhHans: '全日行人专用街道',
+        descriptionZhHant: '全日行人專用街道',
+        endTime: undefined,
+        objectId: 44,
+        region: 'HK',
+        shapeArea: 2706.6111331315583,
+        shapeLength: 656.3103296592857,
+        startTime: undefined,
       },
       type: 'Feature',
     })
@@ -62,7 +62,7 @@ describe('TD pedestrian street native FileGDB intake', () => {
     // being silently dropped by the FileGDB reader.
     expect(
       layers.Full_Time_Pedestrian_Street.features.find(
-        feature => feature.properties.OBJECTID === 46,
+        feature => feature.properties.objectId === 46,
       )?.geometry,
     ).toBeNull()
   })
@@ -111,26 +111,30 @@ describe('HyD native FileGDB street intake', () => {
     expect(snp.features).toHaveLength(31_764)
     expect(snp.features[0]).toMatchObject({
       geometry: { type: 'Point' },
-      properties: { LVL: 0, ROAD_NAME: 'FU MEI STREET', SNP_ID: 'KL10523008I' },
+      properties: { lvl: 0, roadName: 'FU MEI STREET', snpId: 'KL10523008I' },
     })
     expect(sensitiveStreets.features).toHaveLength(90)
-    expect(sensitiveStreets.features[0]).toMatchObject({
-      geometry: { type: 'MultiPolygon' },
-      properties: {
-        LVL: 0,
-        SECT_BTWN: 'FULL LENGTH',
-        ST_ENGNM: "NEW HIRAM'S HIGHWAY",
-      },
+    expect(sensitiveStreets.features[0]?.geometry).toMatchObject({
+      type: 'MultiPolygon',
     })
+    expect(sensitiveStreets.features[0]?.properties).toEqual(
+      expect.objectContaining({
+        lvl: 0,
+        sectBtwn: 'FULL LENGTH',
+        stEngnm: "NEW HIRAM'S HIGHWAY",
+      }),
+    )
     expect(strategicStreets.features).toHaveLength(159)
-    expect(strategicStreets.features[0]).toMatchObject({
-      geometry: { type: 'MultiPolygon' },
-      properties: {
-        LVL: -1,
-        SECT_BTWN: 'FULL LENGTH',
-        ST_ENGNM: 'TSEUNG KWAN O TUNNEL',
-      },
+    expect(strategicStreets.features[0]?.geometry).toMatchObject({
+      type: 'MultiPolygon',
     })
+    expect(strategicStreets.features[0]?.properties).toEqual(
+      expect.objectContaining({
+        lvl: -1,
+        sectBtwn: 'FULL LENGTH',
+        stEngnm: 'TSEUNG KWAN O TUNNEL',
+      }),
+    )
   })
 })
 

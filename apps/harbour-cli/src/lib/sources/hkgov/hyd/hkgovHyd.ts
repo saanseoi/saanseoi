@@ -1,4 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
+import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { createRequire } from 'node:module'
 
 import { unzipSafeArchive } from '../../zipArchive.ts'
@@ -19,15 +20,15 @@ export type HkgovTdPedestrianStreetLayer =
 export type HkgovTdPedestrianStreetFeature = {
   geometry: GeoJsonGeometry | null
   properties: {
-    EN_Description?: string
-    End_Time?: string
-    OBJECTID?: number
-    Region?: string
-    SC_Description?: string
-    SHAPE_Area?: number
-    SHAPE_Length?: number
-    Start_Time?: string
-    TC_Description?: string
+    descriptionEn?: string
+    descriptionZhHans?: string
+    descriptionZhHant?: string
+    endTime?: string
+    objectId?: number
+    region?: string
+    shapeArea?: number
+    shapeLength?: number
+    startTime?: string
   }
   type: 'Feature'
 }
@@ -195,7 +196,10 @@ export async function readHkgovHydStreetArchive(
       return {
         type: 'Feature' as const,
         geometry: candidate.geometry,
-        properties: { ...properties, LVL: level === 0xffffffff ? -1 : level },
+        properties: retainSourceProperties({
+          ...properties,
+          LVL: level === 0xffffffff ? -1 : level,
+        }) as Record<string, unknown>,
       }
     }),
   }
@@ -240,15 +244,15 @@ function validatePedestrianLayer(
       type: 'Feature' as const,
       geometry,
       properties: {
-        OBJECTID: objectId,
-        Region: optionalString(properties.Region),
-        Start_Time: optionalString(properties.Start_Time),
-        End_Time: optionalString(properties.End_Time),
-        SHAPE_Length: optionalFiniteNumber(properties.SHAPE_Length),
-        SHAPE_Area: optionalFiniteNumber(properties.SHAPE_Area),
-        TC_Description: optionalString(properties.TC_Description),
-        SC_Description: optionalString(properties.SC_Description),
-        EN_Description: optionalString(properties.EN_Description),
+        descriptionEn: optionalString(properties.EN_Description),
+        descriptionZhHans: optionalString(properties.SC_Description),
+        descriptionZhHant: optionalString(properties.TC_Description),
+        endTime: optionalString(properties.End_Time),
+        objectId,
+        region: optionalString(properties.Region),
+        shapeArea: optionalFiniteNumber(properties.SHAPE_Area),
+        shapeLength: optionalFiniteNumber(properties.SHAPE_Length),
+        startTime: optionalString(properties.Start_Time),
       },
     }
   })
