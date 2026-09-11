@@ -604,10 +604,96 @@ describe('supplementary Place Address policy', () => {
       geometry: null,
       streetId: null,
     })
-    expect(rows[0]?.canonical.sources.map(source => source.sourceRecordId)).toEqual([
+    expect(rows[0]?.evidence.sources.map(source => source.sourceRecordId)).toEqual([
       'p1',
       'p2',
     ])
+  })
+  test('hashes canonical, locale and lookup content independently of edition and resolution evidence', async () => {
+    const { analyse } = setup()
+    const resolution = analyse(
+      observation('Citygate Outlets, 20 Tat Tung Road', 'p1'),
+      null,
+    )
+    expect(resolution.tier).toBe('supplementary')
+    const base = {
+      id: citygate.addressId,
+      snapshotId: 'als-selected',
+      divisionSnapshotId: 'division-selected',
+      countryId: 'hk',
+      districtId: 'islands',
+    } as typeof currentSchema.address2d.$inferSelect
+    const input = {
+      resolutions: [resolution],
+      officialAddresses: new Map([[citygate.addressId, base]]),
+      snapshotId: 'first',
+      divisionSnapshotId: 'division-selected',
+      sourceReleaseId: 'supp-first',
+      placeSourceReleaseId: 'place-first',
+      sourceVersion: '2025-12-17.0',
+      datasetId: 'places-dataset',
+    }
+    const build = async (changes: Partial<typeof input> = {}) => {
+      const [row] = await buildSupplementaryAddressRows({ ...input, ...changes })
+      if (!row) throw new Error('Expected a supplementary Address.')
+      return row
+    }
+    const first = await build()
+    expect(first.lookups).toHaveLength(1)
+    const components = (row: typeof first) => ({
+      base: row.versionHash,
+      locales: row.i18nVersionHashes,
+      lookups: row.lookups,
+    })
+    const edition = await build({
+      snapshotId: 'second',
+      sourceReleaseId: 'supp-second',
+      placeSourceReleaseId: 'place-second',
+      sourceVersion: '2026-01-21.0',
+    })
+    expect(components(edition)).toEqual(components(first))
+    expect(edition.evidence.versionHash).not.toBe(first.evidence.versionHash)
+    expect(edition.current.sources).toEqual(edition.evidence.sources)
+    const dependency = await build({
+      officialAddresses: new Map([
+        [citygate.addressId, { ...base, snapshotId: 'als-next' }],
+      ]),
+    })
+    expect(components(dependency)).toEqual(components(first))
+    expect(dependency.evidence.versionHash).not.toBe(first.evidence.versionHash)
+    const supportingPlace = analyse(
+      observation('Citygate Outlets, 20 Tat Tung Road', 'p2'),
+      null,
+    )
+    const supported = await build({ resolutions: [supportingPlace, resolution] })
+    expect(components(supported)).toEqual(components(first))
+    expect(supported.evidence.versionHash).not.toBe(first.evidence.versionHash)
+    expect(supported.evidence.sources.map(source => source.sourceRecordId)).toEqual([
+      'p1',
+      'p2',
+    ])
+    expect(
+      (await build({ resolutions: [resolution, supportingPlace] })).evidence,
+    ).toEqual(supported.evidence)
+    const changedLocale = structuredClone(resolution)
+    const changedEntry = changedLocale.entry
+    if (!changedEntry) throw new Error('Expected an accepted Address.')
+    const locale = changedEntry.values[0]
+    if (!locale) throw new Error('Expected an accepted locale.')
+    locale.formattedAddress = locale.formattedAddress.toLowerCase()
+    expect(supplementaryIdentity(changedEntry.values).addressId).toBe(first.current.id)
+    const localised = await build({ resolutions: [changedLocale] })
+    expect(localised.versionHash).toBe(first.versionHash)
+    expect(localised.i18nVersionHashes.en).not.toBe(first.i18nVersionHashes.en)
+    expect(localised.lookups).toEqual(first.lookups)
+    const division = await build({
+      officialAddresses: new Map([
+        [citygate.addressId, { ...base, districtId: 'another-district' }],
+      ]),
+    })
+    expect(division.versionHash).not.toBe(first.versionHash)
+    expect(division.i18nVersionHashes).toEqual(first.i18nVersionHashes)
+    expect(division.lookups).toEqual(first.lookups)
   })
   test('a curated Address without an ALS base has no division IDs', async () => {
     const { fixture } = setup()
