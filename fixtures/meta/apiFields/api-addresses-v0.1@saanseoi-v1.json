@@ -1,0 +1,1913 @@
+{
+  "versionHash": "sha256:7740249a154ff78805a10e3aeaafeef49ac3e1d8392a485d0c66872d769ea656",
+  "apiVersion": "api-addresses-v0.1",
+  "domainCode": "saanseoi",
+  "mappingVersion": 1,
+  "schemaVersion": "sv-address-v1",
+  "rulesetVersion": "rs-address-merge-v1",
+  "publisherSchemaRanges": {
+    "ds-hk-hkgov-dpo-address": {
+      "min": "3.2",
+      "max": "3.2"
+    },
+    "ds-hk-overture-division": {
+      "min": "1.12.0",
+      "max": "1.18.0"
+    }
+  },
+  "publisherFields": {
+    "ds-hk-hkgov-dpo-address": {
+      "geometry": "geometry",
+      "properties.geoAddress": "properties.Address.PremisesAddress.GeoAddress",
+      "properties.hkgovCsuId": "properties.Address.PremisesAddress.BuildingCsuInformation.CsuId",
+      "properties.address3dEn": "properties.Address.PremisesAddress.EngPremisesAddress.Eng3dAddress",
+      "properties.address3dZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.Chi3dAddress",
+      "properties.blockDescriptorEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock.BlockDescriptor",
+      "properties.blockDescriptorZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock.BlockDescriptor",
+      "properties.blockDescriptorPrecedenceIndicatorEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock.BlockDescriptorPrecedenceIndicator",
+      "properties.blockDescriptorPrecedenceIndicatorZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock.BlockDescriptorPrecedenceIndicator",
+      "properties.blockNoEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngBlock.BlockNo",
+      "properties.blockNoZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiBlock.BlockNo",
+      "properties.buildingNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.BuildingName",
+      "properties.buildingNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.BuildingName",
+      "properties.districtEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngDistrict",
+      "properties.districtZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiDistrict",
+      "properties.estateNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EstateName",
+      "properties.estateNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate.EstateName",
+      "properties.phaseNameEn": [
+        "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EngPhase.PhaseName",
+        "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseName"
+      ],
+      "properties.phaseNameZhHant": [
+        "properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate.ChiPhase.PhaseName",
+        "properties.Address.PremisesAddress.ChiPremisesAddress.ChiPhase.PhaseName"
+      ],
+      "properties.phaseNoEn": [
+        "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EngPhase.PhaseNo",
+        "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseNo"
+      ],
+      "properties.phaseNoZhHant": [
+        "properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate.ChiPhase.PhaseNo",
+        "properties.Address.PremisesAddress.ChiPremisesAddress.ChiPhase.PhaseNo"
+      ],
+      "properties.regionEn": "properties.Address.PremisesAddress.EngPremisesAddress.Region",
+      "properties.regionZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.Region",
+      "properties.streetLocationNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.LocationName",
+      "properties.streetLocationNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.LocationName",
+      "properties.streetNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.StreetName",
+      "properties.streetNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.StreetName",
+      "properties.streetNumberFromEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoFrom",
+      "properties.streetNumberFromZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoFrom",
+      "properties.streetNumberToEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngStreet.BuildingNoTo",
+      "properties.streetNumberToZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiStreet.BuildingNoTo",
+      "properties.unitDescriptorEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngUnit.UnitDescriptor",
+      "properties.unitDescriptorZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiUnit.UnitDescriptor",
+      "properties.unitNoEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngUnit.UnitNo",
+      "properties.unitNoZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiUnit.UnitNo",
+      "properties.villageLocationNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngVillage.LocationName",
+      "properties.villageLocationNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.LocationName",
+      "properties.villageNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngVillage.VillageName",
+      "properties.villageNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.VillageName",
+      "properties.villageNumberFromEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngVillage.BuildingNoFrom",
+      "properties.villageNumberFromZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.BuildingNoFrom",
+      "properties.villageNumberToEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngVillage.BuildingNoTo",
+      "properties.villageNumberToZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.BuildingNoTo"
+    }
+  },
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-address-2024-07-25.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-01-23.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-02-25.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-03-21.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-04-26.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-05-22.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-06-20.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-08-13.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-09-03.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-09-24.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-11-04.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2025-12-16.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-02-04.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-03.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-22.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-04-25.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-06-04.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-06-24.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-08.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-10.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-address-2026-07-22.0"
+    }
+  ],
+  "resourceType": "address",
+  "fields": [
+    {
+      "apiField": "id",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "prepare-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.geoAddress"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.hkgovCsuId"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "geometry"
+        },
+        {
+          "origin": "registry",
+          "fieldPath": "previousAddressSnapshotId"
+        },
+        {
+          "origin": "intermediate",
+          "fieldPath": "previousAddressRecords"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.identity"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.geometry",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "prepare-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "geometry"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.coordinates"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.identifiers.hkgovCsuId",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise_whitespace",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.hkgovCsuId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.country",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot.countryId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.country",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot.countryId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.area",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.area",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionEn"
+        },
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.district",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtZhHant"
+        },
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.district",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.i18n.en.formattedAddress",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.blockType",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.blockRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.estateName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberFrom",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberTo",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 3,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.blockExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.blockTypeBeforeNumber",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.streetName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.formattedAddress",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.blockType",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.blockRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.estateName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberFrom",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberTo",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 3,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.blockExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.blockTypeBeforeNumber",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.streetName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberFrom",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberTo",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.en.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberFrom",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberTo",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseName",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseRef",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.i18n.zh-hant.phaseExpression",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.components"
+        }
+      ],
+      "processingRuleIds": ["prepare-als-addresses"]
+    },
+    {
+      "apiField": "attributes.bbox",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "constant_value",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "constant",
+          "value": null
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.granularity",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.geoAddress"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.hkgovCsuId"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.hierarchy"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.parentAddressId",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "normalise-als-addresses",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.geoAddress"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.hkgovCsuId"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoEn"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.buildingNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.address3dZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.phaseNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.streetNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageLocationNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberFromZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.villageNumberToZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.estateNameZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockNoZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.blockDescriptorPrecedenceIndicatorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitDescriptorZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.unitNoZhHant"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "alsCurations.hierarchy"
+        }
+      ]
+    }
+  ],
+  "sourceCompositions": [
+    {
+      "datasetCodes": ["ds-hk-hkgov-dpo-address", "ds-hk-overture-division"],
+      "anchorSnapshotVersions": [
+        "ss-hk-address-2024-07-25.0",
+        "ss-hk-address-2025-01-23.0",
+        "ss-hk-address-2025-02-25.0",
+        "ss-hk-address-2025-03-21.0",
+        "ss-hk-address-2025-04-26.0",
+        "ss-hk-address-2025-05-22.0",
+        "ss-hk-address-2025-06-20.0",
+        "ss-hk-address-2025-08-13.0",
+        "ss-hk-address-2025-09-03.0",
+        "ss-hk-address-2025-09-24.0",
+        "ss-hk-address-2025-11-04.0",
+        "ss-hk-address-2025-12-16.0",
+        "ss-hk-address-2026-02-04.0",
+        "ss-hk-address-2026-04-03.0",
+        "ss-hk-address-2026-04-22.0",
+        "ss-hk-address-2026-04-25.0",
+        "ss-hk-address-2026-06-04.0",
+        "ss-hk-address-2026-06-24.0",
+        "ss-hk-address-2026-07-08.0",
+        "ss-hk-address-2026-07-10.0",
+        "ss-hk-address-2026-07-22.0"
+      ]
+    }
+  ]
+}

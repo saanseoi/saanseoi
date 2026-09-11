@@ -1,0 +1,743 @@
+{
+  "versionHash": "sha256:e65a76ef81ea52016b8f8a7733394fc54b648daf2523be383e9797686fd56c96",
+  "apiVersion": "api-places-v0.1",
+  "domainCode": "overture",
+  "mappingVersion": 1,
+  "schemaVersion": "sv-place-v1",
+  "rulesetVersion": "rs-place-merge-v1",
+  "publisherSchemaRanges": {
+    "ds-hk-hkgov-dpo-address": {
+      "min": "3.2",
+      "max": "3.2"
+    },
+    "ds-hk-overture-division": {
+      "min": "1.12.0",
+      "max": "1.18.0"
+    },
+    "ds-hk-overture-place": {
+      "min": "1.12.0",
+      "max": "1.18.0"
+    }
+  },
+  "publisherFields": {
+    "ds-hk-overture-place": {
+      "sourceRecordId": "id",
+      "geometry": "geometry",
+      "properties.addresses": "addresses",
+      "properties.basicCategory": "basic_category",
+      "properties.bbox": "bbox",
+      "properties.brand.names": "brand.names",
+      "properties.brand.wikidata": "brand.wikidata",
+      "properties.categories.alternate": "categories.alternate",
+      "properties.categories.primary": "categories.primary",
+      "properties.confidence": "confidence",
+      "properties.emails": "emails",
+      "properties.names": "names",
+      "properties.operatingStatus": "operating_status",
+      "properties.phones": "phones",
+      "properties.socials": "socials",
+      "properties.sources": "sources",
+      "properties.taxonomy.alternate": "taxonomy.alternate",
+      "properties.taxonomy.hierarchy": "taxonomy.hierarchy",
+      "properties.taxonomy.primary": "taxonomy.primary",
+      "properties.websites": "websites"
+    }
+  },
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-place-2025-09-24.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2025-10-22.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2025-12-17.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-01-21.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-02-18.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-03-18.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-04-15.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-05-20.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-06-17.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-07-22.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-place-2026-08-19.0"
+    }
+  ],
+  "resourceType": "place",
+  "fields": [
+    {
+      "apiField": "id",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "sourceRecordId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.geometry",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "geometry"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.coordinates"
+        }
+      ],
+      "processingRuleIds": ["resolve-place-addresses"]
+    },
+    {
+      "apiField": "attributes.bbox",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.bbox"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.referenceName",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "compose-place-reference-name",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "intermediate",
+          "fieldPath": "placesI18n"
+        }
+      ],
+      "processingRuleIds": ["normalise-overture-places"]
+    },
+    {
+      "apiField": "attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 3,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.categories.primary"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.operatingStatus",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.operatingStatus"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.wikidataId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.brand.wikidata"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.websites",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.websites"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.socials",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.socials"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.emails",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.emails"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.phones",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.phones"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.sources",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "wrap_publisher_sources",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.sources"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.confidence",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.confidence"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.i18n.*.name",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.names"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.i18n.*.brandName",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.brand.names"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.i18n.*.freeformAddress",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.address",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_fk",
+      "contributionType": "enrichment",
+      "priority": 10,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ],
+      "processingRuleIds": ["resolve-place-addresses"]
+    },
+    {
+      "apiField": "relationships.divisions",
+      "sourceDatasetCode": "ds-hk-overture-division",
+      "resolverCode": "lookup_fk",
+      "contributionType": "enrichment",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.address",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_fk",
+      "contributionType": "enrichment",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedAddressSnapshot"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 2,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.taxonomy.primary"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.basicCategory",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.basicCategory"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.taxonomy.primary",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.categories.primary"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.taxonomy.primary",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_empty",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.taxonomy.primary"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.taxonomy.hierarchy",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "direct_copy",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.taxonomy.hierarchy"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.taxonomy.alternates",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_null",
+      "contributionType": "fallback",
+      "priority": 1,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.taxonomy.alternate"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.taxonomy.alternates",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "merge_first_non_null",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.categories.alternate"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.i18n.*.nameVariant",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.names"
+        }
+      ],
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.i18n.*.nameAlts",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.names"
+        }
+      ],
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.i18n.*.brandNameVariant",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.brand.names"
+        }
+      ],
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.i18n.*.brandNameAlts",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.brand.names"
+        }
+      ],
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.i18n.*.provenance",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.names"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.brand.names"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.localisation"
+        }
+      ],
+      "resolverCode": "normalise-overture-places",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.i18n.*.accessHint",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.accessHint"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.createdAt",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "materialisation.createdAt"
+        }
+      ],
+      "resolverCode": "lookup_registry",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.updatedAt",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "materialisation.updatedAt"
+        }
+      ],
+      "resolverCode": "lookup_registry",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.firstSeenMonth",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "intermediate",
+          "fieldPath": "previousPlace.firstSeenMonth"
+        },
+        {
+          "origin": "intermediate",
+          "fieldPath": "normalisedPlace.firstSeenMonth"
+        }
+      ],
+      "resolverCode": "merge_first_non_null",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.lastSeenMonth",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "sourceRelease.sourceVersion"
+        }
+      ],
+      "resolverCode": "derive_release_month",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.snapshotId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "materialisation.snapshotId"
+        }
+      ],
+      "resolverCode": "lookup_registry",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.releaseId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "materialisation.releaseId"
+        }
+      ],
+      "resolverCode": "lookup_registry",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.addressSnapshotId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "materialisation.addressSnapshotId"
+        }
+      ],
+      "resolverCode": "lookup_registry",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.address2dId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.address2dId"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.address3dId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.address3dId"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.address3dUnitId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.address3dUnitId"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.address3dMembership",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress.address3dMembership"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    }
+  ],
+  "sourceCompositions": [
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-overture-division",
+        "ds-hk-overture-place"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-place-2025-09-24.0",
+        "ss-hk-place-2025-10-22.0",
+        "ss-hk-place-2025-12-17.0",
+        "ss-hk-place-2026-01-21.0",
+        "ss-hk-place-2026-02-18.0",
+        "ss-hk-place-2026-03-18.0",
+        "ss-hk-place-2026-04-15.0",
+        "ss-hk-place-2026-05-20.0",
+        "ss-hk-place-2026-06-17.0",
+        "ss-hk-place-2026-07-22.0",
+        "ss-hk-place-2026-08-19.0"
+      ]
+    }
+  ]
+}
