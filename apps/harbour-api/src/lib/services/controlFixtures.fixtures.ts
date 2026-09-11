@@ -1,3 +1,4 @@
+import { initialDatasets } from '@repo/db/registry'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -33,7 +34,7 @@ export function createTempDir() {
 export function sortProvenanceRows(
   rows: Array<{
     apiField: string
-    sourceFieldPath: string
+    inputs: string
   }>,
 ) {
   return rows
@@ -41,7 +42,7 @@ export function sortProvenanceRows(
     .sort(
       (left, right) =>
         left.apiField.localeCompare(right.apiField) ||
-        left.sourceFieldPath.localeCompare(right.sourceFieldPath),
+        left.inputs.localeCompare(right.inputs),
     )
 }
 
@@ -49,6 +50,18 @@ export function initDb(dbPath: string) {
   const db = new Database(dbPath)
   db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   seedFixtureCatalog(db)
+  // Match insertDataset: each test release captures its policy at creation.
+  db.exec(
+    'CREATE TABLE fixturePolicies (datasetCode TEXT PRIMARY KEY, processingRules TEXT)',
+  )
+  for (const dataset of initialDatasets)
+    db.query('INSERT INTO fixturePolicies VALUES (?, ?)').run(
+      dataset.code,
+      JSON.stringify(dataset.processingRules),
+    )
+  db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON releases
+    WHEN NEW.processingRules IS NULL
+    BEGIN UPDATE releases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = NEW.datasetId) WHERE id = NEW.id; END;`)
   seedCompletedAudits(db)
   return db
 }
