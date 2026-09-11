@@ -1,5 +1,9 @@
 # Highways Department street datasets
 
+Source validity uses the owning release's version component in `validFromRelease` and
+`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
+retains the release association.
+
 Native HyD feature attributes are stored only in `properties`, alongside native
 geometry, source identity, provenance and release history. TD pedestrian imports follow
 the same contract, retaining their layer kind as a source collection discriminator.

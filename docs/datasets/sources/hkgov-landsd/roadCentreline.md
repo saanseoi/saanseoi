@@ -1,5 +1,9 @@
 # LandsD Road Centreline
 
+Source validity uses the owning release's version component in `validFromRelease` and
+`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
+retains the release association.
+
 Source rows retain native `properties` and `sourceGeometry` with source identity,
 release history and provenance. Extracted names, street codes and classifications are
 used during canonical processing without parallel columns in source storage.
