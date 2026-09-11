@@ -107,9 +107,9 @@ retain the column names against which they were prepared.
 
 Source fingerprints retain their established serialisation keys independently of storage
 field names, so unchanged publisher assertions keep the same content version. Prepared
-payloads and SQL readers use `properties`. Regenerate prepared C&SD Parquet files and
-ALS publisher sidecars with the current preparation code; cached source normalisation
-and database mirrors use explicit contract versions.
+payloads and SQL readers use `properties`. Regenerate prepared C&SD and Planning Parquet
+files and ALS publisher sidecars with the current preparation code; cached source
+normalisation and database mirrors use explicit contract versions.
 
 ## ALS acquisition and field mappings
 

@@ -62,7 +62,9 @@ export async function materialiseStatisticSnapshots(args: {
         cohortKey: referencePeriod.code,
         datasetCode: args.datasetCode,
         datasetId: dataset.datasetId,
-        identityMode: 'persistent',
+        // Exact periods are independent inventories; revisions inherit only
+        // the preceding revision of this period, never another year's values.
+        identityMode: 'cohort_scoped',
         regionCode: dataset.regionCode,
         sourceReleaseId: dataset.releaseId,
         variant: args.datasetCode,

@@ -14,7 +14,7 @@ function sourceRow(sourceRecordId: string) {
   return {
     createdAt: '2026-08-16T00:00:00.000Z',
     isCurrent: true,
-    rawProperties: { district: sourceRecordId },
+    properties: { district: sourceRecordId },
     releaseId,
     sourceGeometry: { type: 'Point', coordinates: [114, 22] },
     sourceRecordId,
@@ -55,7 +55,7 @@ describe('buildStatisticSqlBatches', () => {
           rows: [
             {
               ...sourceRow('district-large'),
-              rawProperties: { value: 'x'.repeat(100_000) },
+              properties: { value: 'x'.repeat(100_000) },
             },
           ],
           table: 'hkgovCenstatdStatistics',
@@ -90,7 +90,7 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdStatistics (
         createdAt TEXT, datasetCode TEXT, featureId TEXT, isCurrent INTEGER,
-        layerName TEXT, rawProperties TEXT, referencePeriodCode TEXT,
+        layerName TEXT, properties TEXT, referencePeriodCode TEXT,
         referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
         referencePeriodGranularity TEXT, referencePeriodStart TEXT,
         releaseId TEXT, sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT,
@@ -167,7 +167,7 @@ describe('buildStatisticSqlBatches', () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdDistrictLandAreaPopulationDensities (
-        createdAt TEXT, isCurrent INTEGER, rawProperties TEXT, releaseId TEXT,
+        createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
         sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
         validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)

@@ -11,7 +11,8 @@ describe('buildCanonicalStatsSqlBatches', () => {
       createdAt: '2026-08-18T00:00:00.000Z',
       id: 'stats:2016',
       datasetCode: 'stats',
-      dimensions: {},
+      fieldSources: {},
+      fieldDefinitionHashes: {},
       geography: null,
       divisionId: null,
       referencePeriodCode: '2016',
@@ -39,7 +40,8 @@ describe('buildCanonicalStatsSqlBatches', () => {
       createdAt: '2026-08-18T00:00:00.000Z',
       id: `stats:${index}`,
       datasetCode: 'stats',
-      dimensions: {},
+      fieldSources: {},
+      fieldDefinitionHashes: {},
       geography: null,
       divisionId: null,
       referencePeriodCode: '2021',
@@ -64,11 +66,12 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.current[0]).toContain("'stats:99'")
   })
 
-  test('closes large record groups with byte-bounded IN predicates', () => {
+  test('retains immutable versions without closing or rewriting previous history', () => {
     const rows = Array.from({ length: 180 }, (_, index) => ({
       createdAt: '2026-08-18T00:00:00.000Z',
       datasetCode: 'stats',
-      dimensions: {},
+      fieldSources: {},
+      fieldDefinitionHashes: {},
       geography: null,
       divisionId: null,
       id: `stats:${index}`,
@@ -91,17 +94,17 @@ describe('buildCanonicalStatsSqlBatches', () => {
     })
 
     const historySql = batches.history[0]?.batches.join('\n') ?? ''
-    expect(historySql.match(/UPDATE "statsRecords"/g)).toHaveLength(1)
-    expect(historySql).toContain('"id" IN (')
-    expect(historySql).not.toContain('"id" = \'stats:0\' OR')
+    expect(historySql).not.toContain('UPDATE "statsRecords"')
+    expect(historySql).toContain('ON CONFLICT ("id", "versionHash") DO NOTHING')
     expect(historySql).toContain("'stats:179'")
   })
 
-  test('keeps composite history predicates below D1 expression depth', () => {
+  test('retains dictionary versions without updates or dataset-wide deletes', () => {
     const record = {
       createdAt: '2026-08-18T00:00:00.000Z',
       datasetCode: 'stats',
-      dimensions: {},
+      fieldSources: {},
+      fieldDefinitionHashes: {},
       geography: null,
       divisionId: null,
       id: 'stats:2021',
@@ -136,18 +139,21 @@ describe('buildCanonicalStatsSqlBatches', () => {
       ],
     })
 
-    const closeStatements =
-      batches.history[0]?.batches.join('\n').match(/UPDATE "statsFields"[^;]*;/g) ?? []
-    expect(closeStatements).toHaveLength(3)
-    for (const statement of closeStatements)
-      expect((statement.match(/ OR /g) ?? []).length).toBeLessThanOrEqual(47)
+    const historySql = batches.history[0]?.batches.join('\n') ?? ''
+    expect(historySql).not.toContain('UPDATE "statsFields"')
+    expect(historySql).not.toContain('DELETE FROM')
+    expect(historySql).toContain(
+      'ON CONFLICT ("datasetCode", "fieldName", "versionHash") DO NOTHING',
+    )
+    expect(batches.current).toEqual([])
   })
 
   test('groups history by period end year and versions dictionaries in each shard', () => {
     const base = {
       createdAt: '2026-08-20T00:00:00.000Z',
       datasetCode: 'stats',
-      dimensions: {},
+      fieldSources: {},
+      fieldDefinitionHashes: {},
       divisionId: null,
       geography: null,
       isCurrent: true,
@@ -212,20 +218,11 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.history[0]?.batches.join('\n')).toContain("'stats:2024'")
     expect(batches.history[1]?.batches.join('\n')).toContain("'stats:2024-25'")
     expect(batches.history[0]?.batches.join('\n')).toContain(
-      'ON CONFLICT ("datasetCode", "fieldName", "sourceReleaseId", "versionHash")',
+      'ON CONFLICT ("datasetCode", "fieldName", "versionHash")',
     )
     expect(batches.history[1]?.batches.join('\n')).toContain("'field-version'")
     expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
-    expect(batches.history[0]?.batches.join('\n')).toContain(
-      '"sourceReleaseId" = \'release-2026\'',
-    )
-    expect(batches.history[0]?.batches.join('\n')).toContain(
-      '"sourceReleaseId" = \'release-2025\'',
-    )
-    expect(batches.current.join('\n')).toContain(
-      'ON CONFLICT ("datasetCode", "fieldName")',
-    )
-    expect(batches.current.join('\n')).not.toContain('"isCurrent"')
+    expect(batches.current).toEqual([])
   })
 })
 

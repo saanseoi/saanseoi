@@ -6,14 +6,10 @@ import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { curationDocumentsFor } from '../../curationDocuments'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import {
-  buildCenstatdGeographyLinkAuditActions,
-  buildCenstatdFieldCurationAuditActions,
-  buildCenstatdNormalisationAuditActions,
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
   censtatdReleaseStatsProfileFor,
 } from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
-import { createHash as createNodeHash } from 'node:crypto'
 import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
 import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
 import { retainStatisticProvenance } from './statisticProvenance.ts'
@@ -56,10 +52,7 @@ import {
   buildStatisticSqlBatches,
   replayStatisticSqlBatches,
 } from './statisticSqlReplay.ts'
-import {
-  buildCanonicalStatsSqlBatches,
-  replayCanonicalStatsSqlBatches,
-} from './canonicalStatsSql.ts'
+import { replayCanonicalStatsSqlBatches } from './canonicalStatsSql.ts'
 import {
   resolveHkgovCenstatdDistrictBridge,
   censtatdDistrictIdentityRule,
@@ -80,6 +73,7 @@ import {
   runStatisticProgressStep,
 } from './statisticProgress.ts'
 import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot.ts'
+import { planCanonicalStatistics } from './planCanonicalStatistics'
 
 type Plan = {
   cohortKey: string
@@ -108,7 +102,7 @@ type SourceStatisticRow = {
   landAreaSqKm: number
   midYearPopulation: number
   midYearPopulationDensityPerSqKm: number
-  rawProperties: unknown
+  properties: unknown
   referencePeriodCode: string
   referencePeriodEnd: string | null
   referencePeriodEndYear: string
@@ -251,7 +245,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-district-source-v2',
+            contract: 'censtatd-district-source-v3',
             preparedSha256,
             releaseId,
             releaseCode,
@@ -293,7 +287,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           ? { code: resolution.districtCode, kind: 'district' }
           : undefined,
         areaCompanionByReferencePeriod: dataset.areaCompanionByReferencePeriod,
-        properties: object(row.rawProperties, 'rawProperties'),
+        properties: object(row.properties, 'properties'),
         sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
         sourceReleaseId: releaseId,
         sourceVersion: plan.sourceVersion,
@@ -337,10 +331,27 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
         },
       })
+    const snapshots = await materialiseStatisticSnapshots({
+      datasetCode: plan.datasetCode,
+      metaDb,
+      referencePeriods: uniqueReferencePeriods(canonical.records),
+      releaseId,
+      target,
+    })
+    const canonicalPlan = await planCanonicalStatistics({
+      canonical,
+      snapshots,
+      metaDb,
+      historyDbs: context.historyTargets.map(target => target.db as HarbourReadableDb),
+      sourceReleaseId: releaseId,
+    })
+    progress.message(
+      `Statistics: ${canonicalPlan.changedRecords.length} changed packs, ${canonicalPlan.unchangedRecords} unchanged packs`,
+    )
     const canonicalBatches = () =>
-      buildCanonicalStatsSqlBatches({
-        resolutions: statisticSourceResolutions(
-          canonical.records,
+      canonicalPlan.buildBatches(
+        statisticSourceResolutions(
+          canonicalPlan.changedRecords,
           new Map(
             sourceRows.map(row => [
               `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
@@ -349,10 +360,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           ),
           releaseId,
         ),
-        current: canonicalCurrentRows(canonical),
-        history: canonicalHistoryRows(canonical, releaseId),
-        dictionaries: canonicalDictionaries(canonical, releaseId),
-      })
+      )
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -449,13 +457,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       },
       releaseCode,
     )
-    const snapshots = await materialiseStatisticSnapshots({
-      datasetCode: plan.datasetCode,
-      metaDb,
-      referencePeriods: uniqueReferencePeriods(canonical.records),
-      releaseId,
-      target,
-    })
     await replayStatisticSnapshotMetaToRemote(
       target,
       context,
@@ -620,6 +621,8 @@ async function normaliseSourceRowInternal(
   releaseCode: string,
   sourceVersion: string,
 ): Promise<SourceStatisticRow> {
+  if (!Object.hasOwn(value, 'properties'))
+    throw new Error('C&SD source properties are missing; prepare the release again.')
   const sourceRecordId = string(value.id, 'id')
   const referencePeriodCode = string(
     value.reference_period_code,
@@ -638,7 +641,7 @@ async function normaliseSourceRowInternal(
       'mid_year_population_density_per_sq_km',
     ),
     midYearPopulation: integer(value.mid_year_population, 'mid_year_population'),
-    rawProperties: json(value.raw_properties, 'raw_properties'),
+    properties: json(value.properties, 'properties'),
     referencePeriodCode,
     referencePeriodEnd: optionalString(value.reference_period_end),
     referencePeriodEndYear: string(
@@ -754,67 +757,6 @@ function object(value: unknown, field: string) {
     throw new Error(`Expected ${field} object.`)
   }
   return value as Record<string, unknown>
-}
-
-function canonicalCurrentRows(
-  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
-) {
-  const now = new Date().toISOString()
-  return [
-    {
-      rows: canonical.records.map(row => ({
-        ...row,
-        createdAt: now,
-        updatedAt: now,
-      })),
-      table: 'statsRecords' as const,
-    },
-  ]
-}
-
-function canonicalHistoryRows(
-  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
-  sourceReleaseId: string,
-) {
-  const now = new Date().toISOString()
-  const version = (row: Record<string, unknown>) => ({
-    ...row,
-    createdAt: now,
-    isCurrent: true,
-    sourceReleaseId,
-    updatedAt: now,
-    versionHash: createNodeHash('sha256')
-      .update(stableJsonStringify(row) ?? JSON.stringify(row))
-      .digest('hex'),
-  })
-  return [{ rows: canonical.records.map(version), table: 'statsRecords' as const }]
-}
-
-function canonicalDictionaries(
-  canonical: ReturnType<typeof normaliseHkgovCenstatdStatistics>,
-  sourceReleaseId: string,
-) {
-  const now = new Date().toISOString()
-  const version = (row: Record<string, unknown>) => ({
-    ...row,
-    createdAt: now,
-    isCurrent: true,
-    sourceReleaseId,
-    updatedAt: now,
-    versionHash: createNodeHash('sha256')
-      .update(stableJsonStringify(row) ?? JSON.stringify(row))
-      .digest('hex'),
-  })
-  return [
-    { rows: canonical.fields.map(version), table: 'statsFields' as const },
-    { rows: canonical.fieldsI18n.map(version), table: 'statsFieldsI18n' as const },
-    { rows: canonical.measures.map(version), table: 'statsMeasures' as const },
-    {
-      rows: canonical.measuresI18n.map(version),
-      table: 'statsMeasuresI18n' as const,
-    },
-    { rows: canonical.valuesI18n.map(version), table: 'statsValuesI18n' as const },
-  ]
 }
 
 function uniqueReferencePeriods(

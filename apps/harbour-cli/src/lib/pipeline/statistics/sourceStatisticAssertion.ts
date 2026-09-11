@@ -5,7 +5,7 @@ import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/source
 export function sourceStatisticAssertion<
   T extends {
     sourceRecordId: string
-    rawProperties: unknown
+    properties: unknown
     sourceGeometry: unknown
     sources: unknown
     versionHash: string
@@ -19,7 +19,7 @@ export function sourceStatisticAssertion<
 >(row: T) {
   return {
     sourceRecordId: row.sourceRecordId,
-    rawProperties: retainSourceProperties(row.rawProperties),
+    properties: retainSourceProperties(row.properties),
     sourceGeometry: row.sourceGeometry,
     sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,

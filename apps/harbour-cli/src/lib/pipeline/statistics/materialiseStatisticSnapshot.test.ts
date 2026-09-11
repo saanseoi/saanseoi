@@ -4,6 +4,8 @@ import { resolve } from 'node:path'
 
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
+import { ensureDraftSnapshotForRelease } from '@repo/core/db/metaRegistry'
+import { requireDefined } from '@repo/core/requireDefined'
 
 import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot'
 
@@ -130,6 +132,28 @@ test.each(['2026-Q2', '2023-H2'])(
       { bindingName: 'DB_HISTORY_HK_BEFORE', cohortKey: '2016' },
       { bindingName: 'DB_HISTORY_HK_2025', cohortKey: '2024/25' },
     ])
+
+    expect(snapshots.map(snapshot => snapshot.parentSnapshotId)).toEqual([null, null])
+    const firstSnapshot = requireDefined(snapshots[0])
+    const correction = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
+      cohortKey: '2016',
+      datasetCode: 'dataset-statistics',
+      datasetId: 'dataset',
+      identityMode: 'cohort_scoped',
+      regionCode: 'hk',
+      sourceReleaseId: 'correction-release',
+      variant: 'dataset-statistics',
+    })
+    expect(correction.id).not.toBe(firstSnapshot.id)
+    expect(correction.parentSnapshotId).toBe(firstSnapshot.id)
+    const retry = await materialiseStatisticSnapshots({
+      datasetCode: 'dataset-statistics',
+      metaDb: db,
+      referencePeriods: [{ code: '2016', endYear: '2016' }],
+      releaseId: 'release',
+      target: { environment: 'dev', remote: false },
+    })
+    expect(retry[0]?.id).toBe(firstSnapshot.id)
 
     sqlite.close()
   },

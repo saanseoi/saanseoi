@@ -2,10 +2,10 @@ import { expect, test } from 'bun:test'
 import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 
 test('source statistic persistence retains raw evidence without canonical preparation fields', () => {
-  const rawProperties = { DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' }
+  const properties = { DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' }
   const row = sourceStatisticAssertion({
     sourceRecordId: 'district:1',
-    rawProperties,
+    properties,
     sourceGeometry: { type: 'Polygon', coordinates: [] },
     sources: [{ dataset: 'hkgov-censtatd' }],
     version: 1,
@@ -24,16 +24,16 @@ test('source statistic persistence retains raw evidence without canonical prepar
     layerName: 'layer',
     featureId: '1',
   })
-  expect(row.rawProperties).toEqual({
+  expect(row.properties).toEqual({
     dc: 1,
     mypopnLand: '12.3',
     districtEn: 'District',
   })
-  expect(rawProperties).toEqual({ DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' })
+  expect(properties).toEqual({ DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' })
   expect(Object.keys(row).sort()).toEqual([
     'createdAt',
     'isCurrent',
-    'rawProperties',
+    'properties',
     'releaseId',
     'sourceGeometry',
     'sourceLocator',

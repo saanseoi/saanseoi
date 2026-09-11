@@ -127,7 +127,7 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
     result.manifest.bulk.find(b => b.id === 'normalise-censtatd-statistics')?.counts,
   ).toMatchObject({
     inputs: { 'publisher-properties': 1 },
-    outputs: { statsRecords: 2 },
+    outputs: { statsRecords: 1 },
     recordsAffected: 1,
   })
   const retained = [...objects.values()].map(bytes =>
