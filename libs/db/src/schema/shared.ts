@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
+import type { DivisionHierarchies } from '../divisionTaxonomy'
 import { addressGranularities } from '../addressGranularity'
 import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
 
@@ -156,9 +157,12 @@ export const canonicalDivision = {
   identifiers: jsonText('identifiers'),
   /** Canonical hierarchy level; absent for non-hierarchical geographies. */
   level: integer('level'),
-  type: text('type').notNull(),
+  category: text('category', { enum: ['administrative', 'locality', 'hood'] }),
+  class: text('class').notNull(),
   wikidata: text('wikidata'),
-  hierarchy: jsonText('hierarchy'),
+  hierarchies: text('hierarchies', { mode: 'json' })
+    .$type<DivisionHierarchies>()
+    .notNull(),
   cartography: jsonText('cartography'),
   sources: jsonText('sources'),
   ...geoBbox,

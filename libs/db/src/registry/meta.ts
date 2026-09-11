@@ -104,7 +104,7 @@ type DatasetFixture = {
   releaseType: DatasetReleaseType
   releaseFrequency: DatasetReleaseFrequency
   theme: DatasetTheme
-  subType?: string
+  kind?: string
   sourceVariant?: string
   sourceCrs?: string
   resourceTypes: ResourceType[]
@@ -280,9 +280,9 @@ type InitialUnitI18nSeed = {
 type InitialDatasetSeed = VersionedFixture<
   Omit<
     DatasetFixture,
-    'i18n' | 'mergeRules' | 'subType' | 'sourceVariant' | 'transforms'
+    'i18n' | 'mergeRules' | 'kind' | 'sourceVariant' | 'transforms'
   > & {
-    subType: string | null
+    kind: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
   }
@@ -577,7 +577,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   releaseType: fixture.releaseType,
   releaseFrequency: fixture.releaseFrequency,
   theme: fixture.theme,
-  subType: fixture.subType ?? null,
+  kind: fixture.kind ?? null,
   sourceVariant: fixture.sourceVariant ?? 'default',
   resourceTypes: [...new Set(fixture.resourceTypes)],
   sourceCrs: fixture.sourceCrs,
@@ -923,7 +923,7 @@ WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, kind, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -932,7 +932,7 @@ INSERT INTO datasets (
   ${sqlString(dataset.releaseType)},
   ${sqlString(dataset.releaseFrequency)},
   ${sqlString(dataset.theme)},
-  ${sqlNullable(dataset.subType)},
+  ${sqlNullable(dataset.kind)},
   ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceCrs)},
   ${sqlNullable(dataset.sourceUrl)},
@@ -953,7 +953,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   releaseType = excluded.releaseType,
   releaseFrequency = excluded.releaseFrequency,
   theme = excluded.theme,
-  subType = excluded.subType,
+  kind = excluded.kind,
   sourceVariant = excluded.sourceVariant,
   sourceCrs = excluded.sourceCrs,
   sourceUrl = excluded.sourceUrl,

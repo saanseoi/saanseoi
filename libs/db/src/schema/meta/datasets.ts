@@ -39,7 +39,7 @@ export const metaDatasets = sqliteTable(
       .$type<(typeof datasetTypes)[number][]>()
       .notNull()
       .default([]),
-    subType: text('subType'),
+    kind: text('kind'),
     sourceVariant: text('sourceVariant').notNull().default('default'),
     // Native CRS shared by every release of this source dataset. Source
     // records retain their geometry evidence but must not duplicate this
