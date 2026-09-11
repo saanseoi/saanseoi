@@ -38,7 +38,9 @@ old flat hierarchy as the new contract.
 Open source versions with unchanged hashes retain their release ID, validity and
 timestamps. Publisher membership determines omissions independently of release markers.
 Geometry source and derivative conflict updates run only for closed assertions; closing
-a changed version targets that current version without rewriting older history.
+a changed version targets that current version without rewriting older history. Source
+and derivative validity bounds store the release's `sourceVersion` component, such as
+`2025-09-24.0` or `2021`, without a dataset or resource prefix.
 
 New Territories area restoration includes the nine statutory district land geometries
 and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
@@ -184,9 +186,12 @@ registers the manifest only after every dependency and the final root are acknow
 Remote release-set reconciliation refreshes metadata before calculating published API
 statistics, so publication and recoverable statistics attempts use committed membership.
 History caches retain all Division identity and name versions needed by published
-snapshot journals, including superseded versions used for predecessor comparisons. Cache
-rebuilds group selected tables by data/schema export mode per binding. Binary geometry
-rows retain their separate byte-for-byte verified transfer. Post-publication statistics
+snapshot journals, including superseded versions used for predecessor comparisons.
+Geometry processing opens all configured regional history shards because its selected
+Division reference snapshot can belong to a later year than the source release. Source
+and geometry writes remain assigned to the source release's shard year. Cache rebuilds
+group selected tables by data/schema export mode per binding. Binary geometry rows
+retain their separate byte-for-byte verified transfer. Post-publication statistics
 failures are recorded against their ingest stage without changing published or
 superseded source-release status.
 
@@ -224,7 +229,7 @@ sealed-plan preparation callback. A retained plan skips those reads. Statement p
 tracks UTF-8 byte counts incrementally and closes the iterator on interruption.
 
 Remote replay includes superseded history and source versions, selected through the
-snapshot change journal and closing release code. Closures update exact version keys
+snapshot change journal and closing source version. Closures update exact version keys
 without replacing historical geometry; C&SD source derivatives are retained too.
 
 Canonical Division and Planning Department SQL artefact imports use native local
