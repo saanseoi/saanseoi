@@ -5,6 +5,7 @@ import { createLocalHarbourDb } from '../../testing/localDb'
 import { loadMigrationSql } from '../../testing/metaFixtures'
 import {
   recordSnapshotAssemblyRun,
+  recordSnapshotLookupDependency,
   upsertSnapshotSource,
 } from '../../lib/db/metaRegistry'
 import { recordPlaceAddressAssembly } from '../services/places/placeAddressAssembly'
@@ -139,6 +140,48 @@ test('Places planning and finalisation retain review evidence in the same run', 
       materialisationHash: 'hash',
     })
     expect(sqlite.query('SELECT * FROM snapshotAssemblyRuns').all()).toHaveLength(1)
+  } finally {
+    sqlite.close()
+  }
+})
+
+test('lookup assembly retains exact revisions and merges independently selected dependency families', async () => {
+  const { db, sqlite } = fixture()
+  try {
+    await source(db, 'primary')
+    await recordSnapshotAssemblyRun(db, {
+      ...args,
+      selectionSummaryJson: { lookupSnapshotIds: { street: 'street-revision' } },
+    })
+    sqlite.exec(`INSERT INTO snapshots (id,code,resourceType,cohortKey,status,createdAt,updatedAt)
+      VALUES ('division-revision','division-revision','division','2026','published','${now}','${now}');`)
+    await upsertSnapshotSource(
+      db,
+      'division-revision',
+      'lookup',
+      'release-lookup',
+      'primary',
+      {
+        selectedByRule: 'division',
+        selectionMode: 'exact_ref',
+        sourceCohortKey: '2026',
+      },
+    )
+    await recordSnapshotLookupDependency(db, {
+      snapshotId: 'snapshot',
+      lookupSnapshotId: 'division-revision',
+      anchorReleaseId: 'release-primary',
+      selectedByRule: 'address-division',
+      selectionMode: 'exact_ref',
+    })
+    expect(JSON.parse(run(sqlite).selectionSummaryJson).lookupSnapshotIds).toEqual({
+      street: 'street-revision',
+      division: 'division-revision',
+    })
+    await recordSnapshotAssemblyRun(db, args)
+    expect(
+      JSON.parse(run(sqlite).selectionSummaryJson).lookupSnapshotIds.division,
+    ).toBe('division-revision')
   } finally {
     sqlite.close()
   }

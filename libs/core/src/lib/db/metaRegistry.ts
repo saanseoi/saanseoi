@@ -5428,6 +5428,7 @@ export async function recordSnapshotLookupDependency(
   const lookupSource = await db
     .select({
       datasetId: metaSnapshotSources.datasetId,
+      resourceType: metaSnapshots.resourceType,
       sourceCohortKey: metaSnapshots.cohortKey,
       sourceReleaseId: metaSnapshotSources.resourceReleaseId,
     })
@@ -5476,6 +5477,9 @@ export async function recordSnapshotLookupDependency(
     resourceType: snapshot.resourceType,
     anchorCohortKey: snapshot.cohortKey,
     anchorReleaseId: args.anchorReleaseId,
+    selectionSummaryJson: {
+      lookupSnapshotIds: { [lookupSource.resourceType]: args.lookupSnapshotId },
+    },
   })
 }
 

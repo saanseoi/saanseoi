@@ -161,6 +161,19 @@ export async function recordEffectiveSnapshotAssembly(
   const summary = {
     ...(previousSummary && typeof previousSummary === 'object' ? previousSummary : {}),
     ...args.selectionSummaryJson,
+    ...(previousSummary?.lookupSnapshotIds ||
+    args.selectionSummaryJson?.lookupSnapshotIds
+      ? {
+          lookupSnapshotIds: {
+            ...(previousSummary?.lookupSnapshotIds as
+              | Record<string, string>
+              | undefined),
+            ...(args.selectionSummaryJson?.lookupSnapshotIds as
+              | Record<string, string>
+              | undefined),
+          },
+        }
+      : {}),
     sources,
   }
   const primary = sources.find(source => source.role === 'primary')
