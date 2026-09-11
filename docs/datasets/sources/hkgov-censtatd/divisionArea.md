@@ -147,7 +147,10 @@ for each reference-year cohort; canonical `identifiers` expose the provider's `c
 and numeric `code`.
 
 The source `censusYear` identifies the source cohort used to resolve exact input
-versions for geometry derivatives; it is release identity, not a canonical field.
+versions for geometry derivatives; it is release identity, not a canonical field. It
+also participates in the C&SD source assertion identity, so byte-identical geometry from
+two census cohorts remains independently addressable and one cohort's source retirement
+cannot close the other cohort's current assertion.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the

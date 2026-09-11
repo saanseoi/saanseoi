@@ -216,8 +216,9 @@ Supplementary Address SQL is resolved on isolated mirror copies and delivered as
 row differences. The `addressPublicationState` lineage is claimed before current
 mutations; each batch verifies its publication token. Complete 2D/3D, localisation and
 reference validation supplies preparation evidence, including an empty accepted set.
-Publication makes the matching prepared lineage ready. Repeated unchanged content does
-not rewrite its current rows.
+Publication makes the matching prepared lineage ready. Unchanged current locale and
+lookup payloads produce no row mutations; edition provenance updates the current base
+row's `sources`.
 
 The Places-ingest extension creates Overture Places supplementary Address rows. It is
 deliberately a two-phase part of Places ingestion: analyse the Place source release

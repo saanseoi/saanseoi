@@ -24,7 +24,7 @@ import {
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { and, eq, inArray, sql, getTableColumns } from 'drizzle-orm'
+import { and, eq, inArray, lte, sql, getTableColumns } from 'drizzle-orm'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -163,7 +163,11 @@ export async function writeGeometryRows(
     ) {
       sourceHashes.set(
         row.source.sourceRecordId,
-        await hashGeometrySourceAssertion(row.source, version.source),
+        await hashGeometrySourceAssertion(
+          row.source,
+          version.source,
+          version.cohortKey,
+        ),
       )
     }
   }
@@ -268,6 +272,7 @@ export async function writeGeometryRows(
       sourceTable.sourceRecordId,
       sourceHashes,
       { isCurrent: false, validToRelease: version.sourceVersion },
+      geometrySourceScope(sourceTable, version),
     )
   }
   onProgress?.('build write batches')
@@ -535,14 +540,16 @@ function requireMaterialisedGeometry(
 function hashGeometrySourceAssertion(
   row: NonNullable<NormalisedGeometry>['source'],
   source: GeometryUploadPlan['source'],
+  cohortKey: string,
 ) {
   if (source === 'overture') return hashDivisionGeometrySourceRow(row)
-  return hashDivisionGeometrySourceRow(
-    nativeSourcePayloadHashInput({
+  return hashDivisionGeometrySourceRow({
+    ...nativeSourcePayloadHashInput({
       properties: row.properties,
       sourceGeometry: row.sourceGeometry,
     }),
-  )
+    ...(source === 'hkgov-censtatd' ? { censusYear: cohortKey } : {}),
+  })
 }
 
 async function writeCenstatdSourceDerivatives(
@@ -684,12 +691,13 @@ async function closeChangedRows(
   idColumn: AnySQLiteColumn<{ data: string }>,
   currentHashes: Map<string, string>,
   values: Record<string, unknown>,
+  scope: ReturnType<typeof and>,
 ) {
   const typedDb = db as unknown as HarbourReadableDb & HarbourWritableDb
   const existing = await typedDb
     .select({ id: idColumn, versionHash: table.versionHash })
     .from(table)
-    .where(eq(table.isCurrent, true))
+    .where(and(eq(table.isCurrent, true), scope))
     .all()
   const closedRows: Array<{ id: string; versionHash: string }> = []
   for (const row of existing) {
@@ -710,4 +718,23 @@ async function closeChangedRows(
     closedRows.push({ id, versionHash })
   }
   return closedRows
+}
+
+function geometrySourceScope(
+  table: {
+    validFromRelease: AnySQLiteColumn
+    censusYear?: AnySQLiteColumn
+  },
+  version: {
+    source: GeometryUploadPlan['source']
+    cohortKey: string
+    sourceVersion: string
+  },
+) {
+  const beforeOrAtRelease = lte(table.validFromRelease, version.sourceVersion)
+  if (version.source !== 'hkgov-censtatd') return beforeOrAtRelease
+
+  if (!table.censusYear)
+    throw new Error('C&SD geometry source table has no census-year column.')
+  return and(beforeOrAtRelease, eq(table.censusYear, version.cohortKey))
 }
