@@ -36,6 +36,10 @@ assertions, independently of the shard holding canonical history. For `2023-H2`,
 delivery and snapshot registration both select the source shard for `2023` (the
 before-2025 shard), retaining the full version as release provenance.
 
+Subdivided Units stores native district geometry as a Brotli BLOB in the retained
+district-area table. This preserves the complete publisher geometry below D1's 2 MB
+logical-row limit; the source-record reader decompresses it before returning GeoJSON.
+
 The `censtatd-source-assertion.json` rule validates prepared district assertions and
 retains publisher properties, native geometry and source references. The
 `censtatd-district-identity.json` rule consumes its authority, domain and target-cohort
