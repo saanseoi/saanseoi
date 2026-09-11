@@ -35,7 +35,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(
-          'CREATE TABLE divisionAreas(snapshotId,id,geometry,PRIMARY KEY(snapshotId,id));',
+          'CREATE TABLE divisionAreas(snapshotId,id,geometry,PRIMARY KEY(snapshotId,id)); CREATE TABLE divisionAreaPublicationState(scopeId PRIMARY KEY,snapshotId UNIQUE,status,publicationToken,preparedAt,createdAt,updatedAt);',
         )
       for (const db of [local[historyBinding], remote.history])
         db?.exec(
@@ -51,7 +51,10 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           )
       }
       local.DB_CURRENT?.exec(
-        "INSERT INTO divisionAreas VALUES('new','changed',X'AAFF')",
+        "INSERT INTO divisionAreas VALUES('scope','changed',X'AAFF'); INSERT INTO divisionAreaPublicationState VALUES('scope','new','publishing','new-release','new','old','new');",
+      )
+      remote.current.exec(
+        "INSERT INTO divisionAreas VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');",
       )
       local[historyBinding]?.exec(
         "UPDATE divisionAreas SET isCurrent=0,updatedAt='new' WHERE id IN ('changed','removed'); INSERT INTO divisionAreas VALUES('new','changed','v2',1,'new',X'AAFF'); INSERT INTO snapshotVersionChanges VALUES('new','divisionArea','changed','upsert'),('new','divisionArea','removed','delete');",
@@ -113,13 +116,27 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
             async (_subject, operation) => operation(),
             'prepared-hash',
             'new-code',
+            {
+              publication: {
+                table: 'divisionAreaPublicationState',
+                scopeId: 'scope',
+                snapshotId: 'new',
+                publicationToken: 'new-release',
+                timestamp: 'new',
+                previous: { snapshotId: 'old', publicationToken: 'old-release' },
+              },
+              changedCurrentIds: ['changed'],
+              removedCurrentIds: ['removed'],
+            },
           ),
       )
-      for (let repeat = 0; repeat < 2; repeat++)
-        for (const payload of payloads) {
-          const db = remote[payload.target as keyof typeof remote]
-          if (db) executeNativeSqlStatements(db, payload.sql)
-        }
+      for (const payload of payloads) {
+        const db = remote[payload.target as keyof typeof remote]
+        if (db) executeNativeSqlStatements(db, payload.sql)
+      }
+      expect(remote.current.query('SELECT * FROM divisionAreas').all()).toEqual([
+        { snapshotId: 'scope', id: 'changed', geometry: new Uint8Array([0xaa, 0xff]) },
+      ])
       const localHistory = local[historyBinding]
       const localSource = local[sourceBinding]
       if (!localHistory || !localSource) throw new Error('Missing fixture databases')

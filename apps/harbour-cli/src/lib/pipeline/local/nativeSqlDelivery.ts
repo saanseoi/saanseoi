@@ -188,6 +188,7 @@ export async function runNativeSqlDelivery(
           const db = new Database(target.path, { readwrite: true, create: false })
           const started = Date.now()
           try {
+            db.exec('PRAGMA foreign_keys = ON')
             db.transaction(() => {
               const identity = db.query(IDENTITY_QUERY).get() as {
                 sha256: string

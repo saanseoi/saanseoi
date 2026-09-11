@@ -36,6 +36,25 @@ function insert(
   table: string,
   values: Record<string, string | number | null>,
 ) {
+  const geometryFamily = {
+    divisions: 'division',
+    divisionsI18n: 'division',
+    divisionAreas: 'divisionArea',
+    divisionBoundaries: 'divisionBoundary',
+  }[table]
+  if (
+    geometryFamily &&
+    values.snapshotId &&
+    db.query("SELECT 1 FROM sqlite_master WHERE name='divisionPublicationState'").get()
+  ) {
+    const scopeId = `scope:${geometryFamily}:${values.snapshotId}`
+    db.query(`INSERT INTO ${geometryFamily}PublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
+      VALUES (?,?,'current','complete-token','complete') ON CONFLICT(scopeId) DO NOTHING`).run(
+      scopeId,
+      values.snapshotId,
+    )
+    values = { ...values, snapshotId: scopeId }
+  }
   const fields = db.query(`PRAGMA table_info(${table})`).all() as Array<{
     name: string
     type: string
@@ -259,7 +278,13 @@ describe('all-statistics reset', () => {
       snapshots: [],
       releaseSets: [],
       catalogRevisions: [],
-      dependencies: { sources: [], assemblies: [], members: [], catalogMembers: [] },
+      dependencies: {
+        publications: [],
+        sources: [],
+        assemblies: [],
+        members: [],
+        catalogMembers: [],
+      },
     }).sourceSql
     const statements = sql.split('\n')
     expect(statements).toHaveLength(4 * 5)
@@ -523,5 +548,27 @@ describe('all-statistics reset', () => {
       "UPDATE snapshotSources SET selectionMode = 'changed' WHERE snapshotId = 'lookup'",
     )
     expect(await collectStatsResetPlan(context)).not.toEqual(first)
+  })
+
+  test('scope reset rejects unfinished delivery and never removes a replacement owner', async () => {
+    const { meta, current, context } = setup()
+    meta.exec("UPDATE datasets SET theme = 'stats' WHERE id = 'dataset'")
+    insert(current, 'divisionAreas', { id: 'owned', snapshotId: 'divisionArea' })
+    const plan = await collectStatsResetPlan(context)
+    const sql = buildStatsResetSql(plan)
+    current.exec('UPDATE divisionAreaPublicationState SET preparedAt=NULL')
+    expect(await statsResetBlockers(context)).toContain(
+      'Current statistics geography has an unfinished delivery',
+    )
+    current.exec(
+      "UPDATE divisionAreaPublicationState SET snapshotId='replacement', publicationToken='new-token', preparedAt='complete'",
+    )
+    current.exec(sql.currentSql)
+    expect(current.query('SELECT id FROM divisionAreas').all()).toEqual([
+      { id: 'owned' },
+    ])
+    expect(
+      current.query('SELECT snapshotId FROM divisionAreaPublicationState').get(),
+    ).toEqual({ snapshotId: 'replacement' })
   })
 })
