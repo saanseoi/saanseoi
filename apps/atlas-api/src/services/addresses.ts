@@ -404,7 +404,7 @@ export type AddressDetailResult =
 type AddressSearchUnavailableResponse = {
   httpStatus: 503
   error: 'fts_not_ready'
-  message: 'FTS index is not initialised. Rebuild addressesFts before using search.'
+  message: 'Address search is not ready for the latest published release.'
 }
 
 async function canReadCurrentAddresses(args: {
@@ -912,33 +912,12 @@ export async function searchAddresses(args: {
   let records: AddressRecord[]
   let total: number | undefined
   let hasMore: boolean | undefined
-  const historyDbsByBinding = args.historyDbsByBinding
   const useCurrent = await runWithD1ReadRetry(() =>
     canReadCurrentAddresses({ ...args, activeSnapshot }),
   )
-  if (historyDbsByBinding && !useCurrent) {
-    const selected = await runWithD1ReadRetry(() =>
-      listReplayedAddressPage({
-        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
-        historyDbsByBinding,
-        localeSelection: routeState.localeSelection,
-        metaDb: args.metaDb,
-        snapshotIds: activeSnapshot.snapshotIds,
-        limit,
-        offset,
-        countryId: filters.country,
-        areaId: filters.area,
-        districtId: filters.district,
-        search: {
-          component: args.query.component,
-          mode: args.query.match,
-          query: args.query.q,
-        },
-      }),
-    )
-    records = selected.records
-    hasMore = selected.hasMore
-  } else {
+  if (!useCurrent)
+    return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  {
     let search: { addressIds: string[]; total: number }
     try {
       search = await runWithD1ReadRetry(() =>
@@ -964,8 +943,7 @@ export async function searchAddresses(args: {
           body: {
             httpStatus: 503,
             error: 'fts_not_ready',
-            message:
-              'FTS index is not initialised. Rebuild addressesFts before using search.',
+            message: 'Address search is not ready for the latest published release.',
           },
         }
       }
