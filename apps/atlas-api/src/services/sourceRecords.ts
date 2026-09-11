@@ -36,7 +36,7 @@ type SourceReleaseWithShard = SourceReleaseRow & {
 type SourceRecordRow = {
   sources?: string | null
   placeNames?: string | null
-  rawProperties: string | null
+  properties: string | null
   sourceGeometry?: unknown
   sourceRecordId: string
   versionHash: string
@@ -98,11 +98,11 @@ function parseStoredJson(value: string | null): unknown {
   return JSON.parse(value) as unknown
 }
 
-function parseRawProperties(value: string | null) {
+function parseProperties(value: string | null) {
   const parsed = parseStoredJson(value)
   if (parsed === null) return null
   if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
-    throw new Error('Source record rawProperties must be an object or null.')
+    throw new Error('Source record properties must be an object or null.')
   }
   return parsed as Record<string, unknown>
 }
@@ -278,7 +278,7 @@ async function readShardSourceRecordPage(args: {
     : ''
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -340,7 +340,7 @@ async function readUuidPivotSourceRecordPage(args: {
   const readRange = async (operator: '>=' | '<', limit: number) => {
     const statement = args.sourceDb
       .prepare(
-        `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+        `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
          FROM ${args.entry.tableName}
          WHERE validFromRelease <= ?
            AND (validToRelease IS NULL OR validToRelease > ?)
@@ -378,7 +378,7 @@ async function readRandomOrderedSourceRecordPage(args: {
       : 'NULL AS sourceGeometry'
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, rawProperties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -415,9 +415,9 @@ function toSourceRecord(
   includeGeometry: boolean,
   family: SourceFamily,
 ): SourceRecord {
-  const rawProperties = parseRawProperties(row.rawProperties)
+  const properties = parseProperties(row.properties)
   const record: SourceRecord = {
-    properties: rawProperties,
+    properties,
     sourceRecordId: row.sourceRecordId,
     ...(family === 'streets'
       ? { resourceType: release.resourceType, variant: release.sourceVariant }
@@ -566,14 +566,14 @@ export async function getSourceRecordSchema(args: {
       const statement = sourceDb
         .prepare(`
     WITH records AS (
-      SELECT rawProperties FROM ${entry.tableName} AS record
+      SELECT properties FROM ${entry.tableName} AS record
       WHERE record.validFromRelease <= ?
         AND (record.validToRelease IS NULL OR record.validToRelease > ?)
         AND record.validFromRelease >= ?
     )
     SELECT field.key AS name, field.type AS type, COUNT(field.key) AS occurrences,
       (SELECT COUNT(*) FROM records) AS total
-    FROM records AS record LEFT JOIN json_each(record.rawProperties) AS field ON true
+    FROM records AS record LEFT JOIN json_each(record.properties) AS field ON true
     GROUP BY field.key, field.type
     ORDER BY field.key, field.type
   `)

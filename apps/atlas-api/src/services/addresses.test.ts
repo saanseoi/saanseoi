@@ -1,6 +1,7 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolve } from 'node:path'
 import { currentSchema } from '@repo/db'
 import { listApiFieldFixtures } from '@repo/db/apiFieldFixtures'
@@ -175,11 +176,21 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     currentDb
       .insert(currentSchema.divisions)
       .values({
-        snapshotId: divisionSnapshotId,
+        snapshotId: 'division',
         id: 'hk',
         class: 'country',
         category: 'administrative',
         hierarchies: { administrative: [], locality: [], full: [] },
+      })
+      .run()
+    currentDb
+      .insert(currentSchema.divisionPublicationState)
+      .values({
+        snapshotId: divisionSnapshotId,
+        scopeId: 'division',
+        status: 'current',
+        publicationToken: 'division',
+        preparedAt: '2026-01-01',
       })
       .run()
     for (const [id, member, countryId] of [
@@ -191,11 +202,22 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     ] as const) {
       const snapshotId = snapshots.get(member) ?? 'unselected-snapshot'
       currentDb
+        .insert(currentSchema.addressPublicationState)
+        .values({
+          scopeId: `scope:${snapshotId}`,
+          snapshotId,
+          status: 'current',
+          publicationToken: snapshotId,
+          preparedAt: '2026-01-01',
+        })
+        .onConflictDoNothing()
+        .run()
+      currentDb
         .insert(currentSchema.address2d)
         .values({
           id,
-          snapshotId,
-          divisionSnapshotId,
+          snapshotId: `scope:${snapshotId}`,
+          divisionSnapshotId: 'division',
           countryId,
           parentAddressId: id === 'b' ? 'a' : null,
           granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
@@ -207,7 +229,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         currentDb
           .insert(currentSchema.address2dI18n)
           .values({
-            snapshotId,
+            snapshotId: `scope:${snapshotId}`,
             addressId: id,
             locale,
             formattedAddress: `Harbour ${id}`,
@@ -220,7 +242,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       currentDb
         .insert(currentSchema.address2dBuildingNumberLookup)
         .values({
-          snapshotId,
+          snapshotId: `scope:${snapshotId}`,
           addressId: id,
           buildingNumber: '20',
           evidence: 'source_endpoint',
@@ -472,7 +494,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       .query(
         'INSERT INTO address3d(snapshotId,id,address2dId,units,unitCount,contentHash,unresolvedSectionIds) VALUES (?,?,?,?,?,?,?)',
       )
-      .run(alsSnapshotId, 'collection', 'a', JSON.stringify([unit]), 1, 'hash', '[]')
+      .run(
+        `scope:${alsSnapshotId}`,
+        'collection',
+        'a',
+        JSON.stringify([unit]),
+        1,
+        'hash',
+        '[]',
+      )
     for (const [locale, unitExpression, floorExpression] of [
       ['en', 'FLAT 01', '1/F'],
       ['zh-hant', '01室', '1樓'],
@@ -482,7 +512,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
           'INSERT INTO address3dI18n(snapshotId,address3dId,locale,units) VALUES (?,?,?,?)',
         )
         .run(
-          alsSnapshotId,
+          `scope:${alsSnapshotId}`,
           'collection',
           locale,
           JSON.stringify({ unit: { unitExpression, floorExpression } }),
@@ -564,6 +594,59 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     })
     const absent = await getAddressUnits({ ...args, id: 'b', query: {} })
     expect(absent.status === 200 && absent.body.data).toBeNull()
+    current.exec("UPDATE addressPublicationState SET status='publishing'")
+    expect((await listAddresses({ ...deployedArgs, query: {} })).status).toBe(503)
+    expect(
+      (await getAddressDetail({ ...deployedArgs, id: 'a', query: {} })).status,
+    ).toBe(503)
+    expect(
+      (await getAddressUnits({ ...deployedArgs, id: 'a', query: {} })).status,
+    ).toBe(503)
+    expect(
+      (
+        await searchAddresses({
+          ...deployedArgs,
+          query: { q: 'Harbour', match: 'full-text' },
+        })
+      ).status,
+    ).toBe(503)
+    current.exec("UPDATE addressPublicationState SET status='current'")
+    current
+      .query(
+        "UPDATE addressPublicationState SET snapshotId='different' WHERE snapshotId=?",
+      )
+      .run(alsSnapshotId)
+    expect((await listAddresses({ ...deployedArgs, query: {} })).status).toBe(503)
+    current
+      .query(
+        "UPDATE addressPublicationState SET snapshotId=? WHERE snapshotId='different'",
+      )
+      .run(alsSnapshotId)
+    let interrupted = false
+    const interruptedDb = drizzle({
+      client: current,
+      logger: {
+        logQuery(query) {
+          if (!interrupted && query.includes('from "address2d"')) {
+            interrupted = true
+            current.exec(
+              "UPDATE addressPublicationState SET publicationToken='replacement', status='publishing'",
+            )
+          }
+        },
+      },
+    })
+    expect(
+      (
+        await listAddresses({
+          ...deployedArgs,
+          currentDb: interruptedDb as never,
+          query: {},
+        })
+      ).status,
+    ).toBe(503)
+    expect(interrupted).toBe(true)
+    current.exec("UPDATE addressPublicationState SET status='current'")
     const newerSet = await ensureDraftReleaseSetForRelease(
       db,
       'address',
@@ -608,6 +691,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         })
       ).status,
     ).toBe(200)
+    current.exec(
+      'DELETE FROM address2d; DELETE FROM address2dI18n; DELETE FROM address3d; DELETE FROM address3dI18n',
+    )
+    const empty = await listAddresses({ ...deployedArgs, query: {} })
+    expect(empty.status).toBe(200)
+    if (empty.status === 200) expect(empty.body.data).toEqual([])
+    expect(
+      (await getAddressDetail({ ...deployedArgs, id: 'a', query: {} })).status,
+    ).toBe(404)
   } finally {
     meta.close()
     current.close()

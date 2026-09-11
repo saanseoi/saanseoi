@@ -305,6 +305,7 @@ export type DivisionListResult =
     }
   | {
       status: 503
+      publicationPending?: boolean
       body: DivisionSnapshotNotReadyResponse
     }
   | {
@@ -323,6 +324,7 @@ export type DivisionDetailResult =
     }
   | {
       status: 503
+      publicationPending?: boolean
       body: DivisionSnapshotNotReadyResponse
     }
   | {

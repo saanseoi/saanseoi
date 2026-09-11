@@ -15,6 +15,8 @@ import {
   buildRouteState,
   createIncludedStatisticFieldResource,
   defaultDependencies,
+  resolveStatisticReadSelection,
+  statisticDatabases,
   type NotFoundResponse,
   type StatisticListQuery,
   type StatisticRegistrySnapshot,
@@ -41,6 +43,7 @@ export type StatisticRegistryQuery = Pick<
   'filter[measure]'?: string
   'filter[field]'?: string
   'filter[dimension]'?: string[]
+  'filter[version]'?: string
 }
 
 type StatisticsRegistryResult =
@@ -103,27 +106,34 @@ function registryPermalink(args: {
   return permalink.toString()
 }
 
-function fieldRegistryResource(definition: StatisticFieldDefinition) {
+function fieldRegistryResource(
+  definition: StatisticFieldDefinition,
+  catalogRevision: string,
+) {
   return {
     ...createIncludedStatisticFieldResource({ definition }),
     type: 'statistic-fields' as const,
     links: {
-      self: `/stats/v0.1/registry/fields/${encodeURIComponent(definition.datasetCode)}/${encodeURIComponent(definition.fieldName)}`,
+      self: `/stats/v0.1/registry/fields/${encodeURIComponent(definition.datasetCode)}/${encodeURIComponent(definition.fieldName)}?filter[version]=${encodeURIComponent(definition.versionHash)}&catalogRevision=${encodeURIComponent(catalogRevision)}`,
     },
   }
 }
 
-function measureRegistryResource(definition: StatisticMeasureDefinition) {
+function measureRegistryResource(
+  definition: StatisticMeasureDefinition,
+  catalogRevision: string,
+) {
   return {
     type: 'statistic-measures' as const,
-    id: `${definition.datasetCode}:${definition.measureCode}`,
+    id: `${definition.datasetCode}:${definition.measureCode}:${definition.versionHash}`,
     attributes: {
       datasetCode: definition.datasetCode,
       measureCode: definition.measureCode,
+      versionHash: definition.versionHash,
       i18n: definition.i18n,
     },
     links: {
-      self: `/stats/v0.1/registry/measures/${encodeURIComponent(definition.datasetCode)}/${encodeURIComponent(definition.measureCode)}`,
+      self: `/stats/v0.1/registry/measures/${encodeURIComponent(definition.datasetCode)}/${encodeURIComponent(definition.measureCode)}?filter[version]=${encodeURIComponent(definition.versionHash)}&catalogRevision=${encodeURIComponent(catalogRevision)}`,
     },
   }
 }
@@ -142,6 +152,8 @@ function matchesRegistryField(
   definition: StatisticFieldDefinition,
   query: StatisticRegistryQuery,
 ) {
+  if (query['filter[version]'] && definition.versionHash !== query['filter[version]'])
+    return false
   if (query['filter[dataset]'] && definition.datasetCode !== query['filter[dataset]'])
     return false
   if (query['filter[measure]'] && definition.measureCode !== query['filter[measure]'])
@@ -179,6 +191,7 @@ function matchesSearch(
 }
 
 async function loadStatisticsRegistry(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   query: StatisticRegistryQuery
@@ -210,7 +223,43 @@ async function loadStatisticsRegistry(args: {
   const sources = await runWithD1ReadRetry(() =>
     args.dependencies.listSnapshotSourceReleases(args.metaDb as never, snapshotIds),
   )
+  const periodsBySnapshot = new Map(
+    selection.releaseSets.flatMap(releaseSet =>
+      releaseSet.snapshots.map(
+        snapshot => [snapshot.snapshotId, releaseSet.cohortKey] as const,
+      ),
+    ),
+  )
+  const readSelection = await resolveStatisticReadSelection(
+    args.metaDb,
+    args.query,
+    {
+      datasetCodes: [...new Set(sources.map(source => source.datasetCode))],
+      snapshotIds,
+      publications: sources.map(source => {
+        const referencePeriodCode = periodsBySnapshot.get(source.snapshotId)
+        if (!referencePeriodCode)
+          throw new Error(
+            `Missing publication period for Statistics snapshot ${source.snapshotId}.`,
+          )
+        return {
+          datasetCode: source.datasetCode,
+          referencePeriodCode,
+          snapshotId: source.snapshotId,
+        }
+      }),
+    },
+    args.dependencies,
+  )
+  if (
+    !(await args.dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      readSelection,
+    ))
+  )
+    return null
   const activeSnapshot = {
+    readSelection,
     datasetCodes: [...new Set(sources.map(source => source.datasetCode))],
     snapshotIds: [...new Set(snapshotIds)],
     sourceReleaseIds: [...new Set(sources.map(source => source.sourceReleaseId))],
@@ -230,18 +279,31 @@ async function loadStatisticsRegistry(args: {
   } satisfies StatisticRegistrySnapshot
   const [fields, measures] = await runWithD1ReadRetry(() =>
     Promise.all([
-      args.dependencies.listStatisticFieldDefinitions(args.historyDbs, {
-        datasetCodes: activeSnapshot.datasetCodes,
-        localeSelection: routeState.localeSelection,
-        sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-      }),
-      args.dependencies.listStatisticMeasureDefinitions(args.historyDbs, {
-        datasetCodes: activeSnapshot.datasetCodes,
-        localeSelection: routeState.localeSelection,
-        sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-      }),
+      args.dependencies.listStatisticFieldDefinitions(
+        statisticDatabases(args, readSelection),
+        {
+          datasetCodes: activeSnapshot.datasetCodes,
+          localeSelection: routeState.localeSelection,
+          selection: readSelection,
+        },
+      ),
+      args.dependencies.listStatisticMeasureDefinitions(
+        statisticDatabases(args, readSelection),
+        {
+          datasetCodes: activeSnapshot.datasetCodes,
+          localeSelection: routeState.localeSelection,
+          selection: readSelection,
+        },
+      ),
     ]),
   )
+  if (
+    !(await args.dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      readSelection,
+    ))
+  )
+    return null
   return { activeSnapshot, fields, measures, routeState }
 }
 
@@ -257,6 +319,7 @@ function paginate<T>(items: T[], query: StatisticRegistryQuery) {
 }
 
 export async function getStatisticsRegistryManifest(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -300,6 +363,7 @@ export async function getStatisticsRegistryManifest(args: {
 }
 
 export async function listStatisticsRegistryFields(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -325,7 +389,9 @@ export async function listStatisticsRegistryFields(args: {
     status: 200,
     body: buildJsonApiListDocument({
       url,
-      data: page.items.map(fieldRegistryResource),
+      data: page.items.map(field =>
+        fieldRegistryResource(field, registry.activeSnapshot.apiCatalogRevision),
+      ),
       limit: page.limit,
       offset: page.offset,
       total: page.total,
@@ -340,6 +406,7 @@ export async function listStatisticsRegistryFields(args: {
 }
 
 export async function listStatisticsRegistryMeasures(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -352,6 +419,11 @@ export async function listStatisticsRegistryMeasures(args: {
     return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const page = paginate(
     registry.measures
+      .filter(
+        measure =>
+          !args.query['filter[version]'] ||
+          measure.versionHash === args.query['filter[version]'],
+      )
       .filter(measure =>
         args.query['filter[dataset]']
           ? measure.datasetCode === args.query['filter[dataset]']
@@ -369,7 +441,9 @@ export async function listStatisticsRegistryMeasures(args: {
     status: 200,
     body: buildJsonApiListDocument({
       url,
-      data: page.items.map(measureRegistryResource),
+      data: page.items.map(measure =>
+        measureRegistryResource(measure, registry.activeSnapshot.apiCatalogRevision),
+      ),
       limit: page.limit,
       offset: page.offset,
       total: page.total,
@@ -386,6 +460,7 @@ export async function listStatisticsRegistryMeasures(args: {
 export async function getStatisticsRegistryMeasure(args: {
   datasetCode: string
   measureCode: string
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -399,7 +474,9 @@ export async function getStatisticsRegistryMeasure(args: {
   const measure = registry.measures.find(
     candidate =>
       candidate.datasetCode === args.datasetCode &&
-      candidate.measureCode === args.measureCode,
+      candidate.measureCode === args.measureCode &&
+      (!args.query['filter[version]'] ||
+        candidate.versionHash === args.query['filter[version]']),
   )
   if (!measure) {
     return {
@@ -416,7 +493,10 @@ export async function getStatisticsRegistryMeasure(args: {
     status: 200,
     body: buildJsonApiDetailDocument({
       url,
-      data: measureRegistryResource(measure),
+      data: measureRegistryResource(
+        measure,
+        registry.activeSnapshot.apiCatalogRevision,
+      ),
       meta: registryMeta(registry.activeSnapshot, registry.routeState),
       permalink: registryPermalink({
         activeSnapshot: registry.activeSnapshot,
@@ -428,6 +508,7 @@ export async function getStatisticsRegistryMeasure(args: {
 }
 
 export async function searchStatisticsRegistry(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -441,11 +522,15 @@ export async function searchStatisticsRegistry(args: {
   const matches = [
     ...registry.measures
       .filter(measure => matchesSearch(measure, args.query.q))
-      .map(measureRegistryResource),
+      .map(measure =>
+        measureRegistryResource(measure, registry.activeSnapshot.apiCatalogRevision),
+      ),
     ...registry.fields
       .filter(field => matchesRegistryField(field, args.query))
       .filter(field => matchesSearch(field, args.query.q))
-      .map(fieldRegistryResource),
+      .map(field =>
+        fieldRegistryResource(field, registry.activeSnapshot.apiCatalogRevision),
+      ),
   ]
   const page = paginate(matches, args.query)
   const url = new URL(args.requestUrl)
@@ -471,6 +556,7 @@ export async function searchStatisticsRegistry(args: {
 }
 
 export async function listStatisticsRegistryDimensions(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -521,6 +607,7 @@ export async function listStatisticsRegistryDimensions(args: {
 }
 
 export async function listStatisticsRegistryDatasets(args: {
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -572,6 +659,7 @@ export async function listStatisticsRegistryDatasets(args: {
 export async function getStatisticsRegistryField(args: {
   datasetCode: string
   fieldName: string
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -585,7 +673,9 @@ export async function getStatisticsRegistryField(args: {
   const field = registry.fields.find(
     candidate =>
       candidate.datasetCode === args.datasetCode &&
-      candidate.fieldName === args.fieldName,
+      candidate.fieldName === args.fieldName &&
+      (!args.query['filter[version]'] ||
+        candidate.versionHash === args.query['filter[version]']),
   )
   if (!field) {
     return {
@@ -604,8 +694,11 @@ export async function getStatisticsRegistryField(args: {
     body: buildJsonApiDetailDocument({
       url,
       data: {
-        ...fieldRegistryResource(field),
-        links: { availability: `${path}/availability`, self: path },
+        ...fieldRegistryResource(field, registry.activeSnapshot.apiCatalogRevision),
+        links: {
+          availability: `${path}/availability?filter[version]=${encodeURIComponent(field.versionHash)}&catalogRevision=${encodeURIComponent(registry.activeSnapshot.apiCatalogRevision)}`,
+          self: `${path}?filter[version]=${encodeURIComponent(field.versionHash)}&catalogRevision=${encodeURIComponent(registry.activeSnapshot.apiCatalogRevision)}`,
+        },
       },
       meta: registryMeta(registry.activeSnapshot, registry.routeState),
       permalink: registryPermalink({
@@ -620,6 +713,7 @@ export async function getStatisticsRegistryField(args: {
 export async function getStatisticsRegistryFieldAvailability(args: {
   datasetCode: string
   fieldName: string
+  currentDb: AppEnv['Variables']['currentDb']
   historyDbs: AppEnv['Variables']['historyDbs']
   metaDb: AppEnv['Variables']['metaDb']
   requestUrl: string
@@ -633,7 +727,9 @@ export async function getStatisticsRegistryFieldAvailability(args: {
   const field = registry.fields.find(
     candidate =>
       candidate.datasetCode === args.datasetCode &&
-      candidate.fieldName === args.fieldName,
+      candidate.fieldName === args.fieldName &&
+      (!args.query['filter[version]'] ||
+        candidate.versionHash === args.query['filter[version]']),
   )
   if (!field) {
     return {
@@ -646,19 +742,34 @@ export async function getStatisticsRegistryFieldAvailability(args: {
     }
   }
   const records = await runWithD1ReadRetry(() =>
-    dependencies.listStatisticRecordsForGeography(args.historyDbs, {
-      datasetCode: field.datasetCode,
-      fieldName: field.fieldName,
-      sourceReleaseIds: registry.activeSnapshot.sourceReleaseIds,
-    }),
+    dependencies.listStatisticRecordsForGeography(
+      statisticDatabases(args, registry.activeSnapshot.readSelection),
+      {
+        datasetCode: field.datasetCode,
+        fieldName: field.fieldName,
+        selection: registry.activeSnapshot.readSelection,
+      },
+    ),
   )
   const coverageByPeriod = new Map<string, Map<string, number>>()
   for (const record of records) {
+    if (
+      args.query['filter[version]'] &&
+      record.fieldDefinitionHashes[field.fieldName] !== args.query['filter[version]']
+    )
+      continue
     const coverage = coverageByPeriod.get(record.referencePeriodCode) ?? new Map()
     const signature = `${record.geography.kind}\u0000${record.geography.class ?? ''}`
     coverage.set(signature, (coverage.get(signature) ?? 0) + 1)
     coverageByPeriod.set(record.referencePeriodCode, coverage)
   }
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      registry.activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const url = new URL(args.requestUrl)
   const referencePeriods = [...coverageByPeriod.entries()]
     .sort(([left], [right]) => right.localeCompare(left))

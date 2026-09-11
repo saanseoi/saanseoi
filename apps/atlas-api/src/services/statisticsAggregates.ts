@@ -1,4 +1,4 @@
-import type { StatisticRecord } from '../db/statistics'
+import type { StatisticFieldDefinition, StatisticRecord } from '../db/statistics'
 import {
   buildApiVersionMetadata,
   buildSnapshotNotReadyResponse,
@@ -8,6 +8,7 @@ import type { AppEnv } from '../types'
 import {
   defaultDependencies,
   getActiveStatisticSnapshot,
+  statisticDatabases,
   resolveRelatedDivisionSelection,
   type ActiveStatisticSnapshot,
   type StatisticGeographiesQuery,
@@ -90,12 +91,14 @@ const NEW_TOWNS_DATASET = 'ds-hk-hkgov-censtatd-division-statistic-new-towns'
 
 function aggregateGeographyFor(record: StatisticRecord): AggregateGeography | null {
   if (record.datasetCode === BUILDING_GROUP_DATASET) {
-    const buildingGroupCode = record.dimensions['building-group']
+    const buildingGroupCode =
+      record.geography.kind === 'building-group' ? record.geography.code : undefined
     if (buildingGroupCode)
       return { kind: 'buildingGroup', geographyCode: buildingGroupCode }
   }
   if (record.datasetCode === MAJOR_HOUSING_ESTATE_DATASET) {
-    const geographyCode = record.dimensions['housing-estate']
+    const geographyCode =
+      record.geography.kind === 'housing-estate' ? record.geography.code : undefined
     return geographyCode ? { kind: 'majorHousingEstate', geographyCode } : null
   }
   return record.divisionId ? { kind: 'division', divisionId: record.divisionId } : null
@@ -113,29 +116,13 @@ function equalJsonObjects(left: Record<string, string>, right: Record<string, st
   return JSON.stringify(leftEntries) === JSON.stringify(rightEntries)
 }
 
-/** Geography labels identify rows; they are not a second analytical dimension. */
-function analyticalDimensions(dimensions: Record<string, string>) {
-  const geographyDimensions = new Set([
-    'area',
-    'district',
-    'district-class',
-    'housing-market-area',
-    'building-group',
-    'building-group-class',
-    'housing-estate',
-    'new-town',
-  ])
-  return Object.fromEntries(
-    Object.entries(dimensions).filter(([key]) => !geographyDimensions.has(key)),
-  )
-}
-
 async function resolveAggregateValues(args: {
   activeSnapshot: ActiveStatisticSnapshot
   currentDb: AppEnv['Variables']['currentDb']
   datasetCode: string
   dependencies: StatisticServiceDependencies
   fieldName: string
+  definition: StatisticFieldDefinition
   metaDb: AppEnv['Variables']['metaDb']
   records: StatisticRecord[]
 }) {
@@ -160,14 +147,10 @@ async function resolveAggregateValues(args: {
       },
     }
   }
-  const dimensions = analyticalDimensions(first.dimensions)
+  const dimensions = args.definition.dimensions
   for (const record of args.records) {
     const candidate = aggregateGeographyFor(record)
-    if (
-      !candidate ||
-      candidate.kind !== geography.kind ||
-      !equalJsonObjects(analyticalDimensions(record.dimensions), dimensions)
-    ) {
+    if (!candidate || candidate.kind !== geography.kind) {
       return {
         error: {
           httpStatus: 409 as const,
@@ -335,25 +318,9 @@ async function buildAggregateMeta(args: {
   dependencies: StatisticServiceDependencies
   fieldName: string
   geography: ResolvedAggregateGeography
-  historyDbs: AppEnv['Variables']['historyDbs']
+  definition: StatisticFieldDefinition
 }) {
-  const definitions = await args.dependencies.listStatisticFieldDefinitions(
-    args.historyDbs,
-    {
-      datasetCodes: [args.datasetCode],
-      localeSelection: { mode: 'none', locales: [] },
-      sourceReleaseIds: args.activeSnapshot.sourceReleaseIds,
-    },
-  )
-  const definition = definitions.find(
-    candidate =>
-      candidate.datasetCode === args.datasetCode &&
-      candidate.fieldName === args.fieldName,
-  )
-  if (!definition)
-    throw new Error(
-      `No curated measure metadata for ${args.datasetCode}/${args.fieldName}.`,
-    )
+  const definition = args.definition
   const geography =
     args.geography.kind === 'division'
       ? args.geography
@@ -469,25 +436,89 @@ export async function getStatisticsGeographies(args: {
     args.query,
     dependencies,
   )
-  if (!activeSnapshot)
+  if (
+    !activeSnapshot ||
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
     return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
-  const records = await dependencies.listStatisticRecordsForGeography(args.historyDbs, {
-    datasetCode: args.query['filter[dataset]'],
-    fieldName: args.query['filter[field]'],
-    referencePeriod: args.query['filter[referencePeriod]'],
-    sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-  })
+  const records = await dependencies.listStatisticRecordsForGeography(
+    statisticDatabases(args, activeSnapshot.readSelection),
+    {
+      datasetCode: args.query['filter[dataset]'],
+      fieldName: args.query['filter[field]'],
+      referencePeriod: args.query['filter[referencePeriod]'],
+      selection: activeSnapshot.readSelection,
+    },
+  )
+  const definitions = await dependencies.listStatisticFieldDefinitions(
+    statisticDatabases(args, activeSnapshot.readSelection),
+    {
+      datasetCodes: [...new Set(records.map(record => record.datasetCode))],
+      localeSelection: { mode: 'none', locales: [] },
+      records,
+      selection: activeSnapshot.readSelection,
+    },
+  )
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const candidates: Array<{
     datasetCode: string
     resolved: ResolvedAggregateValues
+    definition: StatisticFieldDefinition
   }> = []
   for (const [datasetCode, datasetRecords] of groupRecordsByDataset(records)) {
+    const definition = definitions.find(
+      field =>
+        field.datasetCode === datasetCode &&
+        field.fieldName === args.query['filter[field]'] &&
+        field.versionHash ===
+          datasetRecords[0]?.fieldDefinitionHashes[args.query['filter[field]']],
+    )
+    if (!definition)
+      throw new Error(
+        `No curated measure metadata for ${datasetCode}/${args.query['filter[field]']}.`,
+      )
+    const compatible = datasetRecords.every(record => {
+      const field = definitions.find(
+        candidate =>
+          candidate.datasetCode === datasetCode &&
+          candidate.fieldName === args.query['filter[field]'] &&
+          candidate.versionHash ===
+            record.fieldDefinitionHashes[args.query['filter[field]']],
+      )
+      return (
+        field &&
+        field.unitCode === definition.unitCode &&
+        field.statisticKind === definition.statisticKind &&
+        field.aggregation === definition.aggregation &&
+        equalJsonObjects(field.dimensions, definition.dimensions)
+      )
+    })
+    if (!compatible)
+      return {
+        status: 409,
+        body: {
+          httpStatus: 409,
+          error: 'incomplete_geography_dimension',
+          message: 'The selected values have incompatible field definitions.',
+        },
+      }
+
     const resolved = await resolveAggregateValues({
       activeSnapshot,
       currentDb: args.currentDb,
       datasetCode,
       dependencies,
       fieldName: args.query['filter[field]'],
+      definition,
       metaDb: args.metaDb,
       records: datasetRecords,
     })
@@ -498,7 +529,7 @@ export async function getStatisticsGeographies(args: {
       continue
     }
     if (matchesAggregateGeographyFilters(resolved.geography, args.query)) {
-      candidates.push({ datasetCode, resolved })
+      candidates.push({ datasetCode, resolved, definition })
     }
   }
   if (candidates.length === 0) {
@@ -525,6 +556,7 @@ export async function getStatisticsGeographies(args: {
   const candidate = candidates[0] as {
     datasetCode: string
     resolved: ResolvedAggregateValues
+    definition: StatisticFieldDefinition
   }
   const meta = await buildAggregateMeta({
     activeSnapshot,
@@ -532,8 +564,15 @@ export async function getStatisticsGeographies(args: {
     dependencies,
     fieldName: args.query['filter[field]'],
     geography: candidate.resolved.geography,
-    historyDbs: args.historyDbs,
+    definition: candidate.definition,
   })
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   return {
     status: 200,
     body: {
@@ -553,6 +592,7 @@ async function resolveAggregateSeriesValues(args: {
   datasetCode: string
   dependencies: StatisticServiceDependencies
   fieldName: string
+  definition: StatisticFieldDefinition
   metaDb: AppEnv['Variables']['metaDb']
   records: StatisticRecord[]
 }): Promise<{ error: AggregateErrorResponse } | ResolvedAggregateSeriesValues> {
@@ -583,6 +623,7 @@ async function resolveAggregateSeriesValues(args: {
       datasetCode: args.datasetCode,
       dependencies: args.dependencies,
       fieldName: args.fieldName,
+      definition: args.definition,
       metaDb: args.metaDb,
       records: periodRecords,
     })
@@ -631,25 +672,90 @@ export async function getStatisticsSeries(args: {
     args.metaDb,
     args.query,
     dependencies,
+    true,
   )
-  if (!activeSnapshot)
+  if (
+    !activeSnapshot ||
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
     return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
-  const records = await dependencies.listStatisticRecordsForGeography(args.historyDbs, {
-    datasetCode: args.query['filter[dataset]'],
-    fieldName: args.query['filter[field]'],
-    sourceReleaseIds: activeSnapshot.sourceReleaseIds,
-  })
+  const records = await dependencies.listStatisticRecordsForGeography(
+    statisticDatabases(args, activeSnapshot.readSelection),
+    {
+      datasetCode: args.query['filter[dataset]'],
+      fieldName: args.query['filter[field]'],
+      selection: activeSnapshot.readSelection,
+    },
+  )
+  const definitions = await dependencies.listStatisticFieldDefinitions(
+    statisticDatabases(args, activeSnapshot.readSelection),
+    {
+      datasetCodes: [...new Set(records.map(record => record.datasetCode))],
+      localeSelection: { mode: 'none', locales: [] },
+      records,
+      selection: activeSnapshot.readSelection,
+    },
+  )
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   const candidates: Array<{
     datasetCode: string
     resolved: ResolvedAggregateSeriesValues
+    definition: StatisticFieldDefinition
   }> = []
   for (const [datasetCode, datasetRecords] of groupRecordsByDataset(records)) {
+    const definition = definitions.find(
+      field =>
+        field.datasetCode === datasetCode &&
+        field.fieldName === args.query['filter[field]'] &&
+        field.versionHash ===
+          datasetRecords[0]?.fieldDefinitionHashes[args.query['filter[field]']],
+    )
+    if (!definition)
+      throw new Error(
+        `No curated measure metadata for ${datasetCode}/${args.query['filter[field]']}.`,
+      )
+    const compatible = datasetRecords.every(record => {
+      const field = definitions.find(
+        candidate =>
+          candidate.datasetCode === datasetCode &&
+          candidate.fieldName === args.query['filter[field]'] &&
+          candidate.versionHash ===
+            record.fieldDefinitionHashes[args.query['filter[field]']],
+      )
+      return (
+        field &&
+        field.unitCode === definition.unitCode &&
+        field.statisticKind === definition.statisticKind &&
+        field.aggregation === definition.aggregation &&
+        equalJsonObjects(field.dimensions, definition.dimensions)
+      )
+    })
+    if (!compatible)
+      return {
+        status: 409,
+        body: {
+          httpStatus: 409,
+          error: 'incomplete_geography_dimension',
+          message: 'The selected values have incompatible field definitions.',
+        },
+      }
+
     const resolved = await resolveAggregateSeriesValues({
       activeSnapshot,
       currentDb: args.currentDb,
       datasetCode,
       dependencies,
       fieldName: args.query['filter[field]'],
+      definition,
       metaDb: args.metaDb,
       records: datasetRecords,
     })
@@ -660,7 +766,7 @@ export async function getStatisticsSeries(args: {
       continue
     }
     if (matchesAggregateGeographyFilters(resolved.geography, args.query)) {
-      candidates.push({ datasetCode, resolved })
+      candidates.push({ datasetCode, resolved, definition })
     }
   }
   if (candidates.length === 0) {
@@ -691,8 +797,15 @@ export async function getStatisticsSeries(args: {
     dependencies,
     fieldName: args.query['filter[field]'],
     geography: candidate.resolved.geography,
-    historyDbs: args.historyDbs,
+    definition: candidate.definition,
   })
+  if (
+    !(await dependencies.isStatisticPublicationReady(
+      args.currentDb,
+      activeSnapshot.readSelection,
+    ))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('statistic') }
   return {
     status: 200,
     body: {

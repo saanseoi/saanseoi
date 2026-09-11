@@ -1,3 +1,9 @@
+import {
+  getPublicationReadiness,
+  guardPublicationRead,
+  hasHistoricalSelectors,
+  PublicationReadUnavailableError,
+} from '../db/publicationState'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import {
   defaultApiLocalesByProfile,
@@ -16,7 +22,6 @@ import type { BBox } from '@repo/core/pipeline/geojson.ts'
 import {
   listAddressRecordsCurrent,
   countAddressRecordsCurrent,
-  hasCurrentAddressSnapshot,
   listAddressRecordsCurrentByIds,
   searchAddressIdsCurrent,
   type AddressSearchComponent,
@@ -34,10 +39,7 @@ import type {
   Address3dUnit,
   Address3dUnitI18n,
 } from '@repo/db/address3d'
-import {
-  hasCurrentDivisionSnapshot,
-  listDivisionRecordsCurrentByIds,
-} from '../db/divisions'
+import { listDivisionRecordsCurrentByIds } from '../db/divisions'
 import { listReplayedDivisionRecords } from '../db/divisions'
 import { createIncludedDivisionResource } from './divisions'
 import {
@@ -63,33 +65,19 @@ export type RequestedAddressVersion = 'addresses/v0' | 'addresses/v0.1'
 export async function getAddressUnits(args: Parameters<typeof getAddressDetail>[0]) {
   const result = await getAddressDetail({
     ...args,
-    query: { ...args.query, include: undefined, profile: 'full' },
+    query: { ...args.query, include: 'units', profile: 'full' },
   })
   if (result.status !== 200) return result
-  const attributes = result.body.data.attributes
-  const coverage = attributes.address3dCoverage
-  if (coverage.kind === 'none')
-    return {
-      status: 200 as const,
-      body: { data: null, meta: { address3dCoverage: coverage } },
-    }
-  if (!attributes.snapshotId) throw new Error('Missing selected Address3D snapshot')
-  const record = await getAddress3dCollection({
-    ...args,
-    snapshotId: attributes.snapshotId,
-    collectionId: coverage.address3dId,
-  })
-  if (!record) throw new Error('Address3D coverage points to an absent collection')
-  return {
-    status: 200 as const,
-    body: {
-      data: createAddress3dResource({
-        record,
-        selectedLocales: Object.keys(attributes.i18n ?? {}),
-      }),
-      meta: { address3dCoverage: coverage },
-    },
-  }
+  const coverage = result.body.data.attributes.address3dCoverage
+  const data =
+    result.body.included?.find((item): item is Address3dResourcePayload =>
+      Boolean(
+        item && typeof item === 'object' && 'type' in item && item.type === 'address3d',
+      ),
+    ) ?? null
+  if (coverage.kind !== 'none' && !data)
+    throw new Error('Address3D coverage points to an absent collection')
+  return { status: 200 as const, body: { data, meta: { address3dCoverage: coverage } } }
 }
 export type RequestedAddressApiVersion = '0.1'
 export type ResolvedAddressApiVersion = 'api-addresses-v0.1'
@@ -227,10 +215,25 @@ async function loadIncludedAddressHierarchy(args: {
     Awaited<ReturnType<typeof listDivisionRecordsCurrentByIds>>[number]
   >()
   for (const [snapshotId, divisionIds] of idsBySnapshot) {
-    if (
-      args.historyDbsByBinding &&
-      !(await hasCurrentDivisionSnapshot(args.currentDb, snapshotId))
-    ) {
+    const token = await getPublicationReadiness(args.currentDb, 'division', [
+      snapshotId,
+    ])
+    const currentRecords =
+      token === null
+        ? null
+        : await guardPublicationRead(
+            args.currentDb,
+            'division',
+            [snapshotId],
+            token,
+            () =>
+              listDivisionRecordsCurrentByIds(args.currentDb, {
+                snapshotId,
+                divisionIds: [...divisionIds],
+                localeSelection: args.routeState.localeSelection,
+              }),
+          )
+    if (currentRecords === null && args.historyDbsByBinding) {
       const plan = await resolveSnapshotReplayPlan(args.metaDb as never, snapshotId)
       const shards = new Map(
         Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
@@ -253,12 +256,11 @@ async function loadIncludedAddressHierarchy(args: {
         if (divisionIds.has(record.division.id))
           recordsById.set(record.division.id, record)
     } else {
-      const records = await listDivisionRecordsCurrentByIds(args.currentDb, {
-        snapshotId,
-        divisionIds: [...divisionIds],
-        localeSelection: args.routeState.localeSelection,
-      })
-      for (const record of records) recordsById.set(record.division.id, record)
+      if (currentRecords === null)
+        throw new PublicationReadUnavailableError(
+          'The selected Address hierarchy is not ready',
+        )
+      for (const record of currentRecords) recordsById.set(record.division.id, record)
     }
   }
   const records = [...recordsById.values()]
@@ -407,19 +409,18 @@ type AddressSearchUnavailableResponse = {
   message: 'Address search is not ready for the latest published release.'
 }
 
-async function canReadCurrentAddresses(args: {
+async function isHistoricalAddressSelection(args: {
   activeSnapshot: ActiveAddressSnapshot
-  currentDb: AppEnv['Variables']['currentDb']
-  historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
+  metaDb: AppEnv['Variables']['metaDb']
+  query: AddressListQuery | AddressDetailQuery
 }) {
-  if (!args.historyDbsByBinding) return true
-  return (
-    await Promise.all(
-      args.activeSnapshot.snapshotIds.map(id =>
-        hasCurrentAddressSnapshot(args.currentDb, id),
-      ),
-    )
-  ).every(Boolean)
+  if (!hasHistoricalSelectors(args.query)) return false
+  const latest = await getActiveAddressSnapshot(args.metaDb, {
+    region: args.query.region,
+    'filter[dataset]':
+      'filter[dataset]' in args.query ? args.query['filter[dataset]'] : undefined,
+  })
+  return Boolean(latest && latest.apiReleaseSet !== args.activeSnapshot.apiReleaseSet)
 }
 
 export type AddressSearchResult =
@@ -760,97 +761,114 @@ export async function listAddresses(args: {
       ? { district: args.query['filter[district]'] }
       : {}),
   }
-  const useCurrent = await runWithD1ReadRetry(() =>
-    canReadCurrentAddresses({ ...args, activeSnapshot }),
+  const publicationToken = await runWithD1ReadRetry(() =>
+    getPublicationReadiness(args.currentDb, 'address', activeSnapshot.snapshotIds),
   )
-  const lookup = {
-    snapshotIds: activeSnapshot.snapshotIds,
-    after: args.query['page[after]'],
-    countryId: filters.country,
-    areaId: filters.area,
-    districtId: filters.district,
-    localeSelection: routeState.localeSelection,
-    limit,
-    offset,
-  }
-  const { records, total, hasMore } = await runWithD1ReadRetry(
-    async (): Promise<{
-      records: AddressRecord[]
-      total?: number
-      hasMore?: boolean
-    }> => {
-      if (useCurrent) {
-        if (lookup.after !== undefined) {
-          const rows = await listAddressRecordsCurrent(args.currentDb, {
-            ...lookup,
-            limit: limit + 1,
-          })
-          return { records: rows.slice(0, limit), hasMore: rows.length > limit }
+  const useCurrent = publicationToken !== null
+  if (
+    !useCurrent &&
+    (!args.historyDbsByBinding ||
+      !(await isHistoricalAddressSelection({ ...args, activeSnapshot })))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'address',
+      activeSnapshot.snapshotIds,
+      publicationToken,
+      async (): Promise<AddressListResult> => {
+        const lookup = {
+          snapshotIds: activeSnapshot.snapshotIds,
+          after: args.query['page[after]'],
+          countryId: filters.country,
+          areaId: filters.area,
+          districtId: filters.district,
+          localeSelection: routeState.localeSelection,
+          limit,
+          offset,
         }
-        const [records, total] = await Promise.all([
-          listAddressRecordsCurrent(args.currentDb, lookup),
-          countAddressRecordsCurrent(args.currentDb, lookup),
+        const { records, total, hasMore } = await runWithD1ReadRetry(
+          async (): Promise<{
+            records: AddressRecord[]
+            total?: number
+            hasMore?: boolean
+          }> => {
+            if (useCurrent) {
+              if (lookup.after !== undefined) {
+                const rows = await listAddressRecordsCurrent(args.currentDb, {
+                  ...lookup,
+                  limit: limit + 1,
+                })
+                return { records: rows.slice(0, limit), hasMore: rows.length > limit }
+              }
+              const [records, total] = await Promise.all([
+                listAddressRecordsCurrent(args.currentDb, lookup),
+                countAddressRecordsCurrent(args.currentDb, lookup),
+              ])
+              return { records, total }
+            }
+            return listReplayedAddressPage({
+              ...lookup,
+              divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+              historyDbsByBinding: args.historyDbsByBinding!,
+              metaDb: args.metaDb,
+            })
+          },
+        )
+        await attachAddress3dCoverage({
+          ...args,
+          historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+          records,
+        })
+
+        const url = new URL(args.requestUrl)
+        const included = await runWithD1ReadRetry(async () => [
+          ...(await loadIncludedAddressHierarchy({
+            currentDb: args.currentDb,
+            historyDbsByBinding: args.historyDbsByBinding,
+            metaDb: args.metaDb,
+            records,
+            snapshotId: activeSnapshot.divisionSnapshotId,
+            routeState,
+            include: args.query.include,
+            baseUrl: url.origin,
+          })),
         ])
-        return { records, total }
-      }
-      return listReplayedAddressPage({
-        ...lookup,
-        divisionSnapshotId: activeSnapshot.divisionSnapshotId,
-        historyDbsByBinding: args.historyDbsByBinding!,
-        metaDb: args.metaDb,
-      })
-    },
+        const body = buildJsonApiListDocument({
+          url,
+          data: records.map(record =>
+            createAddressResource({
+              baseUrl: url.origin,
+              routeState,
+              record,
+              activeSnapshot,
+            }),
+          ),
+          limit,
+          offset,
+          total,
+          hasMore,
+          included: included.length > 0 ? included : undefined,
+          meta: buildMetadata({
+            routeState,
+            activeSnapshot,
+            filters,
+            page: { limit, offset, total },
+          }),
+          permalink: buildAddressPermalink({
+            url,
+            routeState,
+            activeSnapshot,
+            limit,
+            offset,
+          }),
+        })
+
+        return { status: 200, body }
+      },
+    )) ?? { status: 503, body: buildSnapshotNotReadyResponse('address') }
   )
-  await attachAddress3dCoverage({
-    ...args,
-    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
-    records,
-  })
-
-  const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(async () => [
-    ...(await loadIncludedAddressHierarchy({
-      currentDb: args.currentDb,
-      historyDbsByBinding: args.historyDbsByBinding,
-      metaDb: args.metaDb,
-      records,
-      snapshotId: activeSnapshot.divisionSnapshotId,
-      routeState,
-      include: args.query.include,
-      baseUrl: url.origin,
-    })),
-  ])
-  const body = buildJsonApiListDocument({
-    url,
-    data: records.map(record =>
-      createAddressResource({
-        baseUrl: url.origin,
-        routeState,
-        record,
-        activeSnapshot,
-      }),
-    ),
-    limit,
-    offset,
-    total,
-    hasMore,
-    included: included.length > 0 ? included : undefined,
-    meta: buildMetadata({
-      routeState,
-      activeSnapshot,
-      filters,
-      page: { limit, offset, total },
-    }),
-    permalink: buildAddressPermalink({
-      url,
-      routeState,
-      activeSnapshot,
-      limit,
-      offset,
-    }),
-  })
-
-  return { status: 200, body }
 }
 
 export async function searchAddresses(args: {
@@ -912,108 +930,120 @@ export async function searchAddresses(args: {
   let records: AddressRecord[]
   let total: number | undefined
   let hasMore: boolean | undefined
-  const useCurrent = await runWithD1ReadRetry(() =>
-    canReadCurrentAddresses({ ...args, activeSnapshot }),
+  const publicationToken = await runWithD1ReadRetry(() =>
+    getPublicationReadiness(args.currentDb, 'address', activeSnapshot.snapshotIds),
   )
+  const useCurrent = publicationToken !== null
   if (!useCurrent)
     return { status: 503, body: buildSnapshotNotReadyResponse('address') }
-  {
-    let search: { addressIds: string[]; total: number }
-    try {
-      search = await runWithD1ReadRetry(() =>
-        searchAddressIdsCurrent(args.currentDb, {
-          snapshotIds: activeSnapshot.snapshotIds,
-          countryId: filters.country,
-          areaId: filters.area,
-          districtId: filters.district,
-          component: args.query.component,
-          limit,
-          mode: args.query.match,
-          offset,
-          query: args.query.q,
-        }),
-      )
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message.includes('FTS index is not initialised')
-      ) {
-        return {
-          status: 503,
-          body: {
-            httpStatus: 503,
-            error: 'fts_not_ready',
-            message: 'Address search is not ready for the latest published release.',
-          },
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'address',
+      activeSnapshot.snapshotIds,
+      publicationToken,
+      async (): Promise<AddressSearchResult> => {
+        {
+          let search: { addressIds: string[]; total: number }
+          try {
+            search = await runWithD1ReadRetry(() =>
+              searchAddressIdsCurrent(args.currentDb, {
+                snapshotIds: activeSnapshot.snapshotIds,
+                countryId: filters.country,
+                areaId: filters.area,
+                districtId: filters.district,
+                component: args.query.component,
+                limit,
+                mode: args.query.match,
+                offset,
+                query: args.query.q,
+              }),
+            )
+          } catch (error) {
+            if (
+              error instanceof Error &&
+              error.message.includes('FTS index is not initialised')
+            ) {
+              return {
+                status: 503,
+                body: {
+                  httpStatus: 503,
+                  error: 'fts_not_ready',
+                  message:
+                    'Address search is not ready for the latest published release.',
+                },
+              }
+            }
+            throw error
+          }
+          records = await runWithD1ReadRetry(() =>
+            listAddressRecordsCurrentByIds(args.currentDb, {
+              snapshotIds: activeSnapshot.snapshotIds,
+              addressIds: search.addressIds,
+              countryId: filters.country,
+              areaId: filters.area,
+              districtId: filters.district,
+              localeSelection: routeState.localeSelection,
+            }),
+          )
+          total = search.total
         }
-      }
-      throw error
-    }
-    records = await runWithD1ReadRetry(() =>
-      listAddressRecordsCurrentByIds(args.currentDb, {
-        snapshotIds: activeSnapshot.snapshotIds,
-        addressIds: search.addressIds,
-        countryId: filters.country,
-        areaId: filters.area,
-        districtId: filters.district,
-        localeSelection: routeState.localeSelection,
-      }),
-    )
-    total = search.total
-  }
-  await attachAddress3dCoverage({
-    ...args,
-    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
-    records,
-  })
-  const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(async () => [
-    ...(await loadIncludedAddressHierarchy({
-      currentDb: args.currentDb,
-      historyDbsByBinding: args.historyDbsByBinding,
-      metaDb: args.metaDb,
-      records,
-      snapshotId: activeSnapshot.divisionSnapshotId,
-      routeState,
-      include: args.query.include,
-      baseUrl: url.origin,
-    })),
-  ])
-  const body = buildJsonApiListDocument({
-    url,
-    data: records.map(record =>
-      createAddressResource({
-        baseUrl: url.origin,
-        routeState,
-        record,
-        activeSnapshot,
-      }),
-    ),
-    limit,
-    offset,
-    total,
-    included: included.length > 0 ? included : undefined,
-    hasMore,
-    meta: buildMetadata({
-      routeState,
-      activeSnapshot,
-      filters,
-      page: { limit, offset, total },
-      search: {
-        ...(args.query.component ? { component: args.query.component } : {}),
-        mode: args.query.match,
-        query: args.query.q,
+        await attachAddress3dCoverage({
+          ...args,
+          historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+          records,
+        })
+        const url = new URL(args.requestUrl)
+        const included = await runWithD1ReadRetry(async () => [
+          ...(await loadIncludedAddressHierarchy({
+            currentDb: args.currentDb,
+            historyDbsByBinding: args.historyDbsByBinding,
+            metaDb: args.metaDb,
+            records,
+            snapshotId: activeSnapshot.divisionSnapshotId,
+            routeState,
+            include: args.query.include,
+            baseUrl: url.origin,
+          })),
+        ])
+        const body = buildJsonApiListDocument({
+          url,
+          data: records.map(record =>
+            createAddressResource({
+              baseUrl: url.origin,
+              routeState,
+              record,
+              activeSnapshot,
+            }),
+          ),
+          limit,
+          offset,
+          total,
+          included: included.length > 0 ? included : undefined,
+          hasMore,
+          meta: buildMetadata({
+            routeState,
+            activeSnapshot,
+            filters,
+            page: { limit, offset, total },
+            search: {
+              ...(args.query.component ? { component: args.query.component } : {}),
+              mode: args.query.match,
+              query: args.query.q,
+            },
+          }),
+          permalink: buildAddressPermalink({
+            url,
+            routeState,
+            activeSnapshot,
+            limit,
+            offset,
+          }),
+        })
+        return { status: 200, body }
       },
-    }),
-    permalink: buildAddressPermalink({
-      url,
-      routeState,
-      activeSnapshot,
-      limit,
-      offset,
-    }),
-  })
-  return { status: 200, body }
+    )) ?? { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  )
 }
 
 export async function getAddressDetail(args: {
@@ -1043,76 +1073,93 @@ export async function getAddressDetail(args: {
     if (accessAttribution) args.onResolved(accessAttribution)
   }
 
-  const useCurrent = await runWithD1ReadRetry(() =>
-    canReadCurrentAddresses({ ...args, activeSnapshot }),
+  const publicationToken = await runWithD1ReadRetry(() =>
+    getPublicationReadiness(args.currentDb, 'address', activeSnapshot.snapshotIds),
   )
-  const record = (
-    await runWithD1ReadRetry(() =>
-      useCurrent
-        ? listAddressRecordsCurrentByIds(args.currentDb, {
-            snapshotIds: activeSnapshot.snapshotIds,
-            addressIds: [args.id],
-            localeSelection: routeState.localeSelection,
-          })
-        : listReplayedAddressRecords({
-            snapshotIds: activeSnapshot.snapshotIds,
-            divisionSnapshotId: activeSnapshot.divisionSnapshotId,
-            historyDbsByBinding: args.historyDbsByBinding!,
-            localeSelection: routeState.localeSelection,
+  const useCurrent = publicationToken !== null
+  if (
+    !useCurrent &&
+    (!args.historyDbsByBinding ||
+      !(await isHistoricalAddressSelection({ ...args, activeSnapshot })))
+  )
+    return { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'address',
+      activeSnapshot.snapshotIds,
+      publicationToken,
+      async (): Promise<AddressDetailResult> => {
+        const record = (
+          await runWithD1ReadRetry(() =>
+            useCurrent
+              ? listAddressRecordsCurrentByIds(args.currentDb, {
+                  snapshotIds: activeSnapshot.snapshotIds,
+                  addressIds: [args.id],
+                  localeSelection: routeState.localeSelection,
+                })
+              : listReplayedAddressRecords({
+                  snapshotIds: activeSnapshot.snapshotIds,
+                  divisionSnapshotId: activeSnapshot.divisionSnapshotId,
+                  historyDbsByBinding: args.historyDbsByBinding!,
+                  localeSelection: routeState.localeSelection,
+                  metaDb: args.metaDb,
+                  recordIds: [args.id],
+                }),
+          )
+        )[0]
+        if (!record) {
+          return {
+            status: 404,
+            body: {
+              httpStatus: 404,
+              error: 'not_found',
+              message: `No address found for ${args.id}.`,
+            },
+          }
+        }
+
+        await attachAddress3dCoverage({
+          ...args,
+          historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+          records: [record],
+        })
+
+        const url = new URL(args.requestUrl)
+        const included = await runWithD1ReadRetry(async () => [
+          ...(await loadIncludedAddressHierarchy({
+            currentDb: args.currentDb,
+            historyDbsByBinding: args.historyDbsByBinding,
             metaDb: args.metaDb,
-            recordIds: [args.id],
+            records: [record],
+            snapshotId: activeSnapshot.divisionSnapshotId,
+            routeState,
+            include: args.query.include,
+            baseUrl: url.origin,
+          })),
+          ...(await loadIncludedAddressUnits({
+            currentDb: args.currentDb,
+            historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
+            metaDb: args.metaDb,
+            record,
+            routeState,
+            include: args.query.include,
+          })),
+        ])
+        const body = buildJsonApiDetailDocument({
+          url,
+          data: createAddressResource({
+            baseUrl: url.origin,
+            routeState,
+            record,
+            activeSnapshot,
           }),
-    )
-  )[0]
-  if (!record) {
-    return {
-      status: 404,
-      body: {
-        httpStatus: 404,
-        error: 'not_found',
-        message: `No address found for ${args.id}.`,
+          meta: buildMetadata({ routeState, activeSnapshot }),
+          included: included.length > 0 ? included : undefined,
+          permalink: buildAddressPermalink({ url, routeState, activeSnapshot }),
+        })
+        return { status: 200, body }
       },
-    }
-  }
-
-  await attachAddress3dCoverage({
-    ...args,
-    historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
-    records: [record],
-  })
-
-  const url = new URL(args.requestUrl)
-  const included = await runWithD1ReadRetry(async () => [
-    ...(await loadIncludedAddressHierarchy({
-      currentDb: args.currentDb,
-      historyDbsByBinding: args.historyDbsByBinding,
-      metaDb: args.metaDb,
-      records: [record],
-      snapshotId: activeSnapshot.divisionSnapshotId,
-      routeState,
-      include: args.query.include,
-      baseUrl: url.origin,
-    })),
-    ...(await loadIncludedAddressUnits({
-      currentDb: args.currentDb,
-      historyDbsByBinding: useCurrent ? undefined : args.historyDbsByBinding,
-      metaDb: args.metaDb,
-      record,
-      routeState,
-      include: args.query.include,
-    })),
-  ])
-  const body = buildJsonApiDetailDocument({
-    url,
-    data: createAddressResource({
-      baseUrl: url.origin,
-      routeState,
-      record,
-      activeSnapshot,
-    }),
-    meta: buildMetadata({ routeState, activeSnapshot }),
-    included: included.length > 0 ? included : undefined,
-    permalink: buildAddressPermalink({ url, routeState, activeSnapshot }),
-  })
-  return { status: 200, body }
+    )) ?? { status: 503, body: buildSnapshotNotReadyResponse('address') }
+  )
 }
