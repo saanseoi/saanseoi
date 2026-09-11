@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3c794f4dab558d285e5e0c60ea2ddd9e4dd828eb6697b2fc676d11042ba62965",
+  "versionHash": "sha256:19567fa0b9a4d04517306d3ba01948803ce381fe9a0f89496f26958dbedaad1b",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-strategic-street",
   "regionCode": "hk",
@@ -69,5 +69,6 @@
       "name": "策略性街道",
       "description": "路政署提供的策略性街道地理信息。来源是街道分类图层，并以政府街道数据域数据集保留。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:2326"
 }

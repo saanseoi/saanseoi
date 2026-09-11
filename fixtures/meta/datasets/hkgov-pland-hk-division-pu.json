@@ -1,12 +1,12 @@
 {
-  "versionHash": "sha256:6fcbec2d4bc21ad2e77df3b83d2250fdce9ac8319a23e41dd7f0d32a20f24423",
+  "versionHash": "sha256:9652469eca6fff39702218ea848ab58e40aececfc67a38d4e0e6a3b790caa2dc",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "subType": "pu",
+  "kind": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": ["division", "divisionArea"],
@@ -157,6 +157,12 @@
       "locale": "zh-hans",
       "name": "第三级规划单位及分区（香港）",
       "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
+    }
+  ],
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-official-division-processing-v1",
+      "operationCodes": ["resolve-geography-identities", "normalise-planning-divisions"]
     }
   ]
 }

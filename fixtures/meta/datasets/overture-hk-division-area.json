@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:768ec6d1258d180b9907f45b6263f4187e4cf38e1e3b46058ce30896dea73b38",
+  "versionHash": "sha256:4f72ed8cb9f72911c451aa52d1075209b0ed1672f59ce8a3e8bc31ae37ab71ba",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
@@ -67,5 +67,6 @@
       "name": "Overture 区划范围 (香港)",
       "description": "区划范围是代表区划所涵盖陆地或海事范围的多边形。每个区划范围通过 ID 关联所属区划，并为该区划提供范围多边形。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:4326"
 }

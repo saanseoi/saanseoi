@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:472f23e0315c0e86d192b418fb51078770ea162fa02e8dc9c98f08c028a40626",
+  "versionHash": "sha256:98cec3d890702800ef89cf6eac8ac5733140feadef97717bb77689b72da06b5e",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
@@ -61,15 +61,19 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Places"
+      "name": "Places",
+      "description": "A `place` is a feature type that represents a real-world entity at a specific location, such as a restaurant, shop, school, hospital, park or landmark. It has a Point geometry which gives its location, and may include names, categories, addresses and contact details that describe what it is and how to find or contact it."
     },
     {
       "locale": "zh-hant",
-      "name": "香港 Overture 地點"
+      "name": "香港 Overture 地點",
+      "description": "「place」是一種要素類型，表示位於特定位置的現實世界實體，例如餐廳、商店、學校、醫院、公園或地標。它具有 Point 幾何，標示其位置，並可包含名稱、類別、地址及聯絡資料，說明它是甚麼，以及如何找到它或與它聯絡。"
     },
     {
       "locale": "zh-hans",
-      "name": "香港 Overture 地点"
+      "name": "香港 Overture 地点",
+      "description": "「place」是一种要素类型，表示位于特定位置的现实世界实体，例如餐厅、商店、学校、医院、公园或地标。它具有 Point 几何，标示其位置，并可包含名称、类别、地址及联系信息，说明它是什么，以及如何找到它或与它联系。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:4326"
 }
