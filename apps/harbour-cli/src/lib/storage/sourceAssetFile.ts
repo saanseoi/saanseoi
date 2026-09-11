@@ -8,7 +8,10 @@ import {
 } from '../../../../../libs/core/src/lib/services/sourceAssetTransfer.ts'
 
 /** Hash files in bounded reads; never retain a whole source archive in memory. */
-export async function inspectSourceAssetFile(path: string) {
+export async function inspectSourceAssetFile(
+  path: string,
+  onProgress?: (bytes: number, total: number) => void,
+) {
   const before = await stat(path)
   if (!before.isFile() || before.size > SOURCE_ASSET_PART_SIZE * SOURCE_ASSET_MAX_PARTS)
     throw new Error(
@@ -19,9 +22,14 @@ export async function inspectSourceAssetFile(path: string) {
   let chunkHash = createHash('sha256')
   let chunkLength = 0
   let byteLength = 0
+  let reportedAt = Date.now()
   for await (const data of createReadStream(path, { highWaterMark: 64 * 1024 })) {
     hash.update(data)
     byteLength += data.byteLength
+    if (Date.now() - reportedAt >= 1000) {
+      onProgress?.(byteLength, before.size)
+      reportedAt = Date.now()
+    }
     let offset = 0
     while (offset < data.byteLength) {
       const length = Math.min(

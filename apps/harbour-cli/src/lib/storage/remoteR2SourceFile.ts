@@ -19,7 +19,9 @@ export async function retainSourceFileInBucket(
   progress: (operation: string) => void = () => {},
 ) {
   progress('hashing source file')
-  const file = await inspectSourceAssetFile(path)
+  const file = await inspectSourceAssetFile(path, (bytes, total) =>
+    progress(`hashing source file ${bytes}/${total} bytes`),
+  )
   if (
     !key.startsWith('by-source/') ||
     !key.split('/').at(-1)?.startsWith(`${file.sha256}-`)
