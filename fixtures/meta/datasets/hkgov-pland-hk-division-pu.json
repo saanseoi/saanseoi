@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:9652469eca6fff39702218ea848ab58e40aececfc67a38d4e0e6a3b790caa2dc",
+  "versionHash": "sha256:1a16e65a9adfdcbec1db3fbf070a197f4f9ab38ee683a5eb7d672b045ece9f2b",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -162,7 +162,11 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-official-division-processing-v1",
-      "operationCodes": ["resolve-geography-identities", "normalise-planning-divisions"]
+      "operationCodes": [
+        "resolve-geography-identities",
+        "normalise-planning-divisions",
+        "provenance_division_area_geometry"
+      ]
     }
   ]
 }

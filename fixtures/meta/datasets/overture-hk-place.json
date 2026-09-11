@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:98cec3d890702800ef89cf6eac8ac5733140feadef97717bb77689b72da06b5e",
+  "versionHash": "sha256:0abf2f38ad699a7ae8269df1a7ffec7c94af12e4d0537a5f364d732a25445a09",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
@@ -54,7 +54,10 @@
         "overture_place_address_supplementary",
         "overture_place_address_review",
         "overture_place_address_delayed",
-        "overture_place_locale_conflict"
+        "overture_place_locale_conflict",
+        "provenance_place_normalisation",
+        "provenance_place_address_analysis",
+        "provenance_place_reference_name"
       ]
     }
   ],
