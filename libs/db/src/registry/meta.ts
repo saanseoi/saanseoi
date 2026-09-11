@@ -164,7 +164,6 @@ type ApiCompositionMemberFixture = {
   role: string
   isRequired: boolean
   cohortMatchingMode: string
-  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -344,7 +343,6 @@ type InitialApiCompositionMemberSeed = {
   role: string
   isRequired: boolean
   cohortMatchingMode: string
-  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -687,10 +685,6 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
       role: member.role,
       isRequired: member.isRequired,
       cohortMatchingMode: member.cohortMatchingMode,
-      configJson:
-        member.ingestDependencies && member.ingestDependencies.length > 0
-          ? JSON.stringify({ ingestDependencies: member.ingestDependencies })
-          : undefined,
       anchorResourceType: member.anchorResourceType,
       maxLagDays: member.maxLagDays,
       priority: member.priority,
@@ -1150,7 +1144,7 @@ WHERE apiCompositionId IN (
     statements.push(
       `
 INSERT INTO apiCompositionMembers (
-  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
+  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
 ) VALUES (
   (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
   ${sqlString(member.domainCode)},
@@ -1161,8 +1155,7 @@ INSERT INTO apiCompositionMembers (
   ${sqlString(member.cohortMatchingMode)},
   ${sqlNullable(member.anchorResourceType)},
   ${member.maxLagDays == null ? 'NULL' : member.maxLagDays},
-  ${member.priority},
-  ${sqlNullable(member.configJson)}
+  ${member.priority}
 )
 ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
   role = excluded.role,
