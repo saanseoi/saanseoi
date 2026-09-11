@@ -5,13 +5,29 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import {
-  dispatchUpload,
+  dispatchUpload as dispatchUploadActual,
   resumePendingSqlDeliveryForUpload,
   scheduleSnapshotCleanup,
 } from './upload.ts'
 import type { UploadTarget } from '../cli/options.ts'
+import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import { prepareSqlDelivery } from '../pipeline/local/sqlDeliveryFiles.ts'
 import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+
+const dispatchUpload: typeof dispatchUploadActual = (
+  target,
+  registration,
+  preview,
+  schema,
+  options = {},
+) =>
+  dispatchUploadActual(target, registration, preview, schema, {
+    resolveWriteContext: async () =>
+      ({ cleanup() {} }) as Awaited<
+        ReturnType<NonNullable<typeof options.resolveWriteContext>>
+      >,
+    ...options,
+  })
 
 const target: UploadTarget = {
   environment: 'production',
@@ -20,6 +36,73 @@ const target: UploadTarget = {
 
 const originalFetch = globalThis.fetch
 const originalApiKey = process.env.HARBOUR_API_KEY
+
+test.each([
+  'address',
+  'division',
+  'divisionArea',
+  'divisionBoundary',
+  'place',
+  'divisionStatistic',
+  'street',
+] as const)(
+  '%s remote registration rejects an unusable mirror before any HTTP mutation',
+  async resourceType => {
+    let requests = 0
+    globalThis.fetch = (async () => {
+      requests++
+      throw new Error('Unexpected HTTP request')
+    }) as typeof fetch
+    const preview = previewResult()
+    preview.plan.resourceType = resourceType
+    await expect(
+      dispatchUploadActual(
+        target,
+        { filePath: 'fixture.parquet' } as never,
+        preview,
+        'schema',
+        {
+          resolvePendingReleaseId: async () => 'owner',
+          resolveWriteContext: async (destination, region, year, options) => {
+            expect(destination).toEqual(target)
+            expect(region).toBe('hk')
+            expect(year).toBe('2025')
+            expect(options).toEqual({ resumeSqlDeliveryReleaseId: 'owner' })
+            throw new Error('complete shared mirror required')
+          },
+        },
+      ),
+    ).rejects.toThrow('complete shared mirror required')
+    expect(requests).toBe(0)
+  },
+)
+
+test('remote registration releases a validated mirror before sending the request', async () => {
+  process.env.HARBOUR_API_KEY = 'test-api-key'
+  const events: string[] = []
+  globalThis.fetch = (async () => {
+    events.push('register')
+    return Response.json({ status: 'staged' })
+  }) as typeof fetch
+  await dispatchUpload(
+    target,
+    { filePath: 'fixture.parquet' } as never,
+    previewResult(),
+    'schema',
+    {
+      resolvePendingReleaseId: async () => undefined,
+      resolveWriteContext: async () => {
+        events.push('validate')
+        return {
+          cleanup() {
+            events.push('close')
+          },
+        } as LocalAddressDbContext
+      },
+    },
+  )
+  expect(events).toEqual(['validate', 'close', 'register'])
+})
 
 afterEach(() => {
   globalThis.fetch = originalFetch

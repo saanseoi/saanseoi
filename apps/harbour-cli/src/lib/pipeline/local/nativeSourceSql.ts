@@ -40,6 +40,7 @@ import { createLocalControlClient } from './localControlClient.ts'
 import { executeSqlText, type SqlImportTargetContext } from './sqlImport.ts'
 import { dispatchUpload } from '../../upload/upload.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from './syncStagedRelease.ts'
+import { processLocalDivisionSqlUpload } from '../divisions/processLocalDivisionSqlUpload.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../..')
 const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
@@ -89,6 +90,8 @@ export type NativeSourceRelease = {
   datasetCode: string
   releaseNotesUrl: string
   rowCount: number
+  /** Native divisions must deliver their canonical projection before publication. */
+  divisionRows?: Record<string, unknown>[]
   /** Restore the native source ledger for a published converted release. */
   recoverPublishedRelease?: boolean
   source: string
@@ -147,6 +150,7 @@ export async function processNativeSourceSqlRelease(
   let localCacheMutationStarted = false
   let published = false
   let publishResult: unknown
+  let datasetId: string | undefined
 
   try {
     localCacheMutationStarted = true
@@ -166,7 +170,9 @@ export async function processNativeSourceSqlRelease(
         theme: input.theme,
         resourceType: input.resourceType,
       },
+      { reuseExistingRelease: input.recoverPublishedRelease },
     )
+    datasetId = (await getDatasetById(metaDb, releaseId))?.datasetId
     await client.stageRunning(
       releaseId,
       'processDataset',
@@ -181,13 +187,15 @@ export async function processNativeSourceSqlRelease(
     const remoteReplay = target.remote
       ? resolveNativeRemoteReplay(target, context, shardYear)
       : null
-    const nativeMetaSql = await prepareNativeDivisionMetaSql(
-      metaDb,
-      input,
-      releaseId,
-      releaseCode,
-      resolvePipelineEnvironment(target),
-    )
+    const nativeMetaSql = input.divisionRows
+      ? []
+      : await prepareNativeDivisionMetaSql(
+          metaDb,
+          input,
+          releaseId,
+          releaseCode,
+          resolvePipelineEnvironment(target),
+        )
     const remoteMetaReplay = target.remote
       ? resolveNativeMetaReplay(target, context)
       : null
@@ -225,7 +233,7 @@ export async function processNativeSourceSqlRelease(
 
     await client.stageCompleted(
       releaseId,
-      'processDataset',
+      input.divisionRows ? 'importNativeSource' : 'processDataset',
       {
         archiveObjectKey: input.archiveObjectKey,
         archiveSha256: input.archiveSha256,
@@ -237,8 +245,10 @@ export async function processNativeSourceSqlRelease(
       },
       releaseCode,
     )
-    publishResult = await client.publishDataset(releaseId, releaseCode)
-    published = true
+    if (!input.divisionRows) {
+      publishResult = await client.publishDataset(releaseId, releaseCode)
+      published = true
+    }
   } catch (error) {
     if (target.remote && localCacheMutationStarted) {
       await invalidateRemoteDbCache(
@@ -259,6 +269,38 @@ export async function processNativeSourceSqlRelease(
     throw error
   } finally {
     context.cleanup()
+  }
+
+  if (input.divisionRows) {
+    return processLocalDivisionSqlUpload(
+      target,
+      {
+        cohortKey: input.cohortKey,
+        regionCode: 'hk',
+        releaseCode,
+        rowCount: input.divisionRows.length,
+        source: 'hkgov-landsd',
+        sourceVersion: input.sourceVersion,
+        theme: 'divisions',
+        resourceType: 'division',
+      },
+      {
+        datasetCode: input.datasetCode,
+        datasetId: requireString(datasetId, 'datasetId'),
+        releaseId,
+        releaseCode,
+        rawObjectKey: input.archiveObjectKey,
+      },
+      {
+        filePath: input.archivePath,
+        transformed: false,
+        cleanup: async () => undefined,
+      },
+      {
+        nativeRows: input.divisionRows,
+        reuseExistingRelease: true,
+      },
+    )
   }
 
   if (published && target.remote) {
@@ -795,6 +837,13 @@ function nativeType(value: unknown) {
 }
 
 function assertRelease(input: NativeSourceRelease) {
+  if (input.resourceType === 'division' && !input.divisionRows)
+    throw new Error('Native division ingestion requires its canonical projection.')
+  if (
+    input.divisionRows &&
+    (input.source !== 'hkgov-landsd' || input.resourceType !== 'division')
+  )
+    throw new Error('Native settlement projection requires a LandsD division release.')
   if (!/^[a-f0-9]{64}$/i.test(input.archiveSha256)) {
     throw new Error('Native source release requires a SHA-256 archive hash.')
   }

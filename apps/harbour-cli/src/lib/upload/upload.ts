@@ -11,6 +11,7 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { resolveCurrentWriteContext } from '../dbCache/currentWriteContext.ts'
 import {
   mapLocalTargetPaths,
   resolveD1Targets,
@@ -75,6 +76,7 @@ type DispatchUploadOptions = {
   allowHistoricalCohort?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
   resolvePendingReleaseId?: typeof findPendingSqlDeliveryReleaseId
+  resolveWriteContext?: typeof resolveCurrentWriteContext
 }
 
 type UploadSqlRecoveryDependencies = {
@@ -317,6 +319,15 @@ async function requestRemoteRegistration(
   const retainedReleaseId = await (
     options.resolvePendingReleaseId ?? findPendingSqlDeliveryReleaseId
   )(resolveSharedRemoteDbCacheDir(target), previewResult.plan.releaseCode)
+  // Use exactly the writers' acknowledged baseline, before registration or
+  // source retention can leave any remote side effects. Never seed a profile here.
+  const context = await (options.resolveWriteContext ?? resolveCurrentWriteContext)(
+    target,
+    previewResult.plan.regionCode,
+    shardYear,
+    { resumeSqlDeliveryReleaseId: retainedReleaseId },
+  )
+  context.cleanup()
   const response = await fetch(
     buildRegisterUploadEndpoint(resolveHarbourApiUrl(target)),
     {

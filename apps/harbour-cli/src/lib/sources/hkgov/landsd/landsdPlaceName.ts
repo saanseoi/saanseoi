@@ -183,6 +183,44 @@ export function serialiseLandsdSettlementFeatureCollection(input: unknown) {
   return `${JSON.stringify(prepareLandsdSettlementFeatureCollection(input))}\n`
 }
 
+/** Project the decoded native relationship without changing publisher properties. */
+export function landsdSettlementDivisionRows(features: NativeLandsdPlaceName[]) {
+  return features.flatMap((feature, index) => {
+    if (landsdSettlementSelectionRule.execute(feature.properties) !== 'selected')
+      return []
+    const row = normaliseLandsdSettlement(feature, index)
+    const labels = [
+      ...feature.placeNames.filter(name => name.status === 'Official'),
+      ...feature.placeNames.filter(name => name.status === 'Alias'),
+    ]
+    if (!labels.some(name => name.status === 'Official'))
+      throw new Error(`LandsD settlement ${row.geoNameId} has no official label.`)
+    return [
+      {
+        id: row.id,
+        source: LANDSD_PLACE_NAME_SOURCE,
+        country: 'HK',
+        subtype: 'locality',
+        class: row.placeType,
+        parent_division_id: '',
+        geo_name_id: row.geoNameId,
+        geometry: row.geometry,
+        identifiers: row.identifiers,
+        names: {
+          common: {
+            en: labels.flatMap(name => (name.nameEn ? [name.nameEn] : [])),
+            'zh-hant': labels.flatMap(name =>
+              name.nameZhHant ? [name.nameZhHant] : [],
+            ),
+          },
+        },
+        source_feature: row.sourceFeature,
+        source_properties: row.sourceProperties,
+      },
+    ]
+  })
+}
+
 /** Converts the filtered point GeoJSON into the canonical division upload shape. */
 export async function prepareLandsdPlaceNameDivisionUpload(
   inputFile: string,
