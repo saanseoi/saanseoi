@@ -5,7 +5,6 @@ export type SourceRecordCatalogueEntry = {
   releaseKey?: 'version' | 'code'
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
-  sourcesColumn?: boolean
   nativeNamesColumn?: 'placeNames'
   randomSampleStrategy?: 'uuid-pivot'
   randomSamplePrefix?: string
@@ -53,9 +52,9 @@ const ADDRESS_SOURCE_RECORD_CATALOGUE = {
     releaseKey: 'version',
     randomSampleStrategy: 'uuid-pivot',
     geometryColumn: 'sourceGeometry',
-    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry, sources
+    tableName: `(SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry
       FROM hkgovAlsAddresses2d UNION ALL
-      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry, sources
+      SELECT sourceRecordId, versionHash, validFromRelease, validToRelease, rawProperties, sourceGeometry
       FROM hkgovAlsAddresses3d)`,
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
@@ -134,26 +133,17 @@ export function sourceCatalogueFor(
 ): Record<string, SourceRecordCatalogueEntry> {
   switch (family) {
     case 'addresses':
-      return withSourceEnvelope(ADDRESS_SOURCE_RECORD_CATALOGUE)
+      return ADDRESS_SOURCE_RECORD_CATALOGUE
     case 'divisions':
-      return withSourceEnvelope({
+      return {
         ...DIVISION_SOURCE_RECORD_CATALOGUE,
         ...STATISTIC_SOURCE_RECORD_CATALOGUE,
-      })
+      }
     case 'places':
-      return withSourceEnvelope(PLACE_SOURCE_RECORD_CATALOGUE)
+      return PLACE_SOURCE_RECORD_CATALOGUE
     case 'stats':
-      return withSourceEnvelope(STATISTIC_SOURCE_RECORD_CATALOGUE)
+      return STATISTIC_SOURCE_RECORD_CATALOGUE
     case 'streets':
       return STREET_SOURCE_RECORD_CATALOGUE
   }
-}
-
-function withSourceEnvelope(entries: Record<string, SourceRecordCatalogueEntry>) {
-  return Object.fromEntries(
-    Object.entries(entries).map(([code, entry]) => [
-      code,
-      { ...entry, sourcesColumn: true },
-    ]),
-  )
 }

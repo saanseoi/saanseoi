@@ -1853,8 +1853,8 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/meta/health']).toBeDefined()
     expect(body.paths['/v0.1/meta/d1-placement-probe']).toBeUndefined()
     expect(body.paths['/divisions/v0.1']).toBeUndefined()
-    expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
-      'hierarchy',
+    expect(body.components?.schemas?.DivisionAttributes?.required).toContain(
+      'hierarchies',
     )
     expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
     expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
@@ -2100,7 +2100,7 @@ describe('atlas-api', () => {
       | { description?: string; 'x-recordKeyName'?: string }
       | undefined
     const divisionHierarchyIdentifier =
-      divisions.components?.schemas?.DivisionHierarchyIdentifier
+      divisions.components?.schemas?.DivisionHierarchyEntry
     const sources = divisions.components?.schemas?.Sources as
       | {
           'x-additionalPropertiesName'?: string
@@ -2147,15 +2147,15 @@ describe('atlas-api', () => {
       'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
     )
     expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      'Summary details for the ancestor division, provided with the resource linkage.',
-    )
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      "The ancestor division's available display name.",
-    )
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      "The ancestor division's source classification, such as `country`, `dependency` or `region`.",
-    )
+    expect(divisionHierarchyIdentifier).toMatchObject({
+      required: ['id', 'name', 'class'],
+      properties: {
+        name: {
+          description:
+            'Stored Traditional Chinese and English display name, with duplicate names omitted.',
+        },
+      },
+    })
     expect(sources?.properties?.overture?.description).toBe(
       'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
     )

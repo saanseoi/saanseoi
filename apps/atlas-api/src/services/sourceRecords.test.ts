@@ -9,7 +9,7 @@ import {
   SourceRecordRequestError,
   streamSourceRecordsNdjson,
 } from './sourceRecords'
-import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson.ts'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
 function sourceDatabase(
   rows: Array<Record<string, unknown>>,
@@ -167,7 +167,6 @@ describe('source records', () => {
       const plain = await listSourceRecords({ ...args, includeGeometry: false })
       expect(plain?.records).toHaveLength(1)
       expect(plain?.records[0]).toMatchObject({
-        resourceType: 'divisionStatistic',
         rawProperties: { population: 42 },
       })
       expect(plain?.records[0]).not.toHaveProperty('geometry')
@@ -195,7 +194,7 @@ describe('source records', () => {
     )
     insert.run('old', 'v1', '{"obsolete":true}', code.replace('2021', '2016'), code)
     insert.run('a', 'v1', '{"name":"One","value":1,"optional":null}', code, null)
-    insert.run('b', 'v1', '{"name":"Two","value":"suppressed","rare":true}', code, null)
+    insert.run('b', 'v1', '{"name":null,"value":"suppressed","rare":true}', code, null)
     insert.run(
       'unrelated',
       'v1',
@@ -238,8 +237,9 @@ describe('source records', () => {
         ])
       }
       const schema = await getSourceRecordSchema(args)
+      expect(schema?.required).toEqual(['name', 'value'])
       expect(schema?.properties).toEqual({
-        name: { type: 'string', nullable: false },
+        name: { type: 'string', nullable: true },
         optional: { type: 'null', nullable: true },
         rare: { type: 'boolean', nullable: false },
         value: { anyOf: [{ type: 'integer' }, { type: 'string' }], nullable: false },
@@ -269,7 +269,10 @@ describe('source records', () => {
         .run(
           requireDefined(id),
           requireDefined(hash),
-          JSON.stringify({ names: { primary: name } }),
+          JSON.stringify({
+            names: { primary: name },
+            sources: [{ dataset: 'publisher' }],
+          }),
           requireDefined(from),
           to ?? null,
           JSON.stringify(geometry),
@@ -306,7 +309,6 @@ describe('source records', () => {
       expect(first?.pin.datasetCode).toBe('ds-hk-overture-place')
       expect(first?.records[0]).toMatchObject({
         sourceRecordId: 'place-a',
-        resourceType: 'place',
         geometry,
         rawProperties: { names: { primary: 'Publisher name' } },
       })
@@ -336,7 +338,12 @@ describe('source records', () => {
       })
       expect(withoutGeometry?.records[0]).not.toHaveProperty('geometry')
       expect(withoutGeometry?.records[0]?.rawProperties).not.toHaveProperty('geometry')
-      expect(withoutGeometry?.records[0]?.sources).toEqual([{ dataset: 'publisher' }])
+      expect(withoutGeometry?.records[0]?.rawProperties?.sources).toEqual([
+        { dataset: 'publisher' },
+      ])
+      expect(withoutGeometry?.records[0]).not.toHaveProperty('sources')
+      expect(withoutGeometry?.records[0]).not.toHaveProperty('resourceType')
+      expect(withoutGeometry?.records[0]).not.toHaveProperty('variant')
       expect(await listSourceRecords({ ...args, family: 'divisions' })).toBeNull()
       expect(
         await listSourceRecords({
@@ -458,10 +465,7 @@ describe('source records', () => {
       records: [
         {
           rawProperties: { class: 'administrative', id: 'division-1' },
-          resourceType: 'division',
           sourceRecordId: 'division-1',
-          sources: null,
-          variant: 'overture',
         },
       ],
     })
@@ -776,10 +780,7 @@ describe('source records', () => {
       {
         geometry,
         rawProperties: { dc: 1, dc_eng: 'Central and Western' },
-        resourceType: 'divisionArea',
         sourceRecordId: 'CENSTATD:A',
-        sources: null,
-        variant: 'hkgov-censtatd:2016',
       },
     ])
   })
@@ -824,11 +825,75 @@ describe('source records', () => {
     expect(await new Response(stream).text()).toBe(
       `${JSON.stringify({
         rawProperties: { class: 'administrative' },
-        resourceType: 'division',
         sourceRecordId: 'division-1',
-        variant: 'overture',
-        sources: null,
       })}\n`,
     )
   })
 })
+
+for (const [family, datasetCode, tableName, resourceType] of [
+  ['addresses', 'ds-hk-hkgov-dpo-address', '', 'address'],
+  ['divisions', 'ds-hk-overture-division', 'overtureDivisions', 'division'],
+  ['places', 'ds-hk-overture-place', 'overturePlaces', 'place'],
+  [
+    'stats',
+    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    'hkgovCenstatdDistrictLandAreaPopulationDensities',
+    'divisionStatistic',
+  ],
+  [
+    'streets',
+    'ds-hk-hkgov-landsd-road-centreline',
+    'hkgovLandsdRoadCentrelines',
+    'street',
+  ],
+] as const) {
+  test(`${family} JSON and NDJSON retain their intended envelope and native geometry`, async () => {
+    const code = `dr-${datasetCode.slice(3)}-2026-07-22.0`
+    const geometry = { encoding: 'wkb-base64', data: 'AQID' }
+    const row = {
+      sourceRecordId: 'publisher',
+      versionHash: 'hash',
+      rawProperties: '{"publisherValue":" original "}',
+      sourceGeometry: JSON.stringify(geometry),
+    }
+    const db = tableName
+      ? sourceDatabase(
+          [row],
+          tableName,
+          family === 'stats' || family === 'streets' ? code : '2026-07-22.0',
+        )
+      : ({
+          prepare() {
+            return {
+              bind() {
+                return { all: async () => ({ results: [row], success: true }) }
+              },
+            }
+          },
+        } as never)
+    const args = {
+      family,
+      region: 'hk' as const,
+      sourceReleaseCode: code,
+      includeGeometry: true,
+      env: { DB_SOURCE_HK_2026: db } as never,
+      metaDb: metaDatabase({ datasetCode, resourceType, sourceReleaseCode: code }),
+    }
+    const result = await listSourceRecords({ ...args, limit: 1 })
+    const expected = {
+      sourceRecordId: 'publisher',
+      rawProperties: { publisherValue: ' original ' },
+      geometry,
+      ...(family === 'streets' ? { resourceType, variant: 'overture' } : {}),
+    }
+    expect(result?.records).toEqual([expected])
+    const stream = await streamSourceRecordsNdjson(args)
+    expect(
+      (await new Response(stream).text())
+        .trim()
+        .split('\n')
+        .map(line => JSON.parse(line)),
+    ).toEqual([expected])
+  })
+}

@@ -90,7 +90,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         rawObjectKey: 'fixture.json',
         originalFileName: 'fixture.json',
         ingestedAt: '2025-09-25T00:00:00Z',
-        type: member.type,
+        resourceType: member.type,
         cohortKey: cohort,
         sourceVersion: cohort,
         status: 'published',
@@ -132,7 +132,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       releaseSetId: releaseSet.id,
       snapshotId: requireDefined(snapshots.get('supplementary')),
       snapshotVariant: 'overture-places',
-      type: 'address',
+      resourceType: 'address',
       publishedAt: '2025-09-25T00:00:00Z',
       updateDatasetRelease: false,
       carriedSnapshots: [
@@ -152,7 +152,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     const divisionSnapshotId = requireDefined(snapshots.get('division'))
     currentDb
       .insert(currentSchema.divisions)
-      .values({ snapshotId: divisionSnapshotId, id: 'hk', type: 'country' })
+      .values({
+        snapshotId: divisionSnapshotId,
+        id: 'hk',
+        class: 'country',
+        category: 'administrative',
+        hierarchies: { administrative: [], locality: [], full: [] },
+      })
       .run()
     for (const [id, member, countryId] of [
       ['a', 'als', 'hk'],
