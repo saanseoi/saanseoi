@@ -43,7 +43,10 @@ export async function retainSourceFileInBucket(
       contentHash: file.sha256,
       parts: file.parts,
       mediaType: metadata.contentType,
-      fileName: key.split('/').at(-1) ?? 'source.bin',
+      fileName:
+        metadata.contentDisposition?.match(/filename="([^"]+)"/)?.[1] ??
+        key.split('/').at(-1) ??
+        'source.bin',
       role: 'sourceArchive',
     },
     progress,
