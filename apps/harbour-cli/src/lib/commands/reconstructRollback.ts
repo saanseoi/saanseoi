@@ -41,9 +41,11 @@ import {
   type ProjectionResourceType,
 } from './rollback/projection.ts'
 import { restorePlaceDerivedRows } from './rollback/places.ts'
+import { restoreStatisticsProjection } from './rollback/statistics.ts'
 import type { NetTablePolicy } from '../pipeline/local/netSqlitePlanTypes.ts'
 
-const familyTables: Record<ProjectionResourceType, string[]> = {
+type RollbackResourceType = ProjectionResourceType | 'divisionStatistic'
+const familyTables: Record<RollbackResourceType, string[]> = {
   division: ['divisions', 'divisionsI18n'],
   divisionArea: ['divisionAreas'],
   divisionBoundary: ['divisionBoundaries'],
@@ -64,11 +66,18 @@ const familyTables: Record<ProjectionResourceType, string[]> = {
     'streetNameChangeStreets',
     'streetsAddress',
   ],
+  divisionStatistic: [
+    'statsRecords',
+    'statsFields',
+    'statsFieldsI18n',
+    'statsMeasures',
+    'statsMeasuresI18n',
+  ],
 }
 
-const familyForTable = (table: string): ProjectionResourceType => {
+const familyForTable = (table: string): RollbackResourceType => {
   for (const [family, tables] of Object.entries(familyTables))
-    if (tables.includes(table)) return family as ProjectionResourceType
+    if (tables.includes(table)) return family as RollbackResourceType
   throw new Error(`Unknown rollback table ${table}.`)
 }
 const scopeColumn = (table: string) =>
@@ -87,21 +96,13 @@ export async function prepareReconstructedRollback(input: {
   const metaPath = input.context.state.files?.DB_META
   if (!metaPath) throw new Error('Rollback requires DB_META.')
   const baseline = new Database(metaPath, { readonly: true, create: false })
-  let families: ProjectionResourceType[]
+  let families: RollbackResourceType[]
   try {
     const selection = resolveRollbackSelection(baseline, input.releaseId)
-    if (
-      [...selection.changes, ...selection.restores].some(
-        snapshot => snapshot.resourceType === 'divisionStatistic',
-      )
-    )
-      throw new Error(
-        'Statistics rollback requires its exact-period reconstruction adapter.',
-      )
     families = [
       ...new Set(
         [...selection.changes, ...selection.restores].map(
-          snapshot => snapshot.resourceType as ProjectionResourceType,
+          snapshot => snapshot.resourceType,
         ),
       ),
     ]
@@ -112,7 +113,10 @@ export async function prepareReconstructedRollback(input: {
     familyTables[family].map(name => ({
       name,
       ignoredColumns: ['createdAt', 'updatedAt'],
-      rowScope: { column: scopeColumn(name), values: [] as string[] },
+      rowScope: {
+        column: family === 'divisionStatistic' ? 'datasetCode' : scopeColumn(name),
+        values: [] as string[],
+      },
       ...(family === 'address' && ['address3d', 'address3dI18n'].includes(name)
         ? {
             collection: {
@@ -138,6 +142,55 @@ export async function prepareReconstructedRollback(input: {
         db: target.db as HarbourReadableDb,
       }))
       const claims: RollbackClaim[] = []
+      const statisticsSnapshots = selection.changes.filter(
+        snapshot => snapshot.resourceType === 'divisionStatistic',
+      )
+      if (statisticsSnapshots.length) {
+        const datasetCode = meta
+          .query<{ code: string }, [string]>('SELECT code FROM datasets WHERE id=?')
+          .get(selection.release.datasetId)?.code
+        if (!datasetCode) throw new Error('Statistics rollback dataset is missing.')
+        for (const policy of tables)
+          if (familyForTable(policy.name) === 'divisionStatistic')
+            policy.rowScope!.values.push(datasetCode)
+        for (const snapshot of statisticsSnapshots) {
+          const receipt = current
+            .query<
+              { snapshotId: string; status: string; updatedAt: string },
+              [string, string]
+            >(
+              'SELECT snapshotId,status,updatedAt FROM statsPublicationState WHERE datasetCode=? AND referencePeriodCode=?',
+            )
+            .get(datasetCode, snapshot.cohortKey)
+          if (
+            !receipt ||
+            receipt.snapshotId !== snapshot.id ||
+            receipt.status !== 'current'
+          )
+            throw new Error(
+              'Statistics rollback target no longer owns its exact-period selection.',
+            )
+          const identity = { datasetCode, referencePeriodCode: snapshot.cohortKey }
+          claims.push({
+            table: 'statsPublicationState',
+            scopeId: JSON.stringify([datasetCode, snapshot.cohortKey]),
+            statistics: identity,
+            previous: {
+              snapshotId: receipt.snapshotId,
+              publicationToken: receipt.updatedAt,
+            },
+            snapshotId: snapshot.parentSnapshotId,
+            publicationToken: new Date().toISOString(),
+          })
+          await restoreStatisticsProjection({
+            current,
+            metaDb,
+            historyTargets,
+            snapshotId: snapshot.parentSnapshotId,
+            ...identity,
+          })
+        }
+      }
       const scopes = new Map<
         string,
         {
@@ -152,8 +205,7 @@ export async function prepareReconstructedRollback(input: {
         [selection.restores, 'to'],
       ] as const) {
         for (const snapshot of snapshots) {
-          if (snapshot.resourceType === 'divisionStatistic')
-            throw new Error('Unexpected Statistics scope in canonical rollback.')
+          if (snapshot.resourceType === 'divisionStatistic') continue
           const scopeId = rollbackSnapshotScope(snapshot)
           const key = JSON.stringify([snapshot.resourceType, scopeId])
           const item = scopes.get(key) ?? {
@@ -170,7 +222,21 @@ export async function prepareReconstructedRollback(input: {
           scopes.set(key, item)
         }
       }
-      for (const scope of scopes.values()) {
+      const preparedDependencies = new Map<
+        string,
+        { resourceType: 'division' | 'street'; scopeId: string }
+      >()
+      const dependencyOrder = [
+        'division',
+        'street',
+        'address',
+        'place',
+        'divisionArea',
+        'divisionBoundary',
+      ]
+      for (const scope of [...scopes.values()].sort(
+        (a, b) => dependencyOrder.indexOf(a.family) - dependencyOrder.indexOf(b.family),
+      )) {
         const table = `${scope.family}PublicationState`
         const receipt = current
           .query<
@@ -230,7 +296,14 @@ export async function prepareReconstructedRollback(input: {
             scopeId: scope.scopeId,
             resourceType: scope.family,
             cacheDir: input.context.state.dbCacheDir,
+            preparedDependencies,
+            deferForeignKeyValidation: true,
           })
+          if (scope.family === 'division' || scope.family === 'street')
+            preparedDependencies.set(scope.to.id, {
+              resourceType: scope.family,
+              scopeId: scope.scopeId,
+            })
           if (scope.family === 'place')
             await restorePlaceDerivedRows({
               current,
@@ -247,16 +320,16 @@ export async function prepareReconstructedRollback(input: {
                 current
                   .query(`DELETE FROM "${name}" WHERE "${scopeColumn(name)}"=?`)
                   .run(scope.scopeId)
-              if (current.query('PRAGMA foreign_key_check').get())
-                throw new Error(
-                  'Rollback removal would invalidate a dependent current family.',
-                )
             })()
           } finally {
             current.exec('PRAGMA foreign_keys=ON')
           }
         }
       }
+      if (current.query('PRAGMA foreign_key_check').get())
+        throw new Error(
+          'Rollback reconstruction would invalidate a dependent current family.',
+        )
       const metadata = prepareRollbackMetadata(
         meta,
         selection,
@@ -403,7 +476,9 @@ export async function verifyRollbackTerminal(
   files: Record<string, string>,
   terminal: RollbackTerminal,
 ) {
-  const { rollbackClaimPredicate } = await import('./rollbackDelivery.ts')
+  const { rollbackClaimPredicate, rollbackClaimScopePredicate } = await import(
+    './rollbackDelivery.ts'
+  )
   const meta = new Database(files.DB_META!, { readonly: true, create: false })
   const current = new Database(files.DB_CURRENT!, { readonly: true, create: false })
   try {
@@ -430,8 +505,10 @@ export async function verifyRollbackTerminal(
           )
       } else if (
         current
-          .query(`SELECT 1 FROM "${claim.table}" WHERE scopeId=?`)
-          .get(claim.scopeId)
+          .query(
+            `SELECT 1 FROM "${claim.table}" WHERE ${rollbackClaimScopePredicate(claim)}`,
+          )
+          .get()
       )
         throw new Error('Rollback scope removal is incomplete.')
     }

@@ -22,6 +22,7 @@ export type RollbackClaim = {
   previous: { snapshotId: string; publicationToken: string } | null
   snapshotId: string | null
   publicationToken: string
+  statistics?: { datasetCode: string; referencePeriodCode: string }
 }
 
 export type RollbackTerminal = {
@@ -47,10 +48,23 @@ function tableName(table: string) {
 }
 
 export function rollbackClaimPredicate(claim: RollbackClaim, ready = false) {
-  const table = tableName(claim.table)
   const snapshotId = claim.snapshotId ?? claim.previous?.snapshotId
   if (!snapshotId) throw new Error('Rollback scope has no publication identity.')
+  if (claim.statistics) {
+    return `EXISTS(SELECT 1 FROM statsPublicationState WHERE ${rollbackClaimScopePredicate(claim)} AND snapshotId=${rollbackLiteral(snapshotId)} AND status='${ready ? 'current' : 'restoring'}'${ready ? '' : ` AND updatedAt=${rollbackLiteral(claim.publicationToken)}`})`
+  }
+  const table = tableName(claim.table)
   return `EXISTS (SELECT 1 FROM ${table} WHERE scopeId=${rollbackLiteral(claim.scopeId)} AND snapshotId=${rollbackLiteral(snapshotId)} AND publicationToken=${rollbackLiteral(claim.publicationToken)} AND status='${ready ? 'current' : 'publishing'}' AND preparedAt IS ${ready ? 'NOT ' : ''}NULL)`
+}
+
+export function rollbackClaimScopePredicate(claim: RollbackClaim) {
+  if (claim.statistics) {
+    if (claim.table !== 'statsPublicationState')
+      throw new Error('Invalid Statistics rollback table.')
+    return `datasetCode=${rollbackLiteral(claim.statistics.datasetCode)} AND referencePeriodCode=${rollbackLiteral(claim.statistics.referencePeriodCode)}`
+  }
+  tableName(claim.table)
+  return `scopeId=${rollbackLiteral(claim.scopeId)}`
 }
 
 export function rollbackClaimsGuard(claims: RollbackClaim[]) {
@@ -62,6 +76,25 @@ export function rollbackClaimsGuard(claims: RollbackClaim[]) {
 }
 
 function beginClaim(claim: RollbackClaim, timestamp: string): NetStatement[] {
+  if (claim.statistics) {
+    const previous = claim.previous
+    if (!previous)
+      throw new Error(
+        'Statistics rollback requires an acknowledged exact-period selection.',
+      )
+    const scope = rollbackClaimScopePredicate(claim)
+    return [
+      statement(
+        buildPublicationAssertionSql(
+          `EXISTS(SELECT 1 FROM statsPublicationState WHERE ${scope} AND snapshotId=${rollbackLiteral(previous.snapshotId)} AND status='current' AND updatedAt=${rollbackLiteral(previous.publicationToken)})`,
+        ),
+      ),
+      statement(
+        `UPDATE statsPublicationState SET snapshotId=${rollbackLiteral(claim.snapshotId ?? previous.snapshotId)},status='restoring',updatedAt=${rollbackLiteral(claim.publicationToken)} WHERE ${scope}`,
+      ),
+      rollbackClaimsGuard([claim]),
+    ]
+  }
   const table = tableName(claim.table)
   const scope = rollbackLiteral(claim.scopeId)
   const previous = claim.previous
@@ -242,6 +275,16 @@ export async function captureRollbackDelivery(input: {
         statement(buildPublicationAssertionSql(validations.join(' AND ') || '1')),
       ]
       for (const claim of prepared.claims) {
+        if (claim.statistics) {
+          finalise.push(
+            statement(
+              claim.snapshotId
+                ? `UPDATE statsPublicationState SET status='current',updatedAt=${rollbackLiteral(timestamp)} WHERE ${rollbackClaimScopePredicate(claim)}`
+                : `DELETE FROM statsPublicationState WHERE ${rollbackClaimScopePredicate(claim)}`,
+            ),
+          )
+          continue
+        }
         finalise.push(
           statement(
             claim.snapshotId
