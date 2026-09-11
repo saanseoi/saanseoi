@@ -14,12 +14,11 @@ import {
   listRegistrySources,
 } from '@repo/core/db/metaRegistry'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   and,
-  currentSchema,
   desc,
   eq,
-  historySchema,
   inArray,
   metaAssets,
   metaReleases,
@@ -31,6 +30,7 @@ import { query } from '$app/server'
 import { z } from 'zod'
 
 import { runWithD1ReadRetry } from '../server/d1'
+import { readStatisticsSourceMeasures } from './statisticsSourceMeasures'
 import {
   getRegistryAccessMetrics,
   getRegistryAccessMetricsBatch,
@@ -42,7 +42,7 @@ import type {
   RegistrySource,
   SourceVersion,
 } from './types'
-import { getCurrentDb, getHistoryDb, getMetaDb, recordRegistryDataLoad } from './server'
+import { getHistoryDb, getMetaDb, recordRegistryDataLoad } from './server'
 
 const registryCodeSchema = z.string().trim().min(1).max(200)
 const sourceReleaseShellSchema = z.object({
@@ -435,96 +435,16 @@ async function getSourceReleaseMeasures(input: {
   releaseId: string
   includeUnobserved?: boolean
 }) {
-  const statisticRelease = await getMetaDb()
-    .select({ id: metaReleases.id })
-    .from(metaReleases)
-    .where(
-      and(
-        eq(metaReleases.sourceReleaseId, input.releaseId),
-        eq(metaReleases.resourceType, 'divisionStatistic'),
-      ),
-    )
-    .get()
-  if (!statisticRelease) return []
-
-  const currentDb = getCurrentDb()
-  const records = input.includeUnobserved
-    ? []
-    : await currentDb
-        .select({ values: currentSchema.statsRecords.values })
-        .from(currentSchema.statsRecords)
-        .where(eq(currentSchema.statsRecords.sourceReleaseId, statisticRelease.id))
-        .all()
-  if (!records.length && !input.includeUnobserved) return []
-
-  const countsByMeasure = new Map<string, number>()
-  for (const record of records) {
-    for (const fieldName of Object.keys(record.values)) {
-      countsByMeasure.set(fieldName, (countsByMeasure.get(fieldName) ?? 0) + 1)
-    }
-  }
-  const rows = (
-    await Promise.all(
-      ['DB_HISTORY_HK_BEFORE', 'DB_HISTORY_HK_2025', 'DB_HISTORY_HK_2026'].map(
-        async bindingName =>
-          getHistoryDb(bindingName)
-            .select({
-              definition: historySchema.statsFieldsI18n.description,
-              aggregation: historySchema.statsFields.aggregation,
-              fieldName: historySchema.statsFields.fieldName,
-              name: historySchema.statsFieldsI18n.name,
-              sourceField: historySchema.statsFields.sourceField,
-              statisticKind: historySchema.statsFields.statisticKind,
-              unitCode: historySchema.statsFields.unitCode,
-              valueKind: historySchema.statsFields.valueKind,
-            })
-            .from(historySchema.statsFields)
-            .leftJoin(
-              historySchema.statsFieldsI18n,
-              and(
-                eq(
-                  historySchema.statsFieldsI18n.sourceReleaseId,
-                  historySchema.statsFields.sourceReleaseId,
-                ),
-                eq(
-                  historySchema.statsFieldsI18n.datasetCode,
-                  historySchema.statsFields.datasetCode,
-                ),
-                eq(
-                  historySchema.statsFieldsI18n.fieldName,
-                  historySchema.statsFields.fieldName,
-                ),
-                eq(historySchema.statsFieldsI18n.locale, 'en'),
-              ),
-            )
-            .where(
-              and(
-                eq(historySchema.statsFields.sourceReleaseId, statisticRelease.id),
-                eq(historySchema.statsFields.datasetCode, input.datasetCode),
-              ),
-            )
-            .orderBy(historySchema.statsFields.sourceField)
-            .all(),
-      ),
-    )
-  ).flat()
-  const uniqueRows = [...new Map(rows.map(row => [row.fieldName, row])).values()]
-  return uniqueRows.flatMap(row => {
-    const observationCount = countsByMeasure.get(row.fieldName)
-    return observationCount === undefined && !input.includeUnobserved
-      ? []
-      : [
-          {
-            definition: row.definition,
-            aggregation: row.aggregation,
-            name: row.name ?? row.sourceField,
-            observationCount: observationCount ?? 0,
-            sourceField: row.sourceField,
-            statisticKind: row.statisticKind,
-            unitCode: row.unitCode,
-            valueKind: row.valueKind,
-          },
-        ]
+  return readStatisticsSourceMeasures({
+    metaDb: getMetaDb() as unknown as HarbourReadableDb,
+    historyDbs: [
+      'DB_HISTORY_HK_BEFORE',
+      'DB_HISTORY_HK_2025',
+      'DB_HISTORY_HK_2026',
+    ].map(binding => getHistoryDb(binding) as unknown as HarbourReadableDb),
+    datasetCode: input.datasetCode,
+    sourceReleaseId: input.releaseId,
+    includeUnobserved: input.includeUnobserved,
   })
 }
 
