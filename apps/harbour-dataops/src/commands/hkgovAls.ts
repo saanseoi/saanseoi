@@ -52,6 +52,12 @@ import { terminalSafeText } from '../lib/terminal.ts'
 import { progressPhase } from '../lib/progressPhase.ts'
 import { isolatedAlsReview } from '../lib/isolatedAlsReview.ts'
 import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
+import {
+  readAlsMembership,
+  reviewAlsDeletions,
+  ALS_DELETION_REPORT_DIRECTORY,
+  type AlsMembership,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDeletionPreflight'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -236,11 +242,7 @@ export async function runHkgovAlsIngestCommand(
     completedSourceVersions,
     Boolean(args.options.force),
   )
-  if (args.options['skip-curation-checks'] === true) {
-    log.info(
-      'Skipping all-release curation preflight; source and integrity checks run during each release preparation.',
-    )
-  } else if (pendingSourceReleases.length === 0) {
+  if (pendingSourceReleases.length === 0) {
     log.info('Skipping all-release curation preflight; every ALS release is complete.')
   } else {
     log.info(
@@ -250,7 +252,9 @@ export async function runHkgovAlsIngestCommand(
       args,
       decisions,
       history,
-      sourceReleases: pendingSourceReleases,
+      // Include completed predecessors: pending-only review loses the first delta
+      // on --continue. Checkpointed source preparation keeps this bounded.
+      sourceReleases,
       target,
     })
     await reviewHkgovAlsCurationApplications(
@@ -517,6 +521,7 @@ export async function prepareHkgovAlsRelease(args: {
   decisions?: HkgovAlsIdentityDecisions
   history?: HkgovAlsIdentityHistory
   outputFile: string
+  membershipFile?: string
   sourceDir: string
   sourceVersion: string
   target: UploadTarget
@@ -553,6 +558,7 @@ export async function prepareHkgovAlsRelease(args: {
       identityHistory: args.history,
       metaDb: dbContext?.metaDb,
       outputFile: args.outputFile,
+      membershipFile: args.membershipFile,
       cohortKey: args.addressCohortKey,
       divisionCohortKey: args.divisionCohortKey,
       sourceDir: args.sourceDir,
@@ -884,6 +890,7 @@ async function reviewHkgovAlsIngest(args: {
 }) {
   let reviewed = 0
   let history = args.history
+  let previousMembership: AlsMembership | null = null
   const driftCandidates = new Set<string>()
   const curationApplications = new Map<
     string,
@@ -916,6 +923,16 @@ async function reviewHkgovAlsIngest(args: {
         }),
     )
     reviewed += 1
+    const membership = await readAlsMembership(
+      result.membership.path,
+      result.membership.sha256,
+    )
+    await reviewAlsDeletions({
+      previous: previousMembership,
+      current: membership,
+      reportFile: join(ALS_DELETION_REPORT_DIRECTORY, `${sourceVersion}.json`),
+    })
+    previousMembership = membership
     if (result.divisionQuality.issues.length > 0) {
       note(
         formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),

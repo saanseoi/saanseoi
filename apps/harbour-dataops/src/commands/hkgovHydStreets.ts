@@ -78,7 +78,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
     for (const layer of HKGOV_TD_PEDESTRIAN_STREET_LAYERS) {
       const kind = pedestrianKind(layer)
       for (const feature of layers[layer].features) {
-        const objectId = requiredInteger(feature.properties.OBJECTID, 'OBJECTID')
+        const objectId = requiredInteger(feature.properties.objectId, 'objectId')
         const sourceRecordId = `TD:PEDESTRIAN:${kind}:${objectId}`
         baseRows.push({
           kind,
@@ -174,7 +174,7 @@ async function hydSourceRecordId(
   feature: { geometry: unknown; properties: Record<string, unknown> },
 ) {
   if (kind === 'streetNamePlate') {
-    return `HYD:SNP:${requiredText(feature.properties.SNP_ID, 'SNP_ID')}`
+    return `HYD:SNP:${requiredText(feature.properties.snpId, 'snpId')}`
   }
   // These two publisher schemas do not expose a feature identifier. The
   // fingerprint gives a deterministic release assertion identity instead of
