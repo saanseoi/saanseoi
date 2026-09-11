@@ -2,9 +2,9 @@ import type { Database } from 'bun:sqlite'
 import { buildApiCatalogRevisionCode, computeVersionHash } from '@repo/db'
 import { buildDeterministicApiCatalogRevisionId } from '@repo/core/db/metaRegistry'
 import { publicationScopeId } from '@repo/core/pipeline/services/publication/scope.ts'
-import { buildPublicationAssertionSql } from '@repo/core/pipeline/services/publication/sql.ts'
 import type { NetStatement } from '../pipeline/local/netSqlitePlanTypes.ts'
-import { rollbackLiteral as lit, type RollbackTerminal } from './rollbackDelivery.ts'
+import type { RollbackTerminal } from './rollbackDelivery.ts'
+import { buildRollbackMetadataGuard } from './rollbackMetadataGuard.ts'
 
 export type RollbackSnapshot = {
   id: string
@@ -49,7 +49,6 @@ const getSnapshotMembers = (db: Database, id: string) =>
       `SELECT DISTINCT s.id,s.resourceType,s.snapshotLineageId,s.parentSnapshotId,s.cohortKey FROM snapshots s JOIN apiReleaseSetSnapshots m ON m.snapshotId=s.id WHERE m.apiReleaseSetId=? ORDER BY s.id`,
     )
     .all(id)
-const statement = (sql: string): NetStatement => ({ sql, params: [] })
 export const rollbackSnapshotScope = (snapshot: RollbackSnapshot) =>
   publicationScopeId(
     snapshot.resourceType,
@@ -283,12 +282,18 @@ export function prepareRollbackMetadata(
     revision,
   )
   const catalogId = buildDeterministicApiCatalogRevisionId(code)
-  const latest = `(SELECT id FROM apiCatalogRevisions WHERE apiVersionId=${lit(catalog.apiVersionId)} AND regionCode=${lit(catalog.regionCode)} AND status='current' ORDER BY publishedAt DESC,revision DESC LIMIT 1)=${lit(catalog.id)}`
-  const guard = statement(
-    buildPublicationAssertionSql(
-      `${latest} AND EXISTS(SELECT 1 FROM releases WHERE id=${lit(release.id)} AND status='published')`,
-    ),
-  )
+  const guard = buildRollbackMetadataGuard(meta, {
+    releaseId: release.id,
+    datasetId: release.datasetId,
+    catalogId: catalog.id,
+    apiVersionId: catalog.apiVersionId,
+    regionCode: catalog.regionCode,
+    releaseSetIds: [
+      ...new Set(
+        [...selection.oldMembers, ...newMembers].map(member => member.apiReleaseSetId),
+      ),
+    ],
+  })
   const metadata: NetStatement[] = [
     guard,
     {

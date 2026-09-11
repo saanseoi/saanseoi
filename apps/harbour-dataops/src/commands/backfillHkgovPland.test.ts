@@ -43,12 +43,12 @@ const runUploadCommandMock = mock(
   async (
     _args: { options: { 'source-version'?: unknown; 'resource-type'?: unknown } },
     _target: unknown,
-    options: { deferApiReleaseSet: boolean; skipSnapshotCleanup: boolean },
+    options: { deferApiReleaseSet?: boolean; skipSnapshotCleanup: boolean },
   ) => {
     const sourceVersion = String(_args.options['source-version'])
     const resourceType = String(_args.options['resource-type'])
     uploadedTypes.push({
-      deferApiReleaseSet: options.deferApiReleaseSet,
+      deferApiReleaseSet: options.deferApiReleaseSet === true,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
       sourceVersion,
       resourceType,

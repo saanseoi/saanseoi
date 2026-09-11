@@ -522,6 +522,14 @@ test('sealed Statistics rollback restores exact-period packs and missing diction
     expect(f.source.query('SELECT rowid,* FROM hkgovCenstatdStatistics').all()).toEqual(
       sourceRows,
     )
+    f.current
+      .query(
+        'UPDATE statsPublicationState SET updatedAt=? WHERE datasetCode=? AND referencePeriodCode=?',
+      )
+      .run('2099-01-01T00:00:00.000Z', datasetCode, period)
+    await expect(verifyRollbackTerminal(f.files, terminal)).rejects.toThrow(
+      'sealed publication token',
+    )
   } finally {
     await f.close()
   }

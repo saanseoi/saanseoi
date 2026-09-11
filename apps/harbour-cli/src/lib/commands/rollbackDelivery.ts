@@ -51,7 +51,7 @@ export function rollbackClaimPredicate(claim: RollbackClaim, ready = false) {
   const snapshotId = claim.snapshotId ?? claim.previous?.snapshotId
   if (!snapshotId) throw new Error('Rollback scope has no publication identity.')
   if (claim.statistics) {
-    return `EXISTS(SELECT 1 FROM statsPublicationState WHERE ${rollbackClaimScopePredicate(claim)} AND snapshotId=${rollbackLiteral(snapshotId)} AND status='${ready ? 'current' : 'restoring'}'${ready ? '' : ` AND updatedAt=${rollbackLiteral(claim.publicationToken)}`})`
+    return `EXISTS(SELECT 1 FROM statsPublicationState WHERE ${rollbackClaimScopePredicate(claim)} AND snapshotId=${rollbackLiteral(snapshotId)} AND status='${ready ? 'current' : 'restoring'}' AND updatedAt=${rollbackLiteral(claim.publicationToken)})`
   }
   const table = tableName(claim.table)
   return `EXISTS (SELECT 1 FROM ${table} WHERE scopeId=${rollbackLiteral(claim.scopeId)} AND snapshotId=${rollbackLiteral(snapshotId)} AND publicationToken=${rollbackLiteral(claim.publicationToken)} AND status='${ready ? 'current' : 'publishing'}' AND preparedAt IS ${ready ? 'NOT ' : ''}NULL)`
@@ -279,7 +279,7 @@ export async function captureRollbackDelivery(input: {
           finalise.push(
             statement(
               claim.snapshotId
-                ? `UPDATE statsPublicationState SET status='current',updatedAt=${rollbackLiteral(timestamp)} WHERE ${rollbackClaimScopePredicate(claim)}`
+                ? `UPDATE statsPublicationState SET status='current',updatedAt=${rollbackLiteral(claim.publicationToken)} WHERE ${rollbackClaimScopePredicate(claim)}`
                 : `DELETE FROM statsPublicationState WHERE ${rollbackClaimScopePredicate(claim)}`,
             ),
           )
