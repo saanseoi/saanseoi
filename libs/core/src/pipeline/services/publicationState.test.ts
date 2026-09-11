@@ -3,6 +3,7 @@ import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { loadMigrationSql } from '../../testing/metaFixtures'
+import { publicationScopeId } from './publication/scope'
 import {
   finalisePublishedResources,
   publicationFamilies,
@@ -51,23 +52,28 @@ function fixture() {
       family?: (typeof publicationFamilies)[number]
       selected?: boolean
       current?: boolean
+      lineage?: string
+      receipt?: boolean
     } = {},
   ) {
     const family = options.family ?? 'division'
+    const lineage = options.lineage ?? id
     meta
       .query(
-        `INSERT INTO snapshots(id, code, snapshotLineageId, resourceType, cohortKey, status, revision) VALUES (?, ?, 'scope', ?, '2026', ?, ?)`,
+        `INSERT INTO snapshots(id, code, snapshotLineageId, resourceType, cohortKey, status, revision) VALUES (?, ?, ?, ?, '2026', ?, ?)`,
       )
-      .run(id, id, family, options.status ?? 'published', revision++)
-    current
-      .query(`INSERT INTO ${family}PublicationState(snapshotId, scopeId, status, publicationToken, preparedAt)
-      VALUES (?, 'scope', ?, ?, ?)`)
-      .run(
-        id,
-        options.current ? 'current' : 'publishing',
-        id,
-        options.prepared === false ? null : 'complete',
-      )
+      .run(id, id, lineage, family, options.status ?? 'published', revision++)
+    if (options.receipt !== false)
+      current
+        .query(`INSERT INTO ${family}PublicationState(snapshotId, scopeId, status, publicationToken, preparedAt)
+      VALUES (?, ?, ?, ?, ?)`)
+        .run(
+          id,
+          publicationScopeId(family, lineage, '2026'),
+          options.current ? 'current' : 'publishing',
+          id,
+          options.prepared === false ? null : 'complete',
+        )
     if (options.selected !== false) selected[family].add(id)
   }
   const finalise = (options: Parameters<typeof finalisePublishedResources>[2] = {}) =>
@@ -186,18 +192,20 @@ describe('publication completion', () => {
     }
   })
 
-  test('retires obsolete completed markers only after the selected replacement is ready', async () => {
+  test('replacement gates one stable scope until its completed receipt is published', async () => {
     const f = fixture()
     try {
-      f.add('old', { current: true, selected: false })
-      f.add('new', { prepared: false })
+      f.add('old', { selected: false, receipt: false, lineage: 'scope' })
+      f.add('new', { prepared: false, lineage: 'scope' })
       f.meta.exec("UPDATE snapshots SET parentSnapshotId='old' WHERE id='new'")
       await expect(f.finalise()).rejects.toThrow('complete delivery receipts')
       expect(
         f.current
-          .query("SELECT status FROM divisionPublicationState WHERE snapshotId='old'")
+          .query(
+            "SELECT snapshotId, status FROM divisionPublicationState WHERE scopeId='scope'",
+          )
           .get(),
-      ).toEqual({ status: 'current' })
+      ).toEqual({ snapshotId: 'new', status: 'publishing' })
       f.current.exec(
         "UPDATE divisionPublicationState SET preparedAt='complete' WHERE snapshotId='new'",
       )
@@ -212,7 +220,7 @@ describe('publication completion', () => {
     }
   })
 
-  test('retirement preserves completed independent snapshots, future descendants and active deliveries', async () => {
+  test('finalisation preserves independent scopes and active deliveries for guarded cleanup', async () => {
     const f = fixture()
     try {
       f.add('old', { current: true, selected: false })
@@ -228,10 +236,32 @@ describe('publication completion', () => {
           .query('SELECT snapshotId FROM divisionPublicationState ORDER BY snapshotId')
           .all(),
       ).toEqual(
-        ['active', 'future', 'independent', 'selected'].map(snapshotId => ({
+        ['active', 'future', 'independent', 'old', 'selected'].map(snapshotId => ({
           snapshotId,
         })),
       )
+    } finally {
+      f.close()
+    }
+  })
+
+  test('a pinned geometry revision needs a ready selected replacement in the exact same scope', async () => {
+    const f = fixture()
+    try {
+      f.add('old', { family: 'divisionArea', lineage: 'geometry', receipt: false })
+      f.add('new', { family: 'divisionArea', lineage: 'geometry', prepared: false })
+      await expect(f.finalise()).rejects.toThrow('complete delivery receipts')
+      f.current.exec(
+        "UPDATE divisionAreaPublicationState SET preparedAt='complete' WHERE snapshotId='new'",
+      )
+      await f.finalise()
+      expect(
+        f.current
+          .query('SELECT snapshotId, status FROM divisionAreaPublicationState')
+          .all(),
+      ).toEqual([{ snapshotId: 'new', status: 'current' }])
+      f.meta.exec("UPDATE snapshots SET cohortKey='2025' WHERE id='old'")
+      await expect(f.finalise()).rejects.toThrow('complete delivery receipts')
     } finally {
       f.close()
     }
