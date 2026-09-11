@@ -113,7 +113,7 @@ Direct upload uses the same path:
 ```sh
 ./bin/saanseoi upload <prepared-file> --target local \
   --source <source> --source-version <version> --cohort-key <cohort> \
-  --type <resource-type> --theme <family> --release-notes-url <url>
+  --resource-type <resource-type> --theme <family> --release-notes-url <url>
 ```
 
 `apps/harbour-cli/src/lib/commands/upload.ts` must recognise the source/resource pair,

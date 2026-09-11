@@ -321,7 +321,7 @@ to:
 ```sh
 saanseoi upload <file> --target local|preview|production \
   --source <source> --source-version <version> --cohort-key <cohort> \
-  --type <resource-type> --theme <theme> --release-notes-url <url>
+  --resource-type <resource-type> --theme <theme> --release-notes-url <url>
 ```
 
 `apps/harbour-cli/src/lib/commands/upload.ts` is the central dispatch point. A new

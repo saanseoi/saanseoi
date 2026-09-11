@@ -182,7 +182,7 @@ Planning geometry reuses the simplified GeoJSON rather than running GEOS again.
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
 stats; the per-record JSON evidence is available through
-`saanseoi reports:processing-actions --source hkgov-pland --type division`.
+`saanseoi reports:processing-actions --source hkgov-pland --resource-type division`.
 
 The TPU/subunit source has no published names—only hierarchy codes. The adapter exposes
 those codes in canonical `identifiers` and does not manufacture labels for TPU/subunit
