@@ -193,7 +193,7 @@ describe('buildStatisticSqlBatches', () => {
         censusYear TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
         releaseId TEXT, sourceGeometry BLOB NOT NULL, sourceLocator TEXT,
         sourceRecordId TEXT, sources TEXT, updatedAt TEXT, validFromRelease TEXT,
-        validToRelease TEXT, versionHash TEXT,
+        validToRelease TEXT, version INTEGER, versionHash TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
       );
     `)
