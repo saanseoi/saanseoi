@@ -6,12 +6,17 @@ import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCac
 import { loadDivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDivisions.ts'
 import type { DivisionLookupMaps } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsTypes.ts'
 import type { prepareHkgovAlsRelease } from '../commands/hkgovAls.ts'
+import { readAlsMembership } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsMembership'
 
 type Input = Parameters<typeof prepareHkgovAlsRelease>[0]
 type Result = Awaited<ReturnType<typeof prepareHkgovAlsRelease>>
 export type ReviewResult = Pick<
   Result,
-  'identityRecords' | 'driftCandidates' | 'curationApplications' | 'divisionQuality'
+  | 'identityRecords'
+  | 'driftCandidates'
+  | 'curationApplications'
+  | 'divisionQuality'
+  | 'membership'
 >
 const root = resolve(import.meta.dir, '../../../..')
 
@@ -121,7 +126,7 @@ export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
     divisionLookupDependency(input),
   ])
   const key = createHash('sha256')
-    .update(JSON.stringify({ version: 2, runtime: Bun.version, input, dependencies }))
+    .update(JSON.stringify({ version: 3, runtime: Bun.version, input, dependencies }))
     .digest('hex')
   const directory = join(root, '.local/hkgov-dpo/preflight-cache')
   await mkdir(directory, { recursive: true })
@@ -189,9 +194,16 @@ export async function cachedReviewChild(
         cached.key === key &&
         cached.result?.identityRecords &&
         cached.result?.divisionQuality &&
+        cached.result?.membership?.path &&
         Array.isArray(cached.result?.driftCandidates) &&
         Array.isArray(cached.result?.curationApplications)
       ) {
+        const membership = await readAlsMembership(
+          cached.result.membership.path,
+          cached.result.membership.sha256,
+        )
+        if (membership.sourceVersion !== input.sourceVersion)
+          throw new Error('Cached ALS membership belongs to another release.')
         console.info(`Reusing cached ALS preflight ${input.sourceVersion}`)
         return cached.result
       }
@@ -220,6 +232,10 @@ export async function cachedReviewChild(
       )
     }
     const result: ReviewResult = await Bun.file(temporary).json()
+    await readAlsMembership(result.membership.path, result.membership.sha256)
+    const membershipPath = `${checkpoint}.membership.json`
+    await rename(result.membership.path, membershipPath)
+    result.membership.path = membershipPath
     await Bun.write(temporary, JSON.stringify({ key, result }))
     await rename(temporary, checkpoint)
     return result
@@ -227,5 +243,6 @@ export async function cachedReviewChild(
     await rm(request, { force: true })
     await rm(temporary, { force: true })
     await rm(`${temporary}.failure.json`, { force: true })
+    await rm(`${temporary}.membership.json`, { force: true })
   }
 }

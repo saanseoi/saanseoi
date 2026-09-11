@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm, rename } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { alsMembershipHash } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsMembership'
 import {
   cachedReviewChild,
   divisionLookupFingerprint,
@@ -37,10 +38,16 @@ test('successful child checkpoints replay findings; failed children cannot repla
     const input = { target: { remote: false }, sourceVersion: 'test' } as Parameters<
       typeof cachedReviewChild
     >[0]
-    await Bun.write(
-      worker,
-      `await Bun.write(process.argv[3], JSON.stringify({identityRecords: [], driftCandidates: [{evidence: 'retained'}], curationApplications: [], divisionQuality: {issues: ['retained']}}))`,
-    )
+    const membership = {
+      schemaVersion: 1,
+      sourceVersion: 'test',
+      addresses: [],
+      sources: [],
+      collections: [],
+      aliases: [],
+    }
+    const successfulWorker = `const path = process.argv[3] + '.membership.json'; await Bun.write(path, ${JSON.stringify(JSON.stringify(membership))}); await Bun.write(process.argv[3], JSON.stringify({membership: {path, sha256: '${alsMembershipHash(membership)}', sourceVersion: 'test'}, identityRecords: [], driftCandidates: [{evidence: 'retained'}], curationApplications: [], divisionQuality: {issues: ['retained']}}))`
+    await Bun.write(worker, successfulWorker)
     const result = await cachedReviewChild(input, checkpoint, 'first', worker)
     await Bun.write(worker, 'process.exit(137)')
     expect(await cachedReviewChild(input, checkpoint, 'first', worker)).toEqual(result)
@@ -48,6 +55,16 @@ test('successful child checkpoints replay findings; failed children cannot repla
       cachedReviewChild(input, checkpoint, 'changed', worker),
     ).rejects.toThrow('137')
     expect((await Bun.file(checkpoint).json()).key).toBe('first')
+    // Membership is an independently validated dependency of the checkpoint.
+    await Bun.write(
+      result.membership.path,
+      JSON.stringify({ ...membership, sourceVersion: 'tampered' }),
+    )
+    await expect(cachedReviewChild(input, checkpoint, 'first', worker)).rejects.toThrow(
+      '137',
+    )
+    await Bun.write(worker, successfulWorker)
+    await cachedReviewChild(input, checkpoint, 'first', worker)
     await Bun.write(
       worker,
       `await Bun.write(process.argv[3] + '.failure.json', JSON.stringify({message: 'Curation block-1 requires review. Review JSON: /tmp/review.json'})); process.exit(1)`,
