@@ -87,38 +87,27 @@ const DivisionI18nSchema = z
     'x-recordKeyName': openApiText('openapi_divisions_i18n_locale_label'),
   })
 
-const DivisionHierarchyResourceIdentifierSchema =
-  DivisionResourceIdentifierSchema.extend({
-    meta: z
-      .object({
-        name: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText('openapi_divisions_hierarchy_name_description'),
-          }),
-        subType: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText(
-              'openapi_divisions_hierarchy_sub_type_description',
-            ),
-          }),
-      })
-      .openapi({
-        description: openApiText('openapi_divisions_hierarchy_meta_description'),
-      })
-      .optional(),
-  }).openapi('DivisionHierarchyIdentifier')
-
-const DivisionHierarchyRelationshipSchema = z
+export const DivisionHierarchyEntrySchema = z
   .object({
-    data: z.array(DivisionHierarchyResourceIdentifierSchema).openapi({
-      description: openApiText('openapi_divisions_hierarchy_description'),
+    id: IdSchema,
+    name: z.string().nullable().openapi({
+      description:
+        'Stored Traditional Chinese and English display name, with duplicate names omitted.',
     }),
+    class: z.string(),
   })
-  .openapi('DivisionHierarchy')
+  .openapi('DivisionHierarchyEntry')
+
+export const DivisionHierarchiesSchema = z
+  .object({
+    administrative: z.array(z.array(DivisionHierarchyEntrySchema)),
+    locality: z.array(z.array(DivisionHierarchyEntrySchema)),
+    full: z.array(z.array(DivisionHierarchyEntrySchema)),
+  })
+  .openapi('DivisionHierarchies', {
+    description:
+      'Stored broadest-to-narrowest ancestor paths, excluding the division itself. Full paths omit cities only. Each path preserves evidenced branching.',
+  })
 
 const DivisionPositionSchema = z
   .array(z.number())
@@ -232,9 +221,9 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_level_field_description'),
       }),
-    type: z.string().openapi({
-      description: openApiText('openapi_divisions_type_field_description'),
-    }),
+    class: z.string().openapi({ description: 'Canonical division class.' }),
+    category: z.enum(['administrative', 'locality', 'hood']).nullable(),
+    hierarchies: DivisionHierarchiesSchema,
     divisionCode: z
       .string()
       .optional()
@@ -304,7 +293,6 @@ const DivisionAttributesSchema = z
 
 const DivisionRelationshipsSchema = z
   .object({
-    hierarchy: DivisionHierarchyRelationshipSchema,
     areas: z
       .object({
         data: z.array(z.object({ type: z.literal('division-areas'), id: IdSchema })),
@@ -461,7 +449,8 @@ const DivisionDocumentMetaSchema = z
     filters: z
       .object({
         level: z.number().int().optional(),
-        divisionType: z.string().optional(),
+        class: z.string().optional(),
+        category: z.enum(['administrative', 'locality', 'hood']).optional(),
         parent: z.string().optional(),
       })
       .optional(),
@@ -545,7 +534,8 @@ export const DivisionsListQuerySchema = z
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
-    'filter[divisionType]': z.string().optional(),
+    'filter[class]': z.string().optional(),
+    'filter[category]': z.enum(['administrative', 'locality', 'hood']).optional(),
     'filter[parent]': z.string().optional(),
   })
   .openapi('DivisionsListQuery')
