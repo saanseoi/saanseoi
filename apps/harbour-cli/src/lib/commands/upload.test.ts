@@ -62,7 +62,7 @@ describe('upload command address prerequisites', () => {
       expect.objectContaining({
         cohortKey: '2025-09-10.0',
         regionCode: 'hk',
-        type: 'address',
+        resourceType: 'address',
       }),
     )
   })
@@ -258,7 +258,7 @@ describe('Home Affairs Department geometry prerequisites', () => {
       {
         source: 'hkgov-had',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -289,7 +289,7 @@ describe('C&SD geometry prerequisites', () => {
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -313,7 +313,7 @@ describe('C&SD geometry prerequisites', () => {
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         source: 'hkgov-censtatd',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -339,7 +339,7 @@ describe('Planning Department geometry prerequisites', () => {
           source: 'hkgov-pland-pu',
           sourceVersion: '2001',
           theme: 'divisions',
-          type: 'divisionArea',
+          resourceType: 'divisionArea',
         } as never,
         {
           resolveRemotePublishedDivisionSnapshot: async () => null,
