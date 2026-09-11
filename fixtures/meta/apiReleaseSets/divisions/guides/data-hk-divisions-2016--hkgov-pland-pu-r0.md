@@ -30,7 +30,7 @@ to the one you need.
 To inspect the source records behind this release, use the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
 Pass the required `sourceRelease` query parameter. The response returns the retained
-source object under `rawProperties`; these fields are source provenance, not additional
+source object under `properties`; these fields are source provenance, not additional
 canonical Division fields.
 
 ## Requesting data
@@ -227,7 +227,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 如要查看此版本背後的來源記錄，請使用
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，並提供必要的
-`sourceRelease` 查詢參數。回應會在 `rawProperties`
+`sourceRelease` 查詢參數。回應會在 `properties`
 下傳回保留的來源物件；這些欄位是來源溯源資料，並非額外的標準 Division 欄位。
 
 ## 要求資料
@@ -396,7 +396,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 如要查看此版本背后的源记录，请使用
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，并提供必要的
-`sourceRelease` 查询参数。响应会在 `rawProperties`
+`sourceRelease` 查询参数。响应会在 `properties`
 下返回保留的源对象；这些字段是来源溯源数据，并非额外的标准 Division 字段。
 
 ## 请求数据

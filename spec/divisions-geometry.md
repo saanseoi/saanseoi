@@ -58,7 +58,7 @@ canonical columns must not be silently overloaded.
 
 `identifiers` contains genuine provider identifiers where a provider bridge exists.
 Source versions, classifications, and other source-only fields remain available through
-the source-record API under `rawProperties`.
+the source-record API under `properties`.
 
 ## Domains, identity and hierarchy
 

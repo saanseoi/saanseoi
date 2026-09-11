@@ -423,11 +423,11 @@ validates every selected release before replacing any saved presentation statist
 
 ## Source record response
 
-The [source record contract](../source-records.md) retains publisher attributes in
-`rawProperties`, including publisher-authored attribution. Records expose source
-identity and optional native geometry. Resource types, variants and internal acquisition
-locators are not publisher-record fields. Geometry retains the source coordinates and
-CRS; canonical geometry is available through the family’s canonical API.
+The [source record contract](../source-records.md) exposes publisher attributes in
+`properties`, including publisher-authored attribution. Records expose source identity
+and optional native geometry. Resource types, variants and internal acquisition locators
+are not publisher-record fields. Geometry retains the source coordinates and CRS;
+canonical geometry is available through the family’s canonical API.
 
 ## Local D1 with production artefacts
 

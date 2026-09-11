@@ -51,7 +51,7 @@ These source values are converted before being returned through
 - `DC` - resolves from this C&SD numeric to the SaanSeoi canonical
   <black>divisionId</black> and <black>districtCode</black>. The raw C&SD number is
   available through canonical <black>districtCode</black>; the original C&SD value
-  remains in the source record under <black>rawProperties</black>.
+  remains in the source record under <black>properties</black>.
 - `MYPOPN_LAND` - is expressed by C&SD in thousands. It is multiplied by
   <black>1,000</black> during ingestion, so <black>midYearPopulation</black> is the
   number of people.
@@ -59,7 +59,7 @@ These source values are converted before being returned through
 ### Source fields
 
 - `DC_ENG` and `DC_CHI` remain available in the source record under
-  <black>rawProperties</black>.
+  <black>properties</black>.
 
 ## Measure mapping
 
@@ -105,13 +105,13 @@ release's C&SD
 - `DC` - 此 C&SD 數值代碼會對應至 SaanSeoi 標準的 <black>divisionId</black> 及
   <black>districtCode</black>。原始 C&SD 數值可透過 canonical
   <black>districtCode</black> 取得；原始 C&SD 值則保留在來源記錄的
-  <black>rawProperties</black> 中。
+  <black>properties</black> 中。
 - `MYPOPN_LAND` - C&SD 以千為單位表示此值。資料擷取時會乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是實際人數。
 
 ### 來源欄位
 
-- `DC_ENG` 及 `DC_CHI` 會保留在來源記錄的 <black>rawProperties</black> 中。
+- `DC_ENG` 及 `DC_CHI` 會保留在來源記錄的 <black>properties</black> 中。
 
 ## 指標對應
 
@@ -156,14 +156,14 @@ release's C&SD
 
 - `DC` - 此 C&SD 数值代码会对应至 SaanSeoi 标准的 <black>divisionId</black> 及
   <black>districtCode</black>。原始 C&SD 数值可通过 canonical
-  <black>districtCode</black> 取得；原始 C&SD 值保留在源记录的
-  <black>rawProperties</black> 中。
+  <black>districtCode</black> 取得；原始 C&SD 值保留在源记录的 <black>properties</black>
+  中。
 - `MYPOPN_LAND` - C&SD 以千为单位表示此值。数据摄取时会乘以 <black>1,000</black>，因此
   <black>midYearPopulation</black> 是实际人数。
 
 ### 来源字段
 
-- `DC_ENG` 及 `DC_CHI` 会保留在源记录的 <black>rawProperties</black> 中。
+- `DC_ENG` 及 `DC_CHI` 会保留在源记录的 <black>properties</black> 中。
 
 ## 指标对应
 

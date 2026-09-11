@@ -92,10 +92,10 @@ API returns the source object, including fields which are not part of the canoni
 Division resource:
 [list Division source records](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
 The source release is selected with the required `sourceRelease` query parameter, and
-the original object is returned under `rawProperties`.
+the original object is returned under `properties`.
 
 Overture source-only fields, including the raw `hierarchies[][]` value and its names,
-are available only in `rawProperties` when the source record remains available. The
+are available only in `properties` when the source record remains available. The
 canonical API representations of the hierarchy and classification remain
 `attributes.hierarchy` and the derived `attributes.type`/`attributes.level`.
 

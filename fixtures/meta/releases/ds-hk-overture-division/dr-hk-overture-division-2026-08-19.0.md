@@ -70,7 +70,7 @@ Fields reorganized for storage, query, or API response shaping:
   [normalised as a division hierarchy](saanseoi:en:note/overture-division-hierarchy-normalization/v1)
   into [DivisionHierarchy](/docs#models/DivisionHierarchy). The original source
   hierarchy is available in the source-record response under
-  <black>rawProperties.hierarchies</black>.
+  <black>properties.hierarchies</black>.
   - `hierarchies[][].division_id` - as <black>hierarchies[].division_id</black>
 - `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) maps to the
   [canonical <black>type</black> and <black>level</black>](saanseoi:en:note/overture-division-type-level-mapping/v1)
@@ -79,14 +79,14 @@ Fields reorganized for storage, query, or API response shaping:
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType) maps
   to the canonical hierarchy entry's <black>type</black> and <black>level</black>
 - `admin_level` - contributes to canonical <black>level</black> when available; the
-  original source value remains in <black>rawProperties</black>
+  original source value remains in <black>properties</black>
 
 ### Dropped Fields
 
 Fields which are not exposed as part of [Division](/docs#models/Division). The original
 source value remains available in the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
-under `rawProperties`, where the source record remains available.
+under `properties`, where the source record remains available.
 
 #### Due to zero variance
 
@@ -200,7 +200,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
   [正規化為 division hierarchy](saanseoi:zh-hant:note/overture-division-hierarchy-normalization/v1)
   為
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始來源 hierarchy 可在來源記錄回應的
-  <black>rawProperties.hierarchies</black> 中取得。
+  <black>properties.hierarchies</black> 中取得。
   - `hierarchies[][].division_id` - 作為 <black>hierarchies[].division_id</black>
 
 - `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
@@ -210,14 +210,14 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
   對應至標準層級項目的 <black>type</black> 及 <black>level</black>
 - `admin_level` - 在有值時用於標準 <black>level</black>；原始來源值保留於
-  <black>rawProperties</black>
+  <black>properties</black>
 
 ### 不公開欄位
 
 以下欄位不會作為 [Division](/docs#models/Division)
 的一部分公開。原始來源值會在來源記錄獲保留時，透過
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因為沒有變異
 
@@ -328,7 +328,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
   [规范化为 division hierarchy](saanseoi:zh-hans:note/overture-division-hierarchy-normalization/v1)
   为
   [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始来源 hierarchy 可在源记录响应的
-  <black>rawProperties.hierarchies</black> 中获取。
+  <black>properties.hierarchies</black> 中获取。
   - `hierarchies[][].division_id` - 作为 <black>hierarchies[].division_id</black>
 
 - `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
@@ -338,14 +338,14 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 - `hierarchies[][].subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
   对应至标准层级项目的 <black>type</black> 及 <black>level</black>
 - `admin_level` - 在有值时用于标准 <black>level</black>；原始源值保留于
-  <black>rawProperties</black>
+  <black>properties</black>
 
 ### 不公开字段
 
 以下字段不会作为 [Division](/docs#models/Division)
 的一部分公开。原始源值会在源记录得到保留时，通过
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因为没有变化
 

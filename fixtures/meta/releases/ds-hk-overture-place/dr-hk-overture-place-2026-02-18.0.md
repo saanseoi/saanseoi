@@ -93,7 +93,7 @@ Fields reorganised for storage, query, or API response shaping:
 Fields which are not exposed as part of [Place](/docs#models/Place). The original source
 value remains available in the
 [Places source-record endpoint](/docs#tag/Sources/operation/listPlaceSourceRecordsV0)
-under `rawProperties`, where the source record remains available.
+under `properties`, where the source record remains available.
 
 #### Due to zero variance
 
@@ -183,7 +183,7 @@ schema（`{{sourceSchemaVersion}}`）。
 以下欄位不會作為 [Place](/docs#models/Place)
 的一部分公開。原始來源值會在來源記錄獲保留時，透過
 [Places 來源記錄端點](/docs#tag/Sources/operation/listPlaceSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因為沒有變異
 
@@ -272,7 +272,7 @@ schema（`{{sourceSchemaVersion}}`）。
 以下字段不会作为 [Place](/docs#models/Place)
 的一部分公开。原始源值会在源记录得到保留时，通过
 [Places 源记录端点](/docs#tag/Sources/operation/listPlaceSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因为没有变化
 

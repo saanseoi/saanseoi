@@ -516,7 +516,7 @@ publisher attributes and source identity; internal resource types, variants and
 acquisition locators are excluded. Optional geometry preserves native coordinates and
 CRS, independently of canonical geometry processing.
 
-Publisher `sources` stays in `rawProperties`; WKB geometry is retained as a lossless
+Publisher `sources` is exposed in `properties`; WKB geometry is retained as a lossless
 base64 value with an explicit `wkb-base64` encoding.
 
 ## Artefact destination

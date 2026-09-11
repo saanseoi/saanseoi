@@ -66,7 +66,7 @@ Fields reorganized for storage, query, or API response shaping:
 ### Source fields
 
 The original `version`, `subtype`, and `class` values are available in the retained
-source record under `rawProperties`. They are not duplicated in the canonical geometry
+source record under `properties`. They are not duplicated in the canonical geometry
 resource.
 
 ### Dropped Fields
@@ -75,7 +75,7 @@ Fields which are not exposed as part of [DivisionArea](/docs#models/DivisionArea
 
 The original source value remains available in the
 [Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
-under `rawProperties`, where the source record remains available.
+under `properties`, where the source record remains available.
 
 #### Due to zero variance
 
@@ -138,7 +138,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ### 來源欄位
 
-原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `rawProperties`
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `properties`
 下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
@@ -147,7 +147,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 原始來源值會在來源記錄獲保留時，透過
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因為沒有變異
 
@@ -208,7 +208,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ### 来源字段
 
-原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `rawProperties`
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `properties`
 下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
@@ -217,7 +217,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 原始来源值会在源记录得到保留时，通过
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
-`rawProperties` 提供。
+`properties` 提供。
 
 #### 因为没有变化
 

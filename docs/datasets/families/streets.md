@@ -28,7 +28,7 @@ one publisher ID remain current when all are present in the incoming release.
       errors while preserving intentional Street-specific semantics.
 - [ ] Audit the remaining source-contract drift: Street source records have a distinct
       envelope and reader path, PDF baseline and notice sources are projected into
-      `rawProperties`, Street source descriptions are not localised through the shared
+      `properties`, Street source descriptions are not localised through the shared
       OpenAPI message keys, and the app schema/sample flows contain Streets-specific
       branches. Define the common source-record, source-schema, JSON/NDJSON, pagination,
       error and localisation contract, retain only deliberate Street extensions, and
