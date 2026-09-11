@@ -138,6 +138,19 @@ class BootstrapTests(unittest.TestCase):
             if shutil.which('fish'):
                 subprocess.run(['fish', '--no-execute'], input=commands.getvalue(), text=True, check=True)
             self.assertEqual([r['binding'] for r in manifest['databases']], ['DB_CURRENT', 'DB_META'])
+            cache = root / 'production-mirror'
+            (bundle / 'verified-imports.json').write_text('{}')
+            with patch.object(bootstrap, 'CONFIG', config), self.assertRaisesRegex(ValueError, 'Every imported shard'):
+                bootstrap.seed_mirror(bundle, cache)
+            self.assertFalse(cache.exists())
+            (bundle / 'verified-imports.json').write_text(json.dumps({r['binding']: r['sha256'] for r in manifest['databases']}))
+            with patch.object(bootstrap, 'CONFIG', config):
+                bootstrap.seed_mirror(bundle, cache)
+                with self.assertRaisesRegex(ValueError, 'already exists'):
+                    bootstrap.seed_mirror(bundle, cache)
+            with contextlib.closing(sqlite3.connect(cache / 'DB_CURRENT.sqlite')) as mirrored:
+                self.assertEqual(mirrored.execute('SELECT id,value FROM records').fetchall(), [(10, 'hello')])
+            self.assertEqual(json.loads((cache / 'manifest.json').read_text())['target'], 'production')
             with contextlib.closing(sqlite3.connect(paths['DB_META'])) as source:
                 self.assertEqual(source.execute('SELECT DISTINCT environment FROM dataShards').fetchall(), [('preview',)])
             with contextlib.closing(sqlite3.connect(paths['DB_META'])) as source, source:

@@ -148,6 +148,19 @@ def retain_address_membership(output, paths):
     """Keep acknowledged local evidence with the exact database set it describes."""
     root = paths['DB_META'].parent / 'address-membership'
     result = []
+    with contextlib.closing(connect(paths['DB_META'])) as meta, contextlib.closing(connect(paths['DB_CURRENT'])) as current:
+        if 'snapshotLineages' in table_names(meta) and 'addressPublicationState' in table_names(current):
+            official = {row[0] for row in meta.execute("SELECT l.id FROM snapshotLineages l JOIN datasets d ON d.id=l.primaryDatasetId WHERE l.resourceType='address' AND d.code LIKE '%hkgov-dpo%'")}
+            for scope, snapshot in current.execute('SELECT scopeId,snapshotId FROM addressPublicationState'):
+                if scope not in official:
+                    continue
+                path = root / scope / (snapshot + '.json')
+                if not path.is_file():
+                    raise ValueError(f'Missing acknowledged ALS membership for {snapshot}')
+                membership = json.loads(path.read_text())
+                ids = {row[0] for row in current.execute('SELECT id FROM address2d WHERE snapshotId=?', (scope,))}
+                if ids != {row['id'] for row in membership['addresses']}:
+                    raise ValueError(f'ALS membership differs from prepared current projection: {snapshot}')
     if not root.exists():
         return result
     for source in sorted(root.glob('*/*.json')):
