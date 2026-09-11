@@ -193,9 +193,10 @@ The completed simplified coverage is retained as content-addressed WGS84 GeoJSON
 simplification-contract version, so a re-upload with identical source geometry reuses
 the derivative rather than repeating the GEOS simplification.
 
-Every published companion variant remains materialised in current storage for cohort-
-and variant-qualified Divisions API reads, whether or not it is an API-composition
-member.
+Each retained companion cohort and variant has its own current scope for qualified
+Divisions API reads, whether or not it is an API-composition member. A revised scope
+serves its selected version from current; older pinned revisions replay from immutable
+history.
 
 Use `include=areas:hkgov-censtatd-landclipped:simplified` or
 `include=areas:hkgov-censtatd:simplified` for low-detail display maps; omit the
@@ -362,10 +363,18 @@ create duplicate search documents. See
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+C&SD current area geometry uses one stable lineage/cohort scope for each provider
+variant. A revision preserves unchanged geometry rows and timestamps and writes only
+changed content or membership; a distinct cohort retains its own materialisation.
+Conditional candidate SQL may still be transmitted even when D1 writes no unchanged
+content rows. HMA and other canonical Division outputs use their own lineage scopes.
+
+Exact Division dependencies resolve through completed receipts or immutable history;
+preparation does not restore older Division rows into serving current storage. Each
+geometry write batch checks its sealed scope token. Complete validation records
+preparation, and publication grants readiness, including for empty scopes. Pinned older
+geometry revisions replay from immutable history once a ready replacement owns the
+scope. See the [publication-state contract](../../publication-state-plan.md).
 
 Identical-geometry reuse requires a completed receipt for the candidate snapshot as well
 as matching canonical values. A completed local mirror remains eligible while
