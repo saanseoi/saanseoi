@@ -80,7 +80,8 @@ test('declared hashes do not certify unverified existing objects', async () => {
 test('missing or corrupt staged chunks cannot create a final object', async () => {
   const f = await staged()
   const key = sourceAssetPartKey(sourceAssetScope(input.assetKey), hash(b))
-  const original = f.objects.get(key)!
+  const original = f.objects.get(key)
+  if (!original) throw new Error('Expected a retained fixture chunk.')
   f.objects.delete(key)
   await expect(completeSourceAssetTransfer(f.store, input)).rejects.toThrow(
     'chunk is missing',

@@ -60,8 +60,9 @@ test('only verified completed objects enter metadata and registration failure re
       byteLength: bytes.length,
     })
     expect(receipt.needsUpload).toBe(false)
+    if (receipt.needsUpload) throw new Error('Expected a verified retained object.')
     const replay = await registerManagedSourceAsset(db, f.store, input)
-    expect(replay.assetId).toBe(receipt.assetId!)
+    expect(replay.assetId).toBe(receipt.assetId)
     expect(f.objects.size).toBe(1)
     expect(sqlite.query('SELECT count(*) AS n FROM assets').get()).toEqual({ n: 1 })
     expect(f.writes.filter(key => key === metadata.assetKey)).toHaveLength(1)
