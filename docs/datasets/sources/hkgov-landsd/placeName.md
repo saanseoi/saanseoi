@@ -98,6 +98,10 @@ then verifies row counts before completing the publication receipt. Source-ledge
 or snapshot metadata alone cannot make the division snapshot ready. Reconciliation
 reports the codes of snapshots missing a complete receipt.
 
+The initialiser checks that receipt before skipping a published LandsD release. A
+published release without complete canonical delivery remains eligible for recovery from
+its verified native archive.
+
 ## Publisher source boundary
 
 Native properties and publisher names retain their literal values, including whitespace
