@@ -10,8 +10,12 @@ test('Places search indexes only the selected unit of an Address3D collection', 
     db.exec(`
       CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       INSERT INTO placeSearchScopes VALUES ('hk:overture:places', 'p');
+      CREATE TABLE placePublicationState(snapshotId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT);
+      INSERT INTO placePublicationState VALUES ('p','current','token','prepared'),('next','current','next-token','prepared');
       CREATE TABLE places(snapshotId, id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy);
       CREATE TABLE placesI18n(snapshotId, placeId, locale, name, nameAlts, brandName, brandNameAlts);
+      CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE,status TEXT DEFAULT 'current',preparedAt TEXT DEFAULT 'prepared');
+      INSERT INTO addressPublicationState(scopeId,snapshotId) VALUES ('address-scope', 'a');
       CREATE TABLE address2dI18n(snapshotId, addressId, locale, formattedAddress);
       CREATE TABLE address3dI18n(snapshotId, address3dId, locale, units);
       CREATE TABLE streetsAddress(addressSnapshotId, addressId, streetSnapshotId, streetId);
@@ -20,10 +24,10 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       CREATE TABLE divisionsI18n(snapshotId, divisionId, locale, name);
       INSERT INTO places VALUES ('p', 'shop', 'a', 'building', 'collection', 'chosen', '', '', '');
       INSERT INTO placesI18n VALUES ('p', 'shop', 'en', 'Shop', '', '', '');
-      INSERT INTO address2dI18n VALUES ('a', 'building', 'en', 'Main Street');
+      INSERT INTO address2dI18n VALUES ('address-scope', 'building', 'en', 'Main Street');
     `)
     db.query('INSERT INTO address3dI18n VALUES (?, ?, ?, ?)').run(
-      'a',
+      'address-scope',
       'collection',
       'en',
       JSON.stringify({

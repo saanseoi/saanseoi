@@ -152,7 +152,7 @@ describe('Places SQL materialisation', () => {
     sqlite.exec(`
       PRAGMA foreign_keys = ON;
       CREATE TABLE overturePlaces (
-        sourceRecordId TEXT, sourceLocator TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
+        sourceRecordId TEXT, sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
         versionHash TEXT, releaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
         isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
@@ -225,6 +225,7 @@ describe('Places SQL materialisation', () => {
         processingMode: 'sql',
       },
       snapshots: {
+        snapshotLineageId: 'place-lineage',
         addressSnapshotId: 'address-2026',
         divisionSnapshotId: 'division-2026',
         snapshotId: 'place-2026',
@@ -354,9 +355,9 @@ describe('Places SQL materialisation', () => {
       }),
     })
     expect(
-      sqlite.query('SELECT rawProperties, sourceGeometry FROM overturePlaces').get(),
+      sqlite.query('SELECT properties, sourceGeometry FROM overturePlaces').get(),
     ).toEqual({
-      rawProperties: JSON.stringify({ names: { en: 'Example' } }),
+      properties: JSON.stringify({ names: { en: 'Example' } }),
       sourceGeometry: JSON.stringify({
         type: 'Point',
         coordinates: [114.1694, 22.3193],

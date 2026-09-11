@@ -1,4 +1,4 @@
-import { eq, and, currentSchema } from '@repo/db'
+import { eq, and, sql, currentSchema } from '@repo/db'
 import {
   resolveAddress3dCoverage,
   validatePlaceAddress3dReference,
@@ -152,7 +152,7 @@ export async function loadCollection(
     .from(currentSchema.address3d)
     .where(
       and(
-        eq(currentSchema.address3d.snapshotId, snapshotId),
+        sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
         eq(currentSchema.address3d.address2dId, ownerId),
       ),
     )
