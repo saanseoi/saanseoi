@@ -1,6 +1,12 @@
+import {
+  getPublicationReadiness,
+  publicationScopeCondition,
+  publicationLogicalSnapshot,
+} from './publicationState'
 import type { CurrentDatabase } from '@repo/db'
 import type { BBox } from '@repo/core/pipeline/geojson.ts'
 import { and, asc, eq, sql } from '@repo/db'
+import { getTableColumns } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { MAX_PLACE_RESULTS } from '../lib/api-limits'
@@ -128,21 +134,26 @@ type PlaceListLookup = {
 }
 
 export async function hasCurrentPlaceSnapshot(db: CurrentDatabase, snapshotId: string) {
-  return Boolean(
-    await db
-      .select({ id: places.id })
-      .from(places)
-      .where(eq(places.snapshotId, snapshotId))
-      .limit(1)
-      .get(),
-  )
+  return (await getPublicationReadiness(db, 'place', [snapshotId])) !== null
 }
 
 export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) {
   const row = await db
-    .select()
+    .select({
+      ...getTableColumns(places),
+      snapshotId: sql<string>`${lookup.snapshotId}`,
+      addressSnapshotId: publicationLogicalSnapshot(
+        'address',
+        places.addressSnapshotId,
+      ),
+    })
     .from(places)
-    .where(and(eq(places.snapshotId, lookup.snapshotId), eq(places.id, lookup.placeId)))
+    .where(
+      and(
+        publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
+        eq(places.id, lookup.placeId),
+      ),
+    )
     .limit(1)
     .get()
 
@@ -151,13 +162,16 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
 
 export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
   const conditions = [
-    eq(placesI18n.snapshotId, lookup.snapshotId),
+    publicationScopeCondition('place', placesI18n.snapshotId, [lookup.snapshotId]),
     eq(placesI18n.placeId, lookup.placeId),
     lookup.locale ? eq(placesI18n.locale, lookup.locale) : undefined,
   ].filter(condition => condition !== undefined)
 
   return db
-    .select()
+    .select({
+      ...getTableColumns(placesI18n),
+      snapshotId: sql<string>`${lookup.snapshotId}`,
+    })
     .from(placesI18n)
     .where(and(...conditions))
     .orderBy(asc(placesI18n.locale))
@@ -190,7 +204,9 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
     )
     .where(
       and(
-        eq(placesDivision.placeSnapshotId, lookup.snapshotId),
+        publicationScopeCondition('place', placesDivision.placeSnapshotId, [
+          lookup.snapshotId,
+        ]),
         eq(placesDivision.placeId, lookup.placeId),
       ),
     )
@@ -220,7 +236,7 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
     )
     .where(
       and(
-        eq(placesCells.snapshotId, lookup.snapshotId),
+        publicationScopeCondition('place', placesCells.snapshotId, [lookup.snapshotId]),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
       ),
@@ -231,14 +247,18 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
 
 export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   try {
-    const ready = await db
-      .select({ scopeId: placeSearchScopes.scopeId })
-      .from(placeSearchScopes)
-      .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
-      .get()
+    if (!(await hasCurrentPlaceSnapshot(db, lookup.snapshotId)))
+      throw new Error('Place search is not ready for the latest published release.')
+    const readSearchScope = () =>
+      db
+        .select({ scopeId: placeSearchScopes.scopeId })
+        .from(placeSearchScopes)
+        .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
+        .get()
+    const ready = await readSearchScope()
     if (!ready)
       throw new Error('Place search is not ready for the latest published release.')
-    return await db
+    const rows = await db
       .select({
         placeId: places.id,
         releaseId: places.releaseId,
@@ -251,7 +271,10 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .innerJoin(
         places,
         and(
-          eq(places.snapshotId, placeSearchScopes.snapshotId),
+          eq(
+            publicationLogicalSnapshot('place', places.snapshotId),
+            placeSearchScopes.snapshotId,
+          ),
           eq(places.id, placesFts.placeId),
         ),
       )
@@ -264,10 +287,16 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       )
       .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
       .all()
+    const after = await readSearchScope()
+    if (after?.scopeId !== ready.scopeId)
+      throw new Error('Place search is not ready for the latest published release.')
+    return rows
   } catch (error) {
     if (
       error instanceof Error &&
-      `${error.message} ${error.cause}`.includes('no such table: placeSearch')
+      /no such table: place(?:Search|PublicationState)/.test(
+        `${error.message} ${error.cause}`,
+      )
     ) {
       throw new Error('Place search is not ready for the latest published release.', {
         cause: error,
@@ -402,7 +431,7 @@ function buildPlaceConditions(
   >,
 ) {
   return [
-    eq(places.snapshotId, lookup.snapshotId),
+    publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
     lookup.basicCategory ? eq(places.basicCategory, lookup.basicCategory) : undefined,
     lookup.taxonomyPrimary
       ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
@@ -446,10 +475,13 @@ export async function listPlaceRecordsCurrent(
   ), '[]')`
   const rows = await db
     .select({
-      snapshotId: places.snapshotId,
+      snapshotId: publicationLogicalSnapshot('place', places.snapshotId),
       id: places.id,
       releaseId: places.releaseId,
-      addressSnapshotId: places.addressSnapshotId,
+      addressSnapshotId: publicationLogicalSnapshot(
+        'address',
+        places.addressSnapshotId,
+      ),
       address2dId: places.address2dId,
       address3dId: places.address3dId,
       address3dUnitId: places.address3dUnitId,

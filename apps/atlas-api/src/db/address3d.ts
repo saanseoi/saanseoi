@@ -107,7 +107,7 @@ export async function attachAddress3dCoverage(args: {
           .from(currentSchema.address3d)
           .where(
             and(
-              eq(currentSchema.address3d.snapshotId, snapshotId),
+              sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
               sql`${currentSchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
             ),
           )
@@ -135,7 +135,7 @@ export async function getAddress3dCollection(args: {
       .from(currentSchema.address3d)
       .where(
         and(
-          eq(currentSchema.address3d.snapshotId, args.snapshotId),
+          sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
           eq(currentSchema.address3d.id, args.collectionId),
         ),
       )
@@ -146,12 +146,15 @@ export async function getAddress3dCollection(args: {
       .from(currentSchema.address3dI18n)
       .where(
         and(
-          eq(currentSchema.address3dI18n.snapshotId, args.snapshotId),
+          sql`${currentSchema.address3dI18n.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
           eq(currentSchema.address3dI18n.address3dId, args.collectionId),
         ),
       )
       .all()
-    return { collection, i18n }
+    return {
+      collection: { ...collection, snapshotId: args.snapshotId },
+      i18n: i18n.map(row => ({ ...row, snapshotId: args.snapshotId })),
+    }
   }
   const shards = new Map(
     Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
@@ -182,15 +185,33 @@ export async function getAddress3dCollection(args: {
     )
     .get()
   if (!collection) throw new Error('Address3D replay points to absent content')
-  const i18n = await db
-    .select()
-    .from(historySchema.address3dI18n)
-    .where(
-      and(
-        eq(historySchema.address3dI18n.address3dId, args.collectionId),
-        eq(historySchema.address3dI18n.versionHash, version.versionHash),
-      ),
+  const i18n: Array<typeof historySchema.address3dI18n.$inferSelect> = []
+  for (const localisedVersion of [...state.values()]
+    .filter(
+      row => row.recordType === 'address3dI18n' && row.recordId === args.collectionId,
     )
-    .all()
+    .sort((left, right) => left.locale.localeCompare(right.locale))) {
+    const localeDb = args.historyDbsByBinding[localisedVersion.shard.bindingName]
+    if (!localeDb)
+      throw new Error(
+        `Missing Address3D locale history shard ${localisedVersion.shard.bindingName}`,
+      )
+    const localised = await localeDb
+      .select()
+      .from(historySchema.address3dI18n)
+      .where(
+        and(
+          eq(historySchema.address3dI18n.address3dId, args.collectionId),
+          eq(historySchema.address3dI18n.versionHash, localisedVersion.versionHash),
+          eq(historySchema.address3dI18n.locale, localisedVersion.locale),
+        ),
+      )
+      .get()
+    if (!localised)
+      throw new Error(
+        `Address3D replay points to absent ${localisedVersion.locale} content`,
+      )
+    i18n.push(localised)
+  }
   return { collection, i18n }
 }

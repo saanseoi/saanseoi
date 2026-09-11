@@ -8,9 +8,11 @@ import { resolve } from 'node:path'
 import { buildSearchContentSql } from '@repo/core/pipeline/services/search/incrementalIndex'
 import { divisionSearchIndex } from '@repo/core/pipeline/services/search/divisions'
 
-function fixture() {
+function fixture(beforeQuery?: (sqlite: Database, sql: string) => void) {
   const sqlite = new Database(':memory:')
   sqlite.exec(`
+    CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+    INSERT INTO divisionPublicationState VALUES ('physical-geographic','latest','current','latest-token','prepared','updated'),('physical-planning','planning','current','planning-token','prepared','updated');
     CREATE TABLE divisionSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
     CREATE TABLE divisions(snapshotId,id,divisionCode,class,category,level,hierarchies);
     CREATE TABLE divisionsI18n(snapshotId,divisionId,locale,name,nameAlts,nameRules);
@@ -27,8 +29,14 @@ function fixture() {
       rules?: string
     } = {},
   ) => {
+    const scope =
+      snapshot === 'latest'
+        ? 'physical-geographic'
+        : snapshot === 'planning'
+          ? 'physical-planning'
+          : snapshot
     sqlite.query('INSERT INTO divisions VALUES (?,?,?,?,?,?,?)').run(
-      snapshot,
+      scope,
       id,
       options.code ?? null,
       'neighbourhood',
@@ -49,7 +57,7 @@ function fixture() {
     sqlite
       .query('INSERT INTO divisionsI18n VALUES (?,?,?,?,?,?)')
       .run(
-        snapshot,
+        scope,
         id,
         options.locale ?? 'en',
         name,
@@ -67,6 +75,7 @@ function fixture() {
     })()
   const db = {
     prepare(sql: string) {
+      beforeQuery?.(sqlite, sql)
       return {
         bind(...values: (string | number)[]) {
           return {
@@ -138,7 +147,7 @@ test('direct matches rank before ancestors and repeated localisations produce on
     f.add('latest', 'central', 'Central')
     f.add('planning', 'central', 'Central')
     f.sqlite.exec(
-      "INSERT INTO divisionsI18n VALUES ('latest','central','zh-hant','Central 中環',null,null)",
+      "INSERT INTO divisionsI18n VALUES ('physical-geographic','central','zh-hant','Central 中環',null,null)",
     )
     f.sync()
     const results = await f.search('Central', { ancestors: 'true' })
@@ -155,13 +164,15 @@ test('identical snapshot promotion writes one mapping; repeat writes nothing; ed
   try {
     f.add('latest', 'one', 'Harbour', { ancestor: 'Central' })
     f.add('planning', 'two', 'Planning')
-    f.add('next', 'one', 'Harbour', { ancestor: 'Central' })
     f.sync()
     const rows = () =>
       f.sqlite.query('SELECT rowid,* FROM divisionSearchFts ORDER BY scopeId').all()
     const changes = () =>
       (f.sqlite.query('SELECT total_changes() AS n').get() as { n: number }).n
     const before = rows()
+    f.sqlite.exec(
+      "UPDATE divisionPublicationState SET snapshotId='next',publicationToken='next-token' WHERE scopeId='physical-geographic'",
+    )
     const initialChanges = changes()
     const promoted = [{ ...f.scopes[0]!, snapshotId: 'next' }, f.scopes[1]!]
     f.sync(promoted)
@@ -172,7 +183,9 @@ test('identical snapshot promotion writes one mapping; repeat writes nothing; ed
     expect(changes()).toBe(repeated)
     await expect(f.search('Harbour')).rejects.toThrow('not ready')
     expect((await f.search('Harbour', {}, promoted))[0]?.snapshotId).toBe('next')
-    f.sqlite.exec("UPDATE divisionsI18n SET name='Changed' WHERE snapshotId='next'")
+    f.sqlite.exec(
+      "UPDATE divisionsI18n SET name='Changed' WHERE snapshotId='physical-geographic'",
+    )
     expect(() =>
       f.sqlite.transaction(() => {
         f.sync(promoted)
@@ -260,6 +273,38 @@ test('codes remain searchable without localised names and bound scope lists do n
     }))
     f.sync(scopes)
     expect(await f.search('HK_ISLAND', {}, scopes)).toHaveLength(1)
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('Division search rejects an unready base publication even with an indexed scope', async () => {
+  const f = fixture()
+  try {
+    f.add('latest', 'village', 'Harbour Village')
+    f.sync()
+    f.sqlite.exec(
+      "UPDATE divisionPublicationState SET status='publishing' WHERE snapshotId='latest'",
+    )
+    await expect(f.search('Harbour')).rejects.toThrow('Division search is not ready')
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('Division search discards results when publication changes during the query', async () => {
+  let interrupted = false
+  const f = fixture((sqlite, sql) => {
+    if (!interrupted && sql.includes('WITH selected AS')) {
+      interrupted = true
+      sqlite.exec("UPDATE divisionPublicationState SET publicationToken='replacement'")
+    }
+  })
+  try {
+    f.add('latest', 'village', 'Harbour Village')
+    f.sync()
+    await expect(f.search('Harbour')).rejects.toThrow('Division search is not ready')
+    expect(interrupted).toBe(true)
   } finally {
     f.sqlite.close()
   }

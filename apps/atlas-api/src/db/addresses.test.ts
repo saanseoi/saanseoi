@@ -12,14 +12,16 @@ import {
 test('search joins stable document scopes to the promoted snapshot and rejects an unindexed selection', async () => {
   const sqlite = new Database(':memory:')
   try {
-    sqlite.exec(`CREATE TABLE addressSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
+    sqlite.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO addressPublicationState VALUES ('scope:old','old','current','old','2026-01-01','2026-01-01'),('scope:new','new','current','new','2026-01-01','2026-01-01');
+      CREATE TABLE addressSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       CREATE TABLE address2d(snapshotId TEXT, id TEXT, countryId TEXT, areaId TEXT, districtId TEXT);
       CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,
         buildingName TEXT,buildingNumberExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,
         blockExpression TEXT,phaseExpression TEXT,estateName TEXT,streetName TEXT);
-      INSERT INTO address2d VALUES('old','a','hk',NULL,NULL),('new','a','hk',NULL,NULL);
+      INSERT INTO address2d VALUES('scope:old','a','hk',NULL,NULL),('scope:new','a','hk',NULL,NULL);
       INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES
-        ('old','a','en','Harbour Road'),('new','a','en','Harbour Road');`)
+        ('scope:old','a','en','Harbour Road'),('scope:new','a','en','Harbour Road');`)
     const db = drizzle({ client: sqlite }) as never
     const search = (snapshot: string) =>
       searchAddressIdsCurrent(db, {

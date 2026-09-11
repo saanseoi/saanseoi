@@ -1,3 +1,4 @@
+import { publicationScopeCondition } from './publicationState'
 import type { CurrentDatabase, StreetChangelogKind, StreetStatus } from '@repo/db'
 import { and, currentSchema, eq } from '@repo/db'
 
@@ -44,7 +45,7 @@ export async function getStreetCurrentById(
     .from(streets)
     .where(
       and(
-        eq(streets.snapshotId, input.snapshotId),
+        publicationScopeCondition('street', streets.snapshotId, [input.snapshotId]),
         eq(streets.id, input.id),
         eq(streets.status, 'active'),
       ),
@@ -62,7 +63,9 @@ export async function getStreetCurrentById(
       .from(streetsI18n)
       .where(
         and(
-          eq(streetsI18n.snapshotId, input.snapshotId),
+          publicationScopeCondition('street', streetsI18n.snapshotId, [
+            input.snapshotId,
+          ]),
           eq(streetsI18n.streetId, input.id),
         ),
       )
@@ -82,7 +85,9 @@ export async function getStreetCurrentById(
       .from(streetChangelog)
       .where(
         and(
-          eq(streetChangelog.snapshotId, input.snapshotId),
+          publicationScopeCondition('street', streetChangelog.snapshotId, [
+            input.snapshotId,
+          ]),
           eq(streetChangelog.streetId, input.id),
         ),
       )
