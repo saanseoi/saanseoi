@@ -15,6 +15,10 @@ import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearch
 import { canonicalPlaceJson } from '../../pipeline/places/placeHistory.ts'
 import { readAddressDivisionSnapshotId } from '../../pipeline/places/placeSnapshotDependencies.ts'
 import { PLACE_H3_LEVELS } from '../../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
+import {
+  readExactProjectionRows,
+  resolveValidatedProjectionVersions,
+} from './projectionReplay.ts'
 
 type Base = {
   id: string
@@ -85,14 +89,7 @@ export async function restorePlaceDerivedRows(input: Input) {
   })
   try {
     const dependencies = createPlaceSearchDependencies(view.db)
-    const { links, entities } = await restoreDivisionLinks(
-      input,
-      plan,
-      shards,
-      bases,
-      view,
-      dependencies,
-    )
+    const { links, entities } = await restoreDivisionLinks(input, plan, shards, bases)
     for (const base of bases.values()) {
       const resolved = entities.get(base.id)
       if (!resolved) throw new Error(`Missing Place source interpretation ${base.id}.`)
@@ -200,12 +197,11 @@ async function restoreDivisionLinks(
   plan: SnapshotReplayStep[],
   shards: ReadonlyMap<string, ReplayShard>,
   bases: ReadonlyMap<string, Base>,
-  view: PlaceDependencyView,
-  dependencies: ReturnType<typeof createPlaceSearchDependencies>,
 ) {
   const wanted = JSON.stringify([...bases.keys()])
   const active = new Set<string>()
   const entities = new Map<string, Entities>()
+  const definitionsBySnapshot = new Map<string, Promise<Map<string, Definition>>>()
   let links = new Map<string, Link>()
   for (const step of plan) {
     const changes = historySchema.snapshotVersionChanges
@@ -282,19 +278,15 @@ async function restoreDivisionLinks(
         throw new Error(
           `Place snapshot ${step.snapshotId} has inconsistent exact Division selections.`,
         )
-      await view.prepare(selected.address)
-      const definitions = (
-        await dependencies({
-          addressSnapshotId: selected.address,
-          addressId: null,
-          divisionSnapshotId: selected.division,
-          divisionIds,
-          locales: [],
-        })
-      ).divisionDefinitions
+      let definitionsPromise = definitionsBySnapshot.get(selected.division)
+      if (!definitionsPromise) {
+        definitionsPromise = readDivisionDefinitions(input, selected.division)
+        definitionsBySnapshot.set(selected.division, definitionsPromise)
+      }
+      const definitions = await definitionsPromise
       for (const placeId of active)
         for (const divisionId of entities.get(placeId)?.division ?? []) {
-          const definition = definitions[divisionId]
+          const definition = definitions.get(divisionId)
           if (!definition)
             throw new Error(
               `Missing Place Division definition ${selected.division}/${divisionId}.`,
@@ -316,6 +308,65 @@ async function restoreDivisionLinks(
     links = next
   }
   return { links, entities }
+}
+
+async function readDivisionDefinitions(input: Input, snapshotId: string) {
+  const selected = await input.metaDb
+    .select({ id: metaSchema.metaSnapshots.id })
+    .from(metaSchema.metaSnapshots)
+    .where(
+      and(
+        eq(metaSchema.metaSnapshots.id, snapshotId),
+        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshots.status, 'published'),
+      ),
+    )
+    .get()
+  if (!selected)
+    throw new Error(`Missing published Place Division dependency ${snapshotId}.`)
+  const versions = await resolveValidatedProjectionVersions({
+    metaDb: input.metaDb,
+    historyTargets: input.historyTargets,
+    snapshotId,
+    recordTypes: ['division', 'divisionI18n'],
+  })
+  const definitions = new Map<string, Definition>()
+  for await (const rows of readExactProjectionRows(
+    { recordType: 'division', table: 'divisions', id: 'id' },
+    versions.values(),
+  ))
+    for (const row of rows) {
+      if (
+        typeof row.id !== 'string' ||
+        !(row.level === null || typeof row.level === 'number')
+      )
+        throw new Error(`Invalid Place Division content ${snapshotId}.`)
+      definitions.set(row.id, { level: row.level, locales: [] })
+    }
+  for await (const rows of readExactProjectionRows(
+    {
+      recordType: 'divisionI18n',
+      table: 'divisionsI18n',
+      id: 'divisionId',
+      localised: true,
+    },
+    versions.values(),
+  ))
+    for (const row of rows) {
+      const definition = definitions.get(String(row.divisionId))
+      if (
+        !definition ||
+        typeof row.locale !== 'string' ||
+        !(row.name === null || typeof row.name === 'string')
+      )
+        throw new Error(
+          `Invalid Place Division localisation ${snapshotId}/${row.divisionId}.`,
+        )
+      definition.locales.push({ locale: row.locale, name: row.name })
+    }
+  for (const definition of definitions.values())
+    definition.locales.sort((a, b) => a.locale.localeCompare(b.locale))
+  return definitions
 }
 
 async function applySourceChanges(
