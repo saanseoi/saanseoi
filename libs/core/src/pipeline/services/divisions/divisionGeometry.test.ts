@@ -159,6 +159,8 @@ describe('division geometry normalisation', () => {
     })
     if (!normalised) throw new Error('Expected an Overture area row.')
 
+    expect(normalised.source.sourceRecordId).toBe('area-1')
+    expect(normalised.canonical.id).toBe('area-1')
     expect(normalised.canonical.type).toBe('mixed')
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
@@ -178,7 +180,7 @@ describe('division geometry normalisation', () => {
       class: 'land',
     })
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).is_territorial,
+      (normalised.source.rawProperties as Record<string, unknown>).isTerritorial,
     ).toBe(true)
   })
 
@@ -206,6 +208,8 @@ describe('division geometry normalisation', () => {
     )
     if (!normalised) throw new Error('Expected a HAD area row.')
 
+    expect(normalised.source.sourceRecordId).toBe('7')
+    expect(normalised.canonical.id).toBe('HAD:A')
     expect(normalised.canonical.type).toBe('mixed')
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
@@ -217,7 +221,7 @@ describe('division geometry normalisation', () => {
         areaCode: 'CW',
       },
     })
-    expect((normalised.source.rawProperties as Record<string, unknown>).AREA_CODE).toBe(
+    expect((normalised.source.rawProperties as Record<string, unknown>).areaCode).toBe(
       'CW',
     )
     expect(normalised.source.rawProperties).not.toHaveProperty('theme')
@@ -265,9 +269,9 @@ describe('division geometry normalisation', () => {
     })
     expect(normalised.source.rawProperties).toEqual({
       dc: 11,
-      dc_chi: '中西區',
-      dc_class: 'A',
-      dc_eng: 'Central and Western',
+      dcZhHant: '中西區',
+      dcClass: 'A',
+      dcEn: 'Central and Western',
     })
     expect(normalised.source.derivation).toEqual({
       method: 'topology-preserving-simplification',
@@ -316,10 +320,10 @@ describe('division geometry normalisation', () => {
 
     expect(normalised.canonical.type).toBe('mixed')
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).is_territorial,
+      (normalised.source.rawProperties as Record<string, unknown>).isTerritorial,
     ).toBe(true)
     expect(
-      (normalised.source.rawProperties as Record<string, unknown>).division_ids,
+      (normalised.source.rawProperties as Record<string, unknown>).divisionIds,
     ).toEqual(['division-1', 'division-2'])
   })
 })
