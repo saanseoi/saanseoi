@@ -49,6 +49,22 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           id,
           division_id: 'division',
           class: 'land',
+          ...(sourceName === 'hkgov-censtatd'
+            ? {
+                source_properties: { dcClass: 'district' },
+                source_geometry: {
+                  type: 'Polygon',
+                  coordinates: [
+                    [
+                      [114, 22],
+                      [edge, 22],
+                      [edge, 23],
+                      [114, 22],
+                    ],
+                  ],
+                },
+              }
+            : {}),
           geometry: {
             type: 'Polygon',
             coordinates: [
@@ -61,7 +77,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
             ],
           },
         },
-        'overture',
+        sourceName,
       )
       if (!item) throw new Error('Invalid geometry fixture')
       return item
@@ -118,6 +134,19 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       expect(current.query('SELECT count(*) AS n FROM divisionAreas').get()).toEqual({
         n: 3,
       })
+      if (sourceName === 'hkgov-censtatd')
+        expect(
+          source
+            .query(
+              `SELECT censusYear,count(*) AS versions,max(isCurrent) AS current
+               FROM hkgovCenstatdDivisionAreas WHERE sourceRecordId='a'
+               GROUP BY censusYear ORDER BY censusYear`,
+            )
+            .all(),
+        ).toEqual([
+          { censusYear: '2026', versions: 2, current: 1 },
+          { censusYear: '2027', versions: 1, current: 1 },
+        ])
     } finally {
       current.close()
       history.close()
