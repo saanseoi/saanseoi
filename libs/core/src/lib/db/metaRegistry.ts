@@ -380,7 +380,7 @@ export async function listRegistryReleases(
             datasetCode: metaDatasets.code,
             publisherCode: metaPublishers.code,
             sourceVersion: metaReleases.sourceVersion,
-            subType: metaDatasets.subType,
+            kind: metaDatasets.kind,
             ingestedAt: metaReleases.ingestedAt,
             processingRules: metaReleases.processingRules,
             resourceTypes: metaDatasets.resourceTypes,
@@ -529,7 +529,7 @@ export async function listRegistryReleases(
                     }),
                     resourceType: snapshot.snapshot.resourceType,
                     sourceVersion: release.sourceVersion,
-                    subType: release.subType,
+                    kind: release.kind,
                     variant: snapshot.variant,
                   },
                 ]
@@ -1078,7 +1078,7 @@ const registrySourceSelection = {
   releaseType: metaDatasets.releaseType,
   releaseFrequency: metaDatasets.releaseFrequency,
   theme: metaDatasets.theme,
-  subType: metaDatasets.subType,
+  kind: metaDatasets.kind,
   sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   sourceUrl: metaDatasets.sourceUrl,
@@ -2295,6 +2295,16 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+/** Date-coded releases can supply a date; year and period cohorts cannot. */
+export function releasePublicationDate(sourceVersion: string): string | null {
+  const date = sourceVersion.split('.')[0] ?? ''
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+  const parsed = new Date(`${date}T00:00:00.000Z`)
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date
+    ? date
+    : null
+}
+
 export async function insertDataset(
   db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
@@ -2321,7 +2331,7 @@ export async function insertDataset(
       sourceVersion: plan.sourceVersion,
       expectedResourceTypes: dataset.resourceTypes,
       sourceSchemaVersion,
-      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
@@ -2351,7 +2361,7 @@ export async function insertDataset(
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
       processingRules: dataset.processingRules,
-      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
@@ -2468,7 +2478,7 @@ export async function resetFailedDataset(
       resourceType: plan.type,
       sourceSchemaVersion,
       processingRules: dataset.processingRules,
-      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
@@ -2489,7 +2499,7 @@ export async function resetFailedDataset(
     .set({
       sourceSchemaVersion,
       processingRules: dataset.processingRules,
-      publicationDate: plan.sourceVersion.split('.')[0] ?? null,
+      publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,

@@ -1,3 +1,8 @@
+export type D1ImportUsageResult = {
+  num_queries?: number
+  meta?: { rows_read?: number; rows_written?: number }
+}
+
 export type D1ImportFetch = (
   input: string | URL | Request,
   init?: RequestInit,
@@ -13,6 +18,7 @@ export type D1ImportClientOptions = {
 }
 
 export type D1ImportInitResult = {
+  result?: D1ImportUsageResult
   atBookmark?: string
   error?: string
   filename?: string
@@ -23,6 +29,7 @@ export type D1ImportInitResult = {
 }
 
 export type D1ImportIngestResult = {
+  result?: D1ImportUsageResult
   atBookmark?: string
   error?: string
   messages?: string[]
@@ -31,6 +38,7 @@ export type D1ImportIngestResult = {
 }
 
 export type D1ImportPollResult = {
+  result?: D1ImportUsageResult
   atBookmark?: string
   error?: string
   messages?: string[]
@@ -96,6 +104,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
   return {
     async init(etag: string): Promise<D1ImportInitResult> {
       const result = await postImport<{
+        result?: D1ImportUsageResult
         at_bookmark?: string
         error?: string
         filename?: string
@@ -109,6 +118,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       })
 
       return {
+        ...(result.result ? { result: result.result } : {}),
         atBookmark: result.at_bookmark,
         error: result.error,
         filename: result.filename,
@@ -174,6 +184,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
     async ingest(filename: string, etag: string): Promise<D1ImportIngestResult> {
       const result = await postImport<{
+        result?: D1ImportUsageResult
         at_bookmark?: string
         error?: string
         messages?: string[]
@@ -186,6 +197,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       })
 
       return {
+        ...(result.result ? { result: result.result } : {}),
         atBookmark: result.at_bookmark,
         error: result.error,
         messages: result.messages,
@@ -196,6 +208,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
 
     async poll(currentBookmark: string): Promise<D1ImportPollResult> {
       const result = await postImport<{
+        result?: D1ImportUsageResult
         at_bookmark?: string
         error?: string
         messages?: string[]
@@ -207,6 +220,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
       })
 
       return {
+        ...(result.result ? { result: result.result } : {}),
         atBookmark: result.at_bookmark,
         error: result.error,
         messages: result.messages,
@@ -253,6 +267,7 @@ export function createD1ImportClient(options: D1ImportClientOptions) {
         } else if (isImportPollResult(init)) {
           currentBookmark = init.atBookmark ?? ''
           poll = {
+            ...(init.result ? { result: init.result } : {}),
             atBookmark: init.atBookmark,
             error: init.error,
             messages: init.messages,
