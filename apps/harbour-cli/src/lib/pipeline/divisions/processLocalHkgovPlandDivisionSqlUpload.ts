@@ -1,3 +1,12 @@
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  guardSnapshotPublicationWrites,
+} from '../local/snapshotPublication.ts'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import {
   calculateAndStoreApiReleaseSetStats,
@@ -295,6 +304,19 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           )
           validatePreparedDivisions(records, previewPlan.rowCount)
           const now = toIsoTimestamp()
+          const publication: PublicationPreparation = {
+            table: 'divisionPublicationState',
+            scopeId: snapshot.snapshotLineageId,
+            snapshotId: snapshot.id,
+            publicationToken: releaseId,
+            timestamp: now,
+          }
+          const publicationDb = context.currentDb
+          await beginSnapshotPublication(publicationDb, publication)
+          context = {
+            ...context,
+            currentDb: guardSnapshotPublicationWrites(publicationDb, publication),
+          }
           const nativeSourceTable =
             previewPlan.source === 'hkgov-pland-new-town'
               ? sourceSchema.sourceHkgovPlandNewTowns
@@ -543,12 +565,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                             sourceEvidence:
                               record.cells.length > 0
                                 ? record.cells.map(cell => ({
-                                    rawProperties: cell.rawProperties,
+                                    properties: cell.properties,
                                     sourceRecordId: cell.sourceRecordId,
                                   }))
                                 : record.newTown
                                   ? {
-                                      rawProperties: record.newTown.rawProperties,
+                                      properties: record.newTown.properties,
                                       sourceRecordId: record.newTown.sourceRecordId,
                                     }
                                   : null,
@@ -611,6 +633,18 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 ),
               ])
             },
+          )
+          await completeSnapshotPublication(
+            publicationDb,
+            publication,
+            [
+              buildPublicationRowCountSql('divisions', snapshot.id, records.length),
+              buildPublicationRowCountSql(
+                'divisionsI18n',
+                snapshot.id,
+                records.reduce((sum, record) => sum + record.i18n.length, 0),
+              ),
+            ].join(' AND '),
           )
           const counts = {
             importedRows: records.length,

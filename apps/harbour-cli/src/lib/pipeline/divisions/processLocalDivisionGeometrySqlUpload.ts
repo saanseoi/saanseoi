@@ -339,7 +339,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         ? await openNormalisedArtefactCache({
             filePath: preparedUpload.filePath,
             processingContract: [
-              'division-geometry-normalisation-v2',
+              'division-geometry-normalisation-v3',
               await hashValue(providerBridgeRows),
               previewPlan.source,
               previewPlan.resourceType,
@@ -660,6 +660,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         releaseId,
         releaseCode,
         snapshotId: snapshot.id,
+        snapshotLineageId: snapshot.snapshotLineageId,
         parentSnapshotId: snapshot.parentSnapshotId,
         cohortKey: previewPlan.cohortKey,
         merge: isCenstatdGeometryCompanionPlan(previewPlan),

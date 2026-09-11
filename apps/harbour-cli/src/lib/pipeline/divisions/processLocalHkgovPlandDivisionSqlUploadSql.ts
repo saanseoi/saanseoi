@@ -1,3 +1,10 @@
+import {
+  buildBeginPublicationSql,
+  buildCompletePublicationSql,
+  buildGuardedPublicationSql,
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { eq, inArray, getTableColumns } from 'drizzle-orm'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
@@ -306,12 +313,37 @@ async function buildPlandCurrentSql(
     'locale',
   ])
 
+  const receipt = await context.currentDb
+    .select()
+    .from(currentSchema.divisionPublicationState)
+    .where(eq(currentSchema.divisionPublicationState.snapshotId, state.snapshotId))
+    .get()
+  if (!receipt?.preparedAt)
+    throw new Error('Planning Division publication preparation is incomplete.')
+  const publication: PublicationPreparation = {
+    ...receipt,
+    table: 'divisionPublicationState',
+    timestamp: receipt.preparedAt,
+  }
   return sqlFile([
-    `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-    `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-    geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
-    ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
-    ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
+    buildBeginPublicationSql(publication),
+    buildGuardedPublicationSql(publication, [
+      `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+      `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+      geometryBuildUpsertSql(
+        'divisions',
+        divisionRows as Array<Record<string, unknown>>,
+      ),
+      ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
+      ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
+    ]),
+    buildCompletePublicationSql({
+      ...publication,
+      validationSql: [
+        buildPublicationRowCountSql('divisions', state.snapshotId, divisionRows.length),
+        buildPublicationRowCountSql('divisionsI18n', state.snapshotId, i18nRows.length),
+      ].join(' AND '),
+    }),
   ])
 }
 

@@ -19,7 +19,7 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
       ),
     )
     db.exec(
-      `INSERT INTO overtureDivisions (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,rawProperties) VALUES ('supplement','old-hash','old-release','2020-01-01.0',1,'{"processed":true}');`,
+      `INSERT INTO overtureDivisions (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,properties) VALUES ('supplement','old-hash','old-release','2020-01-01.0',1,'{"processed":true}');`,
     )
     const message = {
       source: 'overture',
@@ -64,13 +64,13 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
     expect(
       db
         .query(
-          'SELECT sourceRecordId, rawProperties, sourceGeometry FROM overtureDivisions WHERE isCurrent = 1',
+          'SELECT sourceRecordId, properties, sourceGeometry FROM overtureDivisions WHERE isCurrent = 1',
         )
         .all(),
     ).toEqual([
       {
         sourceRecordId: 'publisher',
-        rawProperties:
+        properties:
           '{"sources":[{"dataset":"upstream"}],"names":{"primary":" Native "}}',
         sourceGeometry: '{"type":"Point","coordinates":[114,22]}',
       },

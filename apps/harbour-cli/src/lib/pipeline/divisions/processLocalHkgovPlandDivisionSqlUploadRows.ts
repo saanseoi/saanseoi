@@ -311,7 +311,7 @@ export async function insertSourceRows(
     const rows = await Promise.all(
       cells.map(async cell => ({
         sourceRecordId: cell.sourceRecordId,
-        rawProperties: retainSourceProperties(cell.rawProperties),
+        properties: retainSourceProperties(cell.properties),
         wasGeometryRepaired: cell.wasGeometryRepaired,
         repairedGeometry: cell.repairedGeometry ?? null,
         sourceGeometry: cell.sourceGeometry,
@@ -348,7 +348,7 @@ export async function insertSourceRows(
   const rows = await Promise.all(
     towns.map(async town => ({
       sourceRecordId: town.sourceRecordId,
-      rawProperties: retainSourceProperties(town.rawProperties),
+      properties: retainSourceProperties(town.properties),
       sourceGeometry: town.sourceGeometry,
       wasGeometryRepaired: town.wasGeometryRepaired,
       repairedGeometry: town.repairedGeometry,

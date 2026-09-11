@@ -1,3 +1,4 @@
+import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
 import type { HarbourReadableDb } from '@repo/core/db/types'
@@ -69,6 +70,11 @@ export async function assertDivisionCurrentSnapshotComplete(
   parentSnapshotId: string | null,
 ) {
   if (!parentSnapshotId) return
+  await assertPublishedSnapshotMaterialised(
+    currentDb as unknown as HarbourReadableDb,
+    'divisionPublicationState',
+    parentSnapshotId,
+  )
 
   const traceDivisionIds = resolveDivisionTraceIds()
   const [activeSnapshotRowCount, activeSnapshotI18nRowCount] = await Promise.all([
@@ -101,7 +107,7 @@ export async function assertDivisionCurrentSnapshotComplete(
     })
   }
 
-  if (currentRows.size > 0 && activeSnapshotRowCount !== currentRows.size) {
+  if (activeSnapshotRowCount !== currentRows.size) {
     for (const divisionId of traceDivisionIds) {
       const snapshotState = traceState.get(divisionId)
 
@@ -123,7 +129,7 @@ export async function assertDivisionCurrentSnapshotComplete(
     )
   }
 
-  if (expectedI18nRowCount > 0 && activeSnapshotI18nRowCount !== expectedI18nRowCount) {
+  if (activeSnapshotI18nRowCount !== expectedI18nRowCount) {
     throw new Error(
       `Parent division snapshot ${parentSnapshotId} is incomplete in current i18n storage: expected ${expectedI18nRowCount} rows, found ${activeSnapshotI18nRowCount}.`,
     )

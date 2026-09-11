@@ -51,7 +51,7 @@ export async function buildDivisionSourceSqlFile(
         changedBaseRows.push({
           sourceRecordId: record.id,
           sourceLocator: jsonText(overtureSourcePayload(record.raw).sourceLocator),
-          rawProperties: jsonText(overtureSourcePayload(record.raw).rawProperties),
+          properties: jsonText(overtureSourcePayload(record.raw).properties),
           sourceGeometry: jsonText(overtureSourcePayload(record.raw).sourceGeometry),
           versionHash: record.sourcePayloadHash,
           releaseId,
@@ -98,7 +98,7 @@ export async function buildDivisionSourceSqlFile(
       [
         'sourceRecordId',
         'sourceLocator',
-        'rawProperties',
+        'properties',
         'sourceGeometry',
         'versionHash',
         'releaseId',

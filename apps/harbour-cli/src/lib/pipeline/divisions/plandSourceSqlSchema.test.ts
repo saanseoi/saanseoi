@@ -28,7 +28,7 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'])
       })
       input
         .query(
-          `INSERT INTO ${table} (sourceRecordId, rawProperties, versionHash, releaseId, validFromRelease, isCurrent, sourceGeometry) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO ${table} (sourceRecordId, properties, versionHash, releaseId, validFromRelease, isCurrent, sourceGeometry) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
           'record',

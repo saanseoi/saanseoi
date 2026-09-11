@@ -1,3 +1,13 @@
+import {
+  assertPublishedSnapshotMaterialised,
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  guardSnapshotPublicationWrites,
+} from '../local/snapshotPublication.ts'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import {
   recordSourceResolutions,
@@ -41,6 +51,7 @@ export async function writeGeometryRows(
     releaseId: string
     releaseCode: string
     snapshotId: string
+    snapshotLineageId: string
     parentSnapshotId: string | null
     cohortKey: string
     merge?: boolean
@@ -71,6 +82,37 @@ export async function writeGeometryRows(
           ? sourceSchema.sourceHkgovCenstatdDivisionAreas
           : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
+  const publicationTable =
+    resourceType === 'divisionArea'
+      ? 'divisionAreaPublicationState'
+      : 'divisionBoundaryPublicationState'
+  const reusedSnapshotId = version.skipCanonicalMaterialisation
+    ? version.snapshotId
+    : version.parentSnapshotId
+  if (reusedSnapshotId)
+    await assertPublishedSnapshotMaterialised(
+      context.currentDb as unknown as HarbourReadableDb,
+      publicationTable,
+      reusedSnapshotId,
+    )
+  const publication: PublicationPreparation | null =
+    !version.skipCanonicalMaterialisation
+      ? {
+          table: publicationTable,
+          scopeId: JSON.stringify([version.snapshotLineageId, version.cohortKey]),
+          snapshotId: version.snapshotId,
+          publicationToken: version.releaseId,
+          timestamp: now,
+        }
+      : null
+  const publicationDb = context.currentDb
+  if (publication) {
+    await beginSnapshotPublication(publicationDb, publication)
+    context = {
+      ...context,
+      currentDb: guardSnapshotPublicationWrites(publicationDb, publication),
+    }
+  }
   const isDisplayDerivative = version.transform === 'simplified'
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && isDisplayDerivative
@@ -82,10 +124,10 @@ export async function writeGeometryRows(
     rows.some(
       row =>
         !(
-          row.source.rawProperties &&
-          typeof row.source.rawProperties === 'object' &&
-          !Array.isArray(row.source.rawProperties) &&
-          'dcClass' in row.source.rawProperties
+          row.source.properties &&
+          typeof row.source.properties === 'object' &&
+          !Array.isArray(row.source.properties) &&
+          'dcClass' in row.source.properties
         ),
     )
   onProgress?.(
@@ -421,6 +463,16 @@ export async function writeGeometryRows(
     )
   }
 
+  if (publication)
+    await completeSnapshotPublication(
+      publicationDb,
+      publication,
+      buildPublicationRowCountSql(
+        resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries',
+        version.snapshotId,
+        currentRows.length,
+      ),
+    )
   return { churn }
 }
 
@@ -448,7 +500,7 @@ function hashGeometrySourceAssertion(
   if (source === 'overture') return hashDivisionGeometrySourceRow(row)
   return hashDivisionGeometrySourceRow(
     nativeSourcePayloadHashInput({
-      rawProperties: row.rawProperties,
+      properties: row.properties,
       sourceGeometry: row.sourceGeometry,
     }),
   )

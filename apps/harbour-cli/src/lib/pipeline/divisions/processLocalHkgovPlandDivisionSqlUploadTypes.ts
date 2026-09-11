@@ -36,7 +36,7 @@ export type PreparedDivision = {
   }
   cells: Array<{
     ppuCode: string
-    rawProperties: unknown
+    properties: unknown
     repairedGeometry: unknown
     sourceRecordId: string
     sourceGeometry: unknown
@@ -50,7 +50,7 @@ export type PreparedDivision = {
     nameEn: string
     nameZhHans: string
     nameZhHant: string
-    rawProperties: unknown
+    properties: unknown
     repairedGeometry: unknown
     sourceGeometry: unknown
     sourceRecordId: string

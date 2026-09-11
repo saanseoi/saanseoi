@@ -211,9 +211,13 @@ function normalisePlanningCells(value: unknown): PreparedDivision['cells'] {
   }
   return value.map((entry, index) => {
     const cell = asRecord(entry)
+    if (!Object.hasOwn(cell, 'properties'))
+      throw new Error(
+        `Planning sourceFeatures[${index}].properties is missing; prepare the release again.`,
+      )
     return {
       ppuCode: requireString(cell.ppuCode, `sourceFeatures[${index}].ppuCode`),
-      rawProperties: cell.rawProperties ?? null,
+      properties: cell.properties ?? null,
       repairedGeometry: cell.repairedGeometry ?? null,
       sourceRecordId: requireString(
         cell.sourceRecordId,
@@ -242,7 +246,7 @@ function normaliseNewTown(
     nameEn: requireString(name('en'), 'New Town English name'),
     nameZhHans: requireString(name('zh-hans'), 'New Town Simplified Chinese name'),
     nameZhHant: requireString(name('zh-hant'), 'New Town Traditional Chinese name'),
-    rawProperties: asRecord(sourceProperties.sourceFeature).properties ?? null,
+    properties: asRecord(sourceProperties.sourceFeature).properties ?? null,
     repairedGeometry: sourceProperties.was_geometry_repaired ? geometry : null,
     sourceGeometry: requireValue(
       sourceProperties.source_geometry,
