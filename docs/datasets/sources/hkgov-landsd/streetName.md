@@ -114,10 +114,17 @@ enrich the same identities without becoming their source of truth.
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+Canonical Street current rows and companion tables use one stable scope per registered
+lineage. `streetPublicationState` maps it to the logical snapshot. Conditional updates
+preserve unchanged rows and timestamps; complete replacement membership removes obsolete
+components within that scope. Candidate SQL may still be transmitted without writing
+unchanged D1 content rows. Current Address links use physical scopes, while metadata and
+history retain logical snapshots and Gazette evidence.
+
+Each delivery batch checks its sealed publication token. Complete validation records
+preparation; publication grants readiness. An interrupted scope remains unavailable, and
+an empty scope requires explicit completion evidence. See the
+[publication-state contract](../../publication-state-plan.md).
 
 Sealed Street delivery replays current, history and metadata mutations to the selected
 target before publication. Its completion check covers active streets, localisations and

@@ -23,7 +23,7 @@ assertions closed by the release. Updates match exact versions and carry their c
 timestamps without retransmitting older geometry.
 
 This page records the provider-specific profile. The reusable source contract is in
-[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md).
+[`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).
 
 ## Catalogue and service
 
@@ -166,7 +166,15 @@ selected release.
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+HAD current area geometry uses one stable lineage/cohort scope. A new revision preserves
+unchanged geometry rows and timestamps, writes changed content and removes absent
+members within that scope. Conditional candidate SQL can still be transmitted without
+writing unchanged D1 content rows. Exact canonical Division dependencies resolve from a
+completed receipt or immutable history, without restoring historical rows into serving
+current storage.
+
+Each delivery batch checks its scope token. Complete geometry validation records
+preparation; publication grants current readiness. Empty scopes require the same
+completion evidence. Retained cohorts and variants remain independently available, with
+older revisions replayed from history. See the
+[publication-state contract](../../publication-state-plan.md).

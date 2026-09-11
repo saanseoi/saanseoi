@@ -82,8 +82,8 @@ degenerate-ring detection, is opt-in with `--validate-geometry`. This avoids qua
 edge-pair checks on detailed Overture polygons during ordinary ingestion.
 
 The source-neutral contract is in
-[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). This page records
-the Hong Kong release profile and Overture-specific decisions.
+[`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md). This page
+records the Hong Kong release profile and Overture-specific decisions.
 
 ## Automated refresh
 
@@ -291,7 +291,18 @@ selected release.
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+Current Division rows and localisations use their stable lineage scope. Areas and
+boundaries use lineage/cohort scopes, preserving independent provider variants and
+retained cohorts. Current columns named `snapshotId` contain those physical scopes;
+metadata and immutable history retain logical snapshot IDs.
+
+Conditional canonical and geometry updates preserve unchanged rows and timestamps.
+Candidate SQL may still be transmitted, while equality checks prevent unchanged D1
+content-row writes. Full replacement membership removes absent components only within
+the owned scope. A new cohort has a separate initial geometry materialisation.
+
+Delivery claims and guards the scope with its sealed publication token, validates the
+complete projection and records preparation. Publication alone grants current read
+permission, including for empty snapshots. Exact older geometry can replay from
+immutable history when the selected scope has advanced. See the
+[publication-state contract](../../publication-state-plan.md).

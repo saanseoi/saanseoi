@@ -76,7 +76,13 @@ layout, missing OCR runtime, or damaged retrieval can be corrected deliberately.
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+Notice processing contributes evidence and lifecycle changes to the canonical Street
+lineage. Its current projection uses a stable scope, with `streetPublicationState`
+identifying the logical publication. Conditional current updates preserve unchanged rows
+and timestamps; they can transmit candidate SQL without writing unchanged D1 content
+rows. Scope reuse preserves the notice identities and historical evidence.
+
+Delivery checks its sealed scope token in every current write batch. Complete validation
+records preparation; publication alone grants readiness, including for empty results.
+Interrupted delivery remains unavailable. See the
+[publication-state contract](../../publication-state-plan.md).

@@ -355,7 +355,14 @@ the shared deferred, incremental search finalisation; area geometry is not index
 
 ## Publication readiness
 
-Canonical current delivery validates its complete snapshot before recording preparation
-in the relevant `*PublicationState` table. Publication alone marks that preparation
-ready for API reads. Empty snapshots require the same explicit completion evidence. See
-the [publication-state contract](../../publication-state-plan.md).
+Planning Unit and New Town canonical Division rows use their registered lineage scopes;
+area geometry uses lineage/cohort scopes. Current rows and localisations retain their
+physical keys when the logical snapshot advances. Conditional updates write only changed
+content, and complete replacement membership removes absent components within the owned
+scope. This saves D1 row writes even where candidate SQL is still transmitted.
+
+Preparation resolves exact Division dependencies through completed receipts or immutable
+history; it does not restore old Division versions into serving current tables. Each
+write batch checks the sealed scope token. Complete delivery, including an empty result,
+records preparation; publication then grants readiness. See the
+[publication-state contract](../../publication-state-plan.md).

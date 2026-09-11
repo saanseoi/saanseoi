@@ -461,10 +461,11 @@ the source record.
 stored as a synthetic locale and is not counted as locale coverage.
 
 Each canonical place receives H3 cells at resolutions 5, 7, and 9. The H3 index supports
-the Places `by-cell` API and is rebuilt with the current place snapshot. The
-`placesDivision` projection is likewise current-only and is derived from the selected
-address row's division snapshot and IDs. The full-text index is rebuilt after the
-snapshot and its address, division, and street joins have been materialised.
+the Places `by-cell` API. Cells and `placesDivision` links share the Place lineage's
+stable current scope and retain unchanged rows across publications. Division links
+resolve from the selected Address's Division scope and IDs. Search finalisation runs
+after the selected Place and dependency publications are ready and updates only changed
+FTS content plus the logical snapshot mapping.
 
 ## ZH-HANT
 
@@ -530,6 +531,18 @@ selecting or continuing this mode.
 Local Places continuation reuses retained inputs and completed source releases.
 Official-address matching reads English and Traditional Chinese definitions from the
 selected ALS snapshot. Local ownership-manifest completion opens only metadata.
+
+Place current rows use a stable lineage scope; current Address and Division references
+also use physical scopes. Metadata and immutable history retain selected logical
+snapshots, and API responses resolve the publication mappings. Conditional upserts keep
+unchanged Place, localisation, cell and link rows untouched, although their candidate
+SQL can still be transmitted. Complete replacement membership removes absent components
+within the owned scope.
+
+The stored `releaseId` and `lastSeenMonth` retain the last real Place content change.
+Current API responses derive `lastSeenMonth` from the selected complete publication
+cohort; historical reads retain the recorded values. Publication assertions do not
+require updating every unchanged Place.
 
 Place delivery checks records, localisations, spatial cells and division links before
 completing its publication receipt. Import preparation may read an acknowledged ALS

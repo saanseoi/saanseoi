@@ -36,6 +36,14 @@ content remains open without timestamp touches or snapshot copies. Changed conte
 explicit retirement journals preserve exact historical membership. Search uses the same
 scope mapping.
 
+Current Division and Street references contain physical scope IDs. Preparation and
+history retain logical snapshot IDs, and the writer resolves each exact selected
+reference through a completed receipt. Missing or advanced dependency projections fail
+closed and require chronological preparation. The Address plan delivers final row
+differences resolved locally; scope-based conditional writers in other families share
+its readiness contract without claiming the same transmitted-SQL reduction. See the
+[publication-state contract](../../publication-state-plan.md).
+
 Address2D base, locale and building-number history are compared independently,
 preserving the original hash and owning shard of unchanged component rows. Address3D
 base inventory and each locale payload have independent version hashes. Locale-only
@@ -756,8 +764,14 @@ selecting or continuing this mode.
 
 Official-address initialisation stores the identity-history before-image in a separate
 file beside its manifest. Keep both files for reset recovery. Completion queries release
-metadata and distinct current division snapshot IDs; it does not export source or
-history shards. A missing before-image blocks reset before mutations.
+metadata and ready Division publication receipts; it does not export source or history
+shards. A missing before-image blocks reset before mutations.
+
+Initialisation manifest version 2 records baseline and materialised Division scope IDs.
+Scoped reset resolves owned logical Address snapshots to their physical scopes before
+removing current rows and Address/Division publication receipts. History and metadata
+cleanup retain logical snapshot identities. Incompatible manifest versions are rejected;
+reset/reingest creates the required state without backfill or manifest conversion.
 
 ## Registry metadata
 
