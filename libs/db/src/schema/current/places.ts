@@ -132,19 +132,13 @@ export const placesCells = sqliteTable(
   ],
 )
 
-/**
- * TypeScript query mapping for the FTS5 virtual table only. The actual
- * `CREATE VIRTUAL TABLE placesFts ... USING fts5` is maintained in
- * `libs/db/scripts/sql/rebuild-places-fts.sql`, not by Drizzle migrations.
- * `placesFtsMatch` and `searchPlacesFts` depend on that external rebuild
- * script, so migration tooling must not try to create a regular table for
- * `placesFts`.
- */
+/** Latest published snapshot selected for each stable Place search scope. */
 export const placeSearchScopes = sqliteTable('placeSearchScopes', {
   scopeId: text('scopeId').primaryKey(),
   snapshotId: text('snapshotId').notNull(),
 })
 
+/** Query mapping only; publication creates this FTS5 virtual table. */
 export const placesFts = sqliteTable('placeSearchFts', {
   scopeId: text('scopeId').notNull(),
   placeId: text('placeId').notNull(),

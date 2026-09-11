@@ -23,11 +23,9 @@ export const SearchFtsNotReadyErrorResponseSchema = z
       examples: ['fts_not_ready'],
     }),
     message: z
-      .literal('FTS index is not initialised. Rebuild placesFts before using search.')
+      .literal('Place search is not ready for the latest published release.')
       .openapi({
-        examples: [
-          'FTS index is not initialised. Rebuild placesFts before using search.',
-        ],
+        examples: ['Place search is not ready for the latest published release.'],
       }),
   })
   .openapi('SearchFtsNotReadyErrorResponse')

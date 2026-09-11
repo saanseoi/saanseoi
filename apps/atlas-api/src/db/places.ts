@@ -237,9 +237,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
       .get()
     if (!ready)
-      throw new Error(
-        'FTS index is not initialised. Rebuild placesFts before using search.',
-      )
+      throw new Error('Place search is not ready for the latest published release.')
     return await db
       .select({
         placeId: places.id,
@@ -271,9 +269,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       error instanceof Error &&
       `${error.message} ${error.cause}`.includes('no such table: placeSearch')
     ) {
-      throw new Error(
-        'FTS index is not initialised. Rebuild placesFts before using search.',
-      )
+      throw new Error('Place search is not ready for the latest published release.')
     }
 
     throw error

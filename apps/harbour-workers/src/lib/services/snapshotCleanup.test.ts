@@ -22,6 +22,12 @@ test('retains a snapshot still serving the published search index', async () => 
       snapshotId: 'old',
     }),
   ).toBe(false)
+  expect(
+    await cleanupSnapshotByResourceType(db as never, {
+      resourceType: 'place',
+      snapshotId: 'old',
+    }),
+  ).toBe(false)
 })
 
 test('deletes every street-owned table in one batch', async () => {

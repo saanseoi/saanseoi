@@ -1,3 +1,4 @@
+import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/searchIndex'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -469,13 +470,9 @@ test('generated Places and search recover in phase order against the current sch
         { timestamp: '2026-09-07T00:00:00Z' },
       )
       const dataSql = built.currentSql.join('\n')
-      const searchSql = await readFile(
-        join(
-          import.meta.dir,
-          '../../../../../../libs/db/scripts/sql/rebuild-places-fts.sql',
-        ),
-        'utf8',
-      )
+      const searchSql = buildPlaceSearchSyncSql([
+        { scopeId: 'hk:overture:places', snapshotId: 'snapshot' },
+      ]).join(';\n')
       baseline.exec(dataSql)
       baseline.exec(searchSql)
       const plan = await prepareSqlDelivery(f.directory, f.context, append =>
@@ -512,7 +509,7 @@ test('generated Places and search recover in phase order against the current sch
       expect(
         f.remote
           .query(
-            "SELECT COUNT(*) AS n FROM placesFts WHERE placesFts MATCH 'Recoveryshop'",
+            "SELECT COUNT(*) AS n FROM placeSearchFts WHERE placeSearchFts MATCH 'Recoveryshop'",
           )
           .get(),
       ).toEqual({ n: 30 })
@@ -527,7 +524,13 @@ test('generated Places and search recover in phase order against the current sch
       ).rejects.toThrow('mirror interrupted')
       await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
       await runSqlDelivery(searchDirectory, { ...f.options, mode: 'local' })
-      for (const table of ['places', 'placesI18n', 'placesCells', 'placesFts']) {
+      for (const table of [
+        'places',
+        'placesI18n',
+        'placesCells',
+        'placeSearchFts',
+        'placeSearchScopes',
+      ]) {
         const query = `SELECT * FROM ${table} ORDER BY rowid`
         expect(local.query(query).all()).toEqual(baseline.query(query).all())
         expect(f.remote.query(query).all()).toEqual(baseline.query(query).all())
