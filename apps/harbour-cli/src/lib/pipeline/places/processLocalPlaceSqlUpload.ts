@@ -64,6 +64,7 @@ import {
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUploadSupplementary.ts'
 import { buildPlaceReleaseStatsRowsFromAccumulator } from './processLocalPlaceSqlUploadStatistics.ts'
 import { getPreparedPublication } from '../local/snapshotPublication.ts'
+import { PlaceDependencyView } from './placeDependencyView.ts'
 
 /**
  * Materialises an Overture Places release. The lifecycle is intentionally
@@ -94,6 +95,7 @@ export async function processLocalPlaceSqlUpload(
   const progress = new OperationProgress()
   let recordCache: PlaceRecordCache | undefined
   let dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>> | undefined
+  let dependencies: PlaceDependencyView | undefined
   let client: HarbourClient | undefined
   let shouldRefreshRemoteMetaCache = false
   let completed = false
@@ -120,7 +122,6 @@ export async function processLocalPlaceSqlUpload(
       () =>
         resolveLocalAddressDbContext(target, previewPlan.regionCode, shardYear, {
           resumeSqlDeliveryReleaseId: releaseId,
-          cacheTableProfile: 'places',
           includePreviousShardYears: true,
           refreshRemoteTables: false,
         }),
@@ -130,6 +131,11 @@ export async function processLocalPlaceSqlUpload(
     if (!context) throw new Error('Places database context was not opened.')
 
     const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+    dependencies = await PlaceDependencyView.create({
+      metaDb,
+      historyTargets: context.historyTargets,
+    })
+    const dependencyView = dependencies
     const message: DatasetProcessingMessage = {
       datasetId,
       datasetCode,
@@ -187,6 +193,7 @@ export async function processLocalPlaceSqlUpload(
           previewPlan,
           datasetId,
           releaseId,
+          dependencies,
         ),
     )
     const publicationPrevious = await getPreparedPublication(
@@ -231,6 +238,7 @@ export async function processLocalPlaceSqlUpload(
         prepareSupplementaryAddresses({
           recordCache,
           context,
+          dependencyDb: dependencyView.db,
           metaDb,
           snapshots,
           places: readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
@@ -271,7 +279,7 @@ export async function processLocalPlaceSqlUpload(
       'Places',
       reportProgress =>
         stageEnrichedPlaces(
-          context.currentDb as unknown as HarbourReadableDb,
+          dependencyView.db,
           snapshots,
           readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
           readStagedJsonLines<StagedAddressResolution>(supplementary.resolutionPath),
@@ -579,6 +587,7 @@ export async function processLocalPlaceSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
+    await dependencies?.close()
     if (recordCache) {
       for (const [stage, counts] of recordCache.counts)
         console.info(

@@ -93,6 +93,8 @@ type PrepareSupplementaryAddressesInput = {
   curationDecisionsPath?: string
   entryLedgerPath?: string
   context: LocalAddressDbContext
+  /** Disposable exact dependencies used for read-only Address analysis. */
+  dependencyDb?: HarbourReadableDb
   metaDb: HarbourReadableDb & HarbourWritableDb
   snapshots: {
     snapshotId: string
@@ -242,6 +244,7 @@ async function prepareSupplementaryAddressesLocked(
 ) {
   const db = input.metaDb
   const currentDb = input.context.currentDb as unknown as HarbourReadableDb
+  const dependencyDb = input.dependencyDb ?? currentDb
   input.onStage?.('official Address definitions')
   const curationPath = input.curationPath ?? SUPPLEMENTARY_CURATION_PATH
   const fixtureText = await readFile(curationPath, 'utf8')
@@ -273,7 +276,7 @@ async function prepareSupplementaryAddressesLocked(
     },
     entryLedger,
   )
-  const official = (await currentDb
+  const official = (await dependencyDb
     .select({
       areaId: currentSchema.address2d.areaId,
       countryId: currentSchema.address2d.countryId,
@@ -309,7 +312,7 @@ async function prepareSupplementaryAddressesLocked(
     | 'townId'
     | 'villageId'
   >[]
-  const definitions = (await currentDb
+  const definitions = (await dependencyDb
     .select({
       addressId: currentSchema.address2dI18n.addressId,
       blockExpression: currentSchema.address2dI18n.blockExpression,
@@ -711,7 +714,6 @@ async function prepareSupplementaryAddressesLocked(
       },
     })
     const environment = input.targets.environment
-    const currentShard = await resolveShardForTypeRegionYear(db, 'current', environment)
     const historyShard = await resolveShardForTypeRegionYear(
       db,
       'history',
@@ -719,8 +721,8 @@ async function prepareSupplementaryAddressesLocked(
       input.plan.regionCode,
       input.plan.sourceVersion.slice(0, 4),
     )
-    if (currentShard)
-      await upsertSnapshotShardAssignment(db, snapshot.id, currentShard.id)
+    if (historyShard)
+      await upsertSnapshotShardAssignment(db, snapshot.id, historyShard.id)
     if (historyShard) await upsertReleaseShardAssignment(db, releaseId, historyShard.id)
     await deliverResolvedAddressSqlPhase(
       {

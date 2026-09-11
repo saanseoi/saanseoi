@@ -1,10 +1,14 @@
 import { PlaceProjectionSql } from './placeProjectionSql.ts'
-import { missingSourceMembershipPredicates } from '../local/sourceMembershipSql.ts'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
 import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { createHash } from '@repo/core/pipeline/utils'
-import { historySchema, sourceSchema } from '@repo/db'
+import {
+  canonicalPlaceJson,
+  placeHistoryInsertSql,
+  placeLocaleHash,
+  reusePlaceLocaleDependencies,
+} from './placeHistory.ts'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import { latLngToCell } from 'h3-js'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -12,7 +16,6 @@ import type {
   BuildPlaceSqlInput,
   BuildPlaceSqlOptions,
   EnrichedPlace,
-  PlaceHistoryRow,
   PlaceHistoryState,
   PlaceSqlProgressEvent,
 } from './processLocalPlaceSqlUploadTypes.ts'
@@ -59,30 +62,64 @@ export async function loadCurrentPlaceSources(
 
 export async function loadCurrentPlaceHistory(
   targets: LocalAddressDbContext['historyTargets'],
+  ownership?: { currentDb: HarbourReadableDb; scopeId: string },
 ): Promise<PlaceHistoryState[]> {
-  const rows = await Promise.all(
-    targets.map(async target => ({
-      bindingName: target.bindingName,
-      rows: (await (target.db as HarbourReadableDb)
-        .select({
-          address2dId: historySchema.places.address2dId,
-          addressSnapshotId: historySchema.places.addressSnapshotId,
-          addresses: historySchema.places.addresses,
-          createdAt: historySchema.places.createdAt,
-          firstSeenMonth: historySchema.places.firstSeenMonth,
-          id: historySchema.places.id,
-          lastSeenMonth: historySchema.places.lastSeenMonth,
-          releaseId: historySchema.places.releaseId,
-          versionHash: historySchema.places.versionHash,
-        })
-        .from(historySchema.places)
-        .where(eq(historySchema.places.isCurrent, true))
-        .all()) as unknown as PlaceHistoryRow[],
-    })),
+  const ownedIds = ownership
+    ? new Set(
+        (
+          await ownership.currentDb
+            .select({ id: currentSchema.places.id })
+            .from(currentSchema.places)
+            .where(eq(currentSchema.places.snapshotId, ownership.scopeId))
+            .all()
+        ).map(row => row.id),
+      )
+    : null
+  const groups = await Promise.all(
+    targets.map(async target => {
+      const db = target.db as HarbourReadableDb
+      const [rows, locales] = await Promise.all([
+        db
+          .select()
+          .from(historySchema.places)
+          .where(eq(historySchema.places.isCurrent, true))
+          .all(),
+        db
+          .select()
+          .from(historySchema.placesI18n)
+          .where(eq(historySchema.placesI18n.isCurrent, true))
+          .all(),
+      ])
+      return {
+        bindingName: target.bindingName,
+        rows: rows as (typeof historySchema.places.$inferSelect)[],
+        locales: locales as (typeof historySchema.placesI18n.$inferSelect)[],
+      }
+    }),
   )
-  return rows.flatMap(target =>
-    target.rows.map(row => ({ bindingName: target.bindingName, row })),
-  )
+  const states = new Map<string, PlaceHistoryState>()
+  for (const group of groups)
+    for (const row of group.rows) {
+      if (ownedIds && !ownedIds.has(row.id)) continue
+      if (states.has(row.id))
+        throw new Error(`Multiple current Place base versions for ${row.id}.`)
+      states.set(row.id, { bindingName: group.bindingName, row, locales: [] })
+    }
+  for (const group of groups)
+    for (const row of group.locales) {
+      if (ownedIds && !ownedIds.has(row.placeId)) continue
+      const state = states.get(row.placeId)
+      if (!state)
+        throw new Error(
+          `Current Place locale without a base: ${row.placeId}/${row.locale}.`,
+        )
+      if (state.locales!.some(locale => locale.row.locale === row.locale))
+        throw new Error(
+          `Multiple current Place locale versions for ${row.placeId}/${row.locale}.`,
+        )
+      state.locales!.push({ bindingName: group.bindingName, row })
+    }
+  return [...states.values()]
 }
 
 export async function buildPlaceSql(
@@ -123,31 +160,66 @@ export async function buildPlaceSql(
     return created
   }
 
+  const retireLocale = (state: NonNullable<PlaceHistoryState['locales']>[number]) => {
+    historyStatements(state.bindingName).push(
+      `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(state.row.placeId)} AND locale = ${lit(state.row.locale)} AND versionHash = ${lit(state.row.versionHash)} AND isCurrent = 1;`,
+    )
+    changeInserts.add('snapshotVersionChanges', {
+      snapshotId: input.snapshots.snapshotId,
+      recordType: 'placeI18n',
+      recordId: state.row.placeId,
+      locale: state.row.locale,
+      versionHash: null,
+      operation: 'delete',
+      sourceReleaseId: input.message.releaseId,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+
   const publicationCounts = { localisedRows: 0, divisionLinks: 0, cells: 0 }
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
-    historyStatements(input.activeHistoryBindingName).push(
-      sourceResolutionSql({
-        snapshotId: input.snapshots.snapshotId,
-        sourceReleaseId: input.message.releaseId!,
-        sourceRecordId: place.id,
-        sourceVersionHash: row.sourcePayloadHash,
-        resolutions: {
-          entities: {
-            place: [place.id],
-            ...(row.divisionIds.length ? { division: row.divisionIds } : {}),
-            ...(row.address2dId ? { address2d: [row.address2dId] } : {}),
-            ...(row.address3dId ? { address3d: [row.address3dId] } : {}),
-            ...(row.address3dUnitId ? { address3dUnit: [row.address3dUnitId] } : {}),
-          },
-        },
-      }),
+    const resolutions = {
+      entities: {
+        place: [place.id],
+        ...(row.divisionIds.length
+          ? { division: [...new Set(row.divisionIds)].sort() }
+          : {}),
+        ...(row.address2dId ? { address2d: [row.address2dId] } : {}),
+        ...(row.address3dId ? { address3d: [row.address3dId] } : {}),
+        ...(row.address3dUnitId ? { address3dUnit: [row.address3dUnitId] } : {}),
+      },
+    }
+    const priorResolution = input.sourceResolutions?.get(place.id)
+    if (
+      priorResolution?.sourceVersionHash !== row.sourcePayloadHash ||
+      canonicalPlaceJson(priorResolution.resolutions) !==
+        canonicalPlaceJson(resolutions)
     )
+      historyStatements(input.activeHistoryBindingName).push(
+        sourceResolutionSql({
+          snapshotId: input.snapshots.snapshotId,
+          sourceReleaseId: input.message.releaseId!,
+          sourceRecordId: place.id,
+          sourceVersionHash: row.sourcePayloadHash,
+          resolutions,
+        }),
+      )
     const lng = row.effectiveLng ?? place.lng
     const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
     const unchanged = previous?.row.versionHash === row.versionHash
+    const previousLocales = new Map(
+      previous?.locales?.map(state => [state.row.locale, state]) ?? [],
+    )
+    const addressSnapshotId = row.address2dId
+      ? previous?.row.address2dId === row.address2dId &&
+        previous.row.addressDependencyHash === row.addressDependencyHash
+        ? previous.row.addressSnapshotId
+        : (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+      : null
     const firstSeenMonth =
       typeof previous?.row.firstSeenMonth === 'string'
         ? previous.row.firstSeenMonth
@@ -187,9 +259,8 @@ export async function buildPlaceSql(
       snapshotId: scopeId,
       id: place.id,
       releaseId: unchanged ? previous.row.releaseId : input.message.releaseId,
-      addressSnapshotId: row.address2dId
-        ? referenceScope(row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
-        : null,
+      addressSnapshotId,
+      addressDependencyHash: row.addressDependencyHash ?? null,
       address2dId: row.address2dId,
       address3dId: row.address3dId,
       address3dUnitId: row.address3dUnitId ?? null,
@@ -209,7 +280,7 @@ export async function buildPlaceSql(
       phones: place.phones,
       addresses: place.addresses,
       confidence: place.confidence,
-      sources: place.sources,
+      sources: unchanged ? (previous.row.sources ?? place.sources) : place.sources,
       firstSeenMonth,
       lastSeenMonth: unchanged ? previous.row.lastSeenMonth : place.lastSeenMonth,
       createdAt: now,
@@ -241,13 +312,14 @@ export async function buildPlaceSql(
       })
     }
     for (const [localeIndex, localised] of place.i18n.entries()) {
+      const previousLocale = previousLocales.get(localised.locale)
+      const searchDependencyText = reusePlaceLocaleDependencies(
+        row.searchDependencies?.[localised.locale],
+        previousLocale?.row.searchDependencyText,
+      )
       const i18nVersionHash =
         row.projection?.i18nHashes[localeIndex] ??
-        (await createHash({
-          placeVersionHash: row.versionHash,
-          locale: localised.locale,
-          localised,
-        }))
+        (await placeLocaleHash(localised, searchDependencyText))
       publicationCounts.localisedRows += 1
       currentInserts.add('placesI18n', {
         snapshotId: scopeId,
@@ -262,20 +334,49 @@ export async function buildPlaceSql(
         freeformAddress: localised.freeformAddress,
         accessHint: localised.accessHint ?? null,
         provenance: localised.provenance,
+        searchDependencyText,
         createdAt: now,
         updatedAt: now,
       })
-      changeInserts.add('snapshotVersionChanges', {
-        snapshotId: input.snapshots.snapshotId,
-        recordType: 'placeI18n',
-        recordId: place.id,
-        locale: localised.locale,
-        versionHash: i18nVersionHash,
-        operation: 'upsert',
-        sourceReleaseId: input.message.releaseId,
-        createdAt: now,
-        updatedAt: now,
-      })
+      if (previousLocale?.row.versionHash !== i18nVersionHash) {
+        if (previousLocale)
+          historyStatements(previousLocale.bindingName).push(
+            `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(place.id)} AND locale = ${lit(localised.locale)} AND versionHash = ${lit(previousLocale.row.versionHash)} AND isCurrent = 1;`,
+          )
+        historyStatements(input.activeHistoryBindingName).push(
+          placeHistoryInsertSql(
+            'placesI18n',
+            {
+              placeId: place.id,
+              ...localised,
+              accessHint: localised.accessHint ?? null,
+              searchDependencyText,
+              versionHash: i18nVersionHash,
+              sourceReleaseId: input.message.releaseId,
+              snapshotId: input.snapshots.snapshotId,
+              isCurrent: 1,
+              createdAt: now,
+              updatedAt: now,
+            },
+            now,
+          ),
+        )
+        changeInserts.add('snapshotVersionChanges', {
+          snapshotId: input.snapshots.snapshotId,
+          recordType: 'placeI18n',
+          recordId: place.id,
+          locale: localised.locale,
+          versionHash: i18nVersionHash,
+          operation: 'upsert',
+          sourceReleaseId: input.message.releaseId,
+          createdAt: now,
+          updatedAt: now,
+        })
+      }
+    }
+    for (const previousLocale of previousLocales.values()) {
+      if (place.i18n.some(row => row.locale === previousLocale.row.locale)) continue
+      retireLocale(previousLocale)
     }
     for (const divisionId of row.divisionIds) {
       publicationCounts.divisionLinks += 1
@@ -290,97 +391,55 @@ export async function buildPlaceSql(
     if (previous?.row.versionHash !== row.versionHash) {
       if (previous) {
         historyStatements(previous.bindingName).push(
-          `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(place.id)} AND isCurrent = 1;`,
-        )
-        historyStatements(previous.bindingName).push(
-          `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(place.id)} AND isCurrent = 1;`,
+          `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(place.id)} AND versionHash = ${lit(previous.row.versionHash)} AND isCurrent = 1;`,
         )
       }
       historyStatements(input.activeHistoryBindingName).push(
-        insertSql('places', {
-          id: place.id,
-          releaseId: input.message.releaseId,
-          addressSnapshotId: row.address2dId
-            ? (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
-            : null,
-          address2dId: row.address2dId,
-          address3dId: row.address3dId,
-          address3dUnitId: row.address3dUnitId ?? null,
-          address3dMembership: row.address3dMembership ?? null,
-          lng,
-          lat,
-          bbox: place.bbox,
-          operatingStatus: place.operatingStatus,
-          basicCategory: place.basicCategory,
-          taxonomyPrimary: place.taxonomyPrimary,
-          taxonomyHierarchy: place.taxonomyHierarchy,
-          taxonomyAlternates: place.taxonomyAlternates,
-          wikidataId: place.wikidataId,
-          websites: place.websites,
-          socials: place.socials,
-          emails: place.emails,
-          phones: place.phones,
-          addresses: place.addresses,
-          confidence: place.confidence,
-          sources: place.sources,
-          firstSeenMonth,
-          lastSeenMonth: place.lastSeenMonth,
-          versionHash: row.versionHash,
-          sourceReleaseId: input.message.releaseId,
-          snapshotId: input.snapshots.snapshotId,
-          isCurrent: 1,
-          createdAt: now,
-          updatedAt: now,
-        }),
-      )
-      for (const [localeIndex, localised] of place.i18n.entries()) {
-        const i18nVersionHash =
-          row.projection?.i18nHashes[localeIndex] ??
-          (await createHash({
-            placeVersionHash: row.versionHash,
-            locale: localised.locale,
-            localised,
-          }))
-        historyStatements(input.activeHistoryBindingName).push(
-          insertSql('placesI18n', {
-            placeId: place.id,
-            locale: localised.locale,
-            name: localised.name,
-            nameVariant: localised.nameVariant,
-            nameAlts: localised.nameAlts,
-            brandName: localised.brandName,
-            brandNameVariant: localised.brandNameVariant,
-            brandNameAlts: localised.brandNameAlts,
-            freeformAddress: localised.freeformAddress,
-            accessHint: localised.accessHint ?? null,
-            provenance: localised.provenance,
-            versionHash: i18nVersionHash,
+        placeHistoryInsertSql(
+          'places',
+          {
+            id: place.id,
+            releaseId: input.message.releaseId,
+            addressSnapshotId,
+            addressDependencyHash: row.addressDependencyHash ?? null,
+            address2dId: row.address2dId,
+            address3dId: row.address3dId,
+            address3dUnitId: row.address3dUnitId ?? null,
+            address3dMembership: row.address3dMembership ?? null,
+            lng,
+            lat,
+            bbox: place.bbox,
+            operatingStatus: place.operatingStatus,
+            basicCategory: place.basicCategory,
+            taxonomyPrimary: place.taxonomyPrimary,
+            taxonomyHierarchy: place.taxonomyHierarchy,
+            taxonomyAlternates: place.taxonomyAlternates,
+            wikidataId: place.wikidataId,
+            websites: place.websites,
+            socials: place.socials,
+            emails: place.emails,
+            phones: place.phones,
+            addresses: place.addresses,
+            confidence: place.confidence,
+            sources: place.sources,
+            firstSeenMonth,
+            lastSeenMonth: place.lastSeenMonth,
+            versionHash: row.versionHash,
             sourceReleaseId: input.message.releaseId,
             snapshotId: input.snapshots.snapshotId,
             isCurrent: 1,
             createdAt: now,
             updatedAt: now,
-          }),
-        )
-      }
+          },
+          now,
+        ),
+      )
       changeInserts.add('snapshotVersionChanges', {
         snapshotId: input.snapshots.snapshotId,
         recordType: 'place',
         recordId: place.id,
         locale: '',
         versionHash: row.versionHash,
-        operation: 'upsert',
-        sourceReleaseId: input.message.releaseId,
-        createdAt: now,
-        updatedAt: now,
-      })
-    } else {
-      changeInserts.add('snapshotVersionChanges', {
-        snapshotId: input.snapshots.snapshotId,
-        recordType: 'place',
-        recordId: place.id,
-        locale: '',
-        versionHash: previous.row.versionHash,
         operation: 'upsert',
         sourceReleaseId: input.message.releaseId,
         createdAt: now,
@@ -398,11 +457,9 @@ export async function buildPlaceSql(
         typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
       if (seen.has(previousId)) continue
       historyStatements(previous.bindingName).push(
-        `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(previousId)} AND isCurrent = 1;`,
+        `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(previousId)} AND versionHash = ${lit(previous.row.versionHash)} AND isCurrent = 1;`,
       )
-      historyStatements(previous.bindingName).push(
-        `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(previousId)} AND isCurrent = 1;`,
-      )
+      for (const locale of previous.locales ?? []) retireLocale(locale)
       changeInserts.add('snapshotVersionChanges', {
         snapshotId: input.snapshots.snapshotId,
         recordType: 'place',
@@ -422,15 +479,33 @@ export async function buildPlaceSql(
     // alone cannot distinguish retained rows from removed rows.
     const seenSourceIds =
       options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
+    for (const [sourceRecordId, previous] of input.sourceResolutions ?? []) {
+      if (seenSourceIds.has(sourceRecordId)) continue
+      const resolutions = { entities: {}, decisions: [{ type: 'source_omission' }] }
+      if (canonicalPlaceJson(previous.resolutions) === canonicalPlaceJson(resolutions))
+        continue
+      historyStatements(input.activeHistoryBindingName).push(
+        sourceResolutionSql({
+          snapshotId: input.snapshots.snapshotId,
+          sourceReleaseId: input.message.releaseId!,
+          sourceRecordId,
+          sourceVersionHash: previous.sourceVersionHash,
+          resolutions,
+        }),
+      )
+    }
     for (const predicate of missingPlaceMembershipPredicates([...seenSourceIds]))
       currentSql.push(
         `DELETE FROM places WHERE snapshotId = ${lit(scopeId)} AND ${predicate};`,
       )
-    for (const bindingName of input.sourceBindingNames)
-      for (const predicate of missingSourceMembershipPredicates([...seenSourceIds]))
-        sourceStatements(bindingName).push(
-          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE isCurrent = 1 AND ${predicate};`,
+    for (const sourceRecordId of input.sourceResolutions?.keys() ?? []) {
+      if (seenSourceIds.has(sourceRecordId)) continue
+      const source = input.sourceRows?.get(sourceRecordId)
+      if (source)
+        sourceStatements(source.bindingName).push(
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(sourceRecordId)} AND versionHash = ${lit(source.versionHash)} AND isCurrent = 1;`,
         )
+    }
   }
 
   return {

@@ -6,10 +6,12 @@ import {
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
 import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
-import type { HarbourReadableDb } from '@repo/core/db/types'
-import { currentSchema, sql as drizzleSql } from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
-import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
+import {
+  prepareNativeSqlDelivery,
+  runNativeSqlDelivery,
+} from '../local/nativeSqlDelivery.ts'
+import { captureResolvedPlaceDelivery } from './resolvedPlaceDelivery.ts'
 import {
   prepareReleaseSqlDelivery,
   executeReleaseSqlDelivery,
@@ -91,58 +93,52 @@ export async function importPlaceSqlBatches(
   },
 ) {
   if (delivery) {
-    const prepareInput = async () => {
-      const db = delivery.context.currentDb as unknown as HarbourReadableDb
-      const referenceScopes = new Map<string, string>()
-      for (const table of [
-        currentSchema.addressPublicationState,
-        currentSchema.divisionPublicationState,
-      ]) {
-        const rows = await db
-          .select({ scopeId: table.scopeId, snapshotId: table.snapshotId })
-          .from(table)
-          .where(
-            drizzleSql`${table.preparedAt} is not null and ${table.publicationToken} <> ''`,
-          )
-          .all()
-        for (const row of rows) referenceScopes.set(row.snapshotId, row.scopeId)
-      }
-      return {
-        ...input,
-        referenceScopes,
-        publicationPrevious: input.publicationPrevious,
-      }
+    const local = delivery.context.state.target === 'local'
+    const preparation = {
+      ...delivery,
+      phase: 'places-data',
+      inputs: {
+        ...delivery.inputs,
+        planner: 'resolved-places-v1',
+        independentBoundTargets: false,
+      },
     }
-    if (delivery.context.state.target === 'local') {
-      await deliverSqlPhase(
-        { ...delivery, phase: 'places-data', nativeLocal: true },
-        async () =>
-          importPlaceSqlBatches(
-            targets,
-            await prepareInput(),
-            path,
-            totalRows,
-            timestamp,
-            options,
-            onProgress,
-          ),
-      )
+    const generate: Parameters<typeof prepareNativeSqlDelivery>[0]['generate'] =
+      capture =>
+        captureResolvedPlaceDelivery({
+          context: delivery.context,
+          sqlInput: input,
+          path,
+          totalRows,
+          timestamp,
+          onProgress,
+          capture: (target, bytes, kind) =>
+            capture(
+              {
+                ...target,
+                databaseId: local ? target.bindingName : target.databaseId,
+              },
+              bytes,
+              kind,
+            ),
+        })
+    if (local) {
+      const files = delivery.context.state.files
+      if (!files) throw new Error('Places delivery requires local mirror files.')
+      await prepareNativeSqlDelivery({
+        ...preparation,
+        files,
+        ownershipDirectory: delivery.context.state.dbCacheDir,
+        generate,
+      })
+      await runNativeSqlDelivery(delivery.directory, { files })
       return
     }
     if (!options.isLocal) {
       await prepareReleaseSqlDelivery({
-        ...delivery,
-        phase: 'places-data',
-        generate: async captureSql =>
-          importPlaceSqlBatches(
-            targets,
-            await prepareInput(),
-            path,
-            totalRows,
-            timestamp,
-            { ...options, captureSql },
-            onProgress,
-          ),
+        ...preparation,
+        generate: capture =>
+          generate((target, bytes, kind) => capture(target, bytes, kind)),
       })
     }
     await executeReleaseSqlDelivery({

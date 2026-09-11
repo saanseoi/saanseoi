@@ -131,6 +131,15 @@ test('source deltas preserve unchanged assertions across shards, close changes a
       ['changed', { bindingName: 'old', versionHash: 'before' }],
       ['removed', { bindingName: 'old', versionHash: 'same' }],
     ])
+    data.sourceResolutions = new Map(
+      [...data.sourceRows].map(([id, row]) => [
+        id,
+        {
+          sourceVersionHash: row.versionHash,
+          resolutions: { entities: { place: [id] } },
+        },
+      ]),
+    )
     const sql = await buildPlaceSql(data, { timestamp: 'now' })
     expect(sql.sourceSqlByBinding.get('old')?.join('')).not.toContain('properties')
     let previousChanges: unknown[] = []
@@ -185,7 +194,7 @@ test('unchanged source SQL is compact and bounded', async () => {
   )
   const delta = await buildPlaceSql(data, { timestamp: 'now' })
   const statements = delta.sourceSqlByBinding.get('new') ?? []
-  expect(statements.filter(sql => sql.includes(' IN ('))).toHaveLength(3)
+  expect(statements).toEqual([])
   const bytes = (groups: Map<string, string[]>) =>
     Buffer.byteLength([...groups.values()].flat().join(''))
   expect(bytes(delta.sourceSqlByBinding)).toBeLessThan(
@@ -252,6 +261,20 @@ test('streamed source finalisation runs after all chunks even without removed hi
     )
     for (const row of data.places) seed(db, row.place.id)
     seed(db, 'source-only-removal')
+    data.sourceRows = new Map([
+      ...data.sourceRows,
+      ['source-only-removal', { bindingName: 'new', versionHash: 'same' }],
+    ])
+    data.sourceResolutions = new Map(
+      [...data.sourceRows].map(([id, row]) => [
+        id,
+        {
+          sourceVersionHash: row.versionHash,
+          resolutions: { entities: { place: [id] } },
+        },
+      ]),
+    )
+    seed(db, 'another-scope')
     const path = join(directory, 'places.jsonl')
     await Bun.write(path, data.places.map(row => JSON.stringify(row)).join('\n'))
     let batches = 0
@@ -271,7 +294,7 @@ test('streamed source finalisation runs after all chunks even without removed hi
       db
         .query('SELECT COUNT(*) AS count FROM overturePlaces WHERE isCurrent = 1')
         .get(),
-    ).toEqual({ count: 513 })
+    ).toEqual({ count: 514 })
     await Bun.write(path, '')
     data.message = { ...data.message, releaseId: 'empty-release' }
     for await (const sql of buildPlaceSqlBatches(data, path, 'later')) {
@@ -282,7 +305,7 @@ test('streamed source finalisation runs after all chunks even without removed hi
       db
         .query('SELECT COUNT(*) AS count FROM overturePlaces WHERE isCurrent = 1')
         .get(),
-    ).toEqual({ count: 0 })
+    ).toEqual({ count: 1 })
   } finally {
     db.close()
     await rm(directory, { recursive: true, force: true })

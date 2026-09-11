@@ -4,7 +4,7 @@ import { expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-test('Places search indexes only the selected unit of an Address3D collection', () => {
+test('Places search uses retained exact dependency text for fresh and incremental rebuilds', () => {
   const db = new Database(':memory:')
   try {
     db.exec(`
@@ -13,7 +13,7 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       CREATE TABLE placePublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT);
       INSERT INTO placePublicationState VALUES ('place-scope','p','current','token','prepared');
       CREATE TABLE places(snapshotId, id, addressSnapshotId, address2dId, address3dId, address3dUnitId, basicCategory, taxonomyPrimary, taxonomyHierarchy);
-      CREATE TABLE placesI18n(snapshotId, placeId, locale, name, nameAlts, brandName, brandNameAlts);
+      CREATE TABLE placesI18n(snapshotId, placeId, locale, name, nameAlts, brandName, brandNameAlts,searchDependencyText);
       CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE,status TEXT DEFAULT 'current',preparedAt TEXT DEFAULT 'prepared');
       INSERT INTO addressPublicationState(scopeId,snapshotId) VALUES ('address-scope', 'a');
       CREATE TABLE address2dI18n(snapshotId, addressId, locale, formattedAddress);
@@ -23,7 +23,7 @@ test('Places search indexes only the selected unit of an Address3D collection', 
       CREATE TABLE placesDivision(placeSnapshotId, placeId, divisionSnapshotId, divisionId);
       CREATE TABLE divisionsI18n(snapshotId, divisionId, locale, name);
       INSERT INTO places VALUES ('place-scope', 'shop', 'address-scope', 'building', 'collection', 'chosen', '', '', '');
-      INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'Shop', '', '', '');
+      INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'Shop', '', '', '', '{"addressSnapshotId":"a","addressText":"Main Street Unit 12 Floor 3","divisionText":"","streetText":"Main Street"}');
       INSERT INTO address2dI18n VALUES ('address-scope', 'building', 'en', 'Main Street');
     `)
     db.query('INSERT INTO address3dI18n VALUES (?, ?, ?, ?)').run(
@@ -82,7 +82,9 @@ test('Places search indexes only the selected unit of an Address3D collection', 
     expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street Unit 12 Floor 3',
     })
-    db.exec('UPDATE places SET address3dUnitId = NULL')
+    db.exec(
+      "UPDATE placesI18n SET searchDependencyText = json_set(searchDependencyText, '$.addressText', 'Main Street')",
+    )
     db.exec(sql)
     expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street',
@@ -96,6 +98,9 @@ test('Places search indexes only the selected unit of an Address3D collection', 
           floorExpression: '',
         },
       }),
+    )
+    db.exec(
+      "UPDATE placesI18n SET searchDependencyText = json_set(searchDependencyText, '$.addressText', 'Main Street Special suite')",
     )
     db.exec(sql)
     expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({

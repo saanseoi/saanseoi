@@ -12,6 +12,7 @@ import { reuseEnrichedPlaces } from './enrichedPlaceCache.ts'
 import { deliveryFileSha256, sha256 } from '../local/sqlDeliveryFiles.ts'
 import type { PlaceAddress3dReadObserver } from './placeAddress3d.ts'
 import { createPlaceAddress3dMatcher } from './placeAddress3d'
+import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
 import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -27,7 +28,6 @@ import {
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
 import {
-  hashNormalisedPlace,
   hashPlaceMaterialisation,
   assertPlaceAddressCardinality,
   getPlaceAddressCountry,
@@ -141,6 +141,7 @@ export async function resolvePlaceSnapshots(
   plan: PlaceUploadPlan,
   datasetId: string,
   releaseId: string,
+  dependencies?: { prepare(snapshotId: string): Promise<HarbourReadableDb> },
 ) {
   const place = await ensureDraftSnapshotForRelease(metaDb, 'place', {
     cohortKey: plan.cohortKey,
@@ -189,6 +190,7 @@ export async function resolvePlaceSnapshots(
         { variant: 'default' },
       )))
   if (!address) throw new Error('Places require a published address snapshot.')
+  if (dependencies) currentDb = await dependencies.prepare(address.id)
   const scope = await currentDb
     .select({ scopeId: currentSchema.addressPublicationState.scopeId })
     .from(currentSchema.addressPublicationState)
@@ -448,6 +450,7 @@ export async function stageEnrichedPlaces(
   const supplementaryById = new Map(
     supplementary.addresses.map(row => [row.current.id, row.current]),
   )
+  const resolveDependencies = createPlaceSearchDependencies(currentDb, supplementary)
   const path = resolve(releaseRoot, ENRICHED_PLACES_FILE)
   const generate = async (
     observe?: PlaceAddress3dReadObserver,
@@ -527,10 +530,14 @@ export async function stageEnrichedPlaces(
                       observer,
                     )
                   : null
-              const contentHash = await hashNormalisedPlace(place)
-              const materialisationContentHash = geometryOverridden
-                ? await createHash({ contentHash, effectiveLng, effectiveLat })
-                : contentHash
+              const dependencies = await resolveDependencies({
+                addressSnapshotId,
+                addressId,
+                divisionSnapshotId: snapshots.divisionSnapshotId,
+                divisionIds: referencedDivisionIds,
+                locales: place.i18n.map(value => value.locale),
+                ...unitReference,
+              })
               const result = {
                 place,
                 ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
@@ -540,12 +547,15 @@ export async function stageEnrichedPlaces(
                 address3dUnitId: unitReference?.address3dUnitId ?? null,
                 address3dMembership: unitReference?.address3dMembership ?? null,
                 divisionIds: [...new Set(referencedDivisionIds)],
+                ...dependencies,
                 versionHash: await hashPlaceMaterialisation(place, {
                   addressSnapshotId,
                   divisionSnapshotId: snapshots.divisionSnapshotId,
                   addressId,
                   divisionIds: referencedDivisionIds,
-                  contentHash: materialisationContentHash,
+                  addressDependencyHash: dependencies.addressDependencyHash,
+                  effectiveLng,
+                  effectiveLat,
                   ...unitReference,
                 }),
                 sourcePayloadHash: await createHash(place.raw),
@@ -576,7 +586,7 @@ export async function stageEnrichedPlaces(
     db: currentDb,
     identity: sha256(
       JSON.stringify({
-        contract: ['places-enrichment-v2', recordCache?.contract],
+        contract: ['places-enrichment-v3-pinned-dependencies', recordCache?.contract],
         places: await deliveryFileSha256(sourcePath),
         resolutions: await deliveryFileSha256(supplementary.resolutionPath),
         snapshots,

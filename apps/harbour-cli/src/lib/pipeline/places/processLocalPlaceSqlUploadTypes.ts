@@ -33,6 +33,11 @@ export type EnrichedPlace = {
   effectiveLng?: number
   effectiveLat?: number
   addressSnapshotId?: string | null
+  addressDependencyHash?: string | null
+  searchDependencies?: Record<
+    string,
+    NonNullable<typeof historySchema.placesI18n.$inferSelect.searchDependencyText>
+  >
   address2dId: string | null
   address3dId: string | null
   address3dUnitId?: string | null
@@ -54,11 +59,18 @@ export type PlaceHistoryRow = Pick<
   | 'lastSeenMonth'
   | 'releaseId'
   | 'versionHash'
->
+> &
+  Partial<typeof historySchema.places.$inferSelect>
+
+export type PlaceLocaleHistoryState = {
+  bindingName: string
+  row: typeof historySchema.placesI18n.$inferSelect
+}
 
 export type PlaceHistoryState = {
   bindingName: string
   row: PlaceHistoryRow
+  locales?: PlaceLocaleHistoryState[]
 }
 
 export type BuildPlaceSqlInput = {
@@ -67,6 +79,13 @@ export type BuildPlaceSqlInput = {
   referenceScopes?: ReadonlyMap<string, string>
   /** Current publisher hashes from the prepared source mirrors, indexed by ID. */
   sourceRows?: ReadonlyMap<string, { bindingName: string; versionHash: string }>
+  sourceResolutions?: ReadonlyMap<
+    string,
+    Pick<
+      import('@repo/core/pipeline/db/sourceResolutionReplay').ResolvedSnapshotSourceResolution,
+      'sourceVersionHash' | 'resolutions'
+    >
+  >
   activeHistoryBindingName: string
   activeSourceBindingName: string
   sourceBindingNames: string[]
