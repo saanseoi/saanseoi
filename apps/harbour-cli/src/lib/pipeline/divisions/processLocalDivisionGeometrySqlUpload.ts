@@ -191,6 +191,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         shardYear,
         {
           cacheTableProfile,
+          includeAllHistoryShardYears: true,
           includePreviousShardYears: true,
           refreshRemoteTables: false,
           resumeSqlDeliveryReleaseId: releaseId,
@@ -209,6 +210,8 @@ export async function processLocalDivisionGeometrySqlUpload(
         },
         cacheTableProfile,
         remoteCacheScopeKey,
+        // Reference selection can use a later Overture cohort than this source.
+        includeAllHistoryShardYears: true,
         includePreviousShardYears: true,
         refreshRemoteTables: false,
         resumeSqlDeliveryReleaseId: releaseId,
@@ -702,6 +705,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         variant: geometryVariant(previewPlan),
         releaseId,
         releaseCode,
+        sourceVersion: previewPlan.sourceVersion,
         snapshotId: snapshot.id,
         snapshotLineageId: snapshot.snapshotLineageId,
         parentSnapshotId: snapshot.parentSnapshotId,
@@ -804,6 +808,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         shardYear,
         {
           cacheTableProfile,
+          includeAllHistoryShardYears: true,
           includePreviousShardYears: true,
           requireExistingRemoteCache: true,
           resumeSqlDeliveryReleaseId: releaseId,

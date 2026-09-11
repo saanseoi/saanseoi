@@ -364,6 +364,8 @@ export async function processLocalDivisionSqlUpload(
         context: dbContext,
         releaseId,
         phase: 'division-data',
+        resolvedFamily: 'division',
+        publicationTables: ['divisionPublicationState'],
         nativeLocal: true,
         inputs: {
           preparedSha256: await deliveryFileSha256(preparedUpload.filePath),

@@ -15,6 +15,7 @@ const version = {
   variant: 'hkgov-censtatd',
   releaseId: 'parent-release',
   releaseCode: 'parent-release',
+  sourceVersion: '2021',
   snapshotId: 'parent',
   snapshotLineageId: 'lineage',
   parentSnapshotId: null,
@@ -92,6 +93,7 @@ test('geometry merge and canonical reuse reject unprepared snapshots before writ
       snapshotId: 'child',
       releaseId: 'child-release',
       releaseCode: 'child-release',
+      sourceVersion: '2022',
       parentSnapshotId: 'parent',
       merge: true,
     }

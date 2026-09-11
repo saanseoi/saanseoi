@@ -182,7 +182,6 @@ export async function hashPlaceMaterialisation(
     divisionSnapshotId: string
     addressId: string | null
     divisionIds: string[]
-    contentHash?: string
     addressDependencyHash?: string | null
     effectiveLng?: number
     effectiveLat?: number

@@ -203,7 +203,7 @@ export async function replayGeometryIntoRemote(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT "sourceRecordId", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(releaseCode)}`,
+                `SELECT "sourceRecordId", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
               ),
               ['sourceRecordId', 'versionHash'],
             )
@@ -220,7 +220,7 @@ export async function replayGeometryIntoRemote(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(releaseCode)}`,
+                `SELECT "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
               ),
               ['sourceRecordId', 'inputVersionHash', 'transform', 'versionHash'],
             )
@@ -259,6 +259,11 @@ export async function replayGeometryIntoRemote(
     await deliverSqlPhase(
       {
         context: deliveryContext,
+        resolvedFamily: 'geometry',
+        publicationTables: [
+          'divisionAreaPublicationState',
+          'divisionBoundaryPublicationState',
+        ],
         releaseId,
         phase: `division-geometry-${plan.resourceType.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
           plan.transform ?? 'exact',

@@ -455,7 +455,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 context.sourceDb as unknown as HarbourWritableDb,
                 nativeSourceTable,
                 [...changedNativeIds, ...missingNativeIds],
-                releaseCode,
+                previewPlan.sourceVersion,
                 now,
               )
             },
@@ -573,7 +573,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               insertSourceRows(
                 context.sourceDb as unknown as HarbourWritableDb,
                 releaseId,
-                releaseCode,
+                previewPlan.sourceVersion,
                 changedNativeRecords,
                 previewPlan.source,
                 now,
@@ -700,39 +700,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             changedRows: changedHistoryIds.length,
             deletedRows: missingHistoryIds.length,
           }
-          if (!target.remote) return counts
-          const prepareSqlManifest = () =>
-            runPlandProgressPhase(progress, 'Write', 'SQL import artefacts', () =>
-              writePlandSqlArtefacts(bucket, context, previewPlan, {
-                changedCurrentI18nKeys,
-                changedCurrentBaseIds,
-                changedHistoryIds,
-                changedNativeIds,
-                missingHistoryIds,
-                missingNativeIds,
-                releaseId,
-                releaseCode,
-                records,
-                snapshotId: snapshot.id,
-                publication,
-              }),
-            )
-          const importOptions = resolvePlandImportOptions(target, context)
-          const importTargets = resolvePlandImportTargets(
-            context,
-            previewPlan.sourceVersion,
-          )
-
-          await importPlandSqlArtefacts(
-            bucket,
-            await prepareSqlManifest(),
-            importTargets,
-            importOptions,
-            client,
-            releaseId,
-            releaseCode,
-            progress,
-          )
           return counts
         },
       )

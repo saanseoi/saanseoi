@@ -282,7 +282,7 @@ export async function insertHistoryI18nRows(
 export async function insertSourceRows(
   db: HarbourWritableDb,
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
   records: Array<
     PreparedDivision['cells'][number] | NonNullable<PreparedDivision['newTown']>
   >,
@@ -302,7 +302,7 @@ export async function insertSourceRows(
         sourceLocator: { layer: 'TPUSU' },
         versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
         releaseId,
-        validFromRelease: releaseCode,
+        validFromRelease: sourceVersion,
         validToRelease: null,
         isCurrent: true,
         createdAt: now,
@@ -319,7 +319,7 @@ export async function insertSourceRows(
             sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
             sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
           ],
-          set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
+          set: sourceVersionConflictUpdate(releaseId, sourceVersion, now),
         })
         .run()
       processedRows += chunk.length
@@ -339,7 +339,7 @@ export async function insertSourceRows(
       sourceLocator: null,
       versionHash: await createHash(nativeSourcePayloadHashInput(town)),
       releaseId,
-      validFromRelease: releaseCode,
+      validFromRelease: sourceVersion,
       validToRelease: null,
       isCurrent: true,
       createdAt: now,
@@ -356,7 +356,7 @@ export async function insertSourceRows(
           sourceSchema.sourceHkgovPlandNewTowns.sourceRecordId,
           sourceSchema.sourceHkgovPlandNewTowns.versionHash,
         ],
-        set: sourceVersionConflictUpdate(releaseId, releaseCode, now),
+        set: sourceVersionConflictUpdate(releaseId, sourceVersion, now),
       })
       .run()
     processedRows += chunk.length
@@ -366,13 +366,13 @@ export async function insertSourceRows(
 
 function sourceVersionConflictUpdate(
   releaseId: string,
-  releaseCode: string,
+  sourceVersion: string,
   now: string,
 ) {
   return {
     isCurrent: true,
     releaseId,
-    validFromRelease: releaseCode,
+    validFromRelease: sourceVersion,
     validToRelease: null,
     updatedAt: now,
   }
@@ -427,14 +427,14 @@ export async function closeNativeSourceRows(
     | typeof sourceSchema.sourceHkgovPlandPlanningCells
     | typeof sourceSchema.sourceHkgovPlandNewTowns,
   ids: string[],
-  releaseCode: string,
+  sourceVersion: string,
   now: string,
 ) {
   for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 4))) {
     if (chunk.length === 0) continue
     await db
       .update(table)
-      .set({ isCurrent: false, validToRelease: releaseCode, updatedAt: now })
+      .set({ isCurrent: false, validToRelease: sourceVersion, updatedAt: now })
       .where(and(eq(table.isCurrent, true), inArray(table.sourceRecordId, chunk)))
       .run()
   }

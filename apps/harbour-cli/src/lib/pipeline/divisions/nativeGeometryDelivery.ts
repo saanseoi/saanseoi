@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { join } from 'node:path'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { captureNativePlanningCopy } from '../local/nativePlanningCopy.ts'
+import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
+import { familyMutationTargets } from '../local/familyMutationPolicy.ts'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
@@ -35,6 +36,8 @@ export async function readNativeGeometryVersion(
     plan.context.releaseId !== releaseId ||
     !version ||
     version.releaseId !== releaseId ||
+    typeof version.sourceVersion !== 'string' ||
+    !version.sourceVersion ||
     typeof version.snapshotId !== 'string'
   )
     throw new Error('Invalid retained native geometry version.')
@@ -60,6 +63,10 @@ export async function writeGeometryRowsDurably(
         join(context.state.dbCacheDir, `${binding}.sqlite`),
       ]),
     )
+  const policies = familyMutationTargets(
+    { ...context, state: { ...context.state, files } },
+    'geometry',
+  )
   const targets = Object.fromEntries(
     [
       ['DB_CURRENT', currentSchema],
@@ -69,7 +76,15 @@ export async function writeGeometryRowsDurably(
       const name = binding as string
       const path = files[name]
       if (!path) throw new Error(`Missing native geometry database ${name}.`)
-      return [name, { path, schema: schema as Record<string, unknown> }]
+      return [
+        name,
+        {
+          ...policies[name]!,
+          path,
+          databaseId: name,
+          schema: schema as Record<string, unknown>,
+        },
+      ]
     }),
   )
   const hash = createHash('sha256')
@@ -97,19 +112,25 @@ export async function writeGeometryRowsDurably(
     files: Object.fromEntries(
       Object.entries(targets).map(([name, target]) => [name, target.path]),
     ),
-    generate: append =>
-      captureNativePlanningCopy({
+    generate: async append => {
+      const resolved = await captureResolvedSqlPlan({
+        publicationTables: [
+          type === 'divisionArea'
+            ? 'divisionAreaPublicationState'
+            : 'divisionBoundaryPublicationState',
+        ],
         targets,
         append,
-        onProgress: (completed, total, binding) =>
-          onProgress?.(`copy ${binding} for mutation plan`, completed, total),
         generate: async databases => {
           const result = await writeGeometryRows(
             {
               ...context,
-              currentDb: databases.DB_CURRENT as unknown as typeof context.currentDb,
-              historyDb: databases[history] as unknown as typeof context.historyDb,
-              sourceDb: databases[source] as unknown as typeof context.sourceDb,
+              currentDb: databases.DB_CURRENT!
+                .drizzle as unknown as typeof context.currentDb,
+              historyDb: databases[history]!
+                .drizzle as unknown as typeof context.historyDb,
+              sourceDb: databases[source]!
+                .drizzle as unknown as typeof context.sourceDb,
             },
             type,
             rows,
@@ -121,7 +142,9 @@ export async function writeGeometryRowsDurably(
             currentChanges: result.currentChanges,
           }
         },
-      }),
+      })
+      return { ...resolved.result, mutationSummary: resolved.mutationSummary }
+    },
   })
   // Validate continuation output before making any target mutation.
   const churn = decodeChurn(plan.outputs?.churn)
