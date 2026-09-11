@@ -4,7 +4,7 @@ import type {
   PlaceLocalisationStatistics,
   NormalisedPlace,
 } from '@repo/core/pipeline/services/places/place'
-import type { historySchema } from '@repo/db'
+import type { currentSchema, historySchema } from '@repo/db'
 
 export type PlaceUploadPlan = {
   datasetCode: string
@@ -43,6 +43,13 @@ export type EnrichedPlace = {
   address3dUnitId?: string | null
   address3dMembership?: 'established' | 'unresolved' | null
   divisionIds: string[]
+  divisionDefinitions?: Record<
+    string,
+    {
+      level: number | null
+      locales: { locale: string; name: string | null }[]
+    }
+  >
   versionHash: string
   sourcePayloadHash: string
 }
@@ -71,6 +78,7 @@ export type PlaceHistoryState = {
   bindingName: string
   row: PlaceHistoryRow
   locales?: PlaceLocaleHistoryState[]
+  divisionLinks?: (typeof currentSchema.placesDivision.$inferSelect)[]
 }
 
 export type BuildPlaceSqlInput = {

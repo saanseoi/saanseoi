@@ -73,9 +73,11 @@ export class PlaceDependencyView {
     historyTargets: readonly { bindingName: string; db: unknown }[]
   }) {
     const directory = await mkdtemp(join(tmpdir(), 'place-dependencies-'))
+    let sqlite: Database | undefined
     try {
+      sqlite = new Database(join(directory, 'dependencies.sqlite'))
       return new PlaceDependencyView(
-        new Database(join(directory, 'dependencies.sqlite')),
+        sqlite,
         directory,
         input.metaDb,
         new Map(
@@ -89,6 +91,7 @@ export class PlaceDependencyView {
         ),
       )
     } catch (error) {
+      sqlite?.close()
       await rm(directory, { recursive: true, force: true })
       throw error
     }
@@ -174,12 +177,14 @@ export class PlaceDependencyView {
       for (const versions of groups.values()) {
         for (let start = 0; start < versions.length; start += 100) {
           const selected = versions.slice(start, start + 100)
+          const first = selected[0]
+          if (!first) continue
           const expected = new Set(
             selected.map(version =>
               JSON.stringify([version.recordId, version.locale, version.versionHash]),
             ),
           )
-          const rows = await selected[0]!.shard.db
+          const rows = await first.shard.db
             .select()
             .from(table)
             .where(

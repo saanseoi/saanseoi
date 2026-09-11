@@ -43,7 +43,7 @@ import { deliverProcessingResult } from '../../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { createHash } from '@repo/core/pipeline/utils'
-import { currentSchema, sourceSchema, toIsoTimestamp } from '@repo/db'
+import { sourceSchema, toIsoTimestamp } from '@repo/db'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
@@ -80,9 +80,7 @@ import {
   PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
 } from './processLocalHkgovPlandDivisionSqlUploadConfig.ts'
 import {
-  importPlandSqlArtefacts,
   resolvePlandImportOptions,
-  resolvePlandImportTargets,
   runPlandProgressPhase,
 } from './processLocalHkgovPlandDivisionSqlUploadImport.ts'
 import {
@@ -93,7 +91,6 @@ import {
   planningDivisionRule,
   wasPlanningGeometryRepaired,
 } from './processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
-import { writePlandSqlArtefacts } from './processLocalHkgovPlandDivisionSqlUploadSql.ts'
 
 export async function processLocalHkgovPlandDivisionSqlUpload(
   target: UploadTarget,
@@ -319,35 +316,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             publication.table,
             publication.scopeId,
           )
-          const previousI18n = await publicationDb
-            .select()
-            .from(currentSchema.divisionsI18n)
-            .where(eq(currentSchema.divisionsI18n.snapshotId, publication.scopeId))
-            .all()
-          const previousI18nByKey = new Map(
-            previousI18n.map(row => [
-              JSON.stringify([row.divisionId, row.locale]),
-              row,
-            ]),
-          )
-          const changedCurrentI18nKeys = records.flatMap(record =>
-            record.i18n
-              .filter(row => {
-                const previous = previousI18nByKey.get(
-                  JSON.stringify([record.base.id, row.locale]),
-                )
-                return (
-                  !previous ||
-                  previous.name !== row.name ||
-                  JSON.stringify(previous.nameVariant) !== JSON.stringify([row.name]) ||
-                  previous.nameAlts !== null ||
-                  previous.nameRules !== null ||
-                  previous.nameProvenance !== null ||
-                  previous.isLocaleInferred
-                )
-              })
-              .map(row => JSON.stringify([record.base.id, row.locale])),
-          )
           await beginSnapshotPublication(publicationDb, publication)
           context = {
             ...context,
@@ -358,7 +326,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               ? sourceSchema.sourceHkgovPlandNewTowns
               : sourceSchema.sourceHkgovPlandPlanningCells
           const {
-            changedCurrentBaseIds,
             changedHistoryIds,
             changedNativeIds,
             currentHistoryRows,
@@ -382,13 +349,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 context.historyDb as unknown as HarbourReadableDb,
                 previewPlan.source,
               )
-              const reusedBaseIds = await reusePlanningCanonicalProvenance(
-                records,
-                currentHistoryRows,
-              )
-              const changedCurrentBaseIds = records
-                .filter(record => !reusedBaseIds.has(record.base.id))
-                .map(record => record.base.id)
+              await reusePlanningCanonicalProvenance(records, currentHistoryRows)
               const historyHashById = new Map(
                 currentHistoryRows.map(row => [row.id, row.versionHash]),
               )
@@ -428,7 +389,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 .filter(id => !incomingNativeIds.has(id))
 
               return {
-                changedCurrentBaseIds,
                 changedHistoryIds,
                 changedNativeIds,
                 currentHistoryRows,

@@ -89,6 +89,12 @@ export function familyMutationTargets(
           path,
           schema,
           retainSql: binding === 'DB_META',
+          excludedTables:
+            binding === 'DB_META'
+              ? Object.values(metaSchema)
+                  .map(value => getTableName(value as never) as unknown)
+                  .filter((name): name is string => typeof name === 'string')
+              : [],
           databaseId: context.state.bindings?.[binding]?.databaseId ?? binding,
           tables: names.map(name => {
             const table = Object.values(schema).find(

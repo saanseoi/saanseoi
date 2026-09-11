@@ -24,7 +24,7 @@ import {
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
 } from './processLocalDivisionGeometrySqlUploadConfig.ts'
 
-export async function replayGeometryIntoRemote(
+export async function generateGeometryReplaySql(
   target: UploadTarget,
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   plan: GeometryUploadPlan,
@@ -32,10 +32,10 @@ export async function replayGeometryIntoRemote(
   snapshotId: string,
   skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
-  preparedSha256: string,
-  releaseCode: string,
+  _preparedSha256: string,
+  _releaseCode: string,
   currentChanges?: Awaited<ReturnType<typeof writeGeometryRows>>['currentChanges'],
-  deliveryContext = context,
+  _deliveryContext = context,
 ) {
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
@@ -255,6 +255,26 @@ export async function replayGeometryIntoRemote(
     }
   }
 
+  await generate()
+}
+
+/** Seal the generated replay against the acknowledged remote mirror. */
+export async function replayGeometryIntoRemote(
+  ...args: Parameters<typeof generateGeometryReplaySql>
+) {
+  const [
+    _target,
+    context,
+    plan,
+    releaseId,
+    snapshotId,
+    skipCanonicalMaterialisation,
+    _progress,
+    preparedSha256,
+    releaseCode,
+    _changes,
+    deliveryContext = context,
+  ] = args
   try {
     await deliverSqlPhase(
       {
@@ -277,7 +297,7 @@ export async function replayGeometryIntoRemote(
           releaseCode,
         },
       },
-      generate,
+      () => generateGeometryReplaySql(...args),
     )
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)

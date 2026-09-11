@@ -335,13 +335,17 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO placesDivision
-        (placeSnapshotId, placeId, divisionSnapshotId, divisionId)
-        VALUES (?, ?, ?, ?)`,
+        (placeSnapshotId, placeId, divisionSnapshotId, divisionId, definition)
+        VALUES (?, ?, ?, ?, ?)`,
       [
         `scope:${PLACE_SNAPSHOT}`,
         place.id,
-        `scope:${DIVISION_SNAPSHOT}`,
+        DIVISION_SNAPSHOT,
         'division-central',
+        JSON.stringify({
+          level: 2,
+          locales: [{ locale: 'en', name: 'Central and Western' }],
+        }),
       ],
     )
   }

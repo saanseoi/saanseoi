@@ -324,8 +324,7 @@ describe('Places SQL materialisation', () => {
       expect(
         db.query('SELECT addressSnapshotId, address2dId FROM places').get(),
       ).toEqual({
-        addressSnapshotId:
-          db === sqlite ? 'supplementary-lineage' : 'supplementary-snapshot',
+        addressSnapshotId: 'supplementary-snapshot',
         address2dId: 'supplementary-address',
       })
     }

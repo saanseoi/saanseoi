@@ -4,7 +4,10 @@ import { join } from 'node:path'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/searchIndex'
-import { getPlaceCurrent } from '../../../../../atlas-api/src/db/places.ts'
+import {
+  getPlaceCurrent,
+  listPlaceDivisions,
+} from '../../../../../atlas-api/src/db/places.ts'
 import { PlaceDependencyView } from './placeDependencyView.ts'
 import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
 import { readFileSync } from 'node:fs'
@@ -272,6 +275,21 @@ test('exact historical Place dependencies replay independent locale shards and s
       name: 'Shop',
       searchDependencyText: dependencies.searchDependencies.en,
     })
+    insert(current, 'placesDivision', {
+      placeSnapshotId: 'place-scope',
+      placeId: 'shop',
+      divisionSnapshotId: 'd',
+      divisionId: 'country',
+      definition: dependencies.divisionDefinitions.country,
+    })
+    expect(
+      await listPlaceDivisions(createLocalHarbourDb(current) as never, {
+        snapshotId: 'p',
+        placeId: 'shop',
+      }),
+    ).toEqual([
+      { divisionId: 'country', level: null, locale: 'en', name: 'Historic country' },
+    ])
     insert(current, 'placeSearchScopes', { scopeId: 'search', snapshotId: 'p' })
     const rebuild = readFileSync(
       join(

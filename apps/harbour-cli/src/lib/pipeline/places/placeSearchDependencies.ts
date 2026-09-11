@@ -14,6 +14,7 @@ type AddressLocale = Pick<
 >
 type Collection = typeof currentSchema.address3d.$inferSelect
 type CollectionLocale = typeof currentSchema.address3dI18n.$inferSelect
+type DivisionDefinition = typeof currentSchema.placesDivision.$inferSelect.definition
 
 /** Resolve once locally; both fresh and incremental FTS consume these retained texts. */
 export function createPlaceSearchDependencies(
@@ -24,6 +25,7 @@ export function createPlaceSearchDependencies(
     supplementary?.addresses.map(row => [row.current.id, row]),
   )
   const cache = new Map<string, Promise<Awaited<ReturnType<typeof readAddress>>>>()
+  const divisionCache = new Map<string, Promise<DivisionDefinition>>()
   const readAddress = async (
     snapshotId: string,
     addressId: string,
@@ -124,6 +126,7 @@ export function createPlaceSearchDependencies(
   }): Promise<{
     addressDependencyHash: string | null
     searchDependencies: Record<string, SearchText>
+    divisionDefinitions: Record<string, DivisionDefinition>
   }> => {
     const key = JSON.stringify([
       input.addressSnapshotId,
@@ -140,7 +143,8 @@ export function createPlaceSearchDependencies(
           input.address3dId,
         )
         cache.set(key, promise)
-        if (cache.size > 128) cache.delete(cache.keys().next().value!)
+        const oldest = cache.keys().next().value
+        if (cache.size > 128 && oldest !== undefined) cache.delete(oldest)
       }
       address = await promise
     }
@@ -206,6 +210,55 @@ export function createPlaceSearchDependencies(
       throw new Error(
         `Missing exact Place Division dependency ${input.divisionSnapshotId}.`,
       )
+    const divisionDefinitions: Record<string, DivisionDefinition> = {}
+    for (const divisionId of [...new Set(input.divisionIds)].sort()) {
+      const key = JSON.stringify([input.divisionSnapshotId, divisionId])
+      let pending = divisionCache.get(key)
+      if (!pending) {
+        if (!scope) throw new Error('Missing prepared Division dependency.')
+        pending = Promise.all([
+          db
+            .select({ level: currentSchema.divisions.level })
+            .from(currentSchema.divisions)
+            .where(
+              and(
+                eq(currentSchema.divisions.snapshotId, scope.id),
+                eq(currentSchema.divisions.id, divisionId),
+              ),
+            )
+            .get(),
+          db
+            .select({
+              locale: currentSchema.divisionsI18n.locale,
+              name: currentSchema.divisionsI18n.name,
+            })
+            .from(currentSchema.divisionsI18n)
+            .where(
+              and(
+                eq(currentSchema.divisionsI18n.snapshotId, scope.id),
+                eq(currentSchema.divisionsI18n.divisionId, divisionId),
+              ),
+            )
+            .all(),
+        ]).then(([base, values]) => {
+          if (!base)
+            throw new Error(
+              `Missing exact Place Division ${input.divisionSnapshotId}/${divisionId}.`,
+            )
+          return {
+            level: base.level as number | null,
+            locales: (values as { locale: string; name: string | null }[]).sort(
+              (a, b) => a.locale.localeCompare(b.locale),
+            ),
+          }
+        })
+        divisionCache.set(key, pending)
+        const oldest = divisionCache.keys().next().value
+        if (divisionCache.size > 512 && oldest !== undefined)
+          divisionCache.delete(oldest)
+      }
+      divisionDefinitions[divisionId] = await pending
+    }
     const searchDependencies: Record<string, SearchText> = {}
     for (const locale of input.locales) {
       const translated = address?.locales.find(
@@ -219,19 +272,9 @@ export function createPlaceSearchDependencies(
         (locale.toLowerCase() === 'zh-hant'
           ? `${unit?.floorExpression ?? ''}${unit?.unitExpression ?? ''}`
           : `${unit?.unitExpression ?? ''} ${unit?.floorExpression ?? ''}`)
-      const names = scope
-        ? await db
-            .select({ name: currentSchema.divisionsI18n.name })
-            .from(currentSchema.divisionsI18n)
-            .where(
-              and(
-                eq(currentSchema.divisionsI18n.snapshotId, scope.id),
-                sql`lower(${currentSchema.divisionsI18n.locale}) = ${locale.toLowerCase()}`,
-                sql`${currentSchema.divisionsI18n.divisionId} in (select value from json_each(${JSON.stringify(input.divisionIds)}))`,
-              ),
-            )
-            .all()
-        : []
+      const names = Object.values(divisionDefinitions).flatMap(value =>
+        value.locales.filter(row => row.locale.toLowerCase() === locale.toLowerCase()),
+      )
       searchDependencies[locale] = {
         addressSnapshotId: input.addressId ? input.addressSnapshotId : null,
         addressText: `${translated?.formattedAddress ?? ''} ${unitText}`.trim(),
@@ -243,6 +286,6 @@ export function createPlaceSearchDependencies(
         streetText: translated?.streetName ?? '',
       }
     }
-    return { addressDependencyHash, searchDependencies }
+    return { addressDependencyHash, searchDependencies, divisionDefinitions }
   }
 }

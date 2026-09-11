@@ -20,6 +20,11 @@ type Receipt = {
   status: string
   updatedAt: string
 }
+
+function required<T>(value: T | undefined, name: string): T {
+  if (value === undefined) throw new Error(`Missing required SQL plan value: ${name}`)
+  return value
+}
 export type ResolvedSqlTarget = {
   path: string
   databaseId?: string
@@ -84,8 +89,8 @@ export async function captureResolvedSqlPlan<T>(input: {
             ...value,
             drizzle: drizzle({
               client: value.db,
-              schema: input.targets[binding]!.schema,
-              ...(input.targets[binding]!.retainSql
+              schema: required(input.targets[binding], binding).schema,
+              ...(required(input.targets[binding], binding).retainSql
                 ? {
                     logger: {
                       logQuery(query: string, params: unknown[]) {
@@ -105,7 +110,7 @@ export async function captureResolvedSqlPlan<T>(input: {
                   executeNativeSqlStatements(value.db, new TextDecoder().decode(bytes)),
                 )
                 .immediate()
-              if (input.targets[binding]!.retainSql)
+              if (required(input.targets[binding], binding).retainSql)
                 retainedSql.push({ binding, sql: new TextDecoder().decode(bytes) })
             },
           },
@@ -118,11 +123,13 @@ export async function captureResolvedSqlPlan<T>(input: {
         before.set(table, current.query<Receipt, []>(`SELECT * FROM "${table}"`).all())
       }
       const value = await input.generate(candidates)
-      const ownedScopes: string[] = []
+      const ownedScopes = new Map<PublicationTable, string[]>()
       let capture = input.append
       for (const table of input.publicationTables ?? []) {
-        const previousRows = before.get(table)!
-        const rows = current!.query<Receipt, []>(`SELECT * FROM "${table}"`).all()
+        const previousRows = required(before.get(table), table)
+        const rows = required(current, 'DB_CURRENT')
+          .query<Receipt, []>(`SELECT * FROM "${table}"`)
+          .all()
         if (
           previousRows.some(
             previous => !rows.some(row => row.scopeId === previous.scopeId),
@@ -133,7 +140,7 @@ export async function captureResolvedSqlPlan<T>(input: {
           const previous =
             previousRows.find(previous => previous.scopeId === row.scopeId) ?? null
           if (JSON.stringify(previous) === JSON.stringify(row)) continue
-          ownedScopes.push(row.scopeId)
+          ownedScopes.set(table, [...(ownedScopes.get(table) ?? []), row.scopeId])
           if (row.status !== 'publishing' || !row.preparedAt || !row.publicationToken)
             throw new Error(
               'Family preparation must finish its publication before emission.',
@@ -147,17 +154,18 @@ export async function captureResolvedSqlPlan<T>(input: {
             previous,
           }
           const counts =
-            input.targets
-              .DB_CURRENT!.tables.flatMap(policy => {
-                const columns = current!
+            input.targets.DB_CURRENT?.tables
+              .flatMap(policy => {
+                const columns = required(current, 'DB_CURRENT')
                   .query<{ name: string }, []>(`PRAGMA table_info("${policy.name}")`)
                   .all()
                 if (!columns.some(column => column.name === 'snapshotId')) return []
-                const count = current!
-                  .query<{ n: number }, [string]>(
-                    `SELECT count(*) AS n FROM "${policy.name}" WHERE snapshotId=?`,
-                  )
-                  .get(row.scopeId)!.n
+                const count =
+                  required(current, 'DB_CURRENT')
+                    .query<{ n: number }, [string]>(
+                      `SELECT count(*) AS n FROM "${policy.name}" WHERE snapshotId=?`,
+                    )
+                    .get(row.scopeId)?.n ?? 0
                 return [buildPublicationRowCountSql(policy.name, row.scopeId, count)]
               })
               .join(' AND ') || '1'
@@ -167,7 +175,7 @@ export async function captureResolvedSqlPlan<T>(input: {
             validation: () => counts,
             target: {
               bindingName: 'DB_CURRENT',
-              databaseId: input.targets.DB_CURRENT!.databaseId ?? 'DB_CURRENT',
+              databaseId: input.targets.DB_CURRENT?.databaseId ?? 'DB_CURRENT',
             },
             capture,
           })
@@ -176,14 +184,24 @@ export async function captureResolvedSqlPlan<T>(input: {
         }
       }
       for (const policy of input.targets.DB_CURRENT?.tables ?? []) {
-        const columns = current!
+        const columns = required(current, 'DB_CURRENT')
           .query<{ name: string }, []>(`PRAGMA table_info("${policy.name}")`)
           .all()
         const column = ['snapshotId', 'placeSnapshotId', 'streetSnapshotId'].find(
           name => columns.some(column => column.name === name),
         )
+        const owner: PublicationTable =
+          policy.name === 'divisionAreas'
+            ? 'divisionAreaPublicationState'
+            : policy.name === 'divisionBoundaries'
+              ? 'divisionBoundaryPublicationState'
+              : policy.name.startsWith('places')
+                ? 'placePublicationState'
+                : policy.name.startsWith('street')
+                  ? 'streetPublicationState'
+                  : 'divisionPublicationState'
         if (column && input.publicationTables?.length)
-          policy.rowScope = { column, values: ownedScopes }
+          policy.rowScope = { column, values: ownedScopes.get(owner) ?? [] }
       }
       return value
     },
@@ -191,7 +209,7 @@ export async function captureResolvedSqlPlan<T>(input: {
   // Finish outer wrappers first while their inner ownership guards remain active.
   for (const publication of publications.toReversed()) await publication.complete()
   for (const retained of retainedSql) {
-    const target = input.targets[retained.binding]!
+    const target = required(input.targets[retained.binding], retained.binding)
     const statements = splitSqlStatements(retained.sql).map(sql => ({
       sql,
       params: [],

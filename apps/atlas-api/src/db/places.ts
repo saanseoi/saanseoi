@@ -12,8 +12,6 @@ import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 
 const {
-  divisions,
-  divisionsI18n,
   places,
   placesCells,
   placesDivision,
@@ -176,29 +174,12 @@ export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
 }
 
 export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
-  return db
+  const rows = await db
     .select({
-      divisionId: divisions.id,
-      level: divisions.level,
-      locale: divisionsI18n.locale,
-      name: divisionsI18n.name,
+      divisionId: placesDivision.divisionId,
+      definition: placesDivision.definition,
     })
     .from(placesDivision)
-    .innerJoin(
-      divisions,
-      and(
-        eq(divisions.snapshotId, placesDivision.divisionSnapshotId),
-        eq(divisions.id, placesDivision.divisionId),
-      ),
-    )
-    .leftJoin(
-      divisionsI18n,
-      and(
-        eq(divisionsI18n.snapshotId, divisions.snapshotId),
-        eq(divisionsI18n.divisionId, divisions.id),
-        lookup.locale ? eq(divisionsI18n.locale, lookup.locale) : undefined,
-      ),
-    )
     .where(
       and(
         publicationScopeCondition('place', placesDivision.placeSnapshotId, [
@@ -207,8 +188,24 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
         eq(placesDivision.placeId, lookup.placeId),
       ),
     )
-    .orderBy(asc(divisions.level), asc(divisionsI18n.locale))
     .all()
+  return rows
+    .flatMap(({ divisionId, definition }) => {
+      const locales = definition.locales.filter(
+        value => !lookup.locale || value.locale === lookup.locale,
+      )
+      return (locales.length ? locales : [{ locale: null, name: null }]).map(value => ({
+        divisionId,
+        level: definition.level,
+        locale: value.locale,
+        name: value.name,
+      }))
+    })
+    .sort(
+      (a, b) =>
+        (a.level ?? -1) - (b.level ?? -1) ||
+        (a.locale ?? '').localeCompare(b.locale ?? ''),
+    )
 }
 
 export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) {
