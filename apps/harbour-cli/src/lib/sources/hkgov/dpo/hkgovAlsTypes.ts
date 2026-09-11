@@ -10,6 +10,7 @@ import type {
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { HkgovAls3dParentBlockEnrichment } from './hkgovAls3dBlockEnrichment.ts'
+import type { AlsMembershipReference } from './hkgovAlsMembership'
 
 export type PrepareHkgovAlsOptions = {
   dbPath?: string
@@ -21,6 +22,7 @@ export type PrepareHkgovAlsOptions = {
   identityHistory?: HkgovAlsIdentityHistory
   metaDb?: MetaDatabase
   outputFile: string
+  membershipFile?: string
   cohortKey: string
   divisionCohortKey?: string
   sourceDir: string
@@ -239,6 +241,7 @@ export type PreparedHkgovAlsRow = {
 }
 
 export type PreparedHkgovAlsResult = {
+  membership: AlsMembershipReference
   curationApplications: Array<{
     fixture:
       | 'hkgov-dpo-address-estate-component-gaps.json'

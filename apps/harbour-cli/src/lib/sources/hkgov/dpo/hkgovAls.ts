@@ -13,6 +13,12 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
+import {
+  buildAlsMembership,
+  writeAlsMembership,
+  type AlsMembershipCollection,
+  type AlsMembershipSource,
+} from './hkgovAlsMembership'
 import { applyReviewedStreetEstateComplexes } from './hkgovAlsStreetEstateComplexes'
 import { suppressReviewedYueWanPremise } from './hkgovAlsYueWanSuppression'
 import {
@@ -280,6 +286,10 @@ async function prepareHkgovAlsAddressParquetInternal(
   )
 
   await mkdir(dirname(outputFile), { recursive: true })
+  const inventoryMembership: {
+    collections: AlsMembershipCollection[]
+    sources: AlsMembershipSource[]
+  } = { collections: [], sources: [] }
   await prepareAls3dCollections({
     publisherSources: publisherSources.values(),
     sourceDir,
@@ -290,6 +300,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     writeOutput: options.writeOutput,
     skipCurationChecks: options.skipCurationChecks,
     onGuardPassed: auditGuards.passed,
+    membership: inventoryMembership,
   })
   assertUniquePreparedRowIds(rows)
   if (aliasOwnerIds.size) {
@@ -610,6 +621,25 @@ async function prepareHkgovAlsAddressParquetInternal(
     )
   }
 
+  // This runs after every alias, hierarchy, suppression and coordinate correction,
+  // using the same normaliser as ingestion. Identity drift records are earlier.
+  const membershipData = buildAlsMembership({
+    sourceVersion: options.sourceVersion,
+    rows,
+    publisherSources,
+    collections: inventoryMembership.collections,
+    sources3d: inventoryMembership.sources,
+    aliases: aliasOwnerIds,
+  })
+  if (options.writeOutput !== false) {
+    membershipData.preparedSha256 = await fileSha256(outputFile)
+    membershipData.address3dSha256 = await fileSha256(`${outputFile}.address3d.jsonl`)
+  }
+  const membership = await writeAlsMembership(
+    options.membershipFile ?? `${outputFile}.membership.json`,
+    membershipData,
+  )
+
   const processingActions = buildHkgovAlsProcessingActions({
     decisions: options.identityDecisions ?? emptyHkgovAlsIdentityDecisions(),
     identityEquivalentFeatureGroups,
@@ -636,6 +666,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     )
   }
   return {
+    membership,
     curationApplications: [
       ...estateComponents.applications,
       ...estateGaps.applications,

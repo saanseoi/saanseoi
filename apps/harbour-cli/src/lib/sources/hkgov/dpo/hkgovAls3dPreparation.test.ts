@@ -10,6 +10,7 @@ import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { createAlsAuditGuards } from './hkgovAlsAuditGuards'
 import { validateAddress3dPreparation } from '../../../pipeline/addresses/address3dImport'
+import type { AlsMembershipCollection, AlsMembershipSource } from './hkgovAlsMembership'
 
 test('2D-only deliveries seal every original occurrence without requiring 3D input', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'als-2d-ledger-'))
@@ -107,6 +108,35 @@ async function delivery(duplicate: boolean) {
   )
   return { dir, rows }
 }
+
+test('output-free preparation captures both publisher unit tokens and resolved inventory membership', async () => {
+  const { dir, rows } = await delivery(false)
+  try {
+    const membership: {
+      collections: AlsMembershipCollection[]
+      sources: AlsMembershipSource[]
+    } = { collections: [], sources: [] }
+    await prepareAls3dCollections({
+      sourceDir: dir,
+      sourceVersion: '2020-01-01.0',
+      outputFile: join(dir, 'prepared.parquet'),
+      rows,
+      writeOutput: false,
+      membership,
+    })
+    expect(membership.sources).toHaveLength(1)
+    expect(membership.sources[0]!.units).toEqual(['["1","101"]'])
+    expect(membership.collections).toHaveLength(1)
+    expect(membership.collections[0]).toMatchObject({
+      ownerId: 'parent-0',
+      sourceIds: [membership.sources[0]!.id],
+      units: [[expect.any(String), '1', '101', '1/F, FLAT 101', '1樓101室']],
+    })
+    expect((await readdir(dir)).filter(name => name.endsWith('.jsonl'))).toEqual([])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
 
 test('guard counters describe checks actually executed, including skip mode', async () => {
   const { dir, rows } = await delivery(false)
