@@ -14,7 +14,7 @@ const rows = sqliteTable('records', { id: text('id').primaryKey() })
 test('D1 batching guards fluent, awaited and grouped writes and atomically prepares completion', async () => {
   const client = new Database(':memory:')
   client.exec(
-    'CREATE TABLE records(id TEXT PRIMARY KEY); CREATE TABLE divisionPublicationState(scopeId TEXT, snapshotId TEXT PRIMARY KEY, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
+    'CREATE TABLE records(id TEXT PRIMARY KEY); CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
   )
   const db = drizzle(createLocalExecBinding(client) as never)
   const publication = {
@@ -60,7 +60,7 @@ test('D1 batching guards fluent, awaited and grouped writes and atomically prepa
 test('D1 guarded returning and batch results retain Drizzle shapes and bound placeholders', async () => {
   const client = new Database(':memory:')
   client.exec(
-    'CREATE TABLE records(id TEXT PRIMARY KEY); CREATE TABLE divisionPublicationState(scopeId TEXT, snapshotId TEXT PRIMARY KEY, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
+    'CREATE TABLE records(id TEXT PRIMARY KEY); CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
   )
   const db = drizzle(createLocalExecBinding(client) as never)
   const publication = {

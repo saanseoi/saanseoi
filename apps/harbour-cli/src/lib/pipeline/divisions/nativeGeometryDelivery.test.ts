@@ -180,8 +180,8 @@ test('native geometry resumes exact mutations including old history/source closu
     ).toEqual({ n: 0 })
     expect(
       current
-        .query("SELECT count(*) AS n FROM divisionAreas WHERE snapshotId='new'")
-        .get(),
+        .query('SELECT count(*) AS n FROM divisionAreas WHERE snapshotId=?')
+        .get(JSON.stringify(['geometry-lineage', '2026'])),
     ).toEqual({ n: 2 })
     const again = await writeGeometryRowsDurably(context, 'divisionArea', rows, version)
     expect(again).toEqual(result)

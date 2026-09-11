@@ -5,6 +5,8 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import type { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -32,6 +34,7 @@ export async function replayGeometryIntoRemote(
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
   preparedSha256: string,
   releaseCode: string,
+  currentChanges?: Awaited<ReturnType<typeof writeGeometryRows>>['currentChanges'],
 ) {
   const metaBindingName = 'DB_META'
   const currentBindingName = 'DB_CURRENT'
@@ -73,6 +76,7 @@ export async function replayGeometryIntoRemote(
           ...receipt,
           table: stateTable,
           timestamp: receipt.preparedAt,
+          previous: currentChanges?.publication?.previous,
         } as PublicationPreparation)
       : null
     const historyTable = currentTable
@@ -82,8 +86,11 @@ export async function replayGeometryIntoRemote(
       : iterateGeometryCacheRows(
           context.state.dbCacheDir,
           currentBindingName,
-          `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+          `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(publication?.scopeId)}`,
         )
+    if (!skipCanonicalMaterialisation && !currentChanges)
+      throw new Error('Missing planned geometry current changes.')
+    const changedIds = new Set(currentChanges?.changedCurrentIds ?? [])
     const historyRows = skipCanonicalMaterialisation
       ? []
       : iterateGeometryCacheRows(
@@ -129,24 +136,26 @@ export async function replayGeometryIntoRemote(
                   throw new Error('Missing geometry publication receipt.')
                 yield buildBeginPublicationSql(publication)
                 let count = 0
-                yield buildGuardedPublicationSql(publication, [
-                  geometrySqlLiteralDelete(currentTable, 'snapshotId', snapshotId),
-                ])
+                for (const id of currentChanges?.removedCurrentIds ?? [])
+                  yield buildGuardedPublicationSql(publication, [
+                    `DELETE FROM "${currentTable}" WHERE snapshotId = ${geometrySqlLiteral(publication.scopeId)} AND id = ${geometrySqlLiteral(id)};`,
+                  ])
                 for (const statement of geometryIterateUpsertSql(
                   currentTable,
                   (function* () {
                     for (const row of currentRows) {
                       count += 1
-                      yield row
+                      if (changedIds.has(String(row.id))) yield row
                     }
                   })(),
+                  { current: true },
                 ))
                   yield buildGuardedPublicationSql(publication, [statement])
                 yield buildCompletePublicationSql({
                   ...publication,
                   validationSql: buildPublicationRowCountSql(
                     currentTable,
-                    snapshotId,
+                    publication.scopeId,
                     count,
                   ),
                 })
@@ -342,8 +351,9 @@ function* iterateGeometryCacheRows(
 export function geometryBuildUpsertSql(
   tableName: string,
   rows: Array<Record<string, unknown>>,
+  options: { current?: boolean } = {},
 ) {
-  return [...geometryIterateUpsertSql(tableName, rows)].join('\n')
+  return [...geometryIterateUpsertSql(tableName, rows, options)].join('\n')
 }
 
 /** Small version-qualified updates: never replace historical geometry or newer versions. */
@@ -375,6 +385,7 @@ function* geometryReplayStatements(
 export function* geometryIterateUpsertSql(
   tableName: string,
   rows: Iterable<Record<string, unknown>>,
+  options: { current?: boolean } = {},
 ) {
   let columns: string[] | undefined
   let prefix = ''
@@ -387,7 +398,10 @@ export function* geometryIterateUpsertSql(
     if (!columns) {
       columns = Object.keys(row)
       prefix = `INSERT INTO "${tableName}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES `
-      suffix = ` ON CONFLICT DO UPDATE SET ${columns.map(column => `"${column}" = excluded."${column}"`).join(', ')};`
+      const updated = options.current
+        ? columns.filter(column => column !== 'createdAt')
+        : columns
+      suffix = ` ON CONFLICT DO UPDATE SET ${updated.map(column => `"${column}" = excluded."${column}"`).join(', ')}${options.current ? ` WHERE ${currentRowChangedSqlText(tableName, columns)}` : ''};`
       overheadBytes = Buffer.byteLength(prefix) + Buffer.byteLength(suffix)
     }
     const value = `(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})`

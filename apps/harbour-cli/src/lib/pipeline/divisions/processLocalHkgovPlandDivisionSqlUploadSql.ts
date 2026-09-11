@@ -5,6 +5,7 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import { eq, inArray, getTableColumns } from 'drizzle-orm'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
@@ -45,6 +46,7 @@ export type PlandSqlState = {
   releaseCode: string
   releaseId: string
   snapshotId: string
+  publication: PublicationPreparation
 }
 
 const PLAND_SQL_STATEMENT_BYTE_TARGET = 96 * 1024
@@ -287,12 +289,12 @@ async function buildPlandCurrentSql(
     context.currentDb
       .select()
       .from(currentSchema.divisions)
-      .where(eq(currentSchema.divisions.snapshotId, state.snapshotId))
+      .where(eq(currentSchema.divisions.snapshotId, state.publication.scopeId))
       .all(),
     context.currentDb
       .select()
       .from(currentSchema.divisionsI18n)
-      .where(eq(currentSchema.divisionsI18n.snapshotId, state.snapshotId))
+      .where(eq(currentSchema.divisionsI18n.snapshotId, state.publication.scopeId))
       .all(),
   ])
   const i18nColumns = [
@@ -303,6 +305,7 @@ async function buildPlandCurrentSql(
     'nameVariant',
     'nameAlts',
     'nameRules',
+    'nameProvenance',
     'isLocaleInferred',
     'createdAt',
     'updatedAt',
@@ -321,6 +324,7 @@ async function buildPlandCurrentSql(
   if (!receipt?.preparedAt)
     throw new Error('Planning Division publication preparation is incomplete.')
   const publication: PublicationPreparation = {
+    ...state.publication,
     ...receipt,
     table: 'divisionPublicationState',
     timestamp: receipt.preparedAt,
@@ -328,20 +332,47 @@ async function buildPlandCurrentSql(
   return sqlFile([
     buildBeginPublicationSql(publication),
     buildGuardedPublicationSql(publication, [
-      `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-      `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
+      ...state.missingHistoryIds.map(
+        id =>
+          `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(publication.scopeId)} AND id = ${sqlLiteral(id)};`,
+      ),
       geometryBuildUpsertSql(
         'divisions',
-        divisionRows as Array<Record<string, unknown>>,
+        divisionRows.filter(row => state.changedHistoryIds.includes(row.id)) as Array<
+          Record<string, unknown>
+        >,
+        { current: true },
       ),
-      ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows),
+      ...state.records.map(
+        record =>
+          `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(publication.scopeId)} AND divisionId = ${sqlLiteral(record.base.id)}${record.i18n.length ? ` AND locale NOT IN (${record.i18n.map(row => sqlLiteral(row.locale)).join(',')})` : ''};`,
+      ),
+      ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
+        suffix: `ON CONFLICT(snapshotId,divisionId,locale) DO UPDATE SET ${i18nColumns
+          .filter(
+            column =>
+              !['snapshotId', 'divisionId', 'locale', 'createdAt'].includes(column),
+          )
+          .map(column => `${column} = excluded.${column}`)
+          .join(
+            ', ',
+          )} WHERE ${currentRowChangedSqlText('divisionsI18n', i18nColumns)} `,
+      }),
       ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
     ]),
     buildCompletePublicationSql({
       ...publication,
       validationSql: [
-        buildPublicationRowCountSql('divisions', state.snapshotId, divisionRows.length),
-        buildPublicationRowCountSql('divisionsI18n', state.snapshotId, i18nRows.length),
+        buildPublicationRowCountSql(
+          'divisions',
+          publication.scopeId,
+          divisionRows.length,
+        ),
+        buildPublicationRowCountSql(
+          'divisionsI18n',
+          publication.scopeId,
+          i18nRows.length,
+        ),
       ].join(' AND '),
     }),
   ])

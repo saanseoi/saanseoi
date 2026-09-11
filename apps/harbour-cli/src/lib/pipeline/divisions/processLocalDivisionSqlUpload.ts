@@ -376,7 +376,7 @@ export async function processLocalDivisionSqlUpload(
       },
       async () => {
         publication.previous = await getPreparedPublication(
-          dbContext.currentDb,
+          dbContext.currentDb as never,
           publication.table,
           publication.scopeId,
         )
