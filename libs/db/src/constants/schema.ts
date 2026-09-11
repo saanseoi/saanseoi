@@ -17,6 +17,12 @@ export const profileNames = apiProfileNames
 
 export const resolverCodes = [
   'direct_copy',
+  'lookup_registry',
+  'constant_value',
+  'wrap_publisher_sources',
+  'merge_first_non_null',
+  'derive_release_month',
+  'compose_identifier',
   'join_lookup',
   'lookup_fk',
   'derive_uuid_v5',

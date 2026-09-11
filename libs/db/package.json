@@ -107,7 +107,8 @@
     "./currentSchema": "./src/schema/current/index.ts",
     "./historySchema": "./src/schema/history/index.ts",
     "./metaSchema": "./src/schema/meta/index.ts",
-    "./sourceSchema": "./src/schema/source/index.ts"
+    "./sourceSchema": "./src/schema/source/index.ts",
+    "./apiFieldInputs": "./src/apiFieldInputs.ts"
   },
   "dependencies": {
     "@clack/prompts": "^1.8.0",

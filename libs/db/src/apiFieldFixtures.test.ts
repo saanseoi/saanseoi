@@ -1,7 +1,8 @@
+import { pinApiFieldRules } from './apiFieldInputs'
+import { initialDatasets } from './registry/meta'
 import { describe, expect, test } from 'bun:test'
 
 import { listApiFieldFixtures, resolveApiFieldFixture } from './apiFieldFixtures'
-import { resolverCodes } from './constants/schema'
 import { computeVersionHash } from './versioning'
 
 const overtureSourceSchemas = {
@@ -15,6 +16,51 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('statistics distinguish publisher periods, registry IDs and named measure outputs', () => {
+    const fields = listApiFieldFixtures().find(
+      f => f.apiVersion === 'api-stats-v0.1',
+    )!.fields
+    const population = fields.filter(f =>
+      f.sourceDatasetCode.endsWith('population-households-district'),
+    )
+    expect(
+      population.find(f => f.apiField === 'attributes.referencePeriod.code')?.inputs,
+    ).toEqual([
+      {
+        origin: 'source',
+        fieldPath: 'properties.year',
+      },
+    ])
+    expect(population.find(f => f.apiField === 'attributes.datasetCode')).toMatchObject(
+      {
+        resolverCode: 'lookup_registry',
+        inputs: [{ origin: 'registry', fieldPath: 'dataset.code' }],
+      },
+    )
+    expect(
+      population.find(f => f.apiField === 'attributes.values.domesticHouseholds')
+        ?.inputs,
+    ).toContainEqual({
+      origin: 'source',
+      fieldPath: 'properties.dh',
+    })
+    const quarter = fields.find(
+      f =>
+        f.sourceDatasetCode.endsWith('permanent-living-quarters-district') &&
+        f.apiField === 'attributes.referencePeriod.code',
+    )!
+    expect(quarter.inputs).toEqual([
+      {
+        origin: 'source',
+        fieldPath: 'properties.year',
+      },
+      {
+        origin: 'source',
+        fieldPath: 'properties.quarter',
+      },
+    ])
+  })
+
   test('covers Places cohorts using the Division schema retained by their ALS snapshot', () => {
     // Places selects the latest ALS snapshot at or before its cohort and uses
     // that snapshot's Division reference, which can predate the Places schema.
@@ -79,7 +125,17 @@ describe('api field fixtures', () => {
     for (const fixture of listApiFieldFixtures()) {
       expect(fixture.versionHash).toBe(computeVersionHash(fixture))
       for (const field of fixture.fields) {
-        expect(resolverCodes).toContain(field.resolverCode)
+        expect(() =>
+          pinApiFieldRules(
+            field,
+            initialDatasets
+              .filter(dataset => dataset.code === field.sourceDatasetCode)
+              .map(dataset => ({
+                releaseId: dataset.code,
+                processingRules: dataset.processingRules,
+              })),
+          ),
+        ).not.toThrow()
       }
     }
   })
@@ -98,10 +154,11 @@ describe('api field fixtures', () => {
         expect(fixture.versionHash).toBe(computeVersionHash(fixture))
         const ids = fixture.fields.map(field =>
           JSON.stringify([
+            field.resourceType,
             field.apiField,
             field.variant ?? null,
             field.sourceDatasetCode,
-            field.sourceFieldPath,
+            field.inputs,
             field.contributionType,
             field.priority,
           ]),
@@ -118,7 +175,9 @@ describe('api field fixtures', () => {
           ).toEqual(Object.keys(anchor.sourceSchemas).sort())
           expect(
             fixture.fields
-              .filter(field => field.apiField === 'statistic.id')
+              .filter(
+                field => field.resourceType === 'statistic' && field.apiField === 'id',
+              )
               .every(field => field.resolverCode === 'derive_statistics_record_id'),
           ).toBe(true)
         }
@@ -126,12 +185,29 @@ describe('api field fixtures', () => {
     }
   })
 
+  test('shared publisher mappings retain ALS alternatives and are defensively cloned', () => {
+    const fixture = listApiFieldFixtures().find(
+      f => f.apiVersion === 'api-addresses-v0.1',
+    )!
+    const fields = fixture.publisherFields['ds-hk-hkgov-dpo-address']!
+    expect(fields['properties.enPhaseName']).toEqual([
+      'properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EngPhase.PhaseName',
+      'properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseName',
+    ])
+    fields['properties.geoAddress'] = 'changed'
+    expect(
+      listApiFieldFixtures().find(f => f.apiVersion === 'api-addresses-v0.1')!
+        .publisherFields['ds-hk-hkgov-dpo-address']!['properties.geoAddress'],
+    ).not.toBe('changed')
+    expect(fixture.fields.every(f => !f.apiField.startsWith('address.'))).toBe(true)
+  })
+
   test('maps current Division names and excludes internal source columns', () => {
     for (const fixture of listApiFieldFixtures().filter(
       f => f.apiVersion === 'api-divisions-v0.1',
     )) {
       const paths = fixture.fields.map(field => field.apiField)
-      expect(paths).toContain('division.attributes.class')
+      expect(paths).toContain('attributes.class')
       for (const path of paths) {
         expect(path).not.toMatch(
           /attributes\.(divisionType|subtype|divisionClass|wikidata|overture)(\.|$)/,
@@ -281,7 +357,7 @@ describe('api field fixtures', () => {
 
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
-        apiField: 'divisionArea.attributes.variant',
+        apiField: 'attributes.variant',
         sourceDatasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
         variant: 'hkgov-censtatd',
@@ -337,7 +413,7 @@ describe('api field fixtures', () => {
 
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
-        apiField: 'divisionArea.attributes.variant',
+        apiField: 'attributes.variant',
         sourceDatasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
         variant: 'hkgov-censtatd',
@@ -457,7 +533,7 @@ describe('api field fixtures', () => {
       expect(resolved).not.toBeNull()
       expect(resolved?.fields).toContainEqual(
         expect.objectContaining({
-          apiField: 'divisionArea.id',
+          apiField: 'id',
           sourceDatasetCode: fixture.sourceDatasetCode,
         }),
       )
