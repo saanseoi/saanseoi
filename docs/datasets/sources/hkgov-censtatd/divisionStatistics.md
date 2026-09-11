@@ -225,6 +225,14 @@ add no canonical record versions or per-record snapshot membership; source evide
 publication metadata still identify the reissue. Sparse `statsRecord` changes in
 `snapshotVersionChanges` and snapshot parent ancestry select each frozen publication.
 
+Deferred Statistics revisions inherit only from published snapshots backed by a
+completed processing audit and published resource release in the same lineage and exact
+reference period. A successful source-only publication certifies these snapshots without
+activating the Statistics API. Revisions retain omitted geographies as well as omitted
+fields. Bootstrap selects one completed descendant per dataset variant; competing
+branches require resolution before another upload or bootstrap can proceed. Catalogue
+selection anchors inheritance after public publication or rollback.
+
 Publication promotes changed packs into current; deferred or incomplete imports leave
 published current values available. New annual releases do not retire older periods or
 omitted geographies. The API serves current unless explicit revision selectors resolve

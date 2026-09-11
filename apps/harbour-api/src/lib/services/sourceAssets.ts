@@ -163,9 +163,9 @@ async function registerSourceAssetMetadata(
   return registeredAsset.id
 }
 
-export function parseSourceAssetMetadata(value: string | File | null) {
+export function parseSourceAssetMetadata(value: string) {
   if (typeof value !== 'string') {
-    throw new Error('Source asset upload requires a JSON `metadata` form field.')
+    throw new Error('Source asset upload requires a JSON `metadata` field.')
   }
   let parsed: unknown
   try {
