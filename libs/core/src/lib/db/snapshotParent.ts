@@ -1,5 +1,6 @@
 import { and, desc, eq, metaSchema, sql } from '@repo/db'
 import type { HarbourReadableDb } from './types'
+import { resolveAcceptedStatisticSnapshotParent } from './statisticSnapshotParent'
 
 /**
  * A retained revision is not necessarily an accepted predecessor. Catalogue
@@ -14,6 +15,13 @@ export async function resolveAcceptedSnapshotParent(
     identityMode: 'persistent' | 'cohort_scoped'
   },
 ) {
+  const lineage = await db
+    .select({ resourceType: metaSchema.metaSnapshotLineages.resourceType })
+    .from(metaSchema.metaSnapshotLineages)
+    .where(eq(metaSchema.metaSnapshotLineages.id, input.lineageId))
+    .get()
+  if (lineage?.resourceType === 'divisionStatistic')
+    return resolveAcceptedStatisticSnapshotParent(db, input.lineageId, input.cohortKey)
   const snapshots = metaSchema.metaSnapshots
   const eligible = and(
     eq(snapshots.snapshotLineageId, input.lineageId),

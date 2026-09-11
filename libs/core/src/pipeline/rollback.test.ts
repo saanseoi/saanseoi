@@ -75,6 +75,57 @@ describe('draft release purge SQL', () => {
     expect(sql.source).toContain(
       "DELETE FROM overturePlaces WHERE releaseId = 'places-release-new';",
     )
+    expect(sql.source).toContain(
+      "UPDATE overturePlaces SET isCurrent = 1, validToRelease = NULL WHERE isCurrent = 0 AND validToRelease = '2026-08-19.0';",
+    )
+  })
+
+  test('reopens Place source predecessors in the shard that owned them', () => {
+    const sql = buildDraftReleasePurgeSql({
+      apiReleaseSetId: 'places-release-set-new',
+      releaseId: 'places-release-new',
+      snapshotId: 'places-snapshot-new',
+      source: 'overture',
+      sourceVersion: '2026-08-19.0',
+      resourceType: 'place',
+    })
+    const old = new Database(':memory:')
+    const active = new Database(':memory:')
+    try {
+      for (const database of [old, active])
+        database.exec(`
+          CREATE TABLE overturePlaces (
+            sourceRecordId TEXT,
+            releaseId TEXT,
+            validFromRelease TEXT,
+            validToRelease TEXT,
+            isCurrent INTEGER
+          );
+        `)
+      old.exec(
+        "INSERT INTO overturePlaces VALUES ('place-1','old-release','2025-01-01.0','2026-08-19.0',0)",
+      )
+      active.exec(
+        "INSERT INTO overturePlaces VALUES ('place-1','places-release-new','2026-08-19.0',NULL,1)",
+      )
+
+      old.exec(sql.source)
+      active.exec(sql.source)
+
+      expect(old.query('SELECT * FROM overturePlaces').all()).toEqual([
+        {
+          sourceRecordId: 'place-1',
+          releaseId: 'old-release',
+          validFromRelease: '2025-01-01.0',
+          validToRelease: null,
+          isCurrent: 1,
+        },
+      ])
+      expect(active.query('SELECT * FROM overturePlaces').all()).toEqual([])
+    } finally {
+      old.close()
+      active.close()
+    }
   })
 
   test('rejects unsupported source/type combinations', () => {
