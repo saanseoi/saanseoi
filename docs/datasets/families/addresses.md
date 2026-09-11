@@ -213,6 +213,33 @@ filter includes both. Counts and pagination apply to the filtered collection, an
 or unselected dataset returns an empty collection. Detail requests can resolve an
 Address ID from either selected member.
 
+### Latest-release search index
+
+Search supports only the latest published Address release for each region. Explicit
+selectors resolving to an older release return `400 historical_search_unavailable`.
+Historical list and detail requests remain available.
+
+`addressSearchScopes` maps each region/domain/lineage scope to its selected snapshot.
+`addressSearchFts` holds one document per scope, Address ID and locale. Snapshot
+promotion updates the small scope mapping; unchanged search text keeps its existing FTS
+row. Synchronisation inserts new documents, replaces changed documents and deletes
+documents absent from the final selection. Retained historical snapshots are excluded.
+
+Dataset SQL delivery does not build the search index. Standalone publication refreshes
+it after publication; deferred upload sequences refresh it once after successful
+release-set reconciliation. A failed sequence does not refresh search. Re-running
+reconciliation retries finalisation even when no draft release remains.
+
+FTS changes and scope promotion run in one D1 transaction. A failure rolls back the
+index update. Because catalogue publication is in a separate database, search can return
+`503` between catalogue publication and successful index finalisation. Run
+`release-sets:reconcile` again to finish an interrupted finalisation.
+
+The current-database migration must precede deployment of the search reader and
+finaliser. The first successful finalisation builds the latest-only index and retires
+the snapshot-keyed `addressesFts` table. Subsequent identical finalisations write no
+search documents. This optimisation does not remove canonical snapshot copies.
+
 `attributes.parentAddressId` is the nullable canonical ID of a containing Address,
 available in every API profile. It records explicit containment and is versioned with
 the address. A parent can belong to another selected Address dataset; resolve it within
