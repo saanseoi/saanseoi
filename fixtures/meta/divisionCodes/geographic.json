@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:57a5a88575c1388fded8354c1228656f2c0e33f33f792f2f9bc22097c2ccff89",
+  "versionHash": "sha256:4e698f5459718f0b94cd5b0cb38e4d2e0f4c35bf92451df4e2fcc18b22dd2941",
   "domainCode": "geographic",
   "assignments": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "divisionCode": "KL",
-      "canonicalId": "17009785-57fd-4e5b-af86-2d27352e4718"
+      "canonicalId": "bb5c7e0a-fd09-5416-8bb8-9593c90280fb"
     },
     {
       "divisionCode": "NT",
