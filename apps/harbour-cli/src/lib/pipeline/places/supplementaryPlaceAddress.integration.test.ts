@@ -20,6 +20,7 @@ import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
 import policy from './testFixtures/supplementaryAddressPolicy.json'
 import { buildPlacesResetSql, collectOwnedPlaces } from '../../commands/resetPlaces.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
+import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 
 test('materialises a supplementary snapshot in SQLite, retries immutably, and blocks changed evidence before Place writes', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
@@ -28,11 +29,11 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
   const files = {
     DB_META: resolve(root, 'meta.sqlite'),
     DB_CURRENT: resolve(root, 'current.sqlite'),
-    DB_HISTORY: resolve(root, 'history.sqlite'),
+    DB_HISTORY_HK_2026: resolve(root, 'history.sqlite'),
   }
   const meta = new Database(files.DB_META)
   const current = new Database(files.DB_CURRENT)
-  const history = new Database(files.DB_HISTORY)
+  const history = new Database(files.DB_HISTORY_HK_2026)
   try {
     for (const [db, profile] of [
       [meta, 'meta'],
@@ -102,6 +103,18 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       sourceReleaseId: releaseId,
     })
     const currentDb = drizzle({ client: current, schema: currentSchema })
+    const officialScopeId = official.snapshotLineageId
+    if (!officialScopeId) throw new Error('Expected an official Address lineage.')
+    currentDb
+      .insert(currentSchema.addressPublicationState)
+      .values({
+        scopeId: officialScopeId,
+        snapshotId: official.id,
+        status: 'current',
+        publicationToken: 'official-fixture',
+        preparedAt: '2026-08-19T00:00:00Z',
+      })
+      .run()
     currentDb
       .insert(currentSchema.divisions)
       .values({
@@ -115,7 +128,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     currentDb
       .insert(currentSchema.address2d)
       .values({
-        snapshotId: official.id,
+        snapshotId: officialScopeId,
         id: 'als-citygate',
         geometry: Buffer.from('01010000004e621058397c5c400ad7a3703d4a3640', 'hex'),
         divisionSnapshotId: 'division',
@@ -125,7 +138,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     currentDb
       .insert(currentSchema.address2dI18n)
       .values({
-        snapshotId: official.id,
+        snapshotId: officialScopeId,
         addressId: 'als-citygate',
         locale: 'en',
         formattedAddress: 'Citygate, 20 Tat Tung Road',
@@ -138,13 +151,15 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     const curationPath = resolve(root, 'curation.json')
     const entryLedgerPath = resolve(root, 'entries.json')
     await writeFile(curationPath, JSON.stringify(policy))
-    const target = (database: Database, name: 'current' | 'history' | 'meta') => ({
+    const bindingNames = {
+      current: 'DB_CURRENT',
+      history: 'DB_HISTORY_HK_2026',
+      meta: 'DB_META',
+    }
+    const target = (database: Database, name: keyof typeof bindingNames) => ({
       name,
       databaseId: null,
-      binding: {
-        bindingName: `DB_${name.toUpperCase()}`,
-        prepare: (sql: string) => ({ run: async () => database.exec(sql) }),
-      },
+      binding: createLocalExecBinding(database, bindingNames[name]),
     })
     const place = normaliseOverturePlace(
       {
@@ -167,12 +182,22 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       curationPath,
       entryLedgerPath,
       context: {
-        state: { target: 'local', dbCacheDir: root, files },
+        state: {
+          target: 'local',
+          dbCacheDir: root,
+          files,
+          bindings: Object.fromEntries(
+            Object.keys(files).map(bindingName => [
+              bindingName,
+              { databaseId: bindingName },
+            ]),
+          ),
+        },
         currentDb,
         historyTargets: [
           {
             db: drizzle({ client: history, schema: historySchema }),
-            bindingName: 'history',
+            bindingName: 'DB_HISTORY_HK_2026',
           },
         ],
       },
@@ -202,7 +227,7 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         current: target(current, 'current'),
         history: target(history, 'history'),
         meta: target(meta, 'meta'),
-        historyByBinding: new Map([['history', target(history, 'history')]]),
+        historyByBinding: new Map([['DB_HISTORY_HK_2026', target(history, 'history')]]),
         environment: 'preview',
       },
       importOptions: { isLocal: true },
@@ -216,8 +241,15 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
       "CREATE TRIGGER fail_import BEFORE INSERT ON address2d BEGIN SELECT RAISE(ABORT, 'simulated history import failure'); END;",
     )
     await expect(prepareSupplementaryAddresses(input)).rejects.toThrow(
-      'simulated history import failure',
+      'Net planning does not support triggers on address2d.',
     )
+    expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 0 })
+    expect(current.query('SELECT id FROM address2d').all()).toEqual([
+      { id: 'als-citygate' },
+    ])
+    expect(
+      current.query('SELECT scopeId, status FROM addressPublicationState').all(),
+    ).toEqual([{ scopeId: officialScopeId, status: 'current' }])
     expect(
       meta
         .query(
@@ -285,7 +317,9 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
     expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toHaveLength(1)
     expect(
       current
-        .query('SELECT countryId FROM address2d WHERE snapshotId = ?')
+        .query(
+          'SELECT countryId FROM address2d WHERE snapshotId = (SELECT scopeId FROM addressPublicationState WHERE snapshotId = ?)',
+        )
         .get(first.snapshotId),
     ).toEqual({ countryId: 'hk' })
     expect(
@@ -427,8 +461,9 @@ test('materialises a supplementary snapshot in SQLite, retries immutably, and bl
         )
         .all(),
     ).toEqual([])
-    current.exec(`INSERT INTO addressSearchScopes(scopeId,snapshotId)
-      SELECT 'als', snapshotId FROM address2d WHERE id='als-citygate' LIMIT 1;`)
+    current
+      .query('INSERT INTO addressSearchScopes(scopeId,snapshotId) VALUES (?,?)')
+      .run('als', official.id)
     current.exec('PRAGMA foreign_keys = ON;')
     current.exec(reset.currentSql)
     history.exec(reset.historySql)
