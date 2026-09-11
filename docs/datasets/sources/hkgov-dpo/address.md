@@ -60,17 +60,22 @@ collections. Prepared 2D and 3D hashes bind the membership to the uploaded conte
 
 Chronological review writes `.local/hkgov-dpo/deletions/<sourceVersion>.json`, including
 predecessor and current membership digests, per-level previous and removed counts,
-percentages, parent chains, map links, descendant counts and curated retentions. Any
-building, complex, phase, site or section retirement requires review, as does whole
-inventory loss. A deletion spike is at least 100 removals and at least 5% at a level, or
-at least 1,000 removals at a level.
+percentages, parent chains, map links, descendant counts and curated retentions. Omitted
+publisher assertions include retained canonical IDs, remaining supporting source IDs and
+compact curation references. Retained units distinguish remaining source or alias
+support from curation retention, including reparented inventories. Any building,
+complex, phase, site or section retirement requires review, as does whole inventory
+loss. A deletion spike is at least 100 removals and at least 5% at a level, or at least
+1,000 removals at a level.
 
 Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, with
 `schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
 `previousSourceVersion`, `reason` and `reviewedAt`. Neither `--yes` nor
-`--skip-curation-checks` bypasses this gate. Changed prepared data or membership
-requires a fresh review. Delivery retains a sealed `address-membership.json` inside its
-`sql-delivery-address` directory. After acknowledgement, the mirror receives
+`--skip-curation-checks` bypasses this gate. Changed resolved membership or report
+contents require a fresh review. Prepared-file container hashes are excluded from the
+approval digest; changed files still require preparation and checksum validation.
+Delivery retains a sealed `address-membership.json` inside its `sql-delivery-address`
+directory. After acknowledgement, the mirror receives
 `address-membership/<scopeId>/<snapshotId>.json`. The next release requires that exact
 predecessor file and checks its Address2D IDs, Address3D owners and unit IDs against the
 mirror. A prepared sidecar alone cannot establish the predecessor. Missing or mismatched
@@ -187,10 +192,11 @@ blocks such as `CARPARK BLK` / `停車場` retain their publisher components and
 existing 2D parent without numbered-block enrichment.
 
 `--skip-curation-checks` accepts pending correction verification and identity drift
-checks during ingestion, including with `--yes`, without running the upfront all-release
-review. Source and integrity validation run during preparation of each ingested release.
-Grouped initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest`
-also accepts it. Corrections retain their existing verification provenance. Unresolved
+checks during ingestion, including with `--yes`. The upfront chronological preflight
+still runs when releases remain to ingest; deletion review cannot be bypassed. Source
+and integrity validation run during preparation of each ingested release. Grouped
+initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest` also
+accepts it. Corrections retain their existing verification provenance. Unresolved
 identity changes use generated IDs for the run, without writing human-reviewed decisions
 or verification dates to fixtures. This mode supports pre-curation reference and testing
 imports; source validation and database integrity checks still apply. The
