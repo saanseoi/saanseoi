@@ -19,6 +19,9 @@ CONFIG = ROOT / 'apps/harbour-api/wrangler.jsonc'
 BINDING = re.compile(r'DB_(?:META|CURRENT|(?:HISTORY|SOURCE)_[A-Z]{2}_(?:BEFORE|\d{4}))$')
 LIMIT = 90_000
 TRANSIENT = {'harbourSqlDeliveryReceipts'}
+MAX_D1_ROW_BYTES = 2_000_000
+MAX_D1_IMPORT_BYTES = 5_000_000_000
+MAX_D1_DATABASE_BYTES = 10_000_000_000
 
 
 def ident(value):
@@ -86,7 +89,9 @@ def table_names(db):
 
 
 def transient(name):
-    return name in TRANSIENT or name.lower().startswith('staging')
+    return name in TRANSIENT or name.lower().startswith((
+        'staging', 'ssaddressimport', 'zzaddressimport',
+    ))
 
 
 def blockers(db):
@@ -133,12 +138,16 @@ def remap_meta(db, destinations):
 
 def emit_dump(db, path):
     schema = db.execute("SELECT type,name,tbl_name,sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY name").fetchall()
+    # FTS shadow storage is an implementation detail. Rebuild the index from its
+    # logical documents once; copying both documents and shadow rows corrupts it.
+    shadows = {row[1] for row in db.execute('PRAGMA table_list') if row[2] == 'shadow'}
     tables = [(name, sql) for kind, name, _, sql in schema
-              if kind == 'table' and not name.startswith(('sqlite_', '_cf_')) and not transient(name)]
+              if kind == 'table' and name not in shadows and not name.startswith(('sqlite_', '_cf_')) and not transient(name)]
     kept = {name for name, _ in tables}
     for name, sql in tables:
         if 'VIRTUAL TABLE' in sql.upper():
-            raise ValueError(f'Virtual table needs an explicit D1 export strategy: {name}')
+            if not re.search(r'\bUSING\s+fts5\s*\(', sql, re.I) or re.search(r'\bcontent\s*=', sql, re.I):
+                raise ValueError(f'Virtual table needs an explicit D1 export strategy: {name}')
     counts = {}
     object_keys = set()
     with path.open('x') as output:
@@ -169,6 +178,10 @@ def emit_dump(db, path):
             fields = ','.join(map(ident, columns))
             counts[name] = 0
             for row in db.execute(f'SELECT {fields} FROM {ident(name)}'):
+                # Include a conservative allowance for SQLite record headers.
+                row_bytes = sum(len(v.encode()) if isinstance(v, str) else len(v) if isinstance(v, bytes) else 8 for v in row) + 16 * len(row)
+                if row_bytes > MAX_D1_ROW_BYTES:
+                    raise ValueError(f'D1 row size exceeds {MAX_D1_ROW_BYTES} bytes: {name}')
                 values = [literal(v) for v in row]
                 prefix = f'INSERT INTO {ident(name)} ({fields}) VALUES ('
                 statement = prefix + ','.join(values) + ')'
@@ -203,6 +216,8 @@ def emit_dump(db, path):
             if kind in ('trigger', 'view') and (table in kept or kind == 'view'):
                 emit(sql)
         # Do not turn deferral off: the transaction commit must enforce all constraints.
+    if path.stat().st_size > MAX_D1_IMPORT_BYTES:
+        raise ValueError(f'D1 import file exceeds {MAX_D1_IMPORT_BYTES} bytes: {path.name}')
     return counts, sorted(object_keys)
 
 
@@ -276,6 +291,8 @@ def prepare(output, config):
             with contextlib.closing(connect(paths[binding])) as source, contextlib.closing(sqlite3.connect(snapshot)) as db:
                 source.backup(db)
                 assert_integrity(db)
+                if db.execute('PRAGMA page_count').fetchone()[0] * db.execute('PRAGMA page_size').fetchone()[0] > MAX_D1_DATABASE_BYTES:
+                    raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} bytes: {binding}')
                 for table in table_names(db):
                     if transient(table) and db.execute(f'SELECT 1 FROM {ident(table)} LIMIT 1').fetchone():
                         if table not in TRANSIENT:

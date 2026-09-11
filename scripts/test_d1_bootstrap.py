@@ -16,6 +16,36 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_fts_exports_logical_documents_without_shadow_tables(self):
+        with tempfile.TemporaryDirectory() as directory:
+            db = sqlite3.connect(':memory:')
+            self.addCleanup(db.close)
+            db.execute('CREATE VIRTUAL TABLE addressSearchFts USING fts5(scopeId UNINDEXED, formattedAddress)')
+            db.execute("INSERT INTO addressSearchFts(rowid,scopeId,formattedAddress) VALUES(42,'hk','Model Housing Estate')")
+            path = Path(directory) / 'search.sql'
+            counts, _ = bootstrap.emit_dump(db, path)
+            self.assertEqual(counts, {'addressSearchFts': 1})
+            bootstrap.restore_check(path, counts)
+            restored = sqlite3.connect(':memory:')
+            self.addCleanup(restored.close)
+            restored.execute('BEGIN')
+            for sql in bootstrap.statements(path):
+                restored.execute(sql)
+            restored.commit()
+            self.assertEqual(restored.execute("SELECT rowid,scopeId FROM addressSearchFts WHERE addressSearchFts MATCH 'housing'").fetchall(), [(42, 'hk')])
+            self.assertNotIn('CREATE TABLE "addressSearchFts_data"', path.read_text())
+
+    def test_address_staging_and_oversized_rows_are_rejected(self):
+        self.assertTrue(bootstrap.transient('ssAddressImportResolvedRows'))
+        self.assertTrue(bootstrap.transient('zzAddressImportResolvedI18n'))
+        with tempfile.TemporaryDirectory() as directory:
+            db = sqlite3.connect(':memory:')
+            self.addCleanup(db.close)
+            db.execute('CREATE TABLE payload(id INTEGER PRIMARY KEY, value TEXT)')
+            db.execute('INSERT INTO payload VALUES(1,?)', ('x' * bootstrap.MAX_D1_ROW_BYTES,))
+            with self.assertRaisesRegex(ValueError, 'D1 row size'):
+                bootstrap.emit_dump(db, Path(directory) / 'oversized.sql')
+
     def test_roundtrip_cycles_large_payloads_rowids_and_triggers(self):
         with tempfile.TemporaryDirectory() as directory:
             db = sqlite3.connect(':memory:')
