@@ -821,6 +821,124 @@
       "properties.dcZhHant": "properties.DC_CHI"
     }
   },
+  "sourceCompositions": [
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2017",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2018",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2019",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2020",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2025",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2022",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2026-q2"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023",
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2023"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-q3"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-H2"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2024"
+      ]
+    }
+  ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021"
@@ -18508,124 +18626,6 @@
             }
           ]
         }
-      ]
-    }
-  ],
-  "sourceCompositions": [
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
-        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
-        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2016",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2017",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2018",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2019",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2020",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2025",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2022",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2026-q2"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
-        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
-        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-new-towns-2021",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2021"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023",
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2023"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-q3"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
-        "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
-        "ds-hk-hkgov-censtatd-division-statistic-new-towns",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-H2"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-population-households-district-2024"
       ]
     }
   ]

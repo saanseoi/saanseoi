@@ -87,6 +87,50 @@
       "geometry": "geometry"
     }
   },
+  "sourceCompositions": [
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-2026-02-18.0",
+        "ss-hk-division-2026-02-18.1",
+        "ss-hk-division-2026-03-18.0",
+        "ss-hk-division-2026-04-15.0",
+        "ss-hk-division-2026-05-20.0",
+        "ss-hk-division-2026-06-17.0",
+        "ss-hk-division-2026-06-24.0",
+        "ss-hk-division-2026-07-22.0",
+        "ss-hk-division-2026-08-19.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-2026-02-18.0",
+        "ss-hk-division-2026-03-18.0",
+        "ss-hk-division-2026-04-15.0",
+        "ss-hk-division-2026-05-20.0",
+        "ss-hk-division-2026-06-17.0",
+        "ss-hk-division-2026-06-24.0",
+        "ss-hk-division-2026-07-22.0",
+        "ss-hk-division-2026-08-19.0"
+      ]
+    }
+  ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-2026-02-18.0"
@@ -2063,50 +2107,6 @@
             }
           ]
         }
-      ]
-    }
-  ],
-  "sourceCompositions": [
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
-        "ds-hk-hkgov-had-division-area-district",
-        "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-2026-02-18.0",
-        "ss-hk-division-2026-02-18.1",
-        "ss-hk-division-2026-03-18.0",
-        "ss-hk-division-2026-04-15.0",
-        "ss-hk-division-2026-05-20.0",
-        "ss-hk-division-2026-06-17.0",
-        "ss-hk-division-2026-06-24.0",
-        "ss-hk-division-2026-07-22.0",
-        "ss-hk-division-2026-08-19.0"
-      ]
-    },
-    {
-      "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
-        "ds-hk-hkgov-had-division-area-district",
-        "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary"
-      ],
-      "anchorSnapshotVersions": [
-        "ss-hk-division-2026-02-18.0",
-        "ss-hk-division-2026-03-18.0",
-        "ss-hk-division-2026-04-15.0",
-        "ss-hk-division-2026-05-20.0",
-        "ss-hk-division-2026-06-17.0",
-        "ss-hk-division-2026-06-24.0",
-        "ss-hk-division-2026-07-22.0",
-        "ss-hk-division-2026-08-19.0"
       ]
     }
   ]
