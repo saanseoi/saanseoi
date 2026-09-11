@@ -3,6 +3,7 @@ import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlit
 import { jsonText, type StreetEvidenceAsset } from '../shared'
 import {
   sourceSpatialAssertionColumns,
+  streetSourceSpatialAssertionColumns,
   sourceVersionedAssertionColumns,
   sourceVersionIndexes,
   sourceVersionedRecordColumns,
@@ -147,7 +148,7 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   'hkgovLandsdRoadCentrelines',
   {
     /** Native EPSG:2326 geometry from the FileGDB. */
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
   },
   table => [
     primaryKey({

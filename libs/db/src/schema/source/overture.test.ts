@@ -19,7 +19,7 @@ describe('Overture source payload boundary', () => {
       expect(config.columns.map(column => column.name).sort()).toEqual(
         [
           'sourceRecordId',
-          'sources',
+          'sourceLocator',
           'rawProperties',
           'sourceGeometry',
           'versionHash',

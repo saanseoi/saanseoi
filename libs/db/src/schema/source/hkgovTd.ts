@@ -1,6 +1,6 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
+import { streetSourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
 export const hkgovTdPedestrianStreetKinds = [
   'partTimePedestrianStreet',
@@ -22,7 +22,7 @@ export type HkgovTdPedestrianStreetKind = (typeof hkgovTdPedestrianStreetKinds)[
 export const sourceHkgovTdPedestrianStreets = sqliteTable(
   'hkgovTdPedestrianStreets',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
     kind: text('kind', { enum: hkgovTdPedestrianStreetKinds }).notNull(),
   },
   table => [

@@ -51,7 +51,7 @@ export function sourceVersionedAssertionColumns() {
 export function sourceAssertionColumns() {
   return {
     sourceRecordId: text('sourceRecordId').notNull(),
-    sources: sourceReferences(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     rawProperties: jsonText('rawProperties'),
     ...sourceVersioning,
   }
@@ -88,3 +88,16 @@ export const sourceVersionIndexes = <
     table.validToRelease as never,
   ),
 ]
+
+/** Streets retains its separate source provenance contract. */
+export function streetSourceAssertionColumns() {
+  const { sourceLocator: _locator, ...columns } = sourceAssertionColumns()
+  return { ...columns, sources: sourceReferences() }
+}
+
+export function streetSourceSpatialAssertionColumns() {
+  return {
+    ...streetSourceAssertionColumns(),
+    sourceGeometry: jsonText('sourceGeometry').notNull(),
+  }
+}
