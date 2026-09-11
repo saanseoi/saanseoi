@@ -52,8 +52,8 @@ test.each([
     globalThis.fetch = (async () => {
       requests++
       throw new Error('Unexpected HTTP request')
-    }) as typeof fetch
-    const preview = previewResult()
+    }) as unknown as typeof fetch
+    const preview = previewResult() as Parameters<typeof dispatchUpload>[2]
     preview.plan.resourceType = resourceType
     await expect(
       dispatchUploadActual(
@@ -83,7 +83,7 @@ test('remote registration releases a validated mirror before sending the request
   globalThis.fetch = (async () => {
     events.push('register')
     return Response.json({ status: 'staged' })
-  }) as typeof fetch
+  }) as unknown as typeof fetch
   await dispatchUpload(
     target,
     { filePath: 'fixture.parquet' } as never,

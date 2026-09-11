@@ -73,7 +73,10 @@ async function sourceTransferRequest(
       await new Promise(resolve => setTimeout(resolve, 200 * 2 ** attempt))
       continue
     }
-    const body = await response.json().catch(() => null)
+    const body = (await response.json().catch(() => null)) as Record<
+      string,
+      unknown
+    > | null
     if (response.ok) {
       if (!body || typeof body !== 'object' || Array.isArray(body))
         throw new Error('Invalid source transfer response.')
