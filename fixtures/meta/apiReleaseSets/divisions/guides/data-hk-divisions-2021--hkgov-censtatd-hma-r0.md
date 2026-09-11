@@ -83,8 +83,8 @@ even where they do not affect the feature being explained.
 
 This is an independently versioned <black>{{ domainCode }}</black> domain, not a filter
 over the default geographic collection. It contains the C&SD Housing Market Area
-division snapshot and its exact native area companion; records from other domains are
-never mixed into the result.
+division snapshot and its exact native area companion; collection and detail responses
+do not mix in records from other domains.
 
 Housing Market Areas are census geographies. The Building Groups featured in the source
 datasets are not divisions and thus do not appear in this domain.

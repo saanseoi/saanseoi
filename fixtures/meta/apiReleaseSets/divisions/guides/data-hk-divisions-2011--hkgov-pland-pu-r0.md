@@ -83,8 +83,8 @@ even where they do not affect the feature being explained.
 
 This is an independently versioned <black>{{ domainCode }}</black> domain, not a filter
 over the default geographic collection. It contains the Planning Department's Planning
-Unit and subunit division snapshot and its exact area companion; records from other
-domains are never mixed into the result.
+Unit and subunit division snapshot and its exact area companion; collection and detail
+responses do not mix in records from other domains.
 
 Planning Units and subunits are planning geographies, not District Council districts.
 Their identifiers are specific to the Planning Department. Matching provider codes
