@@ -1,7 +1,17 @@
 {
-  "versionHash": "sha256:e7b6c6f56dd64c24c57ce1d440a6215d5919dbcb57163b27fca9ccc88be66ebf",
+  "versionHash": "sha256:fb31b1e583c54386225e18de96191683299c8ca0c78bcaf76a9bc141b0eef8d8",
   "apiVersion": "api-divisions-v0.1",
   "endpoints": [
+    {
+      "method": "GET",
+      "path": "/divisions/v0/search",
+      "operationId": "searchDivisionsV0"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.1/search",
+      "operationId": "searchDivisionsV01"
+    },
     {
       "method": "GET",
       "path": "/divisions/v0",

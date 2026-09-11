@@ -167,7 +167,9 @@ describe('fixture version hashes', () => {
     expect(divisionPaths).toEqual([
       '/divisions/v0',
       '/divisions/v0.1',
+      '/divisions/v0.1/search',
       '/divisions/v0.1/{id}',
+      '/divisions/v0/search',
       '/divisions/v0/{id}',
     ])
     expect(placePaths).toEqual([
