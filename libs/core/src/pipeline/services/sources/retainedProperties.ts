@@ -8,6 +8,12 @@ export function retainedLocalePropertyName(name: string): string {
       field === '3dAddress' ? 'address3d' : field[0]!.toLowerCase() + field.slice(1)
     return base + locale[0]!.toUpperCase() + locale.slice(1)
   }
+  const publisherPrefix = /^(en|tc|sc)(?=[A-Z0-9])(.+)$/.exec(name)
+  if (publisherPrefix) {
+    const locale = { en: 'En', tc: 'ZhHant', sc: 'ZhHans' }[publisherPrefix[1]!]!
+    const field = publisherPrefix[2]!
+    return field[0]!.toLowerCase() + field.slice(1) + locale
+  }
   const label =
     /^(.*(?:Name|name)|dc|bg|hma|estate|newtown|newTown|area|district|region|village|street|town)(Eng|Chi|Tc|Sc)$/.exec(
       name,
