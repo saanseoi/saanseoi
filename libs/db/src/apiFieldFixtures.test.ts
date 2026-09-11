@@ -1,8 +1,16 @@
+import type { ApiFieldFixtureDocument } from './apiFieldFixtures'
+import addressDocument from '../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
+import divisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { pinApiFieldRules } from './apiFieldInputs'
 import { initialDatasets } from './registry/meta'
 import { describe, expect, test } from 'bun:test'
 
-import { listApiFieldFixtures, resolveApiFieldFixture } from './apiFieldFixtures'
+import {
+  comparePublisherSchemaVersions,
+  expandApiFieldFixture,
+  listApiFieldFixtures,
+  resolveApiFieldFixture,
+} from './apiFieldFixtures'
 import { computeVersionHash } from './versioning'
 
 const overtureSourceSchemas = {
@@ -142,44 +150,51 @@ describe('api field fixtures', () => {
 
   test('every exact signature attributes fields only to selected sources', () => {
     for (const bundled of listApiFieldFixtures()) {
-      for (const anchor of bundled.lineageAnchors) {
-        const fixture = resolveApiFieldFixture({
-          ...bundled,
-          lineageSnapshotVersions: [anchor.snapshotVersion],
-          sourceSchemas: anchor.sourceSchemas,
-        })
-        expect(fixture).not.toBeNull()
-        if (!fixture) throw new Error('Missing fixture')
-        expect(fixture.fields.length).toBeGreaterThan(0)
-        expect(fixture.versionHash).toBe(computeVersionHash(fixture))
-        const ids = fixture.fields.map(field =>
-          JSON.stringify([
-            field.resourceType,
-            field.apiField,
-            field.variant ?? null,
-            field.sourceDatasetCode,
-            field.inputs,
-            field.contributionType,
-            field.priority,
-          ]),
-        )
-        expect(new Set(ids).size).toBe(ids.length)
-        for (const field of fixture.fields) {
-          expect(Object.hasOwn(anchor.sourceSchemas, field.sourceDatasetCode)).toBe(
-            true,
+      for (const composition of bundled.sourceCompositions) {
+        for (const snapshotVersion of composition.anchorSnapshotVersions) {
+          const sourceSchemas = Object.fromEntries(
+            composition.datasetCodes.map(code => [
+              code,
+              bundled.publisherSchemaRanges[code]!.min,
+            ]),
           )
-        }
-        if (fixture.apiVersion === 'api-stats-v0.1') {
-          expect(
-            [...new Set(fixture.fields.map(field => field.sourceDatasetCode))].sort(),
-          ).toEqual(Object.keys(anchor.sourceSchemas).sort())
-          expect(
-            fixture.fields
-              .filter(
-                field => field.resourceType === 'statistic' && field.apiField === 'id',
-              )
-              .every(field => field.resolverCode === 'derive_statistics_record_id'),
-          ).toBe(true)
+          const fixture = resolveApiFieldFixture({
+            ...bundled,
+            lineageSnapshotVersions: [snapshotVersion],
+            sourceSchemas,
+          })
+          expect(fixture).not.toBeNull()
+          if (!fixture) throw new Error('Missing fixture')
+          expect(fixture.fields.length).toBeGreaterThan(0)
+          expect(fixture.versionHash).toBe(computeVersionHash(fixture))
+          const ids = fixture.fields.map(field =>
+            JSON.stringify([
+              field.resourceType,
+              field.apiField,
+              field.variant ?? null,
+              field.sourceDatasetCode,
+              field.inputs,
+              field.contributionType,
+              field.priority,
+            ]),
+          )
+          expect(new Set(ids).size).toBe(ids.length)
+          for (const field of fixture.fields) {
+            expect(Object.hasOwn(sourceSchemas, field.sourceDatasetCode)).toBe(true)
+          }
+          if (fixture.apiVersion === 'api-stats-v0.1') {
+            expect(
+              [...new Set(fixture.fields.map(field => field.sourceDatasetCode))].sort(),
+            ).toEqual(Object.keys(sourceSchemas).sort())
+            expect(
+              fixture.fields
+                .filter(
+                  field =>
+                    field.resourceType === 'statistic' && field.apiField === 'id',
+                )
+                .every(field => field.resolverCode === 'derive_statistics_record_id'),
+            ).toBe(true)
+          }
         }
       }
     }
@@ -190,7 +205,7 @@ describe('api field fixtures', () => {
       f => f.apiVersion === 'api-addresses-v0.1',
     )!
     const fields = fixture.publisherFields['ds-hk-hkgov-dpo-address']!
-    expect(fields['properties.enPhaseName']).toEqual([
+    expect(fields['properties.phaseNameEn']).toEqual([
       'properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EngPhase.PhaseName',
       'properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseName',
     ])
@@ -332,7 +347,6 @@ describe('api field fixtures', () => {
       expect(fixture?.lineageAnchors).toContainEqual(
         expect.objectContaining({
           snapshotVersion: cohort.snapshotVersion,
-          sourceSchemas,
         }),
       )
     }
@@ -636,10 +650,6 @@ describe('api field fixtures', () => {
     ).toContainEqual(
       expect.objectContaining({
         snapshotVersion: 'ss-hk-address-2025-09-24.0',
-        sourceSchemas: {
-          'ds-hk-hkgov-dpo-address': '3.2',
-          'ds-hk-overture-division': '1.12.0',
-        },
       }),
     )
   })
@@ -703,10 +713,6 @@ describe('api field fixtures', () => {
       ).toContainEqual(
         expect.objectContaining({
           snapshotVersion,
-          sourceSchemas: {
-            'ds-hk-hkgov-dpo-address': '3.2',
-            'ds-hk-overture-division': divisionSchemaVersion,
-          },
         }),
       )
     }
@@ -748,4 +754,123 @@ describe('api field fixtures', () => {
     )
     expect(listApiFieldFixtures()[0]?.fields[0]?.apiField).not.toBe('mutated')
   })
+})
+
+test('authored resource scope expands without repeating it on fields', () => {
+  expect(addressDocument.resourceType).toBe('address')
+  expect(
+    addressDocument.fields.every(field => !Object.hasOwn(field, 'resourceType')),
+  ).toBe(true)
+  expect(
+    expandApiFieldFixture(
+      addressDocument as unknown as ApiFieldFixtureDocument,
+    ).fields.every(field => field.resourceType === 'address'),
+  ).toBe(true)
+  expect(
+    divisionDocument.resources.every(group =>
+      group.fields.every(field => !Object.hasOwn(field, 'resourceType')),
+    ),
+  ).toBe(true)
+  const expanded = expandApiFieldFixture(
+    divisionDocument as unknown as ApiFieldFixtureDocument,
+  )
+  expect(new Set(expanded.fields.map(field => field.resourceType))).toEqual(
+    new Set(divisionDocument.resources.map(group => group.resourceType)),
+  )
+  expect(() =>
+    expandApiFieldFixture({
+      ...addressDocument,
+      versionHash: 'invalid',
+    } as unknown as ApiFieldFixtureDocument),
+  ).toThrow('hash')
+})
+
+test('mapping compatibility uses bounded numeric publisher ranges independently of anchor observations', () => {
+  expect(comparePublisherSchemaVersions('1.10', '1.9')).toBeGreaterThan(0)
+  expect(comparePublisherSchemaVersions('1.12', '1.12.0')).toBe(0)
+  const anchor = addressDocument.lineageAnchors[0]!
+  const lookup = {
+    apiVersion: addressDocument.apiVersion,
+    domainCode: addressDocument.domainCode,
+    schemaVersion: addressDocument.schemaVersion,
+    rulesetVersion: addressDocument.rulesetVersion,
+    lineageSnapshotVersions: [anchor.snapshotVersion],
+    sourceSchemas: {
+      'ds-hk-hkgov-dpo-address': '3.2',
+      'ds-hk-overture-division': '1.13.0',
+    },
+  }
+  expect(resolveApiFieldFixture(lookup)?.mappingVersion).toBe(1)
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '1.19.0' },
+    }),
+  ).toBeNull()
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '1.11.0' },
+    }),
+  ).toBeNull()
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      lineageSnapshotVersions: ['unrelated-branch'],
+    }),
+  ).toBeNull()
+})
+
+test('mapping filenames identify API, registry domain and independent version', async () => {
+  const directory = new URL('../../../fixtures/meta/apiFields/', import.meta.url)
+    .pathname
+  for (const file of new Bun.Glob('*.json').scanSync(directory)) {
+    const document = await Bun.file(directory + file).json()
+    expect(file).toBe(
+      `${document.apiVersion}@${document.domainCode}-v${document.mappingVersion}.json`,
+    )
+    const compositionFile = document.apiVersion.replace('-v0.1', '-comp-v1')
+    const composition = await Bun.file(
+      new URL(
+        `../../../fixtures/meta/apiCompositions/${compositionFile}.json`,
+        import.meta.url,
+      ),
+    ).json()
+    expect(JSON.stringify(composition)).toContain(`"code":"${document.domainCode}"`)
+    expect(Object.keys(document)[0]).toBe('versionHash')
+  }
+})
+
+test('anchors are unique and compositions cannot be borrowed from another branch', () => {
+  for (const fixture of listApiFieldFixtures()) {
+    const snapshots = fixture.lineageAnchors.map(anchor => anchor.snapshotVersion)
+    expect(new Set(snapshots).size).toBe(snapshots.length)
+    expect(
+      fixture.lineageAnchors.every(anchor => Object.keys(anchor).length === 1),
+    ).toBe(true)
+  }
+  const fixture = listApiFieldFixtures().find(f => f.apiVersion === 'api-stats-v0.1')!
+  const composition = fixture.sourceCompositions[0]!
+  const unrelated = fixture.lineageAnchors.find(
+    anchor =>
+      !fixture.sourceCompositions.some(
+        c =>
+          c.anchorSnapshotVersions.includes(anchor.snapshotVersion) &&
+          JSON.stringify(c.datasetCodes) === JSON.stringify(composition.datasetCodes),
+      ),
+  )!
+  expect(unrelated).toBeDefined()
+  const sourceSchemas = Object.fromEntries(
+    composition.datasetCodes.map(code => [
+      code,
+      fixture.publisherSchemaRanges[code]!.min,
+    ]),
+  )
+  expect(
+    resolveApiFieldFixture({
+      ...fixture,
+      sourceSchemas,
+      lineageSnapshotVersions: [unrelated.snapshotVersion],
+    }),
+  ).toBeNull()
 })

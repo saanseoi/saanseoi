@@ -1,3 +1,8 @@
+import { resolveApiFieldCurationInput } from './apiFieldCurationContexts'
+export {
+  apiFieldCurationContexts,
+  resolveApiFieldCurationInput,
+} from './apiFieldCurationContexts'
 import { computeVersionHash } from './versioning'
 import { resolverCodes } from './constants/schema'
 
@@ -18,6 +23,43 @@ export type ApiFieldRulePin = {
   definitionHash: string
 }
 
+/** Resolve the most specific declared parent and preserve descendant keys and indices. */
+export function resolvePublisherFieldPaths(
+  fieldPath: string,
+  publisherFields: Record<string, string | string[]>,
+): string[] {
+  const parent = Object.keys(publisherFields)
+    .filter(
+      path =>
+        fieldPath === path ||
+        fieldPath.startsWith(path + '.') ||
+        fieldPath.startsWith(path + '['),
+    )
+    .sort((a, b) => b.length - a.length)[0]
+  if (!parent) throw new Error(`Unmapped source input: ${fieldPath}`)
+  const suffix = fieldPath.slice(parent.length)
+  if (!/^(?:\.[^.[\]]+|\[\d+\])*$/.test(suffix))
+    throw new Error(`Invalid source input path: ${fieldPath}`)
+  const declared = publisherFields[parent]
+  const paths = typeof declared === 'string' ? [declared] : declared
+  if (
+    !Array.isArray(paths) ||
+    !paths.length ||
+    paths.some(
+      path =>
+        typeof path !== 'string' ||
+        !path.trim() ||
+        /^(raw_properties|rawProperties)(\.|$)/.test(path),
+    )
+  )
+    throw new Error('Publisher mapping requires original paths.')
+  return paths.map(
+    path =>
+      (suffix.startsWith('[') && path.endsWith('[]') ? path.slice(0, -2) : path) +
+      suffix,
+  )
+}
+
 export function validateApiFieldInputs(
   inputs: ApiFieldInput[],
   publisherFields: Record<string, string | string[]> = {},
@@ -35,26 +77,11 @@ export function validateApiFieldInputs(
       !input.fieldPath
     )
       throw new Error('API input requires an explicit origin and field path.')
+    if (input.origin === 'curation') resolveApiFieldCurationInput(input.fieldPath)
     if (input.origin === 'source') {
-      if (
-        !/^(properties\..+|geometry|sourceRecordId)$/.test(input.fieldPath) ||
-        !Object.hasOwn(publisherFields, input.fieldPath)
-      )
+      if (!/^(properties\..+|geometry|sourceRecordId)$/.test(input.fieldPath))
         throw new Error(`Unmapped source input: ${input.fieldPath}`)
-      const paths = publisherFields[input.fieldPath]
-      if (!(typeof paths === 'string' || Array.isArray(paths)))
-        throw new Error('Publisher mapping requires original paths.')
-      const originals = typeof paths === 'string' ? [paths] : paths
-      if (
-        !originals.length ||
-        originals.some(
-          path =>
-            typeof path !== 'string' ||
-            !path.trim() ||
-            /^(raw_properties|rawProperties)(\.|$)/.test(path),
-        )
-      )
-        throw new Error('Publisher mapping requires original paths.')
+      resolvePublisherFieldPaths(input.fieldPath, publisherFields)
     }
   }
 }

@@ -3,14 +3,14 @@ import {
   type ApiFieldInput,
   type PublisherFields,
 } from './apiFieldInputs'
-import apiDivisionsV01FixtureOverture112To115 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.12-to-1.15.json'
-import apiDivisionsV01FixtureOverture116To118 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
-import apiDivisionsV01FixturePlandNewTown2006 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-new-town-2006.json'
-import apiDivisionsV01FixturePlandPu2001 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2001.json'
-import apiDivisionsV01FixturePlandPu2021 from '../../../fixtures/meta/apiFields/api-divisions-v0.1@ss-hk-division-hkgov-pland-pu-2021.json'
-import apiAddressesV01FixtureOfficialLineage from '../../../fixtures/meta/apiFields/api-addresses-v0.1@official-lineage.json'
-import apiPlacesV01FixtureOverture112To118 from '../../../fixtures/meta/apiFields/api-places-v0.1@overture-1.12-to-1.18.json'
-import apiStatisticsV01FixtureCenstatd from '../../../fixtures/meta/apiFields/api-stats-v0.1@censtatd-v1.json'
+import apiDivisionsV01FixtureOverture112To115Document from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v1.json'
+import apiDivisionsV01FixtureOverture116To118Document from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
+import apiDivisionsV01FixturePlandNewTown2006Document from '../../../fixtures/meta/apiFields/api-divisions-v0.1@hkgov-pland-new-town-v1.json'
+import apiDivisionsV01FixturePlandPu2001Document from '../../../fixtures/meta/apiFields/api-divisions-v0.1@hkgov-pland-pu-v1.json'
+import apiDivisionsV01FixturePlandPu2021Document from '../../../fixtures/meta/apiFields/api-divisions-v0.1@hkgov-pland-pu-v2.json'
+import apiAddressesV01FixtureOfficialLineageDocument from '../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
+import apiPlacesV01FixtureOverture112To118Document from '../../../fixtures/meta/apiFields/api-places-v0.1@overture-v1.json'
+import apiStatisticsV01FixtureCenstatdDocument from '../../../fixtures/meta/apiFields/api-stats-v0.1@government-v1.json'
 
 import type { ProvenanceContributionType } from './constants/schema'
 import { computeVersionHash } from './versioning'
@@ -39,6 +39,12 @@ export type ApiFieldFixture = {
   apiVersion: string
   /** Domain this mapping applies to. */
   domainCode: string
+  mappingVersion: number
+  publisherSchemaRanges: Record<string, { min: string; max: string }>
+  sourceCompositions: Array<{
+    datasetCodes: string[]
+    anchorSnapshotVersions: string[]
+  }>
   lineageAnchors: ApiFieldFixtureLineageAnchor[]
   schemaVersion: string
   rulesetVersion: string
@@ -46,11 +52,135 @@ export type ApiFieldFixture = {
   fields: ApiFieldFixtureField[]
 }
 
+/** Authored fixtures declare resource scope once, outside individual fields. */
+export type ApiFieldFixtureDocument = Omit<ApiFieldFixture, 'fields'> &
+  (
+    | {
+        resourceType: string
+        fields: Omit<ApiFieldFixtureField, 'resourceType'>[]
+        resources?: never
+      }
+    | {
+        resourceType?: never
+        fields?: never
+        resources: Array<{
+          resourceType: string
+          fields: Omit<ApiFieldFixtureField, 'resourceType'>[]
+        }>
+      }
+  )
+
+/** Resolve resource scope for publication; rule definitions remain external. */
+export function expandApiFieldFixture(
+  document: ApiFieldFixtureDocument,
+): ApiFieldFixture {
+  if (document.versionHash !== computeVersionHash(document))
+    throw new Error('API field fixture hash does not match its contents.')
+  if (!Number.isInteger(document.mappingVersion) || document.mappingVersion < 1)
+    throw new Error('Mapping version must be a positive integer.')
+  for (const range of Object.values(document.publisherSchemaRanges)) {
+    if (comparePublisherSchemaVersions(range.min, range.max) > 0)
+      throw new Error('Publisher schema range is reversed.')
+  }
+  const anchors = new Set(document.lineageAnchors.map(anchor => anchor.snapshotVersion))
+  if (anchors.size !== document.lineageAnchors.length)
+    throw new Error('Duplicate API-field lineage anchor.')
+  const referenced = new Set<string>()
+  for (const composition of document.sourceCompositions) {
+    if (
+      !composition.datasetCodes.length ||
+      new Set(composition.datasetCodes).size !== composition.datasetCodes.length ||
+      composition.datasetCodes.some(
+        code => !Object.hasOwn(document.publisherSchemaRanges, code),
+      )
+    )
+      throw new Error('Invalid API-field source composition.')
+    if (
+      !composition.anchorSnapshotVersions.length ||
+      new Set(composition.anchorSnapshotVersions).size !==
+        composition.anchorSnapshotVersions.length
+    )
+      throw new Error('Invalid composition anchor references.')
+    for (const snapshot of composition.anchorSnapshotVersions) {
+      if (!anchors.has(snapshot))
+        throw new Error(`Unknown composition anchor: ${snapshot}`)
+      referenced.add(snapshot)
+    }
+  }
+  if (referenced.size !== anchors.size)
+    throw new Error('Unreferenced API-field lineage anchor.')
+  const { resourceType, fields, resources, ...metadata } = document
+  const groups = resources ?? [{ resourceType: resourceType!, fields: fields! }]
+  if (
+    !groups.length ||
+    new Set(groups.map(group => group.resourceType)).size !== groups.length
+  )
+    throw new Error('API field fixture requires unique resource groups.')
+  const expanded = {
+    ...metadata,
+    fields: groups.flatMap(group => {
+      if (!group.resourceType || !Array.isArray(group.fields))
+        throw new Error('API field fixture requires resource scope and fields.')
+      return group.fields.map(field => {
+        if (Object.hasOwn(field, 'resourceType'))
+          throw new Error('Declare resourceType on the fixture or resource group.')
+        return { ...field, resourceType: group.resourceType }
+      })
+    }),
+  }
+  return { ...expanded, versionHash: computeVersionHash(expanded) }
+}
+
 export type ApiFieldFixtureLineageAnchor = {
   /** Immutable snapshot at which this mapping applies on one lineage branch. */
   snapshotVersion: string
-  /** Exact release-set source signature for this branch anchor. */
-  sourceSchemas: Record<string, string>
+}
+
+const apiDivisionsV01FixtureOverture112To115 = expandApiFieldFixture(
+  apiDivisionsV01FixtureOverture112To115Document as unknown as ApiFieldFixtureDocument,
+)
+const apiDivisionsV01FixtureOverture116To118 = expandApiFieldFixture(
+  apiDivisionsV01FixtureOverture116To118Document as unknown as ApiFieldFixtureDocument,
+)
+const apiDivisionsV01FixturePlandNewTown2006 = expandApiFieldFixture(
+  apiDivisionsV01FixturePlandNewTown2006Document as unknown as ApiFieldFixtureDocument,
+)
+const apiDivisionsV01FixturePlandPu2001 = expandApiFieldFixture(
+  apiDivisionsV01FixturePlandPu2001Document as unknown as ApiFieldFixtureDocument,
+)
+const apiDivisionsV01FixturePlandPu2021 = expandApiFieldFixture(
+  apiDivisionsV01FixturePlandPu2021Document as unknown as ApiFieldFixtureDocument,
+)
+const apiAddressesV01FixtureOfficialLineage = expandApiFieldFixture(
+  apiAddressesV01FixtureOfficialLineageDocument as unknown as ApiFieldFixtureDocument,
+)
+const apiPlacesV01FixtureOverture112To118 = expandApiFieldFixture(
+  apiPlacesV01FixtureOverture112To118Document as unknown as ApiFieldFixtureDocument,
+)
+const apiStatisticsV01FixtureCenstatd = expandApiFieldFixture(
+  apiStatisticsV01FixtureCenstatdDocument as unknown as ApiFieldFixtureDocument,
+)
+
+function deriveSourceCompositions(fixture: ApiFieldFixture, omittedDataset: string) {
+  const sourceCompositions = fixture.sourceCompositions
+    .filter(composition =>
+      [permanentLivingQuartersDataset, populationHouseholdsDistrictDataset].every(
+        code => composition.datasetCodes.includes(code),
+      ),
+    )
+    .map(composition => ({
+      ...composition,
+      datasetCodes: composition.datasetCodes.filter(code => code !== omittedDataset),
+    }))
+  const anchors = new Set(
+    sourceCompositions.flatMap(composition => composition.anchorSnapshotVersions),
+  )
+  return {
+    sourceCompositions,
+    lineageAnchors: fixture.lineageAnchors.filter(anchor =>
+      anchors.has(anchor.snapshotVersion),
+    ),
+  }
 }
 
 /**
@@ -68,18 +198,7 @@ function derivePermanentLivingQuartersFixture(
       [permanentLivingQuartersDataset]:
         fixture.publisherFields[populationHouseholdsDistrictDataset]!,
     },
-    lineageAnchors: fixture.lineageAnchors.flatMap(anchor => {
-      if (
-        anchor.sourceSchemas[permanentLivingQuartersDataset] !== '1.0' ||
-        anchor.sourceSchemas[populationHouseholdsDistrictDataset] !== '1.0'
-      ) {
-        return []
-      }
-
-      const { [populationHouseholdsDistrictDataset]: _omitted, ...sourceSchemas } =
-        anchor.sourceSchemas
-      return [{ ...anchor, sourceSchemas }]
-    }),
+    ...deriveSourceCompositions(fixture, populationHouseholdsDistrictDataset),
     fields: fixture.fields.map(field =>
       field.sourceDatasetCode === populationHouseholdsDistrictDataset
         ? { ...field, sourceDatasetCode: permanentLivingQuartersDataset }
@@ -102,18 +221,7 @@ function derivePermanentLivingQuartersFixture(
 function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   const derivedFixture = {
     ...fixture,
-    lineageAnchors: fixture.lineageAnchors.flatMap(anchor => {
-      if (
-        anchor.sourceSchemas[populationHouseholdsDistrictDataset] !== '1.0' ||
-        anchor.sourceSchemas[permanentLivingQuartersDataset] !== '1.0'
-      ) {
-        return []
-      }
-
-      const { [permanentLivingQuartersDataset]: _omitted, ...sourceSchemas } =
-        anchor.sourceSchemas
-      return [{ ...anchor, sourceSchemas }]
-    }),
+    ...deriveSourceCompositions(fixture, permanentLivingQuartersDataset),
   }
 
   return {
@@ -128,25 +236,23 @@ function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFi
  */
 function deriveCuratedAddressFixture(): ApiFieldFixture {
   const official = apiAddressesV01FixtureOfficialLineage as ApiFieldFixture
-  const placeSchemas = [
-    ...new Set(
-      apiPlacesV01FixtureOverture112To118.lineageAnchors.map(
-        anchor => anchor.sourceSchemas['ds-hk-overture-place'],
-      ),
-    ),
-  ]
   const fixture = {
     ...official,
+    publisherSchemaRanges: {
+      ...official.publisherSchemaRanges,
+      'ds-hk-overture-place':
+        apiPlacesV01FixtureOverture112To118.publisherSchemaRanges[
+          'ds-hk-overture-place'
+        ]!,
+    },
     publisherFields: {
       ...official.publisherFields,
       'ds-hk-overture-place': { 'properties.addresses': 'addresses[]' },
     },
-    lineageAnchors: official.lineageAnchors.flatMap(anchor =>
-      placeSchemas.map(version => ({
-        ...anchor,
-        sourceSchemas: { ...anchor.sourceSchemas, 'ds-hk-overture-place': version },
-      })),
-    ),
+    sourceCompositions: official.sourceCompositions.map(composition => ({
+      ...composition,
+      datasetCodes: [...composition.datasetCodes, 'ds-hk-overture-place'].sort(),
+    })),
     fields: [
       ...official.fields,
       ...['id', 'attributes.i18n', 'attributes.sources', 'relationships'].map(
@@ -159,7 +265,7 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
               origin: 'source' as const,
               fieldPath: 'properties.addresses',
             },
-            { origin: 'curation' as const, fieldPath: 'overture-place-address' },
+            { origin: 'curation' as const, fieldPath: 'overturePlaceAddress' },
           ],
           processingRuleIds: ['normalise-overture-places'],
           resolverCode: 'resolve-place-addresses',
@@ -225,27 +331,47 @@ function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
     publisherFields: structuredClone(fixture.publisherFields),
-    lineageAnchors: fixture.lineageAnchors.map(anchor => ({
-      ...anchor,
-      sourceSchemas: { ...anchor.sourceSchemas },
-    })),
+    publisherSchemaRanges: structuredClone(fixture.publisherSchemaRanges),
+    lineageAnchors: structuredClone(fixture.lineageAnchors),
+    sourceCompositions: structuredClone(fixture.sourceCompositions),
     fields: fixture.fields.map(cloneApiFieldFixtureField),
   }
 }
 
-function haveEqualSourceSchemas(
-  left: Record<string, string>,
-  right: Record<string, string>,
-) {
-  const leftKeys = Object.keys(left).sort()
-  const rightKeys = Object.keys(right).sort()
-
-  if (leftKeys.length !== rightKeys.length) {
-    return false
+export function comparePublisherSchemaVersions(left: string, right: string) {
+  const parse = (value: string) => {
+    if (!/^\d+(?:\.\d+)*$/.test(value))
+      throw new Error(`Invalid publisher schema version: ${value}`)
+    return value.split('.').map(Number)
   }
+  const a = parse(left),
+    b = parse(right)
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const difference = (a[i] ?? 0) - (b[i] ?? 0)
+    if (difference) return difference
+  }
+  return 0
+}
 
-  return leftKeys.every(
-    (key, index) => key === rightKeys[index] && left[key] === right[key],
+function supportsSourceSchemas(
+  fixture: ApiFieldFixture,
+  anchor: ApiFieldFixtureLineageAnchor,
+  selected: Record<string, string>,
+) {
+  return fixture.sourceCompositions.some(
+    composition =>
+      composition.anchorSnapshotVersions.includes(anchor.snapshotVersion) &&
+      composition.datasetCodes.length === Object.keys(selected).length &&
+      composition.datasetCodes.every(dataset => {
+        const version = selected[dataset]
+        const range = fixture.publisherSchemaRanges[dataset]
+        return (
+          version !== undefined &&
+          range !== undefined &&
+          comparePublisherSchemaVersions(version, range.min) >= 0 &&
+          comparePublisherSchemaVersions(version, range.max) <= 0
+        )
+      }),
   )
 }
 
@@ -279,7 +405,7 @@ export function resolveApiFieldFixture(args: {
     .map(fixture => ({
       fixture,
       matchingAnchorIndexes: fixture.lineageAnchors.flatMap((anchor, index) =>
-        haveEqualSourceSchemas(anchor.sourceSchemas, args.sourceSchemas) &&
+        supportsSourceSchemas(fixture, anchor, args.sourceSchemas) &&
         args.lineageSnapshotVersions.includes(anchor.snapshotVersion)
           ? [index]
           : [],
@@ -300,11 +426,11 @@ export function resolveApiFieldFixture(args: {
           right.matchingAnchorIndexes,
           args.lineageSnapshotVersions,
         ) -
-        closestMatchingAnchorDepth(
-          left.fixture,
-          left.matchingAnchorIndexes,
-          args.lineageSnapshotVersions,
-        ),
+          closestMatchingAnchorDepth(
+            left.fixture,
+            left.matchingAnchorIndexes,
+            args.lineageSnapshotVersions,
+          ) || right.fixture.mappingVersion - left.fixture.mappingVersion,
     )
 
   const selected = candidates[0]

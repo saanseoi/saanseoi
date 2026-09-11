@@ -439,7 +439,8 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       'apiReleaseSets',
       `
         CREATE TABLE apiReleaseSets (
-          id TEXT PRIMARY KEY NOT NULL,
+          publisherFields TEXT,
+id TEXT PRIMARY KEY NOT NULL,
           apiVersionId TEXT NOT NULL,
           code TEXT NOT NULL,
           schemaVersion TEXT NOT NULL,
