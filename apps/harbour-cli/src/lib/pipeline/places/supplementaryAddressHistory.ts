@@ -44,6 +44,18 @@ export async function materialiseSupplementaryAddressHistory(input: {
   const target = input.candidates[input.historyBinding]?.db
   if (!target) throw new Error(`Missing supplementary history ${input.historyBinding}.`)
   const owners = new Set<string>([input.historyBinding])
+  const originSnapshots = new Set(input.scopeSnapshotIds)
+  const receipts = current
+    .query<{ scopeId: string; snapshotId: string }, []>(
+      'SELECT scopeId,snapshotId FROM addressPublicationState WHERE preparedAt IS NOT NULL',
+    )
+    .all()
+  const ownSnapshots = new Set(
+    receipts.filter(row => row.scopeId === input.scopeId).map(row => row.snapshotId),
+  )
+  const otherSnapshots = new Set(
+    receipts.filter(row => row.scopeId !== input.scopeId).map(row => row.snapshotId),
+  )
   const priorLocales = current
     .query<{ addressId: string; locale: string }, [string]>(
       'SELECT addressId,locale FROM address2dI18n WHERE snapshotId=?',
@@ -99,16 +111,71 @@ export async function materialiseSupplementaryAddressHistory(input: {
     )
     const primary = [...policy.keys, 'versionHash']
     for (const [, { db }] of histories) {
-      // Source snapshot ownership prevents this edition retiring another lineage.
+      const prior = new Set<string>()
+      const elsewhere = new Set<string>()
+      if (policy.journal) {
+        for (const reference of db
+          .query<
+            {
+              snapshotId: string
+              recordId: string
+              locale: string
+              versionHash: string
+            },
+            [string, string]
+          >(`SELECT snapshotId,recordId,locale,versionHash FROM snapshotVersionChanges
+          WHERE snapshotId IN (SELECT value FROM json_each(?)) AND recordType=? AND operation='upsert' AND recordId LIKE 'opa-%'`)
+          .all(JSON.stringify([...ownSnapshots, ...otherSnapshots]), policy.table)) {
+          const key = identity(
+            {
+              id: reference.recordId,
+              addressId: reference.recordId,
+              locale: reference.locale,
+              versionHash: reference.versionHash,
+            },
+            primary,
+          )
+          if (ownSnapshots.has(reference.snapshotId)) prior.add(key)
+          if (otherSnapshots.has(reference.snapshotId)) elsewhere.add(key)
+        }
+      }
+      // Live membership can belong to several lineages while content retains its
+      // original snapshot. A closure must respect every current selection.
       const active = db
-        .query<Row, [string]>(`SELECT * FROM ${policy.table} WHERE isCurrent=1
-          AND snapshotId IN (SELECT value FROM json_each(?))`)
-        .all(JSON.stringify(input.scopeSnapshotIds))
-      for (const row of active)
-        if (selected.get(identity(row, policy.keys)) !== row.versionHash)
-          db.query(
-            `UPDATE ${policy.table} SET isCurrent=0 WHERE ${where(primary)}`,
-          ).run(...primary.map(key => row[key] ?? null))
+        .query<Row, []>(
+          `SELECT * FROM ${policy.table} WHERE isCurrent=1 AND ${policy.keys[0]} LIKE 'opa-%'`,
+        )
+        .all()
+      for (const row of active) {
+        const key = identity(row, primary)
+        let owned = originSnapshots.has(String(row.snapshotId)) || prior.has(key)
+        let shared = elsewhere.has(key)
+        if (!policy.journal) {
+          const fields = [
+            'addressId',
+            'buildingNumber',
+            'numericStem',
+            'evidence',
+            'derivation',
+          ]
+          const lookupScopes = current
+            .query<{ snapshotId: string }, Array<string | number | null>>(
+              `SELECT snapshotId FROM address2dBuildingNumberLookup WHERE ${where(fields)}`,
+            )
+            .all(...fields.map(field => row[field] ?? null))
+          owned ||= lookupScopes.some(scope => scope.snapshotId === input.scopeId)
+          shared = lookupScopes.some(scope => scope.snapshotId !== input.scopeId)
+        }
+        if (
+          !owned ||
+          shared ||
+          selected.get(identity(row, policy.keys)) === row.versionHash
+        )
+          continue
+        db.query(`UPDATE ${policy.table} SET isCurrent=0 WHERE ${where(primary)}`).run(
+          ...primary.map(key => row[key] ?? null),
+        )
+      }
     }
     for (const row of wanted) {
       const values = primary.map(key => row[key] as string)
