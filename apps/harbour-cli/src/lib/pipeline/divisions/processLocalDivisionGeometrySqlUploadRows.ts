@@ -24,10 +24,7 @@ import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
 } from '@repo/core/pipeline/services/divisions/divisionGeometry'
-import {
-  compressJsonBrotli,
-  MAX_BROTLI_QUALITY,
-} from '@repo/core/pipeline/services/storage/brotliJson.ts'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { and, eq, inArray, sql, getTableColumns } from 'drizzle-orm'
@@ -40,6 +37,7 @@ import type {
   NormalisedGeometry,
 } from './processLocalDivisionGeometrySqlUploadTypes.ts'
 import {
+  canonicalGeometryBrotliQuality,
   createGeometryChurnCounts,
   getGeometryChurnBaseline,
   shouldCompressCanonicalGeometry,
@@ -273,9 +271,7 @@ export async function writeGeometryRows(
         shouldCompressCanonicalGeometry(version.source, version.transform)
           ? compressJsonBrotli(
               row.canonical.geometry,
-              version.source === 'hkgov-pland-pu' && version.transform === undefined
-                ? MAX_BROTLI_QUALITY
-                : undefined,
+              canonicalGeometryBrotliQuality(version.source),
             )
           : row.canonical.geometry,
       )

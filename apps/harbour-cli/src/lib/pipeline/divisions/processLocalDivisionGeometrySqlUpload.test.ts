@@ -33,6 +33,7 @@ test('geometry SQL consumes a bounded row window and closes its input on early s
 import {
   asOptionalInteger,
   calculateHousingMarketAreaDistrictCoverage,
+  canonicalGeometryBrotliQuality,
   createGeometryChurnCounts,
   decodeStoredGeoJsonGeometry,
   divisionReferenceVariant,
@@ -50,7 +51,10 @@ import {
 } from './processLocalDivisionGeometrySqlUpload.ts'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import {
+  compressJsonBrotli,
+  MAX_BROTLI_QUALITY,
+} from '@repo/core/pipeline/services/storage/brotliJson'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -704,6 +708,10 @@ describe('shouldCompressCanonicalGeometry', () => {
     expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', undefined)).toBeTrue()
     expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', 'simplified')).toBeTrue()
     expect(shouldCompressCanonicalGeometry('hkgov-pland-pu', 'simplified')).toBeTrue()
+  })
+
+  test('uses maximum-density Brotli for exact and simplified Planning Unit geometry', () => {
+    expect(canonicalGeometryBrotliQuality('hkgov-pland-pu')).toBe(MAX_BROTLI_QUALITY)
   })
 
   test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {
