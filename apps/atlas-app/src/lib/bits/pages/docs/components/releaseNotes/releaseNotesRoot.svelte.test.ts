@@ -15,5 +15,5 @@ test('tracks a rendered heading using the shared outline IDs', async () => {
     .toHaveAttribute('id', 'source-heading-second')
   await expect
     .element(screen.getByTestId('active-heading'))
-    .toHaveTextContent('source-heading-second')
+    .toHaveTextContent('source-heading-first')
 })

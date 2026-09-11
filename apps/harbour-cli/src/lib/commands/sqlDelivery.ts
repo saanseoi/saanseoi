@@ -1,4 +1,5 @@
 import { summariseD1RowUsage } from '../pipeline/local/sqlDeliveryUsage.ts'
+import { resumeRollbackDelivery } from './rollbackRecovery.ts'
 import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
@@ -67,6 +68,15 @@ export async function runSqlDeliveryCommand(
         null,
         2,
       ),
+    )
+    return
+  }
+  if (plan.context.inputs.operation === 'rollback') {
+    await resumeRollbackDelivery(
+      directory,
+      plan,
+      target,
+      mode as 'both' | 'remote' | 'local',
     )
     return
   }
