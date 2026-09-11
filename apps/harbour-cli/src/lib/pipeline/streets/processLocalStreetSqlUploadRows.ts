@@ -369,22 +369,24 @@ export async function replaceCurrentStreetI18nRows(
       )
       .run()
   }
-  const rows = records.flatMap(record =>
-    record.i18n.map(item => ({
-      base: null,
-      createdAt: now,
-      description: item.description,
-      designator: null,
-      directionalPrefix: null,
-      directionalSuffix: null,
-      locale: item.locale,
-      name: item.name,
-      normalised: normaliseStreetName(item.name),
-      snapshotId,
-      streetId: record.id,
-      updatedAt: now,
-    })),
-  )
+  const rows = records
+    .filter(record => record.status === 'active')
+    .flatMap(record =>
+      record.i18n.map(item => ({
+        base: null,
+        createdAt: now,
+        description: item.description,
+        designator: null,
+        directionalPrefix: null,
+        directionalSuffix: null,
+        locale: item.locale,
+        name: item.name,
+        normalised: normaliseStreetName(item.name),
+        snapshotId,
+        streetId: record.id,
+        updatedAt: now,
+      })),
+    )
   for (const rowsChunk of chunkArray(rows, 6)) {
     await db.insert(currentSchema.streetsI18n).values(rowsChunk).run()
   }

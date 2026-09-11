@@ -1,3 +1,16 @@
+import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  guardSnapshotPublicationWrites,
+  assertPublishedSnapshotMaterialised,
+} from '../local/snapshotPublication.ts'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
+import { deliverStreetWorkflow } from './streetDelivery.ts'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
@@ -11,7 +24,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
-import { toIsoTimestamp } from '@repo/db'
+import { currentSchema, eq, toIsoTimestamp } from '@repo/db'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
@@ -92,7 +105,11 @@ export async function processLocalStreetSqlUpload(
         target,
         previewPlan.regionCode,
         previewPlan.sourceVersion,
-        { cacheTableProfile: 'street', includePreviousShardYears: true },
+        {
+          cacheTableProfile: 'street',
+          includePreviousShardYears: true,
+          resumeSqlDeliveryReleaseId: releaseId,
+        },
       ),
   )
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
@@ -104,6 +121,7 @@ export async function processLocalStreetSqlUpload(
         })
   ) as HarbourClient
 
+  let completed = false
   try {
     await syncStagedReleaseIntoLocalMetaCache(
       context.metaDb,
@@ -191,122 +209,196 @@ export async function processLocalStreetSqlUpload(
     validatePreparedStreets(records, previewPlan)
     const now = toIsoTimestamp()
 
-    if (snapshot.parentSnapshotId) {
-      await cloneStreetCurrentSnapshot(
-        context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
-        snapshot.parentSnapshotId,
-        snapshot.id,
-        now,
-      )
-    }
+    const completionCounts = await deliverStreetWorkflow(
+      context,
+      releaseId,
+      {
+        snapshotId: snapshot.id,
+        preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+      },
+      async context => {
+        const metaDb = context.metaDb as unknown as HarbourReadableDb &
+          HarbourWritableDb
+        const publication: PublicationPreparation = {
+          table: 'streetPublicationState',
+          scopeId: snapshot.snapshotLineageId,
+          snapshotId: snapshot.id,
+          publicationToken: releaseId,
+          timestamp: now,
+        }
+        const publicationDb = context.currentDb
+        await beginSnapshotPublication(publicationDb, publication)
+        context = {
+          ...context,
+          currentDb: guardSnapshotPublicationWrites(publicationDb, publication),
+        }
+        if (snapshot.parentSnapshotId) {
+          await assertPublishedSnapshotMaterialised(
+            context.currentDb as unknown as HarbourReadableDb,
+            'streetPublicationState',
+            snapshot.parentSnapshotId,
+          )
+          await cloneStreetCurrentSnapshot(
+            context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
+            snapshot.parentSnapshotId,
+            snapshot.id,
+            now,
+          )
+        }
 
-    const recordIds = records.map(record => record.base.id)
-    const [currentSourceRows, currentStreets] = await Promise.all([
-      listCurrentSourceRows(
-        context.sourceDb as unknown as HarbourReadableDb,
-        recordIds,
-      ),
-      listCurrentMaterialisedStreets(
-        context.currentDb as unknown as HarbourReadableDb,
-        snapshot.id,
-      ),
-    ])
-    const sourceHashById = new Map(
-      currentSourceRows.map(row => [row.sourceRecordId, row.versionHash]),
-    )
-    const canonicalStreetIdsBySourceRecord =
-      indexCanonicalStreetIdsBySourceRecord(currentStreets)
-    const resolvedRecords = records.map(record =>
-      resolvePersistentStreetIds(
-        record,
-        canonicalStreetIdsBySourceRecord.get(record.base.id) ?? [],
-      ),
-    )
-    const changedSourceRecords = resolvedRecords.filter(
-      record => sourceHashById.get(record.base.id) !== record.sourceHash,
-    )
-    const lifecycle = materialiseLandsdStreetLifecycle({
-      current: currentStreets,
-      events: changedSourceRecords.map(toLifecycleInput),
-    })
-    validateBaselineCoverage(resolvedRecords, lifecycle.current)
-    const changedMaterialisedStreets = await Promise.all(
-      lifecycle.changed.map(addMaterialisedStreetHash),
-    )
-    const preparedChangelog = await Promise.all(
-      lifecycle.changelog.map(entry =>
-        addStreetChangelogHash(entry, {
-          sourceReleaseId: releaseId,
-          sourceShardId: sourceShard.id,
-        }),
-      ),
-    )
+        const inheritedChangelog = await context.currentDb
+          .select({
+            recordKey: currentSchema.streetChangelog.recordKey,
+            streetId: currentSchema.streetChangelog.streetId,
+          })
+          .from(currentSchema.streetChangelog)
+          .where(eq(currentSchema.streetChangelog.snapshotId, snapshot.id))
+          .all()
+        const recordIds = records.map(record => record.base.id)
+        const [currentSourceRows, currentStreets] = await Promise.all([
+          listCurrentSourceRows(
+            context.sourceDb as unknown as HarbourReadableDb,
+            recordIds,
+          ),
+          listCurrentMaterialisedStreets(
+            context.currentDb as unknown as HarbourReadableDb,
+            snapshot.id,
+          ),
+        ])
+        const sourceHashById = new Map(
+          currentSourceRows.map(row => [row.sourceRecordId, row.versionHash]),
+        )
+        const canonicalStreetIdsBySourceRecord =
+          indexCanonicalStreetIdsBySourceRecord(currentStreets)
+        const resolvedRecords = records.map(record =>
+          resolvePersistentStreetIds(
+            record,
+            canonicalStreetIdsBySourceRecord.get(record.base.id) ?? [],
+          ),
+        )
+        const changedSourceRecords = resolvedRecords.filter(
+          record => sourceHashById.get(record.base.id) !== record.sourceHash,
+        )
+        const lifecycle = materialiseLandsdStreetLifecycle({
+          current: currentStreets,
+          events: changedSourceRecords.map(toLifecycleInput),
+        })
+        validateBaselineCoverage(resolvedRecords, lifecycle.current)
+        const changedMaterialisedStreets = await Promise.all(
+          lifecycle.changed.map(addMaterialisedStreetHash),
+        )
+        const preparedChangelog = await Promise.all(
+          lifecycle.changelog.map(entry =>
+            addStreetChangelogHash(entry, {
+              sourceReleaseId: releaseId,
+              sourceShardId: sourceShard.id,
+            }),
+          ),
+        )
 
-    await closeSourceVersions(
-      context.sourceDb as unknown as HarbourWritableDb,
-      changedSourceRecords,
-      releaseCode,
-      now,
-    )
-    await closeHistoryVersions(
-      context.historyDb as unknown as HarbourWritableDb,
-      changedMaterialisedStreets.map(record => record.id),
-      snapshot.id,
-      now,
-    )
-    await replaceCurrentStreetRows(
-      context.currentDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      changedMaterialisedStreets,
-      now,
-    )
-    await replaceCurrentStreetI18nRows(
-      context.currentDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      changedMaterialisedStreets,
-      now,
-    )
-    await syncCurrentStreetChangelog(
-      context.currentDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      preparedChangelog,
-      changedMaterialisedStreets
-        .filter(record => record.status === 'deleted')
-        .map(record => record.id),
-      now,
-    )
-    await insertHistoryRows(
-      context.historyDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      releaseId,
-      changedMaterialisedStreets,
-      now,
-    )
-    await insertHistoryI18nRows(
-      context.historyDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      releaseId,
-      changedMaterialisedStreets,
-      now,
-    )
-    await insertHistoryStreetChangelog(
-      context.historyDb as unknown as HarbourWritableDb,
-      snapshot.id,
-      preparedChangelog,
-      now,
-    )
-    await insertSourceRows(
-      context.sourceDb as unknown as HarbourWritableDb,
-      releaseId,
-      releaseCode,
-      changedSourceRecords,
-      now,
-    )
-    await replaceReleaseProcessingActions(metaDb, releaseId, [])
-    await replaceDatasetStats(
-      metaDb,
-      releaseId,
-      buildStreetStats(resolvedRecords, lifecycle.current, lifecycle.stats, now),
+        await closeSourceVersions(
+          context.sourceDb as unknown as HarbourWritableDb,
+          changedSourceRecords,
+          releaseCode,
+          now,
+        )
+        await closeHistoryVersions(
+          context.historyDb as unknown as HarbourWritableDb,
+          changedMaterialisedStreets.map(record => record.id),
+          snapshot.id,
+          now,
+        )
+        await replaceCurrentStreetRows(
+          context.currentDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          changedMaterialisedStreets,
+          now,
+        )
+        await replaceCurrentStreetI18nRows(
+          context.currentDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          changedMaterialisedStreets,
+          now,
+        )
+        await syncCurrentStreetChangelog(
+          context.currentDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          preparedChangelog,
+          changedMaterialisedStreets
+            .filter(record => record.status === 'deleted')
+            .map(record => record.id),
+          now,
+        )
+        await insertHistoryRows(
+          context.historyDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          releaseId,
+          changedMaterialisedStreets,
+          now,
+        )
+        await insertHistoryI18nRows(
+          context.historyDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          releaseId,
+          changedMaterialisedStreets,
+          now,
+        )
+        await insertHistoryStreetChangelog(
+          context.historyDb as unknown as HarbourWritableDb,
+          snapshot.id,
+          preparedChangelog,
+          now,
+        )
+        await insertSourceRows(
+          context.sourceDb as unknown as HarbourWritableDb,
+          releaseId,
+          releaseCode,
+          changedSourceRecords,
+          now,
+        )
+        await replaceReleaseProcessingActions(metaDb, releaseId, [])
+        await replaceDatasetStats(
+          metaDb,
+          releaseId,
+          buildStreetStats(resolvedRecords, lifecycle.current, lifecycle.stats, now),
+        )
+        const removedStreetIds = new Set(
+          changedMaterialisedStreets
+            .filter(street => street.status === 'deleted')
+            .map(street => street.id),
+        )
+        const expectedChangelog = new Set(
+          [...inheritedChangelog, ...preparedChangelog]
+            .filter(entry => !removedStreetIds.has(entry.streetId))
+            .map(entry => JSON.stringify([entry.recordKey, entry.streetId])),
+        )
+        await completeSnapshotPublication(
+          publicationDb,
+          publication,
+          [
+            buildPublicationRowCountSql(
+              'streets',
+              snapshot.id,
+              lifecycle.current.length,
+            ),
+            buildPublicationRowCountSql(
+              'streetChangelog',
+              snapshot.id,
+              expectedChangelog.size,
+            ),
+            buildPublicationRowCountSql(
+              'streetsI18n',
+              snapshot.id,
+              lifecycle.current.reduce((sum, street) => sum + street.i18n.length, 0),
+            ),
+          ].join(' AND '),
+        )
+        return {
+          importedRows: records.length,
+          changedRows: changedMaterialisedStreets.length,
+          sourceRowsChanged: changedSourceRecords.length,
+        }
+      },
     )
     await client.stageCompleted(
       releaseId,
@@ -314,15 +406,14 @@ export async function processLocalStreetSqlUpload(
       {
         resourceType: 'street',
         sourceRows: previewPlan.rowCount,
-        importedRows: records.length,
-        changedRows: changedMaterialisedStreets.length,
-        sourceRowsChanged: changedSourceRecords.length,
+        ...completionCounts,
       },
       releaseCode,
     )
     const publishResult = await client.publishDataset(releaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+    completed = true
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {
     progress.fail()
@@ -337,6 +428,7 @@ export async function processLocalStreetSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
+    if (completed) await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
     context.cleanup()
   }
 }
