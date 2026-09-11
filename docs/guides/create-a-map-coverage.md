@@ -79,3 +79,13 @@ needed.
   pagination.
 - Review the mobile, notebook and Leaflet hand-offs with a practitioner before
   presenting them as full integrations.
+
+## Division hierarchy contract
+
+The urban-density snippets, example responses and preview read
+`attributes.hierarchies.administrative` for area membership. Division classifications
+use `category` and `class`; geometry resource `type` remains a GeoJSON/JSON:API field
+where applicable. Hierarchy labels are stored bilingual `name` values, independent of
+requested locale. The example uses district administrative ancestry rather than a city
+label or source subtype. Branching paths are arrays of arrays; flattening is used only
+to locate an area, never to infer new paths.
