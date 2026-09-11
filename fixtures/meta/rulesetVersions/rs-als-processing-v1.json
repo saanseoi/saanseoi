@@ -1,0 +1,21 @@
+{
+  "versionHash": "sha256:18c9a8abe97257fa63f33ccf443da66fbec94fd8fa89a135aade6046fef8be45",
+  "code": "rs-als-processing-v1",
+  "resourceType": "address",
+  "strategy": "merge",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "prepare-als-addresses",
+      "ruleFixture": "address-preparation"
+    },
+    {
+      "operationCode": "normalise-als-addresses",
+      "ruleFixture": "address-normalisation"
+    },
+    {
+      "operationCode": "curate-als-addresses",
+      "ruleFixture": "address-curation"
+    }
+  ]
+}

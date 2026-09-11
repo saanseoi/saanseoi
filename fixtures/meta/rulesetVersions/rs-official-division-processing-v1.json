@@ -1,0 +1,21 @@
+{
+  "versionHash": "sha256:788c4f7483033283bc715746e408a0bd154048282a8a6557180f1a9350a65882",
+  "code": "rs-official-division-processing-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "resolve-geography-identities",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "select-landsd-settlements",
+      "ruleFixture": "landsd-settlement-selection"
+    },
+    {
+      "operationCode": "normalise-planning-divisions",
+      "ruleFixture": "planning-division-normalisation"
+    }
+  ]
+}
