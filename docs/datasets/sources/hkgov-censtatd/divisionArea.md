@@ -44,9 +44,10 @@ Exact and simplified geometry imports use distinct
 snapshot identities and confirms remote imports before replaying the same SQL into the
 mirror.
 
-Exact and simplified metadata replay leaves identical release assignments, processing
-actions and statistics untouched. Changes to any replayed field, including `null`
-transitions, still apply in statement order.
+Ordinary metadata upserts for exact and simplified phases leave identical release
+assignments, processing actions and statistics untouched. Changes to any replayed field,
+including `null` transitions, still apply in statement order. The
+[SQL delivery contract](../../sql-delivery.md) describes the oversized-row exception.
 
 Remote replay selects immutable canonical content through upsert journal keys and
 records removals as delete journals. Source closures use exact version keys. Simplified
