@@ -96,8 +96,17 @@ export async function upsertPlaceMetadata(
     ...(options.sourceBindingNames ?? []),
     ...(sourceShard ? [sourceShard.bindingName] : []),
   ]
+  await assignPlaceSourceShards(metaDb, releaseId, environment, sourceBindingNames)
+}
+
+export async function assignPlaceSourceShards(
+  metaDb: HarbourReadableDb & HarbourWritableDb,
+  releaseId: string,
+  environment: 'preview' | 'production',
+  bindingNames: readonly string[],
+) {
   const sourceShards = await Promise.all(
-    [...new Set(sourceBindingNames)].map(async bindingName => {
+    [...new Set(bindingNames)].map(async bindingName => {
       const shard = await metaDb
         .select({
           id: metaSchema.metaDataShards.id,
@@ -126,6 +135,7 @@ export async function upsertPlaceMetadata(
       upsertReleaseShardAssignment(metaDb, releaseId, shard.id),
     ),
   )
+  return sourceShards
 }
 
 export async function placeTargets(
