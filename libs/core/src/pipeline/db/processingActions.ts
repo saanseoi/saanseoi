@@ -128,7 +128,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
         .where(
           and(
             eq(metaSchema.stats.releaseId, releaseId),
-            eq(metaSchema.stats.type, 'processing'),
+            eq(metaSchema.stats.kind, 'processing'),
           ),
         )
         .all()) as ReleaseStatsRow[],
@@ -141,7 +141,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
       .where(
         and(
           eq(metaSchema.stats.releaseId, releaseId),
-          eq(metaSchema.stats.type, 'processing'),
+          eq(metaSchema.stats.kind, 'processing'),
         ),
       )
       .limit(1)
@@ -198,8 +198,8 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     metric: 'processing',
     metricUnit: 'count',
     releaseId,
-    snapshotId: null,
-    type: 'processing',
+
+    kind: 'processing',
     updatedAt: timestamp,
     value: Math.max(0, Math.floor(action.affectedRecordCount)),
   }))
@@ -228,7 +228,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
       .where(
         and(
           eq(metaSchema.stats.releaseId, releaseId),
-          eq(metaSchema.stats.type, 'processing'),
+          eq(metaSchema.stats.kind, 'processing'),
         ),
       ),
     ...chunkArray(materialisedActions, getMaxRowsPerInsert(9)).map(rows =>

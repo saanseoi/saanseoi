@@ -48,7 +48,7 @@ export async function replaceDatasetStatsAndReturnRows(
       .where(
         and(
           eq(metaSchema.stats.releaseId, dataset.releaseId),
-          eq(metaSchema.stats.type, 'release'),
+          eq(metaSchema.stats.kind, 'release'),
         ),
       ),
   ])
@@ -65,7 +65,7 @@ export async function replaceDatasetStatsAndReturnRows(
       groupValue: row.groupValue ?? null,
       id: crypto.randomUUID(),
       releaseId: dataset.releaseId,
-      snapshotId: null,
+
       updatedAt: row.updatedAt ?? timestamp,
     }
   })
@@ -98,7 +98,7 @@ export async function replaceReleaseStatsDimension(
       .where(
         and(
           eq(metaSchema.stats.releaseId, dataset.releaseId),
-          eq(metaSchema.stats.type, 'release'),
+          eq(metaSchema.stats.kind, 'release'),
           eq(metaSchema.stats.dimension, dimension),
         ),
       ),

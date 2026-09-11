@@ -46,7 +46,7 @@ function createProcessingActionsDb() {
       releaseId TEXT,
       snapshotId TEXT,
       apiReleaseSetId TEXT,
-      type TEXT NOT NULL,
+      kind TEXT NOT NULL,
       dimension TEXT,
       metric TEXT,
       metricUnit TEXT,
