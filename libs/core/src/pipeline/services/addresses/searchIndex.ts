@@ -63,6 +63,20 @@ export function buildAddressSearchSyncSql(input: readonly AddressSearchScope[]) 
         `SELECT ${literal(scope)} AS scopeId, ${literal(snapshot)} AS snapshotId`,
     )
     .join(' UNION ALL ')
+  return [
+    ...buildAddressSearchContentSql(selection),
+    `DELETE FROM addressSearchScopes WHERE scopeId NOT IN (${[...scopes.keys()].map(literal).join(', ')})`,
+    `INSERT INTO addressSearchScopes (scopeId, snapshotId) ${selection}
+      WHERE true ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId
+      WHERE addressSearchScopes.snapshotId IS NOT excluded.snapshotId`,
+    'DROP TABLE IF EXISTS addressesFts',
+  ]
+}
+
+/** Repair/reset helpers reuse the published selection, never all snapshots. */
+export function buildAddressSearchContentSql(
+  selection = 'SELECT scopeId, snapshotId FROM addressSearchScopes',
+) {
   const desired = `WITH selected AS (${selection}), desired AS (
     SELECT s.scopeId, i.addressId, i.locale, i.formattedAddress, i.buildingName,
       TRIM(COALESCE(i.buildingNumberExpression, '') || ' ' ||
@@ -82,12 +96,6 @@ export function buildAddressSearchSyncSql(input: readonly AddressSearchScope[]) 
     )`,
     `${desired} INSERT INTO addressSearchFts (${columns})
       SELECT ${columns} FROM desired EXCEPT SELECT ${columns} FROM addressSearchFts`,
-    `DELETE FROM addressSearchScopes WHERE scopeId NOT IN (${[...scopes.keys()].map(literal).join(', ')})`,
-    `INSERT INTO addressSearchScopes (scopeId, snapshotId) ${selection}
-      WHERE true ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId
-      WHERE addressSearchScopes.snapshotId IS NOT excluded.snapshotId`,
-    // The previous snapshot-keyed index is retired only after its replacement succeeds.
-    'DROP TABLE IF EXISTS addressesFts',
   ]
 }
 

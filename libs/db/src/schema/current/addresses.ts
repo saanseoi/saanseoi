@@ -150,9 +150,8 @@ export const address2dBuildingNumberLookup = sqliteTable(
 )
 
 /**
- * TypeScript query mapping for the Address FTS5 virtual table. The virtual
- * table itself is rebuilt from the immutable address snapshot by
- * `rebuild-addresses-fts.sql`; it is deliberately not a Drizzle migration.
+ * Published search selection. Stable scopes keep document keys independent of
+ * snapshot promotion; the FTS5 virtual table is created by search finalisation.
  */
 export const addressSearchScopes = sqliteTable('addressSearchScopes', {
   scopeId: text('scopeId').primaryKey(),
