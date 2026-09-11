@@ -521,10 +521,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                             },
                             sourceEvidence:
                               record.cells.length > 0
-                                ? record.cells.map(cell => ({
-                                    properties: cell.properties,
-                                    sourceRecordId: cell.sourceRecordId,
-                                  }))
+                                ? record.cells
+                                    .filter(cell => cell.wasGeometryRepaired)
+                                    .map(cell => ({
+                                      properties: cell.properties,
+                                      sourceRecordId: cell.sourceRecordId,
+                                    }))
                                 : record.newTown
                                   ? {
                                       properties: record.newTown.properties,
@@ -534,7 +536,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                           })),
                           mode: 'automatic',
                           summary:
-                            'Repaired known Planning Department polygon self-intersections with buffer(0); the native source record includes the row-keyed approved transform.',
+                            'Repaired known Planning Department polygon self-intersections with buffer(0); publisher geometry remains in source records and repaired geometry is stored in canonical divisions.',
                         },
                       ]
                     : [],

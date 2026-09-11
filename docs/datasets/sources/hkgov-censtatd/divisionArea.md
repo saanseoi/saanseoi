@@ -304,7 +304,9 @@ unverified until reviewed.
 The generated HMA division rows include the shared Parquet hierarchy columns. Their
 `class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
 HMAs have no hierarchy. Their authoritative classification remains the C&SD
-`canonical_type` of `housing-market-area`.
+`canonical_type` of `housing-market-area`. The canonical `identifiers` object contains
+only the publisher code, for example `{"hkgovCenstatd":{"code":"HMA158"}}`; the
+geography type belongs to classification.
 
 ## Ingestion
 

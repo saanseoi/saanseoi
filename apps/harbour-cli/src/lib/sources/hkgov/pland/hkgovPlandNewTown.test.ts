@@ -24,6 +24,7 @@ describe('Planning Department New Town source identifiers', () => {
         )
         const input = JSON.parse(await readFile(inputFile, 'utf8')) as {
           features: Array<{
+            geometry: unknown
             properties: { NewTown_en: string; NewTown_Tc: string; NewTown_Sc: string }
           }>
         }
@@ -65,6 +66,12 @@ describe('Planning Department New Town source identifiers', () => {
           if (!properties) throw new Error('Missing publisher feature.')
           expect(sourceRecordId).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
           expect(division.newTown?.properties).toEqual(properties)
+          expect(division.newTown?.sourceGeometry).toEqual(
+            input.features[index]?.geometry,
+          )
+          if (division.newTown?.wasGeometryRepaired) {
+            expect(division.base.geometry).not.toEqual(division.newTown.sourceGeometry)
+          }
           expect(division.base.identifiers).toEqual({ 'PLAND:NEWTOWN': sourceRecordId })
           expect(
             Object.fromEntries(division.i18n.map(row => [row.locale, row.name])),
@@ -75,6 +82,7 @@ describe('Planning Department New Town source identifiers', () => {
           })
           expect(areas[index]).toMatchObject({
             division_id: division.base.id,
+            geometry: division.base.geometry,
             newtown_id: sourceRecordId,
             identifiers: { 'PLAND:NEWTOWN': sourceRecordId },
             sources: [{ dataset: 'hkgov-pland-new-town', newTownId: sourceRecordId }],

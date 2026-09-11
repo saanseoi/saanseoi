@@ -278,7 +278,7 @@ describe('Planning Department backfills', () => {
     }
   })
 
-  test.each(['1', '2'])(
+  test.each(['1', '2', '3'])(
     'rebuilds version %s cached artefacts when the preparation contract changes',
     async previousContractVersion => {
       const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))

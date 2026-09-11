@@ -224,7 +224,7 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
               geometry: feature.geometry,
               id: divisionId,
               identifiers: {
-                hkgovCenstatd: { code: geography.code, geographyType: geography.type },
+                hkgovCenstatd: { code: geography.code },
               },
               names,
               parent_division_id: '',

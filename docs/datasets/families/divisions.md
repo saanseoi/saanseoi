@@ -180,6 +180,13 @@ release history alongside them. Publisher record versions remain in
 Extracted names, classifications, hierarchy, cartography and geometry flags belong to
 canonical history/current tables, not duplicate source columns. Native geometry may be
 retained separately when the publisher delivers it outside the attribute payload.
+Planning source tables retain the original `sourceGeometry`; repaired results belong to
+canonical `geometry`. Source-keyed processing actions record the repair method and
+affected records. Source tables do not duplicate repaired geometry or repair flags.
+
+Division `identifiers` contain source codes and identifiers. Geography classification
+belongs to `class` and other classification fields; C&SD HMA identifiers contain only
+`hkgovCenstatd.code`.
 
 Canonical and geometry ingestion retain recipes, source rules and exact selections under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).

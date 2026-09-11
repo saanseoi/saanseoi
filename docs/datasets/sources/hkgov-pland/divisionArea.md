@@ -146,6 +146,11 @@ provider codes are retained in `identifiers` as `PLAND:PPU`, `PLAND:SPU`, `PLAND
 and `PLAND:SUBUNIT`. Canonical IDs are deterministic UUIDv5 values derived from the
 provider-scoped Planning Department identity and never reuse an Overture GERS ID.
 
+Planning Cell source record keys use `PLAND:<TPU>:<subunit>:<row ordinal>`, for example
+`PLAND:111:10:4385`. The TPU code already includes the PPU and SPU prefixes; all four
+publisher codes remain in `properties`. The one-based delivery row ordinal distinguishes
+repeated cell assertions. Prepared cell-group references use `PLAND:<TPU>:<subunit>`.
+
 The public `/v0.1/identityBridge` lookup derives mappings from the selected release
 records. Namespaces are `PLAND:PPU`, `PLAND:SPU`, `PLAND:TPU` and `PLAND:SUBUNIT`;
 subunit values use `<TPU>-<subunit>`. Only the record's own planning level contributes
@@ -160,7 +165,7 @@ the source schema.
 Planning-level codes and New Town labels remain only in `properties`; source tables
 retain feature identity, release history, provenance and native geometry. Explicit
 geometry-repair evidence is keyed to the source version independently of canonical
-division fields.
+division fields and retained in release processing actions.
 
 ## Geometry policy
 
@@ -168,10 +173,12 @@ Only Polygon and MultiPolygon source geometry is accepted. The input artefacts h
 material same-TPU overlap. Six known source cells have ring self-intersections: two in
 2006, one in 2011, one in 2016, and two in 2021. The approved adapter policy stores the
 original source geometry unchanged and uses a `buffer(0)` topology repair solely for
-canonical geometry and child-area unions. Each repaired record is identified in
-`repairedSourceFeatureIds` and `wasGeometryRepaired`; all other invalid geometry is
-rejected. The source row retains a `repairedGeometry` only when it is the approved
-`buffer(0)` transform of that row's exact publisher geometry version.
+canonical geometry and child-area unions. Each repaired record is identified in the
+prepared `repairedSourceFeatureIds` and `wasGeometryRepaired` evidence, then retained in
+release processing actions with its source key and canonical division. All other invalid
+geometry is rejected. The source table stores only original publisher geometry;
+canonical `geometry` stores the accepted repair or aggregate. Repair flags and repaired
+geometry copies are not source columns.
 
 The aggregate union step also removes zero-area interior rings. These can be emitted by
 otherwise valid unions, but are not valid canonical area geometry; source-cell geometry
@@ -269,10 +276,10 @@ division's `divisionI18n` rows. No source-level locale rows are created.
 The downloaded New Town artefacts contain known invalid rings: Tseung Kwan O in 2006,
 2011 and 2016; Tuen Mun and Tai Po in 2006; and Tung Chung in 2021. The reviewed
 `buffer(0)` policy repairs only those invalid topology cases for canonical geometry. The
-source layer includes the publisher feature and original geometry unchanged, records
-`wasGeometryRepaired`, and stores a row-keyed `repairedGeometry` transform separately.
-The CLI can also export a separately labelled `-repaired.geojson` diagnostic copy
-without altering the publisher file.
+source layer includes the publisher feature and original geometry unchanged, records the
+repair in source-keyed release processing actions, and stores the repaired result in
+canonical `geometry`. The CLI can also export a separately labelled `-repaired.geojson`
+diagnostic copy without altering the publisher file.
 
 Its `sourceSchemaVersion` `1.0` is likewise an observed artefact profile for the stable
 `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` fields, rather than a version declared by
