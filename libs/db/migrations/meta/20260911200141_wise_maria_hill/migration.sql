@@ -1,0 +1,1 @@
+ALTER TABLE `snapshotAssemblySources` RENAME COLUMN `configJson` TO `selectionRulesJson`;

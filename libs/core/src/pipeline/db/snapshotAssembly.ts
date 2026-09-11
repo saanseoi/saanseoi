@@ -153,7 +153,7 @@ export async function recordEffectiveSnapshotAssembly(
         anchorDatasetId: null,
         maxLagDays: null,
         priority: 0,
-        configJson: { rules: input.rules },
+        selectionRulesJson: { rules: input.rules },
       })
       .onConflictDoNothing()
       .run()

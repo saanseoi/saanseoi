@@ -688,7 +688,7 @@ id TEXT PRIMARY KEY NOT NULL,
       anchorDatasetId TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
-      configJson TEXT,
+      selectionRulesJson TEXT,
       PRIMARY KEY (snapshotAssemblyId, datasetId, role)
     );
 
