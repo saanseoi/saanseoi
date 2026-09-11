@@ -360,10 +360,11 @@ describe('division geometry normalisation', () => {
   })
 
   test('keeps a New Town area attached to its cohort-scoped planning division', () => {
+    const inputGeometry = Object.freeze({ ...polygon, bbox: [0.1, 0.1, 0.9, 0.9] })
     const normalised = normaliseDivisionAreaGeometryRow(
       {
         division_id: 'b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
-        geometry: polygon,
+        geometry: inputGeometry,
         id: 'PLAND:NEWTOWN:b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2',
         identifiers: { 'PLAND:NEWTOWN': 'tseung-kwan-o' },
         newtown_id: 'tseung-kwan-o',
@@ -378,6 +379,10 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.identifiers).toEqual({
       hkgovPlandNewTown: { id: 'tseung-kwan-o' },
     })
+    expect(normalised.canonical.geometry).toEqual(polygon)
+    expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
+    expect(normalised.source.properties).toHaveProperty('geometry', inputGeometry)
+    expect(inputGeometry.bbox).toEqual([0.1, 0.1, 0.9, 0.9])
   })
 
   test('retains the complete Overture boundary source row in properties', () => {
