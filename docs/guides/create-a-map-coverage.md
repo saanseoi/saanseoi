@@ -98,4 +98,6 @@ camelCase; API provenance pairs them with original publisher paths and distingui
 registry and curation inputs. The guide's LLM references state this contract.
 
 Source-record examples and the Sources schema use `properties` for retained publisher
-attributes, with `geometry` and `sourceRecordId` as envelope siblings.
+attributes, with `geometry` and `sourceRecordId` as envelope siblings. Places discovery
+references specify latest-release-only text search and the temporary `503 fts_not_ready`
+response during publication finalisation.

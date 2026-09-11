@@ -109,7 +109,7 @@ isolated SQLite fixture. It includes collection dependency revalidation, verifie
 selected unit and checks invalidation after a same-snapshot unit edit. Neither mode is a
 full-release benchmark. `--quick` uses 100 Places.
 
-Native local delivery retains Place data, search and supplementary Address SQL with
+Native local delivery retains Place data and supplementary Address SQL with
 transactional receipts. Review gates remain part of the workflow; a retry replays the
 retained payloads before verification and publication.
 
@@ -124,15 +124,25 @@ least-recently-used cache retains at most 128 owners and 16 MiB of serialised co
 data, including missing-owner results. Each invocation starts fresh, so a retry reads
 same-snapshot Address edits; failed reads are not retained.
 
-The Places search rebuild recreates the derived `placesFts` index as an FTS5 virtual
-table. Verification includes `MATCH` queries against the migrated schema, not just
-index-row counts.
+Places search indexes only the latest published catalogue selection in `placeSearchFts`.
+A stable scope identifies each region, domain and snapshot lineage; `placeSearchScopes`
+maps that scope to its published snapshot. Finalisation compares the complete localised
+text projection, including linked addresses, the selected Address3D unit, streets and
+division names. Only removed or changed documents are deleted, and only new or changed
+documents are inserted. Identical snapshot promotion updates the scope mapping alone.
 
-Metadata, search and supplementary Address SQL use
-[sealed delivery phases](../sql-delivery.md) alongside Places data. Review and
-publication remain separate lifecycle steps. Local Places search replay follows local
-data replay. Address search text selects the linked unit from the Address3D collection;
-it does not index neighbouring units in that collection.
+Publication finalises Place and supplementary Address search together in one atomic
+current-database batch. Deferred uploads finalise once through release-set
+reconciliation after the sequence completes; pending release sets prevent finalisation.
+Reconciliation also retries failed finalisation when no new release sets need
+publication. Until the latest selection is ready, search returns `503 fts_not_ready`.
+Metadata publication and current-database finalisation are separate transactions.
+
+Metadata and supplementary Address SQL use [sealed delivery phases](../sql-delivery.md)
+alongside Places data. Review and publication remain separate lifecycle steps. Planning
+mirrors omit derived search indexes. The repair SQL synchronises only the existing scope
+selection. Place search text selects the linked unit from the Address3D collection; it
+does not index neighbouring units.
 
 The Places API family publishes Overture `place` records for the selected region. Each
 Overture release is processed as a complete replacement snapshot and includes the raw
@@ -217,7 +227,7 @@ used by the source files; UUID format alone is not accepted as evidence of GERS
 membership.
 
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
-rebuildable `placesFts` index. `placesDivision` and `placesCells` are current-only
+incremental `placeSearchFts` index. `placesDivision` and `placesCells` are current-only
 projections and are rebuilt for the active Place snapshot; they are not copied into
 history. The division projection is derived from the selected address snapshot's
 `divisionSnapshotId` and division IDs.
