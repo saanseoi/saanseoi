@@ -72,8 +72,14 @@ import {
   completeStatisticCache,
   runStatisticProgressStep,
 } from './statisticProgress.ts'
-import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot.ts'
-import { planCanonicalStatistics } from './planCanonicalStatistics'
+import {
+  materialiseStatisticSnapshots,
+  resolveStatisticSnapshotPredecessors,
+} from './materialiseStatisticSnapshot.ts'
+import {
+  planCanonicalStatistics,
+  selectStatisticReferencePeriodsWithChanges,
+} from './planCanonicalStatistics'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
@@ -324,10 +330,26 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           table: sourceTable,
         },
       })
+    const referencePeriods = uniqueReferencePeriods(canonical.records)
+    const historyDbs = context.historyTargets.map(
+      target => target.db as HarbourReadableDb,
+    )
+    const changedReferencePeriods = await selectStatisticReferencePeriodsWithChanges({
+      canonical,
+      metaDb,
+      historyDbs,
+      snapshots: await resolveStatisticSnapshotPredecessors({
+        datasetCode,
+        metaDb,
+        referencePeriods,
+      }),
+    })
     const snapshots = await materialiseStatisticSnapshots({
       datasetCode,
       metaDb,
-      referencePeriods: uniqueReferencePeriods(canonical.records),
+      referencePeriods: referencePeriods.filter(referencePeriod =>
+        changedReferencePeriods.has(referencePeriod.code),
+      ),
       releaseId,
       target,
     })
@@ -335,7 +357,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       canonical,
       snapshots,
       metaDb,
-      historyDbs: context.historyTargets.map(target => target.db as HarbourReadableDb),
+      historyDbs,
       sourceReleaseId: releaseId,
     })
     progress.message(
