@@ -157,7 +157,10 @@ export async function recordEffectiveSnapshotAssembly(
       .onConflictDoNothing()
       .run()
   }
-  const previousSummary = existing?.selectionSummaryJson
+  const previousSummary = existing?.selectionSummaryJson as
+    | Record<string, unknown>
+    | null
+    | undefined
   const summary = {
     ...(previousSummary && typeof previousSummary === 'object' ? previousSummary : {}),
     ...args.selectionSummaryJson,
