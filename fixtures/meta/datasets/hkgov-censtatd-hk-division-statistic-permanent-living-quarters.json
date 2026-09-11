@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:be660c499631630989db72bd254362f3bdff3c223b46b24dd902fb3536d5c24a",
+  "versionHash": "sha256:daac4c1ec92d0f2d708ae38f64f9d8301667ba4f3b6f0ec644c264f8ae10327c",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
@@ -91,7 +91,17 @@
     {
       "locale": "en",
       "name": "Permanent Living Quarters",
-      "description": "Planned C&SD source for area-level permanent living-quarters stock by type."
+      "description": "C&SD source for area-level permanent living-quarters stock by type."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "永久性居住屋宇單位",
+      "description": "政府統計處提供的按地區及類型劃分的永久性居住屋宇單位數目統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "永久性居住屋宇单位",
+      "description": "政府统计处提供的按地区及类型划分的永久性居住屋宇单位数目统计。"
     }
   ]
 }
