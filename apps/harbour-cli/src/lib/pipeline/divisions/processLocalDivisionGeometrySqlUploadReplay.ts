@@ -47,7 +47,7 @@ export async function replayGeometryIntoRemote(
       snapshotId,
     )
     const currentTable =
-      plan.type === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
+      plan.resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries'
     const historyTable = currentTable
     const sourceTable = resolveGeometrySourceTable(plan)
     const currentRows = skipCanonicalMaterialisation
@@ -117,7 +117,7 @@ export async function replayGeometryIntoRemote(
                   iterateGeometryCacheRows(
                     context.state.dbCacheDir,
                     historyBindingName,
-                    `SELECT "id", "versionHash", "isCurrent", "updatedAt" FROM "${historyTable}" WHERE "isCurrent" = 0 AND "id" IN (SELECT "recordId" FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)} AND "recordType" = ${geometrySqlLiteral(plan.type)})`,
+                    `SELECT "id", "versionHash", "isCurrent", "updatedAt" FROM "${historyTable}" WHERE "isCurrent" = 0 AND "id" IN (SELECT "recordId" FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)} AND "recordType" = ${geometrySqlLiteral(plan.resourceType)})`,
                   ),
                   ['id', 'versionHash'],
                 )
@@ -201,7 +201,7 @@ export async function replayGeometryIntoRemote(
       {
         context,
         releaseId,
-        phase: `division-geometry-${plan.type.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
+        phase: `division-geometry-${plan.resourceType.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
           plan.transform ?? 'exact',
         )
           .replace(/[^a-z0-9-]/gi, '-')
@@ -558,7 +558,7 @@ function geometrySqlLiteral(value: unknown): string {
 }
 
 function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
-  if (plan.type === 'divisionBoundary') return 'overtureDivisionBoundaries'
+  if (plan.resourceType === 'divisionBoundary') return 'overtureDivisionBoundaries'
   if (plan.source === 'hkgov-had') return 'hkgovHadDivisionAreas'
   if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdDivisionAreas'
   if (plan.source === 'overture') return 'overtureDivisionAreas'

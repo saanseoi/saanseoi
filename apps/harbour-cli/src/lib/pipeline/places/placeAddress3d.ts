@@ -70,7 +70,13 @@ export function createPlaceAddress3dMatcher(
     snapshotId: string,
     address: { id: string; parentAddressId: string | null },
     texts: string[],
-  ) => matchPlaceAddress3d(db, snapshotId, address, texts, load)
+    observer?: PlaceAddress3dReadObserver,
+  ) =>
+    matchPlaceAddress3d(db, snapshotId, address, texts, async (snapshot, owner) => {
+      const collection = await load(snapshot, owner)
+      observer?.(snapshot, owner, collection)
+      return collection
+    })
 }
 
 /** Only an explicit, single floor and flat token can establish unit identity. */

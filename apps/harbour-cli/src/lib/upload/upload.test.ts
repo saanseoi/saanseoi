@@ -182,6 +182,7 @@ describe('upload helpers', () => {
       expect(JSON.parse(String(init?.body))).toMatchObject({
         force: true,
         reuseExistingRelease: true,
+        resumeStagedRelease: true,
       })
       return Response.json({ status: 'staged' })
     }) as typeof fetch
@@ -195,6 +196,7 @@ describe('upload helpers', () => {
           expect(releaseCode).toBe('dr-hk-overture-division-2025-09-24.0')
           return 'retained-owner'
         },
+        resumeStagedRelease: true,
       },
     )
     expect(requested).toBe(true)

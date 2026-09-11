@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import type { ProvenanceStore } from '@repo/core/provenance'
 import { retainDivisionProvenance } from './divisionProvenance'
 import { readAuditPage } from '@repo/core/provenance'
-import { divisionAreaGeometryRule } from '@repo/core/pipeline/services/divisionGeometry'
+import { divisionAreaGeometryRule } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { overtureHongKongAreaGeometryPatchDeclaration } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
 test('unknown operations cannot silently disappear into normalisation counters', async () => {

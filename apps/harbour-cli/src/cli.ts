@@ -1,3 +1,4 @@
+import { disposeRemoteR2 } from './lib/storage/remoteR2.ts'
 import { runStatisticsApiStatsBackfillCommand } from './lib/commands/statsBackfillStatisticsApi.ts'
 import { cancel } from '@clack/prompts'
 
@@ -290,6 +291,7 @@ async function main() {
 const disposeInterruptHandler = installInterruptHandler()
 
 main()
+  .finally(disposeRemoteR2)
   .then(() => {
     disposeInterruptHandler()
   })

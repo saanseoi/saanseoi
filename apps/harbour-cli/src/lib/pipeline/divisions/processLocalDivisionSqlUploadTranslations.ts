@@ -1,12 +1,13 @@
+import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { divisionTranslationRule } from '@repo/core/pipeline/services/divisionTranslationRule'
+import { divisionTranslationRule } from '@repo/core/pipeline/services/divisions/divisionTranslationRule'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import {
   type buildDivisionHierarchyLookup,
   normaliseDivisionRow,
-} from '@repo/core/pipeline/services/division'
-import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
+} from '@repo/core/pipeline/services/divisions/division'
+import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import {
   resolveDatasetNameTranslationsBatch,
   type DatasetTranslationApplication,
@@ -46,7 +47,7 @@ export async function resolveDivisionNameTranslations(
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
       })
       const parentDivisionId = resolveParentDivisionIdFromHierarchy(
-        normalised.base.hierarchy,
+        normalised.base.hierarchies,
       )
       recordsById.set(normalised.base.id, {
         context: {
@@ -96,30 +97,16 @@ export function mergeDivisionI18nTranslations(
 export function divisionAuditParents(
   hierarchy: unknown,
 ): Array<{ id: string; names: string[] }> {
-  if (!Array.isArray(hierarchy)) return []
-  return hierarchy.flatMap(parent => {
-    if (!parent || typeof parent !== 'object' || typeof parent.division_id !== 'string')
-      return []
-    const localisations =
-      parent.i18n && typeof parent.i18n === 'object' ? Object.values(parent.i18n) : []
-    return [
-      {
-        id: parent.division_id,
-        names: localisations.flatMap(value =>
-          value &&
-          typeof value === 'object' &&
-          'name' in value &&
-          typeof value.name === 'string'
-            ? [value.name]
-            : [],
-        ),
-      },
-    ]
-  })
+  return divisionHierarchyEntries(
+    hierarchy as import('@repo/db').DivisionHierarchies,
+  ).map(entry => ({
+    id: entry.id,
+    names: entry.name ? [entry.name] : [],
+  }))
 }
 
 export function buildDivisionTranslationProcessingActions(input: {
-  division: Pick<NewDivisionRow, 'id' | 'level' | 'type'>
+  division: Pick<NewDivisionRow, 'id' | 'level' | 'class'>
   rawNames: unknown
   translations: DatasetTranslationApplication[]
   parents?: Array<{ id: string; names: string[] }>
@@ -134,7 +121,7 @@ export function buildDivisionTranslationProcessingActions(input: {
       canonicalDivision: {
         id: input.division.id,
         level: input.division.level,
-        type: input.division.type,
+        class: input.division.class,
       },
       sourceNames: input.rawNames ?? null,
       translation,

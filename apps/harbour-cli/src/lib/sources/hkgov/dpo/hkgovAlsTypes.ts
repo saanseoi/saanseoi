@@ -8,7 +8,7 @@ import type {
   HkgovAlsIdentityRecord,
 } from './hkgovAlsDrift.ts'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
-import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/stats'
+import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { HkgovAls3dParentBlockEnrichment } from './hkgovAls3dBlockEnrichment.ts'
 
 export type PrepareHkgovAlsOptions = {

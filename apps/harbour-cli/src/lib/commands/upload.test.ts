@@ -45,7 +45,7 @@ describe('upload command address prerequisites', () => {
         sourceVersion: '2025-09-24.0',
         supersedesDatasetId: null,
         theme: 'addresses',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         divisionCohortKey: '2025-09-10.0',
@@ -96,7 +96,7 @@ describe('division geometry upload prerequisites', () => {
           sourceVersion: '2016',
           supersedesDatasetId: null,
           theme: 'divisions',
-          type: 'divisionArea',
+          resourceType: 'divisionArea',
         },
       ),
     ).resolves.toBeUndefined()

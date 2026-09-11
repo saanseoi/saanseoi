@@ -18,7 +18,7 @@ const previewResult: PreparedUploadResult = {
     regionCode: 'hk',
     cohortKey: '2025-09',
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
     source: 'overture',
     sourceVersion: '2025-09-24.0',
     filePath: '/tmp/division.parquet',

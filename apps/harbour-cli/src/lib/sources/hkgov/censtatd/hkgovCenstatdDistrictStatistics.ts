@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
-import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statisticsReferencePeriod'
+import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statistics/statisticsReferencePeriod'
 
 export type PreparedHkgovCenstatdDistrictStatistic = {
   outputFile: string

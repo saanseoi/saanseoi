@@ -3,7 +3,7 @@ import {
   buildLocaleStatsRows,
   createLocaleStatsAccumulator,
   updateLocaleStatsAccumulator,
-} from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type { LandsdStreetMaterialisedStreet } from '../../sources/hkgov/landsd/street/landsdStreetLifecycle.ts'
 import type { PreparedStreet } from './processLocalStreetSqlUploadTypes.ts'
@@ -177,7 +177,7 @@ function streetStat(
     groupValue,
     metric,
     metricUnit,
-    type: 'release',
+
     updatedAt: now,
     value,
   }

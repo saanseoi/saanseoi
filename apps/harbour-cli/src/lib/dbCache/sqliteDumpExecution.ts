@@ -1,5 +1,5 @@
 import type { Database } from 'bun:sqlite'
-import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 
 /** Avoid repeatedly parsing the tail of a large sqlite3_exec script. */
 export function executeSqliteDump(db: Database, sql: string) {

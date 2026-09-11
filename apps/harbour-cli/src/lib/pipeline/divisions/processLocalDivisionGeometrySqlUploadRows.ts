@@ -1,4 +1,4 @@
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import {
   recordSourceResolutions,
   resolvedEntities,
@@ -8,11 +8,11 @@ import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVer
 import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
-} from '@repo/core/pipeline/services/divisionGeometry'
+} from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import {
   compressJsonBrotli,
   MAX_BROTLI_QUALITY,
-} from '@repo/core/pipeline/services/brotliJson.ts'
+} from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { toIsoTimestamp } from '@repo/db'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { and, eq, sql } from 'drizzle-orm'
@@ -32,7 +32,7 @@ import { requireString } from './processLocalDivisionGeometrySqlUploadPreparatio
 
 export async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
-  type: GeometryUploadPlan['type'],
+  type: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
     source: GeometryUploadPlan['source']
@@ -346,6 +346,7 @@ export async function writeGeometryRows(
         .values(chunk as never)
         .onConflictDoUpdate({
           target: [historyTable.id, historyTable.versionHash],
+          setWhere: sql`isCurrent <> 1`,
           set: {
             sourceReleaseId: version.releaseId,
             snapshotId: version.snapshotId,
@@ -380,9 +381,9 @@ export async function writeGeometryRows(
         .values(chunk as never)
         .onConflictDoUpdate({
           target: [sourceTable.sourceRecordId, sourceTable.versionHash],
+          setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
           set: {
             releaseId: version.releaseId,
-            validFromRelease: version.releaseCode,
             validToRelease: null,
             isCurrent: true,
             updatedAt: now,
@@ -546,9 +547,9 @@ async function writeCenstatdSourceDerivatives(
           derivatives.transform,
           derivatives.versionHash,
         ],
+        setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
         set: {
           releaseId: version.releaseId,
-          validFromRelease: version.releaseCode,
           validToRelease: null,
           isCurrent: true,
           updatedAt: now,
@@ -587,7 +588,17 @@ async function closeChangedRows(
     const id = requireString(row.id, 'current row id')
     const versionHash = requireString(row.versionHash, 'current row versionHash')
     if (currentHashes.get(id) === versionHash) continue
-    await typedDb.update(table).set(values).where(eq(idColumn, id)).run()
+    await typedDb
+      .update(table)
+      .set(values)
+      .where(
+        and(
+          eq(idColumn, id),
+          eq(table.versionHash, versionHash),
+          eq(table.isCurrent, true),
+        ),
+      )
+      .run()
     closedRows.push({ id, versionHash })
   }
   return closedRows

@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path'
 import type {
   PlaceI18nRecord,
   PlaceI18nField,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import {
   AZURE_TRANSLATION_MACHINE,
   AZURE_TRANSLATION_REGION,

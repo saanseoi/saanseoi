@@ -2,7 +2,7 @@ import {
   sourceResolutionSql,
   resolvedEntities,
 } from '@repo/core/pipeline/db/sourceResolutions'
-import { overtureSourcePayload } from '@repo/core/pipeline/services/sourcePayload'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
@@ -42,7 +42,6 @@ export async function buildDivisionSourceSqlFile(
   const releaseId = buildSourceReleaseId(message)
   const changedBaseRows: Record<string, SqlValue>[] = []
   const changedIds: string[] = []
-  const unchangedIds: string[] = []
 
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
@@ -51,7 +50,7 @@ export async function buildDivisionSourceSqlFile(
         changedIds.push(record.id)
         changedBaseRows.push({
           sourceRecordId: record.id,
-          sources: jsonText(overtureSourcePayload(record.raw).sources),
+          sourceLocator: jsonText(overtureSourcePayload(record.raw).sourceLocator),
           rawProperties: jsonText(overtureSourcePayload(record.raw).rawProperties),
           sourceGeometry: jsonText(overtureSourcePayload(record.raw).sourceGeometry),
           versionHash: record.sourcePayloadHash,
@@ -60,8 +59,6 @@ export async function buildDivisionSourceSqlFile(
           validToRelease: null,
           isCurrent: true,
         })
-      } else if (state.currentSourceRows.has(record.id)) {
-        unchangedIds.push(record.id)
       }
     }
   })
@@ -78,12 +75,6 @@ export async function buildDivisionSourceSqlFile(
       changedIds,
       PRIMARY_SOURCE_OWNER_KEY,
     ).get(PRIMARY_SOURCE_OWNER_KEY) ?? []
-  const unchangedIdsInPrimary =
-    groupIdsByOwnerShard(
-      state.currentSourceRows,
-      unchangedIds,
-      PRIMARY_SOURCE_OWNER_KEY,
-    ).get(PRIMARY_SOURCE_OWNER_KEY) ?? []
   const missingIdsInPrimary =
     groupIdsByOwnerShard(
       state.currentSourceRows,
@@ -92,7 +83,6 @@ export async function buildDivisionSourceSqlFile(
     ).get(PRIMARY_SOURCE_OWNER_KEY) ?? []
   const now = new Date().toISOString()
   const statements = [
-    ...buildAdvanceSourceReleaseStatements(unchangedIdsInPrimary, releaseId, now),
     ...buildCloseSourceVersionStatements(
       changedIdsInPrimary,
       message.sourceVersion,
@@ -107,7 +97,7 @@ export async function buildDivisionSourceSqlFile(
       'overtureDivisions',
       [
         'sourceRecordId',
-        'sources',
+        'sourceLocator',
         'rawProperties',
         'sourceGeometry',
         'versionHash',
@@ -124,7 +114,8 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,
   isCurrent = 1,
-  updatedAt = ${sqlLiteral(now)}`.trim(),
+  updatedAt = ${sqlLiteral(now)}
+WHERE overtureDivisions.isCurrent <> 1 OR overtureDivisions.validToRelease IS NOT NULL`.trim(),
       },
     ),
   ]
@@ -175,9 +166,10 @@ export async function buildDivisionHistorySqlFile(
         isCurrent: true,
         divisionCode: record.base.divisionCode,
         level: record.base.level,
-        type: record.base.type,
+        class: record.base.class,
+        category: record.base.category,
         wikidata: record.base.wikidata,
-        hierarchy: jsonText(record.base.hierarchy),
+        hierarchies: jsonText(record.base.hierarchies),
         cartography: jsonText(record.base.cartography),
         sources: jsonText(record.base.sources),
         geometry: jsonText(record.base.geometry),
@@ -232,9 +224,10 @@ export async function buildDivisionHistorySqlFile(
         'isCurrent',
         'divisionCode',
         'level',
-        'type',
+        'class',
+        'category',
         'wikidata',
-        'hierarchy',
+        'hierarchies',
         'cartography',
         'sources',
         'geometry',
@@ -363,11 +356,11 @@ export async function buildDivisionCurrentInitSqlFile(
     statements.push(
       `
 INSERT INTO divisions (
-  snapshotId, id, divisionCode, level, type, wikidata, hierarchy,
+  snapshotId, id, divisionCode, level, class, category, wikidata, hierarchies,
   cartography, sources, geometry, bbox, createdAt, updatedAt
 )
 SELECT
-  ${sqlLiteral(snapshotId)}, id, divisionCode, level, type, wikidata, hierarchy,
+  ${sqlLiteral(snapshotId)}, id, divisionCode, level, class, category, wikidata, hierarchies,
   cartography, sources, geometry, bbox, ${sqlLiteral(clonedAt)}, ${sqlLiteral(clonedAt)}
 FROM divisions
 WHERE snapshotId = ${sqlLiteral(parentSnapshotId)}
@@ -417,9 +410,10 @@ export async function buildDivisionCurrentSqlFile(
           id: record.id,
           divisionCode: record.base.divisionCode,
           level: record.base.level,
-          type: record.base.type,
+          class: record.base.class,
+          category: record.base.category,
           wikidata: record.base.wikidata,
-          hierarchy: jsonText(record.base.hierarchy),
+          hierarchies: jsonText(record.base.hierarchies),
           cartography: jsonText(record.base.cartography),
           sources: jsonText(record.base.sources),
           geometry: jsonText(record.base.geometry),
@@ -456,9 +450,10 @@ export async function buildDivisionCurrentSqlFile(
         'id',
         'divisionCode',
         'level',
-        'type',
+        'class',
+        'category',
         'wikidata',
-        'hierarchy',
+        'hierarchies',
         'cartography',
         'sources',
         'geometry',
@@ -471,9 +466,10 @@ export async function buildDivisionCurrentSqlFile(
         suffix: `
 ON CONFLICT(snapshotId, id) DO UPDATE SET
   level = excluded.level,
-  type = excluded.type,
+  class = excluded.class,
+  category = excluded.category,
   wikidata = excluded.wikidata,
-  hierarchy = excluded.hierarchy,
+  hierarchies = excluded.hierarchies,
   cartography = excluded.cartography,
   sources = excluded.sources,
   geometry = excluded.geometry,
@@ -517,20 +513,6 @@ ON CONFLICT(snapshotId, divisionId, locale) DO UPDATE SET
     'current',
     `${buildDivisionSqlRunId(message)}-current.sql`,
     statements,
-  )
-}
-
-export function buildAdvanceSourceReleaseStatements(
-  sourceRecordIds: string[],
-  releaseId: string,
-  now: string,
-) {
-  return chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 3)).map(chunk =>
-    `
-UPDATE overtureDivisions
-SET releaseId = ${sqlLiteral(releaseId)}, updatedAt = ${sqlLiteral(now)}
-WHERE isCurrent = 1
-  AND sourceRecordId IN (${chunk.map(sqlLiteral).join(', ')});`.trim(),
   )
 }
 

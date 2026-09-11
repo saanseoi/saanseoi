@@ -48,9 +48,9 @@ import {
   simplifyHkgovDivisionAreas,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUpload.ts'
-import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisionGeometry'
+import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-import { compressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 
 describe('formatMissingDivisionReferenceRecords', () => {
   test('prints three complete source records and reports the remainder', () => {
@@ -146,7 +146,7 @@ describe('divisionReferenceVariant', () => {
         sourceVersion: '2001',
         theme: 'divisions',
         transform: 'simplified',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       }),
     ).toBe('hkgov-pland-pu')
   })
@@ -363,7 +363,7 @@ describe('exact geometry release statistics', () => {
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       }),
     ).toBeFalse()
   })
@@ -381,7 +381,7 @@ describe('exact geometry release statistics', () => {
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       }),
     ).toBeTrue()
   })

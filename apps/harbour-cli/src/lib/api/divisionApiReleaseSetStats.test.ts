@@ -14,10 +14,12 @@ import {
 const division = (id: string, extra = {}) =>
   ({
     id,
-    type: 'district',
+    class: 'district',
+    category: 'administrative',
+    hierarchies: { administrative: [], locality: [], full: [] },
     level: 2,
     ...extra,
-  }) as DivisionStatsSnapshot['divisions'][number]
+  }) as unknown as DivisionStatsSnapshot['divisions'][number]
 const name = (id: string, value: string, extra = {}) =>
   ({
     divisionId: id,
@@ -72,7 +74,13 @@ test('churn counts name and hierarchy changes, additions and removals, excluding
         versionHash: 'new',
       }),
       division('renamed'),
-      division('parent', { hierarchy: [{ division_id: 'new-parent' }] }),
+      division('parent', {
+        hierarchies: {
+          administrative: [[{ id: 'new-parent', class: 'region', name: 'Parent' }]],
+          locality: [],
+          full: [[{ id: 'new-parent', class: 'region', name: 'Parent' }]],
+        },
+      }),
       division('added'),
     ],
     names: [name('renamed', 'New')],
@@ -173,7 +181,7 @@ test('replay loads inherited content across shards, respects deletes, and reject
     meta.exec(`INSERT INTO snapshots (id, parentSnapshotId) VALUES ('root', NULL), ('leaf', 'root');
       INSERT INTO dataShards (id, bindingName) VALUES ('old', 'old'), ('new', 'new');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
-    older.exec(`INSERT INTO divisions (id, versionHash, type, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
+    older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
       INSERT INTO divisionsI18n (divisionId, locale, versionHash, name) VALUES ('keep', 'en', 'n1', 'Kept'), ('remove', 'en', 'n2', 'Removed');
       INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId) VALUES
       ('root', 'division', 'keep', '', 'v1', 'upsert', 'source'),

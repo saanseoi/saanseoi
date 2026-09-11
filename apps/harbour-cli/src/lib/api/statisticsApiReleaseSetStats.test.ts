@@ -16,6 +16,7 @@ const record = (id: string, values: Record<string, string>, datasetCode = 'a') =
     referencePeriodCode: '2025',
     geography: { kind: 'district', code: id },
     divisionId: null,
+    dimensions: {},
   }) as StatisticsStatsData['records'][number]
 const field = (fieldName: string, datasetCode = 'a') =>
   ({
@@ -74,7 +75,10 @@ test('counts dataset-qualified fields, literal availability and localisation wit
   expect(value(rows, 'observations', 'observationStatus', 'unavailable')).toBe(1)
   expect(value(rows, 'field_label_coverage', 'locale', 'zh-hant')).toBe(25)
   expect(value(rows, 'unverified_field_labels', 'locale', 'zh-hant')).toBe(1)
-  expect(rows.some(row => row.metric === 'churn')).toBe(false)
+  expect(value(rows, 'added_count')).toBe(2)
+  expect(value(rows, 'changed_count')).toBe(0)
+  expect(value(rows, 'removed_count')).toBe(0)
+  expect(value(rows, 'unchanged_count')).toBe(0)
   expect(() => buildStatisticsStatsRows({ ...data, fields: [] })).toThrow(
     'Missing definition',
   )
@@ -96,7 +100,11 @@ test('structural churn ignores numerical changes and distinguishes dataset ident
   const rows = buildStatisticsStatsRows(current, previous)
   expect(value(rows, 'unchanged_count', 'structural', 'fields')).toBe(1)
   expect(value(rows, 'added_count', 'structural', 'fields')).toBe(1)
-  expect(rows.some(row => row.dimension === 'changed_count')).toBe(false)
+  expect(value(rows, 'changed_count')).toBe(1)
+  expect(value(rows, 'added_count')).toBe(1)
+  expect(
+    rows.some(row => row.dimension === 'changed_count' && row.groupBy === 'structural'),
+  ).toBe(false)
 })
 function createTables(sqlite: Database, tables: SQLiteTable[]) {
   for (const table of tables) {

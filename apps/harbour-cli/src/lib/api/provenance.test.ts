@@ -153,3 +153,35 @@ test('preserves a non-JSON terminal HTTP error without retrying', async () => {
   ).rejects.toThrow('HTTP 401')
   expect(attempts).toBe(1)
 })
+
+test('local ingestion uploads provenance to production R2 and registers only locally', async () => {
+  const { store, ref } = await processingResult()
+  const requests: string[] = []
+  const objects: string[] = []
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = String(input)
+    requests.push(url)
+    if (url.includes('/objects/'))
+      return Response.json({
+        hash: url.split('/').at(-1),
+        byteLength: init?.body instanceof ArrayBuffer ? init.body.byteLength : 0,
+      })
+    return Response.json({ manifestHash: ref.hash })
+  }) as typeof fetch
+  await deliverProcessingResult(
+    { remote: false, environment: 'dev', r2: 'production' },
+    store,
+    ref,
+    undefined,
+    {
+      async retainRemoteObject(environment, key, bytes) {
+        expect(environment).toBe('production')
+        expect(bytes.byteLength).toBeGreaterThan(0)
+        objects.push(key)
+      },
+    },
+  )
+  expect(objects.length).toBeGreaterThan(0)
+  expect(requests.every(url => url.startsWith('http://localhost:8788/'))).toBe(true)
+  expect(requests.at(-1)).toContain('/v1/provenance/releases/release')
+})

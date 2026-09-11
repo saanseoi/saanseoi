@@ -9,11 +9,11 @@ import {
   buildAddressBaseHashInput,
   buildMatchKey,
   normaliseAddressI18nSnapshotRow,
-} from '@repo/core/pipeline/services/addressPipeline/normalisation'
+} from '@repo/core/pipeline/services/addresses/normalisation'
 import type {
   AddressCurrentLookupCache,
   AddressCurrentLookupEntry,
-} from '@repo/core/pipeline/services/addressPipeline/types'
+} from '@repo/core/pipeline/services/addresses/types'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../..')
 const ADDRESS_LOOKUP_CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/address-cache')

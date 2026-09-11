@@ -4,7 +4,10 @@ import {
   resolveSnapshotVersionState,
   type ReplayShard,
 } from '@repo/core/pipeline/db/snapshotReplay'
-import { buildChurnCounts, type ChurnCounts } from '@repo/core/pipeline/services/stats'
+import {
+  buildChurnCounts,
+  type ChurnCounts,
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import { and, eq, inArray, metaSchema } from '@repo/db'
 
 export type AddressHistoryTarget = { bindingName: string; db: unknown }

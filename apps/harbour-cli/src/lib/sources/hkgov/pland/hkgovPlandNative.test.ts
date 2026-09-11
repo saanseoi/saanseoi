@@ -149,7 +149,7 @@ describe('Planning Department native New Town SHP intake', () => {
         ),
         outputFile,
         sourceVersion: '2021',
-        type: 'division',
+        resourceType: 'division',
       })
       const file = await asyncBufferFromFile(outputFile)
       const preparedRows = await parquetReadObjects({

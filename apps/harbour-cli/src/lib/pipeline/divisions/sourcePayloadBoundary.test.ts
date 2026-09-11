@@ -24,7 +24,7 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
     const message = {
       source: 'overture',
       regionCode: 'hk',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-08-19.0',
       releaseId: 'release',
       datasetId: 'dataset',
@@ -70,7 +70,8 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
     ).toEqual([
       {
         sourceRecordId: 'publisher',
-        rawProperties: '{"names":{"primary":" Native "}}',
+        rawProperties:
+          '{"sources":[{"dataset":"upstream"}],"names":{"primary":" Native "}}',
         sourceGeometry: '{"type":"Point","coordinates":[114,22]}',
       },
     ])

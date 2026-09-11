@@ -6,14 +6,14 @@ import { buildDatasetCode, buildDatasetReleaseCode, type UploadPlan } from '@rep
 import { parseFixtureReleaseNotesUrl, resolveReleaseNotesUrl } from './releaseNotes.ts'
 
 function buildOvertureDivisionPlan(
-  type: 'division' | 'divisionArea' | 'divisionBoundary',
+  resourceType: 'division' | 'divisionArea' | 'divisionBoundary',
 ) {
   return {
     cohortKey: '2025-09-24.0',
-    datasetCode: buildDatasetCode('hk', 'overture', type),
-    datasetId: `dataset-overture-${type}`,
-    fileName: `${type}.parquet`,
-    filePath: `/tmp/${type}.parquet`,
+    datasetCode: buildDatasetCode('hk', 'overture', resourceType),
+    datasetId: `dataset-overture-${resourceType}`,
+    fileName: `${resourceType}.parquet`,
+    filePath: `/tmp/${resourceType}.parquet`,
     inferredFrom: {
       cohortKey: 'path',
       regionCode: 'path',
@@ -22,16 +22,21 @@ function buildOvertureDivisionPlan(
       theme: 'path',
       type: 'path',
     },
-    originalFileName: `${type}.parquet`,
+    originalFileName: `${resourceType}.parquet`,
     regionCode: 'hk',
-    releaseCode: buildDatasetReleaseCode('hk', 'overture', '2025-09-24.0', type),
+    releaseCode: buildDatasetReleaseCode(
+      'hk',
+      'overture',
+      '2025-09-24.0',
+      resourceType,
+    ),
     rowCount: 1,
     schemaFingerprint: 'schema-fingerprint',
     source: 'overture',
     sourceVersion: '2025-09-24.0',
     supersedesDatasetId: null,
     theme: 'divisions',
-    type,
+    resourceType: resourceType,
   } satisfies UploadPlan
 }
 

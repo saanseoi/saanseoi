@@ -1,4 +1,4 @@
-import { retainDivisionProvenance as retainCore } from '@repo/core/pipeline/services/divisionProvenance'
+import { retainDivisionProvenance as retainCore } from '@repo/core/pipeline/services/divisions/divisionProvenance'
 import { retainRegisteredRule } from '../../api/retainedRule'
 import { identityCurationRule } from '../../identityCurations'
 import { overtureHongKongAreaGeometryPatchDeclaration } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'

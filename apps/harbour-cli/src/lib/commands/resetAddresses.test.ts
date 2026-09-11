@@ -1,6 +1,12 @@
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, test } from 'bun:test'
 
 import {
+  readBeforeImage,
+  restoreBeforeImage,
+  assertIdentityBeforeImageAvailable,
   resolveOwnedMaterialisedDivisionSnapshotIds,
   selectOwnedOfficialAddressApiReleaseSetIds,
   selectOwnedOfficialAddressSnapshotIds,
@@ -45,4 +51,31 @@ describe('official address reset ownership', () => {
       ]),
     ).toEqual(['addresses'])
   })
+})
+
+test('identity history backup stays outside the manifest and restores exact bytes', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'address-before-image-'))
+  try {
+    const path = join(dir, 'history.json')
+    const original = Buffer.alloc(9 * 1024 * 1024, 97)
+    await writeFile(path, original)
+    const image = await readBeforeImage(path, dir)
+    expect(JSON.stringify(image).length).toBeLessThan(512)
+    expect(image.contentBase64).toBeUndefined()
+    await writeFile(path, 'changed')
+    await assertIdentityBeforeImageAvailable(image)
+    await restoreBeforeImage(path, image)
+    expect((await readFile(path)).equals(original)).toBe(true)
+    if (!image.backupPath) throw new Error('Expected separate backup')
+    await rm(image.backupPath)
+    await expect(assertIdentityBeforeImageAvailable(image)).rejects.toThrow()
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('missing recovery before-image is rejected before reset can begin', async () => {
+  await expect(assertIdentityBeforeImageAvailable({ exists: true })).rejects.toThrow(
+    'before any database or asset changes',
+  )
 })

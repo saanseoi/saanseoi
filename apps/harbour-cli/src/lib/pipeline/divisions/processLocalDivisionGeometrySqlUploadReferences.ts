@@ -38,7 +38,7 @@ export async function assertDivisionReferences(
     throw new Error('Division reference lookup returned no snapshots.')
   }
   const referenceIds = new Set(
-    rows.flatMap(row => divisionReferenceIds(plan.type, row)),
+    rows.flatMap(row => divisionReferenceIds(plan.resourceType, row)),
   )
   let divisionSnapshot = initialDivisionSnapshot
   let knownIds = new Set<string>()
@@ -63,7 +63,7 @@ export async function assertDivisionReferences(
     if (index === 0) knownIds = candidateIds
   }
   const missingReferences = rows.flatMap(row => {
-    const missingIds = divisionReferenceIds(plan.type, row).filter(
+    const missingIds = divisionReferenceIds(plan.resourceType, row).filter(
       id => !knownIds.has(id),
     )
     return missingIds.length > 0
@@ -178,12 +178,13 @@ async function restoreDivisionSnapshotFromHistory(
         bbox: historySchema.divisions.bbox,
         cartography: historySchema.divisions.cartography,
         geometry: historySchema.divisions.geometry,
-        hierarchy: historySchema.divisions.hierarchy,
+        hierarchies: historySchema.divisions.hierarchies,
         id: historySchema.divisions.id,
         identifiers: historySchema.divisions.identifiers,
         level: historySchema.divisions.level,
         sources: historySchema.divisions.sources,
-        type: historySchema.divisions.type,
+        category: historySchema.divisions.category,
+        class: historySchema.divisions.class,
         wikidata: historySchema.divisions.wikidata,
       })
       .from(historySchema.divisions)
@@ -238,7 +239,7 @@ async function restoreDivisionSnapshotFromHistory(
 }
 
 export function divisionReferenceIds(
-  type: GeometryUploadPlan['type'],
+  type: GeometryUploadPlan['resourceType'],
   row: NonNullable<NormalisedGeometry>,
 ) {
   const canonical = row.canonical as {

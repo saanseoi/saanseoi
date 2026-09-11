@@ -369,7 +369,8 @@ export async function loadCanonicalDistricts(
       locale: currentSchema.divisionsI18n.locale,
       name: currentSchema.divisionsI18n.name,
       nameAlts: currentSchema.divisionsI18n.nameAlts,
-      type: currentSchema.divisions.type,
+      category: currentSchema.divisions.category,
+      class: currentSchema.divisions.class,
     })
     .from(currentSchema.divisions)
     .innerJoin(
@@ -383,7 +384,7 @@ export async function loadCanonicalDistricts(
     .all()
   const byId = new Map<string, LandsdStreetCanonicalDistrict>()
   for (const row of rows) {
-    if (row.level !== 2 && row.type !== 'district') continue
+    if (row.class !== 'district') continue
     const district = byId.get(row.id) ?? { id: row.id, names: {} }
     if (row.locale === 'en' && row.name) district.names.en = row.name
     if (row.locale === 'zh-Hant' && row.name) district.names.zhHant = row.name

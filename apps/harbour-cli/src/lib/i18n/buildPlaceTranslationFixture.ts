@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import {
   resolvePlaceTranslationsBatch,
   type PlaceTranslationRecord,

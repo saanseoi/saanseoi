@@ -30,18 +30,18 @@ export async function checkOvertureUploadAssumptions(
 ) {
   if (
     plan.source !== 'overture' ||
-    !['division', 'divisionArea', 'divisionBoundary'].includes(plan.type)
+    !['division', 'divisionArea', 'divisionBoundary'].includes(plan.resourceType)
   ) {
     return []
   }
 
   const summary = await summariseDivisionAssumptionColumns(filePath)
-  return evaluateDivisionAssumptions(summary, plan.type, plan.regionCode)
+  return evaluateDivisionAssumptions(summary, plan.resourceType, plan.regionCode)
 }
 
 export function evaluateDivisionAssumptions(
   summary: DivisionAssumptionSummary,
-  resourceType: UploadPlan['type'] = 'division',
+  resourceType: UploadPlan['resourceType'] = 'division',
   regionCode: UploadPlan['regionCode'] = 'hk',
 ) {
   const warnings: string[] = []

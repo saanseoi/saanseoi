@@ -5,7 +5,7 @@ import { buildDeterministicUuidV5 } from '@repo/db'
 import {
   alsSourcePayload,
   type AlsPublisherSource,
-} from '@repo/core/pipeline/services/alsSourcePayload'
+} from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import type { AlsAuditGuardId } from './hkgovAlsAuditGuards'
 import { applyAlsAddressHierarchies } from './hkgovAlsHierarchies'

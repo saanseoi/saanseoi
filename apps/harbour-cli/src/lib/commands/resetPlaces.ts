@@ -21,7 +21,10 @@ import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
-import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  resolveLocalAddressDbContext,
+  withLocalMetaDb,
+} from '../dbCache/localDbCache.ts'
 import {
   executeResetSqlArtefacts,
   type ResetSqlArtefact,
@@ -336,6 +339,18 @@ export async function completeOverturePlacesInitialisation(target: UploadTarget)
   const manifest = await readPlacesManifest(path)
   if (manifest.status !== 'running')
     throw new Error('Overture Places initialisation is not running.')
+  if (!target.remote) {
+    await withLocalMetaDb(async metaDb => {
+      const db = metaDb as unknown as HarbourReadableDb
+      const owned = await collectOwnedPlaces(db)
+      await assertPlacesInitialisationComplete(db, owned)
+      manifest.owned = owned
+      manifest.completedAt = new Date().toISOString()
+      manifest.status = 'complete'
+      await writePlacesManifest(path, manifest)
+    })
+    return
+  }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'places',
     includeAllHistoryShardYears: true,
@@ -944,7 +959,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM publishedDataJournal WHERE releaseId IN (${releaseIds}) OR relatedReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM stats WHERE releaseId IN (${releaseIds}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiReleaseSets});`,
+    `DELETE FROM stats WHERE releaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseProcessingActions WHERE releaseId IN (${releaseIds});`,
     `DELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${releaseIds});`,
     `DELETE FROM ingestRuns WHERE releaseId IN (${releaseIds});`,

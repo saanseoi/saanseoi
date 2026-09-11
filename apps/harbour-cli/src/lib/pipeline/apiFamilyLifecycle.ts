@@ -72,16 +72,22 @@ export function resolveApiFamilyCacheProfile(
 }
 
 /** Resolve the cache superset required by a resource upload. */
-export function resolveUploadCacheProfile(plan: Pick<UploadPlan, 'type' | 'source'>) {
-  if (plan.type === 'place') return 'places' satisfies CacheTableProfile
-  if (plan.type === 'division') return 'division' satisfies CacheTableProfile
-  if (plan.type === 'divisionArea' || plan.type === 'divisionBoundary') {
+export function resolveUploadCacheProfile(
+  plan: Pick<UploadPlan, 'resourceType' | 'source'>,
+) {
+  if (plan.resourceType === 'place') return 'places' satisfies CacheTableProfile
+  if (plan.resourceType === 'division') return 'division' satisfies CacheTableProfile
+  if (
+    plan.resourceType === 'divisionArea' ||
+    plan.resourceType === 'divisionBoundary'
+  ) {
     return plan.source === 'hkgov-pland-pu' || plan.source === 'hkgov-pland-new-town'
       ? ('planningDivisionGeometry' satisfies CacheTableProfile)
       : ('divisionGeometry' satisfies CacheTableProfile)
   }
-  if (plan.type === 'street') return 'street' satisfies CacheTableProfile
-  if (plan.type === 'divisionStatistic') return 'statistics' satisfies CacheTableProfile
+  if (plan.resourceType === 'street') return 'street' satisfies CacheTableProfile
+  if (plan.resourceType === 'divisionStatistic')
+    return 'statistics' satisfies CacheTableProfile
   return 'address' satisfies CacheTableProfile
 }
 

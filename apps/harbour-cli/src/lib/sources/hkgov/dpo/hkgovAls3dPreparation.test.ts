@@ -1,7 +1,7 @@
 import {
   alsSourcePayload,
   captureAlsPublisherSources,
-} from '@repo/core/pipeline/services/alsSourcePayload'
+} from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'

@@ -6,6 +6,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
   readHkgovHydStreetArchive,
+  readHkgovStreetArchiveCrs,
   readHkgovTdPedestrianStreetArchive,
 } from './hkgovHyd.ts'
 
@@ -18,7 +19,13 @@ describe('TD pedestrian street native FileGDB intake', () => {
         'data/hkgov/csdi/archive/td_rcd_1697081765097_37742/2025-Q1/source.zip',
       ),
     )
+    expect(
+      Object.values(
+        readHkgovStreetArchiveCrs(archive, HKGOV_TD_PEDESTRIAN_STREET_LAYERS),
+      ),
+    ).toEqual(HKGOV_TD_PEDESTRIAN_STREET_LAYERS.map(() => 'EPSG:2326'))
     const layers = readHkgovTdPedestrianStreetArchive(archive)
+    assertHongKongGrid(layers.Full_Time_Pedestrian_Street.features[0]?.geometry)
 
     expect(Object.keys(layers).sort()).toEqual(
       [...HKGOV_TD_PEDESTRIAN_STREET_LAYERS].sort(),
@@ -90,6 +97,17 @@ describe('HyD native FileGDB street intake', () => {
       readHkgovHydStreetArchive('strategicStreet', strategic),
     ])
 
+    for (const [archive, layer] of [
+      [nameplates, 'SNP'],
+      [sensitive, 'sensitive'],
+      [strategic, 'STRATEGIC'],
+    ] as const) {
+      expect(readHkgovStreetArchiveCrs(archive, [layer])).toEqual({
+        [layer]: 'EPSG:2326',
+      })
+    }
+    for (const collection of [snp, sensitiveStreets, strategicStreets])
+      assertHongKongGrid(collection.features[0]?.geometry)
     expect(snp.features).toHaveLength(31_764)
     expect(snp.features[0]).toMatchObject({
       geometry: { type: 'Point' },
@@ -115,3 +133,14 @@ describe('HyD native FileGDB street intake', () => {
     })
   })
 })
+
+function assertHongKongGrid(geometry: unknown) {
+  let point = (geometry as { coordinates: unknown }).coordinates
+  while (Array.isArray(point) && Array.isArray(point[0])) point = point[0]
+  expect(Array.isArray(point)).toBe(true)
+  const [easting = Number.NaN, northing = Number.NaN] = point as number[]
+  expect(easting).toBeGreaterThan(800_000)
+  expect(easting).toBeLessThan(870_000)
+  expect(northing).toBeGreaterThan(800_000)
+  expect(northing).toBeLessThan(870_000)
+}

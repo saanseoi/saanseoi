@@ -1,3 +1,4 @@
+import { summariseD1RowUsage } from './sqlDeliveryUsage.ts'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Database } from 'bun:sqlite'
@@ -220,7 +221,8 @@ export async function runSqlDelivery(
         }
         const executeBatches = async (batches: SqlDeliveryPlan['batches']) => {
           for (let index = 0; index < batches.length; ) {
-            const first = batches[index]!
+            const first = batches[index]
+            if (!first) break
             const entries: Array<{
               batch: typeof first
               bytes: Uint8Array
@@ -288,6 +290,8 @@ export async function runSqlDelivery(
             if (result.status === 'rejected') throw result.reason
         } else await executeBatches(plan.batches)
         return {
+          phase: plan.context.phase,
+          rowUsage: summariseD1RowUsage(progress, plan.batches.length),
           planId: plan.id,
           batches: plan.batches.length,
           generationMs: plan.generationMs,

@@ -22,7 +22,7 @@ export type UploadPlan = {
   source: 'hkgov-censtatd' | 'hkgov-landsd' | 'overture'
   sourceVersion: string
   theme: 'divisions'
-  type: 'division'
+  resourceType: 'division'
 }
 
 export type DivisionPreparedRecord = {

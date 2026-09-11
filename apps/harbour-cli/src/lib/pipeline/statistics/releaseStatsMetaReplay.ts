@@ -51,17 +51,15 @@ export function buildReleaseStatsMetaSqlBatches(
   rows: readonly ReleaseStatsRow[],
 ) {
   const statements = [
-    `DELETE FROM "stats" WHERE "releaseId" = ${sqlValue(releaseId)} AND "type" = 'release';`,
+    `DELETE FROM "stats" WHERE "releaseId" = ${sqlValue(releaseId)} AND "metric" != 'processing';`,
     ...[...rows]
       .sort((left, right) => left.id.localeCompare(right.id))
       .map(
         row =>
-          'INSERT INTO "stats" ("id", "type", "releaseId", "snapshotId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
+          'INSERT INTO "stats" ("id", "releaseId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
           [
             row.id,
-            row.type,
             row.releaseId,
-            row.snapshotId,
             row.apiReleaseSetId,
             row.dimension,
             row.metric,

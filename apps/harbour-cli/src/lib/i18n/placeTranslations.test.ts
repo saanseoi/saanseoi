@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, test } from 'bun:test'
 
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import {
   applyPlaceTranslationApplications,
   PLACE_MACHINE_TRANSLATION_ENABLED,

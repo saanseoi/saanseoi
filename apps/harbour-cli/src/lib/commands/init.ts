@@ -1,3 +1,4 @@
+import { pinLocalR2Mode } from '../storage/localR2Mode.ts'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -17,7 +18,12 @@ import {
   finishInitialisationGuide,
   initialisationIndent,
 } from '../cli/initialisationIndent.ts'
-import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import {
+  resolveUploadTarget,
+  resolveR2Target,
+  type ParsedArgs,
+  type UploadTarget,
+} from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
   recordInitialisationSummaryEvent,
@@ -120,7 +126,8 @@ export async function runInitialisationCommand(
       !(key === 'continue' && supportsContinue) &&
       !(key === 'target' && supportsTarget) &&
       key !== 'skip-curation-checks' &&
-      key !== 'no-cache-artefacts',
+      key !== 'no-cache-artefacts' &&
+      key !== 'r2',
   )
   const target = args.options.target
 
@@ -166,10 +173,15 @@ export async function runInitialisationCommand(
       : typeof target === 'string'
         ? target
         : 'local'
+  const storageTarget = resolveR2Target(
+    resolveUploadTarget({ ...args, options: { ...args.options, target: targetLabel } }),
+  )
+  if (targetLabel === 'local') await pinLocalR2Mode(storageTarget)
   note(
     [
       formatField('command', args.command ?? 'init'),
       formatField('target', targetLabel),
+      formatField('R2', storageTarget),
       formatField('artefact cache', cacheArtefacts ? 'retain' : 'discard after upload'),
     ].join('\n'),
     'INITIALISATION',
@@ -193,6 +205,7 @@ export async function runInitialisationCommand(
   const child = Bun.spawn({
     cmd: [
       'fish',
+      '--no-config',
       resolve(REPO_ROOT, command.script),
       ...(typeof target === 'string' ? ['--target', target] : []),
       ...(args.options.continue ? ['--continue'] : []),
@@ -203,6 +216,7 @@ export async function runInitialisationCommand(
     detached: true,
     env: {
       ...process.env,
+      SAANSEOI_R2_TARGET: storageTarget,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
       SAANSEOI_INIT_COMMAND: args.command ?? '',
       SAANSEOI_INIT_RELEASE_COLUMN_WIDTH:

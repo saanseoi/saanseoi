@@ -4,13 +4,13 @@ import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@r
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
-import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
-} from '@repo/core/pipeline/services/geometryStats'
-import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/geometryStats'
+import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
@@ -142,9 +142,9 @@ export async function runGeometryStatsBackfillCommand(
         release.resourceType,
       )
       const typedDistrictRows = districtRows as Array<{
-        hierarchy: unknown
+        hierarchies: import('@repo/db').DivisionHierarchies
         id: string
-        type: string
+        class: string
       }>
       const typedGeometryRows = selectExactGeometryRows(
         geometryRows as Array<{
@@ -399,9 +399,10 @@ async function findDivisionSnapshotRows(
   }
   return context.currentDb
     .select({
-      hierarchy: currentSchema.divisions.hierarchy,
+      hierarchies: currentSchema.divisions.hierarchies,
       id: currentSchema.divisions.id,
-      type: currentSchema.divisions.type,
+      category: currentSchema.divisions.category,
+      class: currentSchema.divisions.class,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, districtSnapshot.id))
@@ -492,17 +493,21 @@ async function findSnapshotRows(
   )
 }
 
-function districtIdForDivision(row: { hierarchy: unknown; id: string; type: string }) {
-  if (row.type === 'district') return row.id
-  if (!Array.isArray(row.hierarchy)) return null
-  const district = row.hierarchy.find(
-    entry =>
-      entry &&
-      typeof entry === 'object' &&
-      (entry as { type?: unknown }).type === 'district' &&
-      typeof (entry as { division_id?: unknown }).division_id === 'string',
-  ) as { division_id: string } | undefined
-  return district?.division_id ?? null
+function districtIdForDivision(row: {
+  hierarchies: import('@repo/db').DivisionHierarchies
+  id: string
+  class: string
+}) {
+  if (row.class === 'district') return row.id
+  const ids = [
+    ...new Set(
+      row.hierarchies.administrative
+        .flat()
+        .filter(entry => entry.class === 'district')
+        .map(entry => entry.id),
+    ),
+  ]
+  return ids.length === 1 ? (ids[0] ?? null) : null
 }
 
 function isPair(entry: readonly [string, string | null]): entry is [string, string] {
@@ -598,7 +603,7 @@ function buildRemoteStatsSql(cacheDir: string, releaseId: string) {
     const columns = Object.keys(rows[0] ?? {})
       .map(column => `"${column}"`)
       .join(', ')
-    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND type = 'release' AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
+    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND kind = 'release' AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
   } finally {
     database.close()
   }

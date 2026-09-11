@@ -79,6 +79,12 @@ describe('supplementary Place Address policy', () => {
     expect(analyse(source, null).addressId).toBe(citygate.addressId)
     fixture.decisions = [retired, decision]
     expect(analyse(source, null).reason).toBe('explicit_retirement')
+    const later = { ...source, sourceRelease: '2030-01-01.0' }
+    expect(analyse(later, null).reason).toBe('explicit_retirement')
+    fixture.decisions = [decision, retired]
+    expect(analyse(later, null).reason).toBe('recorded_decision')
+    fixture.decisions.push({ ...retired, sourceRelease: '2029-01-01.0' })
+    expect(analyse(later, null).reason).toBe('explicit_retirement')
   })
   test('link_existing selects ALS and keep_existing requires the previous identity', () => {
     const source = observation('Citygate, 20 Tat Tung Road')

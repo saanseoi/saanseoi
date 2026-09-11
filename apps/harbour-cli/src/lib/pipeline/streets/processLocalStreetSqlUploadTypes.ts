@@ -29,7 +29,7 @@ export type LandsdStreetUploadPlan = {
   source: 'hkgov-landsd'
   sourceVersion: string
   theme: 'streets'
-  type: 'street'
+  resourceType: 'street'
 }
 
 export type AssetLink = {

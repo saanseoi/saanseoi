@@ -12,7 +12,7 @@ import { unzipSync } from 'fflate'
 import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreas,
-} from '@repo/core/pipeline/services/overtureHongKongAreas'
+} from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 
 import {
   hkgovCenstatdStatisticDivisionId,

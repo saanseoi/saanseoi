@@ -227,9 +227,28 @@ function countStatementChunks(statements: string[], maxBatchBytes: number) {
   return currentBytes ? chunks + 1 : chunks
 }
 
-export function insertSql(table: string, values: Record<string, unknown>) {
+export function insertSql(
+  table: string,
+  values: Record<string, unknown>,
+  preserveOpenVersion = false,
+) {
+  return insertSqlParts(table, values, preserveOpenVersion).join('')
+}
+
+export function insertSqlParts(
+  table: string,
+  values: Record<string, unknown>,
+  preserveOpenVersion = false,
+): [string, string, string] {
   const entries = Object.entries(values).filter(([, value]) => value !== undefined)
-  return `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES (${entries.map(([, value]) => sqlValue(value)).join(', ')}) ON CONFLICT DO UPDATE SET ${entries.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')};`
+  const updates = preserveOpenVersion
+    ? entries.filter(([key]) => !['createdAt', 'validFromRelease'].includes(key))
+    : entries
+  return [
+    `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES `,
+    `(${entries.map(([, value]) => sqlValue(value)).join(', ')})`,
+    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${preserveOpenVersion ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL` : ''};`,
+  ]
 }
 
 function sqlValue(value: unknown) {

@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
 
@@ -18,7 +18,19 @@ import {
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
-import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import {
+  openSqliteDb,
+  resolveLocalAddressDbContext,
+  withLocalMetaDb,
+} from '../dbCache/localDbCache.ts'
+import { createRemoteD1QueryClient } from '../dbCache/localDbCacheIo.ts'
+import {
+  mapLocalTargetPaths,
+  requirePath,
+  resolveD1Targets,
+} from '../dbCache/localDbCacheTargets.ts'
+import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
+import type { RemoteD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import {
   executeResetSqlArtefacts,
   validateResetArguments,
@@ -34,7 +46,7 @@ const RELEASE_ARTEFACT_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 const DATASET_CODE = 'ds-hk-hkgov-dpo-address'
 const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 
-type FileBeforeImage = { exists: boolean; contentBase64?: string }
+type FileBeforeImage = { exists: boolean; contentBase64?: string; backupPath?: string }
 type DocsState = {
   apiReleaseSets: Array<{ guide: string | null; id: string; notes: string | null }>
   releases: Array<{ id: string; notes: string | null }>
@@ -226,24 +238,54 @@ export async function completeOfficialAddressInitialisation(target: UploadTarget
   const manifest = await readManifest(path)
   if (!['running', 'complete'].includes(manifest.status))
     throw new Error('Official-address initialisation is not running.')
-  const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
-    cacheTableProfile: 'address',
-    includeAllHistoryShardYears: true,
-    includeAllSourceShardYears: true,
-    requireExistingRemoteCache: target.remote,
-  })
-  try {
-    manifest.owned = await collectOwnedRecords(
-      context,
-      manifest.baseline.currentDivisionSnapshotIds ?? [],
-    )
+  const complete = async (
+    owned: NonNullable<OfficialAddressInitManifest['owned']>,
+    docs: DocsState,
+  ) => {
+    manifest.owned = owned
     manifest.completedAt = new Date().toISOString()
-    manifest.documentationAfter = await readDocsState(context)
+    manifest.documentationAfter = docs
     manifest.status = 'complete'
     await writeFile(path, `${JSON.stringify(manifest, null, 2)}\n`)
-  } finally {
-    context.cleanup()
   }
+
+  if (!target.remote) {
+    const targets = (await resolveD1Targets('local')).filter(
+      row => row.bindingName === 'DB_CURRENT',
+    )
+    const current = await openSqliteDb(
+      requirePath(mapLocalTargetPaths(targets).DB_CURRENT, 'DB_CURRENT'),
+      currentSchema,
+      'DB_CURRENT',
+    )
+    try {
+      await withLocalMetaDb(async metaDb =>
+        complete(
+          await collectOwnedRecords(
+            { metaDb, currentDb: current.db } as unknown as Pick<
+              LocalAddressDbContext,
+              'metaDb' | 'currentDb'
+            >,
+            manifest.baseline.currentDivisionSnapshotIds ?? [],
+          ),
+          await readDocsState({ metaDb }),
+        ),
+      )
+    } finally {
+      current.sqlite.close()
+    }
+    return
+  }
+
+  const meta = await getRemoteMetaClient(target)
+  await complete(
+    await collectOwnedRecordsFromRemoteMeta(
+      meta,
+      manifest.baseline.currentDivisionSnapshotIds ?? [],
+      await getRemoteMetaClient(target, 'DB_CURRENT'),
+    ),
+    await readRemoteDocsState(meta),
+  )
 }
 
 export async function runResetOfficialAddressesCommand(
@@ -270,6 +312,7 @@ export async function runResetOfficialAddressesCommand(
     if (adoptFailed) return null
     throw error
   })
+  if (manifest) await assertIdentityBeforeImageAvailable(manifest.identityFiles.history)
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     cacheTableProfile: 'address',
     includeAllHistoryShardYears: true,
@@ -512,7 +555,7 @@ async function adoptFailedAddressResetState(
 }
 
 async function collectOwnedRecords(
-  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  context: Pick<LocalAddressDbContext, 'metaDb' | 'currentDb'>,
   baselineCurrentDivisionSnapshotIds: string[],
 ) {
   const releases = await context.metaDb
@@ -587,6 +630,106 @@ async function collectOwnedRecords(
     snapshotIds,
     sourceReleaseIds: [...new Set(releases.map(row => row.sourceReleaseId))],
   }
+}
+
+/** Manifest completion reads only scalar metadata from remote D1; it never mirrors a shard. */
+async function getRemoteMetaClient(
+  target: UploadTarget,
+  bindingName = 'DB_META',
+): Promise<RemoteD1QueryClient> {
+  if (!target.remote)
+    throw new Error('A remote metadata client requires a remote target.')
+  const environment = target.environment === 'production' ? 'production' : 'preview'
+  const meta = (await resolveD1Targets(environment)).find(
+    candidate => candidate.bindingName === bindingName,
+  )
+  if (!meta) throw new Error(`Could not resolve the ${environment} DB_META binding.`)
+  return createRemoteD1QueryClient(meta, environment)
+}
+
+async function collectOwnedRecordsFromRemoteMeta(
+  client: RemoteD1QueryClient,
+  baselineCurrentDivisionSnapshotIds: string[],
+  current: RemoteD1QueryClient,
+): Promise<NonNullable<OfficialAddressInitManifest['owned']>> {
+  const releases = (await client.query(
+    `SELECT r.id, r.code, r.sourceReleaseId FROM releases r JOIN datasets d ON d.id = r.datasetId WHERE d.code = ${literal(DATASET_CODE)}`,
+  )) as Array<{ id: string; code: string; sourceReleaseId: string }>
+  if (releases.length === 0)
+    throw new Error('Official-address initialisation produced no address releases.')
+  const releaseIds = releases.map(row => row.id)
+  const snapshotRows = await queryRemoteInChunks<{ id: string; role: string }>(
+    client,
+    releaseIds,
+    values =>
+      `SELECT snapshotId AS id, role FROM snapshotSources WHERE resourceReleaseId IN (${sqlList(values)})`,
+  )
+  const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
+  const apiRows = await queryRemoteInChunks<{ id: string; familyType: string }>(
+    client,
+    snapshotIds,
+    values =>
+      `SELECT ars.apiReleaseSetId AS id, av.familyType FROM apiReleaseSetSnapshots ars JOIN apiReleaseSets ar ON ar.id = ars.apiReleaseSetId JOIN apiVersions av ON av.id = ar.apiVersionId WHERE ars.snapshotId IN (${sqlList(values)})`,
+  )
+  const assets = await queryRemoteInChunks<{
+    id: string
+    assetKey: string
+    releaseId: string | null
+  }>(
+    client,
+    releaseIds,
+    values =>
+      `SELECT id, assetKey, releaseId FROM assets WHERE releaseId IN (${sqlList(values)})`,
+  )
+  const currentRows = (await current.query(
+    'SELECT DISTINCT snapshotId FROM divisions ORDER BY snapshotId',
+  )) as Array<{ snapshotId: string }>
+  return {
+    apiReleaseSetIds: selectOwnedOfficialAddressApiReleaseSetIds(apiRows),
+    assetIds: assets,
+    materialisedDivisionSnapshotIds: resolveOwnedMaterialisedDivisionSnapshotIds(
+      [...new Set(currentRows.map(row => row.snapshotId))].sort(),
+      baselineCurrentDivisionSnapshotIds,
+    ),
+    releaseCodes: releases.map(row => row.code),
+    releaseIds,
+    snapshotIds,
+    sourceReleaseIds: [...new Set(releases.map(row => row.sourceReleaseId))],
+  }
+}
+
+async function readRemoteDocsState(client: RemoteD1QueryClient): Promise<DocsState> {
+  const read = async (table: string, columns: string) => {
+    const rows: Record<string, unknown>[] = []
+    let after = ''
+    for (;;) {
+      const page = await client.query(
+        `SELECT ${columns} FROM ${table} WHERE id > ${literal(after)} ORDER BY id LIMIT 32`,
+      )
+      rows.push(...page)
+      if (page.length < 32) return rows
+      after = String(page.at(-1)?.id)
+    }
+  }
+  return {
+    apiReleaseSets: (await read(
+      'apiReleaseSets',
+      'id, notes, guide',
+    )) as DocsState['apiReleaseSets'],
+    releases: (await read('releases', 'id, notes')) as DocsState['releases'],
+  }
+}
+
+async function queryRemoteInChunks<T>(
+  client: RemoteD1QueryClient,
+  values: string[],
+  query: (values: string[]) => string,
+): Promise<T[]> {
+  if (values.length === 0) return []
+  const rows: T[] = []
+  for (const chunk of chunkArray(values, getMaxItemsPerInClause()))
+    rows.push(...((await client.query(query(chunk))) as T[]))
+  return rows
 }
 
 export function resolveOwnedMaterialisedDivisionSnapshotIds(
@@ -853,7 +996,7 @@ function buildResetSql(
         `UPDATE releases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR snapshotId IN (${snapshots}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {
@@ -893,7 +1036,7 @@ function buildResetSql(
 }
 
 async function readDocsState(
-  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  context: Pick<LocalAddressDbContext, 'metaDb'>,
 ): Promise<DocsState> {
   const [apiReleaseSets, releases] = await Promise.all([
     context.metaDb
@@ -912,10 +1055,10 @@ async function readDocsState(
   return { apiReleaseSets: apiReleaseSets.sort(byId), releases: releases.sort(byId) }
 }
 async function readCurrentDivisionSnapshotIds(
-  context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
+  context: Pick<LocalAddressDbContext, 'currentDb'>,
 ) {
   const rows = await context.currentDb
-    .select({ snapshotId: currentSchema.divisions.snapshotId })
+    .selectDistinct({ snapshotId: currentSchema.divisions.snapshotId })
     .from(currentSchema.divisions)
     .all()
   return [...new Set(rows.map(row => row.snapshotId))].sort()
@@ -954,29 +1097,59 @@ async function readGeographicDivisionSnapshotIds(
 
   return [...new Set(rows.map(row => row.snapshotId))].sort()
 }
-async function readBeforeImage(path: string): Promise<FileBeforeImage> {
+export async function readBeforeImage(
+  path: string,
+  backupRoot = MANIFEST_ROOT,
+): Promise<FileBeforeImage> {
   try {
-    return { exists: true, contentBase64: (await readFile(path)).toString('base64') }
+    await stat(path)
+    await mkdir(backupRoot, { recursive: true })
+    const backupPath = resolve(
+      backupRoot,
+      `identity-history-${crypto.randomUUID()}.json`,
+    )
+    await copyFile(path, backupPath)
+    return { exists: true, backupPath }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { exists: false }
     throw error
   }
 }
-async function restoreBeforeImage(path: string, image: FileBeforeImage) {
+export async function assertIdentityBeforeImageAvailable(image: FileBeforeImage) {
+  if (!image.exists) return
+  if (image.backupPath) {
+    await stat(image.backupPath)
+    return
+  }
+  if (image.contentBase64 === undefined)
+    throw new Error(
+      'Identity-history before-image is missing; refusing reset before any database or asset changes.',
+    )
+}
+export async function restoreBeforeImage(path: string, image: FileBeforeImage) {
+  if (image.exists && image.contentBase64 === undefined && !image.backupPath)
+    throw new Error(
+      'Official-address manifest is missing its identity-history before-image; refusing reset.',
+    )
   if (!image.exists) {
     await rm(path, { force: true })
     return
   }
   await mkdir(dirname(path), { recursive: true })
-  await writeFile(path, Buffer.from(image.contentBase64 ?? '', 'base64'))
+  if (image.backupPath) await copyFile(image.backupPath, path)
+  else await writeFile(path, Buffer.from(image.contentBase64 ?? '', 'base64'))
 }
 async function readManifest(path: string): Promise<OfficialAddressInitManifest> {
   let value: unknown
   try {
+    if ((await stat(path)).size > 8 * 1024 * 1024)
+      throw new Error(
+        'Manifest exceeds the memory budget; its embedded backup must be extracted before continuing.',
+      )
     value = JSON.parse(await readFile(path, 'utf8'))
-  } catch {
+  } catch (error) {
     throw new Error(
-      `No readable official-address initialisation manifest exists at ${path}.`,
+      `Cannot read official-address initialisation manifest at ${path}: ${error instanceof Error ? error.message : String(error)}`,
     )
   }
   if (
@@ -989,6 +1162,7 @@ async function readManifest(path: string): Promise<OfficialAddressInitManifest> 
     )
   return value as OfficialAddressInitManifest
 }
+
 function literal(value: string | null) {
   return value === null ? 'NULL' : `'${value.replaceAll("'", "''")}'`
 }

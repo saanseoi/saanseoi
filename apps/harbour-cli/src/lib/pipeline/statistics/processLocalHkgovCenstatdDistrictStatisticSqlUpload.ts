@@ -1,5 +1,5 @@
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
@@ -12,7 +12,7 @@ import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
   censtatdReleaseStatsProfileFor,
-} from '@repo/core/pipeline/services/censtatdReleaseStats'
+} from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
 import { createHash as createNodeHash } from 'node:crypto'
 import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
 import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
@@ -35,7 +35,7 @@ import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import {
   buildHkgovCenstatdDistrictStatisticHistoryRecord,
   type ResolvedHkgovCenstatdDistrict,
-} from '@repo/core/pipeline/services/divisionStatistics'
+} from '@repo/core/pipeline/services/divisions/divisionStatistics'
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 
@@ -90,7 +90,7 @@ type Plan = {
   source: 'hkgov-censtatd'
   sourceVersion: string
   theme: 'stats'
-  type: 'divisionStatistic'
+  resourceType: 'divisionStatistic'
 }
 type UploadResult = {
   datasetCode?: string
@@ -356,7 +356,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     await client.stageRunning(
       releaseId,
       'processDataset',
-      { resourceType: plan.type, sourceRows: plan.rowCount },
+      { resourceType: plan.resourceType, sourceRows: plan.rowCount },
       releaseCode,
     )
     processingStarted = true

@@ -16,7 +16,7 @@ type ReleaseNoteCache = {
 }
 
 function cacheKey(releaseCode: string) {
-  return releaseCode.split('::')[0]!.trim().toLowerCase()
+  return releaseCode.split('::')[0]?.trim().toLowerCase() ?? ''
 }
 
 function isHttpUrl(value: string) {
@@ -140,7 +140,7 @@ export async function resolveReleaseNotesUrl(
   }
 
   const result = await text({
-    message: `Upstream release notes for ${plan.sourceVersion} (${plan.type})`,
+    message: `Upstream release notes for ${plan.sourceVersion} (${plan.resourceType})`,
     placeholder: 'https://…',
     validate: value =>
       isHttpUrl(value?.trim() ?? '') ? undefined : 'Enter an absolute HTTP(S) URL.',

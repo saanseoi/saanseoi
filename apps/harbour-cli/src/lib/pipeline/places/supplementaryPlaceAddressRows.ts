@@ -1,5 +1,5 @@
 import { createHash } from '@repo/core/pipeline/utils'
-import { establishAddressGranularity } from '@repo/core/pipeline/services/addressPipeline/granularity'
+import { establishAddressGranularity } from '@repo/core/pipeline/services/addresses/granularity'
 import type { currentSchema } from '@repo/db'
 import type {
   StagedAddressResolution,

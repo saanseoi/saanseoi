@@ -23,8 +23,7 @@ const stats = [
     metric: 'count',
     metricUnit: 'count',
     releaseId,
-    snapshotId: null,
-    type: 'release',
+
     updatedAt: '2026-08-18T00:00:00.000Z',
     value: 18,
   },
@@ -38,8 +37,7 @@ const stats = [
     metric: 'count',
     metricUnit: 'count',
     releaseId,
-    snapshotId: null,
-    type: 'release',
+
     updatedAt: '2026-08-18T00:00:00.000Z',
     value: 18,
   },
@@ -50,7 +48,7 @@ describe('release statistics metadata replay', () => {
     const sql = buildReleaseStatsMetaSqlBatches(releaseId, stats).join('\n')
 
     expect(sql).toContain(
-      `DELETE FROM "stats" WHERE "releaseId" = '${releaseId}' AND "type" = 'release';`,
+      `DELETE FROM "stats" WHERE "releaseId" = '${releaseId}' AND "metric" != 'processing';`,
     )
     expect(sql).not.toContain('apiReleaseSetId =')
     expect(sql.indexOf("'a-stat'")).toBeLessThan(sql.indexOf("'b-stat'"))
@@ -130,13 +128,12 @@ describe('release statistics metadata replay', () => {
           groupValue: 'automatic:map_censtatd_district_code_to_canonical_division',
           id: 'processing-1',
           metric: 'processing',
-          type: 'processing',
         },
       ],
     }).join('\n')
 
     expect(sql).toContain('DELETE FROM "releaseProcessingActions"')
-    expect(sql).toContain(`AND "type" = 'processing';`)
+    expect(sql).toContain(`AND "metric" = 'processing';`)
     expect(sql).toContain("'audit-1'")
     expect(sql).toContain("'processing-1'")
   })

@@ -1,7 +1,7 @@
 import {
   buildPlaceLocalisationStatistics,
   type PlaceLocalisationStatistics,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type {
   EnrichedPlace,
@@ -120,7 +120,7 @@ function buildPlaceReleaseStatsRowsFromValues(input: {
     groupValue,
     metric,
     metricUnit: metric,
-    type: 'release',
+
     updatedAt: timestamp,
     value,
   })

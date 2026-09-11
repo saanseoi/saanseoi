@@ -3,13 +3,13 @@ import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
 import { boundedHistoryApply } from './boundedHistoryApply.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { normaliseAddressRowForPipeline } from '../../../../../../libs/core/src/pipeline/services/addressPipeline/normalisation.ts'
+import { normaliseAddressRowForPipeline } from '../../../../../../libs/core/src/pipeline/services/addresses/normalisation.ts'
 import {
   buildAddressResolvedSqlImportFiles,
   buildAddressHistoryApplySqlImportFile,
-} from '../../../../../../libs/core/src/pipeline/services/addressPipeline/sqlImport.ts'
+} from '../../../../../../libs/core/src/pipeline/services/addresses/sqlImport.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { ResolvedAddressChunkArtefact } from '../../../../../../libs/core/src/pipeline/services/addressPipeline/types.ts'
+import type { ResolvedAddressChunkArtefact } from '../../../../../../libs/core/src/pipeline/services/addresses/types.ts'
 
 test('bounded history applies both sides of a range boundary and drops staging last', () => {
   const db = new Database(':memory:')
@@ -21,7 +21,7 @@ test('bounded history applies both sides of a range boundary and drops staging l
       ),
     )
     const message = {
-      type: 'address',
+      resourceType: 'address',
       source: 'hkgov-dpo',
       regionCode: 'hk',
       releaseId: 'release',

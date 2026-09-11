@@ -29,34 +29,34 @@ import {
 } from './addressProvenance'
 import { deliverProducerAudit } from '../../api/producerAuditDelivery'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addressPipeline/sqlImport'
+import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addresses/sqlImport'
 import {
   importAddressSqlArtefacts,
   completeAddressSqlGenerationPhases,
   publishImportedAddressSqlRelease,
   type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import {
   normaliseAddressSqlChunkStage,
   writeAddressReleaseMetaSqlFile,
   writeAddressCurrentSqlChunkStage,
   writeAddressHistorySqlChunkStage,
   writeAddressSourceSqlChunkStage,
-} from '@repo/core/pipeline/services/addressPipeline/sqlStages'
+} from '@repo/core/pipeline/services/addresses/sqlStages'
 import {
   addAddressPipelineStats,
   EMPTY_ADDRESS_PIPELINE_STATS,
   type AddressPipelineMessage,
-} from '@repo/core/pipeline/services/addressPipeline/types'
+} from '@repo/core/pipeline/services/addresses/types'
 import {
   buildAddressReleaseStatsRows,
   type AddressDivisionQualityCounts,
-} from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
 import {
   buildAddressBaseHashInput,
   buildMatchKey,
   normaliseAddressI18nSnapshotRow,
-} from '@repo/core/pipeline/services/addressPipeline/normalisation'
+} from '@repo/core/pipeline/services/addresses/normalisation'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import type { UploadTarget } from '../../cli/options.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
@@ -293,7 +293,7 @@ export async function processLocalAddressSqlUpload(
     source: previewPlan.source,
     sourceVersion: previewPlan.sourceVersion,
     theme: previewPlan.theme,
-    type: previewPlan.type,
+    resourceType: previewPlan.resourceType,
     processingMode: 'sql',
     ...(options.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
   }

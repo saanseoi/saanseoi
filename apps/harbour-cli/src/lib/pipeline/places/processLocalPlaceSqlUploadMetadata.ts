@@ -8,7 +8,7 @@ import {
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import type { UploadTarget } from '../../cli/options.ts'
 import { resolvePipelineEnvironment } from '../../cli/options.ts'
-import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { metaSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'

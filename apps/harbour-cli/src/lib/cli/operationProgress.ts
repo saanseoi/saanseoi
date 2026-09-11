@@ -134,6 +134,7 @@ export class OperationProgress {
       this.currentLabel = nextLabel
 
       if (!this.progressBar) {
+        if (this.staticPhaseActive) this.ui.log.step(nextLabel)
         return
       }
 
@@ -166,6 +167,12 @@ export class OperationProgress {
     this.currentLabel = nextLabel
 
     if (!this.progressBar) {
+      if (
+        this.staticPhaseActive &&
+        Math.floor(nextCurrent / 5_000) > Math.floor(previousState.current / 5_000)
+      ) {
+        this.ui.log.step(nextLabel)
+      }
       return
     }
 

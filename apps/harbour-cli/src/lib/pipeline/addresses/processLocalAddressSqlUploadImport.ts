@@ -5,12 +5,12 @@ import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import {
   importAddressSqlDataArtefacts,
   type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import {
   addAddressPipelineStats,
   EMPTY_ADDRESS_PIPELINE_STATS,
   type AddressPipelineMessage,
-} from '@repo/core/pipeline/services/addressPipeline/types'
+} from '@repo/core/pipeline/services/addresses/types'
 import type { UploadTarget } from '../../cli/options.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import { readPendingSqlDelivery } from '../local/sqlDeliveryPending.ts'

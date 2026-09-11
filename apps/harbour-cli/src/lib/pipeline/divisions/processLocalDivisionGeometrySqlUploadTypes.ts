@@ -2,7 +2,7 @@ import type { GeometryStatus, RegionCode } from '@repo/core'
 import type {
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
-} from '@repo/core/pipeline/services/divisionGeometry'
+} from '@repo/core/pipeline/services/divisions/divisionGeometry'
 
 export type UploadResult = {
   datasetCode?: string
@@ -28,7 +28,7 @@ export type GeometryUploadPlan = {
   geometryStatus?: GeometryStatus
   transform?: 'simplified'
   theme: 'divisions'
-  type: 'divisionArea' | 'divisionBoundary'
+  resourceType: 'divisionArea' | 'divisionBoundary'
 }
 
 export type NormalisedGeometry = ReturnType<

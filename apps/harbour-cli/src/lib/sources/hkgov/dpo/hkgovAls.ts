@@ -2,7 +2,7 @@ import { globSync } from 'node:fs'
 import {
   captureAlsPublisherSources,
   alsSourceLocator,
-} from '@repo/core/pipeline/services/alsSourcePayload'
+} from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import preparationFixture from '../../../../../../../fixtures/meta/processing-rules/address-preparation.json'
 import curationFixture from '../../../../../../../fixtures/meta/processing-rules/address-curation.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'

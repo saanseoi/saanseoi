@@ -1,7 +1,7 @@
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseStatsRow } from '@repo/db/metaSchema'
 import { metaSchema } from '@repo/db'
-import { and, desc, eq, isNull, ne } from 'drizzle-orm'
+import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
 
 /**
  * Returns the latest compatible frozen source-release facts. Reading
@@ -51,7 +51,7 @@ export async function findPreviousComparableCenstatdReleaseStats(
       .where(
         and(
           eq(metaSchema.stats.releaseId, candidate.id),
-          eq(metaSchema.stats.type, 'release'),
+          sql`${metaSchema.stats.metric} != 'processing'`,
         ),
       )
       .all()

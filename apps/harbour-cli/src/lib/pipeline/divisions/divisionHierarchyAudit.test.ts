@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { parquetWriteFile } from 'hyparquet-writer'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
-import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/division'
+import { buildDivisionHierarchyLookup } from '@repo/core/pipeline/services/divisions/division'
 import { resolveDivisionNameTranslations } from './processLocalDivisionSqlUploadTranslations'
-import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisionFixtures'
-import { overtureHongKongAreas } from '@repo/core/pipeline/services/overtureHongKongAreas'
+import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
+import { overtureHongKongAreas } from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 
 test('Parquet batches preserve an existing Kowloon identity without a patch', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'division-replacement-order-'))
@@ -27,6 +27,17 @@ test('Parquet batches preserve an existing Kowloon identity without a patch', as
           data: names.map((name, index) => (index ? name : kowloonId)),
         },
         { name: 'names', type: 'JSON', data: names.map(name => ({ primary: name })) },
+        {
+          name: 'subtype',
+          type: 'STRING',
+          data: names.map((_, index) => (index ? 'region' : 'locality')),
+        },
+        {
+          name: 'class',
+          type: 'STRING',
+          data: names.map((_, index) => (index ? null : 'city')),
+          nullable: true,
+        },
       ],
     })
     let sourceSeen = false
@@ -35,7 +46,7 @@ test('Parquet batches preserve an existing Kowloon identity without a patch', as
       await asyncBufferFromFile(filename),
       {
         source: 'overture',
-        type: 'division',
+        resourceType: 'division',
         regionCode: 'hk',
       },
       2,
@@ -154,7 +165,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
       source: 'overture',
       sourceVersion: '2026-01-21.0',
       theme: 'divisions' as const,
-      type: 'division' as const,
+      resourceType: 'division' as const,
     }
     await expect(
       resolveDivisionNameTranslations(

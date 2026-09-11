@@ -12,7 +12,8 @@ import type { MetaDatabase } from '@repo/db'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { withLocalMetaDb } from '../dbCache/localDbCache.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { resolveR2Target, type UploadTarget } from '../cli/options.ts'
+import { retainRemoteR2Object } from '../storage/remoteR2.ts'
 
 export const LANDSD_SOURCE_ASSET_PREFIX = 'by-source/hk/hkgov-landsd/street-naming'
 
@@ -98,6 +99,7 @@ type LocalSourceAssetObjectUpload = (input: {
 }) => Promise<void>
 
 type LocalSourceAssetUploadOptions = {
+  retainRemoteObject?: typeof retainRemoteR2Object
   putObject?: LocalSourceAssetObjectUpload
   withMetaDb?: typeof withLocalMetaDb
 }
@@ -517,7 +519,8 @@ function isMissingFileError(error: unknown) {
 }
 
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {
-  return `${resolveAtlasBaseUrl(target.environment)}/v0/assets/${assetId}`
+  const r2 = resolveR2Target(target)
+  return `${resolveAtlasBaseUrl(r2 === 'local' ? target.environment : r2)}/v0/assets/${assetId}`
 }
 
 export async function uploadManagedSourceAsset(
@@ -526,6 +529,30 @@ export async function uploadManagedSourceAsset(
   localOptions: LocalSourceAssetUploadOptions = {},
 ): Promise<UploadedSourceAsset> {
   if (!target.remote) {
+    const r2 = resolveR2Target(target)
+    if (r2 !== 'local') {
+      const bytes = await readFile(input.filePath)
+      assertSourceAssetMetadata(input.metadata)
+      if (
+        hash(bytes) !== input.metadata.contentHash ||
+        !isContentAddressedSourceAssetKey(
+          input.metadata.assetKey,
+          input.metadata.contentHash,
+        )
+      )
+        throw new Error(
+          'Source asset bytes or immutable key do not match the declared hash.',
+        )
+      await (localOptions.retainRemoteObject ?? retainRemoteR2Object)(
+        r2,
+        input.metadata.assetKey,
+        bytes,
+        {
+          contentType: input.metadata.mediaType,
+          contentDisposition: `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
+        },
+      )
+    }
     return uploadLocalManagedSourceAsset(target, input, localOptions)
   }
   const fileStat = await stat(input.filePath)

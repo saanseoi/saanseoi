@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import {
   buildPlaceSql,
   buildPlaceSqlBatches,
@@ -61,14 +61,14 @@ function database() {
   db.exec(`CREATE TABLE overturePlaces (
     sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
-    sources TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
+    sourceLocator TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
     PRIMARY KEY (sourceRecordId, versionHash));`)
   return db
 }
 
 function seed(db: Database, id: string, hash = 'same', current = 1) {
   db.query(
-    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sources, rawProperties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, rawProperties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).run(
     id,
     hash,
@@ -131,10 +131,16 @@ test('source deltas preserve unchanged assertions across shards, close changes a
     ])
     const sql = await buildPlaceSql(data, { timestamp: 'now' })
     expect(sql.sourceSqlByBinding.get('old')?.join('')).not.toContain('rawProperties')
+    let previousChanges: unknown[] = []
     for (let replay = 0; replay < 2; replay++) {
       for (const [binding, statements] of sql.sourceSqlByBinding) {
         ;(binding === 'old' ? old : active).exec(statements.join(''))
       }
+      const changes = [old, active].map(db =>
+        db.query('SELECT total_changes() AS n').get(),
+      )
+      if (replay) expect(changes).toEqual(previousChanges)
+      previousChanges = changes
       expect(
         active
           .query(
@@ -142,7 +148,7 @@ test('source deltas preserve unchanged assertions across shards, close changes a
           )
           .get("unchanged'quoted"),
       ).toEqual({
-        releaseId: 'release-new',
+        releaseId: 'release-old',
         validFromRelease: '2025-01-01.0',
         createdAt: 'original',
         rawProperties: '{"retained":true}',
@@ -204,7 +210,8 @@ test('streamed source finalisation runs after all chunks even without removed hi
     await Bun.write(path, data.places.map(row => JSON.stringify(row)).join('\n'))
     let batches = 0
     for await (const sql of buildPlaceSqlBatches(data, path, 'now')) {
-      db.exec((sql.sourceSqlByBinding.get('new') ?? []).join(''))
+      const sourceSql = (sql.sourceSqlByBinding.get('new') ?? []).join('')
+      if (sourceSql) db.exec(sourceSql)
       batches++
       if (batches === 1)
         expect(
@@ -221,8 +228,10 @@ test('streamed source finalisation runs after all chunks even without removed hi
     ).toEqual({ count: 513 })
     await Bun.write(path, '')
     data.message = { ...data.message, releaseId: 'empty-release' }
-    for await (const sql of buildPlaceSqlBatches(data, path, 'later'))
-      db.exec((sql.sourceSqlByBinding.get('new') ?? []).join(''))
+    for await (const sql of buildPlaceSqlBatches(data, path, 'later')) {
+      const sourceSql = (sql.sourceSqlByBinding.get('new') ?? []).join('')
+      if (sourceSql) db.exec(sourceSql)
+    }
     expect(
       db
         .query('SELECT COUNT(*) AS count FROM overturePlaces WHERE isCurrent = 1')

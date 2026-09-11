@@ -73,13 +73,13 @@ export function describeRemoteGeometryImport(
 ) {
   switch (name) {
     case 'current':
-      return formatTargetSubject(`current ${plan.type}`, target)
+      return formatTargetSubject(`current ${plan.resourceType}`, target)
     case 'history':
-      return formatTargetSubject(`history ${plan.type}`, target)
+      return formatTargetSubject(`history ${plan.resourceType}`, target)
     case 'meta':
       return formatTargetSubject('snapshot metadata', target)
     case 'source':
-      return formatTargetSubject(`source ${plan.type}`, target)
+      return formatTargetSubject(`source ${plan.resourceType}`, target)
   }
 }
 

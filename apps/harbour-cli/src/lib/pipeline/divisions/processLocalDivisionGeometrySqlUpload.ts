@@ -27,7 +27,7 @@ import {
   divisionAreaGeometryRule,
   divisionBoundaryGeometryRule,
   type NormalisedDivisionArea,
-} from '@repo/core/pipeline/services/divisionGeometry'
+} from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { metaSchema } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
@@ -255,7 +255,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         releaseId,
         'processDataset',
         {
-          resourceType: previewPlan.type,
+          resourceType: previewPlan.resourceType,
           rowCount: previewPlan.rowCount,
         },
         releaseCode,
@@ -304,7 +304,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.beginPhase(
       formatGeometryProgressLabel(
         'Normalise source',
-        previewPlan.type,
+        previewPlan.resourceType,
         0,
         previewPlan.rowCount,
       ),
@@ -342,7 +342,7 @@ export async function processLocalDivisionGeometrySqlUpload(
               'division-geometry-normalisation-v2',
               await hashValue(providerBridgeRows),
               previewPlan.source,
-              previewPlan.type,
+              previewPlan.resourceType,
               previewPlan.cohortKey,
               options.validateGeometry ? 'validate' : 'standard',
             ].join(':'),
@@ -390,7 +390,7 @@ export async function processLocalDivisionGeometrySqlUpload(
               continue
             }
             const value =
-              previewPlan.type === 'divisionArea'
+              previewPlan.resourceType === 'divisionArea'
                 ? normaliseDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
                     validateGeometry: options.validateGeometry,
                     variant: geometryVariant(previewPlan),
@@ -409,7 +409,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         progress.update(processedRows, {
           label: formatGeometryProgressLabel(
             'Normalise source',
-            previewPlan.type,
+            previewPlan.resourceType,
             processedRows,
             previewPlan.rowCount,
           ),
@@ -429,7 +429,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       previewPlan,
     )
     const areasWithoutSourceGeometry =
-      previewPlan.type === 'divisionArea'
+      previewPlan.resourceType === 'divisionArea'
         ? selectOvertureHongKongAreasWithoutSourceGeometry(syntheticAreas, normalised)
         : []
     if (previewPlan.source === 'overture' && areasWithoutSourceGeometry.length > 0) {
@@ -437,11 +437,19 @@ export async function processLocalDivisionGeometrySqlUpload(
         areasWithoutSourceGeometry,
         normalised,
       )
+      const replacedDivisionIds = new Set(
+        areasWithoutSourceGeometry.map(area => area.divisionId),
+      )
+      normalised = normalised.filter(
+        row =>
+          !('divisionId' in row.canonical) ||
+          !replacedDivisionIds.has(row.canonical.divisionId),
+      )
       normalised.push(...syntheticRows)
     }
 
     if (previewPlan.transform === 'simplified') {
-      if (previewPlan.type !== 'divisionArea') {
+      if (previewPlan.resourceType !== 'divisionArea') {
         throw new Error('The simplified display transform is available only for areas.')
       }
       normalised = (await simplifyHkgovDivisionAreas(
@@ -452,14 +460,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Normalise source',
-        previewPlan.type,
+        previewPlan.resourceType,
         normalised.length,
         Date.now() - normalisationStartedAt,
       ),
     )
     const validationStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Validate', `${previewPlan.type} references`),
+      formatGeometryProgressLabel('Validate', `${previewPlan.resourceType} references`),
       {
         current: 0,
         max: null,
@@ -477,14 +485,17 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Validate',
-        `${previewPlan.type} references`,
+        `${previewPlan.resourceType} references`,
         undefined,
         Date.now() - validationStartedAt,
       ),
     )
     const snapshotStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Assemble draft', `${previewPlan.type} snapshot`),
+      formatGeometryProgressLabel(
+        'Assemble draft',
+        `${previewPlan.resourceType} snapshot`,
+      ),
       {
         current: 0,
         max: null,
@@ -493,7 +504,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const retainedVersion = await readNativeGeometryVersion(
       dbContext,
       releaseId,
-      previewPlan.type,
+      previewPlan.resourceType,
       previewPlan.transform,
     )
     const retainedSnapshot = retainedVersion
@@ -531,7 +542,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const snapshot =
       retainedSnapshot ??
       identicalSnapshot ??
-      (await ensureDraftSnapshotForRelease(metaDb, previewPlan.type, {
+      (await ensureDraftSnapshotForRelease(metaDb, previewPlan.resourceType, {
         cohortKey: previewPlan.cohortKey,
         datasetCode,
         datasetId: dataset.datasetId,
@@ -603,7 +614,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     }
     await recordSnapshotAssemblyRun(metaDb, {
       snapshotId: snapshot.id,
-      resourceType: previewPlan.type,
+      resourceType: previewPlan.resourceType,
       anchorReleaseId: dataset.releaseId,
       anchorCohortKey: dataset.cohortKey,
       selectionSummaryJson: {
@@ -624,14 +635,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Assemble draft',
-        `${previewPlan.type} snapshot`,
+        `${previewPlan.resourceType} snapshot`,
         undefined,
         Date.now() - snapshotStartedAt,
       ),
     )
     const writeStartedAt = Date.now()
     progress.beginPhase(
-      formatGeometryProgressLabel('Materialise', `${previewPlan.type} @ local`),
+      formatGeometryProgressLabel('Materialise', `${previewPlan.resourceType} @ local`),
       {
         current: 0,
         max: null,
@@ -639,7 +650,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     const writeResult = await writeGeometryRowsDurably(
       dbContext,
-      previewPlan.type,
+      previewPlan.resourceType,
       normalised,
       {
         source: previewPlan.source,
@@ -680,7 +691,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     progress.complete(
       formatGeometryCompletedLabel(
         'Materialise',
-        `${previewPlan.type} @ local`,
+        `${previewPlan.resourceType} @ local`,
         normalised.length,
         Date.now() - writeStartedAt,
       ),
@@ -715,7 +726,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       inputCount: previewPlan.rowCount,
       curationDocuments: curationDocumentsFor(providerBridgeRows),
       normalisation:
-        previewPlan.type === 'divisionArea'
+        previewPlan.resourceType === 'divisionArea'
           ? divisionAreaGeometryRule.declaration
           : divisionBoundaryGeometryRule.declaration,
       actions: [
@@ -770,7 +781,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           releaseId,
           'processDataset',
           {
-            resourceType: previewPlan.type,
+            resourceType: previewPlan.resourceType,
             sourceRows: previewPlan.rowCount,
             importedRows: normalised.length,
             rejectedRows,

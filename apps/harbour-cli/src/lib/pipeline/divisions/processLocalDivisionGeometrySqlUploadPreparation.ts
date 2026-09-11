@@ -2,7 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { datasetVariantForSource } from '@repo/core'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
-import type { NormalisedDivisionArea } from '@repo/core/pipeline/services/divisionGeometry'
+import type { NormalisedDivisionArea } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { calculateGeoJsonBbox, type GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { currentSchema, metaSchema } from '@repo/db'
 import { and, desc, eq } from 'drizzle-orm'
@@ -149,7 +149,7 @@ export function selectCenstatdInheritedSnapshotSources<
 export function isCenstatdGeometryCompanionPlan(plan: GeometryUploadPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
-    plan.type === 'divisionArea' &&
+    plan.resourceType === 'divisionArea' &&
     ['hkgov-censtatd', 'hkgov-censtatd:simplified'].includes(geometryVariant(plan))
   )
 }
@@ -187,7 +187,7 @@ export async function findIdenticalCenstatdGeometrySnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshots.resourceType, plan.type),
+        eq(metaSchema.metaSnapshots.resourceType, plan.resourceType),
         eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
         eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
         eq(metaSchema.metaSnapshotLineages.variant, geometryVariant(plan)),
@@ -205,7 +205,7 @@ export async function findIdenticalCenstatdGeometrySnapshot(
   for (const candidate of candidates) {
     if (candidate.status === 'archived') continue
     const materialisedRows =
-      plan.type === 'divisionArea'
+      plan.resourceType === 'divisionArea'
         ? await currentDb
             .select()
             .from(currentSchema.divisionAreas)

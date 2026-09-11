@@ -11,7 +11,7 @@ import { executeSqlText } from './sqlImport.ts'
 import { buildStatisticSqlBatches } from '../statistics/statisticSqlReplay.ts'
 import { geometryBuildUpsertSql } from '../divisions/processLocalDivisionGeometrySqlUpload.ts'
 import { buildPlaceSql } from '../places/processLocalPlaceSqlUploadRows.ts'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import {

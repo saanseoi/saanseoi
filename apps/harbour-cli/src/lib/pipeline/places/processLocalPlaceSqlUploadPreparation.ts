@@ -1,3 +1,5 @@
+import { createRecordEnrichmentReuse } from './placeRecordEnrichment.ts'
+import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
 import { rename, open } from 'node:fs/promises'
 import countryFixture from '../../../../../../fixtures/meta/processing-rules/place-country-selection.json'
 import {
@@ -31,11 +33,11 @@ import {
   getPlaceAddressCountry,
   normaliseOverturePlace,
   type NormalisedPlace,
-} from '@repo/core/pipeline/services/place'
+} from '@repo/core/pipeline/services/places/place'
 import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
 import { createHash } from '@repo/core/pipeline/utils'
-import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/placeAddressAssembly'
+import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { currentSchema, metaSchema } from '@repo/db'
 import { and, eq, ne } from 'drizzle-orm'
 import { mapWithConcurrency } from '../local/orchestrator.ts'
@@ -265,15 +267,25 @@ export async function stagePlaces(
   releaseRoot: string,
   onProgress?: (current: number) => void,
   sourceSha256?: string,
+  recordCache?: PlaceRecordCache,
 ): Promise<StagedPlaces> {
   if (sourceSha256)
     return reuseStagedPlaces({
       path: resolve(releaseRoot, NORMALISED_PLACES_FILE),
       sourceSha256,
+      computationContract: recordCache?.contract,
       sourceVersion,
       rawObjectKey,
       generate: () =>
-        stagePlaces(bucket, rawObjectKey, sourceVersion, releaseRoot, onProgress),
+        stagePlaces(
+          bucket,
+          rawObjectKey,
+          sourceVersion,
+          releaseRoot,
+          onProgress,
+          undefined,
+          recordCache,
+        ),
     })
   const file = await createAsyncBufferFromR2(bucket, rawObjectKey)
   const path = resolve(releaseRoot, NORMALISED_PLACES_FILE)
@@ -292,8 +304,15 @@ export async function stagePlaces(
   try {
     for await (const batch of readParquetObjectsInBatches(file, PLACE_BATCH_SIZE)) {
       for (const row of batch) {
-        const place = normaliseOverturePlace(row, sourceVersion)
+        const key = recordCache ? recordCacheKey(row) : ''
+        const cached = recordCache?.get<NormalisedPlace | null>('normalisation', key)
+        const place =
+          cached === undefined ? normaliseOverturePlace(row, sourceVersion) : cached
+        if (cached === undefined) recordCache?.set('normalisation', key, place)
         if (place) {
+          // These observation dates belong to this release, not the cached release.
+          place.firstSeenMonth = sourceVersion.slice(0, 7)
+          place.lastSeenMonth = sourceVersion.slice(0, 7)
           guards.check('place-address-cardinality', () =>
             assertPlaceAddressCardinality([place]),
           )
@@ -307,9 +326,10 @@ export async function stagePlaces(
           }
         }
         processedRows += 1
+        if (processedRows % 5_000 === 0) onProgress?.(processedRows)
       }
-      onProgress?.(processedRows)
     }
+    onProgress?.(processedRows)
     await output.sync()
   } finally {
     await output.close()
@@ -355,6 +375,7 @@ export async function stageEnrichedPlaces(
     addresses: Awaited<ReturnType<typeof buildSupplementaryAddressRows>>
   },
   sourcePath?: string,
+  recordCache?: PlaceRecordCache,
 ): Promise<StagedEnrichedPlaces> {
   const addresses = await currentDb
     .select({
@@ -397,7 +418,8 @@ export async function stageEnrichedPlaces(
     const tempPath = `${path}.tmp`
     const output = await open(tempPath, 'w')
     const stats = createPlaceReleaseStatsAccumulator()
-    const matchAddress3d = createPlaceAddress3dMatcher(currentDb, observe)
+    const matchAddress3d = createPlaceAddress3dMatcher(currentDb)
+    const reuseRecord = createRecordEnrichmentReuse(currentDb, recordCache, observe)
     let processedPlaces = 0
     try {
       for await (const batch of groupAsyncIterable(
@@ -441,38 +463,58 @@ export async function stageEnrichedPlaces(
                   (id): id is string => typeof id === 'string' && divisionIds.has(id),
                 )
               : []
-            const unitReference =
-              address && resolution.tier !== 'supplementary'
-                ? await matchAddress3d(
-                    addressSnapshotId,
-                    address,
-                    place.addresses ?? [],
-                  )
-                : null
-            const contentHash = await hashNormalisedPlace(place)
-            const materialisationContentHash = geometryOverridden
-              ? await createHash({ contentHash, effectiveLng, effectiveLat })
-              : contentHash
-            const result = {
-              place,
-              ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
-              addressSnapshotId: addressId ? addressSnapshotId : null,
-              address2dId: addressId,
-              address3dId: unitReference?.address3dId ?? null,
-              address3dUnitId: unitReference?.address3dUnitId ?? null,
-              address3dMembership: unitReference?.address3dMembership ?? null,
-              divisionIds: [...new Set(referencedDivisionIds)],
-              versionHash: await hashPlaceMaterialisation(place, {
-                addressSnapshotId,
-                divisionSnapshotId: snapshots.divisionSnapshotId,
-                addressId,
-                divisionIds: referencedDivisionIds,
-                contentHash: materialisationContentHash,
-                ...unitReference,
-              }),
-              sourcePayloadHash: await createHash(place.raw),
-            }
-            return result
+            const {
+              firstSeenMonth: _first,
+              lastSeenMonth: _last,
+              ...stablePlace
+            } = place
+            const identity = recordCacheKey([
+              stablePlace,
+              resolution.tier,
+              addressId,
+              addressSnapshotId,
+              snapshots.divisionSnapshotId,
+              address ?? null,
+              referencedDivisionIds,
+              effectiveLng,
+              effectiveLat,
+            ])
+            const reused = await reuseRecord(identity, async observer => {
+              const unitReference =
+                address && resolution.tier !== 'supplementary'
+                  ? await matchAddress3d(
+                      addressSnapshotId,
+                      address,
+                      place.addresses ?? [],
+                      observer,
+                    )
+                  : null
+              const contentHash = await hashNormalisedPlace(place)
+              const materialisationContentHash = geometryOverridden
+                ? await createHash({ contentHash, effectiveLng, effectiveLat })
+                : contentHash
+              const result = {
+                place,
+                ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
+                addressSnapshotId: addressId ? addressSnapshotId : null,
+                address2dId: addressId,
+                address3dId: unitReference?.address3dId ?? null,
+                address3dUnitId: unitReference?.address3dUnitId ?? null,
+                address3dMembership: unitReference?.address3dMembership ?? null,
+                divisionIds: [...new Set(referencedDivisionIds)],
+                versionHash: await hashPlaceMaterialisation(place, {
+                  addressSnapshotId,
+                  divisionSnapshotId: snapshots.divisionSnapshotId,
+                  addressId,
+                  divisionIds: referencedDivisionIds,
+                  contentHash: materialisationContentHash,
+                  ...unitReference,
+                }),
+                sourcePayloadHash: await createHash(place.raw),
+              }
+              return result
+            })
+            return { ...reused, place }
           },
         )
         for (const place of enriched) {
@@ -496,7 +538,7 @@ export async function stageEnrichedPlaces(
     db: currentDb,
     identity: sha256(
       JSON.stringify({
-        contract: 'places-enrichment-v1',
+        contract: ['places-enrichment-v2', recordCache?.contract],
         places: await deliveryFileSha256(sourcePath),
         resolutions: await deliveryFileSha256(supplementary.resolutionPath),
         snapshots,

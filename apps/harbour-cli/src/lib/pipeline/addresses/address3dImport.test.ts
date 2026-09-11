@@ -127,7 +127,9 @@ test('writes large bound collections, replays idempotently and journals removed 
         ],
       }),
     )
-    const manifest = records[2]!
+    const manifest = records.at(2)
+    if (manifest?.kind !== 'manifest')
+      throw new Error('Address3D test fixture is missing its manifest')
     records.splice(2, 0, ...original2d)
     await writeFile(path, records.map(row => JSON.stringify(row)).join('\n'))
     const validation = await validateAddress3dPreparation(path, '2026-08-19.0')
@@ -223,14 +225,14 @@ test('writes large bound collections, replays idempotently and journals removed 
     )
     expect(
       databases.source
-        .query('SELECT rawProperties, sourceGeometry, sources FROM hkgovAlsAddresses3d')
+        .query(
+          'SELECT rawProperties, sourceGeometry, sourceLocator FROM hkgovAlsAddresses3d',
+        )
         .get(),
     ).toEqual({
       rawProperties: JSON.stringify({ source: true }),
       sourceGeometry: JSON.stringify({ type: 'Point', coordinates: [114, 22, 8] }),
-      sources: JSON.stringify([
-        { dataset: 'hkgov-dpo-als-3d', sourceFile: 'original.json' },
-      ]),
+      sourceLocator: JSON.stringify({ sourceFile: 'original.json' }),
     })
     const interpretation = databases.history
       .query('SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?')
@@ -285,7 +287,20 @@ test('writes large bound collections, replays idempotently and journals removed 
         expectedDigest: validated.digest,
       })
     }
+    const unchangedAssertion = databases.source
+      .query('SELECT * FROM hkgovAlsAddresses3d')
+      .get()
     await runSourceRelease('2026-09-01.0', 'source-hash')
+    expect(databases.source.query('SELECT * FROM hkgovAlsAddresses3d').get()).toEqual(
+      unchangedAssertion,
+    )
+    const beforeSourceReplay = databases.source
+      .query('SELECT total_changes() AS n')
+      .get()
+    await runSourceRelease('2026-09-02.0', 'source-hash')
+    expect(databases.source.query('SELECT total_changes() AS n').get()).toEqual(
+      beforeSourceReplay,
+    )
     expect(
       databases.source
         .query('SELECT count(*) AS n FROM hkgovAlsAddresses2d WHERE isCurrent = 1')
@@ -319,7 +334,7 @@ test('writes large bound collections, replays idempotently and journals removed 
       snapshotId: 'snapshot',
       source: 'hkgov-dpo',
       sourceVersion: '2026-10-01.0',
-      type: 'address',
+      resourceType: 'address',
     })
     databases.source.exec(rollback.source)
     expect(

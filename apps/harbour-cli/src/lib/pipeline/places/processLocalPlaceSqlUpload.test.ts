@@ -8,7 +8,7 @@ import {
   buildPlaceSql,
   isExcludedOverturePlace,
 } from './processLocalPlaceSqlUpload.ts'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/place'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 
 describe('Places SQL materialisation', () => {
   test('builds field statistics against the Place denominator', () => {
@@ -152,7 +152,7 @@ describe('Places SQL materialisation', () => {
     sqlite.exec(`
       PRAGMA foreign_keys = ON;
       CREATE TABLE overturePlaces (
-        sourceRecordId TEXT, sources TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
+        sourceRecordId TEXT, sourceLocator TEXT, rawProperties TEXT, sourceGeometry TEXT, version INTEGER,
         versionHash TEXT, releaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
         isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
@@ -221,7 +221,7 @@ describe('Places SQL materialisation', () => {
         source: 'overture',
         sourceVersion: '2026-08-19.0',
         theme: 'places',
-        type: 'place',
+        resourceType: 'place',
         processingMode: 'sql',
       },
       snapshots: {

@@ -38,6 +38,9 @@ export type SqlDeliveryCheckpoint = {
   bookmark?: string
   uploadMs: number
   executionMs: number
+  rowUsage?: import('./sqlDeliveryUsage.ts').D1RowUsage
+  /** Persisted before a request; a lost acknowledgement leaves usage incomplete. */
+  usagePending?: boolean
 }
 
 export type SqlDeliveryProgress = {

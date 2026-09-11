@@ -15,7 +15,7 @@ import {
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { datasetVariantForSource, type ResourceType } from '@repo/core'
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { splitSqlStatements } from '@repo/core/pipeline/services/addressPipeline/sqlImportStages'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import {
   executeSqlText,
@@ -152,7 +152,7 @@ export async function runRollbackReleaseCommand(
       throw new Error(`Release not found: ${releaseSpecifier}`)
     }
 
-    const resourceType = release.type as ResourceType
+    const resourceType = release.resourceType as ResourceType
     const releaseSource = datasetVariantForSource(resourceType, release.source, {
       cohortKey: release.cohortKey ?? undefined,
       datasetCode: release.datasetCode,
@@ -210,7 +210,7 @@ export async function runRollbackReleaseCommand(
     }
     const rollbackPlan = describeLatestReleaseRollbackPlan({
       source: releaseSource,
-      type: resourceType,
+      resourceType: resourceType,
     })
     const planCounts = await countRollbackPlanRows(dbContext, {
       apiReleaseSetId: releaseSet.id,
@@ -245,7 +245,7 @@ export async function runRollbackReleaseCommand(
       snapshotId: snapshot.id,
       source: releaseSource,
       sourceVersion: release.sourceVersion,
-      type: resourceType,
+      resourceType,
     }
     const rollbackSql =
       operation === 'purge'

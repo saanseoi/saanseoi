@@ -14,7 +14,7 @@ export type UploadPlan = {
   source: string
   sourceVersion: string
   theme: 'addresses'
-  type: 'address'
+  resourceType: 'address'
 }
 
 export type ChunkRange = {

@@ -1,3 +1,4 @@
+import { summariseD1RowUsage } from '../pipeline/local/sqlDeliveryUsage.ts'
 import { join, resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
@@ -55,9 +56,14 @@ export async function runSqlDeliveryCommand(
   if (plan.context.environment !== environment)
     throw new Error('SQL delivery environment does not match --target.')
   if (args.command === 'sql:status') {
+    const progress = await readDeliveryProgress(directory, plan)
     console.log(
       JSON.stringify(
-        { plan, progress: await readDeliveryProgress(directory, plan) },
+        {
+          plan,
+          progress,
+          rowUsage: summariseD1RowUsage(progress, plan.batches.length),
+        },
         null,
         2,
       ),

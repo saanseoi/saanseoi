@@ -36,7 +36,7 @@ export async function readRemoteCachedCompletedReleaseCodes(
         datasetId: metaSchema.metaReleases.datasetId,
         id: metaSchema.metaReleases.id,
         status: metaSchema.metaReleases.status,
-        type: metaSchema.metaReleases.resourceType,
+        resourceType: metaSchema.metaReleases.resourceType,
       })
       .from(metaSchema.metaReleases)
       .where(
@@ -79,7 +79,7 @@ export async function findIncompletePublishedReleases(
     datasetId: string
     id: string
     status: string
-    type: string
+    resourceType: string
   }>,
 ) {
   const currentPath = files.DB_CURRENT ?? resolve(cacheDir, 'DB_CURRENT.sqlite')
@@ -94,7 +94,7 @@ export async function findIncompletePublishedReleases(
         continue
       }
 
-      const currentTable = resolveCompletedReleaseCurrentTable(release.type)
+      const currentTable = resolveCompletedReleaseCurrentTable(release.resourceType)
 
       // Non-SQL pipelines have no cache-level materialisation contract here.
       if (!currentTable) {
@@ -132,8 +132,8 @@ export async function findIncompletePublishedReleases(
         .get(
           release.id,
           release.datasetId,
-          release.type,
-          release.type,
+          release.resourceType,
+          release.resourceType,
           release.datasetId,
         ) as { snapshotId?: string; snapshotLineageId?: string | null } | null
 
@@ -190,8 +190,8 @@ export async function findIncompletePublishedReleases(
   return incomplete
 }
 
-function resolveCompletedReleaseCurrentTable(type: string) {
-  switch (type) {
+function resolveCompletedReleaseCurrentTable(resourceType: string) {
+  switch (resourceType) {
     case 'division':
       return 'divisions'
     case 'divisionArea':

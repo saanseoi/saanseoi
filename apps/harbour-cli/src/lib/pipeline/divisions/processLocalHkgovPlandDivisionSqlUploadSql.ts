@@ -4,7 +4,7 @@ import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import {
   buildSqlPipelineArtefactKey,
   writeTextArtefact,
-} from '@repo/core/pipeline/services/pipelineArtefacts'
+} from '@repo/core/pipeline/services/storage/artefacts'
 import type { SqlImportTargetContext } from '../local/sqlImport.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -75,7 +75,7 @@ export async function writePlandSqlArtefacts(
         source: plan.source,
         sourceVersion: plan.sourceVersion,
         theme: plan.theme,
-        type: plan.type,
+        resourceType: plan.resourceType,
       },
       target,
       filename,

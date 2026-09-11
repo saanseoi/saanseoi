@@ -3,11 +3,10 @@ import type { DatasetProcessingMessage } from '@repo/core'
 import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { MetaDatabase } from '@repo/db'
-import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
 import {
   buildSqlPipelineArtefactKey,
   writeTextArtefact,
-} from '@repo/core/pipeline/services/pipelineArtefacts'
+} from '@repo/core/pipeline/services/storage/artefacts'
 import type { UploadTarget } from '../../cli/options.ts'
 import { resolvePipelineEnvironment } from '../../cli/options.ts'
 import {
@@ -35,7 +34,6 @@ import {
   PRIMARY_SOURCE_OWNER_KEY,
 } from './processLocalDivisionSqlUploadConfig.ts'
 import {
-  buildAdvanceSourceReleaseStatements,
   buildCloseHistoryVersionStatements,
   buildCloseSourceVersionStatements,
 } from './processLocalDivisionSqlUploadRows.ts'
@@ -204,14 +202,6 @@ export function buildExtraSourceSqlOperations(
   const changedIds = state.records
     .filter(record => !record.isSupplemental && record.sourceChanged)
     .map(record => record.id)
-  const unchangedIds = state.records
-    .filter(
-      record =>
-        !record.isSupplemental &&
-        !record.sourceChanged &&
-        state.currentSourceRows.has(record.id),
-    )
-    .map(record => record.id)
   const publisherIds = new Set(
     state.records.filter(record => !record.isSupplemental).map(record => record.id),
   )
@@ -223,17 +213,11 @@ export function buildExtraSourceSqlOperations(
     changedIds,
     PRIMARY_SOURCE_OWNER_KEY,
   )
-  const unchangedIdsByOwner = groupIdsByOwnerShard(
-    state.currentSourceRows,
-    unchangedIds,
-    PRIMARY_SOURCE_OWNER_KEY,
-  )
   const missingIdsByOwner = groupIdsByOwnerShard(
     state.currentSourceRows,
     missingIds,
     PRIMARY_SOURCE_OWNER_KEY,
   )
-  const releaseId = buildSourceReleaseId(message)
   const now = new Date().toISOString()
   const operations: ExtraSqlImportOperation[] = []
 
@@ -246,11 +230,6 @@ export function buildExtraSourceSqlOperations(
       ...buildCloseSourceVersionStatements(
         changedIdsByOwner.get(ownerKey) ?? [],
         message.sourceVersion,
-        now,
-      ),
-      ...buildAdvanceSourceReleaseStatements(
-        unchangedIdsByOwner.get(ownerKey) ?? [],
-        releaseId,
         now,
       ),
       ...buildCloseSourceVersionStatements(

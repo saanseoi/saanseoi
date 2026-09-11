@@ -1,4 +1,4 @@
-import { buildChurnStatsRows } from '@repo/core/pipeline/services/stats'
+import { buildChurnStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { createHash } from 'node:crypto'
 
 /** Division attributes only; geometry is reported by the companion Areas release. */
@@ -18,16 +18,16 @@ export function planningDivisionContentHash(row: Record<string, unknown>) {
     'divisionCode',
     'identifiers',
     'level',
-    'type',
+    'class',
     'wikidata',
-    'hierarchy',
+    'hierarchies',
     'cartography',
   ]
   const content = Object.fromEntries(
     fields.map(field => {
       let value = row[field] ?? null
       if (
-        ['identifiers', 'hierarchy', 'cartography'].includes(field) &&
+        ['identifiers', 'hierarchies', 'cartography'].includes(field) &&
         typeof value === 'string'
       )
         value = JSON.parse(value)

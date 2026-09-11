@@ -1,5 +1,5 @@
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sourcePayload'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { curationDocumentsFor } from '../../curationDocuments'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -28,7 +28,7 @@ import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
   censtatdReleaseStatsProfileFor,
-} from '@repo/core/pipeline/services/censtatdReleaseStats'
+} from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
 import { createHash } from 'node:crypto'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
@@ -91,7 +91,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     source: 'hkgov-censtatd'
     sourceVersion: string
     theme: 'stats'
-    type: 'divisionStatistic'
+    resourceType: 'divisionStatistic'
   },
   upload: {
     datasetCode?: string

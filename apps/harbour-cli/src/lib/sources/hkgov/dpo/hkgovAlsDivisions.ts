@@ -66,7 +66,8 @@ export async function loadDivisionLookupMaps(options: {
         snapshotId: currentSchema.divisions.snapshotId,
         id: currentSchema.divisions.id,
         level: currentSchema.divisions.level,
-        type: currentSchema.divisions.type,
+        category: currentSchema.divisions.category,
+        class: currentSchema.divisions.class,
         locale: currentSchema.divisionsI18n.locale,
         name: currentSchema.divisionsI18n.name,
       })
@@ -89,7 +90,8 @@ export async function loadDivisionLookupMaps(options: {
           snapshotId: historySchema.divisions.snapshotId,
           id: historySchema.divisions.id,
           level: historySchema.divisions.level,
-          type: historySchema.divisions.type,
+          category: historySchema.divisions.category,
+          class: historySchema.divisions.class,
           locale: historySchema.divisionsI18n.locale,
           name: historySchema.divisionsI18n.name,
         })
@@ -174,7 +176,7 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string, snapshotId: st
     return sqlite
       .query(
         `
-          SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
+          SELECT d.snapshotId, d.id, d.level, d.class, di.locale, di.name
           FROM divisions d
           JOIN divisionsI18n di
             ON di.snapshotId = d.snapshotId
@@ -207,7 +209,7 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      SELECT d.snapshotId, d.id, d.level, d.type, di.locale, di.name
+      SELECT d.snapshotId, d.id, d.level, d.class, di.locale, di.name
       FROM divisions d
       JOIN divisionsI18n di
         ON di.snapshotId = d.snapshotId
@@ -388,7 +390,7 @@ type DivisionLookupRow = {
   level: number | null
   locale: string
   name: string | null
-  type: string
+  class: string
 }
 
 function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookupMaps {
@@ -412,7 +414,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
       continue
     }
 
-    if (row.level === 1 || row.type === 'area') {
+    if (row.class === 'area') {
       if (row.locale === 'en') {
         addDivisionLookupEntry(
           areaByEn,
@@ -432,7 +434,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
       }
     }
 
-    if (row.level === 2 || row.type === 'district') {
+    if (row.class === 'district') {
       if (row.locale === 'en') {
         addDivisionLookupEntry(
           districtByEn,
