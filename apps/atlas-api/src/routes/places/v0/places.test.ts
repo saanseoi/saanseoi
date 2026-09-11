@@ -19,6 +19,7 @@ describe('Places API geometry projection', () => {
       taxonomyPrimary: 'restaurant',
       taxonomyHierarchy: ['food', 'restaurant'],
       taxonomyAlternates: ['cafe'],
+      addressDependencyHash: 'internal-hash',
     })
 
     expect(result).toMatchObject({
@@ -37,6 +38,7 @@ describe('Places API geometry projection', () => {
     expect(result).not.toHaveProperty('taxonomyAlternates')
     expect(result).not.toHaveProperty('lat')
     expect(result).not.toHaveProperty('lng')
+    expect(result).not.toHaveProperty('addressDependencyHash')
   })
 })
 
@@ -45,6 +47,7 @@ test('keeps public localisation provenance trust-oriented', () => {
     placeId: 'place-1',
     locale: 'zh-hant',
     freeformAddress: '中環',
+    searchDependencyText: { addressSnapshotId: 'pinned', addressText: 'index input' },
     provenance: {
       isMachineTranslated: ['name'],
       isHumanVerified: [],
@@ -65,6 +68,7 @@ test('keeps public localisation provenance trust-oriented', () => {
     isHumanVerified: [],
     isLocaleInferred: true,
   })
+  expect(result).not.toHaveProperty('searchDependencyText')
 })
 
 test('normalises the retained Overture bbox struct to the public tuple', () => {

@@ -108,8 +108,10 @@ export function placeGeometry({ lat, lng }: PlaceCoordinates) {
   }
 }
 
-export function toPlaceI18nApiRecord<T extends { provenance?: unknown }>(record: T) {
-  const { provenance, ...rest } = record
+export function toPlaceI18nApiRecord<
+  T extends { provenance?: unknown; searchDependencyText?: unknown },
+>(record: T) {
+  const { provenance, searchDependencyText: _searchDependencyText, ...rest } = record
   if (!provenance || typeof provenance !== 'object') {
     return { ...rest, provenance: null }
   }
@@ -132,6 +134,7 @@ type PlaceApiRecord<T extends PlaceTaxonomy> = Omit<
   | 'taxonomyHierarchy'
   | 'taxonomyAlternates'
   | 'addresses'
+  | 'addressDependencyHash'
 > & {
   taxonomy: {
     primary: T['taxonomyPrimary']
@@ -142,7 +145,8 @@ type PlaceApiRecord<T extends PlaceTaxonomy> = Omit<
 }
 
 export function toPlaceApiRecord<
-  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+  T extends PlaceCoordinates &
+    PlaceTaxonomy & { addresses?: unknown; addressDependencyHash?: unknown },
 >(
   record: T,
   referenceName: string | null,
@@ -150,10 +154,12 @@ export function toPlaceApiRecord<
   referenceName: string | null
 }
 export function toPlaceApiRecord<
-  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+  T extends PlaceCoordinates &
+    PlaceTaxonomy & { addresses?: unknown; addressDependencyHash?: unknown },
 >(record: T): PlaceApiRecord<T>
 export function toPlaceApiRecord<
-  T extends PlaceCoordinates & PlaceTaxonomy & { addresses?: unknown },
+  T extends PlaceCoordinates &
+    PlaceTaxonomy & { addresses?: unknown; addressDependencyHash?: unknown },
 >(
   record: T,
   referenceName?: string | null,
@@ -167,6 +173,7 @@ export function toPlaceApiRecord<
     taxonomyHierarchy,
     taxonomyAlternates,
     addresses: _addresses,
+    addressDependencyHash: _addressDependencyHash,
     ...rest
   } = record
   const projected = {
