@@ -16,7 +16,7 @@ import { divisionLocaleBranches } from './divisionLocaleBranches'
 import { localeDetection, localeInferenceBranches } from '../../localeInference'
 import {
   divisionLevel,
-  divisionType,
+  divisionClass,
   hierarchyClassification,
   validateDivisionPolicy,
 } from './divisionTaxonomy'
@@ -988,7 +988,7 @@ export async function processDivisionDataset(
     sourceUnchangedRows,
     sourceVersion: message.sourceVersion,
     ...(debugEnabled ? { timingsMs: timings.snapshot() } : {}),
-    type: message.resourceType,
+    resourceType: message.resourceType,
   })
 
   return {
@@ -1202,8 +1202,8 @@ function normaliseDivisionRowInternal(
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const type = landsdPlaceName
     ? 'settlement'
-    : (overtureHongKongDivisionClassificationCorrection?.type ??
-      resolveDivisionType({
+    : (overtureHongKongDivisionClassificationCorrection?.class ??
+      resolveDivisionClass({
         row,
         otClass,
         otSubtype,
@@ -1380,7 +1380,7 @@ export const divisionNormalisationRule = registerRule(
       ...ruleFixture.parameters,
       localeDetection,
       branchCountSemantics:
-        'Selected branches after precedence. Classification: one decision per source division; changed compares the result to raw level/type. Locale normalisation: one decision per target locale; changed means a copied row. Inference: one decision per evaluated primary/unlabelled text value; changed means locale-bearing output. Preparatory hierarchy lookups are excluded.',
+        'Selected branches after precedence. Classification: one decision per source division; changed compares the result to raw level/class. Locale normalisation: one decision per target locale; changed means a copied row. Inference: one decision per evaluated primary/unlabelled text value; changed means locale-bearing output. Preparatory hierarchy lookups are excluded.',
     },
     branches: [
       ...divisionTaxonomyBranches(ruleFixture.parameters),
@@ -2059,8 +2059,8 @@ export async function buildDivisionHierarchyLookup(
             parentDivisionId,
           }),
         class:
-          classification?.type ??
-          resolveDivisionType({
+          classification?.class ??
+          resolveDivisionClass({
             row,
             otClass,
             otSubtype,
@@ -2144,7 +2144,7 @@ function normaliseDivisionHierarchies(
             lookupEntry?.i18n ??
             buildHierarchyI18nFromName(hierarchyDivisionId, record.name),
           level: lookupEntry?.level ?? resolveHierarchyDivisionLevel(rawSubtype),
-          type: lookupEntry?.class ?? resolveHierarchyDivisionType(rawSubtype),
+          class: lookupEntry?.class ?? resolveHierarchyDivisionType(rawSubtype),
         },
       ]
     })
@@ -2179,7 +2179,7 @@ function resolveHierarchyDivisionType(rawSubtype: string | null): string {
   return hierarchyClassification(
     divisionNormalisationRule.declaration.parameters,
     normaliseDivisionLevelToken(rawSubtype),
-  ).type
+  ).class
 }
 
 type DivisionTaxonomyInput = {
@@ -2209,12 +2209,12 @@ function resolveDivisionLevel(input: DivisionTaxonomyInput): number {
   )
 }
 
-function resolveDivisionType(input: DivisionTaxonomyInput): string {
-  return divisionType(
+function resolveDivisionClass(input: DivisionTaxonomyInput): string {
+  return divisionClass(
     divisionNormalisationRule.declaration.parameters,
     divisionTaxonomyHints(input),
     input.branchCounts,
-    input.row.type,
+    input.row.class,
   )
 }
 

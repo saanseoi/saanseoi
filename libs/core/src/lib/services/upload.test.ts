@@ -397,7 +397,7 @@ describe('upload', () => {
 
     expect(planned.plan.resourceType).toBe('address')
     expect(planned.plan.theme).toBe('addresses')
-    expect(planned.plan.inferredFrom.type).toBe('filename')
+    expect(planned.plan.inferredFrom.resourceType).toBe('filename')
     expect(planned.plan.inferredFrom.theme).toBe('filename')
   })
 

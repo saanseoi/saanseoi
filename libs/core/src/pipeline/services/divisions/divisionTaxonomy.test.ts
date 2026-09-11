@@ -4,7 +4,7 @@ import { divisionLocaleBranches } from './divisionLocaleBranches'
 import { selectBranch } from '../../../provenance/branches'
 import {
   divisionLevel,
-  divisionType,
+  divisionClass,
   hierarchyClassification,
   validateDivisionPolicy,
 } from './divisionTaxonomy'
@@ -54,25 +54,25 @@ test('taxonomy consumes fixture mappings, precedence and fallbacks', () => {
   for (const entry of policy.localityClasses) {
     const input = { ...hints, subtype: 'locality', class: entry.token }
     expect(divisionLevel(policy, input)).toBe(entry.level)
-    expect(divisionType(policy, input)).toBe(entry.type)
+    expect(divisionClass(policy, input)).toBe(entry.class)
   }
   expect(divisionLevel(policy, { ...hints, subtype: 'subdistrict' })).toBe(2)
   expect(
-    divisionType(policy, { ...hints, subtype: 'dependency', class: 'microhood' }),
+    divisionClass(policy, { ...hints, subtype: 'dependency', class: 'microhood' }),
   ).toBe('sar')
   expect(
-    divisionType(policy, { ...hints, subtype: 'country', isHongKongArea: true }),
+    divisionClass(policy, { ...hints, subtype: 'country', isHongKongArea: true }),
   ).toBe('area')
   expect(divisionLevel(policy, hints)).toBe(0)
   expect(divisionLevel(policy, { ...hints, hasParent: true })).toBe(1)
   const city = policy.localityClasses.find(entry => entry.token === 'city')
   if (!city) throw new Error('Expected city locality class in fixture policy')
   city.level = 3
-  city.type = 'town'
+  city.class = 'town'
   expect(divisionLevel(policy, { ...hints, subtype: 'locality', class: 'city' })).toBe(
     3,
   )
-  expect(divisionType(policy, { ...hints, subtype: 'locality', class: 'city' })).toBe(
+  expect(divisionClass(policy, { ...hints, subtype: 'locality', class: 'city' })).toBe(
     'town',
   )
   policy.levelTokens.unshift({ token: 'subdistrict', level: 3 })

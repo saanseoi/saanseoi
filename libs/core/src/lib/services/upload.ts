@@ -765,7 +765,7 @@ function resolveUploadPlan(
           : themeFromPath
             ? 'path'
             : 'parquet',
-      type: typeFromFlag
+      resourceType: typeFromFlag
         ? 'flag'
         : typeFromFilename
           ? 'filename'

@@ -222,7 +222,7 @@ for (const order of [types, [...types].reverse()]) {
       expect(
         versions[0]?.resources
           .map(resource => ({
-            type: resource.resourceType,
+            resourceType: resource.resourceType,
             count: resource.stats[0]?.value,
           }))
           .sort((a, b) => a.type.localeCompare(b.type)),

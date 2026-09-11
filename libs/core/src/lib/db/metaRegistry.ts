@@ -5065,7 +5065,7 @@ export async function publishReleaseArtefacts(
           reason: null,
           metadataJson: {
             replacedReleaseId: args.currentRelease.releaseId,
-            type: args.resourceType,
+            resourceType: args.resourceType,
           },
           createdAt: publishedAt,
         }),
@@ -5081,7 +5081,7 @@ export async function publishReleaseArtefacts(
           reason: replacedReason,
           metadataJson: {
             replacementReleaseId: args.dataset.releaseId,
-            type: args.resourceType,
+            resourceType: args.resourceType,
           },
           createdAt: publishedAt,
         }),
@@ -5130,7 +5130,7 @@ export async function publishReleaseArtefacts(
           statusTo: 'published',
           reason: null,
           metadataJson: {
-            type: args.resourceType,
+            resourceType: args.resourceType,
           },
           createdAt: publishedAt,
         }),

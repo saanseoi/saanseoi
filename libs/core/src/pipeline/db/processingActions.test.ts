@@ -44,9 +44,7 @@ function createProcessingActionsDb() {
     CREATE TABLE stats (
       id TEXT PRIMARY KEY,
       releaseId TEXT,
-      snapshotId TEXT,
       apiReleaseSetId TEXT,
-      kind TEXT NOT NULL,
       dimension TEXT,
       metric TEXT,
       metricUnit TEXT,
