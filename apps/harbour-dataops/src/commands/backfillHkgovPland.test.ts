@@ -3,15 +3,18 @@ import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import type { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
 
 const preparedTypes: Array<{ sourceVersion: string; resourceType: string }> = []
 const preparedInputs: string[] = []
 const uploadedTypes: Array<{
+  deferApiReleaseSet: boolean
   skipSnapshotCleanup: boolean
   sourceVersion: string
   resourceType: string
 }> = []
 let divisionPublishComplete = false
+const reconciledTargets: unknown[] = []
 
 const prepareHkgovPlandTpuNativeShpZipMock = mock(
   async (options: {
@@ -40,11 +43,12 @@ const runUploadCommandMock = mock(
   async (
     _args: { options: { 'source-version'?: unknown; 'resource-type'?: unknown } },
     _target: unknown,
-    options: { skipSnapshotCleanup: boolean },
+    options: { deferApiReleaseSet: boolean; skipSnapshotCleanup: boolean },
   ) => {
     const sourceVersion = String(_args.options['source-version'])
     const resourceType = String(_args.options['resource-type'])
     uploadedTypes.push({
+      deferApiReleaseSet: options.deferApiReleaseSet,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
       sourceVersion,
       resourceType,
@@ -58,6 +62,16 @@ const runUploadCommandMock = mock(
 
     expect(divisionPublishComplete).toBe(true)
     divisionPublishComplete = false
+  },
+)
+
+const runReconcileDraftReleaseSetsCommandMock = mock(
+  async (
+    _args: Parameters<typeof runReconcileDraftReleaseSetsCommand>[0],
+    target: Parameters<typeof runReconcileDraftReleaseSetsCommand>[1],
+    _printUsage: Parameters<typeof runReconcileDraftReleaseSetsCommand>[2],
+  ) => {
+    reconciledTargets.push(target)
   },
 )
 
@@ -96,6 +110,8 @@ describe('Planning Department backfills', () => {
               )
             },
             prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+            runReconcileDraftReleaseSetsCommand:
+              runReconcileDraftReleaseSetsCommandMock,
             runUploadCommand: runUploadCommandMock,
           },
         )
@@ -109,7 +125,7 @@ describe('Planning Department backfills', () => {
     }
   })
 
-  test('publishes each division before attaching its division area', async () => {
+  test('stages each cohort before reconciling its complete division and area release set', async () => {
     const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
     try {
       await runHkgovPlandBackfillCommand(
@@ -124,6 +140,7 @@ describe('Planning Department backfills', () => {
         {
           prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
           preparedArtefactCacheRoot: cacheRoot,
+          runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
           runUploadCommand: runUploadCommandMock,
         },
       )
@@ -139,37 +156,68 @@ describe('Planning Department backfills', () => {
       ),
     )
     expect(uploadedTypes).toEqual([
-      { skipSnapshotCleanup: true, sourceVersion: '2001', resourceType: 'division' },
       {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        sourceVersion: '2001',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
         sourceVersion: '2001',
         resourceType: 'divisionArea',
       },
-      { skipSnapshotCleanup: true, sourceVersion: '2006', resourceType: 'division' },
       {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        sourceVersion: '2006',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
         sourceVersion: '2006',
         resourceType: 'divisionArea',
       },
-      { skipSnapshotCleanup: true, sourceVersion: '2011', resourceType: 'division' },
       {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        sourceVersion: '2011',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
         sourceVersion: '2011',
         resourceType: 'divisionArea',
       },
-      { skipSnapshotCleanup: true, sourceVersion: '2016', resourceType: 'division' },
       {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        sourceVersion: '2016',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
         sourceVersion: '2016',
         resourceType: 'divisionArea',
       },
-      { skipSnapshotCleanup: true, sourceVersion: '2021', resourceType: 'division' },
       {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        sourceVersion: '2021',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
         skipSnapshotCleanup: false,
         sourceVersion: '2021',
         resourceType: 'divisionArea',
       },
     ])
+    expect(reconciledTargets).toContainEqual({ environment: 'preview', remote: true })
   })
 
   test('reuses verified prepared artefacts on a backfill retry', async () => {
@@ -179,6 +227,7 @@ describe('Planning Department backfills', () => {
       const dependencies = {
         prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
         preparedArtefactCacheRoot: cacheRoot,
+        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
         runUploadCommand: runUploadCommandMock,
       }
       const args = {
@@ -254,6 +303,7 @@ describe('Planning Department backfills', () => {
       const dependencies = {
         prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
         preparedArtefactCacheRoot: cacheRoot,
+        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
         runUploadCommand: runUploadCommandMock,
       }
       const args = {
@@ -319,6 +369,7 @@ describe('Planning Department backfills', () => {
             'dr-hk-hkgov-pland-division-area-pu-2021',
           ])
         },
+        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
       },
     )
 

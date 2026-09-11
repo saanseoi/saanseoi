@@ -14,6 +14,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
 import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
@@ -38,6 +39,7 @@ type BackfillDependencies = {
   prepareHkgovPlandNewTownNativeShpZip?: typeof prepareHkgovPlandNewTownNativeShpZip
   prepareHkgovPlandTpuNativeShpZip?: typeof prepareHkgovPlandTpuNativeShpZip
   runUploadCommand?: typeof runUploadCommand
+  runReconcileDraftReleaseSetsCommand?: typeof runReconcileDraftReleaseSetsCommand
   getCompletedReleaseCodes?: (target: UploadTarget) => Promise<Set<string>>
   preparedArtefactCacheRoot?: string
 }
@@ -150,6 +152,7 @@ export async function runHkgovPlandBackfillCommand(
       ? 'ds-hk-hkgov-pland-division-pu'
       : 'ds-hk-hkgov-pland-division-new-town'
   let skippedReleaseCount = 0
+  let uploadedReleaseCount = 0
   const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
   const preparedArtefactCacheRoot = resolve(
     dependencies.preparedArtefactCacheRoot ??
@@ -217,10 +220,27 @@ export async function runHkgovPlandBackfillCommand(
         source,
         target,
         resourceType: type,
+        deferApiReleaseSet: true,
         forceUpload: continueUpload,
         runUploadCommand: dependencies.runUploadCommand,
       })
+      uploadedReleaseCount += 1
     }
+  }
+
+  if (uploadedReleaseCount > 0) {
+    await (
+      dependencies.runReconcileDraftReleaseSetsCommand ??
+      runReconcileDraftReleaseSetsCommand
+    )(
+      {
+        command: 'release-sets:reconcile',
+        positionals: [],
+        options: { 'api-family': 'divisions', region: 'hk' },
+      },
+      target,
+      printUsage,
+    )
   }
 
   if (skippedReleaseCount === releases.length * 2) {
@@ -415,6 +435,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         sourceArchiveSha256,
         target,
         resourceType: type,
+        deferApiReleaseSet: false,
         forceUpload: false,
         runUploadCommand: dependencies.runUploadCommand,
       })
@@ -433,6 +454,7 @@ async function uploadPreparedArtefact(args: {
   sourceArchiveSha256?: string
   target: UploadTarget
   resourceType: 'division' | 'divisionArea'
+  deferApiReleaseSet: boolean
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
 }) {
@@ -465,6 +487,7 @@ async function uploadPreparedArtefact(args: {
     },
   }
   await (args.runUploadCommand ?? runUploadCommand)(uploadArgs, args.target, {
+    deferApiReleaseSet: args.deferApiReleaseSet,
     dryRun: false,
     forceUpload: args.forceUpload,
     invocationCwd: args.invocationCwd,
