@@ -83,7 +83,8 @@ for (const target of ['local', 'preview'] as const)
         source: 'overture' as const,
         variant: 'overture',
         releaseId,
-        releaseCode: 'new',
+        releaseCode: 'dr-hk-overture-division-area-2026-02-18.0',
+        sourceVersion: '2026-02-18.0',
         snapshotId: 'new',
         snapshotLineageId: 'geometry-lineage',
         parentSnapshotId: 'old',
@@ -96,7 +97,8 @@ for (const target of ['local', 'preview'] as const)
         {
           ...version,
           releaseId: 'old',
-          releaseCode: 'old',
+          releaseCode: 'dr-hk-overture-division-area-2026-01-21.0',
+          sourceVersion: '2026-01-21.0',
           snapshotId: 'old',
           parentSnapshotId: null,
         },
@@ -161,9 +163,16 @@ for (const target of ['local', 'preview'] as const)
       expect(
         source
           .query(
-            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId='old' AND validToRelease='new'",
+            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId='old' AND validFromRelease='2026-01-21.0' AND validToRelease='2026-02-18.0'",
           )
           .get(),
+      ).toEqual({ n: 2 })
+      expect(
+        source
+          .query(
+            'SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId=? AND validFromRelease=? AND validToRelease IS NULL',
+          )
+          .get(releaseId, '2026-02-18.0'),
       ).toEqual({ n: 2 })
       expect(
         history
@@ -254,6 +263,7 @@ test('canonical replacement retains only real publisher geometry and resolves it
         variant: 'overture',
         releaseId: 'release',
         releaseCode: 'release',
+        sourceVersion: '2026-01-21.0',
         snapshotId: 'snapshot',
         snapshotLineageId: 'geometry-lineage',
         parentSnapshotId: null,

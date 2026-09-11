@@ -178,7 +178,11 @@ export async function buildPlandSourceSql(
     ['sourceGeometry'],
   )
   const statements = [
-    ...buildCloseSourceStatements(tableName, state.missingNativeIds, state.releaseCode),
+    ...buildCloseSourceStatements(
+      tableName,
+      state.missingNativeIds,
+      plan.sourceVersion,
+    ),
     ...buildInsertStatements(tableName, columns, sourceInsert.rows, {
       suffix: buildUpdateSuffix(columns, ['sourceRecordId', 'versionHash']),
     }),
@@ -386,12 +390,12 @@ export async function buildPlandCurrentSql(
 function buildCloseSourceStatements(
   tableName: string,
   ids: string[],
-  releaseCode: string,
+  sourceVersion: string,
 ) {
   return buildIdChunks(ids).map(idsSql =>
     `
 UPDATE ${tableName}
-SET isCurrent = 0, validToRelease = ${sqlLiteral(releaseCode)}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+SET isCurrent = 0, validToRelease = ${sqlLiteral(sourceVersion)}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE isCurrent = 1 AND sourceRecordId IN (${idsSql});`.trim(),
   )
 }

@@ -60,11 +60,11 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         "UPDATE divisionAreas SET isCurrent=0,updatedAt='new' WHERE id IN ('changed','removed'); INSERT INTO divisionAreas VALUES('new','changed','v2',1,'new',X'AAFF'); INSERT INTO snapshotVersionChanges VALUES('new','divisionArea','changed','upsert'),('new','divisionArea','removed','delete');",
       )
       local[sourceBinding]?.exec(
-        `UPDATE "${sourceTable}" SET isCurrent=0,validToRelease='new-code',updatedAt='new'; INSERT INTO "${sourceTable}" VALUES('new-release','changed','v2',1,NULL,'new',X'AAFF');`,
+        `UPDATE "${sourceTable}" SET isCurrent=0,validToRelease='2026-01',updatedAt='new'; INSERT INTO "${sourceTable}" VALUES('new-release','changed','v2',1,NULL,'new',X'AAFF');`,
       )
       if (sourceName === 'hkgov-censtatd')
         local[sourceBinding]?.exec(
-          "UPDATE hkgovCenstatdDivisionAreaDerivatives SET isCurrent=0,validToRelease='new-code',updatedAt='new' WHERE inputVersionHash='exact'; INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('new-release','changed','exact','simplified','d2',1,NULL,'new');",
+          "UPDATE hkgovCenstatdDivisionAreaDerivatives SET isCurrent=0,validToRelease='2026-01',updatedAt='new' WHERE inputVersionHash='exact'; INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('new-release','changed','exact','simplified','d2',1,NULL,'new');",
         )
       if (sourceName === 'hkgov-censtatd')
         remote.source.exec(

@@ -68,6 +68,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         variant: 'variant',
         releaseId: snapshotId,
         releaseCode: snapshotId,
+        sourceVersion: snapshotId,
         snapshotId,
         snapshotLineageId: 'lineage',
         parentSnapshotId,

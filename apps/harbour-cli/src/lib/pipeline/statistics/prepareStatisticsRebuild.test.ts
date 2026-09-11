@@ -328,6 +328,75 @@ test('preparation rejects current records absent from retained history without w
   expect(existsSync(output)).toBe(false)
 })
 
+test('Building Group preparation reads source validity using the complete publisher version', async () => {
+  const f = fixture()
+  f.release(1, { population: '10' })
+  const datasetCode =
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+  const sourceVersion = '2023-H2'
+  f.meta.query('UPDATE datasets SET code = ?').run(datasetCode)
+  f.meta
+    .query('UPDATE releases SET code = ?, sourceVersion = ?')
+    .run(
+      `dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-${sourceVersion}::divisionStatistic`,
+      sourceVersion,
+    )
+  for (const db of [f.current, f.history]) {
+    for (const table of [
+      'statsRecords',
+      'statsFields',
+      'statsFieldsI18n',
+      'statsMeasures',
+      'statsMeasuresI18n',
+    ])
+      db.query(`UPDATE ${table} SET datasetCode = ?`).run(datasetCode)
+    db.query(
+      'UPDATE statsRecords SET sourceFeatureRef = ?, divisionId = NULL, geography = ?',
+    ).run(
+      `hkgov-censtatd/${datasetCode}/${sourceVersion}/BuildingGroup:A`,
+      JSON.stringify({ kind: 'building-group', code: 'A', class: 'B' }),
+    )
+  }
+  const sourcePath = join(f.directory, 'source.sqlite')
+  const source = new Database(sourcePath)
+  source.exec(`CREATE TABLE hkgovCenstatdStatistics (
+    sourceRecordId TEXT, releaseId TEXT, properties TEXT,
+    validFromRelease TEXT, validToRelease TEXT
+  )`)
+  const insert = source.query(
+    'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?)',
+  )
+  insert.run(
+    'CENSTATD:BuildingGroup:A',
+    'earlier-release',
+    JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'HMA1' }),
+    '2023-H1',
+    '2024-H1',
+  )
+  insert.run(
+    'CENSTATD:BuildingGroup:A',
+    'later-release',
+    JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'HMA2' }),
+    '2024-H1',
+    null,
+  )
+  source.close()
+  f.inputs.source.push(sourcePath)
+  f.close()
+
+  const output = join(f.directory, 'version-validity')
+  await prepareStatisticsRebuild(f.inputs, output)
+  const packed = new Database(join(output, 'DB_HISTORY_HK_BEFORE.stats.sqlite'))
+  try {
+    const row = packed.query('SELECT geography FROM statsRecords').get() as {
+      geography: string
+    }
+    expect(JSON.parse(row.geography).namespace).toBe('housing-market-area:HMA1')
+  } finally {
+    packed.close()
+  }
+})
+
 test('Building Group namespaces come from retained publisher profiles and unknown parents block conversion', () => {
   const datasetCode =
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'

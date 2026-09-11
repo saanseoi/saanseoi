@@ -56,6 +56,7 @@ export async function writeGeometryRows(
     variant: string
     releaseId: string
     releaseCode: string
+    sourceVersion: string
     snapshotId: string
     snapshotLineageId: string
     parentSnapshotId: string | null
@@ -248,7 +249,7 @@ export async function writeGeometryRows(
       sourceTable,
       sourceTable.sourceRecordId,
       sourceHashes,
-      { isCurrent: false, validToRelease: version.releaseCode },
+      { isCurrent: false, validToRelease: version.sourceVersion },
     )
   }
   onProgress?.('build write batches')
@@ -387,7 +388,7 @@ export async function writeGeometryRows(
                   : { sourceGeometry }),
               versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
               releaseId: version.releaseId,
-              validFromRelease: version.releaseCode,
+              validFromRelease: version.sourceVersion,
               validToRelease: null,
               isCurrent: true,
               createdAt: now,
@@ -549,7 +550,7 @@ async function writeCenstatdSourceDerivatives(
   version: {
     cohortKey: string
     releaseId: string
-    releaseCode: string
+    sourceVersion: string
     transform?: 'simplified'
   },
   now: string,
@@ -603,7 +604,7 @@ async function writeCenstatdSourceDerivatives(
         bbox: row.canonical.bbox,
         versionHash,
         releaseId: version.releaseId,
-        validFromRelease: version.releaseCode,
+        validFromRelease: version.sourceVersion,
         validToRelease: null,
         isCurrent: true,
         createdAt: now,
@@ -630,7 +631,7 @@ async function writeCenstatdSourceDerivatives(
     if (nextHashes.get(key) === derivative.versionHash) continue
     await db
       .update(derivatives)
-      .set({ isCurrent: false, validToRelease: version.releaseCode })
+      .set({ isCurrent: false, validToRelease: version.sourceVersion })
       .where(
         and(
           eq(derivatives.sourceRecordId, derivative.sourceRecordId),
