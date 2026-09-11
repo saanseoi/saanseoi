@@ -134,3 +134,9 @@ an empty scope requires explicit completion evidence. See the
 Sealed Street delivery replays current, history and metadata mutations to the selected
 target before publication. Its completion check covers active streets, localisations and
 changelog entries, excluding deleted localisations from the active inventory.
+
+Street baseline and notice preparation uses the shared local candidate compiler. The
+baseline resolves a complete active inventory; notice releases apply reviewed lifecycle
+events to that inventory. Only final keyed current, history and source mutations are
+delivered. Unchanged canonical names, descriptions and publisher evidence retain their
+rows and timestamps.

@@ -371,3 +371,9 @@ history; it does not restore old Division versions into serving current tables. 
 write batch checks the sealed scope token. Complete delivery, including an empty result,
 records preparation; publication then grants readiness. See the
 [publication-state contract](../../publication-state-plan.md).
+
+Planning Division delivery prepares the complete replacement on isolated local
+candidates. The shared compiler sends only final keyed changes to current, history and
+source tables. The stable lineage retains unchanged base records and translations;
+removed members retire within that lineage. Publication claims and completion remain
+separate from the content difference.

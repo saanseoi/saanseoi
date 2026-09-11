@@ -162,12 +162,12 @@ stable snapshot lineage as their physical `snapshotId`. `streetPublicationState`
 that scope to the logical publication. Address links use physical Address and Street
 scopes; source evidence and immutable history retain logical revision provenance.
 
-Street delivery seals current, history and metadata mutations for resumable local or
-remote replay. Conditional current upserts preserve unchanged rows and timestamps;
-complete replacement membership removes obsolete companion rows within the same scope.
-Candidate SQL can still be transmitted for unchanged records without causing D1
-content-row writes. Gazette evidence and canonical street lifecycle rules remain
-independent of publication state.
+Street preparation applies source and lifecycle rules to isolated local candidates. The
+shared compiler seals only final keyed current, source and history mutations for
+resumable local or remote replay. Unchanged records and timestamps produce no data
+payload. Complete baseline replacement removes obsolete scope membership; notice
+releases apply reviewed lifecycle events without retiring unrelated active streets.
+Metadata and publication receipts keep their separate lifecycle operations.
 
 Each current mutation batch verifies the sealed publication token. Preparation validates
 active streets, localisations and changelog entries; deleted localisations do not count
