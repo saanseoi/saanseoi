@@ -13,13 +13,12 @@ import {
 import {
   currentSchema,
   historySchema,
-  metaSchema,
-  eq,
   sql,
   getTableColumns,
   getTableName,
 } from '@repo/db'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
+import { readAddressDivisionSnapshotId } from './placeSnapshotDependencies.ts'
 
 const tables = {
   address2d: currentSchema.address2d,
@@ -99,19 +98,10 @@ export class PlaceDependencyView {
 
   async prepare(addressSnapshotId: string) {
     if (this.snapshots.has(addressSnapshotId)) return this.db
-    const assembly = await this.metaDb
-      .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
-      .from(metaSchema.metaSnapshotAssemblyRuns)
-      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, addressSnapshotId))
-      .get()
-    const summary = assembly?.summary as
-      | { lookupSnapshotIds?: { division?: string } }
-      | undefined
-    const divisionSnapshotId = summary?.lookupSnapshotIds?.division
-    if (!divisionSnapshotId)
-      throw new Error(
-        `Address snapshot ${addressSnapshotId} has no recorded exact Division dependency.`,
-      )
+    const divisionSnapshotId = await readAddressDivisionSnapshotId(
+      this.metaDb,
+      addressSnapshotId,
+    )
     if (!this.snapshots.has(divisionSnapshotId)) {
       await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
       this.receipt('divisionPublicationState', divisionSnapshotId)
