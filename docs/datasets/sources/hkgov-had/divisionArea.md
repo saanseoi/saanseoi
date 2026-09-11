@@ -172,10 +172,9 @@ selected release.
 
 HAD current area geometry uses one stable lineage/cohort scope. A new revision preserves
 unchanged geometry rows and timestamps, writes changed content and removes absent
-members within that scope. Conditional candidate SQL can still be transmitted without
-writing unchanged D1 content rows. Exact canonical Division dependencies resolve from a
-completed receipt or immutable history, without restoring historical rows into serving
-current storage.
+members within that scope. The local compiler transmits only final content differences.
+Exact canonical Division dependencies resolve from a completed receipt or immutable
+history, without restoring historical rows into serving current storage.
 
 Each delivery batch checks its scope token. Complete geometry validation records
 preparation; publication grants current readiness. Empty scopes require the same

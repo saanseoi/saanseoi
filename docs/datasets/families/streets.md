@@ -175,3 +175,8 @@ towards the active inventory. Publication makes the completed selected scope rea
 including an empty projection. Until then current requests return
 `503 snapshot_not_ready`. Historical replay and atomic cleanup with dependency guards
 follow the [publication-state contract](../publication-state-plan.md).
+
+Source and canonical Street versions close in their owning shards, including at year
+boundaries. The incoming history shard records the snapshot journal. Each logical Street
+version retains its complete locales for historical timeline reconstruction; unchanged
+reissues do not create another logical version.
