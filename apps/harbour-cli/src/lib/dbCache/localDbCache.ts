@@ -471,6 +471,9 @@ export function createLocalExecBinding(
     async all() {
       return { results: sqlite.query(sql).all(...params) as Record<string, unknown>[] }
     },
+    async raw() {
+      return sqlite.query(sql).values(...params)
+    },
   })
   return {
     bindingName,

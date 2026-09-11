@@ -428,6 +428,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       dbContext.currentDb,
       metaDb,
       previewPlan,
+      dbContext.historyTargets as never,
     )
     const areasWithoutSourceGeometry =
       previewPlan.resourceType === 'divisionArea'
@@ -477,7 +478,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const divisionLookup = !resolveProviderBridgeConfig(previewPlan)
       ? await assertDivisionReferences(
           dbContext.currentDb,
-          dbContext.historyDb,
+          dbContext.historyTargets as never,
           metaDb,
           previewPlan,
           normalised,

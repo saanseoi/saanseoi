@@ -1,3 +1,5 @@
+import { readDivisionSnapshot } from './readDivisionSnapshot.ts'
+import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import { overtureHongKongCities } from '@repo/core/pipeline/services/divisions/overtureHongKongCities'
 import { requireDefined } from '@repo/core/requireDefined'
 import type { RuleDeclaration } from '@repo/core/provenance'
@@ -7,8 +9,6 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-import { currentSchema } from '@repo/db'
-import { and, eq } from 'drizzle-orm'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -73,6 +73,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
+  historyTargets: readonly ReplayShard[] = [],
 ): Promise<SyntheticOvertureHongKongArea[]> {
   if (plan.source !== 'overture' || plan.regionCode !== 'hk') return []
   const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
@@ -83,29 +84,13 @@ export async function resolveSyntheticOvertureHongKongAreas(
     { variant: 'overture' },
   )
   if (!snapshot) return []
-  const rows = await currentDb
-    .select({
-      id: currentSchema.divisions.id,
-      identifiers: currentSchema.divisions.identifiers,
-      level: currentSchema.divisions.level,
-      class: currentSchema.divisions.class,
-    })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
-    .all()
-  const i18nRows = await currentDb
-    .select({
-      divisionId: currentSchema.divisionsI18n.divisionId,
-      name: currentSchema.divisionsI18n.name,
-    })
-    .from(currentSchema.divisionsI18n)
-    .where(
-      and(
-        eq(currentSchema.divisionsI18n.snapshotId, snapshot.id),
-        eq(currentSchema.divisionsI18n.locale, 'en'),
-      ),
-    )
-    .all()
+  const { divisions: rows, i18n } = await readDivisionSnapshot(
+    currentDb as never,
+    metaDb,
+    snapshot.id,
+    historyTargets,
+  )
+  const i18nRows = i18n.filter(row => row.locale === 'en')
   const byId = new Map(rows.map(row => [row.id, row]))
   const districtIds = new Set(rows.filter(row => row.level === 2).map(row => row.id))
   const districtIdsByName = new Map<string, string[]>()

@@ -3,11 +3,9 @@ import {
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
 } from '@repo/core/db/metaRegistry'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { chunkArray } from '@repo/core/pipeline/utils'
-import { toIsoTimestamp } from '@repo/db'
-import { currentSchema, historySchema } from '@repo/db'
-import { eq } from 'drizzle-orm'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
+import { readDivisionSnapshot } from './readDivisionSnapshot.ts'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import type {
   GeometryUploadPlan,
@@ -20,7 +18,7 @@ import {
 
 export async function assertDivisionReferences(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
+  historyTargets: readonly ReplayShard[],
   metaDb: HarbourReadableDb,
   plan: GeometryUploadPlan,
   rows: Array<NonNullable<NormalisedGeometry>>,
@@ -44,15 +42,12 @@ export async function assertDivisionReferences(
   let knownIds = new Set<string>()
   let selectionIndex = 0
   for (const [index, candidate] of lookup.snapshots.entries()) {
-    let divisionRows = await listCurrentDivisionIds(currentDb, candidate.id)
-    if (divisionRows.length === 0) {
-      await restoreDivisionSnapshotFromHistory(
-        currentDb as unknown as HarbourWritableDb,
-        historyDb,
-        candidate.id,
-      )
-      divisionRows = await listCurrentDivisionIds(currentDb, candidate.id)
-    }
+    const { divisions: divisionRows } = await readDivisionSnapshot(
+      currentDb as never,
+      metaDb,
+      candidate.id,
+      historyTargets,
+    )
     const candidateIds = new Set(divisionRows.map(row => row.id))
     if (hasDivisionReferences(candidateIds, referenceIds)) {
       divisionSnapshot = candidate
@@ -150,91 +145,6 @@ async function resolveDivisionReferenceLookup(
     ].filter((snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot)),
     selectedByRule: 'api-composition:divisions:division-geometry->division',
     selectionMode: 'exact_ref',
-  }
-}
-
-async function listCurrentDivisionIds(
-  currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
-  snapshotId: string,
-) {
-  return currentDb
-    .select({ id: currentSchema.divisions.id })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
-    .all()
-}
-
-// A division release may publish before its required geometry companion. If the
-// asynchronous cleanup removes that incomplete snapshot in the meantime, rebuild
-// its current projection from the immutable history snapshot before validation.
-async function restoreDivisionSnapshotFromHistory(
-  currentDb: HarbourWritableDb,
-  historyDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
-  snapshotId: string,
-) {
-  const [divisionRows, i18nRows] = await Promise.all([
-    historyDb
-      .select({
-        bbox: historySchema.divisions.bbox,
-        cartography: historySchema.divisions.cartography,
-        geometry: historySchema.divisions.geometry,
-        hierarchies: historySchema.divisions.hierarchies,
-        id: historySchema.divisions.id,
-        identifiers: historySchema.divisions.identifiers,
-        level: historySchema.divisions.level,
-        sources: historySchema.divisions.sources,
-        category: historySchema.divisions.category,
-        class: historySchema.divisions.class,
-        wikidata: historySchema.divisions.wikidata,
-      })
-      .from(historySchema.divisions)
-      .where(eq(historySchema.divisions.snapshotId, snapshotId))
-      .all(),
-    historyDb
-      .select({
-        divisionId: historySchema.divisionsI18n.divisionId,
-        isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
-        locale: historySchema.divisionsI18n.locale,
-        name: historySchema.divisionsI18n.name,
-        nameAlts: historySchema.divisionsI18n.nameAlts,
-        nameRules: historySchema.divisionsI18n.nameRules,
-        nameVariant: historySchema.divisionsI18n.nameVariant,
-      })
-      .from(historySchema.divisionsI18n)
-      .where(eq(historySchema.divisionsI18n.snapshotId, snapshotId))
-      .all(),
-  ])
-
-  if (divisionRows.length === 0) return
-
-  const now = toIsoTimestamp()
-  for (const chunk of chunkArray(divisionRows, 8)) {
-    await currentDb
-      .insert(currentSchema.divisions)
-      .values(
-        chunk.map(row => ({
-          ...row,
-          createdAt: now,
-          snapshotId,
-          updatedAt: now,
-        })),
-      )
-      .onConflictDoNothing()
-      .run()
-  }
-  for (const chunk of chunkArray(i18nRows, 8)) {
-    await currentDb
-      .insert(currentSchema.divisionsI18n)
-      .values(
-        chunk.map(row => ({
-          ...row,
-          createdAt: now,
-          snapshotId,
-          updatedAt: now,
-        })),
-      )
-      .onConflictDoNothing()
-      .run()
   }
 }
 

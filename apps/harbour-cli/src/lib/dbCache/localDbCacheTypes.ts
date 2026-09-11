@@ -50,6 +50,7 @@ type LocalD1PreparedStatement = {
   params?: import('bun:sqlite').SQLQueryBindings[]
   bind(...params: unknown[]): LocalD1PreparedStatement
   all(): Promise<{ results: Record<string, unknown>[] }>
+  raw?(): Promise<unknown[][]>
 }
 
 export type LocalD1ExecBinding = {
