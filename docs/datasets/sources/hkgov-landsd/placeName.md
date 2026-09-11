@@ -1,5 +1,9 @@
 # LandsD Place Name database
 
+Native source replay preserves open matching versions without rewriting their release
+metadata. Complete replacement membership closes omissions and superseded hashes; large
+payload append statements skip complete unchanged assertions.
+
 API inventory counts, locale coverage and identity/attribute churn use the shared
 [division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
 The first published inventory is a baseline with every record counted as added.
@@ -93,3 +97,28 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+Native source geometry uses the FileGDB point coordinates in EPSG:2326. The canonical
+settlement projection uses its separately decoded WGS84 point. Retained source rows
+containing projected longitude/latitude require replay from the original archive.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+Dataset processing metadata declares the registered settlement selection and geography
+identity bridge. Releases retain the resolved policy at creation. Dataset source CRS
+metadata identifies the native EPSG:2326 geometry.

@@ -1,5 +1,9 @@
 # Census and Statistics Department District Council district areas
 
+Unchanged open source geometry and derivative versions retain their release metadata and
+validity. Supersession updates target the exact current version; derivative comparison
+remains scoped by source record, input version and transform.
+
 Housing Market Area API inventory counts, locale coverage and churn use the shared
 [division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
 Comparisons stay within the HMA domain; geometry statistics remain source-owned.
@@ -323,3 +327,18 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.

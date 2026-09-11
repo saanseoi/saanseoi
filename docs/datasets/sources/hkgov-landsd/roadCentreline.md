@@ -76,3 +76,7 @@ this pipeline. `hkgov-landsd:road-centreline` reads the locally mirrored FileGDB
 directly, verifies the updater-provided archive key and SHA-256, and imports native
 source rows through the local SQLite/D1 SQL pipeline. It never downloads the managed
 archive again and has no GeoJSON or Parquet hand-off.
+
+## Registry metadata
+
+Dataset source CRS metadata identifies retained native geometry as EPSG:2326.

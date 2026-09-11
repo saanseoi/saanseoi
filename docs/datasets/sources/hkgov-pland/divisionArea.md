@@ -1,5 +1,9 @@
 # Planning Department TPU and subunit areas
 
+Shared native source SQL preserves unchanged open versions and closes only omitted or
+superseded assertions. Multiple incoming assertions for one publisher ID are compared
+together before any version is closed.
+
 [Minimal initialisation](../../minimal-initialisation.md) selects PU 2001/2006 and New
 Town 2006/2011, retaining both Division and Division Area resources per version.
 
@@ -292,3 +296,24 @@ Publisher values, acquisition references, original geometry and canonical resolu
 follow the [source record storage contract](../../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
 `rawProperties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+New Town and Planning Unit dataset metadata declares the registered geography identity
+bridge and planning division normalisation. Releases retain the resolved policy at
+creation. Source geometry uses EPSG:4326.
