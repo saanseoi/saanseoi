@@ -3,6 +3,11 @@ import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
 import { currentSchema } from '@repo/db'
+import { listApiFieldFixtures } from '@repo/db/apiFieldFixtures'
+import {
+  resolveAddressSearchScopes,
+  buildAddressSearchSyncSql,
+} from '@repo/core/pipeline/services/addresses/searchIndex'
 import { createLocalHarbourDb } from '../../../../libs/core/src/testing/localDb'
 import {
   insertFixtureRelease,
@@ -115,6 +120,23 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       await publishSnapshot(db, snapshot.id)
       snapshots.set(member.id, snapshot.id)
     }
+    // Publication pins the fixture's processing rules to each contributing release.
+    const ruleIds = new Set(
+      listApiFieldFixtures()
+        .flatMap(fixture => fixture.fields)
+        .flatMap(field => [field.resolverCode, ...(field.processingRuleIds ?? [])]),
+    )
+    meta.query('UPDATE releases SET processingRules = ?').run(
+      JSON.stringify({
+        rulesets: [
+          {
+            rulesetVersion: 'fixture',
+            rulesetVersionHash: 'fixture-hash',
+            rules: [...ruleIds].map(id => ({ definition: { id } })),
+          },
+        ],
+      }),
+    )
     // Publishing the supplementary resource must accept its snapshot variant,
     // even though its shared publisher dataset has the Places theme.
     const releaseSet = await ensureDraftReleaseSetForRelease(
@@ -205,15 +227,12 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         })
         .run()
     }
-    // Use the production FTS table's indexed columns with one row per locale.
-    current.exec(
-      await Bun.file(
-        resolve(
-          import.meta.dir,
-          '../../../../libs/db/scripts/sql/rebuild-addresses-fts.sql',
-        ),
-      ).text(),
+    const searchSql = buildAddressSearchSyncSql(
+      await resolveAddressSearchScopes(db as never),
     )
+    current.transaction(() => {
+      for (const statement of searchSql) current.exec(statement)
+    })()
     const args = {
       currentDb: currentDb as never,
       metaDb: db as never,
@@ -545,6 +564,50 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     })
     const absent = await getAddressUnits({ ...args, id: 'b', query: {} })
     expect(absent.status === 200 && absent.body.data).toBeNull()
+    const newerSet = await ensureDraftReleaseSetForRelease(
+      db,
+      'address',
+      { cohortKey: '2025-10-24.0', regionCode: 'hk' },
+      { domainCode: 'saanseoi' },
+    )
+    await publishReleaseArtefacts(db, {
+      dataset,
+      currentRelease: null,
+      currentReleaseIsCorrected: false,
+      releaseSetId: newerSet.id,
+      snapshotId: requireDefined(snapshots.get('supplementary')),
+      snapshotVariant: 'overture-places',
+      resourceType: 'address',
+      publishedAt: '2025-10-25T00:00:00Z',
+      updateDatasetRelease: false,
+      carriedSnapshots: [
+        {
+          resourceType: 'address',
+          variant: 'default',
+          snapshotId: requireDefined(snapshots.get('als')),
+        },
+        {
+          resourceType: 'division',
+          variant: 'overture',
+          snapshotId: requireDefined(snapshots.get('division')),
+        },
+      ],
+    })
+    const historical = await searchAddresses({
+      ...args,
+      query: { q: 'Harbour', match: 'full-text', releaseSet: releaseSet.code },
+    })
+    expect(historical.status).toBe(400)
+    expect(historical.body).toMatchObject({ error: 'historical_search_unavailable' })
+    expect(
+      (
+        await getAddressDetail({
+          ...args,
+          id: 'a',
+          query: { releaseSet: releaseSet.code },
+        })
+      ).status,
+    ).toBe(200)
   } finally {
     meta.close()
     current.close()
