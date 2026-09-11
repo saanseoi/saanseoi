@@ -11,6 +11,7 @@ import { hashStatisticContent } from './statisticsRecordIdentity'
 
 type InputRecord = CanonicalStatsRows['records'][number]
 type Snapshot = { id: string; parentSnapshotId: string | null; cohortKey: string }
+type SnapshotPredecessor = Pick<Snapshot, 'parentSnapshotId' | 'cohortKey'>
 
 /** Publisher provenance is retained separately from the semantic change identity. */
 export function statisticContentHash(record: InputRecord) {
@@ -65,6 +66,43 @@ export function mergeStatisticRecord(
     createdAt: now,
     updatedAt: now,
   }
+}
+
+/**
+ * Re-issued archives often repeat older periods. Provenance alone must not
+ * allocate an immutable Statistics revision when its semantic content matches.
+ */
+export async function selectStatisticReferencePeriodsWithChanges(args: {
+  canonical: CanonicalStatsRows
+  metaDb: HarbourReadableDb
+  historyDbs: HarbourReadableDb[]
+  snapshots: SnapshotPredecessor[]
+  now?: string
+}) {
+  const now = args.now ?? new Date().toISOString()
+  const changedPeriods = new Set<string>()
+  for (const snapshot of args.snapshots) {
+    const previous = new Map(
+      (snapshot.parentSnapshotId
+        ? await readStatisticSnapshotRecords(
+            args.metaDb,
+            args.historyDbs,
+            snapshot.parentSnapshotId,
+          )
+        : []
+      )
+        .filter(row => row.referencePeriodCode === snapshot.cohortKey)
+        .map(row => [row.id, row]),
+    )
+    for (const incoming of args.canonical.records) {
+      if (incoming.referencePeriodCode !== snapshot.cohortKey) continue
+      if (mergeStatisticRecord(previous.get(incoming.id), incoming, now)) {
+        changedPeriods.add(snapshot.cohortKey)
+        break
+      }
+    }
+  }
+  return changedPeriods
 }
 
 /** Stage only real changes. Publication, not ingestion, promotes these into current. */

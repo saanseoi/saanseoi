@@ -5,7 +5,10 @@ import { resolve } from 'node:path'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
-import { planCanonicalStatistics } from './planCanonicalStatistics'
+import {
+  planCanonicalStatistics,
+  selectStatisticReferencePeriodsWithChanges,
+} from './planCanonicalStatistics'
 import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
 
 const NOW = '2026-09-11T12:00:00.000Z'
@@ -81,6 +84,29 @@ test('only changed geography packs create history and snapshot changes across re
       record({ id: 'stats:other', geography: { kind: 'district', code: 'B' } }),
     ])
     expect(initial.changedRecords).toHaveLength(2)
+    const reissued = await selectStatisticReferencePeriodsWithChanges({
+      canonical: canonical([
+        record({
+          sourceReleaseId: 'archive-2026',
+          sourceFeatureRef: 'source/2026/A',
+          fieldSources: {
+            population: {
+              sourceReleaseId: 'archive-2026',
+              sourceFeatureRef: 'source/2026/A',
+            },
+            age: {
+              sourceReleaseId: 'archive-2026',
+              sourceFeatureRef: 'source/2026/A',
+            },
+          },
+        }),
+      ]),
+      metaDb,
+      historyDbs,
+      snapshots: [{ cohortKey: '2021', parentSnapshotId: 's1' }],
+      now: NOW,
+    })
+    expect(reissued).toEqual(new Set())
     const unchanged = await stage('s2', 's1', [
       record({
         sourceReleaseId: 'new-publication',

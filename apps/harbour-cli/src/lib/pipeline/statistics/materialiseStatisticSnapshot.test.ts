@@ -143,6 +143,21 @@ test.each(['2026-Q2', '2023-H2'])(
       VALUES ('release', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
       UPDATE snapshots SET status = 'published';
     `)
+    const snapshotCount = sqlite
+      .query('SELECT count(*) AS count FROM snapshots')
+      .get() as { count: number }
+    expect(
+      await materialiseStatisticSnapshots({
+        datasetCode: 'dataset-statistics',
+        metaDb: db,
+        referencePeriods: [],
+        releaseId: 'release',
+        target: { environment: 'dev', remote: false },
+      }),
+    ).toEqual([])
+    expect(sqlite.query('SELECT count(*) AS count FROM snapshots').get()).toEqual(
+      snapshotCount,
+    )
     const correction = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: '2016',
       datasetCode: 'dataset-statistics',

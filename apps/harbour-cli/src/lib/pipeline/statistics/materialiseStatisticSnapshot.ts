@@ -1,6 +1,8 @@
 import {
+  buildDeterministicSnapshotLineageId,
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
+  resolveAcceptedStatisticSnapshotParent,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
@@ -8,8 +10,36 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { buildSnapshotLineageCode } from '@repo/db'
 
 import type { UploadTarget } from '../../cli/options.ts'
+
+/** Resolve existing published baselines before allocating a new revision. */
+export async function resolveStatisticSnapshotPredecessors(args: {
+  datasetCode: string
+  metaDb: HarbourReadableDb
+  referencePeriods: Array<{ code: string; endYear: string }>
+}) {
+  const lineageCode = buildSnapshotLineageCode(
+    args.datasetCode,
+    'divisionStatistic',
+    args.datasetCode,
+  )
+  const lineageId = buildDeterministicSnapshotLineageId(lineageCode)
+  return Promise.all(
+    args.referencePeriods.map(async referencePeriod => ({
+      cohortKey: referencePeriod.code,
+      parentSnapshotId:
+        (
+          await resolveAcceptedStatisticSnapshotParent(
+            args.metaDb,
+            lineageId,
+            referencePeriod.code,
+          )
+        )?.id ?? null,
+    })),
+  )
+}
 
 export async function materialiseStatisticSnapshots(args: {
   datasetCode: string
@@ -23,12 +53,6 @@ export async function materialiseStatisticSnapshots(args: {
   })
   if (!dataset) {
     throw new Error(`Release not found: ${args.releaseId}`)
-  }
-
-  if (args.referencePeriods.length === 0) {
-    throw new Error(
-      `Statistic release ${args.releaseId} contains no reference periods.`,
-    )
   }
 
   assertReferencePeriodsDoNotPostdateRelease(
