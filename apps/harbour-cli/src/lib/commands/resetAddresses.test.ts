@@ -2,20 +2,50 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
 
 import {
   readBeforeImage,
+  buildOfficialAddressCurrentResetSql,
   restoreBeforeImage,
   assertIdentityBeforeImageAvailable,
-  resolveOwnedMaterialisedDivisionSnapshotIds,
+  resolveOwnedMaterialisedDivisionScopeIds,
   selectOwnedOfficialAddressApiReleaseSetIds,
   selectOwnedOfficialAddressSnapshotIds,
 } from './resetAddresses.ts'
 
 describe('official address reset ownership', () => {
+  test('current reset deletes owned scopes and receipts without treating logical revisions as storage keys', () => {
+    const db = new Database(':memory:')
+    try {
+      for (const table of ['address2d', 'divisions']) {
+        db.exec(
+          `CREATE TABLE ${table}(snapshotId TEXT); INSERT INTO ${table} VALUES ('owned-scope'), ('other-scope');`,
+        )
+      }
+      for (const table of ['addressPublicationState', 'divisionPublicationState']) {
+        db.exec(
+          `CREATE TABLE ${table}(scopeId TEXT,snapshotId TEXT); INSERT INTO ${table} VALUES ('owned-scope','revision-2'), ('other-scope','other-revision');`,
+        )
+      }
+      db.exec(buildOfficialAddressCurrentResetSql(['owned-scope'], ['owned-scope']))
+      expect(db.query('SELECT * FROM address2d').all()).toEqual([
+        { snapshotId: 'other-scope' },
+      ])
+      expect(db.query('SELECT * FROM divisions').all()).toEqual([
+        { snapshotId: 'other-scope' },
+      ])
+      for (const table of ['addressPublicationState', 'divisionPublicationState'])
+        expect(db.query(`SELECT * FROM ${table}`).all()).toEqual([
+          { scopeId: 'other-scope', snapshotId: 'other-revision' },
+        ])
+    } finally {
+      db.close()
+    }
+  })
   test('includes division projections created after the address baseline', () => {
     expect(
-      resolveOwnedMaterialisedDivisionSnapshotIds(
+      resolveOwnedMaterialisedDivisionScopeIds(
         ['baseline', 'created-by-address-init-1', 'created-by-address-init-2'],
         ['baseline'],
       ),
@@ -24,7 +54,7 @@ describe('official address reset ownership', () => {
 
   test('does not claim division projections that predate the address baseline', () => {
     expect(
-      resolveOwnedMaterialisedDivisionSnapshotIds(
+      resolveOwnedMaterialisedDivisionScopeIds(
         ['baseline', 'unrelated-current-projection'],
         ['baseline', 'unrelated-current-projection'],
       ),

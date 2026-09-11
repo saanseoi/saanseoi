@@ -8,7 +8,10 @@ import {
   sourceSchema,
   sql,
 } from '@repo/db'
-import type { describeLatestReleaseRollbackPlan } from '@repo/core/pipeline/rollback'
+import {
+  currentRollbackPredicateSql,
+  type describeLatestReleaseRollbackPlan,
+} from '@repo/core/pipeline/rollback'
 import {
   resolveActiveReleaseSetForType,
   resolveDatasetRecord,
@@ -76,7 +79,13 @@ async function countCurrentRollbackRows(
     total += await countRows(
       db,
       table,
-      eq(resolveCurrentSnapshotColumn(tableName, table), input.snapshotId),
+      sql.raw(
+        currentRollbackPredicateSql(
+          tableName,
+          tableName === 'placesDivision' ? 'placeSnapshotId' : 'snapshotId',
+          input.snapshotId,
+        ),
+      ),
     )
   }
 
@@ -317,17 +326,22 @@ async function countRows(
   return Number(row?.count ?? 0)
 }
 
-function resolveCurrentSnapshotColumn(
-  tableName: string,
-  table: { placeSnapshotId?: unknown; snapshotId?: unknown },
-) {
-  return (
-    tableName === 'placesDivision' ? table.placeSnapshotId : table.snapshotId
-  ) as typeof currentSchema.places.snapshotId
-}
-
 function resolveCurrentTable(tableName: string) {
   switch (tableName) {
+    case 'addressPublicationState':
+      return currentSchema.addressPublicationState
+    case 'divisionPublicationState':
+      return currentSchema.divisionPublicationState
+    case 'divisionAreaPublicationState':
+      return currentSchema.divisionAreaPublicationState
+    case 'divisionBoundaryPublicationState':
+      return currentSchema.divisionBoundaryPublicationState
+    case 'placePublicationState':
+      return currentSchema.placePublicationState
+    case 'divisionAreas':
+      return currentSchema.divisionAreas
+    case 'divisionBoundaries':
+      return currentSchema.divisionBoundaries
     case 'addressSearchScopes':
       return currentSchema.addressSearchScopes
     case 'address2d':
@@ -559,7 +573,13 @@ async function countPurgeCurrentRows(
     total += await countRows(
       db,
       table,
-      eq(resolveCurrentSnapshotColumn(tableName, table), input.snapshotId),
+      sql.raw(
+        currentRollbackPredicateSql(
+          tableName,
+          tableName === 'placesDivision' ? 'placeSnapshotId' : 'snapshotId',
+          input.snapshotId,
+        ),
+      ),
     )
   }
 
