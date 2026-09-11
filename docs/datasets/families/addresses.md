@@ -64,15 +64,21 @@ loss and substantial deletion spikes require explicit review. Ordinary flat remo
 remain visible in the report and can retire automatically. Missing owners, unresolved
 parent references and inconsistent inventories fail validation independently of review.
 
-Places and Streets keep logical Address snapshot references without foreign keys that
-force duplicate Address snapshots into current storage. Historical Address API reads
-replay immutable history. The shared planner accepts table policies for other families,
-but the complete Places adapter is not implemented. Automatic local hydration of
-historical Address dependencies for Places preparation and search rebuilds is also
-unfinished. Places preparation requires the exact selected projection locally and
-rejects an advanced serving scope; it must not substitute newer Address content.
-Historical dependency hydration must be completed before claiming full Places rebuild
-support.
+Current Address, Place and Street references identify stable storage scopes. Metadata,
+normalised preparation artefacts and history retain the selected logical snapshots;
+current writers resolve those selections through completed publication receipts. API
+responses map physical references back to logical snapshot IDs.
+
+The Address planner delivers final row differences. Other families can use conditional
+current SQL that leaves unchanged rows untouched, as described in the shared
+[publication-state contract](../publication-state-plan.md). These approaches share
+storage scopes and readiness rules without requiring identical delivery planners.
+
+Historical Address API reads replay immutable history. Preparation requires the exact
+selected dependency to have a completed local receipt; it rejects an advanced current
+scope instead of silently using newer content. Automatic hydration of an older Address
+parent into the preparation mirror is not implemented. Rebuild those dependencies in
+chronological order.
 
 [Minimal initialisation](../minimal-initialisation.md) selects the earliest two retained
 ALS versions and keeps its completion manifest separate from full runs.

@@ -334,8 +334,9 @@ and keeps a dry-run and confirmation boundary:
 ./bin/saanseoi reset:places:overture --target local --dry-run
 ```
 
-The generic `rollback:release` command remains available for an individual latest
-published Places release.
+The generic `rollback:release` command requires its predecessor's current projection to
+be ready. It refuses to undo an advanced mutable scope when restoring the predecessor
+from history is required; that restoration is not automated by the command.
 
 ## ZH-HANT
 
@@ -419,14 +420,23 @@ selected release.
 
 ## Publication readiness
 
-Current materialisations claim a publication-state receipt before delivery and mark it
-prepared only after complete delivery validation, including valid empty snapshots. The
-selected published snapshot must be ready for the API to serve it. Publication, search
-readiness and cleanup follow the shared
-[publication-state contract](../publication-state-plan.md). The next reset and reingest
-creates these receipts through normal delivery; no backfill infers readiness from
-existing records.
+Current Places, localisations, spatial cells and Division links use one stable scope per
+snapshot lineage. `placePublicationState` maps that scope to the logical publication.
+Current Address and Division references also contain physical scopes; metadata and
+history retain the selected logical snapshot IDs, and API responses resolve the scope
+mappings back to logical IDs.
 
-Place delivery validates records, localisations, spatial cells and division links before
-marking preparation complete. Supplementary Address delivery has its own receipt; both
-selected projections must be ready before publication finalises the Place search index.
+Conditional upserts preserve unchanged Place content, cells, localisations and links.
+Complete replacement membership removes absent rows within that scope. The importer can
+transmit candidate SQL for unchanged rows, but those candidates cause no D1 content-row
+writes. The stored `releaseId` and `lastSeenMonth` retain the last real content change.
+Current API responses derive `lastSeenMonth` from the selected complete publication
+cohort; immutable history retains its recorded version values.
+
+Place delivery checks records, localisations, spatial cells and Division links before
+marking its receipt prepared. Supplementary Address delivery resolves final row
+differences locally and owns its separate receipt. Required selected projections must be
+ready before publication finalises Place search. An interrupted scope remains
+unavailable, and a valid empty snapshot still requires completion evidence. Search
+reuses unchanged documents across publication advances. Reads, cleanup and
+reset/reingest follow the [publication-state contract](../publication-state-plan.md).

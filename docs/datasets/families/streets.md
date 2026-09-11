@@ -152,14 +152,21 @@ products retain a null CRS.
 
 ## Publication readiness
 
-Current materialisations claim a publication-state receipt before delivery and mark it
-prepared only after complete delivery validation, including valid empty snapshots. The
-selected published snapshot must be ready for the API to serve it. Publication, search
-readiness and cleanup follow the shared
-[publication-state contract](../publication-state-plan.md). The next reset and reingest
-creates these receipts through normal delivery; no backfill infers readiness from
-existing records.
+Current Streets, localisations, changelog, geometry and other companion rows use the
+stable snapshot lineage as their physical `snapshotId`. `streetPublicationState` maps
+that scope to the logical publication. Address links use physical Address and Street
+scopes; source evidence and immutable history retain logical revision provenance.
 
 Street delivery seals current, history and metadata mutations for resumable local or
-remote replay. Preparation validates active streets, their localisations and changelog
-entries; deleted localisations do not count towards the active inventory.
+remote replay. Conditional current upserts preserve unchanged rows and timestamps;
+complete replacement membership removes obsolete companion rows within the same scope.
+Candidate SQL can still be transmitted for unchanged records without causing D1
+content-row writes. Gazette evidence and canonical street lifecycle rules remain
+independent of publication state.
+
+Each current mutation batch verifies the sealed publication token. Preparation validates
+active streets, localisations and changelog entries; deleted localisations do not count
+towards the active inventory. Publication makes the completed selected scope ready,
+including an empty projection. Until then current requests return
+`503 snapshot_not_ready`. Historical replay and atomic cleanup with dependency guards
+follow the [publication-state contract](../publication-state-plan.md).
