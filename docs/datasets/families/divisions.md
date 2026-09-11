@@ -281,6 +281,12 @@ that deferral. It may publish its source release and snapshot, but it cannot cre
 API revision for an already current cohort; only explicit reconciliation publishes a
 draft release set.
 
+Reconciliation schedules current-scope cleanup for archived members in the selected API
+family and region, including retries when no drafts remain. Current or draft release-set
+references and independently retained geometry remain protected. The cleanup worker
+removes obsolete completed projections and their publication receipts together; source
+records and immutable history remain available for archived releases.
+
 C&SD statistics archives use a combined intake path. The `hkgov-censtatd:statistics`
 command includes available `division` and `divisionArea` companions by default,
 alongside `divisionStatistic`. `--defer-stats-release-set` selects Statistics-only

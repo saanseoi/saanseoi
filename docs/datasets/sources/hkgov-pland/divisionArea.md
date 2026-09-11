@@ -298,6 +298,11 @@ cleanup is deferred for the interim division upload, so its canonical IDs remain
 materialised for the companion area validation; normal cleanup resumes when the area
 release is published.
 
+Backfill reconciles its deferred division release sets after all selected cohorts have
+been delivered. Reconciliation then schedules cleanup for archived cohorts: completed
+`publishing` receipts and their obsolete current geometry are removed together. The
+selected cohort remains ready, and archived cohorts retain their immutable history.
+
 The TPU artefacts use GeoParquet WKB geometry. Their optional Parquet column statistics
 are disabled because the local upload inspector cannot read the GeoParquet statistics
 metadata emitted by the current writer; this does not alter the geometry or records.
