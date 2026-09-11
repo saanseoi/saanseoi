@@ -49,18 +49,36 @@ test('completed geometry contributors can precede shared composition publication
         releases,
       )
     expect(await check()).toEqual([])
-    meta.exec("UPDATE snapshotSources SET selectionMode='verified_identical_geometry'")
+    meta.exec(
+      "UPDATE snapshotSources SET selectionMode='verified_identical_geometry', selectedByRule='verified-censtatd-geometry-materialisation-v1'",
+    )
     expect(await check()).toEqual([])
     meta.exec("UPDATE snapshotSources SET selectedByRule='unrecognised'")
     expect(await check()).toEqual([
       'geometry: missing published snapshot lineage/source membership',
     ])
     meta.exec(
-      "UPDATE snapshotSources SET selectedByRule='snapshot-assembly-division-geometry-v1'",
+      "UPDATE snapshotSources SET selectedByRule='verified-censtatd-geometry-materialisation-v1'",
     )
     current.exec('DELETE FROM divisionAreas')
     expect(await check()).toEqual([])
     current.exec('UPDATE divisionAreaPublicationState SET preparedAt = NULL')
+    expect(await check()).toEqual([
+      'geometry: current snapshot has no complete delivery receipt',
+    ])
+
+    // A new revision inherits the contributor and replaces the one current
+    // receipt for this lineage/cohort; the old release remains complete.
+    meta.exec(`
+      INSERT INTO snapshots VALUES ('replacement','lineage','divisionArea','published',1,'2026');
+      INSERT INTO snapshotSources VALUES ('replacement','contributor','release','carried_forward_companion','inherited-censtatd-companion-provenance',NULL);
+      INSERT INTO snapshotShardAssignments VALUES ('replacement');
+    `)
+    current.exec(
+      "UPDATE divisionAreaPublicationState SET snapshotId='replacement', preparedAt='complete', status='current'",
+    )
+    expect(await check()).toEqual([])
+    current.exec("UPDATE divisionAreaPublicationState SET scopeId='wrong-scope'")
     expect(await check()).toEqual([
       'geometry: current snapshot has no complete delivery receipt',
     ])

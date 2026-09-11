@@ -165,9 +165,16 @@ export async function findIncompletePublishedReleases(
                   s.status IN ('draft', 'published')
                   AND s.resourceType IN ('divisionArea', 'divisionBoundary')
                   AND sl.resourceType = s.resourceType
-                  AND ss.selectionMode IN ('contributed_geometry', 'verified_identical_geometry')
-                  AND ss.selectedByRule = 'snapshot-assembly-division-geometry-v1'
-                  AND ss.anchorReleaseId = ss.resourceReleaseId
+                  AND (
+                    (ss.selectionMode = 'contributed_geometry'
+                      AND ss.selectedByRule = 'snapshot-assembly-division-geometry-v1'
+                      AND ss.anchorReleaseId = ss.resourceReleaseId)
+                    OR (ss.selectionMode = 'verified_identical_geometry'
+                      AND ss.selectedByRule = 'verified-censtatd-geometry-materialisation-v1'
+                      AND ss.anchorReleaseId = ss.resourceReleaseId)
+                    OR (ss.selectionMode = 'carried_forward_companion'
+                      AND ss.selectedByRule = 'inherited-censtatd-companion-provenance')
+                  )
                 )
               )
             ORDER BY s.revision DESC
