@@ -1,89 +1,9 @@
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 
-import { buildDraftReleasePurgeSql, buildLatestReleaseRollbackSql } from './rollback'
+import { buildDraftReleasePurgeSql } from './rollback'
 
-describe('latest release rollback SQL', () => {
-  test('builds division rollback SQL in safe import order', () => {
-    const sql = buildLatestReleaseRollbackSql({
-      apiReleaseSetId: 'release-set-new',
-      previousApiReleaseSetId: 'release-set-old',
-      previousReleaseId: 'release-old',
-      releaseId: "release-new-'quoted'",
-      snapshotId: 'snapshot-new',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      resourceType: 'division',
-    })
-
-    expect(sql.current).toContain(
-      "DELETE FROM divisionsI18n WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-new');",
-    )
-    expect(sql.current).toContain(
-      "DELETE FROM divisions WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-new');",
-    )
-    expect(sql.history).toContain(
-      "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'snapshot-new';",
-    )
-    expect(sql.history).toContain(
-      "UPDATE divisions SET isCurrent = 0 WHERE snapshotId = 'snapshot-new';",
-    )
-    expect(sql.source).toContain(
-      'UPDATE overtureDivisions\nSET isCurrent = 1,\n  validToRelease = NULL,',
-    )
-    expect(sql.source).toContain(
-      "UPDATE overtureDivisions\nSET releaseId = 'release-old',",
-    )
-    expect(sql.source).toContain(
-      "DELETE FROM overtureDivisions WHERE releaseId = 'release-new-''quoted''' AND validFromRelease = '2026-05-20.0';",
-    )
-    expect(sql.source).not.toContain('overtureDivisionI18n')
-    expect(sql.meta).toContain(
-      "DELETE FROM releases WHERE id = 'release-new-''quoted''';",
-    )
-    expect(sql.meta.indexOf('UPDATE releases')).toBeLessThan(
-      sql.meta.indexOf('DELETE FROM releases'),
-    )
-  })
-
-  test('builds address rollback SQL across source, history, current, and meta', () => {
-    const sql = buildLatestReleaseRollbackSql({
-      apiReleaseSetId: 'address-release-set-new',
-      previousApiReleaseSetId: null,
-      previousReleaseId: null,
-      releaseId: 'address-release-new',
-      snapshotId: 'address-snapshot-new',
-      source: 'hkgov-dpo',
-      sourceVersion: '2026-06-25.0',
-      resourceType: 'address',
-    })
-
-    expect(sql.current).toContain(
-      "DELETE FROM address3dI18n WHERE snapshotId IN (SELECT scopeId FROM addressPublicationState WHERE snapshotId = 'address-snapshot-new');",
-    )
-    expect(sql.current).toContain(
-      "DELETE FROM address2d WHERE snapshotId IN (SELECT scopeId FROM addressPublicationState WHERE snapshotId = 'address-snapshot-new');",
-    )
-    expect(sql.history).toContain(
-      "DELETE FROM snapshotVersionChanges WHERE snapshotId = 'address-snapshot-new';",
-    )
-    expect(sql.history).toContain(
-      "UPDATE address2d SET isCurrent = 0 WHERE snapshotId = 'address-snapshot-new';",
-    )
-    expect(sql.history).not.toContain('DELETE FROM address2d WHERE')
-    expect(sql.source).toContain(
-      'UPDATE hkgovAlsAddresses2d\nSET isCurrent = 1,\n  validToRelease = NULL,',
-    )
-    expect(sql.source).not.toContain('SET releaseId =')
-    expect(sql.source).toContain(
-      "DELETE FROM hkgovAlsAddresses2d WHERE releaseId = 'address-release-new' AND validFromRelease = '2026-06-25.0';",
-    )
-    expect(sql.meta).toContain(
-      "DELETE FROM apiReleaseSets WHERE id = 'address-release-set-new';",
-    )
-    expect(sql.meta).not.toContain('UPDATE apiReleaseSets')
-  })
-
+describe('draft release purge SQL', () => {
   test('purges a draft PLAND release without reopening or retaining its rows', () => {
     const sql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'release-set-draft',
@@ -129,11 +49,9 @@ describe('latest release rollback SQL', () => {
     )
   })
 
-  test('rolls back Places children before the parent and restores source rows', () => {
-    const sql = buildLatestReleaseRollbackSql({
+  test('purges Places children before the parent', () => {
+    const sql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'places-release-set-new',
-      previousApiReleaseSetId: 'places-release-set-old',
-      previousReleaseId: 'places-release-old',
       releaseId: 'places-release-new',
       snapshotId: 'places-snapshot-new',
       source: 'overture',
@@ -152,16 +70,16 @@ describe('latest release rollback SQL', () => {
       "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
     )
     expect(sql.history).toContain(
-      "UPDATE places SET isCurrent = 0 WHERE snapshotId = 'places-snapshot-new';",
+      "DELETE FROM places WHERE snapshotId = 'places-snapshot-new' AND sourceReleaseId = 'places-release-new';",
     )
     expect(sql.source).toContain(
-      'UPDATE overturePlaces\nSET isCurrent = 1,\n  validToRelease = NULL,',
+      "DELETE FROM overturePlaces WHERE releaseId = 'places-release-new';",
     )
   })
 
   test('rejects unsupported source/type combinations', () => {
     expect(() =>
-      buildLatestReleaseRollbackSql({
+      buildDraftReleasePurgeSql({
         apiReleaseSetId: 'release-set-new',
         releaseId: 'release-new',
         snapshotId: 'snapshot-new',
@@ -173,7 +91,7 @@ describe('latest release rollback SQL', () => {
   })
 })
 
-test('current rollback resolves the selected logical revision to its scope and leaves a newer owner alone', () => {
+test('draft purge resolves the selected logical revision to its scope and leaves a newer owner alone', () => {
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE divisionSearchScopes(scopeId PRIMARY KEY,snapshotId);
     CREATE TABLE divisions(snapshotId,id,PRIMARY KEY(snapshotId,id));
@@ -191,7 +109,7 @@ test('current rollback resolves the selected logical revision to its scope and l
     resourceType: 'division' as const,
   }
   try {
-    db.exec(buildLatestReleaseRollbackSql(input).current)
+    db.exec(buildDraftReleasePurgeSql(input).current)
     expect(db.query('SELECT * FROM divisions').all()).toEqual([
       { snapshotId: 'other-scope', id: 'b' },
     ])

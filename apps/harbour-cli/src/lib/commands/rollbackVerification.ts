@@ -10,14 +10,9 @@ import {
 } from '@repo/db'
 import {
   currentRollbackPredicateSql,
-  type describeLatestReleaseRollbackPlan,
+  type describeDraftReleasePurgePlan,
 } from '@repo/core/pipeline/rollback'
-import {
-  resolveActiveReleaseSetForType,
-  resolveDatasetRecord,
-} from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { ResourceType } from '@repo/core'
 import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type {
   ResolvedReleaseRecord,
@@ -33,7 +28,7 @@ export async function countRollbackPlanRows(
     previousReleaseId: string | null
     release: ResolvedReleaseRecord
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
     operation: RollbackOperation
   },
 ): Promise<RollbackPlanCounts> {
@@ -68,7 +63,7 @@ async function countCurrentRollbackRows(
   db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   input: {
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   let total = 0
@@ -97,7 +92,7 @@ async function countHistoryRollbackRows(
   input: {
     release: ResolvedReleaseRecord
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   let total = 0
@@ -129,7 +124,7 @@ async function countSourceRollbackRows(
   input: {
     previousReleaseId: string | null
     release: ResolvedReleaseRecord
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
     operation: RollbackOperation
   },
 ) {
@@ -419,7 +414,7 @@ export async function verifyPurgeResult(
     apiReleaseSetId: string
     releaseId: string
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   const [
@@ -517,7 +512,7 @@ async function countPurgeSourceRows(
   db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['sourceDb'],
   input: {
     releaseId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   let total = 0
@@ -535,7 +530,7 @@ async function countPurgeHistoryRows(
   input: {
     releaseId: string
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   let total = await countRows(
@@ -563,7 +558,7 @@ async function countPurgeCurrentRows(
   db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   input: {
     snapshotId: string
-    tables: ReturnType<typeof describeLatestReleaseRollbackPlan>
+    tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
   let total = 0
@@ -584,64 +579,4 @@ async function countPurgeCurrentRows(
   }
 
   return total
-}
-
-export async function verifyRollbackResult(
-  metaDb: HarbourReadableDb,
-  input: {
-    previousReleaseId: string | null
-    previousReleaseSetId: string | null
-    releaseId: string
-    resourceType: ResourceType
-  },
-) {
-  const [rolledBackRelease, previousRelease, activeReleaseSet] = await Promise.all([
-    resolveDatasetRecord(metaDb, { releaseId: input.releaseId }),
-    input.previousReleaseId
-      ? resolveDatasetRecord(metaDb, { releaseId: input.previousReleaseId })
-      : Promise.resolve(null),
-    resolveActiveReleaseSetForType(metaDb, input.resourceType),
-  ])
-
-  if (rolledBackRelease) {
-    throw new Error(
-      `Rollback verification failed: release ${rolledBackRelease.releaseCode} still exists in metadata.`,
-    )
-  }
-
-  if (!input.previousReleaseId) {
-    if (activeReleaseSet) {
-      throw new Error(
-        `Rollback verification failed: current API release set ${activeReleaseSet.id} still exists after rolling back the initial release.`,
-      )
-    }
-
-    return
-  }
-
-  if (!previousRelease) {
-    throw new Error(
-      `Rollback verification failed: previous release ${input.previousReleaseId} was not found.`,
-    )
-  }
-
-  if (previousRelease.status !== 'published') {
-    throw new Error(
-      `Rollback verification failed: previous release ${previousRelease.releaseCode} is ${previousRelease.status}, expected published.`,
-    )
-  }
-
-  if (!activeReleaseSet) {
-    throw new Error('Rollback verification failed: no current API release set found.')
-  }
-
-  if (!input.previousReleaseSetId) {
-    throw new Error('Rollback verification failed: previous API release set missing.')
-  }
-
-  if (activeReleaseSet.id !== input.previousReleaseSetId) {
-    throw new Error(
-      `Rollback verification failed: current API release set is ${activeReleaseSet.id}, expected ${input.previousReleaseSetId}.`,
-    )
-  }
 }
