@@ -70,14 +70,14 @@ interpretations add no resolution rows; changed interpretations and explicit
 
 Family membership rules remain explicit:
 
-| Family                     | Membership boundary                                                                                                                                                   |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Address                    | Prepared canonical membership after curation; publisher omission alone does not retire a retained canonical Address. Retirement and owner validation remain required. |
-| Division and Planning      | Complete replacement within the selected lineage scope, including locale membership.                                                                                  |
-| Places                     | Complete replacement within the Place lineage, including locales, cells and Division links. Supplementary Addresses have a separate scope.                            |
-| Streets                    | Complete replacement within the selected lineage, with its notices and companion rows.                                                                                |
-| Area and boundary geometry | Complete replacement within one lineage and cohort; other cohorts and provider variants remain independent.                                                           |
-| Statistics                 | Sparse changes within a dataset and exact period; omitted periods, geographies and fields remain current.                                                             |
+| Family                     | Membership boundary                                                                                                                                                                                |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Address                    | Prepared canonical membership after curation; publisher omission alone does not retire a retained canonical Address. Retirement and owner validation remain required.                              |
+| Division and Planning      | Complete replacement within the selected lineage scope, including locale membership.                                                                                                               |
+| Places                     | Complete replacement within the Place lineage, including locales, cells and Division links. Supplementary Addresses have a separate scope.                                                         |
+| Streets                    | Apply source lifecycle events within the selected lineage. Explicit deletions remove Streets; absence from an incremental notice preserves them. Locales and notices follow their affected Street. |
+| Area and boundary geometry | Complete replacement within one lineage and cohort; C&SD companion merges preserve omitted geometry. Other cohorts and provider variants remain independent.                                       |
+| Statistics                 | Sparse changes within a dataset and exact period; omitted periods, geographies and fields remain current.                                                                                          |
 
 Statistics deliberately uses a different membership boundary. One pack contains a
 dataset × exact period × geography, with all dimension-qualified fields and their

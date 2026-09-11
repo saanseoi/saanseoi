@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite'
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, copyFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -41,9 +42,9 @@ async function fixture(
       before[binding] = db
       files[binding] = path
     }
-    const current = before.DB_CURRENT!,
-      history = before.DB_HISTORY_OLD!,
-      meta = before.DB_META!
+    const current = requireDefined(before.DB_CURRENT),
+      history = requireDefined(before.DB_HISTORY_OLD),
+      meta = requireDefined(before.DB_META)
     current.exec(
       "INSERT INTO divisionPublicationState(scopeId,snapshotId,publicationToken,status,preparedAt,updatedAt) VALUES('scope','old','release-old','ready','original','original')",
     )
@@ -71,8 +72,8 @@ async function fixture(
           VALUES(${isHistory ? "'old-base','release-old',1," : ''}0,?,?,?,?,?,?,?)`).run(
           isHistory ? 'old' : 'scope',
           'district',
-          locale!,
-          name!,
+          requireDefined(locale),
+          requireDefined(name),
           JSON.stringify([name]),
           'original',
           'original',
@@ -107,11 +108,11 @@ async function fixture(
         .query(
           "INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('old',?,'district',?,'old-base','upsert','release-old')",
         )
-        .run(recordType!, locale!)
+        .run(requireDefined(recordType), requireDefined(locale))
     history.exec(
       `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:old','old','release-old','source','raw','{"entities":{"division":["district"]}}')`,
     )
-    before.DB_SOURCE!.exec(
+    requireDefined(before.DB_SOURCE).exec(
       "INSERT INTO overtureDivisions(sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,sourceGeometry) VALUES('source','raw','release-old','2025',1,'{}')",
     )
     for (const [binding, path] of Object.entries(files)) {
@@ -125,7 +126,7 @@ async function fixture(
         execute: bytes => db.exec(new TextDecoder().decode(bytes)),
       }
     }
-    candidates.DB_CURRENT!.db.exec(
+    requireDefined(candidates.DB_CURRENT).db.exec(
       "UPDATE divisionPublicationState SET snapshotId='next',publicationToken='release-next',status='publishing',preparedAt='now',updatedAt='now'",
     )
     await run({
@@ -146,9 +147,9 @@ async function fixture(
 }
 
 function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
-  const old = candidates.DB_HISTORY_OLD!.db,
-    next = candidates.DB_HISTORY_NEW!.db,
-    current = candidates.DB_CURRENT!.db
+  const old = requireDefined(candidates.DB_HISTORY_OLD).db,
+    next = requireDefined(candidates.DB_HISTORY_NEW).db,
+    current = requireDefined(candidates.DB_CURRENT).db
   old.exec('UPDATE divisions SET isCurrent=0; UPDATE divisionsI18n SET isCurrent=0')
   next
     .query(
@@ -171,12 +172,12 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
   ]) {
     current
       .query('UPDATE divisionsI18n SET name=?,nameVariant=? WHERE locale=?')
-      .run(name!, JSON.stringify([name]), locale!)
+      .run(requireDefined(name), JSON.stringify([name]), requireDefined(locale))
     next
       .query(
         "INSERT INTO divisionsI18n(versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt) VALUES('whole-candidate','release-next',1,0,'next','district',?,?,?,'now','now')",
       )
-      .run(locale!, name!, JSON.stringify([name]))
+      .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
   for (const [type, locale] of [
     ['division', ''],
@@ -187,7 +188,7 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       .query(
         "INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('next',?,'district',?,'whole-candidate','upsert','release-next')",
       )
-      .run(type!, locale!)
+      .run(requireDefined(type), requireDefined(locale))
   next.exec(
     `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:next','next','release-next','source','raw','{"entities":{"division":["district"]}}')`,
   )
@@ -226,16 +227,25 @@ test('Division reissues inherit unchanged base, every locale and source assertio
     ])
       expect(
         f.candidates
-          .DB_HISTORY_NEW!.db.query(`SELECT count(*) AS n FROM ${table}`)
+          .requireDefined(DB_HISTORY_NEW)
+          .db.query(`SELECT count(*) AS n FROM ${table}`)
           .get(),
       ).toEqual({ n: 0 })
     for (const table of ['divisions', 'divisionsI18n'])
       expect(
-        f.candidates.DB_HISTORY_OLD!.db.query(`SELECT * FROM ${table}`).all(),
-      ).toEqual(f.before.DB_HISTORY_OLD!.query(`SELECT * FROM ${table}`).all())
+        requireDefined(f.candidates.DB_HISTORY_OLD)
+          .db.query(`SELECT * FROM ${table}`)
+          .all(),
+      ).toEqual(
+        requireDefined(f.before.DB_HISTORY_OLD).query(`SELECT * FROM ${table}`).all(),
+      )
     expect(
-      f.candidates.DB_CURRENT!.db.query('SELECT sources FROM divisions').get(),
-    ).toEqual(f.before.DB_CURRENT!.query('SELECT sources FROM divisions').get())
+      requireDefined(f.candidates.DB_CURRENT)
+        .db.query('SELECT sources FROM divisions')
+        .get(),
+    ).toEqual(
+      requireDefined(f.before.DB_CURRENT).query('SELECT sources FROM divisions').get(),
+    )
     expect(
       (await resolveSnapshotSourceResolutions(plan, shards(f.candidates))).get('source')
         ?.shard.bindingName,
@@ -246,8 +256,8 @@ test('a Division locale edit closes only that component in its owning shard and 
   fixture(async f => {
     stage(f.candidates, 'Revised')
     await f.coalesce()
-    const next = f.candidates.DB_HISTORY_NEW!.db,
-      old = f.candidates.DB_HISTORY_OLD!.db
+    const next = requireDefined(f.candidates.DB_HISTORY_NEW).db,
+      old = requireDefined(f.candidates.DB_HISTORY_OLD).db
     expect(
       next.query('SELECT recordType,locale FROM snapshotVersionChanges').all(),
     ).toEqual([{ recordType: 'divisionI18n', locale: 'en' }])
@@ -274,8 +284,8 @@ test('a Division locale edit closes only that component in its owning shard and 
 
 test('Division component omissions retire the exact older shard and leave another scope intact', () =>
   fixture(async f => {
-    const current = f.candidates.DB_CURRENT!.db,
-      old = f.candidates.DB_HISTORY_OLD!.db
+    const current = requireDefined(f.candidates.DB_CURRENT).db,
+      old = requireDefined(f.candidates.DB_HISTORY_OLD).db
     current.exec("DELETE FROM divisionsI18n WHERE locale='zh-hant'")
     old.exec(
       "INSERT INTO divisions(id,versionHash,sourceReleaseId,snapshotId,isCurrent,class,hierarchies) VALUES('foreign','foreign','foreign','foreign',1,'district','{}')",
@@ -289,16 +299,15 @@ test('Division component omissions retire the exact older shard and leave anothe
     ).toEqual({ isCurrent: 1 })
     expect(
       f.candidates
-        .DB_HISTORY_NEW!.db.query(
-          'SELECT recordType,locale,operation FROM snapshotVersionChanges',
-        )
+        .requireDefined(DB_HISTORY_NEW)
+        .db.query('SELECT recordType,locale,operation FROM snapshotVersionChanges')
         .all(),
     ).toEqual([{ recordType: 'divisionI18n', locale: 'zh-hant', operation: 'delete' }])
   }))
 
 test('Division source omissions retain explicit evidence while unchanged assertions inherit', () =>
   fixture(async f => {
-    f.candidates.DB_SOURCE!.db.exec(
+    requireDefined(f.candidates.DB_SOURCE).db.exec(
       "UPDATE overtureDivisions SET isCurrent=0 WHERE sourceRecordId='source'",
     )
     await f.coalesce()

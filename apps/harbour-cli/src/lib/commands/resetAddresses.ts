@@ -37,6 +37,7 @@ import {
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 import { resumeAddressInitialisation } from './resumeAddressInitialisation.ts'
+import { officialAddressResetDependencyBlockers } from './addressResetDependencies.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/init-runs')
@@ -192,7 +193,6 @@ export async function beginOfficialAddressInitialisation(
     return
   }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
-    cacheTableProfile: 'address',
     includeAllHistoryShardYears: true,
     includeAllSourceShardYears: true,
     requireExistingRemoteCache: target.remote,
@@ -764,6 +764,12 @@ async function assertResetStillSafe(
   options: { discardChangedDocs: boolean },
 ) {
   const owned = requireOwned(manifest)
+  const dependencies = await officialAddressResetDependencyBlockers(
+    context as never,
+    owned,
+  )
+  if (dependencies.length)
+    throw new Error(`Refusing reset: ${dependencies.join('; ')}.`)
   const releases = await context.metaDb
     .select({ id: metaSchema.metaReleases.id })
     .from(metaSchema.metaReleases)

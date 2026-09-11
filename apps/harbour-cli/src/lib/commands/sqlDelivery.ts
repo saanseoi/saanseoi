@@ -7,7 +7,7 @@ import {
   mapLocalTargetPaths,
 } from '../dbCache/localDbCacheTargets.ts'
 import { runNativeSqlDelivery } from '../pipeline/local/nativeSqlDelivery.ts'
-import { refreshRemoteMetaCache } from '../dbCache/localDbCacheReplay.ts'
+import { refreshRemoteMetaCacheLocked } from '../dbCache/localDbCacheReplay.ts'
 import {
   readDeliveryPlan,
   runSqlDelivery,
@@ -160,7 +160,11 @@ export async function runSqlDeliveryCommand(
         // Audit SQL requires an editable release. Synchronise only metadata before
         // local replay; data-shard baselines and the mirror generation stay frozen.
         if (plan.batches.some(batch => batch.target.bindingName === 'DB_META'))
-          await refreshRemoteMetaCache(environment, plan.context.cacheDir)
+          await refreshRemoteMetaCacheLocked(
+            environment,
+            plan.context.cacheDir,
+            plan.context.releaseId,
+          )
         if (resumed.length)
           console.log(`Resumed failed release ${plan.context.releaseId} as processing.`)
       },
@@ -183,7 +187,11 @@ export async function runSqlDeliveryCommand(
     const published = await withDeliveryLock(
       join(plan.context.cacheDir, 'sql-delivery-lock'),
       async () => {
-        await refreshRemoteMetaCache(environment, plan.context.cacheDir)
+        await refreshRemoteMetaCacheLocked(
+          environment,
+          plan.context.cacheDir,
+          plan.context.releaseId,
+        )
         const databaseId = targets.DB_META
         if (!databaseId)
           throw new Error('SQL recovery requires the configured DB_META target.')
