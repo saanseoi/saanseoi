@@ -7,12 +7,18 @@ import { alsSourcePayload, remapAlsSourceProperties } from './alsSourcePayload'
 
 test('retained ALS remapping preserves values and rejects collisions', () => {
   expect(
+    remapAlsSourceProperties({ enBuildingName: 'Name', zhHantBuildingName: null }),
+  ).toEqual({ buildingNameEn: 'Name', buildingNameZhHant: null })
+  expect(() =>
+    remapAlsSourceProperties({ enBuildingName: 'A', buildingNameEn: 'B' }),
+  ).toThrow('Duplicate')
+  expect(
     remapAlsSourceProperties({
       '/Address/PremisesAddress/EngPremisesAddress/EngEstate/EngPhase/PhaseNo': 2,
       '/Address/PremisesAddress/ChiPremisesAddress/ChiStreet/LocationName': null,
       '/Address/PremisesAddress/EngPremisesAddress/Eng3dAddress': [],
     }),
-  ).toEqual({ enPhaseNo: 2, zhHantStreetLocationName: null, en3dAddress: [] })
+  ).toEqual({ phaseNoEn: 2, streetLocationNameZhHant: null, address3dEn: [] })
   expect(() => remapAlsSourceProperties({ '/Easting': 1, easting: 2 })).toThrow(
     'Duplicate',
   )
@@ -62,7 +68,7 @@ test('offline ALS rename SQL is guarded and exactly reversible', async () => {
     expect(db.query('SELECT * FROM hkgovAlsAddresses2d').get()).toEqual({
       sourceRecordId: 'record',
       versionHash: 'hash',
-      rawProperties: '{"enStreetLocationName":" Original "}',
+      rawProperties: '{"streetLocationNameEn":" Original "}',
     })
     db.exec(await readFile(output + '.rollback.sql', 'utf8'))
     expect(db.query('SELECT rawProperties FROM hkgovAlsAddresses2d').get()).toEqual({
