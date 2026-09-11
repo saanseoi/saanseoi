@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:82f8e27db88c610e6ba8f70d3934b479da64483395e554071cc08bc3c5ae1be5",
+  "versionHash": "sha256:ee8936056103262cb212850db038c894e81bb71c7ede63f70ae653575812453b",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Includes the reviewed Hong Kong area-geometry restoration patches and Lok Ma Chau Loop classification correction in the division merge policy.",
+  "notes": "Materialises category, class, level and correlated administrative, locality and full hierarchy paths. Cities retain source identities; independent administrative areas and Kowloon city use district-union geometries. Hong Kong city is reconstructed only when absent. Retains reviewed identity, geometry and classification patch evidence.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",

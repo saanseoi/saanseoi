@@ -4,7 +4,7 @@
   "id": "normalise-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Create one SaanSeoi division from each publisher record, keeping its record ID, type, names and parent relationship.",
+  "summary": "Create one SaanSeoi division from each publisher record, preserving its identity and source assertions while materialising category, class, level, localised names and correlated hierarchy paths.",
   "inputs": ["source-divisions"],
   "outputs": ["divisions"],
   "parameters": {
@@ -93,7 +93,7 @@
     },
     "hongKongArea": {
       "level": 1,
-      "type": "area"
+      "class": "area"
     },
     "subtypeLevels": [
       {
@@ -105,93 +105,100 @@
         "level": 2
       }
     ],
-    "subtypeTypes": [
+    "subtypeClasses": [
       {
         "token": "country",
-        "type": "country"
+        "class": "country"
       },
       {
         "token": "dependency",
-        "type": "sar"
+        "class": "sar"
       },
       {
         "token": "region",
-        "type": "district"
+        "class": "district"
       }
     ],
     "localityClasses": [
       {
         "token": "city",
         "level": 1,
-        "type": "city"
+        "class": "city"
       },
       {
         "token": "town",
         "level": 3,
-        "type": "town"
+        "class": "town"
       },
       {
         "token": "village",
         "level": 5,
-        "type": "village"
+        "class": "village"
       },
       {
         "token": "hamlet",
         "level": 6,
-        "type": "hamlet"
+        "class": "hamlet"
       }
     ],
-    "neighbourhoodTypes": [
+    "hoodClasses": [
       {
         "tokens": ["macrohood"],
-        "type": "macrohood"
+        "class": "macrohood"
       },
       {
         "tokens": ["neighborhood", "neighbourhood"],
-        "type": "neighbourhood"
+        "class": "neighbourhood"
       },
       {
         "tokens": ["microhood"],
-        "type": "microhood"
+        "class": "microhood"
       }
     ],
     "hierarchySubtypes": [
       {
         "token": "dependency",
         "level": 0,
-        "type": "sar"
+        "class": "sar"
       },
       {
         "token": "region",
         "level": 2,
-        "type": "district"
+        "class": "district"
       },
       {
         "token": "macrohood",
         "level": 4,
-        "type": "macrohood"
+        "class": "macrohood"
       },
       {
         "token": "neighborhood",
         "level": 5,
-        "type": "neighbourhood"
+        "class": "neighbourhood"
       },
       {
         "token": "neighbourhood",
         "level": 5,
-        "type": "neighbourhood"
+        "class": "neighbourhood"
       },
       {
         "token": "microhood",
         "level": 6,
-        "type": "microhood"
+        "class": "microhood"
       }
     ],
     "fallback": {
       "parentLevel": 1,
       "rootLevel": 0,
-      "typesByLevel": ["sar", "area", "district", "town", "macrohood", "neighbourhood"],
-      "type": "microhood"
+      "classesByLevel": [
+        "sar",
+        "area",
+        "district",
+        "town",
+        "macrohood",
+        "neighbourhood"
+      ],
+      "class": "microhood"
     }
   },
   "implementation": {
