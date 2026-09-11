@@ -1,3 +1,4 @@
+import { materialiseDivisionHierarchies } from './divisionHierarchies'
 import { expect, test } from 'bun:test'
 import {
   checkHongKongHierarchy,
@@ -56,10 +57,11 @@ test('bulk normalisation inserts Area before the independent guard checks it', (
     },
     { hierarchyGuard },
   )
-  expect(result.base.hierarchy).toMatchObject([
-    sar,
-    { division_id: area.division_id, level: 1, type: 'area' },
-  ])
+  expect(result.base.hierarchies).toMatchObject(
+    materialiseDivisionHierarchies('self', [
+      [sar, { division_id: area.division_id, level: 1, type: 'area' }],
+    ]),
+  )
   expect(hierarchyGuard).toMatchObject({ status: 'passed', checked: 1, failed: 0 })
 })
 
@@ -134,8 +136,8 @@ test('reviewed replacements defer only the intermediate hierarchy guard', () => 
     { ...row, hierarchies: [[row.hierarchies[0]![0]!]] },
     { hierarchyGuard },
   )
-  expect(final.base.type).toBe('area')
-  expect(final.base.hierarchy).toHaveLength(1)
+  expect(final.base.class).toBe('area')
+  expect(final.base.hierarchies.full).toHaveLength(1)
   expect(() =>
     normaliseDivisionRow({ ...row, id: '' }, { deferHierarchyGuard: true }),
   ).toThrow('missing `id`')
@@ -199,10 +201,18 @@ test('a recognised Area point is not inserted into its own district ancestry', (
   }
   const original = structuredClone(raw)
   const result = normaliseDivisionRow(raw)
-  expect(result.base.hierarchy).toEqual([
-    expect.objectContaining({ division_id: sar.division_id, type: 'sar', level: 0 }),
-  ])
-  expect(result.base).toMatchObject({ id: raw.id, type: 'area', level: 1 })
+  expect(result.base.hierarchies).toEqual(
+    materialiseDivisionHierarchies('self', [
+      [
+        expect.objectContaining({
+          division_id: sar.division_id,
+          type: 'sar',
+          level: 0,
+        }),
+      ],
+    ]),
+  )
+  expect(result.base).toMatchObject({ id: raw.id, class: 'area', level: 1 })
   expect(result.overtureHongKongAreaHierarchyAssignment).toMatchObject({
     code: 'kowloon',
   })

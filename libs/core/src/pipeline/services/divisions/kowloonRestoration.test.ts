@@ -7,19 +7,24 @@ import {
   missingOvertureHongKongAreaRows,
   overtureHongKongAreas,
 } from './overtureHongKongAreas'
+import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
 import { retainDivisionProvenance } from './divisionProvenance'
 import { readAuditPage } from '../../../provenance/audit'
 import type { ProvenanceStore } from '../../../provenance'
 
-const message = { source: 'overture', type: 'division', regionCode: 'hk' } as const
+const message = {
+  source: 'overture',
+  resourceType: 'division',
+  regionCode: 'hk',
+} as const
 const districts = overtureHongKongAreas.flatMap(area =>
-  area.districtNames.map(name => ({ id: name, names: name })),
+  area.districtNames.map(name => ({ id: name, names: name, subtype: 'region' })),
 )
 
 test('restoration applies only when Kowloon is absent from the source release', () => {
   const actions = kowloonRestorationActions(
     districts,
-    missingOvertureHongKongAreaRows(message, districts),
+    missingOvertureHongKongCityRows(message, districts),
   )
   expect(actions).toHaveLength(1)
   expect(actions[0]?.evidence).toMatchObject({
@@ -35,7 +40,7 @@ test('restoration applies only when Kowloon is absent from the source release', 
       geometry: { type: 'Point', coordinates: [114, 22] },
     },
   ]
-  expect(missingOvertureHongKongAreaRows(message, pointRows)).not.toContainEqual(
+  expect(missingOvertureHongKongCityRows(message, pointRows)).not.toContainEqual(
     expect.objectContaining({ id: kowloonRestorationFixture.divisionId }),
   )
   expect(kowloonRestorationActions(pointRows, [])).toEqual([])
@@ -45,7 +50,7 @@ test('restoration applies only when Kowloon is absent from the source release', 
     { id: kowloonRestorationFixture.divisionId, geometry: { type: 'Polygon' } },
   ]
   expect(
-    kowloonRestorationActions(rows, missingOvertureHongKongAreaRows(message, rows)),
+    kowloonRestorationActions(rows, missingOvertureHongKongCityRows(message, rows)),
   ).toEqual([])
   expect(
     missingOvertureHongKongAreaRows(
@@ -53,8 +58,8 @@ test('restoration applies only when Kowloon is absent from the source release', 
       districts,
     ),
   ).toEqual([])
-  expect(() => missingOvertureHongKongAreaRows(message, [])).toThrow(
-    'Cannot synthesise',
+  expect(() => missingOvertureHongKongCityRows(message, [])).toThrow(
+    'Cannot reconstruct',
   )
 })
 
@@ -71,7 +76,7 @@ test('retains a searchable individual restoration only when ingestion supplied e
   }
   const actions = kowloonRestorationActions(
     districts,
-    missingOvertureHongKongAreaRows(message, districts),
+    missingOvertureHongKongCityRows(message, districts),
   )
   for (const retainedActions of [actions, []]) {
     const result = await retainDivisionProvenance(store, {
