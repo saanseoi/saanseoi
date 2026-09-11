@@ -6,6 +6,8 @@ import hashlib
 import hmac
 import json
 import math
+import shutil
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 import shlex
@@ -121,6 +123,40 @@ def assert_integrity(db):
     violations = db.execute('PRAGMA foreign_key_check').fetchmany(10)
     if violations:
         raise ValueError(f'Foreign key violations: {violations}')
+
+
+def assert_current_publications(db):
+    names = table_names(db)
+    for table in names:
+        if table.endswith('PublicationState'):
+            if db.execute(f"SELECT 1 FROM {ident(table)} WHERE status <> 'current' LIMIT 1").fetchone():
+                raise ValueError(f'Incomplete current publication: {table}')
+    if 'address2d' not in names:
+        return
+    if 'addressPublicationState' not in names:
+        raise ValueError('Missing Address publication state')
+    if db.execute('''SELECT 1 FROM address2d a LEFT JOIN addressPublicationState p ON p.scopeId=a.snapshotId
+        WHERE p.snapshotId IS NULL OR p.preparedAt IS NULL LIMIT 1''').fetchone():
+        raise ValueError('Address current rows do not belong to a completed publication')
+    if db.execute('''SELECT 1 FROM address2d a WHERE NOT EXISTS
+        (SELECT 1 FROM address2dI18n i WHERE i.snapshotId=a.snapshotId AND i.addressId=a.id
+         AND trim(coalesce(i.formattedAddress,'') || coalesce(i.buildingName,'') || coalesce(i.estateName,'') || coalesce(i.streetName,'')) <> '') LIMIT 1''').fetchone():
+        raise ValueError('Empty Address current row')
+
+
+def retain_address_membership(output, paths):
+    """Keep acknowledged local evidence with the exact database set it describes."""
+    root = paths['DB_META'].parent / 'address-membership'
+    result = []
+    if not root.exists():
+        return result
+    for source in sorted(root.glob('*/*.json')):
+        relative = Path('address-membership') / source.relative_to(root)
+        destination = output / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+        result.append({'file': str(relative), 'sha256': digest(destination)})
+    return result
 
 
 def remap_meta(db, destinations):
@@ -261,6 +297,14 @@ def verify(bundle, restore=True):
         if restore:
             print(f'Verifying {item["binding"]}', flush=True, file=sys.stderr)
             restore_check(path, item['tables'])
+        if item.get('mirrorFile'):
+            mirror = bundle / item['mirrorFile']
+            if mirror.parent.resolve() != bundle.resolve() or digest(mirror) != item['mirrorSha256']:
+                raise ValueError(f'Mirror checksum/path mismatch: {item["binding"]}')
+    for item in manifest.get('mirrorArtefacts', []):
+        path = bundle / item['file']
+        if not path.resolve().is_relative_to(bundle.resolve()) or digest(path) != item['sha256']:
+            raise ValueError('Mirror membership checksum/path mismatch')
     return manifest
 
 
@@ -279,6 +323,8 @@ def prepare(output, config):
             locks.append(db)
         with contextlib.closing(connect(paths['DB_META'])) as meta:
             issues = blockers(meta)
+        if (paths['DB_META'].parent / 'pending-sql-delivery.json').exists():
+            issues.append('Unfinished SQL delivery still owns the local mirror')
         if issues:
             raise ValueError('Local database set is not ready:\n' + '\n'.join(issues))
         output.mkdir(parents=True, exist_ok=False)
@@ -291,6 +337,8 @@ def prepare(output, config):
             with contextlib.closing(connect(paths[binding])) as source, contextlib.closing(sqlite3.connect(snapshot)) as db:
                 source.backup(db)
                 assert_integrity(db)
+                if binding == 'DB_CURRENT':
+                    assert_current_publications(db)
                 if db.execute('PRAGMA page_count').fetchone()[0] * db.execute('PRAGMA page_size').fetchone()[0] > MAX_D1_DATABASE_BYTES:
                     raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} bytes: {binding}')
                 for table in table_names(db):
@@ -306,11 +354,53 @@ def prepare(output, config):
                 manifest['databases'].append({'binding': binding, 'target': destinations[binding],
                     'file': sql.name, 'sha256': digest(sql), 'bytes': sql.stat().st_size,
                     'tables': counts, 'rawObjectKeys': keys})
-            snapshot.unlink()
+                # Mirror the imported persistent schema, without native delivery receipts.
+                for name in table_names(db):
+                    if transient(name):
+                        db.execute(f'DROP TABLE {ident(name)}')
+                db.commit()
+            manifest['databases'][-1].update({'mirrorFile': snapshot.name, 'mirrorSha256': digest(snapshot)})
+        manifest['mirrorArtefacts'] = retain_address_membership(output, paths)
         write_json(output / 'manifest.json', manifest)
         # Standalone config pins IDs and avoids accidentally using changed live bindings.
         write_json(output / 'wrangler.json', {'name': 'ss-bootstrap', 'd1_databases': list(destinations.values())})
         print(f'Sealed D1 bundle: {output}. Production publication still needs artefact and API checks.')
+
+
+def seed_mirror(bundle, cache_dir):
+    manifest = verify(bundle, restore=False)
+    expected = {item['binding']: item['target'] for item in manifest['databases']}
+    configured = targets(CONFIG)
+    if {key: row['database_id'] for key, row in configured.items()} != {key: row['database_id'] for key, row in expected.items()}:
+        raise ValueError('Configure the verified bootstrap destination bindings before seeding their mirror')
+    verified = json.loads((bundle / 'verified-imports.json').read_text())
+    if any(verified.get(item['binding']) != item['sha256'] for item in manifest['databases']):
+        raise ValueError('Every imported shard must pass its sealed verification before seeding the mirror')
+    if cache_dir.exists():
+        raise ValueError('Mirror destination already exists; no replacement is allowed')
+    staging = cache_dir.with_name(cache_dir.name + '.bootstrap-' + uuid.uuid4().hex)
+    staging.mkdir(parents=True)
+    try:
+        files = {}
+        for item in manifest['databases']:
+            if not item.get('mirrorFile'):
+                raise ValueError('The bundle has no retained mirror; prepare a complete bundle')
+            filename = item['binding'] + '.sqlite'
+            shutil.copyfile(bundle / item['mirrorFile'], staging / filename)
+            files[item['binding']] = str(cache_dir / filename)
+        for item in manifest.get('mirrorArtefacts', []):
+            destination = staging / item['file']
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(bundle / item['file'], destination)
+        config = (ROOT / 'apps/harbour-cli/src/lib/dbCache/localDbCacheConfig.ts').read_text()
+        version = int(re.search(r'DB_CACHE_MANIFEST_VERSION = (\d+)', config).group(1))
+        write_json(staging / 'manifest.json', {'cacheVersion': version, 'target': 'production',
+            'preparedAt': datetime.now(timezone.utc).isoformat(), 'files': files})
+        staging.rename(cache_dir)
+    finally:
+        if staging.exists():
+            shutil.rmtree(staging)
+    print(f'Seeded complete production mirror: {cache_dir}')
 
 
 def commands(bundle):
@@ -356,11 +446,12 @@ def plan(output, label):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['plan', 'status', 'prepare', 'verify', 'commands', 'check-bundle', 'check-empty', 'check-import'])
+    parser.add_argument('command', choices=['plan', 'status', 'prepare', 'verify', 'commands', 'check-bundle', 'check-empty', 'check-import', 'seed-mirror'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--binding')
     parser.add_argument('--label')
     parser.add_argument('--target-config', type=Path, default=CONFIG)
+    parser.add_argument('--cache-dir', type=Path, default=ROOT / '.local/harbour-sql/db-cache/production')
     parser.add_argument('--writers-stopped', action='store_true', help='Confirm ingestion and local Workers are stopped before locking all shards')
     args = parser.parse_args()
     if args.command == 'check-empty':
@@ -390,11 +481,17 @@ def main():
         if {r['table_name']: r['rows'] for r in results[0]['results']} != expected or results[1]['results'] or results[2]['results'] != [{'quick_check': 'ok'}]:
             raise ValueError('Remote row counts, foreign keys or integrity failed validation')
         print(f'{args.binding}: row counts, foreign keys and quick_check passed')
+        checkpoint = bundle / 'verified-imports.json'
+        verified = json.loads(checkpoint.read_text()) if checkpoint.exists() else {}
+        verified[args.binding] = next(item['sha256'] for item in manifest['databases'] if item['binding'] == args.binding)
+        write_json(checkpoint, verified)
         return 0
     if args.command == 'prepare':
         if not args.writers_stopped:
             parser.error('Stop local ingestion and Workers, then pass --writers-stopped')
         prepare(bundle, args.target_config)
+    elif args.command == 'seed-mirror':
+        seed_mirror(bundle, args.cache_dir.resolve())
     elif args.command in ('verify', 'check-bundle'):
         verify(bundle, restore=args.command == 'verify')
     else:
