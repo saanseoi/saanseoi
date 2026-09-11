@@ -59,7 +59,9 @@ export async function validateGeometryHistoryBaseline(
       : historySchema.divisionBoundaries
   for (const group of groupResolvedVersionsByShard(versions.values()).values()) {
     for (const batch of chunkArray(group, 64)) {
-      const rows = await batch[0]!.shard.db
+      const first = batch[0]
+      if (!first) continue
+      const rows = await first.shard.db
         .select()
         .from(table)
         .where(
@@ -68,7 +70,7 @@ export async function validateGeometryHistoryBaseline(
         .all()
       if (rows.length !== batch.length)
         throw new Error(
-          `Missing exact geometry parent content on ${batch[0]!.shard.bindingName}.`,
+          `Missing exact geometry parent content on ${first.shard.bindingName}.`,
         )
       for (const row of rows) {
         const {
