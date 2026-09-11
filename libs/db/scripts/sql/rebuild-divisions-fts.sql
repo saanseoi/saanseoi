@@ -10,7 +10,11 @@ WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired
     COALESCE(d.divisionCode, '') AS codeText,
     COALESCE((SELECT group_concat(DISTINCT value ORDER BY value)
       FROM json_tree(d.hierarchies) WHERE key = 'name' AND type = 'text'), '') AS ancestorText
-    FROM selected s JOIN divisions d ON d.snapshotId = s.snapshotId
+    FROM selected s
+    JOIN divisionPublicationState publication ON publication.snapshotId = s.snapshotId
+      AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
+      AND publication.publicationToken <> ''
+    JOIN divisions d ON d.snapshotId = publication.scopeId
     LEFT JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id), removed AS (
       SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM divisionSearchFts EXCEPT SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM desired
     ) DELETE FROM divisionSearchFts WHERE rowid IN (
@@ -26,6 +30,10 @@ WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired
     COALESCE(d.divisionCode, '') AS codeText,
     COALESCE((SELECT group_concat(DISTINCT value ORDER BY value)
       FROM json_tree(d.hierarchies) WHERE key = 'name' AND type = 'text'), '') AS ancestorText
-    FROM selected s JOIN divisions d ON d.snapshotId = s.snapshotId
+    FROM selected s
+    JOIN divisionPublicationState publication ON publication.snapshotId = s.snapshotId
+      AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
+      AND publication.publicationToken <> ''
+    JOIN divisions d ON d.snapshotId = publication.scopeId
     LEFT JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id) INSERT INTO divisionSearchFts (scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText)
       SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM desired EXCEPT SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM divisionSearchFts;
