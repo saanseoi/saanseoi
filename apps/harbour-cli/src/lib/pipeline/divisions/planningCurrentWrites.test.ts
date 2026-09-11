@@ -101,6 +101,9 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       releaseCode: snapshotId,
       changedHistoryIds: changed ? ['one'] : [],
       changedCurrentBaseIds: changed ? ['one'] : [],
+      changedCurrentI18nKeys: record.i18n.map(row =>
+        JSON.stringify([record.base.id, row.locale]),
+      ),
       changedNativeIds: [],
       missingHistoryIds: [],
       missingNativeIds: [],

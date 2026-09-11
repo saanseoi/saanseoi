@@ -184,6 +184,20 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
 
   try {
+    if (target.remote) {
+      const baseline = await resolveLocalAddressDbContext(
+        target,
+        previewPlan.regionCode,
+        shardYear,
+        {
+          cacheTableProfile,
+          includePreviousShardYears: true,
+          refreshRemoteTables: false,
+          resumeSqlDeliveryReleaseId: releaseId,
+        },
+      )
+      baseline.cleanup()
+    }
     dbContext = await resolveLocalAddressDbContext(
       target,
       previewPlan.regionCode,

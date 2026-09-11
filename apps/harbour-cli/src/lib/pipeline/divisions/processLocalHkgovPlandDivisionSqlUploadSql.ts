@@ -38,6 +38,7 @@ export type PlandImportTargets = {
 }
 
 export type PlandSqlState = {
+  changedCurrentI18nKeys: string[]
   changedCurrentBaseIds: string[]
   changedHistoryIds: string[]
   changedNativeIds: string[]
@@ -311,11 +312,14 @@ export async function buildPlandCurrentSql(
     'createdAt',
     'updatedAt',
   ]
-  const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
-    'snapshotId',
-    'divisionId',
-    'locale',
-  ])
+  const changedI18nKeys = new Set(state.changedCurrentI18nKeys)
+  const i18nInsert = prepareRowsForSql(
+    i18nRows.filter(row =>
+      changedI18nKeys.has(JSON.stringify([row.divisionId, row.locale])),
+    ),
+    i18nColumns,
+    ['snapshotId', 'divisionId', 'locale'],
+  )
 
   const receipt = await context.currentDb
     .select()
