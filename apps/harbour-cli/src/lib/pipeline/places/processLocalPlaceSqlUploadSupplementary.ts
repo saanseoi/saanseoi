@@ -8,7 +8,6 @@ import {
   stat,
   unlink,
 } from 'node:fs/promises'
-import { readFileSync } from 'node:fs'
 import { reviewPlaceAddressCurations } from './placeAddressCurationUi.ts'
 import {
   deferPlaceAddressTrialReview,

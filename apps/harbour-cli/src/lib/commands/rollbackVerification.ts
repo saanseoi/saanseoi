@@ -328,8 +328,8 @@ function resolveCurrentSnapshotColumn(
 
 function resolveCurrentTable(tableName: string) {
   switch (tableName) {
-    case 'addressesFts':
-      return currentSchema.addressesFts
+    case 'addressSearchScopes':
+      return currentSchema.addressSearchScopes
     case 'address2d':
       return currentSchema.address2d
     case 'address2dI18n':
