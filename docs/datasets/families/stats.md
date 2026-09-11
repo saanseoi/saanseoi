@@ -234,6 +234,12 @@ period. Its selected `snapshotId` and `publishing`/`current` status gate API rea
 changed packs and their definitions are promoted. Earlier periods retain independent
 checkpoints; unchanged reissues update publication metadata without rewriting packs.
 
+Unlike lineage-scoped families, this checkpoint gates promotion of the dataset/period's
+changed packs and has no delivery-token columns. Current pack identity remains
+independent of the publication snapshot. The shared
+[publication-state contract](../publication-state-plan.md) describes this deliberate
+boundary and the common API readiness checks.
+
 Ordinary Stats requests use current for every reference period. Explicit release-set,
 catalogue or time selectors use history when they resolve to an older publication;
 selecting an older reference year alone does not select an older revision.

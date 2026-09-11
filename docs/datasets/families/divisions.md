@@ -636,15 +636,23 @@ existing scope selection; publication/reconciliation owns release selection.
 
 ## Publication readiness
 
-Current materialisations claim a publication-state receipt before delivery and mark it
-prepared only after complete delivery validation, including valid empty snapshots. The
-selected published snapshot must be ready for the API to serve it. Publication, search
-readiness and cleanup follow the shared
-[publication-state contract](../publication-state-plan.md). The next reset and reingest
-creates these receipts through normal delivery; no backfill infers readiness from
-existing records.
+Current Division records and localisations use the stable snapshot lineage as their
+physical `snapshotId`. `divisionPublicationState` has one receipt per lineage and maps
+it to the logical published snapshot. Conditional updates preserve unchanged content and
+timestamps; removed records and translations are deleted only within the complete
+replacement's scope. Candidate SQL may still be transmitted for unchanged rows.
 
-Division delivery checks canonical and localisation counts. Native planning and remote
-replay preserve ownership checks in each mutation batch. Geometry resources have
-separate area and boundary receipts, so a retained cohort or provider variant is ready
-only when its own delivery is complete.
+Area and boundary projections use separate lineage/cohort scopes and publication
+receipts. Provider variants retain their own lineages. A revision updates only changed
+geometry in its scope; a different retained cohort requires its own materialisation.
+Ingestion resolves the exact selected Division dependency through a completed receipt or
+immutable history, without restoring historical Division rows into serving current
+storage.
+
+Delivery validates canonical and localisation counts, and each current mutation batch
+checks its sealed publication token. Completion records preparation; metadata
+publication grants readiness. A selected scope returns `503 snapshot_not_ready` while
+its delivery is incomplete, including an incomplete empty projection. Ready current
+reads retain public logical IDs. Pinned older geometry revisions replay from history
+once a ready replacement owns their scope. Search, guarded cleanup and reset/reingest
+follow the [publication-state contract](../publication-state-plan.md).
