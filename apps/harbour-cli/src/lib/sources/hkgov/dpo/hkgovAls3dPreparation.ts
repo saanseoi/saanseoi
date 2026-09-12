@@ -21,7 +21,6 @@ import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
 import { als3dSuppression } from './hkgovAls3dSuppressions'
 import { readAls3dWithBackfills } from './hkgovAls3dBackfills'
 import { assertStreetEstateAliasInventoryEmpty } from './hkgovAlsStreetEstateComplexes'
-import { assertAlsCommercialInventoryAbsent } from './hkgovAlsCommercialRetentions'
 import { reportAlsReviewIssue, type AlsReviewIssue } from './hkgovAlsReviewIssue'
 import {
   membershipCollection,
@@ -176,7 +175,6 @@ export async function prepareAls3dCollections(options: {
     } of readAls3dWithBackfills(file, options.sourceVersion, options.rows)) {
       assertStreetEstateAliasInventoryEmpty(feature, options.sourceVersion)
       assertYungShingSharedInventory(feature, options.sourceVersion)
-      assertAlsCommercialInventoryAbsent(feature, options.sourceVersion)
       const p = feature.properties.Address.PremisesAddress
       const en = p.EngPremisesAddress ?? {}
       const zh = p.ChiPremisesAddress ?? {}

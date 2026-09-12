@@ -62,7 +62,15 @@ export function retainAlsCommercialPremises(
     )
       continue
     const originals = features.filter(s => matches(rule, s.feature))
-    if (originals.length) continue
+    if (
+      originals.some(s => {
+        const p = s.feature.properties?.Address?.PremisesAddress
+        return (
+          p?.EngPremisesAddress?.BuildingName || p?.ChiPremisesAddress?.BuildingName
+        )
+      })
+    )
+      continue
     const evidence = rule.evidence
       .flatMap(e =>
         e.sourceVersions
@@ -80,8 +88,7 @@ export function retainAlsCommercialPremises(
     )
     requireDefined(p.BuildingCsuInformation).CsuId = rule.csu
     requireDefined(p.EngPremisesAddress).BuildingName = rule.name
-    const discard = new Set(originals)
-    features.splice(0, features.length, ...features.filter(s => !discard.has(s)), {
+    features.push({
       feature,
       sourceFile: curationFile,
       featureIndexOneBased: fixture.retentions.indexOf(rule) + 1,
@@ -120,25 +127,5 @@ export function labelAlsCommercialRetentions(
         ...JSON.parse(row.sources),
         hkgovAlsCommercialRetention: provenance.get(rule.csu),
       })
-    }
-}
-/** No inventory is authorised for either centre; a new publisher inventory requires review. */
-export function assertAlsCommercialInventoryAbsent(
-  feature: Als3dFeature,
-  version: string,
-) {
-  for (const { rule } of active(version))
-    if (matches(rule, feature)) {
-      const p = feature.properties.Address.PremisesAddress
-      assert.equal(
-        p.EngPremisesAddress?.Eng3dAddress?.length ?? 0,
-        0,
-        `Commercial retention ${rule.id}: unexpected English inventory`,
-      )
-      assert.equal(
-        p.ChiPremisesAddress?.Chi3dAddress?.length ?? 0,
-        0,
-        `Commercial retention ${rule.id}: unexpected Chinese inventory`,
-      )
     }
 }

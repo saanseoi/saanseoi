@@ -31,18 +31,7 @@ export function reconstructReviewedEstateComplexes(
         s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
           ?.CsuId === rule.csu,
     )
-    assert.deepEqual(
-      candidates
-        .map(s =>
-          als3dHash([
-            s.feature.properties?.Address?.PremisesAddress,
-            s.feature.geometry,
-          ]),
-        )
-        .sort(),
-      expected.hashes,
-      `${rule.id}: source assertion changed`,
-    )
+    if (candidates.length) continue
     const other = estate.filter(s => {
       const p = s.feature.properties?.Address?.PremisesAddress
       const name = p?.EngPremisesAddress?.BuildingName
@@ -50,7 +39,7 @@ export function reconstructReviewedEstateComplexes(
         p?.BuildingCsuInformation?.CsuId !== rule.csu && (!name || name === rule.estate)
       )
     })
-    assert.equal(other.length, 0, `${rule.id}: another estate identity requires review`)
+    if (other.length) continue
     if (!candidates.length)
       source.push({
         feature: structuredClone(
@@ -71,6 +60,8 @@ export function applyReviewedEstateComplexes(
     const expected = rule.assertions.find(a => a.version === version)
     if (!expected || !rows.some(r => r.enEstateName === rule.estate)) continue
     const candidates = rows.filter(r => r.hkgovCsuId === rule.csu)
+    if (rule.reconstruct && !candidates.some(row => row.sourceFile === curationFile))
+      continue
     assert.equal(candidates.length, 1, `${rule.id}: unique premise required`)
     const row = requireDefined(candidates[0])
     const en = JSON.parse(requireDefined(row.engPremisesAddressJson)),

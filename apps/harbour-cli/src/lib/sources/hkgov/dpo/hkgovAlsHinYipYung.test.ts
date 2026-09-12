@@ -195,15 +195,15 @@ test('future Yip Wong retains four collections until revoked with unverified pro
             ?.BuildingName === 'YIP WO HOUSE',
       ),
     ).feature.geometry = { type: 'Point', coordinates: [0, 0] }
-    expect(() => retainAlsHouses(changed, '2030-01-01.0')).toThrow(
-      'publisher assertions changed',
-    )
+    const original = structuredClone(changed)
+    expect(retainAlsHouses(changed, '2030-01-01.0').size).toBe(0)
+    expect(changed).toEqual(original)
   } finally {
     await rm(dir, { recursive: true, force: true })
   }
 })
 test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
-  'materialises all30 releases: shared138 inventory, Hin Fat872 and Yip Wong3288',
+  'all30 releases retain missing houses but preserve publisher inventory availability for present houses',
   async () => {
     const dir = await mkdtemp('/tmp/hin-yip-yung-'),
       ids = new Map<string, string>()
@@ -273,10 +273,41 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           rows,
           writeOutput: false,
         })
-        expect(result.collectionCount).toBe(version >= '2025-01-01.0' ? 6 : 5)
-        expect(result.unitCount).toBe(
-          138 + 3288 + (version >= '2025-01-01.0' ? 872 : 0),
-        )
+        let expectedUnits = 138,
+          expectedCollections = 1
+        for (const rule of rules) {
+          if (!rule.sourceVersions.includes(version)) continue
+          const publisher = three.filter(f =>
+            rule.csus.includes(
+              f.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ?? '',
+            ),
+          )
+          const retainedOwner = rows.some(
+            row =>
+              row.sourceFile === 'hkgov-dpo-address-house-retentions.json' &&
+              rule.csus.includes(row.hkgovCsuId ?? ''),
+          )
+          const evidence =
+            [...rule.evidence3d]
+              .filter(e => e.evidenceSourceVersion <= version)
+              .at(-1) ?? rule.evidence3d[0]
+          const inventories = publisher.length
+            ? publisher
+            : retainedOwner && evidence
+              ? [evidence.feature]
+              : []
+          for (const feature of inventories) {
+            const count =
+              feature.properties.Address.PremisesAddress.EngPremisesAddress
+                ?.Eng3dAddress?.length ?? 0
+            if (count) {
+              expectedUnits += count
+              expectedCollections++
+            }
+          }
+        }
+        expect(result.collectionCount).toBe(expectedCollections)
+        expect(result.unitCount).toBe(expectedUnits)
         console.error(
           `Verified ${version}: ${result.collectionCount} collections, ${result.unitCount} units`,
         )

@@ -2,7 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
-import { readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
+import { als3dHash, readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
 import {
   curationProvenance,
   resolveHkgovAlsCurationVerification,
@@ -51,19 +51,8 @@ function matches(rule: Rule, feature: Als3dFeature) {
       p.EngPremisesAddress?.BuildingName === rule.name)
   )
 }
-function retain(
-  rule: Rule,
-  originals: Als3dFeature[],
-  version: string,
-  kind: '2d' | '3d',
-) {
+function retain(rule: Rule, version: string, kind: '2d' | '3d') {
   const evidence = kind === '2d' ? rule.evidence2d : rule.evidence3d
-  const rich = originals.find(
-    f =>
-      premise(f).EngPremisesAddress?.BuildingName === rule.name &&
-      premise(f).BuildingCsuInformation?.CsuId === rule.csus[0] &&
-      (kind === '2d' || premise(f).EngPremisesAddress?.Eng3dAddress?.length),
-  )
   const datedEvidence = evidence
     .flatMap(e =>
       e.sourceVersions.filter(v => v <= version).map(v => ({ e, version: v })),
@@ -79,9 +68,12 @@ function retain(
       : undefined)
   const chosen = rule.retainOriginalCoordinates ? evidence[0] : dated?.e
   assert(chosen, `House retention ${rule.id}: missing dated evidence`)
-  const feature = structuredClone(
-    !rule.retainOriginalCoordinates && rich ? rich : chosen.feature,
-  ) as Als3dFeature
+  assert.equal(
+    als3dHash(chosen.feature),
+    chosen.hash,
+    `House retention ${rule.id}: retained evidence changed`,
+  )
+  const feature = structuredClone(chosen.feature) as Als3dFeature
   if (
     'canonicalEnBuildingName' in rule &&
     typeof rule.canonicalEnBuildingName === 'string'
@@ -106,9 +98,7 @@ function retain(
   return {
     feature,
     evidenceSourceVersion: !rule.retainOriginalCoordinates
-      ? rich
-        ? version
-        : requireDefined(dated).version
+      ? requireDefined(dated).version
       : chosen.evidenceSourceVersion,
   }
 }
@@ -137,15 +127,15 @@ export function retainAlsHouses(features: HkgovAlsSourceFeature[], version: stri
     )
       continue
     const originals = features.filter(s => matches(rule, s.feature as Als3dFeature))
-    if (originals.length > 0) continue
-    const retained = retain(
-      rule,
-      originals.map(s => s.feature as Als3dFeature),
-      version,
-      '2d',
+    if (
+      originals.some(s => {
+        const p = premise(s.feature as Als3dFeature)
+        return p.EngPremisesAddress?.BuildingName || p.ChiPremisesAddress?.BuildingName
+      })
     )
-    const discarded = new Set(originals)
-    features.splice(0, features.length, ...features.filter(s => !discarded.has(s)), {
+      continue
+    const retained = retain(rule, version, '2d')
+    features.push({
       feature: retained.feature as HkgovAlsSourceFeature['feature'],
       sourceFile: curationFile,
       featureIndexOneBased: fixture.retentions.indexOf(rule) + 1,
@@ -236,13 +226,19 @@ export async function* readAls3dWithHouseRetentions(
   }
   for (const { rule, curation } of rules) {
     const originals = captured.get(rule) ?? []
-    if (originals.length > 0) continue
-    const retained = retain(
-      rule,
-      originals.map(r => r.feature),
-      version,
-      '3d',
+    if (
+      originals.some(s => {
+        const p = premise(s.feature)
+        return (
+          p.EngPremisesAddress?.BuildingName ||
+          p.ChiPremisesAddress?.BuildingName ||
+          p.EngPremisesAddress?.Eng3dAddress?.length ||
+          p.ChiPremisesAddress?.Chi3dAddress?.length
+        )
+      })
     )
+      continue
+    const retained = retain(rule, version, '3d')
     yield {
       feature: retained.feature,
       featureIndexOneBased: originals[0]?.featureIndexOneBased ?? 1,

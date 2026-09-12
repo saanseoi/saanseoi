@@ -67,9 +67,13 @@ test('Hoi Tat keeps Hoi Wah active and bounds Hoi Shing to the three omissions a
     JSON.parse(requireDefined(future[0]).sources).hkgovAlsAddressBackfill.curation
       .verificationStatus,
   ).toBe('unverified')
-  expect(() =>
-    buildAls2dBackfillFeatures(sources('2026-09-07.0'), '2026-09-07.0'),
-  ).toThrow('named source already present')
+  expect(
+    buildAls2dBackfillFeatures(sources('2026-09-07.0'), '2026-09-07.0').filter(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === wah,
+    ),
+  ).toHaveLength(0)
 })
 
 test('Hoi Tat materialises hash-exact bilingual inventories with provenance and fails closed on source conflicts', async () => {
@@ -141,7 +145,16 @@ test('Hoi Tat materialises hash-exact bilingual inventories with provenance and 
         2,
       ),
     )
-    await expect(collect('2026-04-03.0')).rejects.toThrow('source is no longer absent')
+    const returned = []
+    for await (const r of readAls3dWithBackfills(
+      file,
+      '2026-04-03.0',
+      parents('2026-04-03.0'),
+    ))
+      returned.push(r)
+    expect(returned[0]?.feature).toEqual(requireDefined(restored[0]).feature)
+    expect(returned[0]?.backfill).toBeUndefined()
+    expect(returned.filter(r => r.backfill)).toHaveLength(1)
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

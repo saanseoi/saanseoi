@@ -77,21 +77,26 @@ test('all retained releases preserve distinct estate and centre points, raw name
     expect(requireDefined(centre).enStreetNumberFrom).toBe('6')
     expect(requireDefined(centre).parentAddressId).toBe(requireDefined(estate).id)
     expect(requireDefined(centre).geometry).not.toBe(requireDefined(estate).geometry)
-    expect(requireDefined(sun).curatedGranularity).toBe('complex')
+    const sunWasMissing = !originals.some(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === csus[2],
+    )
+    if (sunWasMissing) expect(requireDefined(sun).curatedGranularity).toBe('complex')
     expect(requireDefined(sun).enFormattedAddress).toContain('SUN TIN WAI ESTATE')
     expect(
       rows.filter(
         r =>
           r.enEstateName === 'SUN TIN WAI ESTATE' && r.curatedGranularity === 'complex',
       ),
-    ).toHaveLength(1)
+    ).toHaveLength(sunWasMissing ? 1 : 0)
     expect(rows.some(r => r.enBuildingName === 'SUN TIN WAI SHOPPING CENTRE')).toBe(
       true,
     )
     for (const row of [
       requireDefined(estate),
       requireDefined(centre),
-      requireDefined(sun),
+      ...(sunWasMissing ? [requireDefined(sun)] : []),
     ]) {
       if (ids.has(requireDefined(row.hkgovCsuId)))
         expect(row.id).toBe(requireDefined(ids.get(requireDefined(row.hkgovCsuId))))
@@ -113,7 +118,7 @@ test('all retained releases preserve distinct estate and centre points, raw name
     }
   }
 })
-test('rejects another estate identity or changed reviewed source', async () => {
+test('returning estate premises bypass the fallback even with changed source details', async () => {
   const source = await load('20260819-1047-ALS-GeoJSON')
   const replacement = structuredClone(
     requireDefined(
@@ -137,9 +142,9 @@ test('rejects another estate identity or changed reviewed source', async () => {
     ).EngPremisesAddress,
   ).BuildingName
   source.push(replacement)
-  expect(() => reconstructReviewedEstateComplexes(source, '2026-08-19.0')).toThrow(
-    'another estate identity',
-  )
+  const original = structuredClone(source)
+  reconstructReviewedEstateComplexes(source, '2026-08-19.0')
+  expect(source).toEqual(original)
   const clean = await load('20240725-1048-ALS-GeoJSON')
   requireDefined(
     requireDefined(
@@ -154,7 +159,7 @@ test('rejects another estate identity or changed reviewed source', async () => {
       ),
     ).feature.geometry,
   ).coordinates = [0, 0]
-  expect(() => reconstructReviewedEstateComplexes(clean, '2024-07-25.0')).toThrow(
-    'source assertion changed',
-  )
+  const changedOriginal = structuredClone(clean)
+  reconstructReviewedEstateComplexes(clean, '2024-07-25.0')
+  expect(clean).toEqual(changedOriginal)
 })
