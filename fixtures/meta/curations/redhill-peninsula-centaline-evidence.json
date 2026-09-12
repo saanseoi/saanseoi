@@ -6852,5 +6852,26 @@
     }
   ],
   "totalBuildings": 256,
-  "totalUnits": 494
+  "totalUnits": 494,
+  "reviewedIdentities": [
+    {
+      "id": "redhill-two-house-24-identities",
+      "authority": "User review, 2026-09-12: Centaline latitude/longitude is correct for 24 Cedar Drive; ALS latitude/longitude belongs to 24 Palm Drive.",
+      "cedarDrive": {
+        "typeCode": "1-OCRRUUOXUS",
+        "coordinates": [
+          114.226669,
+          22.230345
+        ],
+        "alsCsu": null,
+        "coordinateStatus": "user-approved"
+      },
+      "palmDrive": {
+        "typeCode": "1-OCVRUUOXSS",
+        "alsCsu": "4151310224T20050430",
+        "coordinatePolicy": "preserve-publisher-point"
+      },
+      "relationship": "distinct-buildings"
+    }
+  ]
 }

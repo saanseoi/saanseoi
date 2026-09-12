@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "ban-tip-house-block-1",
+      "csu": "3589035783T20210226",
+      "canonicalId": "ss-3060c81f-129a-587e-860c-1af1eb8cd041",
+      "blockNumber": "1",
+      "authority": "User decision, 2026-09-12: Ban Tip House is the same building; backfill the additional BLK 1 detail. Preserve source-present detail, raw assertions and coordinates. House omission-only retention remains separate.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "01c00338228b6a5972285abf6778065e191feb0209cccc7537e905c9ea0805a8"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "01c00338228b6a5972285abf6778065e191feb0209cccc7537e905c9ea0805a8"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "01c00338228b6a5972285abf6778065e191feb0209cccc7537e905c9ea0805a8"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "01c00338228b6a5972285abf6778065e191feb0209cccc7537e905c9ea0805a8"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "710e4079d373b0bfc85cad6e5ea05a0bc582aea92d72d5c3860d2f8038714095"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "f6c4706d298f6b6356dc8d82de85b550dc2591c7b4bb29f6be8f5bf61380ad59"
+        }
+      ]
+    }
+  ]
+}

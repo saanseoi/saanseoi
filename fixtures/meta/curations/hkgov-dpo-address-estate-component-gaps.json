@@ -1834,6 +1834,8 @@
       "id": "estate-gap-191011afdcb3c4b7-2024-07-31.0",
       "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
       "csu": "3781216131T20200107",
+      "canonicalId": "ss-4198c868-12bb-5822-ae59-92afe91f68f2",
+      "identityAuthority": "User decision, 2026-09-12: the restored Golden Wheel Plaza complex is the same entity; preserve its named-source canonical ID.",
       "sourceFile": "als_addresses_(wan_chai_district).geojson",
       "expectedEn": {
         "EngStreet": {
@@ -1864,6 +1866,8 @@
       "id": "estate-gap-191011afdcb3c4b7-2024-08-25.0",
       "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
       "csu": "3781216131T20200107",
+      "canonicalId": "ss-4198c868-12bb-5822-ae59-92afe91f68f2",
+      "identityAuthority": "User decision, 2026-09-12: the restored Golden Wheel Plaza complex is the same entity; preserve its named-source canonical ID.",
       "sourceFile": "als_addresses_(wan_chai_district).geojson",
       "expectedEn": {
         "EngStreet": {
@@ -1894,6 +1898,8 @@
       "id": "estate-gap-191011afdcb3c4b7-2024-09-01.0",
       "identity": "191011afdcb3c4b7182f600423bf2739ee6aa04e277124ad8ef353fa1394f452",
       "csu": "3781216131T20200107",
+      "canonicalId": "ss-4198c868-12bb-5822-ae59-92afe91f68f2",
+      "identityAuthority": "User decision, 2026-09-12: the restored Golden Wheel Plaza complex is the same entity; preserve its named-source canonical ID.",
       "sourceFile": "als_addresses_(wan_chai_district).geojson",
       "expectedEn": {
         "EngStreet": {
