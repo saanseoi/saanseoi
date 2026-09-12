@@ -68,19 +68,38 @@ async function prepareNativeSqlDeliveryLocked(
   )) {
     const db = new Database(path, { readwrite: true, create: false })
     try {
-      const identity = db
-        .transaction(() => {
-          db.exec(RECEIPT_SCHEMA_SQL)
-          const existing = db.query(IDENTITY_QUERY).get() as { sha256: string } | null
-          if (existing) return existing.sha256
-          const value = randomUUID()
-          db.query(
-            "INSERT INTO harbourSqlDeliveryReceipts VALUES ('native-database-identity', -1, ?)",
-          ).run(value)
-          return value
-        })
-        .immediate()
+      // Existing identities are immutable until reset. Reading one must not
+      // acquire a write lock against unrelated metadata progress updates.
+      const tableExists = db
+        .query(
+          "SELECT 1 FROM sqlite_schema WHERE type='table' AND name='harbourSqlDeliveryReceipts'",
+        )
+        .get()
+      const existing = tableExists
+        ? (db.query(IDENTITY_QUERY).get() as { sha256: string } | null)
+        : null
+      const identity =
+        existing?.sha256 ??
+        db
+          .transaction(() => {
+            db.exec(RECEIPT_SCHEMA_SQL)
+            const concurrent = db.query(IDENTITY_QUERY).get() as {
+              sha256: string
+            } | null
+            if (concurrent) return concurrent.sha256
+            const value = randomUUID()
+            db.query(
+              "INSERT INTO harbourSqlDeliveryReceipts VALUES ('native-database-identity', -1, ?)",
+            ).run(value)
+            return value
+          })
+          .immediate()
       targets[binding] = { path: resolve(path), identity }
+    } catch (error) {
+      throw new Error(
+        `Native delivery identity check failed for ${binding}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      )
     } finally {
       db.close()
     }

@@ -2,6 +2,20 @@
 import { m } from '#lib/bits/internal/i18n.js'
 import type { StyleSpecification } from 'maplibre-gl'
 
+/**
+ * Load MapLibre only for previews that need it and configure its worker before use.
+ * @returns The configured MapLibre module, with its stylesheet ready.
+ */
+const loadMapLibre = async (): Promise<typeof import('maplibre-gl')> => {
+  const [maplibre, { default: workerUrl }] = await Promise.all([
+    import('maplibre-gl'),
+    import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'),
+    import('maplibre-gl/dist/maplibre-gl.css'),
+  ])
+  maplibre.setWorkerUrl(workerUrl)
+  return maplibre
+}
+
 const cachedStyles = new Map<string, Promise<StyleSpecification>>()
 type CachedTileJson = {
   attribution?: string
@@ -84,19 +98,9 @@ const getCachedTileJson = (url: string) => {
 
 <script lang="ts">
 import { onMount } from 'svelte'
-import {
-  setWorkerUrl,
-  type Map as MapLibreMap,
-  type LayerSpecification,
-} from 'maplibre-gl'
+import type { Map as MapLibreMap, LayerSpecification } from 'maplibre-gl'
 import type { Map as LeafletMap } from 'leaflet'
 import type { StyleSpecification as MapboxStyleSpecification } from 'mapbox-gl'
-import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import 'leaflet/dist/leaflet.css'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import 'maplibre-gl/dist/maplibre-gl.css'
-
-setWorkerUrl(maplibreWorkerUrl)
 
 type Renderer = 'leaflet' | 'mapbox' | 'maplibre'
 type Coordinates = [longitude: number, latitude: number]
@@ -215,17 +219,24 @@ onMount(() => {
     try {
       loading = true
       error = undefined
-      const style =
+      // Fetch preview data while the selected renderer and its stylesheets load.
+      const stylePromise =
         (renderer === 'mapbox' && mapboxStyleUrl) ||
         (renderer === 'leaflet' && leafletTileUrl)
-          ? undefined
-          : await loadStyle()
-      if (disposed || !container) return
+          ? Promise.resolve(undefined)
+          : loadStyle()
 
       if (renderer === 'leaflet') {
-        const [leaflet, { maplibreGL }] = await Promise.all([
+        const [style, leaflet, bridge] = await Promise.all([
+          stylePromise,
           import('leaflet'),
-          import('@maplibre/maplibre-gl-leaflet'),
+          leafletTileUrl
+            ? undefined
+            : Promise.all([
+                loadMapLibre(),
+                import('@maplibre/maplibre-gl-leaflet'),
+              ]).then(([, bridge]) => bridge),
+          import('leaflet/dist/leaflet.css'),
         ])
         if (disposed || !container) return
 
@@ -244,9 +255,9 @@ onMount(() => {
             .addTo(map)
           void onLeafletMapReady?.(map)
         } else {
-          if (!style)
+          if (!style || !bridge)
             throw new Error(m.guide_mapping_preview_style_and_basemap_required())
-          const maplibreLayer = maplibreGL({ style }).addTo(map)
+          const maplibreLayer = bridge.maplibreGL({ style }).addTo(map)
           const maplibreMap = maplibreLayer.getMaplibreMap()
           maplibreMap.once('idle', () => {
             void onMapReady?.(maplibreMap)
@@ -256,7 +267,11 @@ onMount(() => {
         remove = () => map.remove()
         observeResize(() => map.invalidateSize())
       } else if (renderer === 'mapbox') {
-        const { default: mapboxgl } = await import('mapbox-gl')
+        const [style, { default: mapboxgl }] = await Promise.all([
+          stylePromise,
+          import('mapbox-gl'),
+          import('mapbox-gl/dist/mapbox-gl.css'),
+        ])
         if (disposed || !container) return
 
         const map = new mapboxgl.Map({
@@ -284,7 +299,10 @@ onMount(() => {
         }
         observeResize(() => map.resize())
       } else {
-        const { Map: MapLibreMap } = await import('maplibre-gl')
+        const [style, { Map: MapLibreMap }] = await Promise.all([
+          stylePromise,
+          loadMapLibre(),
+        ])
         if (disposed || !container) return
         if (!style)
           throw new Error(m.guide_mapping_preview_style_and_basemap_required())
