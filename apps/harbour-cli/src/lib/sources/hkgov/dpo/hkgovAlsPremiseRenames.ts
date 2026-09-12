@@ -50,6 +50,7 @@ export function applyReviewedPremiseRenames(
     row.id =
       row.canonicalId =
       row.identityBuildingId =
+        ('canonicalId' in rule ? rule.canonicalId : undefined) ??
         `ss-${buildDeterministicUuidV5('6e7c2e9f-dd17-5d55-ae29-0e6f18e1662b', rule.id)}`
     row.identityKey = row.identityContinuityKey = `reviewed-premise-rename:${rule.id}`
     row.identityMatchMethod = 'reviewed-premise-rename'

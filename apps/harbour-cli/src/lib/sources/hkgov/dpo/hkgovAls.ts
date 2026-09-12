@@ -1,3 +1,6 @@
+import { applyReviewedBuildingOverrides } from './hkgovAlsBuildingOverrides'
+import { applyReviewedBlockDetailBackfills } from './hkgovAlsBlockDetailBackfills'
+import { applyReviewedIdentityComponentBackfills } from './hkgovAlsIdentityComponentBackfills'
 import {
   applyReviewedHouseStreetIdentities,
   linkReviewedHouseStreetParents,
@@ -226,6 +229,7 @@ async function prepareHkgovAlsAddressParquetInternal(
       numericPhaseFamilies,
     ),
   )
+  applyReviewedBlockDetailBackfills(rows, options.sourceVersion)
   labelAls2dBackfillRows(rows)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
   applyReviewedHouseStreetIdentities(rows, options.sourceVersion)
@@ -241,6 +245,8 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
   retainNamedPremises(rows, options.sourceVersion)
   applyReviewedPremiseRenames(rows, options.sourceVersion)
+  applyReviewedBuildingOverrides(rows, options.sourceVersion)
+  applyReviewedIdentityComponentBackfills(rows, options.sourceVersion)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
@@ -314,6 +320,14 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyAlsLocalities(rows, options.sourceVersion)
   const estateComponents = restoreAlsEstateComponents(rows, options.sourceVersion)
   const estateGaps = restoreAlsEstateGaps(rows, options.sourceVersion, true)
+  for (const row of rows) {
+    if (row.identityMatchMethod !== 'reviewed-estate-gap-continuity') continue
+    const record = resolvedIdentityRecords.find(r => r.identityKey === row.identityKey)
+    if (record) {
+      record.id = row.id
+      record.summary = row.identitySummary
+    }
+  }
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
   const coordinateChanges = backfillAlsCoordinates(

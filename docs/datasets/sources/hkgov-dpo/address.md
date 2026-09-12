@@ -834,6 +834,12 @@ canonical hotel identity; the unnamed street address remains separate. Raw Butte
 Prat and Dash Living on Prat assertions remain in provenance. This is an explicit name
 correction, not an omission-only retention.
 
+China Resources Logistics East Asia Industrial Building (華潤物流東亞工業大廈), 2 Ho Tin
+Street, uses the reviewed name across the 30 retained releases. Its original canonical
+building ID is retained. Release-specific hashes guard the bilingual publisher assertion
+and geometry; raw East Asia names and publisher coordinates remain in provenance. This
+approved rename does not authorise retirement or imply omission retention.
+
 The reviewed Redhill Peninsula House 20 identity has house/block number 20 and building
 street address 20 Palm Drive (棕櫚徑20號). Its parent complex is The Redhill Peninsula
 (紅山半島), at 18 Pak Pat Shan Road. These are separate address fields and levels; this
@@ -852,3 +858,46 @@ and 494 residential units. Building labels, occupation-permit years, publisher
 coordinates, floor-plan links and dated sale/rent counts remain supplementary source
 evidence. These counts do not supply individual flat identities, and coordinate
 candidates require review before canonical matching.
+
+The two House 24 addresses are distinct: ALS CSU `4151310224T20050430` identifies 24
+Palm Drive and retains its publisher coordinates. The reviewed Centaline point
+`[114.226669, 22.230345]` identifies 24 Cedar Drive; it is not a replacement point for
+the Palm Drive ALS record. The supplementary evidence records this explicit separation
+and the approved Cedar Drive point.
+
+Bay View Villa at 39 South Bay Road is reviewed as redeveloped. Houses 1, 2, 3 and 8 may
+retire on publisher omissions within the retained release range. The scoped retirement
+fixture matches the exact prior address evidence and permits no descendant loss. Reports
+retain these four removals as reviewed; unrelated retirements, changed evidence and
+deletion spikes still require review.
+
+Ban Tip House at 11 Chung Nga Road retains one reviewed canonical identity across the 30
+retained releases. Its BLK 1 / 座1 component is backfilled only in the four releases
+that omit it; publisher-present block detail is preserved. Exact release hashes guard
+the source assertion and geometry. Raw bilingual names and coordinates are preserved.
+This component completion is separate from the approved omission-only house retention.
+
+Golden Wheel Plaza (金輪天地), 68 Electric Road, retains the named complex identity when
+its three reviewed bilingual estate-name omissions are restored. The identity decision
+is scoped to those restorations and preserves the raw unnamed source assertions.
+
+The reviewed redevelopment retirements cover Kam Cheung Building at 470 Hennessy Road,
+Kam Fai Commercial Building, the three Kam Po Building addresses, and the 13 Ta Lung
+House entries: 18 exact canonical records. Approval is scoped to their retained
+membership evidence; unrelated removals and dependent inventories remain gated.
+
+Kawada Plaza II (川田工貿廣場2期), 5 Lok Yip Road, retains its building identity across
+the 30 retained releases. Its reviewed building representation overrides the On Lok
+Tsuen complex assertion while preserving raw bilingual source evidence and coordinates.
+
+Shun Ting Terraced Home uses the canonical bilingual identity Transitional Housing -
+Shun Ting Terraced Home (過渡性房屋 - 順庭居) across retained releases. The name
+backfill preserves the unnamed ALS payloads and their source coordinates. Tai Hang Fire
+Dragon Heritage Centre (大坑火龍文化館) similarly retains its earlier building name.
+
+Ta Lung House is covered by the reviewed redevelopment retirements. Union Square is
+forward-filled as a complex when its estate component is omitted; its component is not
+treated as a phase. Bougainvilea Gardens is represented as the estate
+`BOUGAINVILEA GARDENS` with numbered blocks 1–4, including the reviewed Block 2
+component, without adding a building name. Raw ALS names and coordinates remain in
+source provenance.

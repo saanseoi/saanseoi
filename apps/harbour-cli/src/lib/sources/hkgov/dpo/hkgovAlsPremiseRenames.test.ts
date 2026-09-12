@@ -16,7 +16,7 @@ const maps = {
   snapshotId: 'test',
 }
 
-test('all30 named hotel records use Dash with one identity, raw names and unnamed addresses preserved', async () => {
+test('all30 reviewed renames preserve stable identities, raw assertions and unnamed addresses', async () => {
   const ids = new Set<string>()
   let releases = 0
   for (const dir of (await readdir('data/hkgov/dpo/ALS'))
@@ -44,6 +44,32 @@ test('all30 named hotel records use Dash with one identity, raw names and unname
         new Map(),
       ),
     )
+    const eastFile = 'als_addresses_(tuen_mun_district).geojson'
+    const eastData = await Bun.file(`data/hkgov/dpo/ALS/${dir}/${eastFile}`).json()
+    const eastFeatures = eastData.features.filter(
+      (f: HkgovAlsFeature) =>
+        f.properties?.Address?.PremisesAddress?.BuildingCsuInformation?.CsuId ===
+        '1514928761T20050430',
+    )
+    expect(eastFeatures.length).toBe(1)
+    const east = normaliseHkgovAlsFeature(
+      eastFeatures[0],
+      eastFile,
+      1,
+      'test',
+      version,
+      maps,
+      true,
+      new Map(),
+      new Map(),
+      new Map(),
+    )
+    const eastRaw = [
+      east.engPremisesAddressJson,
+      east.chiPremisesAddressJson,
+      east.geometry,
+    ]
+    rows.push(east)
     const unnamed = rows.filter(r => !r.enBuildingName)
     const before = JSON.stringify(unnamed)
     const named = rows.find(r => r.enBuildingName)!
@@ -58,6 +84,22 @@ test('all30 named hotel records use Dash with one identity, raw names and unname
       'publisher evidence changed',
     )
     applyReviewedPremiseRenames(rows, version)
+    expect(east.id).toBe('ss-37a5cd54-c595-52e9-a918-9104b32e8b01')
+    expect(east.enBuildingName).toBe(
+      'CHINA RESOURCES LOGISTICS EAST ASIA INDUSTRIAL BUILDING',
+    )
+    expect(east.zhHantBuildingName).toBe('華潤物流東亞工業大廈')
+    expect([
+      east.engPremisesAddressJson,
+      east.chiPremisesAddressJson,
+      east.geometry,
+    ]).toEqual(eastRaw)
+    const drifted = structuredClone(rows)
+    drifted.find(r => r.hkgovCsuId === '1514928761T20050430')!.geometry =
+      JSON.stringify({ type: 'Point', coordinates: [114, 22] })
+    expect(() => applyReviewedPremiseRenames(drifted, version)).toThrow(
+      'publisher evidence changed',
+    )
     expect(named.enBuildingName).toBe('DASH LIVING ON PRAT')
     expect(named.zhHantBuildingName).toBe('一尚酒店香港尖沙咀店')
     expect(named.enFormattedAddress).not.toContain('BUTTERFLY')

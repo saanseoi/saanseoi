@@ -79,6 +79,6 @@ test('all30 approved houses retain distinct house, road and parent address field
       identities.set(rule.id, ids)
     }
   }
-  expect(identities.size).toBe(19)
+  expect(identities.size).toBe(20)
   for (const ids of identities.values()) expect(ids.size).toBe(1)
 })
