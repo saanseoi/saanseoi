@@ -95,6 +95,12 @@ export function restoreAlsEstateGaps(
       ...z,
       ChiEstate: d.zhEstate,
     })
+    if ('canonicalId' in d && d.canonicalId) {
+      row.identityAlias = row.id
+      row.id = row.canonicalId = row.identityBuildingId = d.canonicalId
+      row.identityMatchMethod = 'reviewed-estate-gap-continuity'
+      row.identitySummary = { ...row.identitySummary, estateName: row.enEstateName }
+    }
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),
       hkgovAlsEstateComponentGap: {

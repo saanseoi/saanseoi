@@ -1,3 +1,4 @@
+import approvedRetirements from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-retirements.json'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -176,6 +177,30 @@ export function buildAlsDeletionReport(
     count: number
     ids?: string[]
   }> = []
+  const reviewedRetirements: Array<{
+    id: string
+    decisionId: string
+    authority: string
+  }> = []
+  const approved = (row: Retirement) => {
+    if (row.descendantAddresses || row.descendantUnits) return false
+    const before = previousAddresses.get(row.id)
+    const decision = approvedRetirements.decisions.find(
+      d =>
+        current.sourceVersion >= d.sourceVersionFrom &&
+        current.sourceVersion <= d.sourceVersionTo &&
+        d.previousAddresses.some(
+          a => a.id === row.id && alsMembershipHash(a) === alsMembershipHash(before),
+        ),
+    )
+    if (!decision) return false
+    reviewedRetirements.push({
+      id: row.id,
+      decisionId: decision.id,
+      authority: decision.authority,
+    })
+    return true
+  }
   for (const [level, value] of Object.entries(groups).sort(([a], [b]) =>
     a.localeCompare(b),
   )) {
@@ -184,15 +209,16 @@ export function buildAlsDeletionReport(
     value.removedPercentage = value.previousCount
       ? (value.removedCount / value.previousCount) * 100
       : 0
+    const unreviewed = value.retirements.filter(row => !approved(row))
     if (
-      value.removedCount &&
+      unreviewed.length &&
       (ALS_DELETION_POLICY.reviewedLevels as readonly string[]).includes(level)
     )
       suspicious.push({
         reason: 'premise_retirement',
         level,
-        count: value.removedCount,
-        ids: value.retirements.map(row => row.id),
+        count: unreviewed.length,
+        ids: unreviewed.map(row => row.id),
       })
     if (
       (value.removedCount >= ALS_DELETION_POLICY.minimumSpikeCount &&
@@ -335,6 +361,7 @@ export function buildAlsDeletionReport(
     aliasReplacements,
     rawSourceOmissions,
     retainedPublisherUnitOmissions,
+    reviewedRetirements,
     suspicious,
   }
   return {

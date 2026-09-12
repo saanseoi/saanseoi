@@ -1,3 +1,6 @@
+import buildingOverrides from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-building-overrides.json'
+import blockDetailBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-block-detail-backfills.json'
+import identityComponentBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-identity-component-backfills.json'
 import houseStreetIdentities from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-street-identities.json'
 import premiseRenames from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-renames.json'
 import fixture0 from '../../../../../../../fixtures/meta/curations/address-granularity.json'
@@ -40,6 +43,12 @@ export const alsAuditFixtures = [
   {
     type: 'hkgov-dpo-address-house-street-identities',
     document: houseStreetIdentities,
+  },
+  { type: 'hkgov-dpo-address-block-detail-backfills', document: blockDetailBackfills },
+  { type: 'hkgov-dpo-address-building-overrides', document: buildingOverrides },
+  {
+    type: 'hkgov-dpo-address-identity-component-backfills',
+    document: identityComponentBackfills,
   },
   { type: 'hkgov-dpo-address-premise-renames', document: premiseRenames },
   { type: 'address-granularity', document: fixture0 },

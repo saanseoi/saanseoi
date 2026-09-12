@@ -93,3 +93,64 @@ test('fails closed when a scheduled source target is absent', () => {
     'expected source target missing',
   )
 })
+
+test('Golden Wheel restored estate gaps retain the named complex identity and raw source', async () => {
+  const { readdir } = await import('node:fs/promises')
+  const { normaliseHkgovAlsFeature } = await import('./hkgovAlsNormalisation')
+  const maps = {
+    areaByEn: new Map(),
+    areaByZh: new Map(),
+    ambiguousAreaEn: new Set<string>(),
+    ambiguousAreaZh: new Set<string>(),
+    countryId: null,
+    districtByEn: new Map(),
+    districtByZh: new Map(),
+    ambiguousDistrictEn: new Set<string>(),
+    ambiguousDistrictZh: new Set<string>(),
+    snapshotId: 'test',
+  }
+  let restored = 0,
+    named = 0
+  for (const dir of (await readdir('data/hkgov/dpo/ALS'))
+    .filter(d => d.endsWith('ALS-GeoJSON'))
+    .sort()) {
+    const version = `${dir.slice(0, 4)}-${dir.slice(4, 6)}-${dir.slice(6, 8)}.0`,
+      file = 'als_addresses_(wan_chai_district).geojson'
+    const data = await Bun.file(`data/hkgov/dpo/ALS/${dir}/${file}`).json()
+    for (const [i, feature] of data.features.entries()) {
+      if (
+        feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId !==
+        '3781216131T20200107'
+      )
+        continue
+      const row = normaliseHkgovAlsFeature(
+        feature,
+        file,
+        i + 1,
+        'test',
+        version,
+        maps,
+        true,
+        new Map(),
+        new Map(),
+        new Map(),
+      )
+      const raw = [row.engPremisesAddressJson, row.chiPremisesAddressJson, row.geometry]
+      const result = restoreAlsEstateGaps([row], version)
+      if (result.restored || row.enEstateName === 'GOLDEN WHEEL PLAZA') {
+        expect(row.id).toBe('ss-4198c868-12bb-5822-ae59-92afe91f68f2')
+        expect(row.enEstateName).toBe('GOLDEN WHEEL PLAZA')
+        expect(row.zhHantEstateName).toBe('金輪天地')
+        expect([
+          row.engPremisesAddressJson,
+          row.chiPremisesAddressJson,
+          row.geometry,
+        ]).toEqual(raw)
+        if (result.restored) restored++
+        else named++
+      }
+    }
+  }
+  expect(restored).toBe(3)
+  expect(named).toBeGreaterThan(0)
+})
