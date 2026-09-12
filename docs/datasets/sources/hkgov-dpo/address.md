@@ -71,6 +71,13 @@ and stops for unreviewed building/complex loss, whole-inventory loss and substan
 removal spikes. Invalid parent and owner references always fail validation. Flat
 removals remain reportable even when no review stop is required.
 
+Forward-fill fallbacks never replace a present publisher premise or inventory record,
+nor reject its reappearance because its retained evidence hash differs. This applies to
+2D and 3D backfills, house retentions, commercial retentions and estate-premise
+reconstruction. New publisher inventories proceed through normal ownership and conflict
+validation. Dated evidence and the publisher omission remain explicit when a fallback is
+applied.
+
 Preparation retains `<prepared>.membership.json` alongside the prepared data. It records
 raw publisher IDs and unit tokens before curation, final canonical identities and
 levels, parent references, bilingual labels, map coordinates, aliases and compact 3D
@@ -159,14 +166,11 @@ to retained Block 1. Both publisher assertions contribute source references to o
 complex does not own those residential units.
 
 Pik Lam House's numbered Block 1 parent is forward-filled from the exact 22 July 2026
-Address2D assertion after its August rename to `PIK LAM HOUSE (BLK 1)` / `碧林樓(1座)`,
-under an active until-revoked decision in `hkgov-dpo-address-2d-backfills.json`. Its
-original point, bilingual premises and CSU remain intact, with the evidence release and
-exact renamed source recorded in provenance. A future omission also retains this parent.
-The blockless assertion sharing that CSU remains separate. An identical returning
-numbered source prevents duplicate insertion; changed or duplicate numbered sources
-require review. Future releases beyond 19 August 2026 carry unverified curation
-provenance.
+Address2D assertion only when that numbered premise is absent. A returning numbered
+source, including `PIK LAM HOUSE (BLK 1)` / `碧林樓(1座)`, bypasses the fallback with
+its publisher point and bilingual premises unchanged. The blockless assertion sharing
+that CSU remains separate. Future omissions beyond 19 August 2026 carry unverified
+curation provenance until reviewed.
 
 ALS Address2D and Address3D source tables retain original publisher attributes in
 `properties`, using documented flat field names. Original geometry is retained in
@@ -487,10 +491,10 @@ later evidence dates remain explicit. Yip Wong's Yip Wo, Yip Tsz, Yip Tak and Yi
 Houses retain independent identities and inventories of 684, 680, 888 and 1,036 units
 from the July 2024 baseline until revoked. These rules reconstruct missing named 2D
 owners as well as 3D inventories, even where the estate is wholly absent from that
-release's district delivery. Exact source hashes guard each omission and reappearance;
-future retained releases are marked unverified. Earlier evidence is backfilled only for
-these explicitly approved houses, without changing other retention rules' dated-evidence
-requirements.
+release's district delivery. Present publisher houses bypass these retention rules,
+including reappearances with changed details; future retained omissions are marked
+unverified. Earlier evidence is backfilled only for these explicitly approved houses,
+without changing other retention rules' dated-evidence requirements.
 
 Ban Tip House at Fu Tip Estate and Kai Wang House and Kai Chun House at Kai Chuen Court
 have omission-only retention rules from July 2024 until revoked. A present publisher
@@ -506,14 +510,16 @@ application to later releases.
 `hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
 house assertions and guards. Replayable publisher features live in the ignored
 `.local/hkgov-dpo/curations/house-retention-evidence.jsonl` cache, regenerated on demand
-from retained ALS releases by `bun scripts/build-als-house-retention-evidence.ts`.
-Queens Hill's Wong Ching, Wong Lok, Wong Wui and Wong Yi Houses retain their named
-addresses and last inventories across the prolonged publisher omission; Wong Sheng, Wong
-Shun and Wong Yet receive their temporary inventory gaps. Exact source assertions guard
-empty replacements. Lai Shek retains its richer 120 Lei Muk Road address, 340 flats and
-original coordinates; Yung Shek retains its original coordinates and 813 flats without
-its empty duplicate. Active retention continues until revoked, with verification status
-recorded separately from the evidence release.
+from retained ALS releases by `bun scripts/build-als-house-retention-evidence.ts`. All
+house-retention rules are omission-only. Queens Hill, Shek Yam, So Uk and the other
+listed houses retain dated address and inventory evidence while the named house is
+absent. A returning named 2D house skips both its address and house-inventory fallback;
+a present 3D record also passes through unchanged. Standalone inventory backfills apply
+only when their corresponding publisher inventory record is missing. Unnamed empty
+aliases remain separate source evidence rather than being replaced by the fallback.
+Active retention continues until revoked, with verification status recorded separately
+from the evidence release. Duplicate coalescence, fixed-point corrections and publisher
+identity overrides are not performed by retention on present records.
 
 `hkgov-dpo-address-approved-issue-batch.json` holds exact bilingual, geometry and
 inventory evidence for reviewed duplicate and component decisions. On Yam's combined Yiu
@@ -534,9 +540,10 @@ Wong's discarded 83–88 Tai Hang Tung Road assertion is recorded in provenance.
 Lee On Road from Shun Lee Commercial Centre (Phase II) at 6 Shun King Street. The centre
 references the estate as its parent, with separate coordinates and unchanged raw ALS
 names. The fixture also restores Sun Tin Wai's inventory-free estate premise at 29 Sha
-Tin Tau Road across retained omissions, guarded against another estate-level identity.
-The existing shopping centre is not merged into the estate. These decisions are bounded
-to the retained releases and preserve their source evidence dates.
+Tin Tau Road across retained omissions. A returning estate-level premise bypasses
+reconstruction and its associated fallback classification. The existing shopping centre
+is not merged into the estate. These decisions are bounded to the retained releases and
+preserve their source evidence dates.
 
 Camellia House at So Uk retains its last 374-flat inventory and one reviewed identity
 across the source omission, continuing until revoked with explicit verification status.

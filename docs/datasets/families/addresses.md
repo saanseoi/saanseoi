@@ -75,10 +75,15 @@ curations can retain a canonical address while preserving the publisher omission
 evidence for the retention. Invalid or incomplete preparation cannot retire the last
 accepted state.
 
-The ALS omission-only house rules for Ban Tip, Kai Wang and Kai Chun apply only while
-the publisher house is absent. They forward-fill the latest preceding address and
-inventory evidence until revoked; a returning house bypasses the patch. These rules do
-not override identities or payloads in releases where the publisher house is present.
+All ALS forward-fill and retention fallbacks are omission-only. House, commercial
+premise, estate-premise and inventory fallbacks use dated evidence only while the
+corresponding publisher record is absent. A returning record bypasses the fallback, even
+when its names, coordinates or identity components differ from retained evidence. Empty
+unnamed aliases remain separate assertions and do not establish the presence of the
+missing named premise. Present records retain their publisher identities and payloads;
+normal validation still checks duplicates, ownership and conflicting inventories.
+Explicit corrections and derived estate classifications are independent of omission
+retention.
 
 Deletion preflight compares the complete, prepared membership of consecutive releases
 and emits JSON grouped by address level. Building and complex removals, whole inventory
