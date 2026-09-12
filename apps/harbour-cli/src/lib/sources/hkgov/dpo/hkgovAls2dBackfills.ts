@@ -13,11 +13,6 @@ const sourceFile = 'hkgov-dpo-address-2d-backfills.json'
 type Backfill = (typeof fixture.backfills)[number] & {
   application?: HkgovAlsCurationApplication
   blockRef?: string
-  sourceRename?: {
-    sourceVersionFrom: string
-    enBuildingName: string
-    zhBuildingName: string
-  }
 }
 
 function backfillsForVersion(version: string) {
@@ -35,7 +30,6 @@ function backfillsForVersion(version: string) {
 export function buildAls2dBackfillFeatures(
   features: HkgovAlsSourceFeature[],
   version: string,
-  originalAssertions = new Map<string, HkgovAlsSourceFeature[]>(),
 ): HkgovAlsSourceFeature[] {
   return backfillsForVersion(version).flatMap(({ decision: b }, index) => {
     if (b.blockRef) {
@@ -83,10 +77,7 @@ export function buildAls2dBackfillFeatures(
   })
 }
 
-export function labelAls2dBackfillRows(
-  rows: PreparedHkgovAlsRow[],
-  originalAssertions = new Map<string, HkgovAlsSourceFeature[]>(),
-) {
+export function labelAls2dBackfillRows(rows: PreparedHkgovAlsRow[]) {
   for (const row of rows) {
     if (row.sourceFile !== sourceFile) continue
     const match = backfillsForVersion(row.sourceVersion).find(
@@ -97,9 +88,6 @@ export function labelAls2dBackfillRows(
     row.sources = JSON.stringify({
       hkgovAlsAddressBackfill: {
         ...decision,
-        ...(originalAssertions.has(decision.csu)
-          ? { originalAssertions: originalAssertions.get(decision.csu) }
-          : {}),
         targetSourceVersion: row.sourceVersion,
         evidenceSourceFile: decision.sourceFile,
         curationFile: sourceFile,
