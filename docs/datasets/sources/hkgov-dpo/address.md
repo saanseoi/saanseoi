@@ -95,17 +95,17 @@ loss. A deletion spike is at least 100 removals and at least 5% at a level, or a
 
 Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, with
 `schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
-`previousSourceVersion`, `reason` and `reviewedAt`. Neither `--yes` nor
-`--skip-curation-checks` bypasses this gate. Changed resolved membership or report
-contents require a fresh review. Prepared-file container hashes are excluded from the
-approval digest; changed files still require preparation and checksum validation.
-Delivery retains a sealed `address-membership.json` inside its `sql-delivery-address`
-directory. After acknowledgement, the mirror receives
-`address-membership/<scopeId>/<snapshotId>.json`. The next release requires that exact
-predecessor file and checks its Address2D IDs, Address3D owners and unit IDs against the
-mirror. A prepared sidecar alone cannot establish the predecessor. Missing or mismatched
-acknowledged membership requires a chronological local rebuild. The upload also retains
-its final comparison as `address-deletions.json` in the release directory.
+`previousSourceVersion`, `reason` and `reviewedAt`. Ingestion continues with unreviewed
+reports. Changed resolved membership or report contents remain unreviewed until a fresh
+review. Prepared-file container hashes are excluded from the approval digest; changed
+files still require preparation and checksum validation. Delivery retains a sealed
+`address-membership.json` inside its `sql-delivery-address` directory. After
+acknowledgement, the mirror receives `address-membership/<scopeId>/<snapshotId>.json`.
+The next release requires that exact predecessor file and checks its Address2D IDs,
+Address3D owners and unit IDs against the mirror. A prepared sidecar alone cannot
+establish the predecessor. Missing or mismatched acknowledged membership requires a
+chronological local rebuild. The upload also retains its final comparison as
+`address-deletions.json` in the release directory.
 
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 retained versions before division-cohort resolution, curation and completed-release
@@ -137,14 +137,9 @@ all assigned history shards. Both preflight fingerprints and source preparation 
 retained membership, so eviction of older current projections cannot interrupt
 chronological review. Translations use their own retained version hashes.
 
-Each release's preflight runs in an isolated Bun process so parsed 2D and 3D payload
-memory is reclaimed when the process exits. Successful preflight checkpoints survive
-interruption and are reused when their inputs match. Source or curation edits,
-processing code changes, incoming identity history changes and selected division lookup
-changes invalidate reuse. Local lookup fingerprints read the configured metadata,
-current and history databases, including historical division fallback. Remote preflight
-results are always recomputed. Uploads and final verification remain separate from the
-preflight cache.
+Each pending release is prepared and ingested in chronological order. Unresolved cases
+are recorded per release without an all-release review gate. Delivery validates the
+prepared files and acknowledged predecessor independently of review status.
 
 ALS 2D source rows retain supplied `sources` references, including the `hkgovAls`
 wrapper. Missing or empty references are stored as SQL `NULL` in both worker ingestion
@@ -214,9 +209,9 @@ blocks such as `CARPARK BLK` / `停車場` retain their publisher components and
 existing 2D parent without numbered-block enrichment.
 
 `--skip-curation-checks` accepts pending correction verification and identity drift
-checks during ingestion, including with `--yes`. The upfront chronological preflight
-still runs when releases remain to ingest; deletion review cannot be bypassed. Source
-and integrity validation run during preparation of each ingested release. Grouped
+checks during ingestion, including with `--yes`. Each release is prepared and checked
+immediately before ingestion; unresolved deletion cases remain unreviewed. Source and
+integrity validation run during preparation of each ingested release. Grouped
 initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest` also
 accepts it. Corrections retain their existing verification provenance. Unresolved
 identity changes use generated IDs for the run, without writing human-reviewed decisions
@@ -638,8 +633,8 @@ JSON, and never generalises from a CSU alone.
 Estate-component restorations may also be active until revoked. Their application starts
 after the fixture's reviewed source version and only when the complete bilingual source
 target still matches. A later application is recorded as unverified in release
-provenance until the ALS preflight explicitly verifies it; the same review can retain it
-provisionally or revoke it. Historical bounded repairs remain bounded.
+provenance until a later explicit review verifies or revokes it. Historical bounded
+repairs remain bounded.
 
 The unnamed zero-unit CSU `3370111759T20150127` is suppressed only across its reviewed
 February 2025–July 2026 appearances as a duplicate of the named Lei Moon House. Its
@@ -937,3 +932,55 @@ source evidence is not represented as a current publisher assertion.
 Hankow Apartments is reviewed as redeveloped. Retirement approval covers the five
 baseline addresses and the later 45 Hankow Road identity, bounded to retained releases
 and matched against exact membership evidence. It permits no descendant inventory loss.
+
+The reviewed continuity decisions preserve the original ID for 28 Kwai Wing Road while
+removing the obsolete cooked-food-market name, and for Lingnan University's renamed
+Wofoo Joseph Lee Student Activity Centre (和富李宗德學生活動中心). Union Square remains
+a complex with its reviewed ID, separate from the car-park assertion sharing its CSU.
+Kai Wang and Kai Chun carry blocks 1 and 2. El Futuro uses the newer Chinese tower
+labels座1 and 座2. These explicit component decisions preserve raw publisher evidence.
+Ming Yiu Villa, the three Nam Tak Mansion addresses and Sheng Kung Hiu Kindergarten have
+exact-record retirement approval. Hankow Apartments has redevelopment approval.
+
+Proposed identity policy: assign a persistent ID using source reference, structured
+route and number, and distinct block, phase or unit components. Use the building name
+only when it is required to separate otherwise indistinguishable premises across
+retained history. Once assigned, preserve the ID through name omissions, renames and
+classification changes. A release-local uniqueness check alone is insufficient: an
+omitted neighbour must not change the surviving record's identity. This general policy
+remains a proposal; reviewed continuity rules currently resolve the approved cases.
+
+University Hill retains its ten reviewed Marina and Scenic towers on omissions from 31
+July 2024 until revoked. Returning publisher towers bypass replay, including separate
+section-name and tower-number fields and changed CSUs. Marina Towers 1 and 2 remain
+distinct even when they share a CSU. Exact release evidence guards each tower; returned
+source attributes and coordinates are preserved. Centaline Phases 2A and 2B corroborate
+the inventory, without replacing the publisher points. No earlier existence is inferred.
+
+### Deferred ingestion review
+
+Ingestion retains unresolved curation cases as **unreviewed** and continues without
+asking for identity or retirement decisions. Existing approved corrections remain
+active. ALS deletion reports retain their evidence and exact approval digest; stale
+approvals do not mark a new report reviewed. Identity drift uses the generated current
+IDs without recording an approved identity decision. Active corrections beyond their
+verification date retain unverified provenance.
+
+ALS prepares and ingests one release at a time in chronological order. Upload checks
+compare membership with the acknowledged predecessor. ALS stores per-release evidence in
+`.local/hkgov-dpo/review-backlog/`, with linked deletion and identity-drift reports.
+Dataset issues can be reviewed after ingestion and resolved in revised releases.
+File-integrity, parent-reference and ID-collision checks still apply.
+
+Historical Address releases retain their exact published Division selection in
+provenance and history. Current Address foreign keys use that Division lineage's
+persistent scope, validated against its complete publication receipt. A newer Division
+projection does not invalidate the older selection; missing receipts and lineage
+mismatches remain ingestion errors.
+
+Address metadata replay writes release statistics using `dimension`, `metric`, and
+`metricUnit`, while retaining processing statistics owned by their separate stage.
+
+Building-number history compares the retained versions for each exact address and number
+before selecting matching baseline content. Multiple lookups can reuse the same prepared
+query safely within one release.

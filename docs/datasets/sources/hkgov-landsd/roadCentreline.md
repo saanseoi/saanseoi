@@ -69,10 +69,11 @@ Each choice is saved atomically under
 `fixtures/meta/curations/road-centreline/{archive-sha256}.json`. Decisions are bound to
 the archive, source version, canonical snapshot IDs and complete review-group evidence.
 Rerunning resumes remaining groups; changed provenance requires a fresh review file.
-Intake consumes the saved decisions and blocks while any named segments remain
-unresolved. `--yes` cannot perform interactive review. Exclusion retains the complete
-native segment and does not create or delete a canonical street. Street links remain
-curation evidence for canonical composition; native source rows retain publisher data.
+Intake consumes the saved decisions and retains unresolved named segments as unreviewed
+without blocking source ingestion. `--yes` cannot perform interactive review. Exclusion
+retains the complete native segment and does not create or delete a canonical street.
+Street links remain curation evidence for canonical composition; native source rows
+retain publisher data.
 
 The original publisher archive is the CSDI Road Centreline package. The CSDI
 old-Street-Name archive link is descriptive provenance only and is never an input to
@@ -84,3 +85,10 @@ archive again and has no GeoJSON or Parquet hand-off.
 ## Registry metadata
 
 Dataset source CRS metadata identifies retained native geometry as EPSG:2326.
+
+### Deferred matching review
+
+Road Centreline ingestion retains unmatched and ambiguous named segments as unreviewed
+in `.cache/road-centreline-review/`. Publisher source rows and native geometry are
+ingested without guessing a canonical street identity. Existing reviewed matches remain
+effective. Later review can inform revised releases.

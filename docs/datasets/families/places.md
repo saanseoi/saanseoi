@@ -385,17 +385,6 @@ Place 属性；地图查询请使用 `by-cell`。
 
 ## Publisher source boundary
 
-### Release-scoped trial Address deferral
-
-An explicitly authorised trial may set `SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS` to
-comma-separated exact `environment:sourceVersion` values. Only otherwise review-required
-Place links are deferred: their Address IDs remain null, source values and review
-evidence are retained, and no durable curation decision is created or applied for those
-rows. The processing audit retains the deferred observations separately from applied
-decisions. Ordinary imports and `--yes` retain the review gate. Published trial releases
-are immutable; fuller ALS coverage requires a subsequent release or revision, not an
-in-place relink.
-
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
 flattening preserve upstream values; corrections and resolved identities remain outside
@@ -465,3 +454,11 @@ ready before publication finalises Place search. An interrupted scope remains
 unavailable, and a valid empty snapshot still requires completion evidence. Search
 reuses unchanged documents across publication advances. Reads, cleanup and
 reset/reingest follow the [publication-state contract](../publication-state-plan.md).
+
+### Deferred address review
+
+Unresolved Place Address cases are retained as unreviewed during ingestion. The place
+remains available with a null address link; candidate evidence and the original reason
+are retained in the release review artefact and provenance. Ingestion does not select an
+identity or record a curation decision. Reviewed links and approved supplementary
+addresses continue to apply. Later review can resolve these cases in revised releases.
