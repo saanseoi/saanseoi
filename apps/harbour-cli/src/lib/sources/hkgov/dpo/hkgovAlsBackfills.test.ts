@@ -13,6 +13,30 @@ import { publisherInventoryHash } from './hkgovAls3dCorrections'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 
+test('every inventory fallback skips returning records before checking historical parent evidence', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'als-returned-inventories-'))
+  const file = join(dir, 'source.geojson')
+  try {
+    const features = fixture.backfills.map(b => structuredClone(b.feature))
+    // Returned publisher updates are authoritative even when their geometry changes.
+    requireDefined(features[0]).geometry.coordinates = [114.2, 22.4]
+    await writeFile(
+      file,
+      JSON.stringify({ type: 'FeatureCollection', features }, null, 2),
+    )
+    for (const version of new Set(fixture.backfills.flatMap(b => b.sourceVersions))) {
+      const returned = []
+      for await (const record of readAls3dWithBackfills(file, version, [])) {
+        expect(record.backfill).toBeUndefined()
+        returned.push(record.feature)
+      }
+      expect(returned).toEqual(features)
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 function normalise(
   feature: HkgovAlsFeature,
   sourceFile = 'verification.geojson',
@@ -53,9 +77,7 @@ test('reconstructs only dated named parents and preserves unnamed CSU assertions
           ?.EstateName === 'CHING TIN ESTATE',
     ),
   ).toHaveLength(0)
-  expect(() => buildAls2dBackfillFeatures(first, '2024-07-25.0')).toThrow(
-    'named source already present',
-  )
+  expect(buildAls2dBackfillFeatures(first, '2024-07-25.0')).toHaveLength(0)
   const blank = structuredClone(requireDefined(first[0]))
   delete requireDefined(
     requireDefined(
@@ -141,7 +163,10 @@ test('guards full inventory backfills against changed, missing and ambiguous par
     })
     await expect(collect(changed)).rejects.toThrow()
     await write(requireDefined(chingTin[0]).feature)
-    await expect(collect()).rejects.toThrow('no longer absent')
+    const returned = await collect()
+    expect(returned[0]?.feature).toEqual(requireDefined(chingTin[0]).feature)
+    expect(returned[0]?.backfill).toBeUndefined()
+    expect(returned.filter(r => r.backfill)).toHaveLength(4)
   } finally {
     await rm(path, { recursive: true, force: true })
   }

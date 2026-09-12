@@ -21,8 +21,21 @@ test('Tung Tau refuse point is retained across reviewed releases and until revok
     const source = [marker, ...evidence.map(e => structuredClone(e.feature))].map(
       feature => ({ feature, sourceFile: 'test', featureIndexOneBased: 1 }),
     ) as unknown as HkgovAlsSourceFeature[]
+    const original = structuredClone(source)
     const provenance = retainAlsHouses(source, version)
-    expect(source).toHaveLength(3)
+    for (const record of original) expect(source).toContainEqual(record)
+    if (evidence.length) {
+      expect(provenance.has(rule.csus[0]!)).toBe(false)
+      continue
+    }
+    expect(
+      source.filter(s =>
+        [rule.csus[0], '3790621798T20050430'].includes(
+          s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+            ?.CsuId ?? '',
+        ),
+      ),
+    ).toHaveLength(2)
     const retained = source.find(
       s =>
         s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
@@ -46,12 +59,10 @@ test('Tung Tau refuse point is retained across reviewed releases and until revok
   }
   const changed = structuredClone(rule.evidence2d[0]!.feature)
   changed.geometry.coordinates = [114, 22]
-  expect(() =>
-    retainAlsHouses(
-      [
-        { feature: changed, sourceFile: 'test', featureIndexOneBased: 1 },
-      ] as unknown as HkgovAlsSourceFeature[],
-      rule.sourceVersions[0]!,
-    ),
-  ).toThrow('publisher assertions changed')
+  const returned = [
+    { feature: changed, sourceFile: 'test', featureIndexOneBased: 1 },
+  ] as HkgovAlsSourceFeature[]
+  const original = structuredClone(returned[0])
+  retainAlsHouses(returned, rule.sourceVersions[0]!)
+  expect(returned[0]).toEqual(original)
 })
