@@ -1,5 +1,13 @@
 # Resumable SQL delivery
 
+Final-state validation compares tables through their complete indexed primary keys, with
+binary comparison of values. Unkeyed or nullable-key unowned tables retain exact set
+comparison. Exhaustive zero-delta results skip the redundant replay copy for that shard
+while preserving schema, ownership and foreign-key validation. Candidate and replay
+copies request filesystem copy-on-write cloning where available; the initial baseline
+remains a WAL-safe SQLite snapshot. These shared optimisations apply to Addresses,
+Places and other families using resolved SQL planning.
+
 Delivery phases may retain checksummed workflow outputs alongside SQL payloads. Native
 and remote preparation return the original outputs on resume without invoking their
 generators. Canonical and Planning Division imports retain their original completion

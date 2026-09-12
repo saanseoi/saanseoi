@@ -1,5 +1,12 @@
 # Places dataset family
 
+Place predecessor and historical Address/Division dependency hydration query exact
+record, version and locale keys through composite indexes. Query batches respect the
+shared parameter budget; identical hashes on different records do not widen selection.
+Places also uses the shared indexed SQL comparison and verified provenance-object reuse
+described in [SQL delivery](../sql-delivery.md) and
+[processing provenance](../processing-provenance.md).
+
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.
 

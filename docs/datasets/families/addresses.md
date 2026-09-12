@@ -1,5 +1,12 @@
 # Addresses dataset family
 
+Address SQL preparation processes bounded chunks through normalisation, history and
+current generation. Intermediate JSON stays in memory for the active chunks; generated
+SQL and sealed delivery files remain durable. Combined Address2D/Address3D preparation
+uses the complete publisher ledger as its sole source writer. The normaliser reads one
+Parquet window per SQL chunk. Historical comparison loads exact address, version and
+locale keys in parameter-bounded batches using the existing composite indexes.
+
 ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
 envelope. Schema validation permits adding this envelope only when every other field
 retains its name, type and nullability. Native null and JSON null both denote an absent
@@ -966,3 +973,27 @@ Address metadata replay writes release statistics using `dimension`, `metric`, a
 Building-number history compares the retained versions for each exact address and number
 before selecting matching baseline content. Multiple lookups can reuse the same prepared
 query safely within one release.
+
+Address3D validation compares canonical unit IDs and localisation keys as sets. Counts
+and content checks remain mandatory; a missing key fails validation even when an
+unrelated extra translation keeps the total count unchanged.
+
+Retirement dependency planning scans baseline parents before indexed deletion lookups.
+Surviving children and deferred descendant deletions retain their dependency ordering
+without repeating a full parent-table scan for each retirement.
+
+Historical Address replay selects each immutable version by record ID and content hash,
+plus locale for translated rows. Bounded queries use the existing composite identity
+indexes and remain within D1 parameter limits. SQL planning uses the configured
+`TMPDIR`; full local history copies require sufficient temporary disk space.
+
+Retirement preparation batches historical row updates and locale tombstones in
+transactions on isolated candidate shards. A failed preparation discards those copies
+before any delivery is emitted.
+
+Combined publisher-ledger reconciliation runs inside transactions on disposable source,
+history and current candidates. Per-record batches use nested savepoints; failed
+preparation rolls back open transactions and emits no delivery.
+
+Preparation-cache code fingerprints exclude test files; runtime code and all source,
+curation and division dependencies still invalidate reuse when their contents change.

@@ -1,5 +1,10 @@
 # Overture Places
 
+Historical preparation selects exact Place and dependency component keys in bounded
+indexed queries. Local candidates retain the selected predecessor's membership and
+owning shards. Shared SQL replay checks compare rows through their primary keys, and
+provenance transfer checks destination objects before uploading missing content.
+
 Open source assertions with matching hashes require no release-membership update.
 Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
 Same-release replay leaves open source assertions untouched; a year-shard rollover keeps
