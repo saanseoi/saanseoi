@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "fai-ming-estate-fanling",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "evidenceSourceVersion": "2025-04-26.0",
+      "enEstate": "FAI MING ESTATE",
+      "zhEstate": "暉明邨",
+      "enStreet": "FAI MING ROAD",
+      "zhStreet": "暉明路",
+      "number": "10",
+      "enLocality": "FANLING",
+      "zhLocality": "粉嶺",
+      "buildings": [
+        {
+          "csu": "3207937952T20200309",
+          "enName": "SING FAI HOUSE",
+          "zhName": "昇暉樓"
+        },
+        { "csu": "3208737916T20200303", "enName": "TAI FAI HOUSE", "zhName": "泰暉樓" }
+      ],
+      "authority": "User approval, 2026-09-07: backfill the locality detail for both Fai Ming Estate buildings.",
+      "reason": "Carry April 2025 publisher locality detail into earlier retained derived addresses. Preserve raw source assertions, source identities, block components, geometry, divisions and unit inventories."
+    }
+  ]
+}

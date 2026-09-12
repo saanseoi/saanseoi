@@ -8,6 +8,12 @@ import {
 
 import { canonicalDivision, canonicalDivisionI18n, timestamps } from '../shared'
 
+/** Latest published snapshot per region/domain/lineage search scope. */
+export const divisionSearchScopes = sqliteTable('divisionSearchScopes', {
+  scopeId: text('scopeId').primaryKey(),
+  snapshotId: text('snapshotId').notNull(),
+})
+
 export const divisions = sqliteTable(
   'divisions',
   {

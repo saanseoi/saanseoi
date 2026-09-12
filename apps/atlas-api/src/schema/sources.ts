@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 
 import { openApiText } from '../lib/openapi-i18n'
@@ -22,12 +23,17 @@ const SourceRecordCursorSchema = z
 const SourceRecordSchema = z
   .object({
     sourceRecordId: z.string(),
-    resourceType: z.string(),
-    variant: z.string(),
-    rawProperties: z.object({}).loose().nullable(),
+    properties: z.object({}).loose().nullable(),
+    placeNames: z.array(z.object({}).loose()).nullable().optional(),
     geometry: z.unknown().optional(),
   })
   .openapi('SourceRecord')
+
+const StreetSourceRecordSchema = SourceRecordSchema.extend({
+  sources: z.array(z.object({}).loose()).nullable().optional(),
+  resourceType: z.string(),
+  variant: z.string(),
+}).openapi('StreetSourceRecord')
 
 const SourceRecordPinSchema = z
   .object({
@@ -52,6 +58,7 @@ const SourceRecordPinSchema = z
 
 export const SourceRecordsQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     sourceRelease: SourceReleaseCodeSchema,
     cursor: SourceRecordCursorSchema.optional(),
     limit: z.coerce.number().int().min(1).max(500).optional(),
@@ -75,8 +82,13 @@ export const SourceRecordsResponseSchema = z
   })
   .openapi('SourceRecordsResponse')
 
+export const StreetSourceRecordsResponseSchema = SourceRecordsResponseSchema.extend({
+  records: z.array(StreetSourceRecordSchema),
+}).openapi('StreetSourceRecordsResponse')
+
 export const SourceReleasesQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     releaseSet: z.string().min(1).optional(),
     snapshot: z.string().min(1).optional(),
     cohort: z.string().min(1).optional(),

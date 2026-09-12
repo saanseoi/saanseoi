@@ -1,7 +1,7 @@
 import {
   getDataPageApiData,
   getDataPageBasemapData,
-} from '#lib/registry/meta.remote.js'
+} from '#lib/registry/data.remote.js'
 
 export async function load() {
   const [dataPageApiData, dataPageBasemapData] = await Promise.all([

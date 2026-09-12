@@ -149,6 +149,38 @@ export const WikidataIdSchema = z
     description: openApiText('openapi_wikidata_identifier_description'),
   })
 
+export const ConfidenceScoreSchema = z
+  .number()
+  .min(0)
+  .max(1)
+  .openapi('ConfidenceScore', {
+    description: openApiText('openapi_confidence_score_description'),
+  })
+
+export const HttpUrlSchema = z
+  .string()
+  .url()
+  .refine(value => /^https?:\/\//i.test(value), {
+    message: 'URL must use the http or https scheme.',
+  })
+  .openapi('HttpUrl', {
+    description: openApiText('openapi_http_url_description'),
+  })
+
+export const EmailStrSchema = z
+  .string()
+  .email()
+  .openapi('EmailStr', {
+    description: openApiText('openapi_email_str_description'),
+  })
+
+export const PhoneNumberSchema = z
+  .string()
+  .regex(/^\+\d{1,3}[\s\-()0-9]+$/)
+  .openapi('PhoneNumber', {
+    description: openApiText('openapi_phone_number_description'),
+  })
+
 export const OvertureSourceItemSchema = z
   .object({
     property: z.string(),

@@ -65,25 +65,20 @@ Fields reorganized for storage, query, or API response shaping:
 - `class` - normalised to canonical <black>type</black> (<black>land</black>,
   <black>maritime</black>, or <black>mixed</black> when both coverage flags are true)
 
-### Compatibility Fields
+### Source fields
 
-Fields which are retained through Overture compatibility keys (that is,
-<black>overture.{{ PROPERTYNAME }}</black>):
-
-- `version` - available as <black>overture.version</black>
-- `subtype` - available as <black>overture.subtype</black>
-- `class` - available as <black>overture.class</black>
-
-These are available in any API responses which include this geometry at
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black>
+The original `version`, `subtype`, and `class` values are available in the retained
+source record under `properties`. They are not duplicated in the canonical geometry
+resource.
 
 ### Dropped Fields
 
 Fields which are not exposed as part of
 [DivisionBoundary](/docs#models/DivisionBoundary):
 
-A future Overture compatibility API will make these available in the future
-<orange>FORTHCOMING</orange>.
+The original source value remains available in the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+under `properties`, where the source record remains available.
 
 #### Due to zero variance
 
@@ -150,22 +145,18 @@ schema（`{{sourceSchemaVersion}}`）。
   <black>type</black>（<black>land</black>、<black>maritime</black>，或在兩個覆蓋標誌均為真時為
   <black>mixed</black>）
 
-### 兼容欄位
+### 來源欄位
 
-透過 Overture 兼容 key 保留的欄位（即 <black>overture.{{ PROPERTYNAME }}</black>）：
-
-- `version` - 可於 <black>overture.version</black> 取得
-- `subtype` - 可於 <black>overture.subtype</black> 取得
-- `class` - 可於 <black>overture.class</black> 取得
-
-這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `properties`
+下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
 
 以下欄位不會作為 [DivisionBoundary](/docs#models/DivisionBoundary) 的一部分公開：
 
-未來的 Overture 兼容 API 會提供這些欄位 <orange>即將推出</orange>。
+原始來源值會在來源記錄獲保留時，透過
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`properties` 提供。
 
 #### 因為沒有變異
 
@@ -209,8 +200,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `id` - [标识码](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `geometry` - [几何](/docs#models/Geometry)，保留 LineString 和 MultiLineString 值
-- `is_land` - 规范化為 <black>isLand</black>
-- `is_territorial` - 规范化為 <black>isTerritorial</black>
+- `is_land` - 规范化为 <black>isLand</black>
+- `is_territorial` - 规范化为 <black>isTerritorial</black>
 
 ### 增补字段
 
@@ -223,29 +214,25 @@ schema（`{{sourceSchemaVersion}}`）。
 
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
-- `division_ids[0]` 和 `division_ids[1]` - 规范化為 <black>leftDivisionId</black>，以及
+- `division_ids[0]` 和 `division_ids[1]` - 规范化为 <black>leftDivisionId</black>，以及
   <black>rightDivisionId</black>
 - `bbox` - [包围盒](/docs#models/BBox)，由发布的标准几何计算得出
 - `class` - 规范化为标准
   <black>type</black>（<black>land</black>、<black>maritime</black>，或两个覆盖标志均为真时为
   <black>mixed</black>）
 
-### 兼容字段
+### 来源字段
 
-通过 Overture 兼容 key 保留的字段（即 <black>overture.{{ PROPERTYNAME }}</black>）：
-
-- `version` - 可在 <black>overture.version</black> 取得
-- `subtype` - 可在 <black>overture.subtype</black> 取得
-- `class` - 可在 <black>overture.class</black> 取得
-
-这些字段可在任何包含此几何的 API 响应中，通过
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `properties`
+下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
 
 以下字段不会作为 [DivisionBoundary](/docs#models/DivisionBoundary) 的一部分公开：
 
-未来的 Overture 兼容 API 会提供这些字段 <orange>即将推出</orange>。
+原始来源值会在源记录得到保留时，通过
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`properties` 提供。
 
 #### 因为没有变化
 

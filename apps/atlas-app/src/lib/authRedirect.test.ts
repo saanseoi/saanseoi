@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { getAuthRedirectPath } from './authRedirect'
+import { getAuthRedirectPath, getSignInHref, getSignUpHref } from './authRedirect'
 
 const currentUrl = new URL('https://saanseoi.hk/sign-in')
 
@@ -26,8 +26,32 @@ describe('getAuthRedirectPath', () => {
     }
   })
 
+  test('does not return to authentication or token endpoints after signing in', () => {
+    for (const path of [
+      '/sign-in',
+      '/sign-up?continue=/account',
+      '/password/reset?token=secret',
+      '/api/auth/sign-out',
+    ]) {
+      expect(getAuthRedirectPath(path, currentUrl)).toBe('/api-keys')
+    }
+  })
+
   test('uses the requested fallback for missing or malformed destinations', () => {
     expect(getAuthRedirectPath(null, currentUrl, '/')).toBe('/')
     expect(getAuthRedirectPath('http://[', currentUrl, '/')).toBe('/')
+  })
+})
+
+describe('authentication page links', () => {
+  test('preserve the full post-authentication destination', () => {
+    const destination = '/guides/create-a-map?editor=zed#publish'
+
+    expect(getSignInHref(destination)).toBe(
+      '/sign-in?next=%2Fguides%2Fcreate-a-map%3Feditor%3Dzed%23publish',
+    )
+    expect(getSignUpHref(destination)).toBe(
+      '/sign-up?continue=%2Fguides%2Fcreate-a-map%3Feditor%3Dzed%23publish',
+    )
   })
 })

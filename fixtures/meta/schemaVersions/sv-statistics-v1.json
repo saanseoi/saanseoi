@@ -1,0 +1,7 @@
+{
+  "versionHash": "sha256:52a31ffb7b58e909f5047564ca492fa437193db5a442ccca05d89bcece126b70",
+  "code": "sv-statistics-v1",
+  "resourceType": "divisionStatistic",
+  "version": "1",
+  "notes": "Canonical Statistics resources, field definitions, reference periods and values."
+}

@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "relationships": [
+    {
+      "id": "choi-yuen-food-court-in-plaza",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "child": {
+        "csu": "3106540101T20050430",
+        "enName": "CHOI YUEN FOOD COURT",
+        "zhName": "彩園邨美食中心"
+      },
+      "parent": {
+        "csu": "3108440149T20050430",
+        "enName": "CHOI YUEN PLAZA",
+        "zhName": "彩園廣場"
+      },
+      "estate": {
+        "csu": "3102440136P20050729",
+        "enName": "CHOI YUEN ESTATE",
+        "zhName": "彩園邨"
+      },
+      "childCoordinates": [114.12591, 22.50083],
+      "enStreetName": "CHOI YUEN ROAD",
+      "zhStreetName": "彩園路",
+      "streetNumber": "8",
+      "authority": "User decision, 2026-09-07: the new location is better, but it is in Choi Yuen Plaza which in turn is in Choi Yuen Estate.",
+      "decision": "Keep the newer supplied food-court point and link Food Court to Plaza to Estate across all retained releases. User approved historical location and hierarchy backfill including both July gaps. Preserve original dated source assertions and the separate unnamed same-CSU source. Containment supplies no residential unit coverage."
+    }
+  ]
+}

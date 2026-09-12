@@ -18,7 +18,7 @@ const previewResult: PreparedUploadResult = {
     regionCode: 'hk',
     cohortKey: '2025-09',
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
     source: 'overture',
     sourceVersion: '2025-09-24.0',
     filePath: '/tmp/division.parquet',
@@ -28,7 +28,7 @@ const previewResult: PreparedUploadResult = {
     schemaFingerprint: 'test-schema',
     inferredFrom: {
       theme: 'path',
-      type: 'path',
+      resourceType: 'path',
       regionCode: 'path',
       cohortKey: 'path',
       source: 'path',
@@ -97,8 +97,7 @@ describe('formatSummary', () => {
 
   test('includes the declared schema specification in the upload plan', () => {
     const lines = formatSummary(previewResult, localTarget, {
-      schemaURL:
-        'https://static.csdi.gov.hk/csdi-webpage/view/common/test',
+      schemaURL: 'https://static.csdi.gov.hk/csdi-webpage/view/common/test',
     })
 
     expect(lines).toHaveLength(6)

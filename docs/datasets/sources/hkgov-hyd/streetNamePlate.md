@@ -1,5 +1,14 @@
 # Highways Department street datasets
 
+Source validity uses the owning release's version component in `validFromRelease` and
+`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
+retains the release association.
+
+Native HyD feature attributes are stored only in `properties`, alongside native
+geometry, source identity, provenance and release history. TD pedestrian imports follow
+the same contract, retaining their layer kind as a source collection discriminator.
+Extracted names, descriptions and times belong to canonical processing.
+
 The Highways Department Street Name Plate dataset provides point locations of street
 name plates maintained by the department. The source layer is `SNP`; its important
 attributes are `SNP_ID`, `LVL`, and `ROAD_NAME`.
@@ -21,18 +30,31 @@ Native intake validates the publisher schemas before database import: `SNP` poin
 require `SNP_ID`, `LVL`, and `ROAD_NAME`; Sensitive and Strategic Street polygons
 require `LVL`, `SECT_BTWN`, and `ST_ENGNM`. Pedestrian Streets are a five-layer FGDB
 package (Part-time Pedestrian, Hawker, Market, Traffic Calming, and Full-time Pedestrian
-Street). It retains `OBJECTID`, timing, native geometry, and the three publisher
-descriptions; calculated shape area and length are not treated as source facts. CSDI
-converted GeoJSON is only a historical regression fixture, never an intake dependency.
+Street). It retains the publisher object ID, timing, native geometry, and the three
+publisher descriptions; calculated shape area and length are not treated as source
+facts. CSDI converted GeoJSON is only a historical regression fixture, never an intake
+dependency.
 
-Native ingestion writes those source assertions directly to the source SQLite shard: one
+Native ingestion writes those source records directly to the source SQLite shard: one
 table each for name plates, sensitive streets, strategic streets, and pedestrian
-streets. Pedestrian descriptions remain alongside their publisher assertion as
-`descriptionEn`, `descriptionZhHant`, and `descriptionZhHans`; the unmodified native
-fields are also retained in `rawProperties`. The mirrored archive object key and SHA-256
-are retained in every assertion's provenance. The local source DB cache is updated
-before the same SQL is imported to preview or production D1; the archive is never
-reloaded from managed storage during intake.
+streets. Pedestrian descriptions remain alongside their publisher source record as
+`descriptionEn`, `descriptionZhHant`, and `descriptionZhHans`. Retained publisher
+attributes use the shared camelCase source-property convention, including `objectId`,
+`startTime`, `endTime`, `shapeArea`, and `shapeLength`; values remain unchanged. The
+mirrored archive object key and SHA-256 are included in every source record's
+provenance. The local source DB cache is updated before the same SQL is imported to
+preview or production D1; the archive is never reloaded from managed storage during
+intake.
+
+Identical assertions repeated within an archive share one stored source-record version.
+Distinct assertions with the same `SNP_ID` remain separate versions; intake does not
+choose one publisher feature over another. Replaying an import restores its current
+assertions without duplicating their keys or replacing their first-seen timestamps.
+Publisher feature counts include repeated features.
+
+Large native polygon values are written in bounded SQL fragments, preserving every
+coordinate. A fragmented row becomes current only after its values are complete;
+retrying restarts its values before appending fragments.
 
 This belongs to the Streets API family as official street-name evidence. It is not a
 street-centreline or street-geometry dataset: the point is the sign location, and
@@ -40,6 +62,10 @@ several points may carry the same `ROAD_NAME`. The point geometry is therefore r
 as source provenance, rather than exposed as a false centreline geometry.
 
 ## Archive release notes
+
+Source releases `2025-Q1`, `2026-Q1`, and `2026-Q2` map to SaanSeoi source schema
+profile `1.0`. Each dataset also validates its native layer and required fields at
+intake; this profile does not bypass those checks.
 
 These observations are CSDI archive slots, not inferred quarter-end dates. Because the
 HyD and TD street datasets publish quarterly, the slot's quarter is their SaanSeoi
@@ -61,3 +87,19 @@ source.
 - [CSDI Strategic Street](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632361405484_23178)
 - [CSDI Pedestrian Streets](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=td_rcd_1697081765097_37742)
 - [CSDI GeoSpatial Services](https://portal.csdi.gov.hk/csdi-webpage/doc/GeoSpatialServices/)
+
+## Native street CRS
+
+Street-name plates, sensitive streets, strategic streets and the five pedestrian-street
+layers use EPSG:2326 (Hong Kong 1980 Grid). Their active FileGDB catalogue entries
+declare Esri WKID 102140 and LatestWKID 2326. All 22 retained native archives agree: 12
+nameplate releases (2023-Q3 to 2026-Q2), two sensitive-street releases (2024-Q1 and
+2025-Q1), one strategic-street release (2025-Q1), and seven pedestrian-street releases
+(2024-Q2 to 2026-Q1). Deleted catalogue records are not evidence of a current layer's
+CRS.
+
+Source intake validates the active layer CRS and retains native easting/northing
+coordinates. The private FileGDB reader disables automatic WGS84 projection without
+changing other FileGDB consumers. Dataset `sourceCrs` is EPSG:2326; coordinate
+conversion belongs to a separately declared map derivative. Document-only street
+products retain a null CRS.

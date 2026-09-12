@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "suppressions": [
+    {
+      "id": "hung-hom-phase-2-unnamed-inventory",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "csu": "3752018776T20110715",
+      "enEstate": "HUNG HOM ESTATE PHASE 2",
+      "zhEstate": "紅磡邨第二期",
+      "inventoryHash": "fd1c14fc72db457105fbe74618551228e443a7586dcb707e37fa81f31d46cc05",
+      "unitCount": 780,
+      "streets": [
+        { "en": "TAI WAN ROAD", "zh": "大環道", "number": "28" },
+        { "en": "DYER AVENUE", "zh": "戴亞街", "number": "9" }
+      ],
+      "coordinates": [[114.18909, 22.30801], [114.18903, 22.30795]],
+      "reason": "The unnamed address CSU belongs to Hung Yat House, but its 780-unit arrays incorrectly match Hung Yiu House. Retain only Hung Yat's named 456-unit collection. Phase 2 uses 28 Tai Wan Road, not 9 Dyer Avenue. Preserve the rejected raw inventory without assigning its units to Hung Yat."
+    }
+  ]
+}

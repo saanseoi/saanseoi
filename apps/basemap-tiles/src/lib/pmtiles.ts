@@ -1,4 +1,10 @@
-import { Compression, EtagMismatch, PMTiles, ResolvedValueCache } from 'pmtiles'
+import {
+  Compression,
+  EtagMismatch,
+  PMTiles,
+  ResolvedValueCache,
+  type Cache,
+} from 'pmtiles'
 import type { RangeResponse, Source } from 'pmtiles'
 import { KeyNotFoundError } from './errors'
 
@@ -27,6 +33,7 @@ class R2Source implements Source {
     private readonly env: BucketEnv,
     private readonly archiveKey: string,
     private readonly cacheKey = archiveKey,
+    private readonly expectedEtag?: string,
   ) {}
 
   getKey() {
@@ -39,9 +46,10 @@ class R2Source implements Source {
     _signal?: AbortSignal,
     etag?: string,
   ): Promise<RangeResponse> {
+    const conditionalEtag = this.expectedEtag ?? etag
     const response = await this.env.BUCKET.get(this.archiveKey, {
       range: { offset, length },
-      onlyIf: { etagMatches: etag },
+      ...(conditionalEtag ? { onlyIf: { etagMatches: conditionalEtag } } : {}),
     })
     if (!response) throw new KeyNotFoundError('Archive not found')
     const object = response as R2ObjectBody
@@ -60,13 +68,15 @@ export const openPmtiles = (
   env: BucketEnv,
   archiveKey: string,
   archiveVersion?: string,
+  cache: Cache = pmtilesCache,
 ): PMTiles =>
   new PMTiles(
     new R2Source(
       env,
       archiveKey,
       archiveVersion ? `${archiveKey}:${archiveVersion}` : archiveKey,
+      archiveVersion,
     ),
-    pmtilesCache,
+    cache,
     nativeDecompress,
   )

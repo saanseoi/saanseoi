@@ -19,7 +19,7 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "..",
     "types": ["bun-types", "vitest/globals", "@cloudflare/workers-types"],
     "paths": {
       "@/*": ["./src/*"],

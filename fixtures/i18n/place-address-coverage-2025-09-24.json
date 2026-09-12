@@ -1,0 +1,1551 @@
+{
+  "source": "data/overture/2025-09-24.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet",
+  "als": "data/hkgov/dpo/ALS/20250903-1043-ALS-GeoJSON",
+  "method": "Mutually exclusive best evidence per eligible Place across all freeforms. ALS bilingual streets/buildings/estates; village name detection is audit-only. No identity resolution or accuracy claim. No geometry or aliases. No newer LandsD streets.",
+  "rawPlaces": 135226,
+  "excluded": 45,
+  "missingCountry": 11,
+  "withoutFreeform": 10475,
+  "denominator": 124706,
+  "distinctFreeforms": 64516,
+  "categories": {
+    "unrecognised": {
+      "count": 14193,
+      "percent": 11.38
+    },
+    "named_building_or_estate": {
+      "count": 23197,
+      "percent": 18.6
+    },
+    "street_number": {
+      "count": 82762,
+      "percent": 66.37
+    },
+    "village_reference": {
+      "count": 1407,
+      "percent": 1.13
+    },
+    "street_only": {
+      "count": 3147,
+      "percent": 2.52
+    }
+  },
+  "examples": {
+    "unrecognised": [
+      {
+        "id": "7919e981-4b6a-4c84-85bd-1f42cd97d6b8",
+        "name": "狗嶺涌營地",
+        "country": "HK",
+        "texts": ["大嶼山狗嶺涌營地"]
+      },
+      {
+        "id": "19d7d74c-f3d1-40ca-888b-9c8b47dbdd03",
+        "name": "Kau Ling Chung View Compass",
+        "country": "HK",
+        "texts": ["Lantau Island"]
+      },
+      {
+        "id": "eb2f06e8-c123-4871-963d-2edf5f09ef85",
+        "name": "靈會山頂",
+        "country": "HK",
+        "texts": ["大嶼山"]
+      },
+      {
+        "id": "089a111c-4f0e-45be-b34d-fef32b0ce2ac",
+        "name": "Lung Tsai Ng Yuen",
+        "country": "HK",
+        "texts": ["Lantau Trail Sec. 5, 大嶼山西部龍仔"]
+      },
+      {
+        "id": "58f64a46-d136-4852-ae2e-d51de8257134",
+        "name": "石壁宿舍",
+        "country": "HK",
+        "texts": ["香港大嶼山石壁"]
+      },
+      {
+        "id": "631ce6b6-a9fd-4394-97fc-ea068bbc762c",
+        "name": "石壁警崗",
+        "country": "HK",
+        "texts": ["Shek Pik Police Post"]
+      },
+      {
+        "id": "ac78a5ca-0554-471b-924c-0093484c8566",
+        "name": "大澳新碼頭",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "1928a347-d5ee-4d7f-8b3d-0322a8b751da",
+        "name": "好景海鮮酒家",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "179f88ad-9910-456b-b440-b5bd14ac8f38",
+        "name": "威尼斯酒家",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "316fa02d-6adf-4f13-8ac8-d88a8ef8e82c",
+        "name": "大澳涌行人橋",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie33號"]
+      },
+      {
+        "id": "965d2357-ff1c-4f89-aa97-ff9b1f4479b1",
+        "name": "NAK Kafé",
+        "country": "HK",
+        "texts": ["20 Wing On Street"]
+      },
+      {
+        "id": "a561efa3-e359-4480-b75e-a2a9a224df32",
+        "name": "茶果財",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie106號"]
+      },
+      {
+        "id": "1b4781fa-c549-4c21-93f7-01d73fc77f08",
+        "name": "澳門鳳城手信",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie19號"]
+      },
+      {
+        "id": "725b3fb2-120c-47c9-bda4-f23289ce323f",
+        "name": "Sea-U Home Tai O Inn",
+        "country": "HK",
+        "texts": ["2 Power St"]
+      },
+      {
+        "id": "ef9da0dc-e567-4869-a9af-9544aa2a7346",
+        "name": "大嶼山十方堂",
+        "country": "HK",
+        "texts": ["大嶼山三丫水村十方堂"]
+      },
+      {
+        "id": "cdf8369a-ed54-4bc2-a4e3-2f90e5bcc6da",
+        "name": "觀音寺",
+        "country": "HK",
+        "texts": ["仙岳路1279"]
+      },
+      {
+        "id": "04ec8399-40c9-413b-9db0-851fa8855517",
+        "name": "Kwun Yam Temple",
+        "country": "HK",
+        "texts": ["Keng Shan Rd"]
+      },
+      {
+        "id": "7be81b64-5c20-4148-b5e6-af4758fd3394",
+        "name": "南涌村",
+        "country": "HK",
+        "texts": ["鳳凰 徑"]
+      },
+      {
+        "id": "f11cb7a4-5305-4023-a2ab-6e6b2d2489a7",
+        "name": "Yim Tin Playground",
+        "country": "HK",
+        "texts": ["Yim Tin Pok"]
+      },
+      {
+        "id": "535ee617-a67a-4b9c-9c2f-26e591bb0ec6",
+        "name": "水鄉茶寮",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie111號"]
+      },
+      {
+        "id": "cb263cea-d0ba-4886-81ea-ccf34b42e52d",
+        "name": "NAK Kafe",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "198876a3-4e8f-476f-a922-595ceccbba1f",
+        "name": "大澳炭燒美食",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "ae1184f9-c5b7-4b49-9e4c-29b9c3463f58",
+        "name": "車站豆腐花",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "ee04ee05-3349-47b8-b8ee-19844ce746cb",
+        "name": "君鴻上海小館",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "25605f66-51dc-4e3e-ad1f-72ebd70bb098",
+        "name": "女青 大澳文化生態綜合資源中心",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "da775a1f-26b6-4342-b004-1fbf10f603fd",
+        "name": "黃華記麵食專家",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "b0fbcef4-0d7c-4a69-8e1b-e958fddf7841",
+        "name": "大澳家嫂",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "738fb533-c6ab-478a-b10c-e44072404f7b",
+        "name": "大澳燒烤店",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "fa0b8d00-c985-41b4-904f-e9706e93587c",
+        "name": "Smiley",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie85號"]
+      },
+      {
+        "id": "a88ba324-6b53-4fa5-a42a-bed63aaf6683",
+        "name": "Top Soul Robatayaki",
+        "country": "HK",
+        "texts": ["76 Power St"]
+      },
+      {
+        "id": "884f7891-16ed-4070-a515-bab6b3d5a5b2",
+        "name": "大澳文化工作室",
+        "country": "HK",
+        "texts": ["114 Wing On St"]
+      },
+      {
+        "id": "dfb96253-28e8-48c5-9bbf-d64292ad8d5f",
+        "name": "金碧麵家",
+        "country": "HK",
+        "texts": ["4, 22°15'13.0N 113°51'51."]
+      },
+      {
+        "id": "9b4cc5c7-6ae1-4a61-82d4-3c101541e284",
+        "name": "橫水渡小廚",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie33號"]
+      },
+      {
+        "id": "aaae8979-245c-4cc9-937f-67b19084498d",
+        "name": "大澳張財記淡口蝦醬",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie41號"]
+      },
+      {
+        "id": "486cbea1-667d-4963-9c2b-558487ef0b2d",
+        "name": "蘇廬",
+        "country": "HK",
+        "texts": ["Shao Ji Wan DongDa Jie86號"]
+      },
+      {
+        "id": "a457f746-8bcc-4bea-8864-920bc808f0af",
+        "name": "靈隱寺",
+        "country": "HK",
+        "texts": ["13路上行"]
+      },
+      {
+        "id": "7fbdd94d-1ab6-4748-8a3b-a2a192851b89",
+        "name": "Yin Hing Monastery",
+        "country": "HK",
+        "texts": ["大嶼山"]
+      },
+      {
+        "id": "e3ed2947-497e-4565-ba7a-a01ce1a71e85",
+        "name": "蓬萊拉麵屋",
+        "country": "HK",
+        "texts": ["昂坪市集"]
+      },
+      {
+        "id": "98c8cc74-0c4f-4578-9599-2bc7a33732b3",
+        "name": "Ngong Ping Cable Car",
+        "country": "HK",
+        "texts": ["Po Ngong Dr"]
+      },
+      {
+        "id": "dbf2850b-8109-4409-88b8-b66b2351b83a",
+        "name": "Li-Nong Tea",
+        "country": "HK",
+        "texts": ["Shop 8, Ngong Ping Village"]
+      },
+      {
+        "id": "6edd4146-c91f-42c8-9ceb-b298ba619972",
+        "name": "寡佬茶 Bachelor Tea",
+        "country": "HK",
+        "texts": ["60A Ngong Ping"]
+      },
+      {
+        "id": "4623d591-f7c6-4858-9f47-e61479e0a452",
+        "name": "China Art Window",
+        "country": "HK",
+        "texts": ["昂坪市集14號鋪"]
+      },
+      {
+        "id": "3a36e925-a641-4a2d-812a-9b22285e1ea9",
+        "name": "Ebeneezer's Kebabs & Pizzeria",
+        "country": "HK",
+        "texts": ["昂坪市集, 60A Ang Ping Lu"]
+      },
+      {
+        "id": "a1e56e8d-9a81-4872-93ea-44c772dd5b06",
+        "name": "Subway",
+        "country": "HK",
+        "texts": ["Po Ngong Dr, 大嶼山昂坪市集9B號舖"]
+      },
+      {
+        "id": "73284852-59a9-42f4-8c0d-d19389de57e5",
+        "name": "Ngong Ping 360 Village Lantau Island Hong Kong",
+        "country": "HK",
+        "texts": ["Lantau Island"]
+      },
+      {
+        "id": "fe62b034-09f8-46d8-9071-a786e848a70c",
+        "name": "Giant buddha, Ngong Ping",
+        "country": "HK",
+        "texts": ["Ngong Ping"]
+      },
+      {
+        "id": "86ab29b3-5b05-4ec0-a2cb-286bf5e8effb",
+        "name": "Starbucks",
+        "country": "HK",
+        "texts": ["Shop 10, Ngong Ping 360, Lantau Island"]
+      },
+      {
+        "id": "6770d4d3-cad8-4171-8c21-5e3610a4d269",
+        "name": "Aok Café",
+        "country": "HK",
+        "texts": ["Shop 3, Ngong Ping Village"]
+      },
+      {
+        "id": "765ecf6e-8690-4919-ac2a-2db93792a7d6",
+        "name": "da dolce",
+        "country": "HK",
+        "texts": ["20c Ming Pao"]
+      },
+      {
+        "id": "26693940-2781-49d2-8ad2-f6eec687208c",
+        "name": "榮華昂坪茶館",
+        "country": "HK",
+        "texts": ["昂坪市集, 60A Ang Ping Lu"]
+      }
+    ],
+    "named_building_or_estate": [
+      {
+        "id": "67f104ec-89bb-4b2c-81c1-28a71db575dd",
+        "name": "indigo11.50",
+        "country": "HK",
+        "texts": ["no 26 , tai long wan tsuen , shek pik"]
+      },
+      {
+        "id": "ce2954b3-d3e5-48ff-bc30-e58c035c3b80",
+        "name": "香港少林武術文化中心",
+        "country": "HK",
+        "texts": ["Hong Kong Shaolin Wushu Culture Centre"]
+      },
+      {
+        "id": "979b72ef-f9bc-422d-948b-cc5fe0b61e77",
+        "name": "大澳公共圖書館",
+        "country": "HK",
+        "texts": ["大澳龍田邨商業中心"]
+      },
+      {
+        "id": "44120b80-fe62-4bec-84c8-99467b907893",
+        "name": "女青 大澳社區工作辦事處",
+        "country": "HK",
+        "texts": ["大澳龍田邨龍田商場一號舖"]
+      },
+      {
+        "id": "a7dfbd2d-0da1-4329-b59c-a3be8305e857",
+        "name": "龍田邨",
+        "country": "HK",
+        "texts": ["Lung Tin Estate Tin Ling House"]
+      },
+      {
+        "id": "9bbac720-0725-4ac7-ad56-2e6d8edd8ff1",
+        "name": "魚菜科學園",
+        "country": "HK",
+        "texts": ["HK 新界 大嶼山正生書院"]
+      },
+      {
+        "id": "469ebc90-152b-4e4d-8572-dbabb2f85b8b",
+        "name": "Tian Tan Buddha (Giant Buddha) 天壇大佛",
+        "country": "HK",
+        "texts": ["Po Lin Monastery, Ngong Ping Rd"]
+      },
+      {
+        "id": "92a06b90-ef23-469f-885f-adf6184c3908",
+        "name": "大嶼山天檀大佛",
+        "country": "HK",
+        "texts": ["Cloud Nine Specialty Coffee, 33 Mo Li Chen ShanDao"]
+      },
+      {
+        "id": "6c5a6085-9371-4687-8074-f11fbc677fc7",
+        "name": "香港大嶼山寶蓮禪寺 Po Lin Monastery At Lantau Island, Hong Kong",
+        "country": "HK",
+        "texts": ["Po Lin Monastery, Ngong Peng, Lantau Island"]
+      },
+      {
+        "id": "c63e61f2-18bc-4dbb-86a1-c1d158feb924",
+        "name": "Matsuzaka Express",
+        "country": "HK",
+        "texts": ["Shop No. 6 & 7B Ngong Ping Theme Village Ngong Ping"]
+      },
+      {
+        "id": "31720599-5151-4db9-8b80-b4327dd3c675",
+        "name": "大嶼山昂坪寶蓮寺大佛",
+        "country": "HK",
+        "texts": ["Po Lin Monastery, Ngong Ping"]
+      },
+      {
+        "id": "bdf5099e-07dd-4b2c-a494-861ad3d8e199",
+        "name": "把港古廟",
+        "country": "HK",
+        "texts": ["沙螺灣村"]
+      },
+      {
+        "id": "b5206327-c391-4358-821d-e3676d27d231",
+        "name": "東怡渡假屋",
+        "country": "HK",
+        "texts": ["塘福邨145A號地下"]
+      },
+      {
+        "id": "991d4706-8ece-4cfa-bd10-4b9c7316086a",
+        "name": "Cavalli Wine Shop",
+        "country": "HK",
+        "texts": ["G/F. No. 65, TONG FUK VILLAGE"]
+      },
+      {
+        "id": "6239c56b-42f6-40a0-8e07-0888b4e8ba66",
+        "name": "Lantau International School",
+        "country": "HK",
+        "texts": ["DD 328 Tong Fuk Village Tong Fuk"]
+      },
+      {
+        "id": "3f336551-7db5-4996-b414-1f6af2c2d666",
+        "name": "Palm Beach 棕櫚灘",
+        "country": "HK",
+        "texts": ["Palm Beach"]
+      },
+      {
+        "id": "f25fa1d3-fc02-473a-a951-6cb66a521e6a",
+        "name": "Hong Kong Surfing Lesson",
+        "country": "HK",
+        "texts": ["TST Tower, 388 Yuan ZhouJie"]
+      },
+      {
+        "id": "b44366e4-8c62-4bf7-b03c-dbda44281cbc",
+        "name": "大嶼山長沙泳灘",
+        "country": "HK",
+        "texts": ["大嶼山長沙下村"]
+      },
+      {
+        "id": "e03d4915-d28b-40eb-936d-120d19d1743b",
+        "name": "Lantana by Brian",
+        "country": "HK",
+        "texts": ["40 Lower Cheung Sha Village, Lantau, HK"]
+      },
+      {
+        "id": "7f4f4413-0b71-48c9-9bc4-e3c954403a31",
+        "name": "YULOk&CAMP 嶼樂營",
+        "country": "HK",
+        "texts": ["長沙下村"]
+      },
+      {
+        "id": "5ba89a95-aa3c-481d-a8a7-2df722044761",
+        "name": "Saiyuen 長洲西園",
+        "country": "HK",
+        "texts": ["Sai Yuen, Sai Wan 西灣, 西園"]
+      },
+      {
+        "id": "61435a85-572c-4ef9-992b-f9249603ea42",
+        "name": "Moody Visual Studio",
+        "country": "HK",
+        "texts": ["G/F, No11, Man Wah San Tsuen, Tai Shek Hau"]
+      },
+      {
+        "id": "9721b42b-99de-4b1d-ac80-22230b1bcf23",
+        "name": "趣思中英文幼稚園",
+        "country": "HK",
+        "texts": ["Greenery Crest, 33 Chang ShuoLu"]
+      },
+      {
+        "id": "b97181ac-0008-49e4-883c-f1297c1feed7",
+        "name": "明愛賽馬會長洲青少年綜合服務",
+        "country": "HK",
+        "texts": ["長洲雅寧苑豪澤閣地下"]
+      },
+      {
+        "id": "2713b663-5d64-4b23-9897-7403d270e12b",
+        "name": "青流",
+        "country": "HK",
+        "texts": ["金銀灣金豪閣10號"]
+      },
+      {
+        "id": "02c1e5ae-01d1-467a-832e-579a178fb3dc",
+        "name": "北社海傍",
+        "country": "HK",
+        "texts": ["Cheung Chau"]
+      },
+      {
+        "id": "0d52df4b-5dd5-4bdb-bf67-d5d537f0a437",
+        "name": "長利公園",
+        "country": "HK",
+        "texts": ["長洲北社新村長利公園"]
+      },
+      {
+        "id": "f920ed9c-ee15-4a93-aa9b-0a44d27f8b91",
+        "name": "勺瀛樓",
+        "country": "HK",
+        "texts": ["Bellevue Garden, Cheung Chau Peak Rd"]
+      },
+      {
+        "id": "2ab70bb7-c161-40a6-a0f5-66aecf30a968",
+        "name": "Shun Tak Public School",
+        "country": "HK",
+        "texts": ["5B Cheung Chau School Rd"]
+      },
+      {
+        "id": "ac685b19-0b2e-4eef-8f80-3c5dbcd0c2dd",
+        "name": "華美茶餐廳",
+        "country": "HK",
+        "texts": ["松柏路222"]
+      },
+      {
+        "id": "b6c606b8-be31-415f-8d3f-0d46a739fc5c",
+        "name": "759 Store 759 阿信屋",
+        "country": "HK",
+        "texts": ["Cheung Chau Praya Rd"]
+      },
+      {
+        "id": "605aa29c-b2ab-45c0-90b3-19d591c369c9",
+        "name": "Jockey Club Cheung Chau Tung Wan Children's Playground",
+        "country": "HK",
+        "texts": ["Cheung Chau Sports Rd"]
+      },
+      {
+        "id": "58a4ff9f-a6e0-43ac-9883-d5099c93ea53",
+        "name": "長洲東灣兒童遊樂場",
+        "country": "HK",
+        "texts": ["Cheung Chau Sports Rd"]
+      },
+      {
+        "id": "bd4e1348-7678-4412-830e-2c7eb7cc9682",
+        "name": "J & J Water Sports Center",
+        "country": "HK",
+        "texts": ["觀音灣水上康樂活動中心B座"]
+      },
+      {
+        "id": "245a1676-ca6f-40c8-8605-d9c6c628f056",
+        "name": "渡日書店",
+        "country": "HK",
+        "texts": ["90 Tung Tai San Tsuen"]
+      },
+      {
+        "id": "1ade1d5c-11fb-41ab-8d6e-93f9d9083d51",
+        "name": "邁亞美度假村",
+        "country": "HK",
+        "texts": ["G/F, Bela Vista Villa Block A, Cheung Chau Beach Rd"]
+      },
+      {
+        "id": "2db4fa05-121d-4286-afee-0444e3117589",
+        "name": "Fong Che Ho Hau Summer House",
+        "country": "HK",
+        "texts": ["Cheung Chau Beach Rd, 北路"]
+      },
+      {
+        "id": "6ef100d0-a752-4d22-8246-3d92751d3f1d",
+        "name": "East. Coast",
+        "country": "HK",
+        "texts": ["Cheung Chau Beach Rd"]
+      },
+      {
+        "id": "943a5640-15fa-4253-ae7b-2e092d236a6a",
+        "name": "長洲東灣泳灘 Cheung Chau Tung Wan Beach",
+        "country": "HK",
+        "texts": [
+          "Cheung Chau Tung Wan, Cheung Chau Beach Road, Cheung Chau, Hong Kong"
+        ]
+      },
+      {
+        "id": "4c0f6051-1f30-4c63-80ad-824c55e8ec88",
+        "name": "北帝廟籃球場",
+        "country": "HK",
+        "texts": ["Cheung Chau Family Walk, 長洲家樂徑 長洲"]
+      },
+      {
+        "id": "9aa70c9c-428b-4547-93b8-d7a4a4cc1bcf",
+        "name": "瀛·窩居",
+        "country": "HK",
+        "texts": ["13 Pak She San Tsuen"]
+      },
+      {
+        "id": "6a0a25b5-ea78-4358-8158-1e562308a36d",
+        "name": "北社天后古廟",
+        "country": "HK",
+        "texts": ["Tin Hau Temple"]
+      },
+      {
+        "id": "fba47cd0-0680-4ded-b0fc-93c96563ecda",
+        "name": "Miami Resort",
+        "country": "HK",
+        "texts": ["Section 12, Bela Vista Villa, Cheung Chau Tung Wan"]
+      },
+      {
+        "id": "e3c30b5c-85f2-4852-924d-e819c140b0f4",
+        "name": "Jenyoga Cheung Chau",
+        "country": "HK",
+        "texts": ["Hong Kong"]
+      },
+      {
+        "id": "5bcb2f19-b877-4250-979e-bbdb9dd55ec5",
+        "name": "Tung Wan Tsai Beach",
+        "country": "HK",
+        "texts": ["Cheung Chau Family Walk"]
+      },
+      {
+        "id": "07ae39f0-b009-4f3e-a512-1957d4fa91f0",
+        "name": "大雄寶殿",
+        "country": "HK",
+        "texts": ["雲林縣北港鎮"]
+      },
+      {
+        "id": "9f8a7737-1d2f-49bf-8c40-79f9361b2459",
+        "name": "Big Buddha, Lantau, Hong Kong",
+        "country": "HK",
+        "texts": ["Big Buddha Ngong Ping Lantau Island Hong Kong"]
+      },
+      {
+        "id": "49c5bf6e-af57-46f7-bcc8-fadc2196820c",
+        "name": "Grand Hall of Ten Thousand Buddhas 萬佛殿",
+        "country": "HK",
+        "texts": ["Po Lin Monastery"]
+      },
+      {
+        "id": "c8302119-c1fb-442c-9c42-d2fb25c9ca5d",
+        "name": "羅漢寺",
+        "country": "HK",
+        "texts": ["大嶼山東涌石門甲村羅漢寺五觀堂"]
+      },
+      {
+        "id": "5ae916ae-5e1f-4788-b828-e80c19ba81cc",
+        "name": "Pret A Manger",
+        "country": "HK",
+        "texts": [
+          "Unit 5T028 Level 5 Arrivals Hall Passenger Terminal 1 Hk International Airport"
+        ]
+      }
+    ],
+    "street_number": [
+      {
+        "id": "769cb325-9497-4fe8-94e4-280e9e240c7c",
+        "name": "沙咀懲教所",
+        "country": "HK",
+        "texts": ["35 Shek Pik Reservoir Rd"]
+      },
+      {
+        "id": "9503a0eb-b3a4-4414-ba70-fe1c8b0e2e35",
+        "name": "Shek Pik Prison",
+        "country": "HK",
+        "texts": ["35 Shek Pik Reservoir Rd"]
+      },
+      {
+        "id": "2c8b4a6c-e320-44c0-89f1-cff31ada6fb4",
+        "name": "Dhamma Muttā",
+        "country": "HK",
+        "texts": ["9 Tai Hang Dr"]
+      },
+      {
+        "id": "8f612052-98b3-4564-8695-b706985936f3",
+        "name": "海韻素食菜館",
+        "country": "HK",
+        "texts": ["13b Shek O Rd"]
+      },
+      {
+        "id": "5775b99f-8103-4b85-ab0b-fa3da317cf35",
+        "name": "Tai O Lookout",
+        "country": "HK",
+        "texts": ["14 Shek Tsai Po St"]
+      },
+      {
+        "id": "55fe80fc-6480-4eaf-a810-03bdf5b9af28",
+        "name": "Tai O Heritage Hotel",
+        "country": "HK",
+        "texts": ["14 Shek Tsai Po St"]
+      },
+      {
+        "id": "5c8b240d-08af-44de-b821-0e7df37582c6",
+        "name": "勝利香蝦廠",
+        "country": "HK",
+        "texts": ["大澳,石仔埗街10號, Hong Kong"]
+      },
+      {
+        "id": "64d54c8a-3465-498c-bf34-d6366c82db63",
+        "name": "Black Pearl",
+        "country": "HK",
+        "texts": ["1 Shing On St"]
+      },
+      {
+        "id": "b3d164f1-69e4-4fa5-8a12-b6c3c2868501",
+        "name": "香港大澳鄉事委員會歷史文化室",
+        "country": "HK",
+        "texts": ["大澳永安街5號"]
+      },
+      {
+        "id": "b734235d-ece1-4ccf-a457-da0559549cd6",
+        "name": "大澳如意海味",
+        "country": "HK",
+        "texts": ["11a King St"]
+      },
+      {
+        "id": "ad53f2b7-53be-4039-9d0c-e664bab75411",
+        "name": "山水豆腐花",
+        "country": "HK",
+        "texts": ["43 Tai Hang Rd"]
+      },
+      {
+        "id": "f3aff11c-f22a-4e46-8f44-fc73f0d2f4e6",
+        "name": "ChamberFairy/好望角的精靈-香港特色精品小店",
+        "country": "HK",
+        "texts": ["7 King St"]
+      },
+      {
+        "id": "656dd2af-10ea-47f6-941e-bcbf58694fd8",
+        "name": "Tai Ohhh 大噢",
+        "country": "HK",
+        "texts": ["No.1 Tai O Market Street, Tai O, Lantau"]
+      },
+      {
+        "id": "af5c8daa-8b94-4beb-a6aa-0c9c44082445",
+        "name": "大澳水鄉茶餐廳",
+        "country": "HK",
+        "texts": ["大澳街市街3號"]
+      },
+      {
+        "id": "75fb7bbf-c08f-4f2b-8295-185119ac6972",
+        "name": "半路棚豆腐花",
+        "country": "HK",
+        "texts": ["石仔埗街58號地下"]
+      },
+      {
+        "id": "2dde731a-d85e-428f-8a2e-957c7f4959c6",
+        "name": "Tai O Post Office",
+        "country": "HK",
+        "texts": ["102 Tai Wo St"]
+      },
+      {
+        "id": "b1b9bafc-83eb-4e84-a458-f5b49f61b37f",
+        "name": "大澳妹記海味",
+        "country": "HK",
+        "texts": ["Shek Tsai Po St, 107號號地下"]
+      },
+      {
+        "id": "4299fa93-85a6-44cb-8d12-46cff391955a",
+        "name": "中華基督教會大澳小學",
+        "country": "HK",
+        "texts": ["大澳街市街24-26號"]
+      },
+      {
+        "id": "33d02788-f9ec-4fa8-a0c3-bb858a712c9d",
+        "name": "日昇海味",
+        "country": "HK",
+        "texts": ["9 King St"]
+      },
+      {
+        "id": "3943574f-8293-4b45-ab9f-310e950fcb67",
+        "name": "珍珍食店",
+        "country": "HK",
+        "texts": ["大澳街市街3號地下"]
+      },
+      {
+        "id": "23c45ca9-f5e5-406e-bcba-f9694cfd91ad",
+        "name": "Bank of East Asia",
+        "country": "HK",
+        "texts": ["8 Tai O Market Street"]
+      },
+      {
+        "id": "4e917e11-bd6f-4736-841e-7df90e36e3c8",
+        "name": "大澳老友記",
+        "country": "HK",
+        "texts": ["Tai O Market St, 10號號地下"]
+      },
+      {
+        "id": "279ea6b4-551c-4f65-ba70-c709e7080dc8",
+        "name": "平發海味",
+        "country": "HK",
+        "texts": ["12 Tai O Market St"]
+      },
+      {
+        "id": "e7152245-06c3-48c7-bbfb-cdb25a0ba152",
+        "name": "華鎽店",
+        "country": "HK",
+        "texts": ["大澳街市街17號"]
+      },
+      {
+        "id": "88e88883-9b4e-4551-b7d2-012e56d4ae54",
+        "name": "Fook Moon Lam Restaurant",
+        "country": "HK",
+        "texts": ["29號 Tai O Market St"]
+      },
+      {
+        "id": "f292102f-2822-443b-93b3-699cebe21b29",
+        "name": "大澳流浪貓之家",
+        "country": "HK",
+        "texts": ["55 Tai Hang Rd"]
+      },
+      {
+        "id": "d02b5195-1117-4d70-8dfd-9b3d2e5a24c0",
+        "name": "大澳賽馬會診所",
+        "country": "HK",
+        "texts": ["大澳石仔埗街103號"]
+      },
+      {
+        "id": "fb43777a-8337-4284-9be2-d74c03736f7a",
+        "name": "Tai O Jockey Club General Out-Patient Clinic",
+        "country": "HK",
+        "texts": ["103 Shek Tsai Po St"]
+      },
+      {
+        "id": "6bcfad2a-dfa4-4726-be62-b616e15d62de",
+        "name": "東方小祇園菜館",
+        "country": "HK",
+        "texts": ["14 Lee Chung St"]
+      },
+      {
+        "id": "1402d24b-7fe1-4b61-821b-e859509ee124",
+        "name": "朗濤Ontolo︳科學園白石角項目",
+        "country": "HK",
+        "texts": ["白石角科研路7號"]
+      },
+      {
+        "id": "f0c6bd84-cf45-4ac4-b72a-46cc0c7b8d9f",
+        "name": "三丫水村",
+        "country": "HK",
+        "texts": ["Tai O Rd, 三號HK 新界 大嶼山三丫水村"]
+      },
+      {
+        "id": "151a607c-506c-4968-b3f1-5c354ac38934",
+        "name": "佛教筏可紀念中學",
+        "country": "HK",
+        "texts": ["99 Tai O Rd"]
+      },
+      {
+        "id": "1b62870b-9e76-4772-ba24-0c6b3a6a07f5",
+        "name": "大澳永助聖母小堂暨永助校友 Our Lady of Perpetual Help Chapel & Wing Chor Alumni",
+        "country": "HK",
+        "texts": ["114 Tai Nan St"]
+      },
+      {
+        "id": "10ad7f8a-3b5b-4a3b-ae37-2e7ec5a624a3",
+        "name": "Tai O Boat Excursion",
+        "country": "HK",
+        "texts": ["Tai O Wing On St, 20號行人橋旁昔日橫水渡位置大涌"]
+      },
+      {
+        "id": "70182a3b-53ed-425d-8c4e-6a17ce5cdb91",
+        "name": "華記餐室",
+        "country": "HK",
+        "texts": ["37 Tai Tam Rd"]
+      },
+      {
+        "id": "e98d636d-a6d0-4a2e-a297-d6d46f72f589",
+        "name": "大澳益昌號",
+        "country": "HK",
+        "texts": ["43-48號 Tai O Wing On St"]
+      },
+      {
+        "id": "61ea6673-3614-426a-8fb4-80343643da6a",
+        "name": "旭日美食館",
+        "country": "HK",
+        "texts": ["47 Tai O Wing On St"]
+      },
+      {
+        "id": "32717593-ff93-412e-834c-f40633cd69c5",
+        "name": "Tai O Alliance Church",
+        "country": "HK",
+        "texts": ["52 Tai Hang Rd"]
+      },
+      {
+        "id": "bd9ad5fd-2a45-4512-aaa1-7ba9785016d4",
+        "name": "漢記",
+        "country": "HK",
+        "texts": ["52 Tai O Wing On St"]
+      },
+      {
+        "id": "d0af9811-95fb-4b7b-8bf8-76dc7b3f5bdc",
+        "name": "隱姑茶果",
+        "country": "HK",
+        "texts": ["11 King St"]
+      },
+      {
+        "id": "0ed35a92-5662-4376-b850-ea1b719a0d4a",
+        "name": "大澳士多 Tai o store",
+        "country": "HK",
+        "texts": ["68 Wing Lok St"]
+      },
+      {
+        "id": "9f8a9a64-63ee-49f4-b5dc-da7143701233",
+        "name": "Mini Kuromi Store",
+        "country": "HK",
+        "texts": ["68 Wing Lok St"]
+      },
+      {
+        "id": "f58d0a15-3f6c-48ba-9e70-87877801ed09",
+        "name": "宣道會大澳堂",
+        "country": "HK",
+        "texts": ["52 Tai Hang Rd"]
+      },
+      {
+        "id": "edb8e2a8-6370-4715-b512-a333c3269be3",
+        "name": "大澳澳悠遊",
+        "country": "HK",
+        "texts": ["87 Wing Lok St"]
+      },
+      {
+        "id": "21096490-4d67-4e96-83a7-eef6358dc00c",
+        "name": "Christian and Missionary Alliance Tai O Kindergarten",
+        "country": "HK",
+        "texts": ["83 Nam On St"]
+      },
+      {
+        "id": "717ec03b-a45a-4c0c-86f0-94daec514f7d",
+        "name": "大澳教會",
+        "country": "HK",
+        "texts": ["85-105 Tai O Wing On St"]
+      },
+      {
+        "id": "cdcfc579-0466-4e9c-a829-3b5ce4d042ff",
+        "name": "大澳姿味坊",
+        "country": "HK",
+        "texts": ["80 High St"]
+      },
+      {
+        "id": "b03fb738-2ec3-42fa-919d-e54cef54bd93",
+        "name": "Our Lady of Perpetual Help Chapel 永助聖母小堂",
+        "country": "HK",
+        "texts": ["112 Tai O Tai Ping St"]
+      },
+      {
+        "id": "c241f3ba-e88a-4f23-89d9-615ca1677183",
+        "name": "永助學校",
+        "country": "HK",
+        "texts": ["110 Tai O Rd"]
+      },
+      {
+        "id": "3ae2c276-4e65-4dda-962c-b375a684f3f9",
+        "name": "嶼山漁水",
+        "country": "HK",
+        "texts": ["140 Tai O Rd"]
+      }
+    ],
+    "village_reference": [
+      {
+        "id": "c0b1286a-e259-48b9-8b47-e69d385e7477",
+        "name": "大嶼文化工作室 Lantau Culture Workshop",
+        "country": "HK",
+        "texts": ["大澳番鬼塘村"]
+      },
+      {
+        "id": "d09f29de-8d38-4685-8614-850243b41a94",
+        "name": "大澳復興行",
+        "country": "HK",
+        "texts": ["大澳永安街"]
+      },
+      {
+        "id": "9a7b41eb-7878-46e3-91be-a3e656095ba7",
+        "name": "大澳石仔埗",
+        "country": "HK",
+        "texts": ["大澳石仔埗街"]
+      },
+      {
+        "id": "ae0b8bcf-7cac-494f-95bc-6726f9827bf3",
+        "name": "虎山",
+        "country": "HK",
+        "texts": ["Tai O Wing On St"]
+      },
+      {
+        "id": "7555b8e8-55cc-4a7f-8f47-9d7166b97b91",
+        "name": "大嶼山靈隱寺",
+        "country": "HK",
+        "texts": ["大嶼山大澳薑山村"]
+      },
+      {
+        "id": "f235db7c-a642-44dd-aa31-cd4c711ef0ed",
+        "name": "Lung Tin Estate 龍田邨",
+        "country": "HK",
+        "texts": ["Tai O Rd."]
+      },
+      {
+        "id": "63317f99-9b69-4592-b11d-29974f50a6f5",
+        "name": "Junction of Lantai Trail Section 4 and Section 5",
+        "country": "HK",
+        "texts": ["Sham Wat Rd"]
+      },
+      {
+        "id": "3b64f4c5-a8d8-4073-b89d-fb0ed7758918",
+        "name": "昂坪自然中心",
+        "country": "HK",
+        "texts": ["昂坪昂坪市集鳳凰徑第4段"]
+      },
+      {
+        "id": "3fbc41e0-ebee-4c52-a821-6a3fd7c74f93",
+        "name": "楊侯古廟",
+        "country": "HK",
+        "texts": [
+          "新界大嶼山大澳吉慶後街 Kat Hing Back Street, Tai O, Lantau, New Territories"
+        ]
+      },
+      {
+        "id": "03e80078-a43e-4f02-aadd-65cac91401cf",
+        "name": "深屈村海角7號",
+        "country": "HK",
+        "texts": ["深屈村海角7號"]
+      },
+      {
+        "id": "20b2fe90-7b8e-4525-bda4-cbd85a81eac0",
+        "name": "深石亭",
+        "country": "HK",
+        "texts": ["東澳古道"]
+      },
+      {
+        "id": "e48eaf7f-f2d9-42c2-a5df-128f1e89f625",
+        "name": "Palm Beach Club & Watersports",
+        "country": "HK",
+        "texts": ["Lower Cheung Sha Beach, S Lantau Rd"]
+      },
+      {
+        "id": "bfb6951e-019c-4f3d-85eb-c2e1d4a8496f",
+        "name": "HKCitySurf.Club 香城衝浪",
+        "country": "HK",
+        "texts": ["下長沙泳灘"]
+      },
+      {
+        "id": "6691e118-df9d-4b8e-b4fc-36d9fb603e64",
+        "name": "下長沙海灘",
+        "country": "HK",
+        "texts": ["Cheung Sha Lower Beach Cheung Sha"]
+      },
+      {
+        "id": "7abc04e1-2c63-49fc-bf93-a5b225930fda",
+        "name": "滙豐旅舍",
+        "country": "HK",
+        "texts": ["大嶼山下長沙"]
+      },
+      {
+        "id": "fd56892e-e60f-47b2-ad79-61387a7280f7",
+        "name": "Lantana",
+        "country": "HK",
+        "texts": ["40 Cheung Sha Lower Beach Rd"]
+      },
+      {
+        "id": "8bfed9bb-aea9-43b5-a5b3-390cfd6b9ee1",
+        "name": "Bathers",
+        "country": "HK",
+        "texts": ["32 Lower Cheung Sha Village"]
+      },
+      {
+        "id": "36b7fa6e-d48e-40c5-836a-80052af0e95f",
+        "name": "長洲賣藝",
+        "country": "HK",
+        "texts": ["海傍街"]
+      },
+      {
+        "id": "0b23c647-90f2-4304-a408-a419702463e8",
+        "name": "通記",
+        "country": "HK",
+        "texts": ["海傍街熟食中心"]
+      },
+      {
+        "id": "103fa186-9f86-4e8e-a013-ff49e41562bc",
+        "name": "WL Media HK",
+        "country": "HK",
+        "texts": ["G/F 3 Nam She Tong"]
+      },
+      {
+        "id": "323a9a24-4560-43bf-8407-727c8185442d",
+        "name": "基督教正生書院",
+        "country": "HK",
+        "texts": ["大嶼山　芝麻灣半島　下徑／霞澗／蝦澗"]
+      },
+      {
+        "id": "2818fdc0-17ea-48fb-92f6-583f1a8270b4",
+        "name": "Backyard Village Cafe",
+        "country": "HK",
+        "texts": ["Shek Mun Kap Village, Lantau"]
+      },
+      {
+        "id": "149e452d-726d-407c-8167-f6be15374a2d",
+        "name": "石門甲",
+        "country": "HK",
+        "texts": ["Shek Mun Kap Rd"]
+      },
+      {
+        "id": "3141794b-b221-4cd2-829f-0c18e39c2efe",
+        "name": "Number 士多l 自提點",
+        "country": "HK",
+        "texts": ["東涌石榴埔村（流水河旁）鄰近滿東村"]
+      },
+      {
+        "id": "3e0604b4-3f1e-49a3-82d4-76fbbbb65e9c",
+        "name": "惠豐農場",
+        "country": "HK",
+        "texts": ["東澳古道"]
+      },
+      {
+        "id": "c14b09b8-27af-4906-81c4-d44fed264c54",
+        "name": "馬灣新村",
+        "country": "HK",
+        "texts": ["Ma Wan New Village"]
+      },
+      {
+        "id": "50709e2b-8417-49dc-9f65-dacb2de81019",
+        "name": "China Digital Dental Labs",
+        "country": "HK",
+        "texts": ["Lantau Island, Office -2 1/F 41 Ma Wan New Village, Pa Mei Rd"]
+      },
+      {
+        "id": "f026cddd-5bf4-4d87-882b-91ba34237143",
+        "name": "貝澳營地",
+        "country": "HK",
+        "texts": ["大嶼山貝澳泳灘旁"]
+      },
+      {
+        "id": "7327a3e9-7f7c-4ad4-97ab-d9964206f2d6",
+        "name": "Bui O Public School",
+        "country": "HK",
+        "texts": ["2 Au Tau"]
+      },
+      {
+        "id": "6d2f8793-eaca-448a-a970-aa1ba93934e1",
+        "name": "Mui Wo Waterfalls",
+        "country": "HK",
+        "texts": ["Mui wo"]
+      },
+      {
+        "id": "e513d9ce-204b-4574-9e49-1234e6b1fad1",
+        "name": "大嶼山梅窩銀礦灣瀑布",
+        "country": "HK",
+        "texts": ["梅窩白銀鄉"]
+      },
+      {
+        "id": "8c3b5c9c-4a6f-492c-b247-759a8ff5d939",
+        "name": "望渡坳",
+        "country": "HK",
+        "texts": ["大嶼山梅窩望渡坳"]
+      },
+      {
+        "id": "d9a3d260-16a5-4803-9ee3-3a19c76bad06",
+        "name": "PizzaBird Pizza and Chicken",
+        "country": "HK",
+        "texts": ["2b Wong Nai Uk"]
+      },
+      {
+        "id": "e6d9bc03-0d59-44d7-8998-8d58598f4c8e",
+        "name": "Spicy Fresco",
+        "country": "HK",
+        "texts": ["ma wan chung village"]
+      },
+      {
+        "id": "98aee4b9-1d8b-480b-94ae-557f98ca896f",
+        "name": "涌口茶餐廳",
+        "country": "HK",
+        "texts": ["104號地下, 馬灣涌村"]
+      },
+      {
+        "id": "d193804c-34be-444e-bbd2-62ebafb5054a",
+        "name": "Aroma",
+        "country": "HK",
+        "texts": ["NO.97, Ma Wan Chung Village Tung Chung Lantau Island"]
+      },
+      {
+        "id": "c8831e1b-fc9f-486d-b415-1298d3b8508f",
+        "name": "高佬酸辣粉",
+        "country": "HK",
+        "texts": ["馬灣涌村92號地下"]
+      },
+      {
+        "id": "ec4ab193-29fb-49bf-b457-3740b5da16b2",
+        "name": "Sunny Bike Shop",
+        "country": "HK",
+        "texts": ["大嶼山東涌馬灣涌村110號地下"]
+      },
+      {
+        "id": "4d098a9c-a2f9-4cd9-8811-f33d5e0ede51",
+        "name": "Pizza & Chicken",
+        "country": "HK",
+        "texts": ["G/F, 2A-2B Wong Nai UK"]
+      },
+      {
+        "id": "aa68bb99-d558-457f-a798-6d2e067b5682",
+        "name": "King's Prawn Nan Fong Seafood Restaurant",
+        "country": "HK",
+        "texts": ["2 Wong Nai Uk"]
+      },
+      {
+        "id": "fd05660d-f2bd-423a-9418-4a156bf78fe8",
+        "name": "Come Thai House",
+        "country": "HK",
+        "texts": ["2 Wong Nai Uk"]
+      },
+      {
+        "id": "054de7a1-1870-4d11-89c3-907e81d1e41e",
+        "name": "東記火鍋小廚",
+        "country": "HK",
+        "texts": ["2 Wong Nai Uk"]
+      },
+      {
+        "id": "e588a069-ab67-41fb-8c34-fa109618b0a5",
+        "name": "港珠澳大橋香港口岸",
+        "country": "HK",
+        "texts": ["港珠澳大橋香港連接路"]
+      },
+      {
+        "id": "7cf4dd88-bf85-4602-a7db-987001ef61f3",
+        "name": "港珠澳大橋穿梭巴士",
+        "country": "HK",
+        "texts": [" 港珠澳大橋"]
+      },
+      {
+        "id": "6e055192-89bc-4402-967d-0047b5d981b2",
+        "name": "梅窩荔枝山渡假農莊 Mui Wo Lychee Hill Holiday Farm",
+        "country": "HK",
+        "texts": ["梅窩銀磺灣路"]
+      },
+      {
+        "id": "43cc0041-c12d-4ff0-8059-50d24cf17dd3",
+        "name": "Ark Eden",
+        "country": "HK",
+        "texts": ["Mui Wo, Lantau Island"]
+      },
+      {
+        "id": "f67d2b42-f984-4fed-b06f-b63a441d35a8",
+        "name": "Ngan Kwong Wan Road Car Park Car Park",
+        "country": "HK",
+        "texts": ["梅窩"]
+      },
+      {
+        "id": "bdaf0660-3ccb-422f-9ee4-7a33369551dc",
+        "name": "Mui Wo Basketball Pitch",
+        "country": "HK",
+        "texts": ["Mui Wo Rural Committee Rd"]
+      },
+      {
+        "id": "dbf2b9b7-42a6-4ead-9e54-8987b4973479",
+        "name": "Lantau Pottery Studio",
+        "country": "HK",
+        "texts": ["G/F, 28 Rural Committee Road Mui Wo"]
+      },
+      {
+        "id": "3e0c9711-9290-4e4f-9f1f-ffbf1e346fe9",
+        "name": "Pacific Coffee",
+        "country": "HK",
+        "texts": ["Shop K&J, Lower Deck, Mui Wo Pier, Mui Wo"]
+      }
+    ],
+    "street_only": [
+      {
+        "id": "4e04c1c9-426f-4787-a58a-7664ceaa6998",
+        "name": "Tian Tan Buddha",
+        "country": "HK",
+        "texts": ["Ngong Ping Rd"]
+      },
+      {
+        "id": "c7ab0153-56f0-43fc-8462-c345145b6565",
+        "name": "Ngong Ping Big Buddha",
+        "country": "HK",
+        "texts": ["Ngong Ping Road Ngong Ping"]
+      },
+      {
+        "id": "803a98df-dfae-465b-9a5f-3dd1f5f40541",
+        "name": "昂坪廣場",
+        "country": "HK",
+        "texts": ["Ngong Ping Rd."]
+      },
+      {
+        "id": "d1f1d95e-c507-4b65-9bcd-549dbb256900",
+        "name": "星巴克",
+        "country": "HK",
+        "texts": ["Unit 10, Ngong Ping Village, Ngong Ping Rd"]
+      },
+      {
+        "id": "c2c2a18c-c12a-4cff-b98e-a77d19cd3195",
+        "name": "Ngong Ping Village 昂坪市集",
+        "country": "HK",
+        "texts": ["Ngong Ping Rd"]
+      },
+      {
+        "id": "89462122-3edb-48fe-9d2b-f2ae6c96c436",
+        "name": "白鰽灣",
+        "country": "HK",
+        "texts": ["Peak Rd. W."]
+      },
+      {
+        "id": "3dba4b60-fb0f-41f3-ad63-147c96335e43",
+        "name": "長洲愉宿精緻渡假旅館",
+        "country": "HK",
+        "texts": ["Chung Sum Lane"]
+      },
+      {
+        "id": "897279a9-7347-45e2-9bb3-0428406e288b",
+        "name": "St. John Hospital Occupational Therapy",
+        "country": "HK",
+        "texts": ["長洲醫院路東灣"]
+      },
+      {
+        "id": "b6290069-bcb2-4da5-8883-a7bbdf0ad5ec",
+        "name": "Kwun Yam Wan Beach",
+        "country": "HK",
+        "texts": ["Hak Pai Rd"]
+      },
+      {
+        "id": "737b81ae-5b51-440a-8a1f-75dbee788f68",
+        "name": "Cheung Chau Windsurfing Centre",
+        "country": "HK",
+        "texts": ["Hak Pai Rd"]
+      },
+      {
+        "id": "df36ab70-fe8f-4240-aa68-fab3d7a9f851",
+        "name": "Little Island Little Taste",
+        "country": "HK",
+        "texts": ["San Hing Praya St"]
+      },
+      {
+        "id": "8902478b-3eb5-48f1-9e32-947e29e577f2",
+        "name": "Dr Chan Kwok Ching",
+        "country": "HK",
+        "texts": ["96 Tai Sun Praya St"]
+      },
+      {
+        "id": "366af7ee-c22e-497e-9060-cc55b863f4a3",
+        "name": "Po Lin Monastery 寶蓮禪寺",
+        "country": "HK",
+        "texts": ["Ngong Ping Rd"]
+      },
+      {
+        "id": "bb6b11c1-acac-43cd-9316-a483d9a6ffff",
+        "name": "YHA Ngong Ping SG Davis Youth Hostel",
+        "country": "HK",
+        "texts": ["Ngong Ping Rd"]
+      },
+      {
+        "id": "56725af8-d9de-413f-8adb-89248cbb71a0",
+        "name": "滿東邨 Mun Tung Estate",
+        "country": "HK",
+        "texts": ["松滿路"]
+      },
+      {
+        "id": "33fcba26-5a47-47df-ae1b-39f86fabeacc",
+        "name": "Mansarover Indian Restaurant",
+        "country": "HK",
+        "texts": ["東涌道下嶺皮二十一座"]
+      },
+      {
+        "id": "9a971f1c-7589-4d59-b2ee-14e0ea4a544c",
+        "name": "Tung Chung Fort",
+        "country": "HK",
+        "texts": ["Tung Chung Rd"]
+      },
+      {
+        "id": "d6fd0f56-852c-4d4f-83a1-0bee8b3a7d3f",
+        "name": "Welcome Beach",
+        "country": "HK",
+        "texts": ["South Lantau Road"]
+      },
+      {
+        "id": "311cd7c5-95f6-4d9c-961d-3a934fee08e2",
+        "name": "貝澳海灘",
+        "country": "HK",
+        "texts": ["Tung Chung Road"]
+      },
+      {
+        "id": "6ef26c39-17a7-44bd-b1ea-e7aba38019cb",
+        "name": "大嶼山貝澳",
+        "country": "HK",
+        "texts": ["離島大嶼山嶼南道"]
+      },
+      {
+        "id": "3e1947ad-d109-4242-b486-9305769a1e28",
+        "name": "Pui O Playground",
+        "country": "HK",
+        "texts": ["Chi Ma Wan Rd"]
+      },
+      {
+        "id": "bf023ef9-cd67-44d5-9086-3e813ea76b13",
+        "name": "Shap Long San Tsuen",
+        "country": "HK",
+        "texts": ["Chi Ma Wan Rd"]
+      },
+      {
+        "id": "4d5e1e17-9db2-4a7c-a4d8-15de62155776",
+        "name": "金銘潮州粥粉麵",
+        "country": "HK",
+        "texts": ["Yat Tung St, 100號舖"]
+      },
+      {
+        "id": "ab160840-de8c-4e8d-8b81-09561180fa1f",
+        "name": "東涌逸東村",
+        "country": "HK",
+        "texts": ["Yat Tung Street"]
+      },
+      {
+        "id": "e520bbaa-24bc-48f1-9c1c-04422279926a",
+        "name": "Circle K",
+        "country": "HK",
+        "texts": ["Yat Tung Street"]
+      },
+      {
+        "id": "15db1c05-4d71-4a3b-8ed2-f97fa78acae3",
+        "name": "Tung Chung Battery Trail",
+        "country": "HK",
+        "texts": ["Tung Chung Rd"]
+      },
+      {
+        "id": "14a598a5-dda7-4b81-a566-68492b8b5020",
+        "name": "幸運禮品店 Lucky Gift Shop",
+        "country": "HK",
+        "texts": ["達東路花園2號商鋪"]
+      },
+      {
+        "id": "b2a573bb-e97e-4e39-bd0c-1d87b208ee04",
+        "name": "Tung Chung Community Garden",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "9644315e-424e-454c-b59c-ab89b9085353",
+        "name": "Union Shoes",
+        "country": "HK",
+        "texts": ["東涌順東路"]
+      },
+      {
+        "id": "3a9fb9b6-b1f1-4ba9-9c57-e8ef40a547da",
+        "name": "Yu Tung Court / Shun Tung Road Bus Stop 裕東苑／順東路巴士站",
+        "country": "HK",
+        "texts": ["Shun Tung Rd"]
+      },
+      {
+        "id": "bee7aca7-e302-4d1e-92f6-3a4a50b3c4f2",
+        "name": "奇趣樂園學習中心Fun Paradise Learning Centre",
+        "country": "HK",
+        "texts": ["Man Tung Road"]
+      },
+      {
+        "id": "1ad6fa5a-b1c0-420a-812f-488ef6103dc4",
+        "name": "裕東苑 Yu Tung Court - 達東路33號",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "260d5c28-bfc0-4682-9ac0-530a566cdfdf",
+        "name": "SIXA",
+        "country": "HK",
+        "texts": ["6/f Tong Chong St"]
+      },
+      {
+        "id": "63b7d055-2888-478f-b17f-c12e2eb0f232",
+        "name": "Mannings",
+        "country": "HK",
+        "texts": ["5/f Tat Tung Rd"]
+      },
+      {
+        "id": "f1f78285-3c9d-4ffe-ad5a-d75906f38912",
+        "name": "MTR Tung Chung Station",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "3df2d6d4-1916-4816-8d84-80cb56c5fb0b",
+        "name": "Vilebrequin",
+        "country": "HK",
+        "texts": ["2/f Tong Chong St"]
+      },
+      {
+        "id": "1a5b6332-d15b-412d-bc46-d444549ad08a",
+        "name": "MTR Tung Chung Station Platform 1 東涌站1號月台",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "bcfbee72-141f-457d-bfa7-b0e061f4d038",
+        "name": "東涌巴士總站",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "c96ff94f-3eb1-4f05-b7cc-cf760736799d",
+        "name": "The Silveri Hotel Hong Kong - MGallery Collection",
+        "country": "HK",
+        "texts": ["Tat Tung Road Tung Chung 16"]
+      },
+      {
+        "id": "781880fa-82c4-4a89-a5bd-194fa86e5b1b",
+        "name": "保良局張潘美意幼稚園 Po Leung Kuk Cheung Poon Mei Yee Kindergarten",
+        "country": "HK",
+        "texts": ["1/f Ning Foo St"]
+      },
+      {
+        "id": "ce746599-520c-4a4c-acb7-96627d00c460",
+        "name": "Cumberland Presbyterian Church Green Pasture Kindergarten",
+        "country": "HK",
+        "texts": ["2/F, Fu Tung Mall, Shun Tung Rd"]
+      },
+      {
+        "id": "9807f860-8ac8-4676-926a-fe3e0fb673ec",
+        "name": "Fu Tung 118 Alteration Services",
+        "country": "HK",
+        "texts": ["Fu Tung St"]
+      },
+      {
+        "id": "a815e9d4-14e9-4ce0-b89e-cb1d271b77d4",
+        "name": "Novotel Hong Kong Citygate",
+        "country": "HK",
+        "texts": ["Man Tung Road Tung Chung 51"]
+      },
+      {
+        "id": "b1b15409-a359-4ecf-a7ac-43e16007e831",
+        "name": "Essence",
+        "country": "HK",
+        "texts": ["Man Tung Road Tung Chung 51"]
+      },
+      {
+        "id": "dd62725b-1f00-44b4-b360-c1b9d059d149",
+        "name": "Andante",
+        "country": "HK",
+        "texts": ["Man Tung Road Tung Chung 51"]
+      },
+      {
+        "id": "ecff0a30-319c-4521-ae9e-7e424c987d7d",
+        "name": "Tung Chung North Park Chinese Herb Garden",
+        "country": "HK",
+        "texts": ["Man Tung Rd"]
+      },
+      {
+        "id": "8ee61088-b898-4a66-bc78-5f65dad6257d",
+        "name": "Little Stars at Play",
+        "country": "HK",
+        "texts": ["North Park, Man Tung Road"]
+      },
+      {
+        "id": "5e5aa350-9884-4a29-9c55-c4ed51210e44",
+        "name": "Shell",
+        "country": "HK",
+        "texts": ["Scenic Road J/O Chek Lap Kok"]
+      },
+      {
+        "id": "dddefbfb-959d-4839-9cc3-dc0d9283a991",
+        "name": "Tat Tung Road Garden",
+        "country": "HK",
+        "texts": ["Tat Tung Rd"]
+      },
+      {
+        "id": "b44b6882-3c26-4bc4-8f37-62d675d80e5f",
+        "name": "Sport Spot",
+        "country": "HK",
+        "texts": ["東涌 達東路花園 1號鋪東涌"]
+      }
+    ]
+  }
+}

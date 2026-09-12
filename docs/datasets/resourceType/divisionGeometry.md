@@ -2,8 +2,8 @@
 
 `divisionArea` and `divisionBoundary` are geometry companions to the `division` API
 family. They are logical resource types with provider-specific variants; each provider
-assertion has its own source snapshot and canonical history/current rows. Geometry is
-never merged implicitly across providers.
+source record has its own source snapshot and canonical history/current rows. Geometry
+is never merged implicitly across providers.
 
 The normative contract is in
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). Provider facts and
@@ -17,8 +17,8 @@ Canonical `type` may be `land`, `maritime`, or `mixed`; `mixed` is used when bot
 and territorial coverage flags are true.
 
 The canonical layer normalises relationship IDs, preserves bbox and transformed
-geometry, records source keys and provenance, and keeps provider flags exactly as
-received. Source-specific fields remain available through `rawProperties` and the source
+geometry, records provider identifiers and provenance, and keeps provider flags exactly
+as received. Source-specific fields remain available through `properties` and the source
 tables. External identifiers are resolved through reviewed bridge fixtures when they do
 not equal canonical IDs.
 

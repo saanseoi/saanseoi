@@ -179,12 +179,14 @@ Shared behaviour:
 
 ## Latest Release Rollback
 
-`saanseoi rollback:release --release <release-id|code>` can generate and import rollback
-SQL for the active latest release of a supported resourceType. Rollback SQL removes the
-latest release's current snapshot rows, deletes source/history rows inserted for that
-release, reopens rows that were closed by that release, resets previous published
-release metadata, and removes the latest release metadata. A non-dry-run import requires
-confirmation; automation must opt in explicitly with `--yes`.
+`saanseoi rollback:release --release <release-id|code>` reconstructs the selected
+published predecessor from retained history, validates its dependencies and seals the
+current row differences. Publication gates prevent partial responses; search and
+readiness finish together after the new catalogue selection. Published source/history
+evidence and old catalogues remain retained. Statistics restores only affected exact
+periods, and geometry retains independent cohorts and variants. `--dry-run` prepares a
+preview; execution requires confirmation or `--yes`. Interrupted delivery resumes the
+same sealed plan with `sql:resume --plan <directory>`.
 
 ## API Metadata
 

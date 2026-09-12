@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "packageManager": "bun@1.4.0",
+  "packageManager": "bun@1.4.2",
   "bin": {
     "saanseoi": "./bin/saanseoi"
   },
@@ -58,8 +58,10 @@
     "db:studio:production:meta": "bun run --filter @repo/db db:studio:production:meta",
     "db:studio:production:current": "bun run --filter @repo/db db:studio:production:current",
     "db:studio:production:history": "bun run --filter @repo/db db:studio:production:history",
+    "db:studio:production:history:before": "bun run --filter @repo/db db:studio:production:history:before",
     "db:studio:production:history:2025": "bun run --filter @repo/db db:studio:production:history:2025",
     "db:studio:production:source": "bun run --filter @repo/db db:studio:production:source",
+    "db:studio:production:source:before": "bun run --filter @repo/db db:studio:production:source:before",
     "db:studio:production:source:2025": "bun run --filter @repo/db db:studio:production:source:2025",
     "db:dump:preview": "bun run --filter @repo/db db:dump:preview",
     "db:dump:production": "bun run --filter @repo/db db:dump:production",
@@ -104,6 +106,7 @@
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
+    "review:release-tabs": "bun run --cwd ./apps/atlas-app review:release-tabs",
     "build": "turbo run build --filter=atlas-api --filter=atlas-app --filter=basemap-tiles --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",
     "build:preview": "turbo run build:preview --filter=atlas-api --filter=atlas-app --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",
     "build:production": "turbo run build:production --filter=atlas-api --filter=atlas-app --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers && bun run --filter=basemap-tiles build",
@@ -124,21 +127,21 @@
     "cf-typegen": "bun run --workspaces --if-present cf-typegen"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.25.0",
-    "bits-ui": "^2.19.0",
-    "bun-types": "^1.4.0",
+    "@inlang/paraglide-js": "^2.25.1",
+    "bits-ui": "^2.19.2",
+    "bun-types": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.11",
-    "@changesets/cli": "^3.0.1",
+    "@biomejs/biome": "^2.5.13",
+    "@changesets/cli": "^3.0.2",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
-    "@iconify-json/simple-icons": "^1.2.94",
+    "@iconify-json/simple-icons": "^1.2.95",
     "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.3",
-    "@types/bun": "latest",
+    "@types/bun": "1.4.2",
     "branch-name-lint": "^3.0.1",
     "comment-json": "^5.0.0",
     "drizzle-kit": "1.0.0-rc.4-5d5b77c",
@@ -147,7 +150,7 @@
     "prettier": "^3.9.6",
     "tailwindcss-animate": "^1.0.7",
     "turbo": "^2.10.12",
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.131.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
@@ -163,6 +166,8 @@
     "url": "https://github.com/saanseoi/saanseoi/issues"
   },
   "patchedDependencies": {
-    "runed@0.35.1": "patches/runed@0.35.1.patch"
+    "runed@0.35.1": "patches/runed@0.35.1.patch",
+    "@clack/prompts@1.8.0": "patches/@clack%2Fprompts@1.8.0.patch",
+    "drizzle-kit@1.0.0-rc.4-5d5b77c": "patches/drizzle-kit@1.0.0-rc.4-5d5b77c.patch"
   }
 }

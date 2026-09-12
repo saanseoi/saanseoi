@@ -19,21 +19,21 @@
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun-types": "^1.4.0",
+    "@types/bun": "1.4.2",
+    "bun-types": "^1.4.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11",
-    "wrangler": "^4.127.1"
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.0"
   },
   "dependencies": {
-    "@hono/zod-openapi": "^1.6.1",
-    "@aws-sdk/client-s3": "^3.1121.0",
-    "@aws-sdk/s3-request-presigner": "^3.1121.0",
+    "@hono/zod-openapi": "^1.6.3",
+    "@aws-sdk/client-s3": "^3.1130.0",
+    "@aws-sdk/s3-request-presigner": "^3.1130.0",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
-    "@scalar/hono-api-reference": "^0.12.0",
-    "@scalar/openapi-to-markdown": "^0.5.43",
-    "hono": "^4.13.5",
-    "zod": "^4.5.4"
+    "@scalar/hono-api-reference": "^0.12.1",
+    "@scalar/openapi-to-markdown": "^0.5.44",
+    "hono": "^4.13.7",
+    "zod": "^4.6.2"
   }
 }

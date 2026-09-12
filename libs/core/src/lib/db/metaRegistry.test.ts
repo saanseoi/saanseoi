@@ -1,9 +1,12 @@
+import { initialDatasets } from '@repo/db/registry'
 import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@overture-1.16-to-1.18.json'
+import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
+import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
+import { metaSchema } from '@repo/db'
 import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
@@ -99,7 +102,8 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
       regionCode TEXT,
@@ -158,7 +162,7 @@ function createRegistryReleasesDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT,
+      resourceReleaseId TEXT,
       role TEXT NOT NULL
     );
 
@@ -173,6 +177,7 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL
@@ -184,16 +189,13 @@ function createRegistryReleasesDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
       code TEXT NOT NULL,
-      subType TEXT
+      kind TEXT
     );
 
-    CREATE TABLE datasetResourceTypes (
-      datasetId TEXT NOT NULL,
-      resourceType TEXT NOT NULL
-    );
 
     CREATE TABLE datasetI18n (
       datasetId TEXT NOT NULL,
@@ -206,11 +208,16 @@ function createRegistryReleasesDb() {
       releaseId TEXT NOT NULL,
       action TEXT NOT NULL,
       mode TEXT NOT NULL,
-      summary TEXT NOT NULL,
+      generation TEXT NOT NULL,
+      decisionCount INTEGER NOT NULL,
       affectedRecordCount INTEGER NOT NULL,
-      evidence TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
+    );
+    CREATE TABLE releaseProcessingActionChunks (
+      id TEXT PRIMARY KEY, releaseId TEXT, actionId TEXT, generation TEXT,
+      firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER,
+      encoding TEXT, checksum TEXT, payload BLOB
     );
   `)
 
@@ -310,10 +317,9 @@ describe('listRegistryReleases', () => {
         ('dataset-b', 'publisher-b', 'landsd-addresses'),
         ('dataset-c', 'publisher-c', 'overture-divisions');
 
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-a', 'address'),
-        ('dataset-b', 'address'),
-        ('dataset-c', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'dataset-a' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'dataset-b' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-c' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
 
       INSERT INTO datasetI18n (datasetId, locale, name) VALUES
         ('dataset-a', 'en', 'Hong Kong addresses'),
@@ -327,19 +333,35 @@ describe('listRegistryReleases', () => {
       INSERT INTO releases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
         ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', null);
+        ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}');
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
         ('snapshot-a', 'dataset-c', 'source-release-c', 'primary'),
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
 
       INSERT INTO releaseProcessingActions (
-        id, releaseId, action, mode, summary, affectedRecordCount, evidence, createdAt, updatedAt
+        id, releaseId, action, mode, generation, affectedRecordCount, decisionCount, createdAt, updatedAt
       ) VALUES
-        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'Normalised source A', 5, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
-        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'Normalised source B', 3, '{}', '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
+        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'g1', 5, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
+        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'g1', 3, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
     `)
+    for (const parent of await db
+      .select()
+      .from(metaSchema.releaseProcessingActions)
+      .all()) {
+      const chunks = await encodeAuditGroup(parent, [
+        {
+          action: parent.action,
+          mode: parent.mode,
+          summary: `Normalised source ${parent.id === 'action-a' ? 'A' : 'B'}`,
+          affectedRecordCount: parent.affectedRecordCount,
+          evidence: {},
+        },
+      ])
+      for (const chunk of chunks)
+        await db.insert(metaSchema.releaseProcessingActionChunks).values(chunk).run()
+    }
 
     const [release] = await listRegistryReleases(db as never)
     if (!release) throw new Error('Expected API release to be returned.')
@@ -347,12 +369,12 @@ describe('listRegistryReleases', () => {
     expect(release.processingActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'action-a',
+          id: 'action-a:g1:0',
           sourceCode: 'hkgov-als',
           sourceReleaseCode: '2026-07-15',
         }),
         expect.objectContaining({
-          id: 'action-b',
+          id: 'action-b:g1:0',
           sourceCode: 'landsd-addresses',
           sourceReleaseCode: '2026-07-15',
         }),
@@ -376,7 +398,7 @@ describe('listRegistryReleases', () => {
           publisherCode: 'hkgov-als',
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
-          subType: null,
+          kind: null,
           datasetI18n: [
             { datasetId: 'dataset-a', locale: 'en', name: 'Hong Kong addresses' },
             { datasetId: 'dataset-a', locale: 'zh-Hant', name: '香港地址' },
@@ -386,7 +408,7 @@ describe('listRegistryReleases', () => {
           publisherCode: 'landsd',
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
-          subType: null,
+          kind: null,
         }),
       ]),
     )
@@ -440,8 +462,8 @@ describe('listRegistryReleases', () => {
         releaseCode: 'data-hk-addresses-2026-07-15.0',
       },
     )
-    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
-    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
+    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b:g1:0'])
+    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a:g1:0'])
 
     const sourceActionSections =
       await listRegistrySourceReleaseProcessingActionSections(db as never, {
@@ -466,7 +488,7 @@ describe('listRegistryReleases', () => {
         releaseCode: 'dr-hk-addresses-2026-07-15',
       },
     )
-    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a'])
+    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a:g1:0'])
     sqlite.close()
   })
 })
@@ -544,6 +566,10 @@ function createDraftSnapshotDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    CREATE TABLE releases(id TEXT PRIMARY KEY,status TEXT NOT NULL);
+    CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT NOT NULL,snapshotId TEXT NOT NULL);
+    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT NOT NULL,apiReleaseSetId TEXT NOT NULL);
+    CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT NOT NULL,regionCode TEXT NOT NULL,status TEXT NOT NULL,publishedAt TEXT NOT NULL,revision INTEGER NOT NULL);
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL UNIQUE,
@@ -581,7 +607,8 @@ function createDraftSnapshotDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL
+      resourceReleaseId TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'primary'
     );
   `)
 
@@ -628,7 +655,8 @@ function createDraftReleaseSetDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiCompositionId TEXT,
       code TEXT NOT NULL,
@@ -684,7 +712,10 @@ function createSnapshotAssemblyRunDb() {
       resourceType TEXT NOT NULL,
       version INTEGER NOT NULL,
       status TEXT NOT NULL,
-      createdAt TEXT NOT NULL
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT,
+      notes TEXT,
+      versionHash TEXT
     );
 
     CREATE TABLE snapshotAssemblyRuns (
@@ -709,6 +740,11 @@ function createSnapshotAssemblyRunDb() {
       'current',
       '2026-07-03T00:00:00.000Z'
     );
+    CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT, cohortKey TEXT);
+    INSERT INTO snapshots VALUES ('snapshot-division', 'division', 'draft', '2025-09-24.0');
+    CREATE TABLE snapshotSources (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
+    INSERT INTO snapshotSources VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'snapshot-assembly-division-v1', 'exact_ref', 'release-division', '2025-09-24.0');
+    CREATE TABLE snapshotAssemblySources (snapshotAssemblyId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, selectorType TEXT, anchorDatasetId TEXT, maxLagDays INTEGER, priority INTEGER, selectionRulesJson TEXT, PRIMARY KEY(snapshotAssemblyId, datasetId, role));
   `)
 
   return {
@@ -727,6 +763,7 @@ function createRegionalSnapshotLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
       regionCode TEXT NOT NULL
@@ -746,7 +783,7 @@ function createRegionalSnapshotLookupDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
 
@@ -772,6 +809,7 @@ function createLatestDatasetLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -809,6 +847,7 @@ function createLatestDatasetLookupDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -831,11 +870,6 @@ function createLatestDatasetLookupDb() {
       updatedAt TEXT NOT NULL
     );
 
-    CREATE TABLE datasetResourceTypes (
-      datasetId TEXT NOT NULL,
-      resourceType TEXT NOT NULL,
-      PRIMARY KEY (datasetId, resourceType)
-    );
   `)
 
   return {
@@ -850,12 +884,31 @@ function createCleanupCandidatesDb() {
   sqlite.exec(`
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT,
       resourceType TEXT NOT NULL,
-      status TEXT NOT NULL
+      cohortKey TEXT NOT NULL DEFAULT '2026',
+      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
+      revision INTEGER NOT NULL DEFAULT 0,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      createdAt TEXT
     );
 
+    CREATE TABLE snapshotLineages (id TEXT PRIMARY KEY, variant TEXT);
+    CREATE TABLE snapshotSources (
+      snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
+    );
+    CREATE TABLE releases (
+      id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
+    );
+    CREATE TABLE datasets (
+      id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
+    );
+    CREATE TABLE publishers (id TEXT PRIMARY KEY, code TEXT);
+
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
       status TEXT NOT NULL
     );
@@ -900,7 +953,8 @@ function createActiveSnapshotLookupDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
       domainCode TEXT NOT NULL DEFAULT 'default',
@@ -929,6 +983,7 @@ function createActiveSnapshotLookupDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -938,7 +993,7 @@ function createActiveSnapshotLookupDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
   `)
@@ -959,6 +1014,7 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE datasets (
+      resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
       code TEXT NOT NULL
@@ -1012,7 +1068,8 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE apiReleaseSets (
-      id TEXT PRIMARY KEY,
+      publisherFields TEXT,
+id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiCompositionId TEXT,
       code TEXT NOT NULL DEFAULT 'data-hk-divisions-2026-05-20.0',
@@ -1062,8 +1119,10 @@ function createPublishReleaseArtefactsDb() {
       sourceReleaseId TEXT,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
+      processingRules TEXT,
       releaseNotesUrl TEXT,
       notes TEXT,
+      resourceType TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
@@ -1072,6 +1131,7 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE sourceReleases (
+      expectedResourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -1082,7 +1142,7 @@ function createPublishReleaseArtefactsDb() {
     CREATE TABLE snapshotSources (
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
-      sourceReleaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'primary'
     );
 
@@ -1099,12 +1159,14 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE apiFieldProvenance (
-      id TEXT PRIMARY KEY,
+      resourceType TEXT NOT NULL,
+id TEXT PRIMARY KEY,
       apiReleaseSetId TEXT NOT NULL,
       apiField TEXT NOT NULL,
       variant TEXT,
       sourceDatasetId TEXT NOT NULL,
-      sourceFieldPath TEXT NOT NULL,
+      inputs TEXT NOT NULL,
+      resolverRules TEXT NOT NULL,
       resolverCode TEXT NOT NULL,
       contributionType TEXT NOT NULL,
       priority INTEGER NOT NULL,
@@ -1164,7 +1226,7 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-censtatd-annual', '2024', '1.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
 
-    INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+    INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
       ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
       ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
@@ -1172,12 +1234,19 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
+  for (const dataset of initialDatasets) {
+    sqlite
+      .query(
+        `UPDATE releases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotSources ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
+      )
+      .run(JSON.stringify(dataset.processingRules), dataset.code)
+  }
 }
 
 function sortProvenanceRows(
   rows: Array<{
     apiField: string
-    sourceFieldPath: string
+    inputs: string
   }>,
 ) {
   return rows
@@ -1185,7 +1254,7 @@ function sortProvenanceRows(
     .sort(
       (left, right) =>
         left.apiField.localeCompare(right.apiField) ||
-        left.sourceFieldPath.localeCompare(right.sourceFieldPath),
+        left.inputs.localeCompare(right.inputs),
     )
 }
 
@@ -1603,7 +1672,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
     sqlite
       .query(
-        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
       )
       .run(exact.id, base.datasetId, base.sourceReleaseId)
     const simplified = await ensureDraftSnapshotForRelease(
@@ -1616,7 +1685,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     )
     sqlite
       .query(
-        'INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
       )
       .run(simplified.id, base.datasetId, base.sourceReleaseId)
 
@@ -1640,7 +1709,7 @@ describe('ensureDraftSnapshotForRelease', () => {
             FROM snapshots s
             INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
-            WHERE ss.sourceReleaseId = ?
+            WHERE ss.resourceReleaseId = ?
             ORDER BY sl.variant
           `,
         )
@@ -1715,6 +1784,159 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
     expect(later.parentSnapshotId).toBeNull()
     sqlite.close()
+  })
+
+  for (const withdrawnSourceStatus of ['revoked', 'published'])
+    test(`parents forward ingestion to the restored catalogue branch with withdrawn source ${withdrawnSourceStatus}`, async () => {
+      const { db, sqlite } = createDraftSnapshotDb()
+      try {
+        const args = {
+          cohortKey: '2026',
+          datasetCode: 'ds-hk-overture-division',
+          datasetId: 'dataset',
+          regionCode: 'hk',
+          sourceReleaseId: 'source-a',
+          variant: 'overture',
+        }
+        const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+        sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+        const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          sourceReleaseId: 'source-b',
+        })
+        sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
+        sqlite.query('INSERT INTO releases VALUES (?,?)').run('source-a', 'published')
+        sqlite
+          .query('INSERT INTO releases VALUES (?,?)')
+          .run('source-b', withdrawnSourceStatus)
+        sqlite
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
+          .run(a.id, 'dataset', 'source-a')
+        sqlite
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
+          .run(b.id, 'dataset', 'source-b')
+        sqlite
+          .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
+          .run('set-a', a.id)
+        sqlite
+          .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
+          .run('set-b', b.id)
+        sqlite.exec(
+          "INSERT INTO apiCatalogRevisions VALUES ('catalog-b','api','hk','current','2026-01-01',0),('catalog-restored','api','hk','current','2026-01-02',0)",
+        )
+        sqlite.exec(
+          "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-b','set-b'),('catalog-restored','set-a')",
+        )
+        const c = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          sourceReleaseId: 'source-c',
+        })
+        expect(c.parentSnapshotId).toBe(a.id)
+        expect(c.code).toBe('ss-hk-division-2026-r2')
+        expect(
+          sqlite.query('SELECT status FROM snapshots WHERE id=?').get(b.id),
+        ).toEqual({ status: 'published' })
+        const later = await ensureDraftSnapshotForRelease(db as never, 'division', {
+          ...args,
+          cohortKey: '2027',
+          sourceReleaseId: 'source-later',
+        })
+        expect(later.parentSnapshotId).toBe(a.id)
+        sqlite
+          .query('UPDATE snapshots SET parentSnapshotId=? WHERE id=?')
+          .run(b.id, c.id)
+        sqlite
+          .query(
+            'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          )
+          .run(c.id, 'dataset', 'source-c')
+        await expect(
+          ensureDraftSnapshotForRelease(db as never, 'division', {
+            ...args,
+            sourceReleaseId: 'source-c',
+          }),
+        ).rejects.toThrow('predecessor is no longer selected')
+        await expect(
+          ensureDraftSnapshotForRelease(db as never, 'division', {
+            ...args,
+            sourceReleaseId: 'source-d',
+          }),
+        ).rejects.toThrow('predecessor is no longer selected')
+      } finally {
+        sqlite.close()
+      }
+    })
+
+  test('an empty restored catalogue resets ancestry while retaining monotonically increasing revision numbers', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    try {
+      const args = {
+        cohortKey: '2026',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset',
+        regionCode: 'hk',
+        sourceReleaseId: 'source-a',
+        variant: 'overture',
+      }
+      const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-a', a.id)
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisions VALUES ('catalog-a','api','hk','current','2026-01-01',0),('catalog-empty','api','hk','current','2026-01-02',0)",
+      )
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-a','set-a')",
+      )
+      const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        sourceReleaseId: 'source-b',
+      })
+      expect(b.parentSnapshotId).toBeNull()
+      expect(b.code).toBe('ss-hk-division-2026-r1')
+    } finally {
+      sqlite.close()
+    }
+  })
+
+  test('accepted historical cohorts remain eligible parents even when they are not the latest cohort', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    try {
+      const args = {
+        cohortKey: '2025',
+        datasetCode: 'ds-hk-overture-division',
+        datasetId: 'dataset',
+        regionCode: 'hk',
+        sourceReleaseId: 'source-a',
+        variant: 'overture',
+      }
+      const a = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(a.id)
+      const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        cohortKey: '2026',
+        sourceReleaseId: 'source-b',
+      })
+      sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-a', a.id)
+      sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run('set-b', b.id)
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisions VALUES ('catalog','api','hk','current','2026-01-01',0)",
+      )
+      sqlite.exec(
+        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog','set-a'),('catalog','set-b')",
+      )
+      const revision = await ensureDraftSnapshotForRelease(db as never, 'division', {
+        ...args,
+        sourceReleaseId: 'source-a-revised',
+      })
+      expect(revision.parentSnapshotId).toBe(a.id)
+    } finally {
+      sqlite.close()
+    }
   })
 
   test('normalises a v0 lineage code while retaining its referenced id', async () => {
@@ -1907,7 +2129,7 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionExcludingId', () =>
         ('snapshot-hk-new', 'division', 'hk-new', 'published', 1760002000000, 1760002000000),
         ('snapshot-mo-newer', 'division', 'mo-newer', 'published', 1760004000000, 1760004000000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-hk-draft', 'dataset-hk', 'release-hk-draft', 'primary'),
         ('snapshot-hk-old', 'dataset-hk', 'release-hk-old', 'primary'),
         ('snapshot-hk-new', 'dataset-hk', 'release-hk-new', 'primary'),
@@ -1939,9 +2161,8 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division'),
         ('dataset-pland-new-town', 'publisher-pland', 'ds-hk-hkgov-pland-division-new-town', 'hk', 'divisions', 'division');
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-pland-pu', 'division'),
-        ('dataset-pland-new-town', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-pu' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-new-town' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
     `)
 
     await insertDataset(
@@ -1953,7 +2174,7 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -1968,7 +2189,7 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-new-town-2006',
         source: 'hkgov-pland-new-town',
         sourceVersion: '2006',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-new-town/2006/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -2104,8 +2325,7 @@ describe('source release lifecycle status', () => {
       INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
-      INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-        ('dataset-pland-pu', 'division');
+      UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-pland-pu' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
     `)
 
     await insertDataset(
@@ -2117,7 +2337,7 @@ describe('source release lifecycle status', () => {
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
-        type: 'division',
+        resourceType: 'division',
       } as never,
       'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
@@ -2361,13 +2581,24 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
       listCurrentSnapshotCleanupCandidates(db as never, {
         resourceType: 'divisionArea',
       }),
-    ).resolves.toEqual([])
+    ).resolves.toEqual([
+      {
+        snapshotId: 'snapshot-published-area-variant',
+        resourceType: 'divisionArea',
+      },
+    ])
 
     await expect(
       listCurrentSnapshotCleanupCandidates(db as never, {
         resourceType: 'divisionBoundary',
       }),
-    ).resolves.toEqual([])
+    ).resolves.toEqual([
+      {
+        snapshotId: 'snapshot-published-boundary-variant',
+        resourceType: 'divisionBoundary',
+      },
+    ])
+    sqlite.close()
   })
 })
 
@@ -2380,12 +2611,13 @@ describe('resolveActiveSnapshotForType', () => {
         ('api-version-place', 'api-places-v0.1');
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, schemaVersion, rulesetVersion, status, publishedAt, createdAt
+        id, apiVersionId, code, domainCode, schemaVersion, rulesetVersion, status, publishedAt, createdAt
       ) VALUES
         (
           'release-set-hk',
           'api-version-place',
           'rs-hk-place-2026-05',
+          'place',
           'sv-place-v1',
           'rs-place-v1',
           'current',
@@ -2396,6 +2628,7 @@ describe('resolveActiveSnapshotForType', () => {
           'release-set-mo',
           'api-version-place',
           'rs-mo-place-2026-05',
+          'place',
           'sv-place-v1',
           'rs-place-v1',
           'current',
@@ -2417,13 +2650,14 @@ describe('resolveActiveSnapshotForType', () => {
         ('dataset-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk'),
         ('dataset-mo-place', 'publisher-overture', 'ds-mo-overture-place', 'mo');
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-hk-place', 'dataset-hk-place', 'release-hk-place', 'primary'),
         ('snapshot-mo-place', 'dataset-mo-place', 'release-mo-place', 'primary');
     `)
 
     await expect(
-      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+      resolveActiveSnapshotForType(db as never, 'place', {
+        domainCode: 'place',
         regionCode: 'hk',
       }),
     ).resolves.toMatchObject({
@@ -2432,7 +2666,8 @@ describe('resolveActiveSnapshotForType', () => {
     })
 
     await expect(
-      resolveActiveSnapshotForType(db as never, 'place', 'place', {
+      resolveActiveSnapshotForType(db as never, 'place', {
+        domainCode: 'place',
         regionCode: 'mo',
       }),
     ).resolves.toMatchObject({
@@ -2459,7 +2694,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
         ('overture-division-2025', NULL, 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-division-2025', 'dataset-overture-division', 'release-overture-division-2025', 'primary');
     `)
 
@@ -2495,7 +2730,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
         ('overture-division-area-2025', NULL, 'divisionArea', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-division-area-2025', 'dataset-overture-division-area', 'release-overture-division-area-2025', 'primary');
     `)
 
@@ -2539,7 +2774,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         ('pland-pu-2006', 'lineage-pland-pu', 'division', 'ss-hk-division-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
         ('pland-new-town-2006', 'lineage-pland-new-town', 'division', 'ss-hk-division-hkgov-pland-new-town-2006', '2006', 'published', 1136073600001, 1136073600001);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('pland-pu-2006', 'dataset-pland-pu', 'release-pland-pu-2006', 'primary'),
         ('pland-new-town-2006', 'dataset-pland-new-town', 'release-pland-new-town-2006', 'primary');
     `)
@@ -2579,7 +2814,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       ) VALUES
         ('censtatd-authoritative-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.0', '2024', 'authoritative', 'published', 1735689600000, 1735689600000),
         ('censtatd-fallback-2024', 'lineage-censtatd', 'divisionArea', 'ss-hk-division-area-censtatd-2024.1', '2024', 'fallback', 'published', 1767225600000, 1767225600000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('censtatd-authoritative-2024', 'dataset-censtatd', 'release-censtatd-2024', 'primary'),
         ('censtatd-fallback-2024', 'dataset-censtatd', 'release-censtatd-2026-q2', 'primary');
     `)
@@ -2625,7 +2860,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('had-area-2022', 'lineage-had-area', 'divisionArea', 'ss-hk-division-area-2022', '2022', 'published', 1654041600000, 1654041600000),
         ('had-area-future', 'lineage-had-area', 'divisionArea', 'ss-hk-division-area-2026', '2026', 'published', 1767225600000, 1767225600000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-area-older', 'dataset-overture-area', 'release-overture-area-older', 'primary'),
         ('overture-area-current', 'dataset-overture-area', 'release-overture-area-current', 'primary'),
         ('had-area-2022', 'dataset-had-area', 'release-had-area-2022', 'primary'),
@@ -2673,7 +2908,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('censtatd-area-2016', 'lineage-censtatd-2016', 'divisionArea', 'ss-hk-division-area-censtatd-2016', '2016', 'published', 1451606400000, 1451606400000),
         ('censtatd-area-2021', 'lineage-censtatd-2021', 'divisionArea', 'ss-hk-division-area-censtatd-2021', '2021', 'published', 1609459200000, 1609459200000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('censtatd-area-2016', 'dataset-censtatd-area', 'release-censtatd-area-2016', 'primary'),
         ('censtatd-area-2021', 'dataset-censtatd-area', 'release-censtatd-area-2021', 'primary');
     `)
@@ -2734,7 +2969,7 @@ describe('resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey', ()
         ('pland-pu-area-2006', 'lineage-pland-pu-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
         ('pland-new-town-area-2006', 'lineage-pland-new-town-area', 'divisionArea', 'ss-hk-division-area-hkgov-pland-new-town-2006', '2006', 'published', 1136073600000, 1136073600000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('pland-pu-area-2006', 'dataset-pland-pu-area', 'release-pland-pu-area-2006', 'primary'),
         ('pland-new-town-area-2006', 'dataset-pland-new-town-area', 'release-pland-new-town-area-2006', 'primary');
     `)
@@ -2786,7 +3021,7 @@ describe('resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKe
         ('overture-later', 'division', 'ss-hk-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
         ('other-earlier', 'division', 'ss-hk-division-2024-01', '2024-01', 'published', 1704067200000, 1704067200000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
         ('overture-later', 'dataset-overture-division', 'release-overture-later', 'primary'),
         ('other-earlier', 'dataset-other-division', 'release-other-earlier', 'primary');
@@ -2827,7 +3062,7 @@ describe('listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey', () => 
       ) VALUES
         ('overture-first', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
         ('overture-second', 'division', 'ss-hk-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
         ('overture-second', 'dataset-overture-division', 'release-overture-second', 'primary');
     `)
@@ -2864,7 +3099,7 @@ describe('resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey
       ) VALUES
         ('overture-earlier', 'division', 'ss-hk-division-2023-06-01.0', '2023-06-01.0', 'published', 1685577600000, 1685577600000),
         ('overture-future', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('overture-earlier', 'dataset-overture-division', 'release-overture-earlier', 'primary'),
         ('overture-future', 'dataset-overture-division', 'release-overture-future', 'primary');
     `)
@@ -2900,7 +3135,8 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
       );
 
       CREATE TABLE apiReleaseSets (
-        id TEXT PRIMARY KEY,
+        publisherFields TEXT,
+id TEXT PRIMARY KEY,
         apiVersionId TEXT NOT NULL,
         regionCode TEXT NOT NULL,
         domainCode TEXT NOT NULL,
@@ -2929,7 +3165,7 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
         ('snapshot-overture-2026', 'division', 'ss-hk-division-2026', 'published', 1),
         ('snapshot-had', 'division', 'ss-hk-division-had', 'published', 1);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-overture-2025-r0', 'dataset-overture', 'release-overture-2025-r0', 'primary'),
         ('snapshot-overture-2025-r1', 'dataset-overture', 'release-overture-2025-r1', 'primary'),
         ('snapshot-overture-2026', 'dataset-overture', 'release-overture-2026', 'primary'),
@@ -3017,6 +3253,7 @@ describe('publishReleaseArtefacts', () => {
 
       INSERT INTO sourceReleases (id, status, revokedAt, revocationReason, updatedAt) VALUES
         ('source-release-1', 'staged', null, null, 1760000000000);
+      UPDATE sourceReleases SET expectedResourceTypes = '["division"]' WHERE id = 'source-release-1';
 
       INSERT INTO releases (
         id, sourceReleaseId, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
@@ -3032,7 +3269,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-curated', 'dataset-overture-division', 'release-1'),
         ('snapshot-new', 'dataset-overture-division', 'release-1');
 
@@ -3050,6 +3287,7 @@ describe('publishReleaseArtefacts', () => {
       );
     `)
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
+    sqlite.run("UPDATE releases SET resourceType = 'division' WHERE id = 'release-1'")
 
     const catalogRevision = await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
@@ -3064,7 +3302,7 @@ describe('publishReleaseArtefacts', () => {
       publishedAt: '2026-06-29T00:00:00.000Z',
       releaseSetId: 'release-set-1',
       snapshotId: 'snapshot-new',
-      type: 'division',
+      resourceType: 'division',
     })
 
     expect(catalogRevision).toMatchObject({
@@ -3137,21 +3375,34 @@ describe('publishReleaseArtefacts', () => {
 
     expect(linkedSnapshotIds).toEqual([{ snapshotId: 'snapshot-new' }])
 
+    const mapping = sqlite
+      .query('SELECT publisherFields FROM apiReleaseSets WHERE id = ?')
+      .get('release-set-1') as { publisherFields: string }
+    expect(JSON.parse(mapping.publisherFields)).toEqual(
+      divisionFixtureOverture116To118.publisherFields,
+    )
+
     const provenanceRows = sqlite
       .query(
-        'SELECT apiField, sourceFieldPath FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
+        'SELECT resourceType, apiField, inputs FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
       )
       .all('release-set-1') as Array<{
       apiField: string
-      sourceFieldPath: string
+      resourceType: string
+      inputs: string
     }>
 
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
-        divisionFixtureOverture116To118.fields.map(field => ({
-          apiField: field.apiField,
-          sourceFieldPath: field.sourceFieldPath,
-        })),
+        divisionFixtureOverture116To118.resources
+          .flatMap(group =>
+            group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
+          )
+          .map(field => ({
+            apiField: field.apiField,
+            resourceType: field.resourceType,
+            inputs: JSON.stringify(field.inputs),
+          })),
       ),
     )
 
@@ -3225,7 +3476,7 @@ describe('publishReleaseArtefacts', () => {
         ('release-overture-2026', '2026-07-22.0', '1.18.0', 'published', null, null, null, 1760000000000),
         ('release-censtatd', '2016', '1.0', 'staged', null, null, null, 1760000000000);
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId, role) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
         ('snapshot-overture', 'dataset-overture-division', 'release-overture-2025', 'primary'),
         ('snapshot-censtatd', 'dataset-hkgov-censtatd-district', 'release-censtatd', 'primary'),
         ('snapshot-censtatd', 'dataset-overture-division', 'release-overture-2026', 'lookup');
@@ -3262,7 +3513,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-08-20T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-censtatd',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
         updateDatasetRelease: false,
       }),
     ).resolves.toBeNull()
@@ -3271,7 +3522,7 @@ describe('publishReleaseArtefacts', () => {
       sqlite
         .query(
           `SELECT role FROM snapshotSources
-           WHERE snapshotId = ? AND sourceReleaseId = ?`,
+           WHERE snapshotId = ? AND resourceReleaseId = ?`,
         )
         .get('snapshot-censtatd', 'release-overture-2026'),
     ).toEqual({ role: 'lookup' })
@@ -3321,7 +3572,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
@@ -3339,7 +3590,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-new',
-        type: 'division',
+        resourceType: 'division',
       }),
     ).rejects.toThrow(
       /API field fixture not found\. Lookup:\n\{[\s\S]*"sourceSchemas"[\s\S]*\}/,
@@ -3408,7 +3659,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
@@ -3430,7 +3681,7 @@ describe('publishReleaseArtefacts', () => {
           publishedAt: '2026-06-29T00:00:00.000Z',
           releaseSetId: 'release-set-1',
           snapshotId: 'snapshot-new',
-          type: 'division',
+          resourceType: 'division',
         }),
       ).rejects.toThrow(
         'No overture source schema mapping found for sourceVersion=2026-06-24.0.',
@@ -3484,7 +3735,7 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO snapshotSources (snapshotId, datasetId, sourceReleaseId) VALUES
+      INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId) VALUES
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
@@ -3510,7 +3761,7 @@ describe('publishReleaseArtefacts', () => {
         publishedAt: '2026-06-29T00:00:00.000Z',
         releaseSetId: 'release-set-1',
         snapshotId: 'snapshot-new',
-        type: 'division',
+        resourceType: 'division',
       })
     } finally {
       globalThis.fetch = originalFetch

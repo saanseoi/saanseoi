@@ -107,8 +107,13 @@ const rendererReferences: Record<CreateAMapRenderer, CreateAMapRendererReference
   mapbox: {
     label: 'Mapbox GL JS',
     installCommand: 'bun add mapbox-gl',
-    setupInstruction:
-      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`. Do not ask for or reveal its value.',
+    setupInstruction: [
+      'Before installing Mapbox, guide me through creating or signing in to a Mapbox account at https://account.mapbox.com/auth/signup/.',
+      'Then open the Access Tokens dashboard at https://console.mapbox.com/account/access-tokens/ and select Create a token with the default public scopes.',
+      'I will complete sign-in, password confirmation and other account actions myself; stop for my confirmation before sending me to an account-linked action.',
+      'Tell me to copy only the new public token beginning with `pk.` — never a secret token beginning with `sk.` — and put it locally in `.env` as `VITE_MAPBOX_TOKEN=...`.',
+      'Do not ask me to paste or reveal the token in chat, output it, log it, commit it or add a server-side access-token exchange. Continue only after I confirm it is in `.env`.',
+    ].join(' '),
     code: [
       "import mapboxgl from 'mapbox-gl'",
       "import 'mapbox-gl/dist/mapbox-gl.css'",
@@ -326,6 +331,39 @@ export const createAMapRendererStyleCode = (
       ].join('\n')
 }
 
+/**
+ * The style step follows the basemap step. This intentionally contains only the
+ * style-specific replacement so the canonical LLM guide does not repeat the full
+ * basemap setup in a second reference block.
+ */
+export const createAMapRendererStyleUpdateCode = (
+  renderer: CreateAMapRenderer,
+  styleUrl: string,
+) =>
+  renderer === 'leaflet'
+    ? [
+        `const styleUrl = '${styleUrl}'`,
+        'const style = await fetch(styleUrl).then(response => response.json())',
+        'style.sources = {',
+        "  basemap: { type: 'vector', url: basemapUrl },",
+        '}',
+        '',
+        '// Replace the existing maplibreGL style block with:',
+        'maplibreGL({',
+        '  style,',
+        '}).addTo(map)',
+      ].join('\n')
+    : [
+        `const styleUrl = '${styleUrl}'`,
+        'const style = await fetch(styleUrl).then(response => response.json())',
+        'style.sources = {',
+        "  basemap: { type: 'vector', url: basemapUrl },",
+        '}',
+        '',
+        '// In the existing map constructor, replace the inline style object with:',
+        'style,',
+      ].join('\n')
+
 export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
   if (renderer === 'leaflet') {
     return [
@@ -343,6 +381,8 @@ export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
     ].join('\n')
   }
 
+  const popup = renderer === 'mapbox' ? 'mapboxgl.Popup' : 'maplibregl.Popup'
+
   return [
     "const places = await fetch('/features.geojson').then(response => response.json())",
     '',
@@ -351,6 +391,11 @@ export const createGeoJsonImportCode = (renderer: CreateAMapRenderer) => {
     "  map.addLayer({ id: 'places', type: 'circle', source: 'places',",
     "    paint: { 'circle-radius': 7, 'circle-color': '#2dd4bf',",
     "      'circle-stroke-width': 2, 'circle-stroke-color': '#0f766e' },",
+    '  })',
+    "  map.on('click', 'places', event => {",
+    '    const name = event.features?.[0]?.properties?.name',
+    '    if (!name) return',
+    `    new ${popup}().setLngLat(event.lngLat).setText(String(name)).addTo(map)`,
     '  })',
     '}',
     '',
@@ -369,12 +414,12 @@ export const createAMapRendererReferenceInstructions = (
   return [
     `${heading} Setup`,
     '',
+    ...(reference.setupInstruction ? [reference.setupInstruction, ''] : []),
     `Install the latest version of ${reference.label} with:`,
     '',
     '```bash',
     reference.installCommand,
     '```',
-    ...(reference.setupInstruction ? ['', reference.setupInstruction] : []),
     '',
     `${heading} Code edits`,
     '',
@@ -696,7 +741,7 @@ export const createUrbanDensityStatsCode = (
     '',
     ...savedResultComment.split('\n').map(line => `// ${line}`),
     'let savedResult: LandAnalysisResult | undefined',
-    "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
+    "const savedResultUrl = new URL('./land-analysis.json.gz', import.meta.url)",
     'try {',
     '  const savedResultResponse = await fetch(savedResultUrl)',
     '  if (savedResultResponse.ok && savedResultResponse.body) {',
@@ -717,6 +762,8 @@ export const createUrbanDensityStatsCode = (
     "const statsEndpoint = '/stats/v0.1/geographies'",
     "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
     '',
+    '// The 2024 reference period uses its latest published revision.',
+    '// To reproduce a revision, set the same releaseSet on both requests using meta.apiReleaseSet.',
     'async function getDistrictField(field: string) {',
     '  const url = new URL(statsEndpoint, apiBaseUrl)',
     "  url.searchParams.set('cohort', '2024')",
@@ -747,8 +794,7 @@ export const urbanDensityCalculationCode = [
   'type DivisionsResponse = {',
   '  data: Array<{',
   '    id: string',
-  '    attributes: { divisionCode: string; i18n?: { en?: { name?: string } } }',
-  '    relationships: { hierarchy: { data: Array<{ meta?: { subType?: string; name?: string } }> } }',
+  '    attributes: { divisionCode: string; i18n?: { en?: { name?: string } }; hierarchies: { administrative: Array<Array<{ id: string; name: string | null; class: string }>> } }',
   '  }>',
   '  included: Array<{ type: string; attributes: { divisionId?: string; geometry?: Polygon | MultiPolygon } }>',
   '}',
@@ -768,13 +814,13 @@ export const urbanDensityCalculationCode = [
   '',
   'districts = response.data.flatMap(division => {',
   '  const code = division.attributes.divisionCode',
-  "  const area = division.relationships.hierarchy.data.find(item => item.meta?.subType === 'area')",
+  "  const area = division.attributes.hierarchies.administrative.flat().find(item => item.class === 'area')",
   "  const geometry = response.included.find(item => item.type === 'division-areas' && item.attributes.divisionId === division.id)?.attributes.geometry",
   '  if (!area || !geometry) return []',
   '',
   '  return {',
   "    type: 'Feature' as const,",
-  '    properties: { districtCode: code, districtName: division.attributes.i18n?.en?.name ?? code, area: area.meta?.name ?? code, population: Number(populationByDistrict[code]), landAreaSqKm: Number(landAreaByDistrict[code]) },',
+  '    properties: { districtCode: code, districtName: division.attributes.i18n?.en?.name ?? code, area: area.name ?? code, population: Number(populationByDistrict[code]), landAreaSqKm: Number(landAreaByDistrict[code]) },',
   '    geometry,',
   '  }',
   '})',
@@ -849,8 +895,6 @@ export const urbanDensityTurfInstallOutput = [
   'installed pbf@5.1.2 with binaries:',
   ' - pbf',
   'installed geos-wasm@3.1.1',
-  '',
-  '4 packages installed [1311.00ms]',
 ].join('\n')
 
 export const urbanDensityGeometryWorkerCode = [

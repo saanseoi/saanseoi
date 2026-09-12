@@ -1,17 +1,13 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
-import { metaSchema } from '@repo/db'
-import { eq } from 'drizzle-orm'
 
 import { buildAddressApiReleaseSetStatsForSnapshot } from '../api/apiReleaseSetStats.ts'
+import {
+  buildAddressApiReleaseSetChurn,
+  listAddressStatsReleases,
+} from '../api/addressApiReleaseSetStats.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
-
-type AddressApiReleaseSet = {
-  code: string
-  id: string
-  snapshotId: string
-}
 
 /**
  * Repairs presentation stats for published Address API release sets without
@@ -37,10 +33,18 @@ export async function runAddressApiStatsBackfillCommand(
   const dryRun = Boolean(args.options['dry-run'])
   const context = await resolveLocalAddressDbContext(target, 'hk', '2026', {
     cacheTableProfile: 'address',
+    includeAllHistoryShardYears: true,
   })
 
   try {
-    const releaseSets = await listAddressApiReleaseSets(context.metaDb, releaseCodes)
+    const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+    const releases = await listAddressStatsReleases(metaDb)
+    for (const code of releaseCodes)
+      if (!releases.some(release => release.code === code))
+        throw new Error(`Unknown published Address release: ${code}`)
+    const releaseSets = releases.filter(
+      release => releaseCodes.length === 0 || releaseCodes.includes(release.code),
+    )
     if (!releaseSets.length) {
       console.log(
         'No published Address API release sets matched the requested filters.',
@@ -48,68 +52,33 @@ export async function runAddressApiStatsBackfillCommand(
       return
     }
 
+    // Complete every replay before changing any persisted presentation facts.
+    const prepared = []
     for (const releaseSet of releaseSets) {
+      const churn = await buildAddressApiReleaseSetChurn(
+        metaDb,
+        context.historyTargets,
+        releaseSet.id,
+      )
       const rows = await buildAddressApiReleaseSetStatsForSnapshot(
         context.currentDb as unknown as HarbourReadableDb,
         releaseSet.snapshotId,
+        undefined,
+        churn,
       )
+      prepared.push({ releaseSet, rows })
       console.log(
-        `${dryRun ? 'Inspect' : 'Backfill'} ${releaseSet.code}: ${rows.length} stats rows`,
-      )
-      if (dryRun) continue
-      await replaceApiReleaseSetStats(
-        context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-        releaseSet.id,
-        rows,
+        `${dryRun ? 'Inspect' : 'Prepared'} ${releaseSet.code}: ${rows.length} stats rows; ${JSON.stringify(churn.totals)}`,
       )
     }
+    if (dryRun) return
+    for (const { releaseSet, rows } of prepared) {
+      await replaceApiReleaseSetStats(metaDb, releaseSet.id, rows)
+    }
+    console.log(`Backfilled ${prepared.length} Address API release sets.`)
   } finally {
     context.cleanup()
   }
-}
-
-async function listAddressApiReleaseSets(
-  metaDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['metaDb'],
-  releaseCodes: string[],
-): Promise<AddressApiReleaseSet[]> {
-  const rows = await metaDb
-    .select({
-      code: metaSchema.metaApiReleaseSets.code,
-      familyType: metaSchema.metaApiVersions.familyType,
-      id: metaSchema.metaApiReleaseSets.id,
-      role: metaSchema.metaApiReleaseSetSnapshots.role,
-      snapshotId: metaSchema.metaSnapshots.id,
-      snapshotResourceType: metaSchema.metaSnapshots.resourceType,
-      snapshotStatus: metaSchema.metaSnapshots.status,
-      status: metaSchema.metaApiReleaseSets.status,
-    })
-    .from(metaSchema.metaApiReleaseSets)
-    .innerJoin(
-      metaSchema.metaApiVersions,
-      eq(metaSchema.metaApiReleaseSets.apiVersionId, metaSchema.metaApiVersions.id),
-    )
-    .innerJoin(
-      metaSchema.metaApiReleaseSetSnapshots,
-      eq(
-        metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
-        metaSchema.metaApiReleaseSets.id,
-      ),
-    )
-    .innerJoin(
-      metaSchema.metaSnapshots,
-      eq(metaSchema.metaApiReleaseSetSnapshots.snapshotId, metaSchema.metaSnapshots.id),
-    )
-    .all()
-
-  return rows
-    .filter(row => row.familyType === 'addresses')
-    .filter(row => row.status === 'current' || row.status === 'archived')
-    .filter(row => row.role === 'primary')
-    .filter(row => row.snapshotResourceType === 'address')
-    .filter(row => row.snapshotStatus === 'published')
-    .filter(row => releaseCodes.length === 0 || releaseCodes.includes(row.code))
-    .map(row => ({ code: row.code, id: row.id, snapshotId: row.snapshotId }))
-    .sort((left, right) => left.code.localeCompare(right.code))
 }
 
 function splitCsv(value: string | boolean | undefined) {

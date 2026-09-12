@@ -1,9 +1,25 @@
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
+DROP TABLE IF EXISTS `addressSearchFts`;
+DROP TABLE IF EXISTS `divisionSearchFts`;
+DROP TABLE IF EXISTS `divisionSearchScopes`;
+DROP TABLE IF EXISTS `addressSearchScopes`;
+DROP TABLE IF EXISTS `addressPublicationState`;
+DROP TABLE IF EXISTS `addressCurrentScopes`;
+DROP TABLE IF EXISTS `addressesFts`;
+
 DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `divisionStatistics`;
 DROP TABLE IF EXISTS `statsRecords`;
+DROP TABLE IF EXISTS `statsPublicationState`;
+DROP TABLE IF EXISTS `statsCurrentSelections`;
+DROP TABLE IF EXISTS `divisionPublicationState`;
+DROP TABLE IF EXISTS `placePublicationState`;
+DROP TABLE IF EXISTS `streetPublicationState`;
+DROP TABLE IF EXISTS `divisionAreaPublicationState`;
+DROP TABLE IF EXISTS `divisionBoundaryPublicationState`;
 DROP TABLE IF EXISTS `statsObservationDimensions`;
 DROP TABLE IF EXISTS `statsValuesI18n`;
 DROP TABLE IF EXISTS `statsMeasuresI18n`;
@@ -11,6 +27,8 @@ DROP TABLE IF EXISTS `statsMeasures`;
 DROP TABLE IF EXISTS `statsFieldsI18n`;
 DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `placesFts`;
+DROP TABLE IF EXISTS `placeSearchFts`;
+DROP TABLE IF EXISTS `placeSearchScopes`;
 DROP TABLE IF EXISTS `placesFts_data`;
 DROP TABLE IF EXISTS `placesFts_idx`;
 DROP TABLE IF EXISTS `placesFts_content`;

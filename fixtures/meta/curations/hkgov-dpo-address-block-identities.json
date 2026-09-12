@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "easeful-court-towers",
+      "estate": "EASEFUL COURT",
+      "zhEstate": "青逸軒",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "authority": "User confirmed Tower 1 is the larger building; ALS bilingual block components corroborate the mapping. HA names are Tower 1 / 第一座 and Tower 2 / 第二座.",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/6.json",
+      "reason": "An empty BuildingName is not an unnamed building when the supplied block components identify its tower. Retain publisher block components, identities, geometry and inventories; no backfill or merge.",
+      "buildings": [
+        {
+          "csu": "2873924582T20050430",
+          "blockNo": "1",
+          "enName": "Tower 1",
+          "zhName": "第一座",
+          "unitCount": 360
+        },
+        {
+          "csu": "2873024523T20050430",
+          "blockNo": "2",
+          "enName": "Tower 2",
+          "zhName": "第二座",
+          "unitCount": 150
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,5 @@
 import {
   isCurrentPublicKeyLease,
-  isPublicKeyLease,
   publicApiKeyDigest,
   PublicKeyLeaseUnavailableError,
   publicKeyLeaseStorageKey,
@@ -32,7 +31,7 @@ export const resolvePublicKeyLease = async (
     if (response.status === 401) return null
     if (!response.ok) throw new PublicKeyLeaseUnavailableError()
     const lease = await response.json<unknown>()
-    if (!isPublicKeyLease(lease)) throw new PublicKeyLeaseUnavailableError()
+    if (!isCurrentPublicKeyLease(lease)) throw new PublicKeyLeaseUnavailableError()
     return lease
   } catch (error) {
     if (error instanceof PublicKeyLeaseUnavailableError) throw error

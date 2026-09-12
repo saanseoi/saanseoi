@@ -44,79 +44,31 @@ const resolvedReleaseSet = {
   ],
 }
 
-const hierarchyWithNames = [
-  {
-    division_id: 'division-country-cn',
-    subtype: 'country',
-    name: '中国',
-  },
-  {
-    division_id: 'division-hk-sar',
-    subtype: 'dependency',
-    name: 'Hong Kong SAR',
-  },
-  {
-    division_id: 'division-east',
-    subtype: 'region',
-    name: '東區 Eastern District',
-  },
-  {
-    division_id: 'division-a-kung-ngam',
-    subtype: 'locality',
-    name: '阿公岩 A Kung Ngam',
-  },
-]
-
 const normalisedHierarchy = [
-  {
-    division_id: 'division-hk-sar',
-    i18n: {
-      en: {
-        name: 'Hong Kong SAR',
-      },
-      'zh-hant': {
-        name: '香港特別行政區',
-      },
-    },
-    level: 0,
-    type: 'sar',
-  },
-  {
-    division_id: 'division-east',
-    i18n: {
-      en: {
-        name: 'Eastern District',
-      },
-      'zh-hant': {
-        name: '東區',
-      },
-    },
-    level: 2,
-    type: 'district',
-  },
+  { id: 'division-hk-sar', name: '香港特別行政區 Hong Kong SAR', class: 'sar' },
+  { id: 'division-east', name: '東區 Eastern District', class: 'district' },
 ]
+const hierarchies = {
+  administrative: [normalisedHierarchy],
+  locality: [],
+  full: [normalisedHierarchy],
+}
 
 const baseRecord: DivisionRecord = {
   division: {
     snapshotId: activeSnapshot.snapshotId,
     id: 'division-a-kung-ngam',
     level: 3,
-    type: 'locality',
+    class: 'locality',
+    category: 'locality',
+    hierarchies,
     geometry: {
       type: 'Point',
       coordinates: [114.2262, 22.2788],
     },
     bbox: [114.22, 22.27, 114.23, 22.28],
-    sourceKeys: {
-      overture: {
-        subtype: 'locality',
-        class: 'locality',
-        version: 7,
-        hierarchies: hierarchyWithNames,
-      },
-    },
-    wikidata: 'Q123456',
-    hierarchy: normalisedHierarchy,
+    identifiers: null,
+    wikidataId: 'Q123456',
     cartography: {
       kind: 'label-center',
     },
@@ -154,18 +106,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-country-cn',
       level: 0,
-      type: 'country',
+      class: 'country',
+      category: 'administrative',
       geometry: null,
       bbox: null,
-      sourceKeys: {
-        overture: {
-          subtype: 'country',
-          class: 'country',
-          admin_level: 1,
-        },
-      },
-      wikidata: null,
-      hierarchy: [{ ids: ['division-country-cn'] }],
+      identifiers: null,
+      wikidataId: null,
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -182,18 +129,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-hk-sar',
       level: 0,
-      type: 'sar',
+      class: 'sar',
+      category: 'administrative',
       geometry: null,
       bbox: null,
-      sourceKeys: {
-        overture: {
-          subtype: 'dependency',
-          class: 'dependency',
-          admin_level: 1,
-        },
-      },
-      wikidata: null,
-      hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar'] }],
+      identifiers: null,
+      wikidataId: null,
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -210,18 +152,13 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       snapshotId: activeSnapshot.snapshotId,
       id: 'division-east',
       level: 2,
-      type: 'district',
+      class: 'district',
+      category: 'administrative',
       geometry: null,
       bbox: null,
-      sourceKeys: {
-        overture: {
-          subtype: 'region',
-          class: 'region',
-          admin_level: 2,
-        },
-      },
-      wikidata: null,
-      hierarchy: [{ ids: ['division-country-cn', 'division-hk-sar', 'division-east'] }],
+      identifiers: null,
+      wikidataId: null,
+      hierarchies: { administrative: [], locality: [], full: [] },
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
@@ -268,6 +205,22 @@ const listDivisionAreasCurrentByDivisionIdsMock = mock(
 )
 
 const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
+  hasSupersedingPublication: async () => false,
+  getPublicationReadiness: async () => 'ready',
+  listDivisionRecordsCurrent: async (_db, lookup) =>
+    listRecords.filter(
+      record =>
+        (lookup.class === undefined || record.division.class === lookup.class) &&
+        (lookup.level === undefined || record.division.level === lookup.level) &&
+        (lookup.category === undefined || record.division.category === lookup.category),
+    ),
+  countDivisionsCurrent: async () => listRecords.length,
+  listDivisionRecordsCurrentByIds: async (_db, lookup) =>
+    [...listRecords, ...includedDivisionRecords].filter(record =>
+      lookup.divisionIds.includes(record.division.id),
+    ),
+  hasCurrentDivisionSnapshot: async () => true,
+  hasCurrentDivisionGeometrySnapshot: async () => true,
   resolveApiReleaseSetSnapshotsForRequest:
     resolveApiReleaseSetSnapshotsForRequestMock as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
   resolvePublishedSnapshotForResourceTypeRegionCohortKey:
@@ -284,6 +237,116 @@ const divisionServiceDependencies: Partial<DivisionServiceDependencies> = {
 }
 
 describe('division services', () => {
+  test('does not replay sparse geometry when its current snapshot still exists', async () => {
+    const resolveReplay = mock(async () => {
+      throw new Error('unexpected replay')
+    })
+    const hasGeometry = mock(async () => 'ready')
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl:
+        'http://localhost/divisions/v0.1?include=areas:overture,boundaries:overture',
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include: 'areas:overture,boundaries:overture' },
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrent: async () => [baseRecord],
+        countDivisionsCurrent: async () => 1,
+        getPublicationReadiness: hasGeometry,
+        resolveSnapshotReplayPlan: resolveReplay,
+        resolveApiReleaseSetSnapshotsForRequest: async () =>
+          ({
+            ...resolvedReleaseSet,
+            snapshots: [
+              ...resolvedReleaseSet.snapshots,
+              {
+                snapshotResourceType: 'divisionArea',
+                snapshotId: 'area-sparse',
+                role: 'supporting',
+                variant: 'overture',
+              },
+              {
+                snapshotResourceType: 'divisionBoundary',
+                snapshotId: 'boundary-sparse',
+                role: 'supporting',
+                variant: 'overture',
+              },
+            ],
+          }) as never,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(hasGeometry).toHaveBeenCalledTimes(6)
+    expect(resolveReplay).not.toHaveBeenCalled()
+  })
+
+  test('reads a materialised detail by ID without history replay', async () => {
+    const lookup = mock(async () => [baseRecord])
+    const replay = mock(async () => {
+      throw new Error('Unexpected replay')
+    })
+    const result = await getDivisionDetail({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0/example',
+      requestedVersionPath: 'divisions/v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      id: baseRecord.division.id,
+      query: {},
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrentByIds: lookup,
+        resolveSnapshotReplayPlan: replay,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(lookup).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ divisionIds: [baseRecord.division.id] }),
+    )
+    expect(replay).not.toHaveBeenCalled()
+  })
+  test('paginates materialised divisions without replaying history', async () => {
+    const list = mock(async () => [baseRecord])
+    const count = mock(async () => 5269)
+    const replay = mock(async () => {
+      throw new Error('Must not replay current data')
+    })
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0?page[limit]=1&page[offset]=100',
+      requestedVersionPath: 'divisions/v0',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { 'page[limit]': 1, 'page[offset]': 100 },
+      dependencies: {
+        ...divisionServiceDependencies,
+        hasCurrentDivisionSnapshot: async () => true,
+        listDivisionRecordsCurrent: list,
+        countDivisionsCurrent: count,
+        resolveSnapshotReplayPlan: replay,
+      },
+    })
+    expect(result.status).toBe(200)
+    expect(list).toHaveBeenCalledWith(
+      {},
+      expect.objectContaining({ limit: 1, offset: 100 }),
+    )
+    expect(count).toHaveBeenCalledTimes(1)
+    expect(replay).not.toHaveBeenCalled()
+    if (result.status === 200) expect(result.body.meta.page.total).toBe(5269)
+  })
+
   beforeEach(() => {
     listRecords = [baseRecord]
     resolveApiReleaseSetSnapshotsForRequestMock.mockImplementation(
@@ -426,17 +489,20 @@ describe('division services', () => {
       }
 
       expect(resource.attributes.level).toBe(3)
-      expect(resource.attributes.type).toBe('locality')
+      expect(resource.attributes.class).toBe('locality')
       expect('divisionType' in resource.attributes).toBe(false)
       expect('parent' in resource.relationships).toBe(false)
-      expect(
-        resource.relationships.hierarchy.data.map(hierarchy => hierarchy.id),
-      ).toEqual(['division-hk-sar', 'division-east'])
+      expect(resource.attributes.hierarchies.full[0]?.map(entry => entry.id)).toEqual([
+        'division-hk-sar',
+        'division-east',
+      ])
 
       if (profile === 'compact') {
         expect(resource.attributes).toEqual({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           i18n: {
             en: {
               name: 'A Kung Ngam',
@@ -451,8 +517,10 @@ describe('division services', () => {
       if (profile === 'default') {
         expect(resource.attributes).toMatchObject({
           level: 3,
-          type: 'locality',
-          wikidata: 'Q123456',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
+          wikidataId: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
         })
@@ -464,8 +532,10 @@ describe('division services', () => {
       if (profile === 'map') {
         expect(resource.attributes).toMatchObject({
           level: 3,
-          type: 'locality',
-          wikidata: 'Q123456',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
+          wikidataId: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
           geometry: {
@@ -478,23 +548,26 @@ describe('division services', () => {
           },
         })
         expect(resource.attributes.snapshotId).toBeUndefined()
-        expect(resource.attributes.sourceKeys).toBeUndefined()
+        expect(resource.attributes.identifiers).toBeUndefined()
       }
 
       if (profile === 'full') {
         expect(resource.attributes).toEqual({
           level: 3,
-          type: 'locality',
+          class: 'locality',
+          category: 'locality',
+          hierarchies,
           snapshotId: activeSnapshot.snapshotId,
           geometry: {
             type: 'Point',
             coordinates: [114.2262, 22.2788],
           },
           bbox: [114.22, 22.27, 114.23, 22.28],
+          identifiers: null,
           cartography: {
             kind: 'label-center',
           },
-          wikidata: 'Q123456',
+          wikidataId: 'Q123456',
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
           sources: {
@@ -505,14 +578,6 @@ describe('division services', () => {
                 record_id: 'ovt-division-a-kung-ngam',
               },
             ],
-          },
-          sourceKeys: {
-            overture: {
-              subtype: 'locality',
-              class: 'locality',
-              version: 7,
-              hierarchies: hierarchyWithNames,
-            },
           },
           i18n: {
             en: {
@@ -595,10 +660,7 @@ describe('division services', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(resolveSnapshotReplayPlanMock).toHaveBeenLastCalledWith(
-      expect.anything(),
-      activeSnapshot.snapshotId,
-    )
+    expect(result.status).toBe(200)
   })
 
   test('combined list includes retain hierarchy resources', async () => {
@@ -620,13 +682,13 @@ describe('division services', () => {
       historyDbsByBinding,
       metaDb: {} as never,
       requestUrl:
-        'http://localhost/divisions/v0.1?include=hierarchy,areas:overture&filter[divisionType]=locality',
+        'http://localhost/divisions/v0.1?include=hierarchy,areas:overture&filter[class]=locality',
       requestedVersionPath: 'divisions/v0.1',
       requestedApiVersion: '0.1',
       resolvedApiVersion: 'api-divisions-v0.1',
       query: {
         include: 'hierarchy,areas:overture',
-        'filter[divisionType]': 'locality',
+        'filter[class]': 'locality',
       },
       dependencies: divisionServiceDependencies,
     })
@@ -676,47 +738,112 @@ describe('division services', () => {
       return
     }
 
-    expect(result.body.data.relationships.hierarchy.data).toEqual([
-      {
-        type: 'divisions',
-        id: 'division-hk-sar',
-        meta: {
-          name: 'Hong Kong SAR',
-          subType: 'sar',
-        },
-      },
-      {
-        type: 'divisions',
-        id: 'division-east',
-        meta: {
-          name: 'Eastern District',
-          subType: 'district',
-        },
-      },
-    ])
+    expect(result.body.data.attributes.hierarchies).toEqual(hierarchies)
     expect(result.body.included?.map(resource => resource.id)).toEqual([
       'division-hk-sar',
       'division-east',
     ])
-    const hongKongSar = result.body.included?.find(
-      resource => resource.type === 'divisions' && resource.id === 'division-hk-sar',
-    ) as typeof result.body.data | undefined
-    expect(hongKongSar?.attributes.sourceKeys).toMatchObject({
-      overture: {
-        subtype: 'dependency',
-        class: 'dependency',
-        admin_level: 1,
-      },
-    })
-    const easternDistrict = result.body.included?.find(
-      resource => resource.type === 'divisions' && resource.id === 'division-east',
-    ) as typeof result.body.data | undefined
-    expect(easternDistrict?.attributes.sourceKeys).toMatchObject({
-      overture: {
-        subtype: 'region',
-        class: 'region',
-        admin_level: 2,
-      },
-    })
   })
+})
+
+function publicationRequest(dependencies: Partial<DivisionServiceDependencies>) {
+  return {
+    currentDb: {} as never,
+    historyDbsByBinding,
+    metaDb: {} as never,
+    requestUrl: 'http://localhost/divisions/v0.1',
+    requestedVersionPath: 'divisions/v0.1' as const,
+    requestedApiVersion: '0.1' as const,
+    resolvedApiVersion: 'api-divisions-v0.1' as const,
+    query: {},
+    dependencies: { ...divisionServiceDependencies, ...dependencies },
+  }
+}
+
+test('latest Division selections return readiness responses for absent or pending receipts', async () => {
+  const replay = mock(async () => {
+    throw new Error('Must not replay an unready latest selection')
+  })
+  const args = publicationRequest({
+    getPublicationReadiness: async () => null,
+    resolveSnapshotReplayPlan: replay,
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+  })
+  expect((await listDivisions(args)).status).toBe(503)
+  expect((await getDivisionDetail({ ...args, id: 'missing' })).status).toBe(503)
+  expect(
+    (
+      await listDivisions({
+        ...args,
+        query: { releaseSet: activeSnapshot.apiReleaseSet },
+      })
+    ).status,
+  ).toBe(503)
+  expect(replay).not.toHaveBeenCalled()
+})
+
+test('ready empty Division snapshots return empty collections and absent details', async () => {
+  const args = publicationRequest({
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+    listDivisionRecordsCurrent: async () => [],
+    countDivisionsCurrent: async () => 0,
+    listDivisionRecordsCurrentByIds: async () => [],
+  })
+  const list = await listDivisions(args)
+  expect(list.status).toBe(200)
+  if (list.status === 200) {
+    expect(list.body.data).toEqual([])
+    expect(list.body.meta.page.total).toBe(0)
+  }
+  expect((await getDivisionDetail({ ...args, id: 'missing' })).status).toBe(404)
+})
+
+test('Division responses are discarded when publication changes between component reads', async () => {
+  let token = 'first'
+  const args = publicationRequest({
+    resolveApiReleaseSetSnapshotsForRequest: async () => resolvedReleaseSet as never,
+    getPublicationReadiness: async () => token,
+    listDivisionRecordsCurrent: async () => [baseRecord],
+    countDivisionsCurrent: async () => {
+      token = 'replacement'
+      return 1
+    },
+  })
+  expect((await listDivisions(args)).status).toBe(503)
+  token = 'first'
+  expect(
+    (
+      await getDivisionDetail({
+        ...args,
+        id: 'missing',
+        dependencies: {
+          ...args.dependencies,
+          listDivisionRecordsCurrentByIds: async () => {
+            token = 'replacement'
+            return []
+          },
+        },
+      })
+    ).status,
+  ).toBe(503)
+})
+
+test('an explicitly older Division release continues to replay immutable history', async () => {
+  const replay = mock(async () => [baseRecord])
+  const args = publicationRequest({
+    getPublicationReadiness: async () => null,
+    resolveApiReleaseSetSnapshotsForRequest: async (_db, _family, selectors) =>
+      ({
+        ...resolvedReleaseSet,
+        releaseSet: {
+          ...resolvedReleaseSet.releaseSet,
+          code: selectors?.releaseSet ? 'older' : 'latest',
+        },
+      }) as never,
+    listReplayedDivisionRecords: replay,
+  })
+  expect(
+    (await listDivisions({ ...args, query: { releaseSet: 'older' } })).status,
+  ).toBe(200)
+  expect(replay).toHaveBeenCalledTimes(1)
 })

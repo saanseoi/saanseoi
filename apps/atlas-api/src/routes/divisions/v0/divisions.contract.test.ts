@@ -5,6 +5,8 @@ import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import type { AppBindings } from '../../../types'
 import app from '../../../index'
+import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb'
+import { finalisePublishedSearch } from '@repo/core/pipeline/services/search/finalise'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
@@ -375,14 +377,6 @@ function seedCurrent(sqlite: Database) {
     'snapshot-pland-new-town-2021',
   ]) {
     for (const division of divisionRows) {
-      const sourceKeys = {
-        overture: {
-          subtype: division.type,
-          class: division.type,
-          version: 1,
-          hierarchies: division.hierarchy,
-        },
-      }
       const sources = {
         overture: [
           {
@@ -397,14 +391,15 @@ function seedCurrent(sqlite: Database) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (snapshotId, id, identifiers, level, type, geometry, bbox, sourceKeys, wikidata,
-           hierarchy, cartography, sources, createdAt, updatedAt)
+          (snapshotId, id, identifiers, level, category, class, geometry, bbox, wikidata,
+           hierarchies, cartography, sources, createdAt, updatedAt)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          snapshotId,
+          `scope:${snapshotId}`,
           division.id,
           null,
           division.level,
+          division.type === 'locality' ? 'locality' : 'administrative',
           division.type,
           json({ type: 'Point', coordinates: division.point }),
           json([
@@ -413,9 +408,38 @@ function seedCurrent(sqlite: Database) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          json(sourceKeys),
           null,
-          json(division.hierarchy),
+          json({
+            administrative: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+            locality: [],
+            full: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+          }),
           json({ kind: 'label-center' }),
           json(sources),
           timestamp,
@@ -430,7 +454,7 @@ function seedCurrent(sqlite: Database) {
             (snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
-            snapshotId,
+            `scope:${snapshotId}`,
             division.id,
             locale,
             name,
@@ -474,16 +498,16 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO divisionAreas
-        (snapshotId, id, variant, bbox, geometry, sourceKeys, sources, type, isLand, isTerritorial,
+        (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
          divisionId, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        row.snapshotId,
+        `scope:${row.snapshotId}`,
         row.id,
         row.variant,
         json([114.18, 22.25, 114.3, 22.35]),
         json({ type: 'Polygon', coordinates: [] }),
-        json({ provider: row.variant }),
+        null,
         json({
           provider: [{ property: '/id', dataset: row.variant, record_id: row.id }],
         }),
@@ -499,11 +523,11 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionBoundaries
-      (snapshotId, id, variant, bbox, geometry, sourceKeys, sources, type, isLand, isTerritorial,
+      (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
        leftDivisionId, rightDivisionId, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      'snapshot-overture-2025-boundary-overture',
+      'scope:snapshot-overture-2025-boundary-overture',
       'boundary-overture-division-east',
       'overture',
       json([114.18, 22.25, 114.3, 22.35]),
@@ -514,7 +538,7 @@ function seedCurrent(sqlite: Database) {
           [114.2, 22.35],
         ],
       }),
-      json({ provider: 'overture' }),
+      null,
       json({
         overture: [
           { property: '/id', dataset: 'overture', record_id: 'boundary-east' },
@@ -539,13 +563,14 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (id, identifiers, level, type, geometry, bbox, sourceKeys, wikidata, hierarchy, cartography,
+          (id, identifiers, level, category, class, geometry, bbox, wikidata, hierarchies, cartography,
            sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           division.id,
           null,
           division.level,
+          division.type === 'locality' ? 'locality' : 'administrative',
           division.type,
           json({ type: 'Point', coordinates: division.point }),
           json([
@@ -554,16 +579,38 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          json({
-            overture: {
-              subtype: division.type,
-              class: division.type,
-              version: 1,
-              hierarchies: division.hierarchy,
-            },
-          }),
           null,
-          json(division.hierarchy),
+          json({
+            administrative: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+            locality: [],
+            full: division.hierarchy.length
+              ? [
+                  division.hierarchy.map(entry => ({
+                    id: entry.division_id,
+                    name: entry.name,
+                    class:
+                      entry.subtype === 'dependency'
+                        ? 'sar'
+                        : entry.subtype === 'region'
+                          ? 'district'
+                          : entry.subtype,
+                  })),
+                ]
+              : [],
+          }),
           json({ kind: 'label-center' }),
           json({
             overture: [
@@ -633,6 +680,14 @@ function createFixtureEnvironment() {
   const history2026Sqlite = initSqlite(['history'])
   seedMeta(metaSqlite)
   seedCurrent(currentSqlite)
+  for (const [family, dataTable] of [
+    ['division', 'divisions'],
+    ['divisionArea', 'divisionAreas'],
+    ['divisionBoundary', 'divisionBoundaries'],
+  ]) {
+    currentSqlite.exec(`INSERT INTO ${family}PublicationState(snapshotId,scopeId,status,publicationToken,preparedAt)
+      SELECT DISTINCT substr(snapshotId,7),snapshotId,'current','fixture','2026-01-01' FROM ${dataTable}`)
+  }
   seedHistory(historyBeforeSqlite, [
     'snapshot-pland-pu-2021',
     'snapshot-pland-new-town-2021',
@@ -660,6 +715,8 @@ function createFixtureEnvironment() {
 
   return {
     env,
+    metaSqlite,
+    currentSqlite,
     close() {
       metaSqlite.close()
       currentSqlite.close()
@@ -693,7 +750,7 @@ const requestCases = [
   },
   {
     name: 'filters and pagination through app.fetch',
-    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[divisionType]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[level]=3&filter[class]=locality&filter[parent]=division-east&page[limit]=1&page[offset]=0`,
   },
   {
     name: 'invalid request through app.fetch',
@@ -702,6 +759,106 @@ const requestCases = [
 ] as const
 
 describe('Divisions API responses through the Worker route', () => {
+  test('search finalises across domains, honours opt-in ancestors and serves both API versions', async () => {
+    const f = createFixtureEnvironment()
+    try {
+      f.metaSqlite.exec("UPDATE apiCatalogRevisions SET defaultDomainCode='geographic'")
+      f.metaSqlite.exec('UPDATE apiCatalogRevisionReleaseSets SET isDefault=1')
+      const db = createLocalHarbourDb(f.metaSqlite)
+      const current = {
+        prepare: (sql: string) => ({ sql }) as unknown as D1PreparedStatement,
+        batch: async (statements: D1PreparedStatement[]) =>
+          f.currentSqlite.transaction(() => {
+            for (const statement of statements)
+              f.currentSqlite.exec((statement as unknown as { sql: string }).sql)
+          })(),
+      }
+      const request = (path: string) =>
+        app.fetch(new Request('http://localhost' + path), f.env)
+      await finalisePublishedSearch(db, current, {
+        deferred: true,
+        publishedFamilies: ['divisions'],
+      })
+      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
+      await finalisePublishedSearch(db, current, {
+        pendingReleaseSetCodes: ['pending'],
+        publishedFamilies: ['divisions'],
+      })
+      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
+      await finalisePublishedSearch(db, current, { publishedFamilies: ['divisions'] })
+      for (const version of ['v0', 'v0.1']) {
+        const response = await request('/divisions/' + version + '/search?q=Eastern')
+        expect(response.status).toBe(200)
+        const body = (await response.json()) as {
+          results: { domain: string; divisionId: string; match: string }[]
+        }
+        expect(new Set(body.results.map(r => r.domain)).size).toBe(3)
+        expect(body.results.every(r => r.match === 'self')).toBe(true)
+        const ancestors = await request(
+          '/divisions/' + version + '/search?q=Eastern&ancestors=true',
+        )
+        const expanded = (await ancestors.json()) as typeof body
+        expect(expanded.results.some(r => r.match === 'ancestor')).toBe(true)
+        const filtered = await request(
+          '/divisions/' + version + '/search?q=Eastern&domain=hkgov-pland-pu',
+        )
+        expect(
+          ((await filtered.json()) as typeof body).results.map(r => r.domain),
+        ).toEqual(['hkgov-pland-pu'])
+      }
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&releaseSet=old')).status,
+      ).toBe(422)
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&ancestors=yes')).status,
+      ).toBe(422)
+      expect(
+        (await (await request('/divisions/v0/search?q=Eastern&region=mo')).json()) as {
+          results: unknown[]
+        },
+      ).toEqual({ results: [] })
+      expect(
+        (await request('/divisions/v0/search?q=Eastern&access_token=pk.fixture'))
+          .status,
+      ).toBe(200)
+      const before = f.currentSqlite.query('SELECT total_changes() AS n').get()
+      // Reconciliation retries finalisation even when nothing newly publishes.
+      await finalisePublishedSearch(db, current)
+      expect(f.currentSqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
+    } finally {
+      f.close()
+    }
+  })
+  test('HK is the default and GBA selects the same published records', async () => {
+    const fixture = createFixtureEnvironment()
+    try {
+      const records = []
+      for (const region of ['', '&region=hk', '&region=gba']) {
+        const response = await app.fetch(
+          new Request(
+            `http://localhost/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}${region}`,
+          ),
+          fixture.env,
+        )
+        expect(response.status).toBe(200)
+        records.push(((await response.json()) as { data: unknown[] }).data)
+      }
+      expect(records[0]?.length).toBeGreaterThan(0)
+      expect(records[1]).toEqual(records[0])
+      expect(records[2]).toEqual(records[0])
+      const mo = await app.fetch(
+        new Request(
+          `http://localhost/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&region=mo`,
+        ),
+        fixture.env,
+      )
+      expect(mo.status).toBe(200)
+      expect(await mo.json()).toMatchObject({ data: [], meta: { region: 'mo' } })
+    } finally {
+      fixture.close()
+    }
+  })
+
   for (const requestCase of requestCases) {
     test(requestCase.name, async () => {
       const fixture = createFixtureEnvironment()

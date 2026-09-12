@@ -7,6 +7,7 @@ import type { SchemaFingerprintResolver, UploadInspection } from '@repo/core'
 export type RegisterUploadRequest = {
   fileName: string
   force?: boolean
+  allowHistoricalCohort?: boolean
   resumeStagedRelease?: boolean
   reuseExistingRelease?: boolean
   inspection: UploadInspection
@@ -34,10 +35,13 @@ export async function handleRegisterUploadRequest(
         ? ['staged', 'processing']
         : ['staged', 'published']
       : request.resumeStagedRelease
-        ? ['staged']
+        ? request.reuseExistingRelease
+          ? ['staged', 'processing']
+          : ['staged']
         : request.reuseExistingRelease
           ? ['processing']
           : undefined,
+    allowHistoricalCohort: request.allowHistoricalCohort,
     resumeInterruptedProcessingRelease: request.resumeStagedRelease,
     cohortKey: request.plan.cohortKey,
     datasetCode: request.plan.datasetCode,
@@ -52,7 +56,7 @@ export async function handleRegisterUploadRequest(
     sourceVersion: request.plan.sourceVersion,
     geometryStatus: request.plan.geometryStatus,
     theme: request.plan.theme,
-    type: request.plan.type,
+    resourceType: request.plan.type,
   })
 
   if (!registered.datasetId || !registered.releaseId) {
@@ -71,7 +75,7 @@ export async function handleRegisterUploadRequest(
     source: registered.plan.source,
     sourceVersion: registered.plan.sourceVersion,
     status: 'staged' as const,
-    type: registered.plan.type,
+    resourceType: registered.plan.resourceType,
   }
 }
 

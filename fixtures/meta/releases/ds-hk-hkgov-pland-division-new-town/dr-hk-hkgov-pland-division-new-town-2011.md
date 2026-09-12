@@ -27,8 +27,8 @@ original publisher geometry remains retained.
 
 ## Compatibility
 
-This release is a Planning Department planning-domain assertion, independent of Overture
-administrative divisions. A normalised English name within this cohort forms a
+This release is a Planning Department planning-domain source record, independent of
+Overture administrative divisions. A normalised English name within this cohort forms a
 cohort-scoped Planning Department identifier; no cross-cohort or Overture identity is
 inferred.
 
@@ -56,12 +56,12 @@ inferred.
 
 - `NewTown_en`, `NewTown_Tc`, and `NewTown_Sc` - available through the
   <black>hkgovPland</black> source profile
-- Repair status and source-cell evidence - retained with the source assertion
+- Repair status and source-cell evidence - with the source record
 
 ### Dropped Fields
 
-- Calculated source geometry is not substituted for retained source geometry. No
-  cross-cohort replacement or implicit geometry merge is performed.
+- Calculated source geometry is not substituted for source geometry. No cross-cohort
+  replacement or implicit geometry merge is performed.
 
 # ZH-HANT
 
@@ -86,7 +86,8 @@ inferred.
 
 ### 增補欄位
 
-- `sources` 保留於 <black>hkgovPland</black> key 下；`bbox` 由標準幾何計算
+- `sources` - 來源歸屬鏈保留於 <black>hkgovPland</black> key 下
+- `bbox` - 由標準幾何計算
 
 ### 正規化欄位
 
@@ -126,7 +127,8 @@ inferred.
 
 ### 增补字段
 
-- `sources` 保留于 <black>hkgovPland</black> key 下；`bbox` 由标准几何计算
+- `sources` - 来源归属链保留于 <black>hkgovPland</black> key 下
+- `bbox` - 由标准几何计算
 
 ### 规范化字段
 

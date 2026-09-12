@@ -1,0 +1,185 @@
+import { expect, test, vi } from 'vitest'
+import { render } from 'vitest-browser-svelte'
+
+import SourceRecordSamples from './sourceRecordSamples.svelte'
+
+vi.hoisted(() => {
+  Object.assign(globalThis, {
+    __sveltekit_dev: { env: { PUBLIC_ATLAS_API_BASE_URL: 'http://localhost:8787' } },
+  })
+})
+
+test('shows a skeleton while source samples are pending', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise<Response>(() => {})),
+  )
+  try {
+    const screen = await render(SourceRecordSamples, {
+      family: 'divisions',
+      request: 0,
+      sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
+    })
+    await expect.element(screen.getByRole('status')).toBeVisible()
+    await expect
+      .element(screen.getByRole('status'))
+      .toHaveAttribute('aria-busy', 'true')
+  } finally {
+    vi.unstubAllGlobals()
+  }
+})
+
+test('renders the first source record without fetching surplus candidates', async () => {
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        records: [
+          {
+            properties: {
+              name: 'Example division',
+              sources: [{ dataset: 'OpenStreetMap' }],
+            },
+            resourceType: 'division',
+            sourceRecordId: 'record-1',
+            variant: 'default',
+          },
+        ],
+      }),
+    ),
+  )
+  vi.stubGlobal('fetch', fetch)
+
+  const screen = await render(SourceRecordSamples, {
+    family: 'divisions',
+    request: 0,
+    sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
+  })
+
+  await expect.element(screen.getByText('record-1')).toBeVisible()
+  await expect.element(screen.getByText('resourceType')).not.toBeInTheDocument()
+  await expect.element(screen.getByText('variant')).not.toBeInTheDocument()
+  await expect
+    .element(screen.getByRole('button', { name: 'Collapse properties' }))
+    .toBeVisible()
+  await expect.element(screen.getByText('name')).toBeVisible()
+  await expect.element(screen.getByText('Example division')).toBeVisible()
+  await expect.element(screen.getByText('sources', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('OpenStreetMap')).toBeVisible()
+  await expect.element(screen.getByText('fields')).not.toBeInTheDocument()
+  expect(fetch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      search: expect.stringContaining('limit=1'),
+    }),
+  )
+  expect(fetch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      search: expect.not.stringContaining('include=geometry'),
+    }),
+  )
+  expect(fetch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      search: expect.stringContaining('sample=random'),
+    }),
+  )
+
+  vi.unstubAllGlobals()
+})
+
+test('keeps the first sample in place while more samples load', async () => {
+  let resolveMore: ((response: Response) => void) | undefined
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          records: [
+            {
+              properties: { name: 'First record' },
+              resourceType: 'division',
+              sourceRecordId: 'record-1',
+              variant: 'default',
+            },
+          ],
+        }),
+      ),
+    )
+    .mockImplementationOnce(
+      () =>
+        new Promise<Response>(resolve => {
+          resolveMore = resolve
+        }),
+    )
+  vi.stubGlobal('fetch', fetch)
+
+  try {
+    const screen = await render(SourceRecordSamples, {
+      family: 'divisions',
+      request: 0,
+      sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
+    })
+    await expect.element(screen.getByText('record-1')).toBeVisible()
+
+    await screen.rerender({
+      family: 'divisions',
+      request: 1,
+      sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
+    })
+
+    expect(fetch).toHaveBeenCalledTimes(2)
+    await expect.element(screen.getByText('record-1')).toBeVisible()
+    await expect.element(screen.getByRole('status')).not.toBeInTheDocument()
+    const table = screen.container.querySelector('dl')!
+    const top = table.getBoundingClientRect().top
+    resolveMore?.(
+      new Response(
+        JSON.stringify({
+          records: [2, 3, 4, 5].map(index => ({
+            sourceRecordId: `record-${index}`,
+            resourceType: 'division',
+            variant: 'default',
+            properties: { name: `Record ${index}` },
+          })),
+        }),
+      ),
+    )
+    await expect.element(screen.getByText('record-5')).toBeVisible()
+    expect(screen.container.querySelector('dl')).toBe(table)
+    expect(table.getBoundingClientRect().top).toBe(top)
+    expect(screen.container.querySelectorAll('section > div > div')).toHaveLength(1)
+  } finally {
+    resolveMore?.(new Response(JSON.stringify({ records: [] })))
+    vi.unstubAllGlobals()
+  }
+})
+
+test('requests and presents native geometry when included', async () => {
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        records: [
+          {
+            sourceRecordId: 'native-record',
+            properties: { name: 'Publisher' },
+            geometry: { encoding: 'wkb-base64', data: 'AQID' },
+          },
+        ],
+      }),
+    ),
+  )
+  vi.stubGlobal('fetch', fetch)
+  try {
+    const screen = await render(SourceRecordSamples, {
+      family: 'places',
+      includeGeometry: true,
+      request: 0,
+      sourceReleaseCode: 'dr-hk-overture-place-2026-08-19.0',
+    })
+    await expect.element(screen.getByText('native-record')).toBeVisible()
+    expect(fetch).toHaveBeenCalledWith(
+      expect.objectContaining({ search: expect.stringContaining('include=geometry') }),
+    )
+    await expect.element(screen.getByText('geometry', { exact: true })).toBeVisible()
+  } finally {
+    vi.unstubAllGlobals()
+  }
+})

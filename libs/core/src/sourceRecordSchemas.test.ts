@@ -1,8 +1,57 @@
 import { describe, expect, test } from 'bun:test'
 
-import { resolveSourceRecordSchema } from './sourceRecordSchemas'
+import {
+  resolveOvertureSourceRecordFieldDefinition,
+  resolveSourceRecordSchema,
+  sourceRecordRawPropertyFields,
+} from './sourceRecordSchemas'
 
 describe('source record schemas', () => {
+  test('resolves the initial Overture Places payload fields', () => {
+    const schema = resolveSourceRecordSchema({
+      resourceType: 'place',
+      source: 'overture',
+      sourceVersion: '2025-09-24.0',
+    })
+
+    expect(schema?.id).toBe('overture-place-v2025-09-24.0')
+    expect(
+      schema?.fields.find(field => field.name === 'basic_category'),
+    ).toBeUndefined()
+    expect(schema?.fields.find(field => field.name === 'taxonomy')).toBeUndefined()
+  })
+
+  test('resolves the intermediate Overture Places payload fields', () => {
+    const schema = resolveSourceRecordSchema({
+      resourceType: 'place',
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+    })
+
+    expect(schema?.id).toBe('overture-place-v2025-10-22.0')
+    expect(schema?.fields).toContainEqual({
+      name: 'basic_category',
+      nullable: true,
+      type: 'utf8',
+    })
+    expect(schema?.fields.find(field => field.name === 'taxonomy')).toBeUndefined()
+  })
+
+  test('resolves the taxonomy Overture Places payload fields', () => {
+    const schema = resolveSourceRecordSchema({
+      resourceType: 'place',
+      source: 'overture',
+      sourceVersion: '2025-12-17.0',
+    })
+
+    expect(schema?.id).toBe('overture-place-v2025-12-17.0')
+    expect(schema?.fields).toContainEqual({
+      name: 'taxonomy',
+      nullable: true,
+      type: 'struct',
+    })
+  })
+
   test('resolves the 2025 Overture division payload fields', () => {
     const schema = resolveSourceRecordSchema({
       resourceType: 'division',
@@ -34,6 +83,45 @@ describe('source record schemas', () => {
     })
   })
 
+  test('resolves every published Overture division resource', () => {
+    for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
+      const schema = resolveSourceRecordSchema({
+        resourceType,
+        source: 'overture',
+        sourceVersion: '2026-08-19.0',
+      })
+
+      expect(schema).not.toBeNull()
+      expect(schema?.fields.find(field => field.name === 'admin_level')).toEqual({
+        name: 'admin_level',
+        nullable: true,
+        type: 'int_32',
+      })
+    }
+  })
+
+  test('provides the publisher’s nested definitions for raw source fields', () => {
+    const schema = resolveSourceRecordSchema({
+      resourceType: 'place',
+      source: 'overture',
+      sourceVersion: '2026-08-19.0',
+    })
+    const taxonomy = schema?.fields.find(field => field.name === 'taxonomy')
+    const definition =
+      schema && taxonomy
+        ? resolveOvertureSourceRecordFieldDefinition(schema, taxonomy)
+        : null
+
+    expect(definition).toMatchObject({
+      properties: {
+        hierarchy: { items: { pattern: '^[a-z0-9]+(_[a-z0-9]+)*$', type: 'string' } },
+        primary: { type: 'string' },
+      },
+      required: ['primary', 'hierarchy'],
+      type: 'object',
+    })
+  })
+
   test('does not claim a typed schema for an unsupported source payload', () => {
     expect(
       resolveSourceRecordSchema({
@@ -43,4 +131,27 @@ describe('source record schemas', () => {
       }),
     ).toBeNull()
   })
+})
+
+test('public raw properties exclude envelope fields without changing upload validation', () => {
+  for (const resourceType of [
+    'place',
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ] as const) {
+    const schema = resolveSourceRecordSchema({
+      resourceType,
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+    })!
+    expect(schema).toBeDefined()
+    const fields = sourceRecordRawPropertyFields(schema).map(field => field.name)
+    for (const name of ['id', 'geometry']) {
+      expect(fields).not.toContain(name)
+      expect(schema.fields.some(field => field.name === name)).toBe(true)
+    }
+    expect(fields).toContain('sources')
+    expect(fields).toContain('bbox')
+  }
 })

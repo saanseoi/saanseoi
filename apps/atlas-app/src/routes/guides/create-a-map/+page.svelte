@@ -5,17 +5,16 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { onMount, tick } from 'svelte'
 
 import codexCliTrustDirectory from '#lib/assets/guides/codex-cli-trust-directory.png'
-import leafletSetupResult from '#lib/assets/guides/leaflet-setup-result.png'
-import mapboxSetupResult from '#lib/assets/guides/mapbox-setup-result.png'
-import mapFoundationBasemap from '#lib/assets/guides/map-foundation-basemap.png'
 import viteDemoPage from '#lib/assets/guides/vite-demo-page.png'
-import geojsonIoCsvColumns from '#lib/assets/guides/geojson-io-csv-columns.webp'
+import geojsonIoCsvImportDialog from '#lib/assets/guides/geojson-io-import-csv-dialog.png'
 import geojsonIoImportGba from '#lib/assets/guides/geojson-io-import-gba.png'
 import geojsonIoImportHongKong from '#lib/assets/guides/geojson-io-import-geojson.png'
 import geojsonIoImportMacao from '#lib/assets/guides/geojson-io-import-macao.png'
+import geojsonIoXlsxImportDialog from '#lib/assets/guides/geojson-io-import-xlsx-dialog.png'
 import sublimeOpenStyleCss from '#lib/assets/guides/editor-sublime-open-style-css.png'
 import ownDataHongKongChoropleth from '#lib/assets/guides/own-data-hong-kong-choropleth.png'
 import saanSeoiDataHongKongSquare from '#lib/assets/guides/saanseoi-data-hong-kong-square.png'
+import llmDataHongKongDragons from '#lib/assets/guides/llm-data-hong-kong-dragons.png'
 import {
   CreateAMap,
   GuideAgenticAiPrimer,
@@ -32,15 +31,15 @@ import {
   GuideLlmReadiness,
   GuideLlmPromptCard,
   GuideLlmPromptCardExplainer,
-  GuideLlmPromptSection,
   GuideMapboxTokenReadiness,
+  GuideMissingSectionRequirement,
+  GuidePrerequisiteBlocker,
   GuideManualSetup,
   GuideMissingAnswerReminder,
   GuideParagraph,
   GuidePaymentWarning,
   GuidePlatformSelection,
   GuidePreviewCodeBlock,
-  GuideReadinessPanel,
   GuideReference,
   GuideRoot,
   GuideScreenshot,
@@ -49,7 +48,6 @@ import {
   GuideSubSectionHeader,
   GuideTerminalIntroduction,
   GuideUrbanDensityExample,
-  GuidePromptBlock,
 } from '#lib/bits/pages/guides/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Button } from '#lib/bits/primitives/button/index.js'
@@ -67,6 +65,7 @@ import {
 } from '#lib/guides/createAMapSelections.js'
 import { mapStyleDefinitions } from '@repo/basemap'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
+import type { GuideLlmPromptReference } from '#lib/bits/pages/guides/index.js'
 
 import { createCreateAMapGuideAdapter } from './createAMapGuideAdapter.svelte'
 import {
@@ -130,16 +129,23 @@ import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 import GuideCreateAMapEmbed from './guideCreateAMapEmbed.svelte'
 import GuideCreateAMapPublish from './guideCreateAMapPublish.svelte'
 import GuideCreateAMapPublishOther from './guideCreateAMapPublishOther.svelte'
+import GuidePublishRequirement from './guidePublishRequirement.svelte'
 import GuideRendererBlankPreview from '#lib/bits/pages/guides/patterns/createAMap/guideRendererBlankPreview.svelte'
 import GuideMapLibreStylePreview from '#lib/bits/pages/guides/patterns/createAMap/guideMapLibreStylePreview.svelte'
 import GuideGeoJsonDataPreview from '#lib/bits/pages/guides/patterns/createAMap/guideGeoJsonDataPreview.svelte'
 import {
   createAMapAgenticHandoverPrompt,
+  createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapChatDataStepPrompt,
   createAMapChatHandoverPrompt,
   createAMapChatSectionPrompt,
+  createAMapCustomDataPrompt,
+  createAMapExistingDataPrompt,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
+  type CreateAMapDataPromptStep,
+  type CreateAMapDataPromptReferences,
   type CreateAMapLlmPromptState,
 } from './createAMapLlmPrompt'
 
@@ -268,6 +274,9 @@ let dataFormat = $state<DataFormat | undefined>(
 let mapboxTokenConfigured = $state(
   page.url.searchParams.get('mapbox-token-ready') === 'true',
 )
+let completedDataPreparationKey = $state(
+  page.url.searchParams.get('data-prepared') ?? undefined,
+)
 let completedDataKey = $state(page.url.searchParams.get('data-ready') ?? undefined)
 let llmDialogOpen = $state(false)
 let copiedPromptProvider = $state<'local' | 'gemini' | 'kimi'>()
@@ -300,6 +309,10 @@ let analyticsTrackingStarted = $state(false)
 let guideWasComplete = $state(false)
 let hasBasemapApiKey = $state(page.url.searchParams.get('basemap-key-ready') === 'true')
 let usingExistingBasemapApiKey = $state(false)
+let llmBasemapApiKey = $state<string>()
+const llmGuidanceEnabled = $derived(
+  llmMode === 'assisted' && (aiAccess === 'agentic' || aiAccess === 'web'),
+)
 let publishedHosting = $state<string | undefined>()
 const initialPublishReadinessKey = getPublishReadinessKey({
   aiAccess: getCreateAMapQueryChoice(page.url.searchParams, 'aiAccess'),
@@ -346,7 +359,10 @@ let editorReadinessKey = $derived(`${operatingSystem ?? ''}:${codeEditor ?? ''}`
 let dataReadinessKey = $derived(
   dataSource === 'existing' ? `${dataSource}:${dataFormat ?? ''}` : (dataSource ?? ''),
 )
-let isDataStepComplete = $derived(
+let isDataPrepared = $derived(
+  Boolean(dataReadinessKey) && completedDataPreparationKey === dataReadinessKey,
+)
+let isDataAdded = $derived(
   Boolean(dataReadinessKey) && completedDataKey === dataReadinessKey,
 )
 let isEditorReadinessComplete = $derived(
@@ -366,7 +382,11 @@ let llmReadinessKey = $derived(
 )
 let isZedSetupGuideProvided = $derived(aiAccess === 'agentic' && agentTool === 'zed')
 let isLlmReadinessComplete = $derived(completedLlmReadinessKey === llmReadinessKey)
-let isBasemapReady = $derived(Boolean(page.data.user) && hasBasemapApiKey)
+let isBasemapReady = $derived(
+  Boolean(page.data.user) &&
+    hasBasemapApiKey &&
+    (!llmGuidanceEnabled || Boolean(llmBasemapApiKey)),
+)
 let basemapAccountContinueUrl = $derived.by(() => {
   const url = new URL(page.url.href)
   url.searchParams.set('basemap-account', 'complete')
@@ -381,6 +401,23 @@ const completeEditorReadiness = () => {
     entityType: 'action',
     entityId: 'editor_ready',
   })
+}
+
+const completeDataPreparation = () => {
+  if (!dataReadinessKey) return
+
+  completedDataPreparationKey = dataReadinessKey
+  trackClientProductUsage({
+    event: 'guide.milestone',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'data_prepared',
+  })
+}
+
+const resetDataPreparation = () => {
+  completedDataPreparationKey = undefined
+  completedDataKey = undefined
 }
 
 const completeDataStep = () => {
@@ -398,6 +435,13 @@ const completeDataStep = () => {
 const resetDataStep = () => {
   completedDataKey = undefined
 }
+
+$effect(() => {
+  if (llmGuidanceEnabled && !llmBasemapApiKey) {
+    hasBasemapApiKey = false
+    usingExistingBasemapApiKey = false
+  }
+})
 
 const completeLlmReadiness = () => {
   if (!llmReadinessKey) return
@@ -472,6 +516,11 @@ const scrollToBasemapApiKeyRequirement = async () => {
   if (requirement) scrollToElementBelowHeader(requirement)
 }
 
+const confirmBasemapApiKey = async () => {
+  hasBasemapApiKey = true
+  await scrollToBasemapApiKeyRequirement()
+}
+
 const openZedSetup = async () => {
   zedSetupExpanded = true
   zedSetupContentExpanded = true
@@ -519,6 +568,7 @@ createCreateAMapGuideAdapter({
   getUrlState: () => ({
     ...getSelection(),
     basemapApiKeyReady: hasBasemapApiKey,
+    completedDataPreparationKey,
     completedDataKey,
     completedEditorReadinessKey,
     completedLlmReadinessKey,
@@ -711,6 +761,16 @@ const dataChoices = $derived.by(() => {
       description: m.guide_data_api_description(),
       image: saanSeoiDataHongKongSquare,
     },
+    ...(llmGuidanceEnabled
+      ? [
+          {
+            value: 'llm',
+            label: m.guide_data_llm(),
+            description: m.guide_data_llm_description(),
+            image: llmDataHongKongDragons,
+          },
+        ]
+      : []),
     {
       value: 'existing',
       label: m.guide_data_existing(),
@@ -1175,11 +1235,27 @@ const geojsonImportScreenshot = $derived(
       ? geojsonIoImportGba
       : geojsonIoImportHongKong,
 )
+const dataPublicDirectory = $derived(
+  operatingSystem === 'windows'
+    ? 'C:\\Users\\YourName\\saanseoi-project\\public'
+    : '~/saanseoi-project/public',
+)
+const geoJsonConversionTarget = $derived(
+  guideRenderer === 'leaflet'
+    ? m.guide_data_convert_target_leaflet()
+    : guideRenderer
+      ? m.guide_data_convert_target_map({
+          library: selectedRenderer?.label ?? guideRenderer,
+        })
+      : '',
+)
 const dataImportLimit = $derived.by(() => {
   locale
   if (hosting === 'cloudflare') return m.guide_data_import_limit_cloudflare()
   if (hosting === 'github-pages') return m.guide_data_import_limit_github_pages()
   if (hosting === 'vercel') return m.guide_data_import_limit_vercel()
+  if (hosting === 'netlify') return m.guide_data_import_limit_netlify()
+  if (hosting === 'other') return m.guide_data_import_limit_other()
   return undefined
 })
 const hostingChoices = $derived.by(() => {
@@ -1467,7 +1543,8 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     isLlmReadinessComplete,
     isBasemapAccountReady: Boolean(page.data.user),
     isBasemapApiKeyReady: hasBasemapApiKey,
-    isDataStepComplete,
+    isDataAdded,
+    isDataPrepared,
     isMapAccessible,
     isMapboxTokenConfigured: mapboxTokenConfigured,
     isPaymentConfirmed,
@@ -1488,6 +1565,32 @@ const missingPrerequisiteQuestions = $derived.by(() => {
     dataSource,
     dataFormat,
   })
+})
+const publishMissingRequirement = $derived.by(() => {
+  if (!showPublishStep || objective === 'mobile-embed') return undefined
+
+  const question = missingPrerequisiteQuestions.find(
+    item => item.id === 'platform' && !item.answered,
+  )
+  return question
+    ? {
+        href: '#platform',
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
+const embedMissingRequirement = $derived.by(() => {
+  if (objective !== 'web-embed' || (websitePlatform && hosting)) return undefined
+
+  const question = missingPrerequisiteQuestions.find(
+    item => item.id === 'platform' && !item.answered,
+  )
+  return question
+    ? {
+        href: '#platform',
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
 })
 $effect(() => {
   const complete =
@@ -1512,11 +1615,22 @@ const selectedMapLibrary = $derived(
       : selectedRenderer,
 )
 const outline = $derived(guideOutline)
+const basemapDecisionTarget = $derived(
+  isBasemapReady
+    ? 'basemap-choice'
+    : page.data.user
+      ? 'basemap-api-key-requirement'
+      : 'basemap',
+)
 const projectOutline = $derived([
-  {
-    id: 'project-pre-check',
-    label: m.guide_data_urban_density_toc_pre_check(),
-  },
+  ...(llmGuidanceEnabled
+    ? []
+    : [
+        {
+          id: 'project-pre-check',
+          label: m.guide_data_urban_density_toc_pre_check(),
+        },
+      ]),
   {
     id: 'project-fetch-stats',
     label: m.guide_data_urban_density_toc_fetch_stats(),
@@ -1557,9 +1671,6 @@ const selectedPlatform = $derived(
               .filter(Boolean)
               .join(' · '),
 )
-const llmGuidanceEnabled = $derived(
-  llmMode === 'assisted' && (aiAccess === 'agentic' || aiAccess === 'web'),
-)
 const promptEditor = $derived(
   aiAccess === 'agentic' && isCreateAMapAgentCapableEditor(agentTool)
     ? selectedLlmOption?.label
@@ -1577,9 +1688,7 @@ const showEditorProjectSetup = $derived(
       editorValue: promptEditorValue,
     }),
 )
-const showRenderEditorInstructions = $derived(
-  !llmGuidanceEnabled || showEditorProjectSetup,
-)
+const showRenderEditorInstructions = $derived(!llmGuidanceEnabled)
 const promptEditorIcon = $derived(
   aiAccess === 'agentic' && isCreateAMapAgentCapableEditor(agentTool)
     ? selectedLlmOption?.icon
@@ -1587,18 +1696,28 @@ const promptEditorIcon = $derived(
 )
 const llmPromptState = $derived.by(() => {
   return {
+    aiAccess,
     agentTool: selectedLlmOption?.label,
     agentToolValue: agentTool,
+    basemapApiKey: llmBasemapApiKey,
     codeEditor: promptEditor,
     codeEditorValue: promptEditorValue,
     dataSource,
     dataSourceLabel: selectedDataSource?.label,
+    dataFormat,
+    dataFormatLabel: dataFormatChoices.find(choice => choice.value === dataFormat)
+      ?.label,
     hosting: selectedHosting?.label,
     hostingValue: hosting,
     mobileLibrary: selectedMobileLibrary?.label,
+    mobileLibraryValue: mobileLibrary,
     mobilePlatform: selectedMobilePlatform?.label,
     notebookLibrary: selectedNotebookLibrary?.label,
+    notebookLibraryValue: notebookLibrary,
     notebookRuntime: selectedNotebookRuntime?.label,
+    llm,
+    llmLabel: aiAccess === 'web' ? selectedLlmOption?.label : undefined,
+    llmMode,
     objective,
     objectiveLabel: selectedObjective?.label,
     operatingSystem: selectedOperatingSystem?.label,
@@ -1621,7 +1740,9 @@ const llmPromptState = $derived.by(() => {
     vpnAccess: isVpnRequired
       ? vpnAccessChoices.find(choice => choice.value === vpnAccess)?.label
       : undefined,
+    vpnAccessValue: vpnAccess,
     websitePlatform,
+    selectionQuery: getSelection(),
   } satisfies CreateAMapLlmPromptState
 })
 
@@ -1633,28 +1754,6 @@ const agenticHandoverPrompt = $derived(
 const chatHandoverPrompt = $derived(
   createAMapChatHandoverPrompt(llmPromptState, guideUrl, guideLlmInstructionsUrl),
 )
-// 3. Progressive prompts for a coding agent as the guide advances.
-const agenticSectionPrompts = $derived({
-  prerequisites: createAMapAgenticSectionPrompt(llmPromptState, 'prerequisites'),
-  render: createAMapAgenticSectionPrompt(llmPromptState, 'render'),
-  basemap: createAMapAgenticSectionPrompt(llmPromptState, 'basemap'),
-  style: createAMapAgenticSectionPrompt(llmPromptState, 'style'),
-  data: createAMapAgenticSectionPrompt(llmPromptState, 'data'),
-  publish: createAMapAgenticSectionPrompt(llmPromptState, 'publish'),
-})
-// 4. Progressive prompts for a web chat as the guide advances.
-const chatSectionPrompts = $derived({
-  prerequisites: createAMapChatSectionPrompt(llmPromptState, 'prerequisites'),
-  render: createAMapChatSectionPrompt(llmPromptState, 'render'),
-  basemap: createAMapChatSectionPrompt(llmPromptState, 'basemap'),
-  style: createAMapChatSectionPrompt(llmPromptState, 'style'),
-  data: createAMapChatSectionPrompt(llmPromptState, 'data'),
-  publish: createAMapChatSectionPrompt(llmPromptState, 'publish'),
-})
-const progressiveSectionPrompts = $derived(
-  aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
-)
-
 const guideDecisions = $derived.by(() => {
   locale
   return [
@@ -1663,11 +1762,15 @@ const guideDecisions = $derived.by(() => {
       label: m.guide_decision_destination(),
       selection: selectedObjective?.label,
     },
-    {
-      id: 'operating-system',
-      label: m.guide_decision_operating_system(),
-      selection: selectedOperatingSystem?.label,
-    },
+    ...(aiAccess === 'agentic'
+      ? []
+      : [
+          {
+            id: 'operating-system',
+            label: m.guide_decision_operating_system(),
+            selection: selectedOperatingSystem?.label,
+          },
+        ]),
     ...(showPlatform
       ? [
           {
@@ -1683,7 +1786,7 @@ const guideDecisions = $derived.by(() => {
       selection: selectedMapLibrary?.label,
     },
     {
-      id: 'basemap-choice',
+      id: basemapDecisionTarget,
       label: m.guide_decision_basemap(),
       selection: selectedRegion?.label,
     },
@@ -1722,6 +1825,10 @@ const terminalProjectPath = $derived(
   operatingSystem === 'windows' ? '~\\saanseoi-project' : '~/saanseoi-project',
 )
 const projectSetupIntro = $derived.by(() => {
+  if (aiAccess === 'agentic') {
+    return m.guide_project_setup_agent_intro()
+  }
+
   if (llmMode !== 'manual' || !setupReady || terminalExperience === 'advanced') {
     return m.guide_project_setup_intro()
   }
@@ -1757,6 +1864,24 @@ const setupReady = $derived(
     notebookRuntime,
   }),
 )
+const projectSetupContentReady = $derived(
+  guideUnlocked &&
+    ((llmMode === 'manual' && setupReady) ||
+      (llmMode === 'assisted' &&
+        setupReady &&
+        (aiAccess !== 'agentic' || isLlmReadinessComplete))),
+)
+const projectSetupMissingRequirement = $derived.by(() => {
+  if (projectSetupContentReady || llmMode === 'handover') return undefined
+
+  const question = missingPrerequisiteQuestions.find(item => !item.answered)
+  return question
+    ? {
+        href: `#${question.id}`,
+        requirement: question.requirementLabel ?? question.label,
+      }
+    : undefined
+})
 const selectedLlmChatUrl = $derived(getSelectedLlmChatUrl(llm))
 const rendererReference = $derived(
   getCreateAMapRendererReference(
@@ -1769,7 +1894,7 @@ const rendererReference = $derived(
 const rendererInstallCode = $derived(rendererReference.installCommand)
 const rendererVersionDependency = $derived(
   renderer === 'maplibre'
-    ? { name: 'maplibre-gl', pinnedVersion: '6.6.0' }
+    ? { name: 'maplibre-gl', pinnedVersion: '6.8.0' }
     : renderer === 'mapbox'
       ? { name: 'mapbox-gl', pinnedVersion: '3.29.0' }
       : { name: 'leaflet', pinnedVersion: '1.9.4' },
@@ -1851,20 +1976,6 @@ const llmRendererReferences = $derived.by(() => {
     },
   ]
 })
-const llmRendererPreview = $derived(
-  renderer === 'mapbox'
-    ? mapboxSetupResult
-    : renderer === 'leaflet'
-      ? leafletSetupResult
-      : viteDemoPage,
-)
-const llmRendererPreviewAlt = $derived(
-  renderer === 'mapbox'
-    ? m.guide_renderer_mapbox_setup_screenshot_alt()
-    : renderer === 'leaflet'
-      ? m.guide_renderer_leaflet_setup_screenshot_alt()
-      : m.guide_llm_prompt_card_preview_alt(),
-)
 const rendererCodeComments = $derived.by(() => {
   if (renderer === 'mapbox') {
     return [
@@ -2008,6 +2119,272 @@ const styleEditCode = $derived(
     ? createAMapRendererStyleCode(renderer, styleUrl, tilejsonUrl, openingPosition)
     : '',
 )
+const llmStyleReferences = $derived.by(() => {
+  if (!guideRenderer || !selectedStyle) return []
+
+  return [
+    {
+      code: styleEditCode,
+      language: 'typescript' as const,
+      path: rendererEditorPath,
+      title: m.guide_style_editor_title({ library: selectedRenderer?.label ?? '' }),
+      type: 'TS' as const,
+    },
+  ]
+})
+const llmUrbanDensityReferences = $derived.by(
+  (): {
+    calculation: GuideLlmPromptReference[]
+    final: GuideLlmPromptReference[]
+    liveable: GuideLlmPromptReference[]
+    map: GuideLlmPromptReference[]
+    metrics: GuideLlmPromptReference[]
+    stats: GuideLlmPromptReference[]
+  } => {
+    if (!guideRenderer || !selectedStyle) {
+      return {
+        calculation: [],
+        final: [],
+        liveable: [],
+        map: [],
+        metrics: [],
+        stats: [],
+      }
+    }
+
+    return {
+      stats: [
+        {
+          code: urbanDensityStatsCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_calculate_code(),
+          type: 'TS',
+        },
+      ],
+      calculation: [
+        {
+          code: urbanDensityCalculationCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_results_code(),
+          type: 'TS',
+        },
+      ],
+      map: [
+        {
+          code: urbanDensityMapCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_map_code(),
+          type: 'TS',
+        },
+      ],
+      metrics: [
+        {
+          code: createUrbanDensityMetricsCss(selectedStyle.appearance),
+          language: 'css',
+          path: rendererStylesheetPath,
+          title: m.guide_data_urban_density_metrics_css(),
+          type: 'CSS',
+        },
+        {
+          code: urbanDensityMetricsCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_results_map_code(),
+          type: 'TS',
+        },
+      ],
+      liveable: [
+        {
+          code: urbanDensityTurfInstallCode,
+          language: 'bash',
+          path: terminalProjectPath,
+          title: m.guide_data_urban_density_install_code(),
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityTurfInstallOutput,
+          language: 'text',
+          path: terminalProjectPath,
+          title: m.guide_data_urban_density_install_output(),
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityGeometryWorkerCode,
+          language: 'typescript',
+          path: 'src/land-analysis.worker.ts',
+          title: m.guide_data_urban_density_geometry_worker_code(),
+          type: 'TS',
+        },
+        {
+          code: [urbanDensitySetupZ14TileFetcherCss, urbanDensityLiveableAreaCss].join(
+            '\n\n',
+          ),
+          language: 'css',
+          path: rendererStylesheetPath,
+          title: m.guide_data_urban_density_llm_analysis_styles(),
+          type: 'CSS',
+        },
+        {
+          code: [
+            createUrbanDensitySetupZ14TileFetcherCode(guideRenderer),
+            urbanDensityCollectNonLiveableLandCode,
+            urbanDensityLiveableAreaCode,
+          ].join('\n\n'),
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_llm_analysis_main(),
+          type: 'TS',
+        },
+      ],
+      final: [
+        {
+          code: [urbanDensityLiveableMetricsCode, urbanDensityLiveableAreaMapCode].join(
+            '\n\n',
+          ),
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_urban_density_llm_finalise_map(),
+          type: 'TS',
+        },
+      ],
+    }
+  },
+)
+const llmUrbanDensityDataStepReferences = $derived<CreateAMapDataPromptReferences>({
+  fetchStats: llmUrbanDensityReferences.stats,
+  calculateDensity: llmUrbanDensityReferences.calculation,
+  addStatsToMap: llmUrbanDensityReferences.metrics,
+  findUnliveableLand: llmUrbanDensityReferences.map,
+  calculateLiveableArea: llmUrbanDensityReferences.liveable,
+  finaliseMap: llmUrbanDensityReferences.final,
+})
+
+// 3. Progressive prompts for a coding agent as the guide advances.
+const agenticSectionPrompts = $derived({
+  prerequisites: createAMapAgenticSectionPrompt(llmPromptState, 'prerequisites'),
+  render: createAMapAgenticSectionPrompt(llmPromptState, 'render'),
+  basemap: createAMapAgenticSectionPrompt(llmPromptState, 'basemap'),
+  style: createAMapAgenticSectionPrompt(llmPromptState, 'style'),
+  data: createAMapAgenticSectionPrompt(
+    llmPromptState,
+    'data',
+    llmUrbanDensityDataStepReferences,
+  ),
+  publish: createAMapAgenticSectionPrompt(llmPromptState, 'publish'),
+})
+// 4. Progressive prompts for a web chat as the guide advances.
+const chatSectionPrompts = $derived({
+  prerequisites: createAMapChatSectionPrompt(llmPromptState, 'prerequisites'),
+  render: createAMapChatSectionPrompt(llmPromptState, 'render'),
+  basemap: createAMapChatSectionPrompt(llmPromptState, 'basemap'),
+  style: createAMapChatSectionPrompt(llmPromptState, 'style'),
+  data: createAMapChatSectionPrompt(
+    llmPromptState,
+    'data',
+    llmUrbanDensityDataStepReferences,
+  ),
+  publish: createAMapChatSectionPrompt(llmPromptState, 'publish'),
+})
+const progressiveSectionPrompts = $derived(
+  aiAccess === 'agentic' ? agenticSectionPrompts : chatSectionPrompts,
+)
+const llmCustomDataPrompt = $derived(
+  createAMapCustomDataPrompt(
+    llmPromptState,
+    aiAccess === 'agentic' ? 'agentic' : 'chat',
+  ),
+)
+const llmGeoJsonImportReferences = $derived<GuideLlmPromptReference[]>(
+  guideRenderer
+    ? [
+        {
+          code: geoJsonImportCode,
+          language: 'typescript',
+          path: rendererEditorPath,
+          title: m.guide_data_import_code_label(),
+          type: 'TS',
+        },
+      ]
+    : [],
+)
+const llmExistingDataPrompt = $derived(
+  createAMapExistingDataPrompt(
+    llmPromptState,
+    aiAccess === 'agentic' ? 'agentic' : 'chat',
+    llmGeoJsonImportReferences,
+  ),
+)
+const agenticDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'fetchStats',
+    llmUrbanDensityDataStepReferences.fetchStats,
+  ),
+  calculateDensity: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'calculateDensity',
+    llmUrbanDensityDataStepReferences.calculateDensity,
+  ),
+  addStatsToMap: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'addStatsToMap',
+    llmUrbanDensityDataStepReferences.addStatsToMap,
+  ),
+  findUnliveableLand: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+    llmUrbanDensityDataStepReferences.findUnliveableLand,
+  ),
+  calculateLiveableArea: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+    llmUrbanDensityDataStepReferences.calculateLiveableArea,
+  ),
+  finaliseMap: createAMapAgenticDataStepPrompt(
+    llmPromptState,
+    'finaliseMap',
+    llmUrbanDensityDataStepReferences.finaliseMap,
+  ),
+})
+const chatDataStepPrompts = $derived<Record<CreateAMapDataPromptStep, string>>({
+  fetchStats: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'fetchStats',
+    llmUrbanDensityDataStepReferences.fetchStats,
+  ),
+  calculateDensity: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'calculateDensity',
+    llmUrbanDensityDataStepReferences.calculateDensity,
+  ),
+  addStatsToMap: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'addStatsToMap',
+    llmUrbanDensityDataStepReferences.addStatsToMap,
+  ),
+  findUnliveableLand: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'findUnliveableLand',
+    llmUrbanDensityDataStepReferences.findUnliveableLand,
+  ),
+  calculateLiveableArea: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'calculateLiveableArea',
+    llmUrbanDensityDataStepReferences.calculateLiveableArea,
+  ),
+  finaliseMap: createAMapChatDataStepPrompt(
+    llmPromptState,
+    'finaliseMap',
+    llmUrbanDensityDataStepReferences.finaliseMap,
+  ),
+})
+const progressiveDataStepPrompts = $derived(
+  aiAccess === 'agentic' ? agenticDataStepPrompts : chatDataStepPrompts,
+)
+
 const geoJsonImportOmittedLines = $derived(
   styleEditCode ? styleEditCode.split('\n').length : 0,
 )
@@ -2036,7 +2413,8 @@ const geoJsonImportComments = $derived.by(() => {
     { line: 4, text: m.guide_data_import_comment_source() },
     { line: 5, text: m.guide_data_import_comment_layer() },
     { line: 6, text: m.guide_data_import_comment_marker() },
-    { line: 11, text: m.guide_data_import_comment_loaded() },
+    { line: 9, text: m.guide_data_import_comment_popup() },
+    { line: 16, text: m.guide_data_import_comment_loaded() },
   ]
 })
 const styleEditDimmedLines = $derived(
@@ -2405,7 +2783,6 @@ const styleChoices = $derived.by(() =>
                   onReset={resetLlmReadiness}
                   {operatingSystem}
                   option={selectedLlmOption}
-                  prompt={progressiveSectionPrompts.prerequisites}
                   {zedSetupContentExpanded}
                   {zedSetupExpanded}
                   onZedSetupContentExpandedChange={(expanded: boolean) =>
@@ -2511,7 +2888,7 @@ const styleChoices = $derived.by(() =>
         eyebrow={m.guide_project_setup_eyebrow()}
         intro={projectSetupIntro}
       >
-        {#if guideUnlocked}
+        {#if projectSetupContentReady}
           {#if objective && llmMode === 'manual' && setupReady}
             <GuideManualSetup
               {bunInstallCode}
@@ -2535,10 +2912,10 @@ const styleChoices = $derived.by(() =>
           {:else if objective && llmMode === 'assisted' && setupReady && (aiAccess !== 'agentic' || isLlmReadinessComplete)}
             <div class="mt-14 space-y-6">
               {#if aiAccess === 'agentic'}
-                <div class="space-y-5">
-                  {#if showEditorProjectSetup && isCreateAMapAgentCapableEditor(agentTool)}
+                <div>
+                  {#if showEditorProjectSetup && agentTool === 'cursor'}
                     <GuideEditorProjectSetupSection editor={agentTool} />
-                  {:else}
+                  {:else if agentTool !== 'zed'}
                     <GuideSubSectionHeader
                       eyebrow={m.guide_setup_agent_eyebrow()}
                       title={m.guide_setup_agent_title()}
@@ -2547,18 +2924,20 @@ const styleChoices = $derived.by(() =>
                       <GuideParagraph>
                         {@html m.guide_setup_agent_terminal_instruction()}
                       </GuideParagraph>
-                      <GuideCodeBlock
-                        label={m.guide_setup_agent_terminal_label()}
-                        code={agentProjectCommand}
-                        language="bash"
-                        copyLabel={m.common_copy()}
-                        copiedLabel={m.common_copied()}
-                      />
+                      <div class="mt-5">
+                        <GuideCodeBlock
+                          label={m.guide_setup_agent_terminal_label()}
+                          code={agentProjectCommand}
+                          language="bash"
+                          copyLabel={m.common_copy()}
+                          copiedLabel={m.common_copied()}
+                        />
+                      </div>
                       {#if agentTool === 'codex-cli'}
-                        <GuideParagraph>
+                        <GuideParagraph class="mt-5">
                           {@html m.guide_setup_agent_codex_cli_trust_directory()}
                         </GuideParagraph>
-                        <div class="max-w-3xl">
+                        <div class="mt-5 max-w-3xl">
                           <GuideScreenshot
                             src={codexCliTrustDirectory}
                             alt={m.guide_setup_agent_codex_cli_trust_directory_alt()}
@@ -2580,29 +2959,45 @@ const styleChoices = $derived.by(() =>
                     {/if}
                   {/if}
                   {#if agentModelSelectionInstruction}
-                    <GuideParagraph>
+                    <GuideParagraph class="mt-5">
                       {@html agentModelSelectionInstruction}
                     </GuideParagraph>
                   {/if}
                 </div>
               {/if}
               {#if aiAccess === 'agentic'}
-                {#if agentTool === 'zed'}
-                  <GuideParagraph>
-                    {@html m.guide_setup_agent_zed_prompt_instruction()}
-                  </GuideParagraph>
-                {/if}
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <GuideLlmPromptCard
-                  prompt={progressiveSectionPrompts.prerequisites}
-                  promptIcon={selectedLlmOption?.icon}
-                  references={llmProjectSetupReferences}
-                  title={m.guide_setup_llm_title()}
-                  previewImageSrc={viteDemoPage}
-                  previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                />
+                <div class="w-full min-w-0 max-w-232">
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_setup_llm_eyebrow()}
+                    title={m.guide_setup_llm_title()}
+                  />
+                  <GuideParagraph>
+                    {@html m.guide_setup_agent_llm_instruction_before()}
+                    <span
+                      class="mx-1 inline-flex items-center gap-1 font-semibold text-foreground"
+                    >
+                      <Icon
+                        icon={selectedLlmOption?.icon ?? 'proicons:more'}
+                        class="size-4"
+                      />
+                      {@html selectedLlmOption?.label ?? ''}
+                    </span>
+                    {@html m.guide_setup_agent_llm_instruction_after()}
+                  </GuideParagraph>
+                  <div class="mt-5">
+                    <GuideLlmPromptCard
+                      prompt={progressiveSectionPrompts.prerequisites}
+                      promptIcon={selectedLlmOption?.icon}
+                      references={llmProjectSetupReferences}
+                      title={m.guide_setup_llm_title()}
+                      previewImageSrc={viteDemoPage}
+                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                    />
+                  </div>
+                </div>
               {/if}
               {#if showEditorProjectSetup && aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
                 <GuideEditorProjectSetupSection editor={codeEditor} />
@@ -2611,7 +3006,7 @@ const styleChoices = $derived.by(() =>
                 {#if llmGuidanceEnabled}
                   <GuideLlmPromptCardExplainer promptIcon={selectedLlmOption?.icon} />
                 {/if}
-                <div class="mt-12 max-w-232 space-y-5">
+                <div class="mt-14 w-full min-w-0 max-w-232">
                   <GuideSubSectionHeader
                     eyebrow={m.guide_setup_llm_eyebrow()}
                     title={m.guide_setup_llm_title()}
@@ -2639,18 +3034,26 @@ const styleChoices = $derived.by(() =>
                     {/if}
                     {@html m.guide_setup_llm_instruction_after()}
                   </GuideParagraph>
-                  <GuideLlmPromptCard
-                    prompt={progressiveSectionPrompts.prerequisites}
-                    promptIcon={selectedLlmOption?.icon}
-                    references={llmProjectSetupReferences}
-                    title={m.guide_setup_llm_title()}
-                    previewImageSrc={viteDemoPage}
-                    previewAlt={m.guide_llm_prompt_card_preview_alt()}
-                  />
+                  <div class="mt-5">
+                    <GuideLlmPromptCard
+                      prompt={progressiveSectionPrompts.prerequisites}
+                      promptIcon={selectedLlmOption?.icon}
+                      references={llmProjectSetupReferences}
+                      title={m.guide_setup_llm_title()}
+                      previewImageSrc={viteDemoPage}
+                      previewAlt={m.guide_llm_prompt_card_preview_alt()}
+                    />
+                  </div>
                 </div>
               {/if}
             </div>
           {/if}
+        {:else if projectSetupMissingRequirement}
+          <GuideMissingSectionRequirement
+            action={m.guide_section_missing_project_setup_action()}
+            href={projectSetupMissingRequirement.href}
+            requirement={projectSetupMissingRequirement.requirement}
+          />
         {/if}
       </GuideSection>
 
@@ -2706,7 +3109,7 @@ const styleChoices = $derived.by(() =>
               contactLabel={m.guide_renderer_version_contact_label()}
               contactAfter={m.guide_renderer_version_contact_after()}
             />
-            {#if renderer === 'mapbox'}
+            {#if renderer === 'mapbox' && !llmGuidanceEnabled}
               <GuideMapboxTokenReadiness
                 configured={mapboxTokenConfigured}
                 editorIcon={promptEditorIcon}
@@ -2858,22 +3261,35 @@ const styleChoices = $derived.by(() =>
             </GuideCallout>
           {/if}
           {#if llmGuidanceEnabled && guideRenderer && selectedMapLibrary}
-            <div class="border-t border-border-card pt-10">
+            <div>
               <GuideSubSectionHeader
-                eyebrow={aiAccess === 'agentic'
-                  ? m.guide_renderer_prompt_agent_eyebrow()
-                  : m.guide_renderer_prompt_chat_eyebrow()}
+                eyebrow={m.guide_setup_llm_eyebrow()}
                 title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
               />
+              <GuideParagraph>
+                {@html renderer === 'mapbox'
+                  ? m.guide_renderer_prompt_mapbox_instruction({
+                      llm: selectedLlmOption?.label ?? '',
+                    })
+                  : m.guide_renderer_prompt_instruction({
+                      library: selectedMapLibrary.label,
+                      llm: selectedLlmOption?.label ?? '',
+                    })}
+              </GuideParagraph>
               <div class="mt-6 max-w-232">
                 <GuideLlmPromptCard
                   prompt={progressiveSectionPrompts.render}
                   promptIcon={selectedLlmOption?.icon}
                   references={llmRendererReferences}
                   title={m.guide_renderer_setup_title({ library: selectedMapLibrary.label })}
-                  previewImageSrc={llmRendererPreview}
-                  previewAlt={llmRendererPreviewAlt}
-                />
+                >
+                  {#snippet preview()}
+                    <GuideRendererBlankPreview
+                      renderer={renderer ?? 'maplibre'}
+                      {openingPosition}
+                    />
+                  {/snippet}
+                </GuideLlmPromptCard>
               </div>
             </div>
           {/if}
@@ -2945,6 +3361,8 @@ const styleChoices = $derived.by(() =>
               </GuideParagraph>
             {/if}
             <GuideCreateAMapApiKeys
+              allowExistingKey={!llmGuidanceEnabled}
+              autoConfirmCreatedKey={llmGuidanceEnabled}
               apiKeyReady={hasBasemapApiKey}
               editorIcon={selectedCodeEditor?.icon}
               editorLabel={selectedCodeEditor?.label}
@@ -2952,9 +3370,17 @@ const styleChoices = $derived.by(() =>
               newFileShortcut={editorNewFileShortcut}
               {operatingSystem}
               {terminalProjectPath}
-              onApiKeyConfirmed={scrollToBasemapApiKeyRequirement}
-              onApiKeyReadyChange={ready => (hasBasemapApiKey = ready)}
+              onApiKeyCreated={key => {
+                if (!llmGuidanceEnabled) return
+                llmBasemapApiKey = key
+              }}
+              onApiKeyConfirmed={confirmBasemapApiKey}
+              onApiKeyReadyChange={ready => {
+                hasBasemapApiKey = ready
+                if (!ready) llmBasemapApiKey = undefined
+              }}
               showHeading={false}
+              showEnvironmentSetup={!llmGuidanceEnabled}
               bind:usingExistingKey={usingExistingBasemapApiKey}
             />
           </div>
@@ -3042,9 +3468,7 @@ const styleChoices = $derived.by(() =>
             <div class="mt-10">
               <div class="border-t border-border-card pt-10">
                 <GuideSubSectionHeader
-                  eyebrow={aiAccess === 'agentic'
-                    ? m.guide_renderer_prompt_agent_eyebrow()
-                    : m.guide_renderer_prompt_chat_eyebrow()}
+                  eyebrow={m.guide_setup_llm_eyebrow()}
                   title={m.guide_basemap_prompt_title()}
                 />
                 <div class="mt-6 max-w-232">
@@ -3053,9 +3477,17 @@ const styleChoices = $derived.by(() =>
                     promptIcon={selectedLlmOption?.icon}
                     references={llmBasemapReferences}
                     title={m.guide_basemap_prompt_title()}
-                    previewImageSrc={mapFoundationBasemap}
-                    previewAlt={m.guide_basemap_prompt_preview_alt()}
-                  />
+                  >
+                    {#snippet preview()}
+                      <GuideRendererBlankPreview
+                        {renderer}
+                        {openingPosition}
+                        title={m.guide_basemap_preview_title()}
+                        description={m.guide_basemap_preview_description()}
+                        unstyled
+                      />
+                    {/snippet}
+                  </GuideLlmPromptCard>
                 </div>
               </div>
             </div>
@@ -3113,7 +3545,7 @@ const styleChoices = $derived.by(() =>
             </div>
           </GuideCallout>
         {/if}
-        {#if selectedStyle && renderer}
+        {#if !llmGuidanceEnabled && selectedStyle && renderer}
           <div class="mt-10 max-w-232 pt-10">
             <GuideSubSectionHeader
               eyebrow={m.guide_basemap_editor_eyebrow()}
@@ -3157,17 +3589,31 @@ const styleChoices = $derived.by(() =>
             </GuideSubSectionBody>
           </div>
         {/if}
-        {#if llmGuidanceEnabled && style}
-          <GuideLlmPromptSection
-            eyebrow={aiAccess === 'agentic'
-              ? m.guide_renderer_prompt_agent_eyebrow()
-              : m.guide_renderer_prompt_chat_eyebrow()}
-            prompt={progressiveSectionPrompts.style}
-            promptIcon={selectedLlmOption?.icon}
-            title={m.guide_renderer_setup_title({
-              library: selectedMapLibrary?.label ?? '',
-            })}
-          />
+        {#if llmGuidanceEnabled && selectedStyle && guideRenderer}
+          <div class="mt-10">
+            <GuideSubSectionHeader
+              eyebrow={m.guide_setup_llm_eyebrow()}
+              title={m.guide_style_setup_title()}
+            />
+            <div class="mt-6 max-w-232">
+              <GuideLlmPromptCard
+                prompt={progressiveSectionPrompts.style}
+                promptIcon={selectedLlmOption?.icon}
+                references={llmStyleReferences}
+                title={m.guide_style_setup_title()}
+              >
+                {#snippet preview()}
+                  <GuideMapLibreStylePreview
+                    label={selectedStyle.name}
+                    renderer={guideRenderer}
+                    {styleUrl}
+                    {tilejsonUrl}
+                    {openingPosition}
+                  />
+                {/snippet}
+              </GuideLlmPromptCard>
+            </div>
+          </div>
         {/if}
       </GuideSection>
 
@@ -3217,154 +3663,267 @@ const styleChoices = $derived.by(() =>
             <div id="geojson" class="mt-12 max-w-232 scroll-mt-28">
               <GuideSubSectionHeader
                 requirement={{
-                  current: 3,
-                  label: m.guide_prerequisites_requirement_label(),
-                  total: 3,
-                }}
+                    current: 3,
+                    label: m.guide_prerequisites_requirement_label(),
+                    total: 3,
+                  }}
                 title={dataFormat === 'geojson'
-                  ? m.guide_data_geojson_title()
-                  : m.guide_data_convert_title({ format: selectedDataFormat.label })}
+                    ? m.guide_data_geojson_title()
+                    : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
-              <GuideAttachedLayout primaryWidth="shortCard" class="mt-6">
-                <GuideSubSectionBody class="mt-0">
-                  {#if dataFormat !== 'geojson'}
-                    <GuideParagraph>
-                      {@html m.guide_data_convert_description({ format: selectedDataFormat.label })}
-                    </GuideParagraph>
+              <GuidePublishRequirement
+                complete={isDataPrepared}
+                completeAction={m.guide_data_preparation_done()}
+                description={m.guide_data_preparation_complete_description()}
+                eyebrow={m.guide_data_preparation_complete_eyebrow()}
+                id="data-preparation-readiness"
+                onComplete={completeDataPreparation}
+                onReset={resetDataPreparation}
+                resetDescription={m.guide_data_preparation_reset_description()}
+                resetLabel={m.guide_readiness_reset()}
+                scrollTargetId="data-preparation-readiness"
+                titleId="data-preparation-readiness-title"
+              >
+                <GuideAttachedLayout primaryWidth="shortCard" class="mt-3">
+                  <GuideSubSectionBody spacing="none">
+                    {#if dataFormat !== 'geojson'}
+                      <GuideParagraph>
+                        {@html m.guide_data_convert_description({
+                        fallback:
+                          dataFormat === 'other' ? m.guide_data_convert_other() : '',
+                        format: selectedDataFormat.label,
+                        target: geoJsonConversionTarget,
+                      })}
+                      </GuideParagraph>
+                    {/if}
+                    {#if dataFormat === 'geojson'}
+                      <GuideParagraph>
+                        {@html m.guide_data_geojson_editor_optional({
+                        assetLimit: dataImportLimit ? `<br><br>${dataImportLimit}` : '',
+                      })}
+                      </GuideParagraph>
+                    {/if}
                     <ol
-                      class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                      class={`${dataFormat === 'geojson' ? 'mt-0' : 'mt-4'} list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt`}
                     >
                       <li>{@html m.guide_data_convert_step_open()}</li>
                       <li>{@html m.guide_data_convert_step_import()}</li>
                       {#if dataFormat === 'csv'}
                         <li>{@html m.guide_data_convert_step_columns()}</li>
+                      {:else if dataFormat === 'xlsx'}
+                        <li>{@html m.guide_data_convert_step_spreadsheet()}</li>
                       {/if}
                     </ol>
-                  {/if}
-                  {#if dataFormat === 'csv'}
-                    <GuideAttachedLayout primaryWidth="shortCard">
-                      <GuideScreenshot
-                        src={geojsonIoCsvColumns}
-                        alt={m.guide_data_csv_columns_screenshot_alt()}
-                        caption={m.guide_data_csv_columns_screenshot_caption()}
-                        width="content"
-                      />
-                      {#snippet aside()}
-                        <GuideInstructionCallout
-                          title={m.guide_data_csv_kind_title()}
-                          description={m.guide_data_csv_kind_coordinates()}
-                        >
-                          <ul
-                            class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
-                          >
-                            <li>{@html m.guide_data_csv_kind_wkt()}</li>
-                            <li>{@html m.guide_data_csv_kind_geojson()}</li>
-                            <li>{@html m.guide_data_csv_kind_polyline()}</li>
-                          </ul>
-                        </GuideInstructionCallout>
-                      {/snippet}
-                    </GuideAttachedLayout>
-                  {/if}
-                  <GuideParagraph>{@html m.guide_data_geojson_editor()}</GuideParagraph>
-                  <GuideScreenshot
-                    class="mt-6"
-                    src={geojsonImportScreenshot}
-                    alt={m.guide_data_geojson_imported_screenshot_alt({
-                      region: selectedRegion?.label ?? '',
-                    })}
-                    caption={m.guide_data_geojson_imported_screenshot_caption({
-                      region: selectedRegion?.label ?? '',
-                    })}
-                    width="content"
-                  />
-                  <ol
-                    class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-                  >
-                    <li>{@html m.guide_data_geojson_step_properties()}</li>
-                    <li>{@html m.guide_data_geojson_step_geometry()}</li>
-                    <li>{@html m.guide_data_geojson_step_export()}</li>
-                  </ol>
-                  {#if !isDataStepComplete}
-                    <div class="mt-6 flex justify-end">
-                      <Button
-                        class="bg-secondary text-on-secondary hover:bg-secondary/85"
-                        size="compact"
-                        onclick={completeDataStep}
+                    {#if dataFormat === 'csv'}
+                      <GuideAttachedLayout
+                        primaryWidth="shortCard"
+                        class="xl:w-[calc(100%+28rem)]!"
                       >
-                        <Icon
-                          icon="material-symbols-light:check-rounded"
-                          class="size-5"
-                          aria-hidden="true"
+                        <div class="space-y-4">
+                          <GuideScreenshot
+                            src={geojsonIoCsvImportDialog}
+                            alt={m.guide_data_csv_dialog_screenshot_alt()}
+                            caption={m.guide_data_csv_dialog_screenshot_caption()}
+                            width="content"
+                          />
+                        </div>
+                        {#snippet aside()}
+                          <GuideInstructionCallout
+                            title={m.guide_data_csv_kind_title()}
+                            description={m.guide_data_csv_kind_coordinates()}
+                          >
+                            <ul
+                              class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                            >
+                              <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                              <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                              <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                            </ul>
+                          </GuideInstructionCallout>
+                        {/snippet}
+                      </GuideAttachedLayout>
+                    {:else if dataFormat === 'xlsx'}
+                      <GuideAttachedLayout
+                        primaryWidth="shortCard"
+                        class="xl:w-[calc(100%+28rem)]!"
+                      >
+                        <GuideScreenshot
+                          src={geojsonIoXlsxImportDialog}
+                          alt={m.guide_data_xlsx_dialog_screenshot_alt()}
+                          caption={m.guide_data_xlsx_dialog_screenshot_caption()}
+                          width="content"
                         />
-                        {m.guide_data_geojson_ready()}
-                      </Button>
-                    </div>
-                  {/if}
-                </GuideSubSectionBody>
-                {#snippet aside()}
-                  <GuideInstructionCallout
-                    title={m.guide_data_geojson_callout_title()}
-                    description={m.guide_data_geojson_description()}
-                  />
-                {/snippet}
-              </GuideAttachedLayout>
+                        {#snippet aside()}
+                          <GuideInstructionCallout
+                            title={m.guide_data_csv_kind_title()}
+                            description={m.guide_data_csv_kind_coordinates()}
+                          >
+                            <ul
+                              class="mt-3 list-disc space-y-1 pl-6 font-body text-sm leading-[1.6] text-foreground-alt"
+                            >
+                              <li>{@html m.guide_data_csv_kind_wkt()}</li>
+                              <li>{@html m.guide_data_csv_kind_geojson()}</li>
+                              <li>{@html m.guide_data_csv_kind_polyline()}</li>
+                            </ul>
+                          </GuideInstructionCallout>
+                        {/snippet}
+                      </GuideAttachedLayout>
+                    {/if}
+                    <GuideScreenshot
+                      class="mt-6"
+                      src={geojsonImportScreenshot}
+                      alt={m.guide_data_geojson_imported_screenshot_alt({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                      caption={m.guide_data_geojson_imported_screenshot_caption({
+                      region: selectedRegion?.label ?? '',
+                    })}
+                      width="content"
+                    />
+                    <ol
+                      class="mt-4 list-decimal space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
+                    >
+                      <li>{@html m.guide_data_geojson_step_properties()}</li>
+                      <li>{@html m.guide_data_geojson_step_geometry()}</li>
+                      <li>{@html m.guide_data_geojson_step_export()}</li>
+                    </ol>
+                  </GuideSubSectionBody>
+                  {#snippet aside()}
+                    <GuideInstructionCallout
+                      title={m.guide_data_geojson_callout_title()}
+                      description={m.guide_data_geojson_description()}
+                    />
+                  {/snippet}
+                </GuideAttachedLayout>
+              </GuidePublishRequirement>
             </div>
+
             {#if renderer && selectedStyle}
               <div class="mt-10 max-w-232">
-                <GuideSubSectionHeader
-                  eyebrow={m.guide_data_import_eyebrow()}
-                  title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}
-                />
-                <GuideSubSectionBody>
-                  <GuideParagraph
-                    >{@html m.guide_data_import_description()}</GuideParagraph
-                  >
-                  <div class="mt-5">
-                    <GuidePreviewCodeBlock
-                      label={m.guide_data_import_code_label()}
-                      code={geoJsonImportCode}
-                      comments={geoJsonImportComments}
-                      editorIcon={selectedCodeEditor?.icon}
-                      language="typescript"
-                      variant="editor"
-                      copyLabel={m.common_copy()}
-                      copiedLabel={m.common_copied()}
-                      previewLabel={m.guide_code_block_preview()}
-                      showCodeLabel={m.guide_code_block_code()}
-                      expandable
-                      expandLabel={m.guide_code_block_expand()}
-                      closeLabel={m.common_close()}
-                    >
-                      {#snippet preview()}
-                        <GuideGeoJsonDataPreview
-                          label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
-                          renderer={guideRenderer ?? 'maplibre'}
-                          {openingPosition}
-                          {sampleDataUrl}
-                          {styleUrl}
-                          {tilejsonUrl}
-                        />
-                      {/snippet}
-                    </GuidePreviewCodeBlock>
-                  </div>
-                  <GuideParagraph class="mt-5">
-                    {@html m.guide_data_import_inspect()}
-                  </GuideParagraph>
-                  {#if dataImportLimit}
-                    <GuideParagraph class="mt-4">
-                      {@html dataImportLimit}
-                    </GuideParagraph>
-                  {/if}
-                </GuideSubSectionBody>
+                {#if llmGuidanceEnabled}
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_data_import_llm_eyebrow()}
+                    title={m.guide_data_import_llm_title()}
+                  />
+                {:else}
+                  <GuideSubSectionHeader
+                    eyebrow={m.guide_data_import_eyebrow()}
+                    title={m.guide_data_import_title({ library: selectedRenderer?.label ?? '' })}
+                  />
+                {/if}
               </div>
-            {:else}
-              <GuideCallout class="mt-8" size="generous">
-                <GuideParagraph
-                  >{@html m.guide_data_import_missing_preferences()}</GuideParagraph
-                >
-              </GuideCallout>
             {/if}
+            <div class={renderer && selectedStyle ? 'max-w-232' : ''}>
+              <GuidePublishRequirement
+                complete={isDataAdded}
+                completeAction={m.guide_data_readiness_done()}
+                description={m.guide_data_readiness_complete_description()}
+                eyebrow={m.guide_data_readiness_complete_eyebrow()}
+                id="data-addition-readiness"
+                onComplete={completeDataStep}
+                onReset={resetDataStep}
+                resetDescription={m.guide_data_readiness_reset_description()}
+                resetLabel={m.guide_readiness_reset()}
+                scrollTargetId="data-addition-readiness"
+                titleId="data-addition-readiness-title"
+              >
+                {#if renderer && selectedStyle}
+                  <div class="max-w-232">
+                    {#if llmGuidanceEnabled}
+                      <div class="mt-6">
+                        <GuideLlmPromptCard
+                          prompt={llmExistingDataPrompt}
+                          promptIcon={selectedLlmOption?.icon}
+                          references={llmGeoJsonImportReferences}
+                          title={m.guide_data_import_llm_title()}
+                        >
+                          {#snippet preview()}
+                            <GuideGeoJsonDataPreview
+                              label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                              renderer={guideRenderer ?? 'maplibre'}
+                              {openingPosition}
+                              popupAppearance={selectedStyle?.appearance ?? 'light'}
+                              {sampleDataUrl}
+                              {styleUrl}
+                              {tilejsonUrl}
+                            />
+                          {/snippet}
+                        </GuideLlmPromptCard>
+                      </div>
+                    {:else}
+                      <GuideSubSectionBody>
+                        <GuideParagraph
+                          class="[&_code]:rounded-sm [&_code]:border [&_code]:border-black [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
+                        >
+                          {@html m.guide_data_import_description({ path: dataPublicDirectory })}
+                        </GuideParagraph>
+                        <div class="mt-5">
+                          <GuidePreviewCodeBlock
+                            label={m.guide_data_import_code_label()}
+                            code={geoJsonImportCode}
+                            comments={geoJsonImportComments}
+                            editorIcon={selectedCodeEditor?.icon}
+                            language="typescript"
+                            variant="editor"
+                            copyLabel={m.common_copy()}
+                            copiedLabel={m.common_copied()}
+                            previewLabel={m.guide_code_block_preview()}
+                            showCodeLabel={m.guide_code_block_code()}
+                            expandable
+                            expandLabel={m.guide_code_block_expand()}
+                            closeLabel={m.common_close()}
+                          >
+                            {#snippet preview()}
+                              <GuideGeoJsonDataPreview
+                                label={m.guide_data_import_preview_label({ region: selectedRegion?.label ?? '' })}
+                                renderer={guideRenderer ?? 'maplibre'}
+                                {openingPosition}
+                                popupAppearance={selectedStyle?.appearance ?? 'light'}
+                                {sampleDataUrl}
+                                {styleUrl}
+                                {tilejsonUrl}
+                              />
+                            {/snippet}
+                          </GuidePreviewCodeBlock>
+                        </div>
+                        <GuideParagraph class="mt-5">
+                          {@html m.guide_data_import_inspect()}
+                        </GuideParagraph>
+                      </GuideSubSectionBody>
+                    {/if}
+                  </div>
+                {:else}
+                  <GuideCallout class="mt-8" size="generous">
+                    <GuideParagraph
+                      >{@html m.guide_data_import_missing_preferences()}</GuideParagraph
+                    >
+                  </GuideCallout>
+                {/if}
+              </GuidePublishRequirement>
+            </div>
           {/if}
+        {:else if dataSource === 'llm' && llmGuidanceEnabled}
+          <div class="mt-10 max-w-232">
+            <GuideSubSectionHeader
+              eyebrow={m.guide_setup_llm_eyebrow()}
+              title={m.guide_data_llm_title()}
+            />
+            <div class="mt-6">
+              <GuideLlmPromptCard
+                prompt={llmCustomDataPrompt}
+                promptIcon={selectedLlmOption?.icon}
+                title={m.guide_data_llm_title()}
+              />
+              <div class="mt-6 space-y-3">
+                <GuideParagraph>
+                  {@html hosting
+                    ? m.guide_data_llm_continue_publish()
+                    : m.guide_data_llm_continue_refining()}
+                </GuideParagraph>
+                <GuideParagraph>{m.guide_data_llm_revisit()}</GuideParagraph>
+              </div>
+            </div>
+          </div>
         {:else if dataSource === 'api' && guideRenderer && selectedStyle}
           <GuideUrbanDensityExample
             editorIcon={selectedCodeEditor?.icon}
@@ -3405,120 +3964,42 @@ const styleChoices = $derived.by(() =>
             setupZ14TileFetcherDisplayCode={createUrbanDensitySetupZ14TileFetcherDisplayCode(guideRenderer)}
             liveableMetricsCode={urbanDensityLiveableMetricsCode}
             liveableMetricsDisplayCode={urbanDensityLiveableMetricsDisplayCode}
+            {llmGuidanceEnabled}
+            llmPromptIcon={selectedLlmOption?.icon}
+            llmPrompts={progressiveDataStepPrompts}
+            llmReferences={llmUrbanDensityReferences}
             statsCode={urbanDensityStatsCode}
             statsDisplayCode={urbanDensityStatsDisplayCode}
             turfInstallCode={urbanDensityTurfInstallCode}
             turfInstallOutput={urbanDensityTurfInstallOutput}
           />
         {:else if dataSource === 'api' && (!renderer || !selectedStyle)}
-          <GuideCallout class="mt-8" size="generous">
+          <GuidePrerequisiteBlocker class="mt-8">
             <h3 class="font-display text-headline-sm font-bold text-primary">
               {@html m.guide_data_urban_density_preferences_title()}
             </h3>
             <GuideParagraph class="mt-3">
               {@html m.guide_data_urban_density_missing_preferences_intro()}
             </GuideParagraph>
-            <ul
-              class="mt-3 list-disc space-y-2 pl-6 font-body text-body-lg leading-8 text-foreground-alt"
-            >
-              {#if !renderer}
-                <li>
-                  <a
-                    class="font-semibold text-secondary underline underline-offset-4"
-                    href="#map-library"
-                    onclick={event => scrollToGuideChoice(event, 'map-library')}
-                  >
-                    {@html m.guide_data_urban_density_missing_renderer()}
-                  </a>
-                </li>
-              {/if}
-              {#if !selectedStyle}
-                <li>
-                  <a
-                    class="font-semibold text-secondary underline underline-offset-4"
-                    href="#style-choice"
-                    onclick={event => scrollToGuideChoice(event, 'style-choice')}
-                  >
-                    {@html m.guide_data_urban_density_missing_style()}
-                  </a>
-                </li>
-              {/if}
-            </ul>
+            <div class="mt-5 flex justify-end">
+              <a
+                class="inline-flex items-center border border-error bg-error px-4 py-2 font-body text-label-md font-semibold text-on-error transition-colors hover:bg-error/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                href={renderer ? '#style-choice' : '#map-library'}
+                onclick={event => scrollToGuideChoice(event, renderer ? 'style-choice' : 'map-library')}
+              >
+                {@html renderer
+                    ? m.guide_data_urban_density_missing_style()
+                    : m.guide_data_urban_density_missing_renderer()}
+              </a>
+            </div>
             {#if region && region !== 'hk'}
               <GuideParagraph class="mt-4">
                 {@html m.guide_data_urban_density_missing_preferences_region({
-                  region: selectedRegion?.label ?? '',
-                })}
+                    region: selectedRegion?.label ?? '',
+                  })}
               </GuideParagraph>
             {/if}
-          </GuideCallout>
-        {/if}
-        {#if llmGuidanceEnabled && dataSource}
-          <div class="mt-8">
-            <GuidePromptBlock
-              code={progressiveSectionPrompts.data}
-              promptIcon={selectedLlmOption?.icon}
-            />
-          </div>
-        {/if}
-        {#if llmGuidanceEnabled && dataSource}
-          <GuideReadinessPanel
-            id="data-step-readiness"
-            complete={isDataStepComplete}
-            titleId="data-step-readiness-title"
-          >
-            <div class="flex items-start gap-3">
-              <Icon
-                icon={isDataStepComplete
-                  ? 'material-symbols-light:check-circle-rounded'
-                  : 'material-symbols-light:warning-rounded'}
-                class={`mt-0.5 size-5 shrink-0 ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ef8b88]'}`}
-                aria-hidden="true"
-              />
-              <div class="min-w-0 flex-1">
-                <p
-                  id="data-step-readiness-title"
-                  class={`font-body text-label-sm font-semibold uppercase tracking-[0.12em] ${isDataStepComplete ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ffb4b1]'}`}
-                >
-                  {@html isDataStepComplete
-                    ? m.guide_data_readiness_complete_eyebrow()
-                    : m.guide_data_readiness_eyebrow()}
-                </p>
-                <p
-                  class="mt-2 max-w-3xl font-body text-body-lg leading-8 text-foreground-alt"
-                >
-                  {@html isDataStepComplete
-                    ? m.guide_data_readiness_complete_description()
-                    : m.guide_data_readiness_description()}
-                </p>
-                <div class="mt-6 flex flex-wrap items-center justify-end gap-3">
-                  {#if isDataStepComplete}
-                    <Button size="compact" variant="secondary" onclick={resetDataStep}>
-                      <Icon
-                        icon="material-symbols-light:restart-alt-rounded"
-                        class="size-5"
-                        aria-hidden="true"
-                      />
-                      {@html m.guide_readiness_reset()}
-                    </Button>
-                  {:else}
-                    <Button
-                      class="bg-secondary text-on-secondary hover:bg-secondary/85"
-                      size="compact"
-                      onclick={completeDataStep}
-                    >
-                      <Icon
-                        icon="material-symbols-light:check-rounded"
-                        class="size-5"
-                        aria-hidden="true"
-                      />
-                      {@html m.guide_data_readiness_done()}
-                    </Button>
-                  {/if}
-                </div>
-              </div>
-            </div>
-          </GuideReadinessPanel>
+          </GuidePrerequisiteBlocker>
         {/if}
       </GuideSection>
 
@@ -3532,13 +4013,13 @@ const styleChoices = $derived.by(() =>
               ? m.guide_publish_mobile_description()
               : undefined}
         >
-          {#if llmGuidanceEnabled && isDataStepComplete}
-            <GuidePromptBlock
-              code={progressiveSectionPrompts.publish}
-              promptIcon={selectedLlmOption?.icon}
+          {#if publishMissingRequirement}
+            <GuideMissingSectionRequirement
+              action={m.guide_section_missing_publish_action()}
+              href={publishMissingRequirement.href}
+              requirement={publishMissingRequirement.requirement}
             />
-          {/if}
-          {#if objective === 'mobile-embed'}
+          {:else if objective === 'mobile-embed'}
             {#if mobileDocsUrl}
               <a
                 class="inline-flex font-body text-label-md font-semibold text-secondary underline underline-offset-4"
@@ -3568,6 +4049,8 @@ const styleChoices = $derived.by(() =>
                 completedRequirements={completedPublishRequirements}
                 {hosting}
                 {llmMode}
+                llmPrompt={progressiveSectionPrompts.publish}
+                llmPromptIcon={selectedLlmOption?.icon}
                 {operatingSystem}
                 {renderer}
                 {terminalProjectPath}
@@ -3578,6 +4061,9 @@ const styleChoices = $derived.by(() =>
             {:else if hosting === 'other'}
               <GuideCreateAMapPublishOther
                 completedRequirements={completedPublishRequirements}
+                {llmMode}
+                llmPrompt={progressiveSectionPrompts.publish}
+                llmPromptIcon={selectedLlmOption?.icon}
                 {terminalProjectPath}
                 onCompletedRequirementsChange={requirements =>
                   (completedPublishRequirements = requirements)}
@@ -3588,16 +4074,33 @@ const styleChoices = $derived.by(() =>
         </GuideSection>
       {/if}
 
-      {#if objective === 'web-embed' && websitePlatform && hosting}
-        <GuideCreateAMapEmbed
-          {hosting}
-          platform={websitePlatform}
-          platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
-          published={isMapAccessible}
-        />
+      {#if objective === 'web-embed'}
+        {#if websitePlatform && hosting}
+          <GuideCreateAMapEmbed
+            {hosting}
+            platform={websitePlatform}
+            platformLabel={selectedWebsitePlatform?.label ?? m.guide_embed_other()}
+            published={isMapAccessible}
+            {llmGuidanceEnabled}
+            llmPromptIcon={selectedLlmOption?.icon}
+          />
+        {:else if embedMissingRequirement}
+          <GuideSection
+            id="embed"
+            number={8}
+            showBorder={false}
+            eyebrow={m.guide_step_embed()}
+          >
+            <GuideMissingSectionRequirement
+              action={m.guide_section_missing_embed_action()}
+              href={embedMissingRequirement.href}
+              requirement={embedMissingRequirement.requirement}
+            />
+          </GuideSection>
+        {/if}
       {/if}
 
-      {#if showPublishStep && dataSource}
+      {#if dataSource}
         <GuideSection
           id="keep-exploring"
           showBorder={false}

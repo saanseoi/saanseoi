@@ -21,7 +21,7 @@ type UploadSchemaField = {
 type UploadSchemaVersion = SchemaWindow & {
   id: string
   source: 'overture'
-  type: ResourceType
+  resourceType: ResourceType
   fields: UploadSchemaField[]
   allowedUnexpectedFields?: UploadSchemaField[]
 }
@@ -30,132 +30,7 @@ type SchemaValidationResult = {
   schema: UploadSchemaVersion
 }
 
-const OVERTURE_SCHEMAS: UploadSchemaVersion[] = [
-  ...overtureSourceRecordSchemas,
-  {
-    id: 'overture-division-area-v2025-09-24.0',
-    source: 'overture',
-    type: 'divisionArea',
-    validFromRelease: '2025-09-24.0',
-    validToRelease: '2026-02-17.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'names', type: 'struct', nullable: true },
-      { name: 'is_land', type: 'boolean', nullable: true },
-      { name: 'is_territorial', type: 'boolean', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'division_id', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-division-area-v2026-02-18.0',
-    source: 'overture',
-    type: 'divisionArea',
-    validFromRelease: '2026-02-18.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'names', type: 'struct', nullable: true },
-      { name: 'is_land', type: 'boolean', nullable: true },
-      { name: 'is_territorial', type: 'boolean', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'division_id', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'admin_level', type: 'int_32', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-division-boundary-v2025-09-24.0',
-    source: 'overture',
-    type: 'divisionBoundary',
-    validFromRelease: '2025-09-24.0',
-    validToRelease: '2026-02-17.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'division_ids', type: 'list', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'perspectives', type: 'struct', nullable: true },
-      { name: 'is_disputed', type: 'boolean', nullable: true },
-      { name: 'is_land', type: 'boolean', nullable: true },
-      { name: 'is_territorial', type: 'boolean', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-division-boundary-v2026-02-18.0',
-    source: 'overture',
-    type: 'divisionBoundary',
-    validFromRelease: '2026-02-18.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'division_ids', type: 'list', nullable: true },
-      { name: 'subtype', type: 'utf8', nullable: true },
-      { name: 'class', type: 'utf8', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'perspectives', type: 'struct', nullable: true },
-      { name: 'is_disputed', type: 'boolean', nullable: true },
-      { name: 'is_land', type: 'boolean', nullable: true },
-      { name: 'is_territorial', type: 'boolean', nullable: true },
-      { name: 'country', type: 'utf8', nullable: true },
-      { name: 'region', type: 'utf8', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'admin_level', type: 'int_32', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-  {
-    id: 'overture-place-v2025-09-24.0',
-    source: 'overture',
-    type: 'place',
-    validFromRelease: '2025-09-24.0',
-    fields: [
-      { name: 'id', type: 'utf8', nullable: true },
-      { name: 'geometry', type: 'type', nullable: true },
-      { name: 'bbox', type: 'struct', nullable: true },
-      { name: 'version', type: 'int_32', nullable: true },
-      { name: 'sources', type: 'list', nullable: true },
-      { name: 'names', type: 'struct', nullable: true },
-      { name: 'categories', type: 'struct', nullable: true },
-      { name: 'confidence', type: 'double', nullable: true },
-      { name: 'websites', type: 'list', nullable: true },
-      { name: 'socials', type: 'list', nullable: true },
-      { name: 'emails', type: 'list', nullable: true },
-      { name: 'phones', type: 'list', nullable: true },
-      { name: 'brand', type: 'struct', nullable: true },
-      { name: 'addresses', type: 'list', nullable: true },
-      { name: 'operating_status', type: 'utf8', nullable: true },
-      { name: 'theme', type: 'utf8', nullable: true },
-      { name: 'type', type: 'utf8', nullable: true },
-    ],
-  },
-]
+const OVERTURE_SCHEMAS: UploadSchemaVersion[] = overtureSourceRecordSchemas
 
 export function validateOvertureSchema(
   plan: UploadPlan,
@@ -171,7 +46,7 @@ export function validateOvertureSchema(
   if (differences.length > 0) {
     throw new Error(
       [
-        `Schema drift detected for ${plan.type} upload.`,
+        `Schema drift detected for ${plan.resourceType} upload.`,
         `Expected schema version: ${schema.id}.`,
         'Differences:',
         ...differences.map(line => `- ${line}`),
@@ -184,7 +59,7 @@ export function validateOvertureSchema(
 
 function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
   const candidates = OVERTURE_SCHEMAS.filter(schema => {
-    if (schema.source !== 'overture' || schema.type !== plan.type) {
+    if (schema.source !== 'overture' || schema.resourceType !== plan.resourceType) {
       return false
     }
 
@@ -207,12 +82,12 @@ function resolveSchemaVersion(plan: UploadPlan): UploadSchemaVersion {
 
   if (candidates.length === 0) {
     throw new Error(
-      `No accepted Overture schema version matches type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
+      `No accepted Overture schema version matches type=${plan.resourceType}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
     )
   }
 
   throw new Error(
-    `Multiple accepted Overture schema versions matched type=${plan.type}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
+    `Multiple accepted Overture schema versions matched type=${plan.resourceType}, cohortKey=${plan.cohortKey}, sourceVersion=${plan.sourceVersion}.`,
   )
 }
 

@@ -37,7 +37,7 @@ const apiFamilies = [
     id: 'places',
     label: () => m.openapi_label_places(),
     versions: ['v0', 'v0.1'],
-    visible: false,
+    visible: true,
   },
   {
     id: 'stats',
@@ -409,7 +409,7 @@ onMount(() => {
 <Main class="min-h-[calc(100vh-10rem)] bg-background">
   <div
     id="atlas-api-reference"
-    class="atlas-api-reference min-h-[calc(100vh-10rem)]"
+    class="atlas-api-reference min-h-[calc(100vh-10rem)] [&_.property.property--level-0]:pt-2.5! [&_.schema-properties_.property--compact]:p-3!"
   ></div>
 </Main>
 

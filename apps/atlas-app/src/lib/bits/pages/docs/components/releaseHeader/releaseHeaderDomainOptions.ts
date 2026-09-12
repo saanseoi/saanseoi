@@ -14,6 +14,7 @@ export type ReleaseHeaderDomainOption = {
 export function getReleaseHeaderDomainOptions(
   api: RegistryApi,
   currentRelease: ApiRelease,
+  activeTab = 'release',
 ): ReleaseHeaderDomainOption[] {
   const releasesByDomain = new Map<string, ApiRelease>()
 
@@ -42,6 +43,10 @@ export function getReleaseHeaderDomainOptions(
 
   return domainCodes.flatMap(code => {
     const release = releasesByDomain.get(code)
-    return release ? [{ code, href: `/apis/${api.familyType}/${release.code}` }] : []
+    const search =
+      activeTab === 'release' ? '' : `?tab=${encodeURIComponent(activeTab)}`
+    return release
+      ? [{ code, href: `/apis/${api.familyType}/${release.code}${search}` }]
+      : []
   })
 }

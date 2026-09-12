@@ -14,6 +14,8 @@ import GuideReadinessPanel from '#lib/bits/pages/guides/components/createAMap/gu
 import { createGuideApiKey } from './createAMapApiKeys.remote'
 
 type Props = {
+  allowExistingKey?: boolean
+  autoConfirmCreatedKey?: boolean
   apiKeyReady?: boolean
   editorIcon?: string
   editorLabel?: string
@@ -24,11 +26,14 @@ type Props = {
   onApiKeyConfirmed?: () => void
   onApiKeyReadyChange?: (ready: boolean) => void
   showHeading?: boolean
+  showEnvironmentSetup?: boolean
   terminalProjectPath?: string
   usingExistingKey?: boolean
 }
 
 let {
+  allowExistingKey = true,
+  autoConfirmCreatedKey = false,
   apiKeyReady = false,
   editorIcon,
   editorLabel,
@@ -39,6 +44,7 @@ let {
   onApiKeyConfirmed,
   onApiKeyReadyChange,
   showHeading = true,
+  showEnvironmentSetup = true,
   terminalProjectPath,
   usingExistingKey = $bindable(false),
 }: Props = $props()
@@ -52,7 +58,7 @@ let newKeyName = $state<string>()
 let isNewKeyRevealed = $state(false)
 let copied = $state(false)
 const environmentSetupVisible = $derived(
-  !isApiKeyReady && (usingExistingKey || Boolean(newKey)),
+  showEnvironmentSetup && !isApiKeyReady && (usingExistingKey || Boolean(newKey)),
 )
 const environmentFileCode = $derived(
   `VITE_SAANSEOI_API_KEY=${newKey ?? 'REPLACE_ME_WITH_YOUR_API_KEY'}`,
@@ -68,6 +74,7 @@ const createKey = async () => {
     isNewKeyRevealed = false
     copied = false
     name = ''
+    if (autoConfirmCreatedKey) completeApiKeyConfirmation()
   } catch (exception) {
     error = exception instanceof Error ? exception.message : m.api_keys_create_error()
   }
@@ -115,6 +122,10 @@ const completeApiKeyConfirmation = () => {
 
 $effect(() => {
   onApiKeyReadyChange?.(isApiKeyReady)
+})
+
+$effect(() => {
+  if (!allowExistingKey && usingExistingKey) usingExistingKey = false
 })
 </script>
 
@@ -188,7 +199,7 @@ $effect(() => {
             ? m.api_keys_creating()
             : m.api_keys_create_button()}
             </Button>
-            {#if !isApiKeyReady}
+            {#if allowExistingKey && !isApiKeyReady}
               <Button
                 class="w-full whitespace-nowrap md:w-auto"
                 onclick={() => (usingExistingKey = true)}

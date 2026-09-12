@@ -5,6 +5,8 @@ import type { DatasetProcessingMessage } from '../../types'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssemblyRun,
+  resolveSnapshotReplayPlan,
+  type SnapshotReplayStep,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
@@ -12,6 +14,11 @@ import {
   waitForDatasetRecord,
 } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
+import {
+  resolveSnapshotVersionState,
+  type ReplayShard,
+  type ResolvedSnapshotVersion,
+} from './snapshotReplay'
 import type {
   AddressI18nPayload,
   AddressRow,
@@ -28,12 +35,13 @@ import {
   runWithWriteRetry,
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
-import { buildAddressBuildingNumberLookupRows } from '../services/addressPipeline/normalisation'
+import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
+import { loadReplayedAddressEvidence } from './addressEvidenceReplay'
 
-const CURRENT_ADDRESS2D_COLUMN_COUNT = 20
+const CURRENT_ADDRESS2D_COLUMN_COUNT = 22
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 21
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 23
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
 const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = 11
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
@@ -77,6 +85,15 @@ export type CurrentAddressVersionLookupResult = {
   byMatchKey: Map<string, AddressVersionSnapshot>
 }
 
+/**
+ * An address version selected by replaying an immutable snapshot branch. Unlike
+ * `isCurrent`, this identifies the version which belonged to one specific
+ * historical snapshot.
+ */
+export type ReplayedAddressVersionSnapshot = AddressVersionSnapshot & {
+  base: Omit<CurrentAddressVersionLookupRow, 'versionHash'>
+}
+
 type AddressVersionLookupOptions = {
   buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
   buildMatchKey: (input: AddressCurrentMatchInput) => string | null
@@ -90,9 +107,12 @@ type AddressHashInput = Omit<
 
 type CurrentAddressVersionLookupRow = Pick<
   CurrentAddressVersionRow,
+  | 'parentAddressId'
+  | 'granularity'
   | 'areaId'
   | 'bbox'
   | 'countryId'
+  | 'createdAt'
   | 'districtId'
   | 'geometry'
   | 'hamletId'
@@ -104,6 +124,7 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'sources'
   | 'streetId'
   | 'townId'
+  | 'updatedAt'
   | 'versionHash'
   | 'villageId'
 >
@@ -157,12 +178,15 @@ SET
   divisionSnapshotId = ${sqlLiteral(divisionSnapshotId)},
 ${assignments.join(',\n')},
   updatedAt = ${updatedAtSql}
-WHERE snapshotId = ${sqlLiteral(snapshotId)};`.trim()
+WHERE snapshotId = ${sqlLiteral(snapshotId)}
+  AND divisionSnapshotId IS NOT ${sqlLiteral(divisionSnapshotId)};`.trim()
 }
 
 function selectCurrentAddressVersionFields() {
   return {
     id: historySchema.address2d.id,
+    parentAddressId: historySchema.address2d.parentAddressId,
+    granularity: historySchema.address2d.granularity,
     streetId: historySchema.address2d.streetId,
     hamletId: historySchema.address2d.hamletId,
     microhoodId: historySchema.address2d.microhoodId,
@@ -173,10 +197,12 @@ function selectCurrentAddressVersionFields() {
     districtId: historySchema.address2d.districtId,
     areaId: historySchema.address2d.areaId,
     countryId: historySchema.address2d.countryId,
+    createdAt: historySchema.address2d.createdAt,
     geometry: historySchema.address2d.geometry,
     identifiers: historySchema.address2d.identifiers,
     bbox: historySchema.address2d.bbox,
     sources: historySchema.address2d.sources,
+    updatedAt: historySchema.address2d.updatedAt,
     versionHash: historySchema.address2d.versionHash,
   }
 }
@@ -478,6 +504,15 @@ async function buildCurrentAddressVersionSnapshotMap(
     i18nRows.push(...chunkRows)
   }
 
+  return buildAddressVersionSnapshotMapFromRows(rows, i18nRows, options)
+}
+
+async function buildAddressVersionSnapshotMapFromRows(
+  versionRows: CurrentAddressVersionLookupRow[],
+  i18nRows: AddressI18nPayload[],
+  options: AddressVersionLookupOptions,
+) {
+  const rows = [...new Map(versionRows.map(row => [row.id, row])).values()]
   const i18nByAddressId = new Map<string, AddressI18nPayload[]>()
 
   for (const row of i18nRows) {
@@ -520,6 +555,187 @@ async function buildCurrentAddressVersionSnapshotMap(
   }
 
   return new Map(snapshots)
+}
+
+/**
+ * Reconstructs the exact address state at a historical snapshot. History
+ * tables retain immutable content versions, while snapshotVersionChanges
+ * records which version was live at each point in a branch.
+ */
+export async function getReplayedAddressVersionMap(
+  metaDb: HarbourReadableDb,
+  snapshotId: string,
+  historyShards: ReadonlyMap<string, ReplayShard>,
+  options: AddressVersionLookupOptions,
+  selection?: {
+    recordIds?: string[]
+    includeLocales?: boolean
+    plan?: SnapshotReplayStep[]
+  },
+): Promise<Map<string, ReplayedAddressVersionSnapshot>> {
+  const plan = selection?.plan ?? (await resolveSnapshotReplayPlan(metaDb, snapshotId))
+  const resolvedVersions = await resolveSnapshotVersionState(
+    plan,
+    historyShards,
+    [
+      'address2d',
+      'address2dEvidence',
+      ...(selection?.includeLocales === false ? [] : ['address2dI18n']),
+    ],
+    selection?.recordIds,
+  )
+  const baseVersions = [...resolvedVersions.values()].filter(
+    version => version.recordType === 'address2d',
+  )
+  const i18nVersions = [...resolvedVersions.values()].filter(
+    version => version.recordType === 'address2dI18n',
+  )
+  const baseRows = await loadReplayedAddressBaseRows(baseVersions)
+  const evidence = await loadReplayedAddressEvidence(
+    [...resolvedVersions.values()].filter(
+      version => version.recordType === 'address2dEvidence',
+    ),
+  )
+  for (const row of baseRows) {
+    if (evidence.has(row.id)) row.sources = evidence.get(row.id)
+    else if (row.id.startsWith('opa-') && row.sources === null)
+      throw new Error(
+        `Snapshot ${snapshotId} is missing supplementary Address evidence for ${row.id}.`,
+      )
+  }
+  const i18nRows = await loadReplayedAddressI18nRows(i18nVersions)
+  const snapshots = await buildAddressVersionSnapshotMapFromRows(
+    baseRows,
+    i18nRows,
+    options,
+  )
+  const baseRowsById = new Map(baseRows.map(row => [row.id, row]))
+
+  return new Map(
+    [...snapshots].map(([id, snapshot]) => {
+      const base = baseRowsById.get(id)
+      if (!base) {
+        throw new Error(`Snapshot ${snapshotId} is missing address content for ${id}.`)
+      }
+      const { versionHash: _versionHash, ...baseWithoutVersionHash } = base
+
+      return [id, { ...snapshot, base: baseWithoutVersionHash }]
+    }),
+  )
+}
+
+async function loadReplayedAddressBaseRows(
+  versions: ResolvedSnapshotVersion[],
+): Promise<CurrentAddressVersionLookupRow[]> {
+  const rows: CurrentAddressVersionLookupRow[] = []
+
+  for (const [bindingName, shardVersions] of groupVersionsByBinding(versions)) {
+    const expected = new Set(
+      shardVersions.map(version => `${version.recordId}\u0000${version.versionHash}`),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    const found = new Set<string>()
+    for (const hashes of chunkArray(
+      shardVersions.map(version => version.versionHash),
+      getMaxItemsPerInClause(1),
+    )) {
+      const candidates = (await db
+        .select(selectCurrentAddressVersionFields())
+        .from(historySchema.address2d)
+        .where(inArray(historySchema.address2d.versionHash, hashes))
+        .all()) as CurrentAddressVersionLookupRow[]
+      for (const row of candidates) {
+        const key = `${row.id}\u0000${row.versionHash}`
+        if (!expected.has(key)) continue
+        found.add(key)
+        rows.push(row)
+      }
+    }
+
+    if (found.size !== expected.size) {
+      throw new Error(
+        `Snapshot replay could not load address versions from ${bindingName}.`,
+      )
+    }
+  }
+
+  return rows
+}
+
+async function loadReplayedAddressI18nRows(
+  versions: ResolvedSnapshotVersion[],
+): Promise<AddressI18nPayload[]> {
+  const rows: AddressI18nPayload[] = []
+
+  for (const [bindingName, shardVersions] of groupVersionsByBinding(versions)) {
+    const expected = new Set(
+      shardVersions.map(
+        version =>
+          `${version.recordId}\u0000${version.locale}\u0000${version.versionHash}`,
+      ),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    const found = new Set<string>()
+    for (const hashes of chunkArray(
+      shardVersions.map(version => version.versionHash),
+      getMaxItemsPerInClause(1),
+    )) {
+      const candidates = await db
+        .select({
+          addressId: historySchema.address2dI18n.addressId,
+          locale: historySchema.address2dI18n.locale,
+          formattedAddress: historySchema.address2dI18n.formattedAddress,
+          buildingName: historySchema.address2dI18n.buildingName,
+          buildingNumberExpression:
+            historySchema.address2dI18n.buildingNumberExpression,
+          buildingNumberFrom: historySchema.address2dI18n.buildingNumberFrom,
+          buildingNumberTo: historySchema.address2dI18n.buildingNumberTo,
+          buildingNumberConnector: historySchema.address2dI18n.buildingNumberConnector,
+          blockExpression: historySchema.address2dI18n.blockExpression,
+          blockType: historySchema.address2dI18n.blockType,
+          blockRef: historySchema.address2dI18n.blockRef,
+          blockTypeBeforeNumber: historySchema.address2dI18n.blockTypeBeforeNumber,
+          phaseExpression: historySchema.address2dI18n.phaseExpression,
+          phaseName: historySchema.address2dI18n.phaseName,
+          phaseRef: historySchema.address2dI18n.phaseRef,
+          estateName: historySchema.address2dI18n.estateName,
+          streetName: historySchema.address2dI18n.streetName,
+          versionHash: historySchema.address2dI18n.versionHash,
+        })
+        .from(historySchema.address2dI18n)
+        .where(inArray(historySchema.address2dI18n.versionHash, hashes))
+        .all()
+      for (const candidate of candidates) {
+        const key = `${candidate.addressId}\u0000${candidate.locale}\u0000${candidate.versionHash}`
+        if (!expected.has(key)) continue
+        found.add(key)
+        const { versionHash: _versionHash, ...row } = candidate
+        rows.push(row)
+      }
+    }
+
+    if (found.size !== expected.size) {
+      throw new Error(
+        `Snapshot replay could not load address i18n versions from ${bindingName}.`,
+      )
+    }
+  }
+
+  return rows
+}
+
+function groupVersionsByBinding(versions: ResolvedSnapshotVersion[]) {
+  const grouped = new Map<string, ResolvedSnapshotVersion[]>()
+  for (const version of versions) {
+    const existing = grouped.get(version.shard.bindingName)
+    if (existing) existing.push(version)
+    else grouped.set(version.shard.bindingName, [version])
+  }
+  return grouped
 }
 
 export async function prepareAddressVersionInsertContext(
@@ -668,6 +884,8 @@ export async function cloneAddressCurrentSnapshot(
             countryId: currentSchema.address2d.countryId,
             identifiers: currentSchema.address2d.identifiers,
             sources: currentSchema.address2d.sources,
+            parentAddressId: currentSchema.address2d.parentAddressId,
+            granularity: currentSchema.address2d.granularity,
             geometry: currentSchema.address2d.geometry,
             bbox: currentSchema.address2d.bbox,
             createdAt: sql<string>`${clonedAt}`,
@@ -1210,6 +1428,8 @@ export async function upsertAddressCurrentStates(
             identifiers: excluded('identifiers'),
             bbox: excluded('bbox'),
             sources: excluded('sources'),
+            parentAddressId: excluded('parentAddressId'),
+            granularity: excluded('granularity'),
             updatedAt: excluded('updatedAt'),
           },
         })
@@ -1284,6 +1504,93 @@ export async function replaceAddressCurrentBuildingNumberLookups(
       db.insert(currentSchema.address2dBuildingNumberLookup).values(chunk).run(),
     )
   }
+}
+
+/**
+ * Seeds a draft current snapshot from immutable history when its parent is no
+ * longer retained in current storage. This is intentionally limited to an
+ * empty target snapshot: a partially written snapshot must be resumed through
+ * its import journal rather than silently overwritten.
+ */
+export async function materialiseReplayedAddressCurrentSnapshot(
+  db: HarbourReadableDb & HarbourWritableDb,
+  snapshotId: string,
+  divisionSnapshotId: string,
+  versions: Iterable<ReplayedAddressVersionSnapshot>,
+  materialisedAt = new Date().toISOString(),
+) {
+  const existing = await db
+    .select({ id: currentSchema.address2d.id })
+    .from(currentSchema.address2d)
+    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+    .limit(1)
+    .get()
+  if (existing) {
+    throw new Error(
+      `Address snapshot ${snapshotId} is already materialised in current storage; refusing to replace it from historical replay.`,
+    )
+  }
+
+  const divisionIds = new Set(
+    (
+      await db
+        .select({ id: currentSchema.divisions.id })
+        .from(currentSchema.divisions)
+        .where(eq(currentSchema.divisions.snapshotId, divisionSnapshotId))
+        .all()
+    ).map(row => row.id),
+  )
+  const rows = [...versions]
+  const baseRows: AddressBaseRecord[] = rows.map(({ base }) => ({
+    ...base,
+    snapshotId,
+    divisionSnapshotId,
+    streetId: null,
+    streetSnapshotId: null,
+    countryId: resolveReplayedDivisionReference(base.countryId, divisionIds),
+    areaId: resolveReplayedDivisionReference(base.areaId, divisionIds),
+    districtId: resolveReplayedDivisionReference(base.districtId, divisionIds),
+    townId: resolveReplayedDivisionReference(base.townId, divisionIds),
+    macrohoodId: resolveReplayedDivisionReference(base.macrohoodId, divisionIds),
+    villageId: resolveReplayedDivisionReference(base.villageId, divisionIds),
+    neighbourhoodId: resolveReplayedDivisionReference(
+      base.neighbourhoodId,
+      divisionIds,
+    ),
+    hamletId: resolveReplayedDivisionReference(base.hamletId, divisionIds),
+    microhoodId: resolveReplayedDivisionReference(base.microhoodId, divisionIds),
+    createdAt: materialisedAt,
+    updatedAt: materialisedAt,
+  }))
+  const i18nRows: NewAddressI18nRow[] = rows.flatMap(version =>
+    version.localisedRows.map(row => ({
+      ...row,
+      snapshotId,
+      createdAt: materialisedAt,
+      updatedAt: materialisedAt,
+    })),
+  )
+
+  await upsertAddressCurrentStates(db, baseRows)
+  await replaceAddressCurrentI18n(
+    db,
+    snapshotId,
+    baseRows.map(row => row.id),
+    i18nRows,
+  )
+  await replaceAddressCurrentBuildingNumberLookups(
+    db,
+    snapshotId,
+    baseRows.map(row => row.id),
+    i18nRows,
+  )
+}
+
+function resolveReplayedDivisionReference(
+  id: string | null,
+  divisionIds: ReadonlySet<string>,
+) {
+  return id && divisionIds.has(id) ? id : null
 }
 
 async function deleteAddressCurrentRowsByIds(
@@ -1371,6 +1678,8 @@ export async function insertAddressVersionRows(
             bbox: row.bbox,
             identifiers: row.identifiers,
             sources: row.sources,
+            parentAddressId: row.parentAddressId,
+            granularity: row.granularity,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt,
           })),

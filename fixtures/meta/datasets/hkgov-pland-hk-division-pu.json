@@ -1,18 +1,15 @@
 {
-  "versionHash": "sha256:05b93e7a5343bf405932e74c387a75b7cd3fcd88739a338a5d1c1bbaec283ed4",
+  "versionHash": "sha256:449203b601a4c6cc5bd213e24330041111285cc6292531833c9c8eca83fea6f6",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "subType": "pu",
+  "kind": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050",
@@ -72,6 +69,78 @@
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
     }
   ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2001",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2006",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2011",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2016",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-pland-pu:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    }
+  ],
   "category": "boundaries",
   "i18n": [
     {
@@ -88,6 +157,16 @@
       "locale": "zh-hans",
       "name": "第三级规划单位及分区（香港）",
       "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
+    }
+  ],
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",
+      "operationCodes": [
+        "resolve-geography-identities",
+        "normalise-planning-divisions",
+        "provenance_division_area_geometry"
+      ]
     }
   ]
 }

@@ -1,0 +1,399 @@
+{
+  "id": "yung-shing-two-valid-addresses",
+  "csu": "3234338132T20050430",
+  "sourceVersions": [
+    "2024-07-25.0",
+    "2024-07-31.0",
+    "2024-08-21.0",
+    "2024-08-25.0",
+    "2024-08-28.0",
+    "2024-09-01.0",
+    "2024-09-02.0",
+    "2024-09-03.0",
+    "2024-10-18.0",
+    "2024-11-13.0",
+    "2024-12-12.0",
+    "2025-01-23.0",
+    "2025-02-25.0",
+    "2025-03-21.0",
+    "2025-04-26.0",
+    "2025-05-22.0",
+    "2025-06-20.0",
+    "2025-08-13.0",
+    "2025-08-28.0",
+    "2025-09-03.0",
+    "2025-11-04.0",
+    "2025-12-16.0",
+    "2026-02-04.0",
+    "2026-04-03.0",
+    "2026-04-22.0",
+    "2026-04-25.0",
+    "2026-07-08.0",
+    "2026-07-10.0",
+    "2026-07-22.0",
+    "2026-08-19.0"
+  ],
+  "assertions2d": [
+    {
+      "hashes": [
+        "7e91a101daf57019978c097e89a0fcef04405bcaf64fef5e73e7ce6891e3a4d7",
+        "96cba500a041fd11bf8dcaa3c9496938fa5b4c27a353017fe5ddb4020b9cdf98"
+      ],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0"
+      ]
+    },
+    {
+      "hashes": [
+        "4118f0d4743ecfe658ba3421b5d5faeae0e7e5377f62dd29e5a9dfd8b9724496",
+        "e27b159fc75b7b7fb853c570661278b63fda347bb684c67cedefb1c7afb9d5c0"
+      ],
+      "sourceVersions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ]
+    }
+  ],
+  "assertions3d": [
+    {
+      "hashes": [
+        "9ab0d0141def511a8f27b01e3f64dba13a2fee818a0f519a34b1e1da90b568ed",
+        "bf83bbdc746e3a0d1e99475bae53bbac3297257c22d9c38097c6f56f03aa93e8"
+      ],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0"
+      ]
+    },
+    {
+      "hashes": [
+        "6493d721dda02a59118d057c891bf37bd8b57cc4828431ae305ca25fa333107a",
+        "dbda63754176a75b52b4cbff521290e2b1a8b76afd1b862aa980d241f2c3c41a"
+      ],
+      "sourceVersions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ]
+    }
+  ],
+  "evidence2d": [
+    {
+      "hash": "5c538fd4fcf14901fb630c9b3ac570a12d7a409154cfe0bbca1fa6328ab973bb",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.13858, 22.48269]
+        },
+        "properties": {
+          "Northing": 838127,
+          "Easting": 832327,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "3234338132T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "粉嶺",
+                  "StreetName": "華明路",
+                  "BuildingNoFrom": "22"
+                },
+                "ChiEstate": {
+                  "EstateName": "雍盛苑"
+                },
+                "BuildingName": "雍盛商場"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YUNG SHING SHOPPING CENTRE",
+                "EngEstate": {
+                  "EstateName": "YUNG SHING COURT"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "22",
+                  "StreetName": "WAH MING ROAD",
+                  "LocationName": "FANLING"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3234338132T20050430"
+            }
+          }
+        }
+      },
+      "evidenceSourceVersion": "2024-07-25.0",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0"
+      ]
+    },
+    {
+      "hash": "012ef26e4de5053cc4e2bea6bbcd8c4476eeb20e1591aa97e916381da27a5a00",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.13858, 22.48269]
+        },
+        "properties": {
+          "Northing": 838127,
+          "Easting": 832327,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "3234338132T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "粉嶺",
+                  "StreetName": "暉明路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "雍盛苑"
+                },
+                "BuildingName": "雍盛苑長者住屋服務設施大樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YUNG SHING COURT ANCILLARY FACILITIES BLK",
+                "EngEstate": {
+                  "EstateName": "YUNG SHING COURT"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "FAI MING ROAD",
+                  "LocationName": "FANLING"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3234338132T20050430"
+            }
+          }
+        }
+      },
+      "evidenceSourceVersion": "2024-07-25.0",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0"
+      ]
+    },
+    {
+      "hash": "e3c9204232814c1378b6285c6408a741b5fcf69f8e502c84f73b26764c6c80ca",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.13873, 22.48274]
+        },
+        "properties": {
+          "Northing": 838132,
+          "Easting": 832343,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "3234338132T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "粉嶺",
+                  "StreetName": "華明路",
+                  "BuildingNoFrom": "22"
+                },
+                "ChiEstate": {
+                  "EstateName": "雍盛苑"
+                },
+                "BuildingName": "雍盛商場"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YUNG SHING SHOPPING CENTRE",
+                "EngEstate": {
+                  "EstateName": "YUNG SHING COURT"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "22",
+                  "StreetName": "WAH MING ROAD",
+                  "LocationName": "FANLING"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3234338132T20050430"
+            }
+          }
+        }
+      },
+      "evidenceSourceVersion": "2026-04-03.0",
+      "sourceVersions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ]
+    },
+    {
+      "hash": "104fa67b0fae5ae3441ba750e6cd8fe3999c131777557b505cfe741dffe574f2",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [114.13873, 22.48274]
+        },
+        "properties": {
+          "Northing": 838132,
+          "Easting": 832343,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "3234338132T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "粉嶺",
+                  "StreetName": "暉明路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "雍盛苑"
+                },
+                "BuildingName": "雍盛苑長者住屋服務設施大樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YUNG SHING COURT ANCILLARY FACILITIES BLK",
+                "EngEstate": {
+                  "EstateName": "YUNG SHING COURT"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "FAI MING ROAD",
+                  "LocationName": "FANLING"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3234338132T20050430"
+            }
+          }
+        }
+      },
+      "evidenceSourceVersion": "2026-04-03.0",
+      "sourceVersions": [
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ]
+    }
+  ],
+  "authority": "User decision, 2026-09-08: one building with two valid addresses, both pointing to the same 3D inventory."
+}

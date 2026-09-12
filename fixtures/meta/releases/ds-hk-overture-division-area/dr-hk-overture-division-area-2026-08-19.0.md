@@ -71,23 +71,19 @@ Fields reorganized for storage, query, or API response shaping:
 - `class` - normalised to canonical <black>type</black> (<black>land</black>,
   <black>maritime</black>, or <black>mixed</black> when both coverage flags are true)
 
-### Compatibility Fields
+### Source fields
 
-Fields which are retained through <black>overture</black> compatibility keys:
-
-- `version` - available as <black>overture.version</black>
-- `subtype` - available as <black>overture.subtype</black>
-- `class` - available as <black>overture.class</black>
-
-These are available in any API responses which include this geometry at
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black>
+The original `version`, `subtype`, and `class` values are available in the retained
+source record under `properties`. They are not duplicated in the canonical geometry
+resource.
 
 ### Dropped Fields
 
 Fields which are not exposed as part of [DivisionArea](/docs#models/DivisionArea):
 
-A future Overture compatibility API will make these available in the future
-<orange>FORTHCOMING</orange>.
+The original source value remains available in the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+under `properties`, where the source record remains available.
 
 #### Due to zero variance
 
@@ -110,10 +106,6 @@ A future Overture compatibility API will make these available in the future
 
 ## 更新紀錄
 
-- <orange>上游</orange> Overture 資料版本：<black>2026-08-19.0</black>；schema版本維持
-  <black>v1.18.0</black>。
-- <orange>上游</orange> division-area 幾何數量：七月 <black>1,073,093</black>，八月
-  <black>1,074,177</black>（<black>+0.10%</black>）。
 - <orange>上游</orange> 與七月版本相比，幾何修訂是更新的主要來源。
 
 ## 兼容性
@@ -144,6 +136,12 @@ schema（`{{sourceSchemaVersion}}`）。
 - `sources` - [來源](/docs#models/Sources) - 包裹於 <black>overture</black>
   鍵之下，以便與其他資料集融合，同時保留來源鏈歸屬
 
+上游 `sources` 物件現可選擇性地提供以下溯源欄位：
+
+- `provider` - 產生資料的實體名稱：meta、esri、microsoft、osm 等。
+- `resource` - 提供者提供的資料主題或類型：division-names、buildings、planet 等。
+- `version` - 可排序的識別碼，例如日期或數字：2026-02-13、5.3、A5692。
+
 ### 正規化欄位
 
 為了儲存、查詢或塑造 API 回應而重新整理的欄位：
@@ -154,22 +152,18 @@ schema（`{{sourceSchemaVersion}}`）。
   <black>type</black>（<black>land</black>、<black>maritime</black>，或在兩個覆蓋標誌均為真時為
   <black>mixed</black>）
 
-### 兼容欄位
+### 來源欄位
 
-透過 Overture 兼容 key 保留的欄位：
-
-- `version` - 可於 <black>overture.version</black> 取得
-- `subtype` - 可於 <black>overture.subtype</black> 取得
-- `class` - 可於 <black>overture.class</black> 取得
-
-這些欄位可在任何包含此幾何的 API 回應中，透過
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留來源記錄的 `properties`
+下取得，不會在標準幾何資源中重複保存。
 
 ### 不公開欄位
 
 以下欄位不會作為 [DivisionArea](/docs#models/DivisionArea) 的一部分公開：
 
-未來的 Overture 兼容 API 會提供這些欄位 <orange>即將推出</orange>。
+原始來源值會在來源記錄獲保留時，透過
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`properties` 提供。
 
 #### 因為沒有變異
 
@@ -190,11 +184,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ## 更新记录
 
-- <orange>上游</orange> Overture 数据版本：<black>2026-08-19.0</black>；schema版本维持
-  <black>v1.18.0</black>。
-- <orange>上游</orange> division-area 几何数量：七月 <black>1,073,093</black>，八月
-  <black>1,074,177</black>（<black>+0.10%</black>）。
-- <orange>上游</orange> 与七月版本相比，几何细化是更新的主要来源。
+- <orange>上游</orange> 与七月版本相比，几何修订是更新的主要来源。
 
 ## 兼容性
 
@@ -214,8 +204,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `id` - [标识码](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `geometry` - [几何](/docs#models/Geometry) - 保留 Polygon 和 MultiPolygon 值
-- `is_land` - 规范化為 <black>isLand</black>
-- `is_territorial` - 规范化為 <black>isTerritorial</black>
+- `is_land` - 规范化为 <black>isLand</black>
+- `is_territorial` - 规范化为 <black>isTerritorial</black>
 
 ### 增补字段
 
@@ -224,32 +214,34 @@ schema（`{{sourceSchemaVersion}}`）。
 - `sources` - [来源](/docs#models/Sources) - 包裹在 <black>overture</black>
   键下，以便与其他数据集融合，同时保留来源链归属
 
+上游 `sources` 对象现可选择性地提供以下溯源字段：
+
+- `provider` - 生成数据的实体名称：meta、esri、microsoft、osm 等。
+- `resource` - 提供者提供的数据主题或类型：division-names、buildings、planet 等。
+- `version` - 可排序的标识码，例如日期或数字：2026-02-13、5.3、A5692。
+
 ### 规范化字段
 
 为了存储、查询或塑造 API 响应而重新整理的字段：
 
-- `division_id` - 规范化為 <black>divisionId</black>
+- `division_id` - 规范化为 <black>divisionId</black>
 - `bbox` - [包围盒](/docs#models/BBox)，由发布的标准几何计算得出
 - `class` - 规范化为标准
   <black>type</black>（<black>land</black>、<black>maritime</black>，或两个覆盖标志均为真时为
   <black>mixed</black>）
 
-### 兼容字段
+### 来源字段
 
-通过 Overture 兼容 key 保留的字段：
-
-- `version` - 可在 <black>overture.version</black> 取得
-- `subtype` - 可在 <black>overture.subtype</black> 取得
-- `class` - 可在 <black>overture.class</black> 取得
-
-这些字段可在任何包含此几何的 API 响应中，通过
-<black>included[].attributes.sourceKeys.overture.{{ PROPERTYNAME }}</black> 取得。
+原始 `version`、`subtype` 及 `class` 值可在保留源记录的 `properties`
+下获取，不会在标准几何资源中重复保存。
 
 ### 不公开字段
 
 以下字段不会作为 [DivisionArea](/docs#models/DivisionArea) 的一部分公开：
 
-未来的 Overture 兼容 API 会提供这些字段 <orange>即将推出</orange>。
+原始来源值会在源记录得到保留时，通过
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0) 的
+`properties` 提供。
 
 #### 因为没有变化
 

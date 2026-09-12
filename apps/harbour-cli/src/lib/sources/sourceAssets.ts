@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { createWriteStream, constants } from 'node:fs'
+import { Readable } from 'node:stream'
+import { pipeline } from 'node:stream/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
 
-import { zipSync } from 'fflate'
+import { packageSourceReleaseFile } from './sourceReleasePackaging.ts'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
 import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
@@ -12,7 +15,10 @@ import type { MetaDatabase } from '@repo/db'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { withLocalMetaDb } from '../dbCache/localDbCache.ts'
-import type { UploadTarget } from '../cli/options.ts'
+import { resolveR2Target, type UploadTarget } from '../cli/options.ts'
+import { retainLocalR2File, retainRemoteR2File } from '../storage/remoteR2.ts'
+import { inspectSourceAssetFile } from '../storage/sourceAssetFile.ts'
+import { uploadSourceAssetRemotely } from './sourceAssetUpload.ts'
 
 export const LANDSD_SOURCE_ASSET_PREFIX = 'by-source/hk/hkgov-landsd/street-naming'
 
@@ -98,6 +104,7 @@ type LocalSourceAssetObjectUpload = (input: {
 }) => Promise<void>
 
 type LocalSourceAssetUploadOptions = {
+  retainRemoteFile?: typeof retainRemoteR2File
   putObject?: LocalSourceAssetObjectUpload
   withMetaDb?: typeof withLocalMetaDb
 }
@@ -115,7 +122,6 @@ const SOURCE_PACKAGE_CACHE_ROOT = resolve(
   REPO_ROOT,
   '.local/harbour-sql/source-package-cache',
 )
-const SOURCE_PACKAGE_CONTRACT = 'lossless-zip-v1'
 
 // Miniflare persists both the local R2 bucket and D1 metadata in SQLite. Asset
 // registration is therefore serialised within one CLI process to avoid lock
@@ -143,38 +149,56 @@ export async function downloadAndPrepareSourceAsset(input: {
     response.headers.get('content-type') ??
     'application/octet-stream'
   const fileName = input.fileName ?? fileNameFromUrl(input.url, mediaType)
-  return prepareSourceAsset({
-    bytes: new Uint8Array(await response.arrayBuffer()),
-    downloadedAt: input.downloadedAt,
-    fileName,
-    mediaType,
-    outputDir: input.outputDir,
-    role: input.role,
-    sourcePageLocale: input.sourcePageLocale,
-    sourcePageUrl: input.sourcePageUrl,
-    url: input.url,
-  })
+  if (!response.body) throw new Error('Source asset download has no body.')
+  await mkdir(input.outputDir, { recursive: true })
+  const temporary = join(
+    input.outputDir,
+    `source-download-${crypto.randomUUID()}.partial`,
+  )
+  try {
+    await pipeline(Readable.fromWeb(response.body), createWriteStream(temporary))
+    return await prepareSourceAsset({
+      filePath: temporary,
+      downloadedAt: input.downloadedAt,
+      fileName,
+      mediaType,
+      outputDir: input.outputDir,
+      role: input.role,
+      sourcePageLocale: input.sourcePageLocale,
+      sourcePageUrl: input.sourcePageUrl,
+      url: input.url,
+    })
+  } finally {
+    await rm(temporary, { force: true })
+  }
 }
 
-export async function prepareSourceAsset(input: {
-  bytes: Uint8Array
-  downloadedAt: string
-  fileName: string
-  mediaType: string
-  outputDir: string
-  role: Exclude<SourceAssetRole, 'manifest'>
-  sourcePageLocale?: 'en' | 'zh-Hant'
-  sourcePageUrl?: string
-  url: string
-}): Promise<PreparedSourceAsset> {
-  const sha256 = hash(input.bytes)
+export async function prepareSourceAsset(
+  input: (
+    | { bytes: Uint8Array; filePath?: never }
+    | { filePath: string; bytes?: never }
+  ) & {
+    downloadedAt: string
+    fileName: string
+    mediaType: string
+    outputDir: string
+    role: Exclude<SourceAssetRole, 'manifest'>
+    sourcePageLocale?: 'en' | 'zh-Hant'
+    sourcePageUrl?: string
+    url: string
+  },
+): Promise<PreparedSourceAsset> {
+  const content = input.bytes
+    ? { sha256: hash(input.bytes), byteLength: input.bytes.byteLength }
+    : await inspectSourceAssetFile(input.filePath)
+  const sha256 = content.sha256
   const fileName = safeFileName(input.fileName)
   const objectKey = buildSourceAssetObjectKey(sha256, fileName)
   const filePath = join(resolve(input.outputDir), `${sha256}-${fileName}`)
   const manifest: SourceAssetManifest = {
     schemaVersion: 1,
     artefact: {
-      byteLength: input.bytes.byteLength,
+      byteLength: content.byteLength,
       mediaType: input.mediaType,
       objectKey,
       role: input.role,
@@ -197,7 +221,8 @@ export async function prepareSourceAsset(input: {
   const manifestFilePath = `${filePath}.manifest.json`
 
   await mkdir(dirname(filePath), { recursive: true })
-  await writeFile(filePath, input.bytes)
+  if (input.bytes) await writeFile(filePath, input.bytes)
+  else await copyFile(input.filePath, filePath, constants.COPYFILE_FICLONE)
   await writeFile(manifestFilePath, manifestBytes)
   return {
     fileName,
@@ -273,7 +298,12 @@ export function buildSourceReleaseAssetObjectKey(input: {
   if (!/^[a-f0-9]{64}$/.test(input.sha256)) {
     throw new Error('Expected a SHA-256 digest.')
   }
-  for (const value of [input.publisherCode, input.datasetCode, input.releaseCode]) {
+  const releaseCodePathComponent = input.releaseCode.replaceAll('::', '__')
+  for (const value of [
+    input.publisherCode,
+    input.datasetCode,
+    releaseCodePathComponent,
+  ]) {
     if (!/^[A-Za-z0-9._-]+$/.test(value)) {
       throw new Error(`Invalid source asset path component: ${value}`)
     }
@@ -283,7 +313,7 @@ export function buildSourceReleaseAssetObjectKey(input: {
     'hk',
     input.publisherCode,
     input.datasetCode,
-    input.releaseCode,
+    releaseCodePathComponent,
     `${input.sha256}-${safeFileName(input.fileName)}`,
   ].join('/')
 }
@@ -323,7 +353,7 @@ export async function uploadSourceReleaseAsset(
         manifest: {
           schemaVersion: 1,
           artefact: {
-            byteLength: retained.bytes.byteLength,
+            byteLength: retained.byteLength,
             mediaType: retained.mediaType,
             objectKey: assetKey,
             role: 'sourceArchive',
@@ -354,7 +384,7 @@ export function assertRetainableSourceReleaseInput(fileName: string) {
 }
 
 type RetainedSourceReleaseAsset = {
-  bytes: Uint8Array
+  byteLength: number
   cleanup: () => Promise<void>
   fileName: string
   filePath: string
@@ -383,88 +413,36 @@ async function prepareSourceReleaseAsset(
     input.mediaType ?? mediaTypeForSourceReleaseFile(originalFileName)
 
   if (!shouldWrapSourceReleaseAsset(originalFileName)) {
-    const originalBytes = await readFile(input.filePath)
+    const originalFile = await inspectSourceAssetFile(input.filePath)
     return {
-      bytes: originalBytes,
+      byteLength: originalFile.byteLength,
       cleanup: async () => {},
       fileName: originalFileName,
       filePath: input.filePath,
       mediaType: retainedSourceMediaType(originalFileName),
-      sha256: hash(originalBytes),
+      sha256: originalFile.sha256,
     }
   }
 
-  const inputStat = await stat(input.filePath)
-  const cacheKey = createHash('sha256')
-    .update(
-      JSON.stringify({
-        contract: SOURCE_PACKAGE_CONTRACT,
-        filePath: resolve(input.filePath),
-        mtimeMs: inputStat.mtimeMs,
-        size: inputStat.size,
-      }),
-    )
-    .digest('hex')
-  const cachedArchivePath = resolve(SOURCE_PACKAGE_CACHE_ROOT, `${cacheKey}.zip`)
-  const cachedMetadataPath = resolve(SOURCE_PACKAGE_CACHE_ROOT, `${cacheKey}.json`)
-  try {
-    const [archiveBytes, cachedMetadata] = await Promise.all([
-      readFile(cachedArchivePath),
-      readFile(cachedMetadataPath, 'utf8').then(
-        value =>
-          JSON.parse(value) as {
-            originalSha256: string
-            sha256: string
-          },
-      ),
-    ])
-    return {
-      bytes: archiveBytes,
-      cleanup: async () => {},
-      fileName: `${originalFileName}.zip`,
-      filePath: cachedArchivePath,
-      mediaType: 'application/zip',
-      original: {
-        byteLength: inputStat.size,
-        fileName: originalFileName,
-        mediaType: originalMediaType,
-        sha256: cachedMetadata.originalSha256,
-      },
-      packaging: 'saanseoi-lossless-zip',
-      sha256: cachedMetadata.sha256,
-    }
-  } catch (error) {
-    if (!isMissingFileError(error) && !(error instanceof SyntaxError)) throw error
-  }
-
-  const originalBytes = await readFile(input.filePath)
-  const archiveBytes = zipSync({ [safeFileName(originalFileName)]: originalBytes })
-  const fileName = `${originalFileName}.zip`
-  const originalSha256 = hash(originalBytes)
-  const sha256 = hash(archiveBytes)
-  await mkdir(SOURCE_PACKAGE_CACHE_ROOT, { recursive: true })
-  await Promise.all([
-    writeFile(cachedArchivePath, archiveBytes),
-    writeFile(
-      cachedMetadataPath,
-      `${JSON.stringify({ originalSha256, sha256 }, null, 2)}\n`,
-    ),
-  ])
-
+  const archive = await packageSourceReleaseFile(
+    input.filePath,
+    originalFileName,
+    SOURCE_PACKAGE_CACHE_ROOT,
+  )
   return {
-    bytes: archiveBytes,
+    byteLength: archive.byteLength,
     cleanup: async () => {},
-    fileName,
-    filePath: cachedArchivePath,
+    fileName: `${originalFileName}.zip`,
+    filePath: archive.filePath,
     mediaType: 'application/zip',
     original: {
-      byteLength: originalBytes.byteLength,
+      byteLength: archive.original.byteLength,
       fileName: originalFileName,
       mediaType: originalMediaType,
-      sha256: originalSha256,
+      sha256: archive.original.sha256,
     },
     packaging: 'saanseoi-lossless-zip',
-    sha256,
+    sha256: archive.sha256,
   }
 }
 
@@ -507,12 +485,9 @@ function mediaTypeForSourceReleaseFile(fileName: string) {
   }
 }
 
-function isMissingFileError(error: unknown) {
-  return error instanceof Error && 'code' in error && error.code === 'ENOENT'
-}
-
 export function buildManagedAssetUrl(target: UploadTarget, assetId: string) {
-  return `${resolveAtlasBaseUrl(target.environment)}/v0/assets/${assetId}`
+  const r2 = resolveR2Target(target)
+  return `${resolveAtlasBaseUrl(r2 === 'local' ? target.environment : r2)}/v0/assets/${assetId}`
 }
 
 export async function uploadManagedSourceAsset(
@@ -521,64 +496,42 @@ export async function uploadManagedSourceAsset(
   localOptions: LocalSourceAssetUploadOptions = {},
 ): Promise<UploadedSourceAsset> {
   if (!target.remote) {
+    const r2 = resolveR2Target(target)
+    if (r2 !== 'local') {
+      const file = await inspectSourceAssetFile(input.filePath)
+      assertSourceAssetMetadata(input.metadata)
+      if (
+        file.sha256 !== input.metadata.contentHash ||
+        !isContentAddressedSourceAssetKey(
+          input.metadata.assetKey,
+          input.metadata.contentHash,
+        )
+      )
+        throw new Error(
+          'Source asset bytes or immutable key do not match the declared hash.',
+        )
+      await (localOptions.retainRemoteFile ?? retainRemoteR2File)(
+        r2,
+        input.metadata.assetKey,
+        input.filePath,
+        {
+          contentType: input.metadata.mediaType,
+          contentDisposition: `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
+        },
+      )
+    }
     return uploadLocalManagedSourceAsset(target, input, localOptions)
   }
-  const fileStat = await stat(input.filePath)
-  const preflightResponse = await fetch(
-    `${resolveHarbourApiUrl(target)}/v1/assets/preflight`,
-    {
-      body: JSON.stringify({
-        byteLength: fileStat.size,
-        metadata: input.metadata,
-      }),
-      headers: { 'content-type': 'application/json', ...getAuthHeaders() },
-      method: 'POST',
-    },
+  assertSourceAssetMetadata(input.metadata)
+  if (
+    !isContentAddressedSourceAssetKey(
+      input.metadata.assetKey,
+      input.metadata.contentHash,
+    )
   )
-  const preflight = (await preflightResponse.json().catch(() => null)) as {
-    assetId?: unknown
-    assetUrl?: unknown
-    needsUpload?: unknown
-  } | null
-  if (!preflightResponse.ok) {
-    const message =
-      preflight &&
-      typeof preflight === 'object' &&
-      typeof (preflight as { message?: unknown }).message === 'string'
-        ? (preflight as { message: string }).message
-        : `Harbour source asset preflight failed with HTTP ${preflightResponse.status}.`
-    throw new Error(message)
-  }
-  if (preflight?.needsUpload === false && typeof preflight.assetId === 'string') {
-    return {
-      assetId: preflight.assetId,
-      url: buildManagedAssetUrl(target, preflight.assetId),
-    }
-  }
-  const form = new FormData()
-  form.set(
-    'asset',
-    new File([await readFile(input.filePath)], input.fileName, {
-      type: input.metadata.mediaType,
-    }),
-  )
-  form.set('metadata', JSON.stringify(input.metadata))
-  const response = await fetch(`${resolveHarbourApiUrl(target)}/v1/assets`, {
-    body: form,
-    headers: getAuthHeaders(),
-    method: 'POST',
-  })
-  const payload = (await response.json().catch(() => null)) as unknown
-  if (!response.ok || !isUploadedSourceAsset(payload)) {
-    const message =
-      payload &&
-      typeof payload === 'object' &&
-      typeof (payload as { message?: unknown }).message === 'string'
-        ? (payload as { message: string }).message
-        : `Harbour source asset upload failed with HTTP ${response.status}.`
-    throw new Error(message)
-  }
-  return { assetId: payload.assetId, url: payload.assetUrl }
+    throw new Error('Source asset key must contain its declared SHA-256 digest.')
+  const result = await uploadSourceAssetRemotely(target, input)
+  return { assetId: result.assetId, url: buildManagedAssetUrl(target, result.assetId) }
 }
 
 export async function linkManagedSourceAssetToRelease(
@@ -615,6 +568,36 @@ export async function linkManagedSourceAssetToRelease(
         return linkManagedSourceAssetToReleaseInDb(metaDb, input)
       }),
     ),
+  )
+}
+
+/** Delete an asset that is still linked to the exact release recorded by reset. */
+export async function deleteManagedSourceAsset(
+  target: UploadTarget,
+  input: { assetKey: string; id: string; releaseId: string | null },
+) {
+  if (!input.releaseId)
+    throw new Error(`Cannot prove ownership of source asset ${input.id}.`)
+  if (target.remote) {
+    const response = await fetch(
+      `${resolveHarbourApiUrl(target)}/v1/assets/${input.id}?releaseId=${encodeURIComponent(input.releaseId)}`,
+      { headers: getAuthHeaders(), method: 'DELETE' },
+    )
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as {
+        message?: unknown
+      } | null
+      throw new Error(
+        typeof payload?.message === 'string'
+          ? payload.message
+          : `Harbour source asset deletion failed with HTTP ${response.status}.`,
+      )
+    }
+    return
+  }
+  await deleteLocalSourceAssetObject(input.assetKey)
+  await withLocalMetaDb(metaDb =>
+    metaDb.delete(metaAssets).where(eq(metaAssets.id, input.id)).run(),
   )
 }
 
@@ -658,8 +641,8 @@ export async function registerLocalManagedSourceAsset(
   options: { putObject: LocalSourceAssetObjectUpload },
 ) {
   assertSourceAssetMetadata(input.metadata)
-  const bytes = await readFile(input.filePath)
-  const contentHash = hash(bytes)
+  const file = await inspectSourceAssetFile(input.filePath)
+  const contentHash = file.sha256
   if (contentHash !== input.metadata.contentHash) {
     throw new Error('Source asset SHA-256 does not match the declared content hash.')
   }
@@ -676,7 +659,6 @@ export async function registerLocalManagedSourceAsset(
         `Registered source asset conflict for ${input.metadata.assetKey}; existing hash differs.`,
       )
     }
-    return existing.id
   }
 
   await options.putObject({
@@ -686,12 +668,14 @@ export async function registerLocalManagedSourceAsset(
     objectKey: input.metadata.assetKey,
   })
 
+  if (existing) return existing.id
+
   const assetId = crypto.randomUUID()
   await metaDb
     .insert(metaAssets)
     .values({
       assetKey: input.metadata.assetKey,
-      byteLength: bytes.byteLength,
+      byteLength: file.byteLength,
       contentHash,
       id: assetId,
       manifest: input.metadata.manifest ?? null,
@@ -729,24 +713,23 @@ async function putLocalSourceAssetObject(input: {
   mediaType: string
   objectKey: string
 }) {
-  await mkdir(LOCAL_R2_PERSIST_DIR, { recursive: true })
-  await mkdir(WRANGLER_CONFIG_HOME, { recursive: true })
-  await mkdir(WRANGLER_LOG_PATH, { recursive: true })
+  await retainLocalR2File(input.objectKey, input.filePath, {
+    contentType: input.mediaType,
+    contentDisposition: `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
+  })
+}
 
+async function deleteLocalSourceAssetObject(objectKey: string) {
+  if (!objectKey.startsWith('by-source/'))
+    throw new Error(`Refusing to delete non-source asset ${objectKey}.`)
   const command = [
     'bun',
     'x',
     'wrangler',
     'r2',
     'object',
-    'put',
-    `${LOCAL_R2_BUCKET_NAME}/${input.objectKey}`,
-    '--file',
-    input.filePath,
-    '--content-type',
-    input.mediaType,
-    '--content-disposition',
-    `attachment; filename="${contentDispositionFileName(input.fileName)}"`,
+    'delete',
+    `${LOCAL_R2_BUCKET_NAME}/${objectKey}`,
     '--local',
     '--persist-to',
     LOCAL_R2_PERSIST_DIR,
@@ -768,22 +751,10 @@ async function putLocalSourceAssetObject(input: {
     new Response(child.stderr).text(),
     child.exited,
   ])
-  if (exitCode !== 0) {
-    throw new Error((stderr || stdout || 'Local R2 source asset upload failed.').trim())
-  }
-}
-
-function isUploadedSourceAsset(value: unknown): value is {
-  assetId: string
-  assetUrl: string
-  status: 'existing' | 'uploaded'
-} {
-  return (
-    Boolean(value) &&
-    typeof value === 'object' &&
-    typeof (value as { assetId?: unknown }).assetId === 'string' &&
-    typeof (value as { assetUrl?: unknown }).assetUrl === 'string'
-  )
+  if (exitCode !== 0)
+    throw new Error(
+      (stderr || stdout || 'Local R2 source asset deletion failed.').trim(),
+    )
 }
 
 function isLinkedSourceAsset(value: unknown): value is {

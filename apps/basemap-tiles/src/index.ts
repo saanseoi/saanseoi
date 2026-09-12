@@ -1,4 +1,4 @@
-import { TileType } from 'pmtiles'
+import { EtagMismatch, ResolvedValueCache, TileType } from 'pmtiles'
 import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
   boundary_name,
@@ -56,13 +56,30 @@ export const isLatestRequest = (
   archiveVersion: string | null,
 ): boolean => (name.endsWith('-latest') && !archiveVersion) || renderLatest
 
+export function archiveVersionForRequest(
+  name: string,
+  tile: [number, number, number] | undefined,
+  currentArchiveVersion: string | undefined,
+  requestedArchiveVersion: string | null,
+) {
+  return (
+    currentArchiveVersion ??
+    (tile && name.endsWith('-latest')
+      ? (requestedArchiveVersion ?? undefined)
+      : undefined)
+  )
+}
+
 const accessResponse = (
   body: BodyInit | null,
   status: number,
   allowedOrigin: string,
 ): Response =>
   new Response(body, {
-    headers: applyAccessHeaders(new Headers(), allowedOrigin),
+    headers: applyAccessHeaders(
+      new Headers({ 'Cache-Control': 'no-store' }),
+      allowedOrigin,
+    ),
     status,
   })
 
@@ -122,6 +139,9 @@ export default {
       )
     }
     if (access && !access.unmetered) {
+      if (access.lease.status === 'exhausted') {
+        return accessResponse('Public API key quota exceeded.', 429, allowedOrigin)
+      }
       const rateLimit = await env.TILE_RATE_LIMIT.limit({ key: access.lease.keyId })
       if (!rateLimit.success)
         return accessResponse('Tile rate limit exceeded.', 429, allowedOrigin)
@@ -245,8 +265,23 @@ export default {
         name.endsWith('-latest') && !tile
           ? await env.BUCKET.head(archiveKey)
           : undefined
-      const archiveVersion = latestArchive?.httpEtag ?? latestArchive?.etag
-      const pmtiles = openPmtiles(env, archiveKey, archiveVersion)
+      const archiveVersion = archiveVersionForRequest(
+        name,
+        tile,
+        latestArchive?.etag ?? latestArchive?.httpEtag,
+        url.searchParams.get('v'),
+      )
+      // An unversioned `-latest` tile deliberately bypasses the edge cache. It
+      // must also bypass the process-wide PMTiles header/directory cache:
+      // otherwise an empty tile or a newly added zoom level can remain hidden
+      // until the worker cache evicts the old archive metadata. Versioned tile
+      // URLs use the archive ETag in the normal shared cache key.
+      const pmtiles = openPmtiles(
+        env,
+        archiveKey,
+        archiveVersion,
+        latestRequest && !archiveVersion ? new ResolvedValueCache() : undefined,
+      )
       const header = await pmtiles.getHeader()
 
       if (!tile) {
@@ -292,6 +327,13 @@ export default {
 
       return responseCache.response(tileData.data, headers, 200)
     } catch (error) {
+      if (error instanceof EtagMismatch) {
+        return responseCache.response(
+          'The requested basemap archive version is no longer available. Please reload the map.',
+          headers,
+          409,
+        )
+      }
       if (error instanceof KeyNotFoundError) {
         return responseCache.response('Archive not found', headers, 404)
       }

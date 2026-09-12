@@ -2,7 +2,7 @@
   "browser": {
     "launchOptions": {
       "headless": false,
-      "executablePath": "/home/io/.local/bin/google-chrome-canary"
+      "channel": "chrome"
     },
     "contextOptions": {
       "viewport": { "width": 1360, "height": 872 }

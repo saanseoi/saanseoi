@@ -1,16 +1,14 @@
 {
-  "versionHash": "sha256:b01551387409e9ec2cd2972de8427e765f4fe86d08389e8e4f2960762a03c41f",
+  "versionHash": "sha256:074d8fcb3a5a0f9db07598626ca1602683cb6dae53f7d3fe86ddd43288321809",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "five-yearly",
+  "releaseFrequency": "census",
   "theme": "stats",
   "sourceVariant": "census",
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": [
-    "divisionStatistic"
-  ],
+  "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "revision"
-        ],
+        "discoveries": ["revision"],
         "includeInitialDownload": true
       }
     },
@@ -55,7 +51,10 @@
       "rulesetVersion": "rs-division-statistic-merge-v1",
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -81,7 +80,17 @@
     {
       "locale": "en",
       "name": "Census: Major Housing Estates",
-      "description": "Planned C&SD source for Census statistics and boundaries for 540 major housing estates."
+      "description": "C&SD source for Census statistics and boundaries for 540 major housing estates."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "人口普查：主要屋苑",
+      "description": "政府統計處提供的540個主要屋苑的人口普查統計及地理界線。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "人口普查：主要屋苑",
+      "description": "政府统计处提供的540个主要屋苑的人口普查统计及地理界线。"
     }
   ]
 }

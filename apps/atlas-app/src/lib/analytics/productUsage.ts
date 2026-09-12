@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import {
   recordProductUsage,
   type ProductUsageEntityType,
@@ -26,7 +27,7 @@ export function writeServerProductUsage(
   },
 ) {
   const event = getRequestEvent()
-  recordProductUsage(event.platform?.env.PRODUCT_USAGE, {
+  recordProductUsage(env.PRODUCT_USAGE, {
     event: input.event,
     producer: 'atlas-app',
     surface: input.surface,

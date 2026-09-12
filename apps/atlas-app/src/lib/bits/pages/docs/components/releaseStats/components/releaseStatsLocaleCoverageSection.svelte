@@ -11,11 +11,8 @@ import Header from './releaseStatsSectionHeader.svelte'
 let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLabels } =
   $props()
 </script>
-<Section
-  ><Header
-    id="stats-names-by-locale"
-    eyebrow={labels.completeness}
-    title={labels.namesByLocale}
+<Section id="stats-names-by-locale"
+  ><Header eyebrow={labels.completeness} title={labels.namesByLocale}
     ><div class="flex items-center gap-3">
       <Legend
         label={labels.localeLegend}

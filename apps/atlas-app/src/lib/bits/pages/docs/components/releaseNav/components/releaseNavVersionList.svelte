@@ -25,6 +25,14 @@ let {
 let activeVersionElement = $state<HTMLDivElement>()
 let versionListElement = $state<HTMLElement>()
 let versionScrollOverride = $state(false)
+let versionHasMoreBelow = $state(false)
+
+function updateVersionOverflow() {
+  if (!versionListElement) return
+  versionHasMoreBelow =
+    versionListElement.scrollTop + versionListElement.clientHeight <
+    versionListElement.scrollHeight - 1
+}
 
 function toggleOpen() {
   if (!canExpand) return
@@ -41,9 +49,9 @@ $effect(() => {
 
 $effect(() => {
   if (!versionListElement) return
+  const versionList = versionListElement
   const restore = (event: Event) => {
-    if (!versionScrollOverride || event.composedPath().includes(versionListElement))
-      return
+    if (!versionScrollOverride || event.composedPath().includes(versionList)) return
     versionScrollOverride = false
     void revealReleaseNavVersion(activeVersionElement, versionListElement)
   }
@@ -54,64 +62,91 @@ $effect(() => {
     window.removeEventListener('touchstart', restore, true)
   }
 })
+
+$effect(() => {
+  const list = versionListElement
+  currentVersionCode
+  if (!list) return
+
+  const resize = new ResizeObserver(updateVersionOverflow)
+  resize.observe(list)
+  for (const child of list.children) resize.observe(child)
+  const frame = requestAnimationFrame(updateVersionOverflow)
+
+  return () => {
+    cancelAnimationFrame(frame)
+    resize.disconnect()
+  }
+})
 </script>
 
-<nav
-  bind:this={versionListElement}
-  data-release-nav-version-list
-  class="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-auto pt-2"
-  aria-label="Release versions"
-  onwheel={() => (versionScrollOverride = true)}
-  ontouchstart={() => (versionScrollOverride = true)}
->
-  {#each versions as version}
-    {#if version.code === currentVersionCode}
-      <div
-        bind:this={activeVersionElement}
-        class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
-      >
+<div class="relative min-h-0">
+  <nav
+    bind:this={versionListElement}
+    data-release-nav-version-list
+    class="flex h-full min-h-0 flex-col gap-2 overflow-y-auto overscroll-auto pt-2"
+    aria-label="Release versions"
+    onscroll={updateVersionOverflow}
+    onwheel={() => (versionScrollOverride = true)}
+    ontouchstart={() => (versionScrollOverride = true)}
+  >
+    {#each versions as version}
+      {#if version.code === currentVersionCode}
         <div
-          class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt dark:text-[#edf2ee]!"
+          bind:this={activeVersionElement}
+          class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
         >
-          {#if canExpand}
-            <button
-              class="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
-              type="button"
-              aria-controls="source-release-toc"
-              aria-expanded={open}
-              onclick={toggleOpen}
+          <div
+            class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt dark:text-[#edf2ee]!"
+          >
+            {#if canExpand}
+              <button
+                class="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                type="button"
+                aria-controls="source-release-toc"
+                aria-expanded={open}
+                onclick={toggleOpen}
+              >
+                {version.label}
+                <Icon
+                  icon="ion:chevron-down-outline"
+                  class={`size-4 transition-transform duration-300 ${loading ? 'animate-spin' : open ? '' : 'rotate-180'}`}
+                  aria-hidden="true"
+                />
+              </button>
+            {:else}
+              <span class="min-w-0 flex-1">{version.label}</span>
+            {/if}
+          </div>
+          {#if children}
+            <div
+              id="source-release-toc"
+              class:rounded-b-lg={open}
+              class={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out ${open ? 'grid-rows-[1fr] border-t border-outline-variant/60 dark:border-outline-variant' : 'grid-rows-[0fr]'}`}
             >
-              {version.label}
-              <Icon
-                icon="ion:chevron-down-outline"
-                class={`size-4 transition-transform duration-300 ${loading ? 'animate-spin' : open ? '' : 'rotate-180'}`}
-                aria-hidden="true"
-              />
-            </button>
-          {:else}
-            <span class="min-w-0 flex-1">{version.label}</span>
+              <div class="min-h-0 overflow-hidden">{@render children()}</div>
+            </div>
           {/if}
         </div>
-        {#if children}
-          <div
-            id="source-release-toc"
-            class:rounded-b-lg={open}
-            class={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out ${open ? 'grid-rows-[1fr] border-t border-outline-variant/60 dark:border-outline-variant' : 'grid-rows-[0fr]'}`}
-          >
-            <div class="min-h-0 overflow-hidden">{@render children()}</div>
-          </div>
-        {/if}
-      </div>
-    {:else}
-      <a
-        class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
-        data-sveltekit-reset="false"
-        data-sveltekit-preload-data="hover"
-        href={version.href}
-        onfocusin={() => onVersionPreload?.(version)}
-        onpointerenter={() => onVersionPreload?.(version)}
-        >{version.label}</a
-      >
-    {/if}
-  {/each}
-</nav>
+      {:else}
+        <a
+          class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
+          data-sveltekit-reset="false"
+          data-sveltekit-preload-data="hover"
+          href={version.href}
+          onfocusin={() => onVersionPreload?.(version)}
+          onpointerenter={() => onVersionPreload?.(version)}
+          >{version.label}</a
+        >
+      {/if}
+    {/each}
+  </nav>
+  {#if versionHasMoreBelow}
+    <div
+      class="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex h-9 items-end justify-center bg-linear-to-b from-transparent via-surface/85 to-surface pb-0.5 text-secondary"
+      aria-hidden="true"
+    >
+      <Icon icon="ion:chevron-down-outline" class="size-3.5" />
+    </div>
+  {/if}
+</div>

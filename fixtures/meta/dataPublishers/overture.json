@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a8bd13c805ff89c808b4ef9780959bb7256346c8f71332fb4d9ed9f142ff7d48",
+  "versionHash": "sha256:3a1197885a1586c52d556027487538bcca553a17c75df403acad375737d6bb42",
   "code": "overture",
   "url": "https://overturemaps.org",
   "contactUrl": "https://docs.overturemaps.org/support/",
@@ -13,11 +13,13 @@
     {
       "locale": "zh-hant",
       "name": "Overture 地圖基金會",
+      "nameShort": "Overture",
       "description": "一個匯聚科技公司、製圖組織、政府機構、開放數據社群及研究人員的平台，共同建設開放、可靠且可互操作的地圖資料基礎設施。"
     },
     {
       "locale": "zh-hans",
       "name": "Overture 地图基金会",
+      "nameShort": "Overture",
       "description": "一个汇聚科技公司、制图组织、政府机构、开放数据社区及研究人员的平台，共同建设开放、可靠且可互操作的地图数据基础设施。"
     }
   ]

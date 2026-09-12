@@ -1,5 +1,33 @@
 # Basemap tiles
 
+OSM source-archive checksums are calculated with bounded streaming reads. Archiving
+stops if file identity, size or modification metadata changes during hashing.
+
+R2 catalogue and source reads fail closed on ambiguous download failures. Downloads
+replace local files only after success; interrupted downloads cannot overwrite retained
+artefacts. An explicit missing-object response is distinct from a failed storage read.
+
+Generated PMTiles builds retain `<archive>.build-state/build.json`. On retry, identical
+input digests and build provenance plus a matching archive checksum skip the Docker
+build. A failed build leaves the previous archive intact. `--force` requests a fresh
+build; an existing archive without a completed checkpoint requires inspection before
+that override. The checkpoint covers completed local builds, not R2 upload or catalogue
+publication. An interruption between archive replacement and checkpoint persistence
+fails closed rather than treating an unverified archive as complete.
+
+Catalogue publication retains a checksummed `<region>-<version>.catalogue-pending.json`
+intent after artefact uploads and before the regional catalogue write. If the regional
+release exists but either global catalogue write was interrupted, retrying the same
+release without `--force` completes those catalogue writes without rebuilding or
+re-uploading the archive. Recovery checks the exact regional entry and refuses to
+replace a different latest selection. Unrelated regions are merged from fresh reads. The
+intent is removed only after both global writes succeed.
+
+Basemap publication is serialised within one workspace. Operate a single publishing
+workspace: the local lock is not a distributed R2 lock, and catalogue writes are not a
+cross-object transaction. Interrupted artefact uploads before catalogue staging can
+still require retransmission; the build checkpoint avoids repeating a completed build.
+
 ## Access
 
 SaanSeoi's own browser applications can call the tiles Worker without an API key. Other

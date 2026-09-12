@@ -1,12 +1,12 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import {
-  jsonText,
   canonicalAddress2d,
   canonicalAddress2dBuildingNumberLookup,
   canonicalAddress2dI18n,
-  canonicalAddress3dUnitRefLookup,
+  canonicalAddress3d,
   canonicalAddress3dI18n,
+  jsonText,
 } from '../shared'
 import { historyI18nVersioning, historyVersioning } from './shared'
 
@@ -23,6 +23,7 @@ export const address2d = sqliteTable(
     index('address2d_current_lookup_idx').on(table.id, table.isCurrent),
     index('address2d_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('address2d_snapshotId_idx').on(table.snapshotId),
+    index('address2d_parentAddressId_idx').on(table.parentAddressId),
   ],
 )
 
@@ -42,6 +43,20 @@ export const address2dI18n = sqliteTable(
       table.locale,
       table.isCurrent,
     ),
+  ],
+)
+
+/** Exact edition assertions are selected independently of canonical components. */
+export const address2dEvidence = sqliteTable(
+  'address2dEvidence',
+  {
+    addressId: text('addressId').notNull(),
+    sources: jsonText('sources').notNull(),
+    ...historyI18nVersioning,
+  },
+  table => [
+    primaryKey({ columns: [table.addressId, table.versionHash] }),
+    index('address2dEvidence_current_lookup_idx').on(table.addressId, table.isCurrent),
   ],
 )
 
@@ -71,9 +86,7 @@ export const address2dBuildingNumberLookup = sqliteTable(
 export const address3d = sqliteTable(
   'address3d',
   {
-    id: text('id').notNull(),
-    address2dId: text('address2dId').notNull(),
-    sources: jsonText('sources'),
+    ...canonicalAddress3d,
     ...historyVersioning,
   },
   table => [
@@ -101,29 +114,6 @@ export const address3dI18n = sqliteTable(
     index('address3dI18n_current_lookup_idx').on(
       table.address3dId,
       table.locale,
-      table.isCurrent,
-    ),
-  ],
-)
-
-export const address3dUnitRefLookup = sqliteTable(
-  'address3dUnitRefLookup',
-  {
-    ...canonicalAddress3dUnitRefLookup,
-    ...historyI18nVersioning,
-  },
-  table => [
-    primaryKey({
-      columns: [table.address3dId, table.versionHash, table.unitRef],
-    }),
-    index('address3dUnitRefLookup_lookup_idx').on(
-      table.snapshotId,
-      table.unitRef,
-      table.isCurrent,
-    ),
-    index('address3dUnitRefLookup_numericStem_idx').on(
-      table.snapshotId,
-      table.numericStem,
       table.isCurrent,
     ),
   ],

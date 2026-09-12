@@ -7,13 +7,13 @@
     "format": "biome format --write ."
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@types/bun": "1.4.2",
     "@types/shpjs": "3.4.7",
-    "bun-types": "^1.4.0",
+    "bun-types": "^1.4.2",
     "typescript": "^6.0.3"
   },
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
+    "@clack/prompts": "^1.8.0",
     "@repo/basemap": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
@@ -21,11 +21,12 @@
     "fast-xml-parser": "5.11.1",
     "fflate": "0.8.3",
     "fgdb": "1.0.0",
-    "hyparquet": "^1.29.2",
+    "h3-js": "^4.5.0",
+    "hyparquet": "^1.30.1",
     "hyparquet-compressors": "^1.1.1",
     "hyparquet-writer": "^0.16.9",
     "jsts": "2.12.1",
-    "proj4": "2.21.0",
+    "proj4": "2.22.0",
     "shpjs": "6.2.0"
   }
 }

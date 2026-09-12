@@ -1,16 +1,17 @@
+import { readDivisionSnapshot } from '../pipeline/divisions/readDivisionSnapshot.ts'
 import { Database } from 'bun:sqlite'
 
 import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/brotliJson'
-import { parseWkbGeometry } from '@repo/core/pipeline/services/division'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
-} from '@repo/core/pipeline/services/geometryStats'
-import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/stats'
+} from '@repo/core/pipeline/services/metrics/geometryStats'
+import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
@@ -19,8 +20,8 @@ import {
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
-import { executeSqlText } from '../localPipeline/sqlImport.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { executeSqlText } from '../pipeline/local/sqlImport.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'
 type BackfillRelease = {
@@ -68,7 +69,7 @@ export async function runGeometryStatsBackfillCommand(
   if (target.environment === 'production' && !dryRun && !args.options.yes) {
     throw new Error('Production geometry-stat backfill requires explicit `--yes`.')
   }
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
   progress.beginPhase('Prepare geometry statistics cache', { max: null })
 
@@ -142,9 +143,9 @@ export async function runGeometryStatsBackfillCommand(
         release.resourceType,
       )
       const typedDistrictRows = districtRows as Array<{
-        hierarchy: unknown
+        hierarchies: import('@repo/db').DivisionHierarchies
         id: string
-        type: string
+        class: string
       }>
       const typedGeometryRows = selectExactGeometryRows(
         geometryRows as Array<{
@@ -397,15 +398,14 @@ async function findDivisionSnapshotRows(
       `No versioned division snapshot is available for ${release.code} (${cohortKey}).`,
     )
   }
-  return context.currentDb
-    .select({
-      hierarchy: currentSchema.divisions.hierarchy,
-      id: currentSchema.divisions.id,
-      type: currentSchema.divisions.type,
-    })
-    .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, districtSnapshot.id))
-    .all()
+  return (
+    await readDivisionSnapshot(
+      context.currentDb as never,
+      context.metaDb as never,
+      districtSnapshot.id,
+      context.historyTargets as never,
+    )
+  ).divisions
 }
 
 async function resolveExactSnapshot(
@@ -431,7 +431,7 @@ async function resolveExactSnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSources.sourceReleaseId, release.id),
+        eq(metaSchema.metaSnapshotSources.resourceReleaseId, release.id),
         eq(metaSchema.metaSnapshots.resourceType, release.resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         // Exact canonical variants are the only source of release facts.
@@ -471,16 +471,16 @@ async function resolveSnapshotShard(
 async function findSnapshotRows(
   targets: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyTargets'],
   snapshotId: string,
-  type: 'division' | GeometryResourceType,
+  resourceType: 'division' | GeometryResourceType,
 ) {
   const table =
-    type === 'division'
+    resourceType === 'division'
       ? historySchema.divisions
-      : type === 'divisionArea'
+      : resourceType === 'divisionArea'
         ? historySchema.divisionAreas
         : historySchema.divisionBoundaries
   for (const target of targets) {
-    const rows = await (target.db as any)
+    const rows = await (target.db as HarbourReadableDb)
       .select()
       .from(table)
       .where(eq(table.snapshotId, snapshotId))
@@ -488,21 +488,25 @@ async function findSnapshotRows(
     if (rows.length) return rows
   }
   throw new Error(
-    `Snapshot ${snapshotId} has no ${type} rows in its assigned history shard.`,
+    `Snapshot ${snapshotId} has no ${resourceType} rows in its assigned history shard.`,
   )
 }
 
-function districtIdForDivision(row: { hierarchy: unknown; id: string; type: string }) {
-  if (row.type === 'district') return row.id
-  if (!Array.isArray(row.hierarchy)) return null
-  const district = row.hierarchy.find(
-    entry =>
-      entry &&
-      typeof entry === 'object' &&
-      (entry as { type?: unknown }).type === 'district' &&
-      typeof (entry as { division_id?: unknown }).division_id === 'string',
-  ) as { division_id: string } | undefined
-  return district?.division_id ?? null
+function districtIdForDivision(row: {
+  hierarchies: import('@repo/db').DivisionHierarchies
+  id: string
+  class: string
+}) {
+  if (row.class === 'district') return row.id
+  const ids = [
+    ...new Set(
+      row.hierarchies.administrative
+        .flat()
+        .filter(entry => entry.class === 'district')
+        .map(entry => entry.id),
+    ),
+  ]
+  return ids.length === 1 ? (ids[0] ?? null) : null
 }
 
 function isPair(entry: readonly [string, string | null]): entry is [string, string] {
@@ -598,7 +602,7 @@ function buildRemoteStatsSql(cacheDir: string, releaseId: string) {
     const columns = Object.keys(rows[0] ?? {})
       .map(column => `"${column}"`)
       .join(', ')
-    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND type = 'release' AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
+    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
   } finally {
     database.close()
   }

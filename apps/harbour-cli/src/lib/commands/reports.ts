@@ -20,7 +20,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
       ? Number.parseInt(args.options.limit, 10)
       : 10
   const reportSource = getStringOption(args, ['source'])
-  const reportType = getStringOption(args, ['type'])
+  const reportType = getStringOption(args, ['resource-type'])
   const hasExplicitLimit = typeof args.options.limit === 'string'
 
   if (args.command === 'reports:ingestion') {
@@ -28,7 +28,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
       limit: hasExplicitLimit ? reportLimit : 100,
       ...resolveReportReleaseFilter(args),
       source: reportSource,
-      type: reportType,
+      resourceType: reportType,
     })
     console.log(
       formatIngestionReportTable(report.rows, {
@@ -42,7 +42,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
     const report = await fetchStatsReport(target, {
       limit: hasExplicitLimit ? reportLimit : 1,
       source: reportSource,
-      type: reportType,
+      resourceType: reportType,
     })
     console.log(formatStatsReportTable(report.rows))
     return
@@ -53,7 +53,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
       limit: hasExplicitLimit ? reportLimit : 1,
       ...resolveReportReleaseFilter(args),
       source: reportSource,
-      type: reportType,
+      resourceType: reportType,
     })
     console.log(formatProcessingActionReport(report.rows))
     return
@@ -64,7 +64,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
       limit: reportLimit,
       ...resolveReportReleaseFilter(args),
       source: reportSource,
-      type: reportType,
+      resourceType: reportType,
     })
     console.log(formatReleaseReportTable(report.rows))
     return

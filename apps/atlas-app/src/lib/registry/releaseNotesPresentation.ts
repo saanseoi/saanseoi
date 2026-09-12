@@ -55,7 +55,7 @@ export function buildReleaseNotesPresentation(
 
       const transclusionMarkdown = styliseSaanseoiInMarkdown(transclusion.markdown)
       transclusions[href] = {
-        type: transclusion.type,
+        kind: transclusion.kind,
         title: getMarkdownTransclusionDisplayTitle(transclusion, locale),
         version: transclusion.version,
         markdown: transclusionMarkdown,

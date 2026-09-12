@@ -1,11 +1,81 @@
 # Census and Statistics Department District Council district areas
 
+Unchanged open source geometry and derivative versions retain their release metadata and
+validity. Supersession updates target the exact current version; derivative comparison
+remains scoped by source record, input version and transform.
+
+Housing Market Area API inventory counts, locale coverage and churn use the shared
+[division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
+Comparisons stay within the HMA domain; geometry statistics remain source-owned.
+
+Geometry processing retains a registered normalisation declaration, counts and selected
+identity curation fixtures in the [R2 audit](../../processing-provenance.md). D1 holds
+the manifest pointer and attempt status. Audit loads readable fixture contents on
+demand; failed blocking guards prevent publication.
+
+Housing Market Area division names retain each applied translation with its source text,
+target locale, resulting text and selected fixture entry. Only fixture entries without a
+captured application are reported as unused.
+
+Translation context retains parent identity and multilingual `parentName.<locale>`
+display names without changing the identity hash. Audit selects the UI locale, then
+English, another retained name in locale order, and the parent ID.
+
+Source storage uses `null` when no provenance references are supplied. A supplied
+canonical division ID is not a publisher source reference. Publisher district codes,
+classes and archive evidence remain valid provenance.
+
+Geometry assembly records retain contributed and inherited source rules and selected
+releases under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance). Verified
+identical reuse preserves the published snapshot's assembly evidence.
+
+Geometry replay streams current, history and source rows into bounded SQL statements
+when creating a delivery plan. Retained plans bypass replay-table reads and SQL packing;
+normalisation and local materialisation remain separate workflow stages.
+
+Local exact and simplified materialisation uses WAL-safe planning copies and native
+delivery receipts. Each phase retains exact mutations, including source derivative
+updates, and checksummed churn counts. Resume validates normalised inputs and replays
+the retained plan before publication.
+
+Exact and simplified geometry imports use distinct
+[sealed delivery phases](../../sql-delivery.md). Each phase retains source-file and
+snapshot identities and confirms remote imports before replaying the same SQL into the
+mirror.
+
+Ordinary metadata upserts for exact and simplified phases leave identical release
+assignments, processing actions and statistics untouched. Changes to any replayed field,
+including `null` transitions, still apply in statement order. The
+[SQL delivery contract](../../sql-delivery.md) describes the oversized-row exception.
+
+Remote replay selects immutable canonical content through upsert journal keys and
+records removals as delete journals. Source closures use exact version keys. Simplified
+phases also deliver source-derivative rows and closures keyed by source record, exact
+input version, transform and derivative version.
+
+Parented exact and simplified snapshots follow the
+[geometry membership contract](../../families/divisions.md#publication-readiness):
+validated identical parent members inherit without payload or child journal writes,
+while companion contributions retain members outside their input. Independent census
+cohorts retain full root membership journals and their own current projections. Source
+assertions and audit delivery remain separate from canonical membership.
+
 ## Source releases
 
 The Census and Statistics Department (C&SD) publishes 18 District Council district
 polygons alongside census, by-census and annual statistics. These are statistical
 geographies: each geometry release is retained for its reference-year cohort and must
 not be represented as an evergreen administrative boundary.
+
+Each independently published geometry resource release retains its selected current
+snapshot per cohort and variant. The 2016 and 2021 census releases share
+`hkgov-censtatd-landclipped` and use distinct cohort keys; each also has a
+`hkgov-censtatd-landclipped:simplified` materialisation. A correction within one cohort
+can replace that cohort's selected snapshot without displacing the other census.
+Retention follows the processed geometry resource release, independently of publication
+of the source package's statistics output. Superseded snapshots remain reconstructable
+from history.
 
 | Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                                                  |
 | ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
@@ -68,13 +138,19 @@ Each release contains exactly 18 Polygon/MultiPolygon features. Required propert
 - `dc_eng` and `dc_chi`: English and Traditional Chinese district names.
 
 All publisher properties, including the subdivided-unit measures, remain in
-`rawProperties`; the geometry resource path does not publish them through the Division
+`properties`; the geometry resource path does not publish them through the Division
 Statistics family. The shared C&SD statistics intake can publish the corresponding
-statistical records from the same archive. The source assertion also projects the
-publisher-native `dc_eng` and `dc_chi` values to `districtEn` and `districtZhHant`; it
-does not create locale-normalised source child rows. `dc_class` is bridged through a
-reviewed `hkgov-censtatd` identifier bridge for each reference-year cohort; canonical
-`sourceKeys` expose the provider's `class` and numeric `code`.
+statistical records from the same archive. Publisher labels and district codes remain
+only in `properties`, alongside source identity, release history, provenance and native
+geometry. `dc_class` is bridged through a reviewed `hkgov-censtatd` identifier bridge
+for each reference-year cohort; canonical `identifiers` expose the provider's `class`
+and numeric `code`.
+
+The source `censusYear` identifies the source cohort used to resolve exact input
+versions for geometry derivatives; it is release identity, not a canonical field. It
+also participates in the C&SD source assertion identity, so byte-identical geometry from
+two census cohorts remains independently addressable and one cohort's source retirement
+cannot close the other cohort's current assertion.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the
@@ -101,7 +177,7 @@ direct archive intake and `saanseoi update`.
 
 ## Display transformation
 
-Each source geometry is retained as published. For Hong Kong-wide preview maps, Saanseoi
+Each source geometry remains as published. For Hong Kong-wide preview maps, Saanseoi
 exposes a named geometry transformation for each companion snapshot, without clipping,
 unioning or otherwise changing its topology:
 
@@ -133,9 +209,10 @@ The completed simplified coverage is retained as content-addressed WGS84 GeoJSON
 simplification-contract version, so a re-upload with identical source geometry reuses
 the derivative rather than repeating the GEOS simplification.
 
-Every published companion variant remains materialised in current storage for cohort-
-and variant-qualified Divisions API reads, whether or not it is an API-composition
-member.
+Each retained companion cohort and variant has its own current scope for qualified
+Divisions API reads, whether or not it is an API-composition member. A revised scope
+serves its selected version from current; older pinned revisions replay from immutable
+history.
 
 Use `include=areas:hkgov-censtatd-landclipped:simplified` or
 `include=areas:hkgov-censtatd:simplified` for low-detail display maps; omit the
@@ -160,12 +237,23 @@ geometry.
 
 ## Statistical area companions
 
+Geometry release churn counts incoming source rows. A merge carries absent parent
+members into the resulting snapshot; those members are not removals and do not increase
+the incoming record count. Snapshot membership can therefore exceed a source release's
+record count.
+
 The C&SD Permanent Living Quarters release supplies three regional polygons (`HK`,
 `KLN`, and `NT`). They join the cohort-matched `hkgov-censtatd` companion rather than a
 second division collection: each polygon is linked to the corresponding canonical
 Overture division ID, including the deterministic synthetic Hong Kong, Kowloon, and New
 Territories IDs where Overture has no row. Request them with
 `include=areas:hkgov-censtatd`.
+
+Regional identities use `HK` for Hong Kong Island, `KLN` for Kowloon and `NT` for New
+Territories. The public identity lookup can extract these codes from the
+`CENSTATD:area:<code>` IDs of area records belonging to the selected release set. It
+returns their recorded `divisionId`, including Kowloon's retained Overture identity. The
+mapping does not equate C&SD polygons with Overture geometry.
 
 The companion snapshot preserves all its contributing C&SD source releases as
 provenance. Required publication membership does not make geometry part of the default
@@ -177,7 +265,7 @@ canonical record IDs, division references, land/territorial classification and e
 geometry hashes. When every incoming row is already present with the same materialised
 geometry (the companion can also contain non-overlapping rows), the source attaches to
 the existing snapshot with `selectionMode: verified_identical_geometry`; its archive and
-raw source assertion are still retained, but the canonical geometry rows are not written
+raw source records remain available, but the canonical geometry rows are not written
 again. A source that adds non-overlapping rows is marked `contributed_geometry`, and
 inherited rows are marked `carried_forward_companion`. This records where geometry was
 deliberately not republished because a second publisher release supplied the same
@@ -189,7 +277,9 @@ canonical Overture division snapshot: the latest cohort at or before the C&SD co
 used first; only an absent earlier cohort permits the earliest later Overture cohort.
 The selection is retained as a snapshot lookup dependency. Permanent Living Quarters
 must not create a second C&SD division snapshot merely to satisfy its geometry
-validation.
+validation. Reference validation opens all configured regional history shards so that a
+later Overture snapshot can be replayed even when the C&SD source belongs to an earlier
+shard year. The C&SD source and geometry retain their own shard assignment.
 
 The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
 Market Area polygons have their own deterministic canonical division IDs and therefore
@@ -214,7 +304,9 @@ unverified until reviewed.
 The generated HMA division rows include the shared Parquet hierarchy columns. Their
 `class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
 HMAs have no hierarchy. Their authoritative classification remains the C&SD
-`canonical_type` of `housing-market-area`.
+`canonical_type` of `housing-market-area`. The canonical `identifiers` object contains
+only the publisher code, for example `{"hkgovCenstatd":{"code":"HMA158"}}`; the
+geography type belongs to classification.
 
 ## Ingestion
 
@@ -251,3 +343,64 @@ independently selectable source variants with separate snapshot lineages; publis
 2024 cohort never supersedes the 2016 or 2021 release or snapshot. Release churn is
 measured only against the declared parent snapshot, so each initial cohort has an empty
 baseline: its 18 district areas are additions, not removals from another cohort.
+
+## Statistics reset dependencies
+
+`reset:stats` retracts C&SD geometry contributed by Statistics datasets and dependent
+geographic snapshots, including parent-derived and lookup-dependent geometry. Affected
+Divisions API release sets and catalogue revisions are included in the confirmation
+plan. Independent source releases, assertions and snapshots remain available.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`properties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Published Division search
+
+Housing Market Area Division search selects the latest published default in
+`hkgov-censtatd-hma`. It indexes names, aliases and curated codes and participates in
+the shared deferred, incremental search finalisation. District geometry variants do not
+create duplicate search documents. See
+[Division text search](../../families/divisions.md#text-search).
+
+## Publication readiness
+
+C&SD current area geometry uses one stable lineage/cohort scope for each provider
+variant. A revision preserves unchanged geometry rows and timestamps and writes only
+changed content or membership; a distinct cohort retains its own materialisation. The
+local compiler transmits only final content differences. HMA and other canonical
+Division outputs use their own lineage scopes.
+
+Exact Division dependencies resolve through completed receipts or immutable history;
+preparation does not restore older Division rows into serving current storage. Each
+geometry write batch checks its sealed scope token. Complete validation records
+preparation, and publication grants readiness, including for empty scopes. Pinned older
+geometry revisions replay from immutable history once a ready replacement owns the
+scope. See the [publication-state contract](../../publication-state-plan.md).
+
+Identical-geometry reuse requires a completed receipt for the candidate snapshot as well
+as matching canonical values. A completed local mirror remains eligible while
+publication is deferred; an interrupted delivery cannot become a reuse baseline.
+
+Area and HMA candidate preparation uses the shared final-difference compiler. A
+contribution merges its supplied geometry into the exact cohort scope; it does not
+remove independent cohorts or inherited companion members. Canonical equality can reuse
+a complete snapshot while retaining the new publisher assertion separately.

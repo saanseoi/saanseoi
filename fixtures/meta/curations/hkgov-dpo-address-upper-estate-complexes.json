@@ -1,0 +1,459 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "upper-ngau-tau-kok-street-complex",
+      "untilRevoked": true,
+      "estate": "UPPER NGAU TAU KOK ESTATE",
+      "district": "kwun_tong",
+      "sourceCsu": "4044719952T20050430",
+      "retainSourcePremise": true,
+      "streetOverride": null,
+      "coordinates": null,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "76f6638e9ff9362016f9227585577eda542a07d909f0abd30db3c0bd185ffb80"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [
+            "28fe7c93395d605d86b655d3f1739393cd152425705da7cb0a65322f45162a72"
+          ],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "499cf4492c1f7f85ff42f4636cd25a0603bb39ec32068b6c6251aad502f2eb00",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.21742, 22.31853]
+            },
+            "properties": {
+              "Northing": 819949,
+              "Easting": 840446,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4044719952T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "安德道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "牛頭角上邨"
+                    },
+                    "ChiBlock": {
+                      "BlockDescriptor": "停車場"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngBlock": {
+                      "BlockDescriptor": "CARPARK BLK"
+                    },
+                    "EngEstate": {
+                      "EstateName": "UPPER NGAU TAU KOK ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "ON TAK ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "4044719952T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "9e0d379d8f11cd6f17fccb47df0ca0129aa0d1a0e1641a6f8e53a8d8f2b503ff",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.21744, 22.31856]
+            },
+            "properties": {
+              "Northing": 819952,
+              "Easting": 840447,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4044719952T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "安德道",
+                      "BuildingNoFrom": "15"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "牛頭角上邨"
+                    },
+                    "ChiBlock": {
+                      "BlockDescriptor": "停車場"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngBlock": {
+                      "BlockDescriptor": "CARPARK BLK"
+                    },
+                    "EngEstate": {
+                      "EstateName": "UPPER NGAU TAU KOK ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "15",
+                      "StreetName": "ON TAK ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "4044719952T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain distinct street-bearing estate complex until revoked. Preserve source assertion and house inventories; Upper Wong Tai Sin uses approved 8 Wong Tai Sin Road."
+    },
+    {
+      "id": "upper-wong-tai-sin-street-complex",
+      "untilRevoked": true,
+      "estate": "UPPER WONG TAI SIN ESTATE",
+      "district": "wong_tai_sin",
+      "sourceCsu": "3781722749T20080408",
+      "retainSourcePremise": false,
+      "streetOverride": {
+        "en": "WONG TAI SIN ROAD",
+        "zh": "黃大仙道",
+        "number": "8"
+      },
+      "coordinates": null,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "1a2064ba4d15da7b05cc035d88649b02e2a28f5e82c861222c0649a545003dc5"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [
+            "ba22dceb0e6491c3abcc9d40ec53959ada2fb7d4651f4faaaea8d5853ad57fe5"
+          ],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hashes": [],
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "e0889b908eec005530d5e2e42ee51772f251c290fbcab16d42a8ce8af3f88c8c",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19181, 22.3438]
+            },
+            "properties": {
+              "Northing": 822745,
+              "Easting": 837806,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3781722749T20080408"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "黃大仙區",
+                    "ChiStreet": {
+                      "StreetName": "黃大仙道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "黃大仙上邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "UPPER WONG TAI SIN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WONG TAI SIN ROAD"
+                    },
+                    "EngDistrict": "WONG TAI SIN DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3781722749T20080408"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "8b5554fe0b3c4a22ad96ab84b18ef8037c4e48b3310572ef20b9062b8b6a7dbd",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19191, 22.34383]
+            },
+            "properties": {
+              "Northing": 822749,
+              "Easting": 837817,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3781722749T20080408"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "黃大仙區",
+                    "ChiStreet": {
+                      "StreetName": "黃大仙道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "黃大仙上邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "UPPER WONG TAI SIN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WONG TAI SIN ROAD"
+                    },
+                    "EngDistrict": "WONG TAI SIN DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3781722749T20080408"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain distinct street-bearing estate complex until revoked. Preserve source assertion and house inventories; Upper Wong Tai Sin uses approved 8 Wong Tai Sin Road."
+    }
+  ]
+}

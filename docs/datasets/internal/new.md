@@ -60,10 +60,10 @@ For geometry, use `divisionArea` for an area associated with one division and
 `divisionBoundary` for a border between two divisions. A catalogue title such as
 “Boundary” does not decide the resource type; inspect the geometry and relationships.
 
-Register a stable provider/variant code. The variant is an assertion, not an enrichment
-operation: retain separate source, history and current rows and select the assertion at
-API read time. State the default variant and whether the family requires this snapshot
-for publication in the family document.
+Register a stable provider/variant code. The variant is a source record, not an
+enrichment operation: retain separate source, history and current rows and select the
+source record at API read time. State the default variant and whether the family
+requires this snapshot for publication in the family document.
 
 ## 3. Define identity, domains and time
 
@@ -99,14 +99,14 @@ populations during processing.
 
 Follow the family’s established column order and reuse shared schema/versioning
 fragments. For every source field, record one of: retain exactly, normalise, enrich,
-drop after a preflight check, or retain only in `rawProperties`.
+drop after a preflight check, or retain only in `properties`.
 
 At minimum, geometry source rows normally include source ID, bbox, source geometry,
 source provenance/version, raw properties and provider relationship IDs. Canonical area
-rows include canonical ID, division ID, bbox, geometry, source keys, source provenance,
-normalised type and source flags. Canonical boundary rows additionally include ordered
-left/right division IDs. History/current rows use the same version-management columns as
-the family’s existing resources.
+rows include canonical ID, division ID, bbox, geometry, provider identifiers, source
+provenance, normalised type and source flags. Canonical boundary rows additionally
+include ordered left/right division IDs. History/current rows use the same
+version-management columns as the family’s existing resources.
 
 The complete source-neutral field and variant contract is
 [`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md); provider field
@@ -182,7 +182,7 @@ Before declaring the source complete, verify:
 2. Which domain(s), cohort/validity period and hierarchy relationships apply?
 3. What is the deterministic identifier bridge and review process?
 4. Which source fields are retained, normalised, enriched, dropped, or kept in
-   `rawProperties`?
+   `properties`?
 5. What CRS/geometry union and validity policy applies?
 6. Is the snapshot required for publication or optional at the family level?
 7. What API relationship/include and provider-selection behaviour is required?

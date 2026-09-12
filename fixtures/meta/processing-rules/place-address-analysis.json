@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "resolve-place-addresses",
+  "scope": "bulk",
+  "basis": "fixture",
+  "summary": "Match each place to an official address using the selected policy, approved extra addresses and reviewed decisions.",
+  "inputs": ["places", "official-addresses", "place-address-curations"],
+  "outputs": ["place-address-links", "supplementary-addresses"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts",
+    "symbol": "placeAddressAnalysisRule"
+  }
+}

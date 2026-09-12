@@ -1,3 +1,5 @@
+import { disposeRemoteR2 } from './lib/storage/remoteR2.ts'
+import { runStatisticsApiStatsBackfillCommand } from './lib/commands/statsBackfillStatisticsApi.ts'
 import { cancel } from '@clack/prompts'
 
 import { recordInitialisationSummaryEvent } from './lib/commands/initialisationSummary.ts'
@@ -5,9 +7,12 @@ import { recordInitialisationSummaryEvent } from './lib/commands/initialisationS
 import { runSnapshotCleanupCommand } from './lib/commands/cleanup.ts'
 import { runDocsNewCommand, runDocsPublishCommand } from './lib/commands/docs.ts'
 import { runInspectCommand } from './lib/commands/inspect.ts'
+import { runSqlDeliveryCommand } from './lib/commands/sqlDelivery.ts'
 import { runReportCommand } from './lib/commands/reports.ts'
+import { runCacheGersCommand } from './lib/commands/gers.ts'
 import { runGeometryStatsBackfillCommand } from './lib/commands/statsBackfillGeometry.ts'
 import { runAddressApiStatsBackfillCommand } from './lib/commands/statsBackfillAddressApi.ts'
+import { runDivisionApiStatsBackfillCommand } from './lib/commands/statsBackfillDivisionApi.ts'
 import { runRollbackReleaseCommand } from './lib/commands/rollback.ts'
 import { runReconcileDraftReleaseSetsCommand } from './lib/commands/reconcile.ts'
 import { runBootstrapStatsReleaseSetsCommand } from './lib/commands/bootstrapStatsReleaseSets.ts'
@@ -19,7 +24,25 @@ import {
 import { runScheduleCommand, runScheduledCommand } from './lib/commands/schedule.ts'
 import { runUpdateCommand } from './lib/commands/update.ts'
 import { runUploadCommand } from './lib/commands/upload.ts'
-import { runInitialisationCommand } from './lib/commands/init.ts'
+import {
+  formatInitialisationSkippedDatasets,
+  runInitialisationCommand,
+} from './lib/commands/init.ts'
+import { runResetDivisionsCommand } from './lib/commands/resetDivisions.ts'
+import { runResetStatsCommand } from './lib/commands/resetStats.ts'
+import {
+  beginOfficialAddressInitialisation,
+  completeOfficialAddressInitialisation,
+  getOfficialAddressInitialisationStatus,
+  runResetOfficialAddressesCommand,
+} from './lib/commands/resetAddresses.ts'
+import {
+  beginOverturePlacesInitialisation,
+  completeOverturePlacesInitialisation,
+  getOverturePlacesInitialisationStatus,
+  markOverturePlacesInitialisationFailed,
+  runResetOverturePlacesCommand,
+} from './lib/commands/resetPlaces.ts'
 import {
   runTilesImportCommand,
   runTilesRebuildCommand,
@@ -37,9 +60,14 @@ import {
 import { parseArgs, resolveUploadTarget } from './lib/cli/options.ts'
 import { printUsage } from './lib/cli/usage.ts'
 import { installInterruptHandler } from './lib/cli/interrupt.ts'
+import {
+  finishInitialisationGuide,
+  installInitialisationIndent,
+} from './lib/cli/initialisationIndent.ts'
 
 async function main() {
   const args = parseArgs(process.argv)
+  installInitialisationIndent(args.command ?? undefined)
   // `bin/saanseoi` changes into the CLI package before launching Bun. Keep
   // user-provided relative paths anchored to the directory from which that
   // launcher was invoked.
@@ -48,6 +76,7 @@ async function main() {
   const dryRun = Boolean(args.options['dry-run'])
   const deferApiReleaseSet = Boolean(args.options['defer-api-release-set'])
   const forceUpload = Boolean(args.options.force)
+  const allowHistoricalCohort = Boolean(args.options['allow-historical-cohort'])
   const skipSnapshotCleanup = Boolean(args.options['skip-cleanup'])
   const skipConfirm = Boolean(args.options.yes)
   const validateGeometry = Boolean(args.options['validate-geometry'])
@@ -59,6 +88,13 @@ async function main() {
   }
 
   switch (args.command) {
+    case 'sql:status':
+    case 'sql:resume':
+      await runSqlDeliveryCommand(args, target, invocationCwd)
+      return
+    case 'cache:gers':
+      await runCacheGersCommand(args, printUsage)
+      return
     case 'cache:rebuild':
       await runCacheRebuildCommand(args, target, printUsage)
       return
@@ -82,6 +118,12 @@ async function main() {
       return
     case 'stats:backfill-addresses':
       await runAddressApiStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:backfill-statistics':
+      await runStatisticsApiStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:backfill-divisions':
+      await runDivisionApiStatsBackfillCommand(args, target, printUsage)
       return
     case 'cleanup:snapshots':
       await runSnapshotCleanupCommand(args, target, {
@@ -108,6 +150,67 @@ async function main() {
         skipConfirm,
       })
       return
+    case 'reset:divisions':
+      await runResetDivisionsCommand(args, target, { printUsage })
+      return
+    case 'reset:stats':
+      await runResetStatsCommand(args, target, { printUsage })
+      return
+    case 'reset:addresses:official':
+      await runResetOfficialAddressesCommand(args, target, { printUsage })
+      return
+    case 'reset:places:overture':
+      await runResetOverturePlacesCommand(args, target, { printUsage })
+      return
+    case 'init:addresses:saanseoi:begin':
+      await beginOfficialAddressInitialisation(target, {
+        continue: args.options.continue === true,
+      })
+      return
+    case 'init:addresses:saanseoi:status':
+      console.log(await getOfficialAddressInitialisationStatus(target))
+      return
+    case 'init:addresses:saanseoi:complete':
+      await completeOfficialAddressInitialisation(target)
+      return
+    case 'init:places:overture:begin':
+      await beginOverturePlacesInitialisation(target, {
+        continue: args.options.continue === true,
+      })
+      return
+    case 'init:places:overture:status':
+      console.log(await getOverturePlacesInitialisationStatus(target))
+      return
+    case 'init:skipped': {
+      const datasets =
+        typeof args.options.dataset === 'string'
+          ? args.options.dataset.split(',').filter(Boolean)
+          : []
+      const releases =
+        typeof args.options.release === 'string'
+          ? args.options.release.split(',').filter(Boolean)
+          : []
+      if (
+        args.positionals.length > 0 ||
+        (datasets.length === 0 && releases.length === 0)
+      ) {
+        throw new Error(
+          'Pass --dataset CODE[,CODE...] or --release CODE[,CODE...] to `init:skipped`.',
+        )
+      }
+      for (const line of await formatInitialisationSkippedDatasets(target, {
+        datasetCodes: datasets,
+        releaseCodes: releases,
+      }))
+        console.log(line)
+      return
+    }
+    case 'init:places:overture:complete':
+      await completeOverturePlacesInitialisation(target)
+      return
+    case 'init:places:overture:fail':
+      await markOverturePlacesInitialisationFailed(target)
+      return
     case 'version:bump':
       await runVersionBumpCommand(args)
       return
@@ -128,6 +231,7 @@ async function main() {
         dryRun,
         deferApiReleaseSet,
         forceUpload,
+        allowHistoricalCohort,
         invocationCwd,
         printUsage,
         skipConfirm,
@@ -135,16 +239,24 @@ async function main() {
         validateGeometry,
       })
       return
-    case 'init:addresses:official':
+    case 'init:addresses:saanseoi':
+    case 'init:addresses':
     case 'init':
+    case 'init:minimal':
     case 'init:local':
     case 'init:production':
-    case 'init:stats:official':
+    case 'init:stats:government':
+    case 'init:stats':
+    case 'init:divisions':
     case 'init:divisions:hkgov-pland-new-town':
     case 'init:divisions:hkgov-pland-pu':
     case 'init:divisions:hkgov-landsd':
     case 'init:divisions:geographic':
-    case 'init:streets:hkgov-landsd':
+    case 'init:divisions:hkgov-censtatd-hma':
+    case 'init:places:overture':
+    case 'init:places':
+    case 'init:streets:saanseoi':
+    case 'init:streets':
       await runInitialisationCommand(args, printUsage)
       return
     case 'tiles:refresh':
@@ -179,6 +291,7 @@ async function main() {
 const disposeInterruptHandler = installInterruptHandler()
 
 main()
+  .finally(disposeRemoteR2)
   .then(() => {
     disposeInterruptHandler()
   })
@@ -194,6 +307,8 @@ main()
         type: 'error',
       }).catch(() => undefined)
     }
+    process.stderr.write('\n')
     cancel(message)
+    finishInitialisationGuide()
     process.exit(1)
   })

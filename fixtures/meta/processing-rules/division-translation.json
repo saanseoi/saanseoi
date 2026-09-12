@@ -1,0 +1,23 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "apply-division-name-translation",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Add a reviewed name in a language only when no name in that language was published, and record where the translation came from.",
+  "inputs": ["division-i18n", "division-translations"],
+  "outputs": ["division-i18n"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/divisionTranslationRule.ts",
+    "symbol": "divisionTranslationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "division-required-locales",
+      "summary": "Required division name locales are missing from the source.",
+      "consequence": "block-ingestion"
+    }
+  }
+}

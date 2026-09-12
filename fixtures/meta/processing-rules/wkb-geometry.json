@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "decode_wkb_geometry_to_geojson",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty.",
+  "inputs": ["source-geometry"],
+  "outputs": ["GeoJSON"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/division.ts",
+    "symbol": "wkbGeometryRule"
+  }
+}

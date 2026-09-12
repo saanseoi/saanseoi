@@ -4,9 +4,13 @@ updatedAt: "2026-08-24T19:32:35.000Z"
 apiFamily: "divisions"
 apiVersion: "api-divisions-v0.1"
 apiReleaseSet: "data-hk-divisions-2026-04-15.0"
+revision: "0"
 regionCode: "hk"
 cohortKey: "2026-04-15.0"
 domainCode: "geographic"
+timeTravelEffectiveAt: "2025-10-01T00:00:00.000Z"
+timeTravelKnownAt: "2026-08-24T04:00:46.011Z"
+timeTravelCatalogRevision: "catalog-hk-divisions-v0.1-2026-08-24.11"
 ---
 
 # EN
@@ -23,6 +27,11 @@ to the one you need.
 
 {{apiKeyNote:en}}
 
+To inspect the original Overture object behind this release, use the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+with the required `sourceRelease` query parameter. The response returns the retained
+object under `properties`.
+
 ## Requesting Data
 
 {{experimentalApiWarning:en}}
@@ -34,9 +43,7 @@ Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> to get a list of divi
 ```
 
 Every division in the list has an <black>id</black>. Use it with <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one division. If you need the
-same view, use the same release, response-shape, language, and geometry selectors
-(explained below):
+/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one division:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
@@ -58,26 +65,83 @@ To request records from this specific release, include both selectors:
                  cohort={{ cohortKey }}
 ```
 
-The examples below include the cohort and domain for consistency, even where they do not
-affect the feature being explained.
-
-## Shaping the Response
-
-A <black>profile</black> controls how much information each response contains. If you do
-not choose one, the API uses <black>default</black>. <black>compact</black> is useful
-for a short list, <black>map</black> adds map coordinates, and <black>full</black> adds
-geometry and detailed provenance.
-
-{{apiProfileTable:en}}
-
-For a map-ready response, set <black>profile=map</black>:
+Or you can select the published release directly:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
+                 releaseSet={{ apiReleaseSet }}
 ```
+
+The collection and detail examples below include the cohort and domain for consistency,
+even where they do not affect the feature being explained.
+
+## Searching for Divisions
+
+Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}/search</black> to find divisions by
+name, alias, or code. The required <black>q</black> parameter accepts partial English
+text and Chinese substrings, making it suitable for suggestions as someone types:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+Search uses the <black>latest published</black> release in each domain and searches
+<black>all domains</black> unless you specify one. It does not select this guide's
+<black>{{ cohortKey }}</black> cohort. To search only the domain shown in this guide,
+add <black>domain={{ domainCode }}</black>.
+
+For example, search for <black>水埗</black> within names such as <black>深水埗</black>:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+Omit <black>locale</black> to search every available localisation, or supply one locale
+to restrict matching. Search uses the singular <black>locale</black> parameter, rather
+than the collection's <black>locales</black>. The default region is Hong Kong; use
+<black>region=mo</black> for Macao. <black>region=gba</black> selects Hong Kong data.
+
+**Choose what to match**
+
+Names, alternate names and curated <black>divisionCode</black> values are always
+searched. English matching is case-insensitive. Chinese queries can contain one or more
+characters. Every word or Chinese substring in the query must match; punctuation
+separates terms. Wildcards and full-text query operators are not supported.
+
+Ancestor names are excluded by default. Add <black>ancestors=true</black> to also find
+divisions through names in their stored hierarchy. For example, include microhoods
+(<black>microhood</black>), the finest hood type in this domain, whose stored ancestor
+names contain <black>Kowloon</black>:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+Direct name, alias and code matches appear before ancestor matches, with exact name/code
+matches and name prefixes preferred. Each <black>results</black> entry identifies the
+division, its domain and matched locale. <black>match=self</black> means that its own
+name, alias or code matched; <black>match=ancestor</black> means that matching also used
+ancestor names. Results contain one entry per division and domain, so the same division
+can appear in more than one domain. Use its <black>divisionId</black> and
+<black>domain</black> with the detail endpoint to retrieve the complete record.
+
+Queries hold at most 120 characters and eight terms. Search returns 20 results by
+default and at most 100; set <black>limit</black> to change this. It does not use
+collection pagination, <black>profile</black>, or <black>include</black>. Release and
+time-travel selectors are also unavailable on search; use the collection and detail
+endpoints when selecting a historical release.
+
+## Shaping the Response
+
+{{responseProfilesSection:en}}
 
 ## Adding Geometry
 
@@ -176,23 +240,11 @@ only the expansion of its identifiers into resources is omitted.
 
 ## Adding Languages (`I18n`)
 
-Unless you select <black>profile=full</black>, names are returned in English and
-Traditional Chinese by default: <black>locales=en,zh-hant</black>. With
-<black>profile=full</black>, every available locale is returned by default. To add
-Simplified Chinese to the usual default selection, call
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-Use <black>locales=*</black> for every available locale, or provide another supported
-comma-separated list. Use <black>locales=null</black> to leave <black>i18n</black> out
-of the response.
+{{localeSelectionSection:en}}
 
 ## Filters & Pagination
+
+{{paginationSection:en}}
 
 Filters narrow the list before it is split into pages. Use `filter[level]` for a
 [hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[divisionType]`
@@ -210,61 +262,9 @@ Tin District:
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
-Use <black>page[limit]</black> and <black>page[offset]</black> to work through the
-filtered results. A page can contain at most 100 items:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-Follow the response's <black>links.next</black>, <black>links.prev</black>, and
-<black>links.first</black> instead of calculating the next offset yourself. Use
-<black>meta.page.total</black> to show or plan for the complete filtered result.
-
 ## Time travel
 
-Time travel lets you reproduce an earlier analysis, explain a past response, or separate
-a later backfill from what the catalogue knew when a decision was made.
-
-Use <black>effectiveAt</black> to select the release effective at an instant:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 effectiveAt=2025-10-01T00:00:00.000Z
-```
-
-Use <black>knownAt</black> to resolve the newest catalogue checkpoint known at an
-instant, which excludes later backfills:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 knownAt=2026-08-24T04:00:46.011Z
-```
-
-Use <black>catalogRevision</black> to pin one immutable published checkpoint. Combine it
-with <black>releaseSet</black> when replaying a recorded result:
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 catalogRevision=catalog-hk-divisions-v0.1-2026-08-24.11&
-                 releaseSet={{ apiReleaseSet }}
-```
-
-When selectors overlap, <black>catalogRevision</black> takes precedence over
-<black>knownAt</black>, and <black>releaseSet</black> takes precedence over
-<black>cohort</black> and <black>effectiveAt</black>.
-
-Every successful response also provides <black>links.permalink</black>: a permanent link
-to the resources you loaded. It contains the resolved
-[release set](saanseoi:en:definition/release-set/v1) and
-[catalogue revision](saanseoi:en:definition/catalogue-revision/v1) selectors, so save it
-to replay that exact result later.
+{{timeTravelSection:en}}
 
 ## Switching domains
 
@@ -285,10 +285,14 @@ The API returns a number of error codes. Here is how to recover from each one:
   the list above, or use a release that contains the required variant; the API does not
   substitute another publisher.
 - `422` means that the request is invalid. Read the validation details, then correct the
-  selector, filter, locale, or pagination value before trying again.
+  selector, filter, locale, search, or pagination value before trying again.
 - `503` with <black>snapshot_not_ready</black> means that no active division snapshot
   matches the selection. Retry after it is published or choose a published release; do
   not treat the response as an empty result.
+- `503` with <black>fts_not_ready</black> applies to search only: search is not ready
+  for the latest published releases. Retry after search finalisation completes. An empty
+  <black>results</black> array means that there are no matches in the selected published
+  domains.
 
 # ZH-HANT
 
@@ -301,6 +305,10 @@ The API returns a number of error codes. Here is how to recover from each one:
 和[回應範例](?tab=samples)。各節均可獨立閱讀，請直接前往所需內容。
 
 {{apiKeyNote:zh-Hant}}
+
+如要查看此版本背後的原始 Overture 物件，請使用
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，並提供必要的
+`sourceRelease` 查詢參數。回應會在 `properties` 下返回獲保留的物件。
 
 ## 要求資料
 
@@ -336,23 +344,69 @@ The API returns a number of error codes. Here is how to recover from each one:
                  cohort={{ cohortKey }}
 ```
 
-下列範例一律包含 cohort 及 domain，以保持一致，即使它們不影響正在說明的功能。
+下列集合及詳情範例均包含 cohort 及 domain，以保持一致，即使它們不影響正在說明的功能。
+
+## 搜尋區劃
+
+使用 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名稱、別名或代碼尋找區劃。必填的
+<black>q</black> 參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個 domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的
+<black>{{ cohortKey }}</black> cohort。如只想搜尋本指南所示的 domain，請加入
+<black>domain={{ domainCode }}</black>。
+
+例如，以 <black>水埗</black> 搜尋 <black>深水埗</black> 等名稱中的部分文字：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+省略 <black>locale</black>
+可搜尋所有可用的語言版本，或指定一種語言以限制配對範圍。搜尋使用單數的
+<black>locale</black> 參數，而非集合端點的
+<black>locales</black>。預設地區為香港；如要搜尋澳門，請使用
+<black>region=mo</black>。<black>region=gba</black> 會選取香港資料。
+
+**選擇配對內容**
+
+名稱、別名及經整理的 <black>divisionCode</black>
+值一律納入搜尋。英文配對不區分大小寫。中文查詢可包含一個或多個字元。查詢中的每個詞或中文子字串都必須相符；標點符號會分隔搜尋詞。不支援萬用字元及全文查詢運算子。
+
+預設不搜尋上層區劃的名稱。加入
+<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。例如，搜尋此 domain 中最細的鄰里類型——微型鄰里（<black>microhood</black>），將已儲存的上層名稱包含
+<black>Kowloon</black> 的區劃納入結果：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+直接的名稱、別名及代碼相符結果會排在上層名稱相符結果之前，並優先顯示名稱或代碼完全相符及名稱前綴相符的結果。每個
+<black>results</black>
+項目會標示區劃、所屬 domain 及配對到的語言。<black>match=self</black>
+表示其本身的名稱、別名或代碼相符；<black>match=ancestor</black>
+表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個 domain。使用其
+<black>divisionId</black> 及 <black>domain</black> 呼叫詳情端點，即可取得完整記錄。
+
+查詢最多可包含 120 個字元及八個搜尋詞。搜尋預設傳回 20 個結果，最多 100 個；使用
+<black>limit</black> 調整數量。搜尋不使用集合端點的分頁、<black>profile</black> 或
+<black>include</black>，亦不支援版本及時間旅行 selector；如要選取歷史版本，請使用集合及詳情端點。
 
 ## 設定回應形狀
 
-profile 控制每個回應所含資料的多寡。可在[範例分頁](?tab=samples)試用各個 profile。以
-<black>profile=</black> 設定；省略時，API 使用 <black>default</black>。
-
-{{apiProfileTable:zh-Hant}}
-
-如需適合地圖使用的回應，請設定 <black>profile=map</black>：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:zh-Hant}}
 
 ## 加入幾何資料
 
@@ -442,23 +496,11 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 
 ## 加入語言（`I18n`）
 
-除非選取
-<black>profile=full</black>，否則名稱預設以英文及繁體中文傳回：<black>locales=en,zh-hant</black>。使用
-<black>profile=full</black>
-時，預設傳回所有可用 locale。如要在一般預設選擇中加入簡體中文，請呼叫：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-使用 <black>locales=*</black>
-取得所有可用 locale，或提供另一個受支援的逗號分隔清單。使用 <black>locales=null</black>
-可使回應不包含 <black>i18n</black>。
+{{localeSelectionSection:zh-Hant}}
 
 ## 篩選及分頁
+
+{{paginationSection:zh-Hant}}
 
 篩選會先縮小清單，再分頁。使用 `filter[level]`
 篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用
@@ -476,59 +518,9 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
-使用 <black>page[limit]</black> 及 <black>page[offset]</black>
-瀏覽篩選結果。每頁最多可含 100 項：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-請跟隨回應中的 <black>links.next</black>、<black>links.prev</black> 及
-<black>links.first</black>，而非自行計算下一個 offset。使用
-<black>meta.page.total</black> 顯示或規劃完整的篩選結果。
-
 ## 時間旅行
 
-時間旅行可讓你重現較早的分析、解釋過往回應，或區分稍後的回填資料與作出決定時目錄已知的內容。
-
-使用 <black>effectiveAt</black> 選取某一時刻生效的發布：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 effectiveAt=2025-10-01T00:00:00.000Z
-```
-
-使用 <black>knownAt</black>
-解析某一時刻已知的最新目錄 checkpoint，從而排除較後的回填資料：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 knownAt=2026-08-24T04:00:46.011Z
-```
-
-使用 <black>catalogRevision</black>
-固定一個不可變的已發布 checkpoint。重播已記錄的結果時，請與 <black>releaseSet</black>
-一併使用：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 catalogRevision=catalog-hk-divisions-v0.1-2026-08-24.11&
-                 releaseSet={{ apiReleaseSet }}
-```
-
-當 selector 重疊時，<black>catalogRevision</black> 優先於 <black>knownAt</black>，而
-<black>releaseSet</black> 優先於 <black>cohort</black> 及 <black>effectiveAt</black>。
-
-每個成功回應亦提供 <black>links.permalink</black>：所載入資源的永久連結。它包含已解析的
-[release set](saanseoi:zh-hant:definition/release-set/v1) 及
-[catalogue revision](saanseoi:zh-hant:definition/catalogue-revision/v1)
-selector；請保存它，以便日後重播完全相同的結果。
+{{timeTravelSection:zh-Hant}}
 
 ## 切換 domain
 
@@ -546,9 +538,12 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 - 帶有 <black>variant_unavailable</black> 的 `409`
   表示所要求的面或邊界 variant 不在該發布中。請從上表選取可用的限定配套資源，或改用包含所需 variant 的發布；API 不會改用其他發布者。
 - `422`
-  表示要求無效。請閱讀驗證詳情，然後修正 selector、篩選條件、locale 或分頁值，再次嘗試。
+  表示要求無效。請閱讀驗證詳情，然後修正 selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
 - 帶有 <black>snapshot_not_ready</black> 的 `503`
   表示沒有已發布的有效區劃 snapshot 符合選擇條件。請在發布後重試，或選取已發布的 release；請勿將此回應視為空結果。
+- 帶有 <black>fts_not_ready</black> 的 `503`
+  僅適用於搜尋：最新已發布版本的搜尋尚未就緒。請在搜尋準備完成後重試。空的
+  <black>results</black> 陣列表示所選的已發布 domain 中沒有相符結果。
 
 # ZH-HANS
 
@@ -561,6 +556,10 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 和[响应示例](?tab=samples)。各节均可独立阅读，请直接前往所需内容。
 
 {{apiKeyNote:zh-Hans}}
+
+如要查看此版本背后的原始 Overture 对象，请使用
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，并提供必要的
+`sourceRelease` 查询参数。响应会在 `properties` 下返回保留的对象。
 
 ## 请求数据
 
@@ -596,23 +595,69 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
                  cohort={{ cohortKey }}
 ```
 
-下列示例一律包含 cohort 及 domain，以保持一致，即使它们不影响正在说明的功能。
+下列集合及详情示例均包含 cohort 及 domain，以保持一致，即使它们不影响正在说明的功能。
+
+## 搜索区划
+
+使用 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名称、别名或代码查找区划。必填的
+<black>q</black> 参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个 domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的
+<black>{{ cohortKey }}</black> cohort。如只想搜索本指南所示的 domain，请添加
+<black>domain={{ domainCode }}</black>。
+
+例如，以 <black>水埗</black> 搜索 <black>深水埗</black> 等名称中的部分文字：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+省略 <black>locale</black>
+可搜索所有可用的语言版本，或指定一种语言以限制匹配范围。搜索使用单数的
+<black>locale</black> 参数，而非集合端点的
+<black>locales</black>。默认地区为香港；如要搜索澳门，请使用
+<black>region=mo</black>。<black>region=gba</black> 会选取香港数据。
+
+**选择匹配内容**
+
+名称、别名及经整理的 <black>divisionCode</black>
+值一律纳入搜索。英文匹配不区分大小写。中文查询可包含一个或多个字符。查询中的每个词或中文子字符串都必须匹配；标点符号会分隔搜索词。不支持通配符及全文查询运算符。
+
+默认不搜索上层区划的名称。添加
+<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。例如，搜索此 domain 中最细的邻里类型——微型邻里（<black>microhood</black>），将已存储的上层名称包含
+<black>Kowloon</black> 的区划纳入结果：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+直接的名称、别名及代码匹配结果会排在上层名称匹配结果之前，并优先显示名称或代码完全匹配及名称前缀匹配的结果。每个
+<black>results</black>
+条目会标示区划、所属 domain 及匹配到的语言。<black>match=self</black>
+表示其本身的名称、别名或代码匹配；<black>match=ancestor</black>
+表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个 domain。使用其
+<black>divisionId</black> 及 <black>domain</black> 调用详情端点，即可获取完整记录。
+
+查询最多可包含 120 个字符及八个搜索词。搜索默认返回 20 个结果，最多 100 个；使用
+<black>limit</black> 调整数量。搜索不使用集合端点的分页、<black>profile</black> 或
+<black>include</black>，也不支持版本及时间旅行 selector；如要选取历史版本，请使用集合及详情端点。
 
 ## 设置响应形状
 
-profile 控制每个响应所含数据的多少。可在[示例分页](?tab=samples)试用各个 profile。以
-<black>profile=</black> 设置；省略时，API 使用 <black>default</black>。
-
-{{apiProfileTable:zh-Hans}}
-
-如需适合地图使用的响应，请设置 <black>profile=map</black>：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 profile=map
-```
+{{responseProfilesSection:zh-Hans}}
 
 ## 添加几何数据
 
@@ -702,23 +747,11 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
 
 ## 添加语言（`I18n`）
 
-除非选择
-<black>profile=full</black>，否则名称默认以英文及繁体中文返回：<black>locales=en,zh-hant</black>。使用
-<black>profile=full</black>
-时，默认返回所有可用 locale。如要在一般默认选择中加入简体中文，请调用：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 locales=en,zh-hant,zh-hans
-```
-
-使用 <black>locales=*</black>
-获取所有可用 locale，或提供另一个受支持的逗号分隔列表。使用 <black>locales=null</black>
-可使响应不包含 <black>i18n</black>。
+{{localeSelectionSection:zh-Hans}}
 
 ## 筛选及分页
+
+{{paginationSection:zh-Hans}}
 
 筛选会先缩小列表，再分页。使用 `filter[level]`
 筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用
@@ -736,59 +769,9 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
-使用 <black>page[limit]</black> 及 <black>page[offset]</black>
-浏览筛选结果。每页最多可含 100 项：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 cohort={{ cohortKey }}&
-                 page[limit]=25&
-                 page[offset]=50
-```
-
-请跟随响应中的 <black>links.next</black>、<black>links.prev</black> 及
-<black>links.first</black>，而非自行计算下一个 offset。使用
-<black>meta.page.total</black> 显示或规划完整的筛选结果。
-
 ## 时间旅行
 
-时间旅行可让你重现较早的分析、解释过往响应，或区分稍后的回填数据与作出决定时目录已知的内容。
-
-使用 <black>effectiveAt</black> 选择某一时刻生效的发布：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 effectiveAt=2025-10-01T00:00:00.000Z
-```
-
-使用 <black>knownAt</black>
-解析某一时刻已知的最新目录 checkpoint，从而排除较后的回填数据：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 domain={{ domainCode }}&
-                 knownAt=2026-08-24T04:00:46.011Z
-```
-
-使用 <black>catalogRevision</black>
-固定一个不可变的已发布 checkpoint。重放已记录的结果时，请与 <black>releaseSet</black>
-一并使用：
-
-```url
-/{{apiFamily}}/{{ apiVersionPath }}?
-                 catalogRevision=catalog-hk-divisions-v0.1-2026-08-24.11&
-                 releaseSet={{ apiReleaseSet }}
-```
-
-当 selector 重叠时，<black>catalogRevision</black> 优先于 <black>knownAt</black>，而
-<black>releaseSet</black> 优先于 <black>cohort</black> 及 <black>effectiveAt</black>。
-
-每个成功响应亦提供 <black>links.permalink</black>：所载入资源的永久链接。它包含已解析的
-[release set](saanseoi:zh-hans:definition/release-set/v1) 及
-[catalogue revision](saanseoi:zh-hans:definition/catalogue-revision/v1)
-selector；请保存它，以便日后重放完全相同的结果。
+{{timeTravelSection:zh-Hans}}
 
 ## 切换 domain
 
@@ -806,6 +789,9 @@ API 会返回多种错误码。以下说明各种情况的恢复方法：
 - 带有 <black>variant_unavailable</black> 的 `409`
   表示所请求的面或边界 variant 不在该发布中。请从上表选择可用的限定配套资源，或改用包含所需 variant 的发布；API 不会改用其他发布者。
 - `422`
-  表示请求无效。请阅读验证详情，然后修正 selector、筛选条件、locale 或分页值，再次尝试。
+  表示请求无效。请阅读验证详情，然后修正 selector、筛选条件、locale、搜索或分页值，再次尝试。
 - 带有 <black>snapshot_not_ready</black> 的 `503`
   表示没有已发布的有效区划 snapshot 符合选择条件。请在发布后重试，或选择已发布的 release；请勿将此响应视为空结果。
+- 带有 <black>fts_not_ready</black> 的 `503`
+  仅适用于搜索：最新已发布版本的搜索尚未就绪。请在搜索准备完成后重试。空的
+  <black>results</black> 数组表示所选的已发布 domain 中没有匹配结果。

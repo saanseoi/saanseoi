@@ -1,8 +1,12 @@
 import { tick } from 'svelte'
+import { routeReleaseNavWheel } from './releaseNavWheel'
 import { goto } from '$app/navigation'
 import type { ReleaseNavOutlineItem, ReleaseNavVersion } from './releaseNav.types'
 
 type ContentTarget = () => HTMLElement | undefined
+
+export const releaseNavActivationViewportFraction = 0.5
+export const releaseNavActivationRootMargin = '-50% 0px -49% 0px'
 
 const isPrimaryUnmodifiedClick = (event: MouseEvent) =>
   event.button === 0 &&
@@ -11,8 +15,24 @@ const isPrimaryUnmodifiedClick = (event: MouseEvent) =>
   !event.shiftKey &&
   !event.altKey
 
+const releaseNavControlsBottom = (controls: HTMLElement) => {
+  const stickyTop = Number.parseFloat(getComputedStyle(controls).top)
+  return (
+    (Number.isFinite(stickyTop) ? stickyTop : 0) +
+    controls.getBoundingClientRect().height +
+    8
+  )
+}
+
 export const getReleaseNavContentTarget = (panel?: HTMLElement) =>
   panel?.querySelector<HTMLElement>('[data-release-nav-content-body]') ?? panel
+
+export const releaseNavScrollsIndependently = (element: HTMLElement) => {
+  const overflowY = getComputedStyle(element).overflowY
+  return (
+    /^(auto|scroll)$/.test(overflowY) && element.scrollHeight > element.clientHeight
+  )
+}
 
 export function createReleaseNavigationPersistence({
   getContentTarget,
@@ -85,10 +105,13 @@ export function createNestedContentScroll({
   onNavigate: (event: MouseEvent) => void
 }) {
   return (node: HTMLElement) => {
+    const wheel = (event: WheelEvent) => routeReleaseNavWheel(node, event)
+    node.addEventListener('wheel', wheel, { passive: false })
     node.addEventListener('click', onNavigate, { capture: true })
 
     return {
       destroy: () => {
+        node.removeEventListener('wheel', wheel)
         node.removeEventListener('click', onNavigate, { capture: true })
       },
     }
@@ -98,13 +121,12 @@ export function createNestedContentScroll({
 export async function scrollToReleaseNavAnchor({
   event,
   id,
-  items,
   mobile = false,
   panel,
 }: {
   event: MouseEvent
   id: string
-  items: ReleaseNavOutlineItem[]
+  items?: ReleaseNavOutlineItem[]
   mobile?: boolean
   panel?: HTMLElement
 }) {
@@ -114,30 +136,30 @@ export async function scrollToReleaseNavAnchor({
 
   if (!target) return
 
+  const anchorOffset = target.hasAttribute('data-release-nav-box') ? 0 : 24
+
   event.preventDefault()
 
-  const rootFontSize = Number.parseFloat(
-    getComputedStyle(document.documentElement).fontSize,
-  )
-  const firstItemPadding = id === items[0]?.id ? 1.5 * rootFontSize : 0
   const scrollContainer = target.closest<HTMLElement>('[data-release-nav-content-body]')
   const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
+  const contentPanel =
+    panel ?? target.closest<HTMLElement>('[data-release-nav-content-panel]')
 
-  if (scrollContainer && scrollContainer.scrollHeight > scrollContainer.clientHeight) {
-    if (panel && controls) {
+  if (scrollContainer && releaseNavScrollsIndependently(scrollContainer)) {
+    if (contentPanel && controls) {
       const desiredPanelTop = controls.getBoundingClientRect().bottom + 8
-      const panelTop = panel.getBoundingClientRect().top
+      const panelTop = contentPanel.getBoundingClientRect().top
       if (panelTop < desiredPanelTop - 1) {
         window.scrollBy({ top: panelTop - desiredPanelTop, behavior: 'auto' })
       }
     }
 
+    const targetRect = target.getBoundingClientRect()
+    const containerRect = scrollContainer.getBoundingClientRect()
+    // Click navigation has fixed clearance; the scrollspy's viewport fraction
+    // only decides which section is active and must not position anchor jumps.
     const top =
-      scrollContainer.scrollTop +
-      target.getBoundingClientRect().top -
-      scrollContainer.getBoundingClientRect().top -
-      firstItemPadding -
-      24
+      scrollContainer.scrollTop + targetRect.top - containerRect.top - anchorOffset
 
     await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
     scrollContainer.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
@@ -145,25 +167,27 @@ export async function scrollToReleaseNavAnchor({
     return
   }
 
-  const mobileOffset = Math.max(
-    0,
-    document.querySelector('header')?.getBoundingClientRect().bottom ?? 0,
-    controls?.getBoundingClientRect().bottom ?? 0,
-    document
-      .querySelector<HTMLElement>('[data-release-nav-mobile-toc-trigger]')
-      ?.getBoundingClientRect().bottom ?? 0,
-  )
-
-  const offset = mobile ? mobileOffset + 24 : 7.5 * rootFontSize + firstItemPadding + 24
-
   await goto(`#${id}`, { replace: true, reset: false, shallow: true, state: {} })
 
   if (mobile) window.dispatchEvent(new Event('app-header:preserve-visibility'))
 
+  const targetRect = target.getBoundingClientRect()
+  const pageSectionTop =
+    window.scrollY +
+    targetRect.top -
+    (controls ? releaseNavControlsBottom(controls) : 0) -
+    anchorOffset
+  const footer = document.querySelector<HTMLElement>('[data-site-footer]')
+  // Document-flow tabs have no trailing reading-panel space. Stop before the
+  // site footer enters the viewport rather than pushing the sidebar offscreen.
+  const lastContentScrollTop = footer
+    ? window.scrollY + footer.getBoundingClientRect().top - window.innerHeight
+    : Number.POSITIVE_INFINITY
   window.scrollTo({
-    top: Math.max(0, window.scrollY + target.getBoundingClientRect().top - offset),
+    top: Math.max(0, Math.min(lastContentScrollTop, pageSectionTop)),
     behavior: 'smooth',
   })
+  window.dispatchEvent(new Event('release-nav:anchor'))
 }
 
 export const revealReleaseNavVersion = async (
@@ -182,48 +206,81 @@ export const revealReleaseNavVersion = async (
   })
 }
 
+/** Shared by document-flow Stats, Audit, Sources and other release tabs. */
+export function getReleaseNavDocumentActive(targets: HTMLElement[]) {
+  const first = targets[0]
+  if (!first) return null
+  const controls = document.querySelector<HTMLElement>('[data-release-nav-controls]')
+  const top = controls ? releaseNavControlsBottom(controls) : 0
+  const active =
+    [...targets]
+      .reverse()
+      .find(target => target.getBoundingClientRect().top <= top + 25) ?? first
+  const footer = document.querySelector<HTMLElement>('[data-site-footer]')
+  if (
+    footer &&
+    Math.abs(footer.getBoundingClientRect().top - window.innerHeight) <= 2
+  ) {
+    const selected = targets.find(target => `#${target.id}` === window.location.hash)
+    const last = targets.at(-1)
+    const candidate =
+      selected && selected.getBoundingClientRect().top >= top ? selected : last
+    if (candidate && candidate.getBoundingClientRect().top < window.innerHeight)
+      return candidate.id
+  }
+  return active.id
+}
+
 export const observeReleaseNavOutline = (
   items: ReleaseNavOutlineItem[],
   onActive: (id: string | null) => void,
 ) => {
   let disposed = false
   let observer: IntersectionObserver | undefined
+  let mutationObserver: MutationObserver | undefined
   let targets: HTMLElement[] = []
 
   const update = () => {
-    const firstTarget = targets.at(0)
+    const active = getReleaseNavDocumentActive(targets)
+    if (active) onActive(active)
+  }
 
-    if (!firstTarget) return
+  const observeTargets = () => {
+    targets = items
+      .map(item => document.getElementById(item.id))
+      .filter((target): target is HTMLElement => target !== null)
 
-    const offset = Math.min(160, window.innerHeight * 0.25)
-    const active =
-      [...targets]
-        .reverse()
-        .find(target => target.getBoundingClientRect().top <= offset) ?? firstTarget
+    if (!targets.length) return false
 
-    onActive(active.id)
+    observer = new IntersectionObserver(update, {
+      rootMargin: releaseNavActivationRootMargin,
+    })
+    for (const target of targets) observer.observe(target)
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('release-nav:anchor', update)
+    update()
+    return true
   }
 
   void tick().then(() => {
     if (disposed) return
 
-    targets = items
-      .map(item => document.getElementById(item.id))
-      .filter((target): target is HTMLElement => target !== null)
+    if (observeTargets()) return
 
-    if (!targets.length) {
-      onActive(null)
-      return
-    }
-    observer = new IntersectionObserver(update, { rootMargin: '-20% 0px -65% 0px' })
-    for (const target of targets) observer.observe(target)
-    window.addEventListener('scroll', update, { passive: true })
-    update()
+    mutationObserver = new MutationObserver(() => {
+      if (!disposed && observeTargets()) mutationObserver?.disconnect()
+    })
+    mutationObserver.observe(
+      document.querySelector('[data-release-nav-content-panel]') ?? document.body,
+      { childList: true, subtree: true },
+    )
   })
 
   return () => {
     disposed = true
     observer?.disconnect()
+    mutationObserver?.disconnect()
     window.removeEventListener('scroll', update)
+    window.removeEventListener('release-nav:anchor', update)
   }
 }

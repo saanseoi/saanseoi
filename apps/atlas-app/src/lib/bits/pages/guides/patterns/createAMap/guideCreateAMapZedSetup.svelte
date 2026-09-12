@@ -39,7 +39,6 @@ type Props = {
   onExpandedChange?: (expanded: boolean) => void
   onComplete?: () => void
   operatingSystem?: 'windows' | 'macos' | 'linux'
-  prompt: string
 }
 
 let {
@@ -47,7 +46,6 @@ let {
   onComplete,
   onExpandedChange,
   operatingSystem,
-  prompt,
 }: Props = $props()
 
 const toggleExpanded = () => {
@@ -439,32 +437,18 @@ const agentWorkflowScreenshots = $derived([
 </div>
 
 {#if expanded}
-  <div class="mt-10 max-w-232 space-y-4 border-t border-border-card pt-8">
-    <h3 class="font-display text-headline-sm font-bold text-primary">
-      {@html m.guide_zed_setup_prompt_title()}
-    </h3>
-    <GuideParagraph> {@html m.guide_zed_setup_prompt_intro()} </GuideParagraph>
-    <GuideCodeBlock
-      label={m.guide_llm_modal_prompt_label()}
-      code={prompt}
-      variant="prompt"
-      promptIcon="simple-icons:zedindustries"
-      copyLabel={m.common_copy()}
-      copiedLabel={m.common_copied()}
-    />
-    <div class="flex justify-end pt-2">
-      <Button
-        class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
-        size="compact"
-        onclick={() => onComplete?.()}
-      >
-        <Icon
-          icon="material-symbols-light:check-rounded"
-          class="size-5"
-          aria-hidden="true"
-        />
-        {@html m.guide_zed_setup_all_good()}
-      </Button>
-    </div>
+  <div class="mt-10 flex justify-end border-t border-border-card pt-8">
+    <Button
+      class="bg-[#6fdec9] text-[#00201b] hover:bg-[#8aecd9]"
+      size="compact"
+      onclick={() => onComplete?.()}
+    >
+      <Icon
+        icon="material-symbols-light:check-rounded"
+        class="size-5"
+        aria-hidden="true"
+      />
+      {@html m.guide_zed_setup_all_good()}
+    </Button>
   </div>
 {/if}

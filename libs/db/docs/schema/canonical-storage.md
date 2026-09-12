@@ -38,8 +38,9 @@ Purpose:
 - keep upstream semantics intact
 - support debugging and provenance inspection
 
-## Planned / Transitional
+## Historical Routing
 
-- `releaseSetShardAssignments` should become the normal route to current/history
-  canonical shards
-- current reporting still leans more heavily on `releaseShardAssignments`
+Release sets select snapshots through `apiReleaseSetSnapshots`. Historical replay walks
+each snapshot's parent chain and uses `snapshotShardAssignments` to locate the history
+shards containing each immutable journal delta. `releaseShardAssignments` locates
+source-release storage for provenance and reporting.

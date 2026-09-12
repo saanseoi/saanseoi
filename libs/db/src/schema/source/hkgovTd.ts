@@ -1,6 +1,6 @@
-import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
+import { streetSourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
 export const hkgovTdPedestrianStreetKinds = [
   'partTimePedestrianStreet',
@@ -16,27 +16,18 @@ export type HkgovTdPedestrianStreetKind = (typeof hkgovTdPedestrianStreetKinds)[
  *
  * CSDI distributes five kinds with this same schema: Part-time Pedestrian,
  * Hawker, Market, Traffic Calming and Full-time Pedestrian Street. `OBJECTID`
- * is scoped to a kind, so it is indexed together with `kind`.
+ * is scoped to a kind, which forms part of sourceRecordId. The kind is retained
+ * as the source-layer discriminator; publisher attributes live in properties.
  */
 export const sourceHkgovTdPedestrianStreets = sqliteTable(
   'hkgovTdPedestrianStreets',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...streetSourceSpatialAssertionColumns(),
     kind: text('kind', { enum: hkgovTdPedestrianStreetKinds }).notNull(),
-    // OBJECTID
-    objectId: integer('objectId').notNull(),
-    // Start_Time and End_Time
-    startTime: text('startTime'),
-    endTime: text('endTime'),
-    // Publisher `*_Description` fields; retained exactly as published.
-    descriptionEn: text('descriptionEn'),
-    descriptionZhHant: text('descriptionZhHant'),
-    descriptionZhHans: text('descriptionZhHans'),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
     ...sourceVersionIndexes(table, 'hkgovTdPedestrianStreets'),
     index('hkgovTdPedestrianStreets_kind_idx').on(table.kind),
-    index('hkgovTdPedestrianStreets_kind_object_idx').on(table.kind, table.objectId),
   ],
 )

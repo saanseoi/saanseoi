@@ -5,6 +5,7 @@ node_modules
 out
 output
 dist
+.svelte-kit/
 *.tgz
 
 # code coverage
@@ -30,6 +31,13 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .playwright-cli
 .cache
 .local/
+apps/basemap-viewer/local-review/
+apps/basemap-viewer/src/local-review
+scripts/review/
+scripts/verification/
+scripts/benchmarks/
+scripts/ingestion/
+scripts/migration/
 *.tsbuildinfo
 tmp/*
 __pycache__/

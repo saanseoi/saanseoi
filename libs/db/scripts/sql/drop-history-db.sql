@@ -1,6 +1,8 @@
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
+DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
+
 DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `divisionStatistics`;
 DROP TABLE IF EXISTS `statsRecords`;
@@ -11,6 +13,7 @@ DROP TABLE IF EXISTS `statsMeasures`;
 DROP TABLE IF EXISTS `statsFieldsI18n`;
 DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `snapshotVersionChanges`;
+DROP TABLE IF EXISTS `sourceResolutions`;
 DROP TABLE IF EXISTS `streetChangelog`;
 DROP TABLE IF EXISTS `streetNameChangeStreets`;
 DROP TABLE IF EXISTS `streetNameChanges`;
@@ -23,6 +26,7 @@ DROP TABLE IF EXISTS `address3dI18n`;
 DROP TABLE IF EXISTS `address3d`;
 DROP TABLE IF EXISTS `address2dBuildingNumberLookup`;
 DROP TABLE IF EXISTS `address2dI18n`;
+DROP TABLE IF EXISTS `address2dEvidence`;
 DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;

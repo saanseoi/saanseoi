@@ -5,6 +5,7 @@ import {
   primaryKey,
   sqliteTable,
   text,
+  uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
@@ -12,13 +13,20 @@ import {
   canonicalAddress2d,
   canonicalAddress2dBuildingNumberLookup,
   canonicalAddress2dI18n,
-  canonicalAddress3dUnitRefLookup,
+  canonicalAddress3d,
   canonicalAddress3dI18n,
-  jsonText,
   timestamps,
 } from '../shared'
 import { divisions } from './divisions'
 import { streets } from './streets'
+import { publicationStateColumns } from './publicationState'
+
+/** One mutable serving projection per lineage; historical snapshots replay history. */
+export const addressPublicationState = sqliteTable('addressPublicationState', {
+  scopeId: text('scopeId').primaryKey(),
+  snapshotId: text('snapshotId').notNull().unique(),
+  ...publicationStateColumns(),
+})
 
 export const address2d = sqliteTable(
   'address2d',
@@ -88,6 +96,7 @@ export const address2d = sqliteTable(
       sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
     ),
     index('address2d_streetId_idx').on(table.streetId),
+    index('address2d_parentAddressId_idx').on(table.snapshotId, table.parentAddressId),
     index('address2d_division_idx').on(
       table.divisionSnapshotId,
       table.hamletId,
@@ -148,13 +157,35 @@ export const address2dBuildingNumberLookup = sqliteTable(
   ],
 )
 
+/**
+ * Published search selection. Stable scopes keep document keys independent of
+ * snapshot promotion; the FTS5 virtual table is created by search finalisation.
+ */
+export const addressSearchScopes = sqliteTable('addressSearchScopes', {
+  scopeId: text('scopeId').primaryKey(),
+  snapshotId: text('snapshotId').notNull(),
+})
+
+export const addressesFts = sqliteTable('addressSearchFts', {
+  scopeId: text('scopeId').notNull(),
+  addressId: text('addressId').notNull(),
+  locale: text('locale').notNull(),
+  formattedAddress: text('formattedAddress'),
+  buildingName: text('buildingName'),
+  buildingNumber: text('buildingNumber'),
+  blockExpression: text('blockExpression'),
+  phaseExpression: text('phaseExpression'),
+  estateName: text('estateName'),
+  streetName: text('streetName'),
+})
+
+export const addressesFtsMatch = (query: string) => sql`${addressesFts} MATCH ${query}`
+
 export const address3d = sqliteTable(
   'address3d',
   {
     snapshotId: text('snapshotId').notNull(),
-    id: text('id').notNull(),
-    address2dId: text('address2dId').notNull(),
-    sources: jsonText('sources'),
+    ...canonicalAddress3d,
     ...timestamps,
   },
   table => [
@@ -166,7 +197,10 @@ export const address3d = sqliteTable(
       foreignColumns: [address2d.snapshotId, address2d.id],
       name: 'address3d_snapshotId_address2dId_address2d_fk',
     }).onDelete('cascade'),
-    index('address3d_address2dId_idx').on(table.snapshotId, table.address2dId),
+    uniqueIndex('address3d_snapshot_owner_unique').on(
+      table.snapshotId,
+      table.address2dId,
+    ),
   ],
 )
 
@@ -187,29 +221,5 @@ export const address3dI18n = sqliteTable(
       name: 'address3dI18n_snapshotId_address3dId_address3d_fk',
     }).onDelete('cascade'),
     index('address3dI18n_locale_idx').on(table.locale),
-  ],
-)
-
-export const address3dUnitRefLookup = sqliteTable(
-  'address3dUnitRefLookup',
-  {
-    snapshotId: text('snapshotId').notNull(),
-    ...canonicalAddress3dUnitRefLookup,
-    ...timestamps,
-  },
-  table => [
-    primaryKey({
-      columns: [table.snapshotId, table.address3dId, table.unitRef],
-    }),
-    foreignKey({
-      columns: [table.snapshotId, table.address3dId],
-      foreignColumns: [address3d.snapshotId, address3d.id],
-      name: 'address3dUnitRefLookup_snapshotId_address3dId_address3d_fk',
-    }).onDelete('cascade'),
-    index('address3dUnitRefLookup_lookup_idx').on(table.snapshotId, table.unitRef),
-    index('address3dUnitRefLookup_numericStem_idx').on(
-      table.snapshotId,
-      table.numericStem,
-    ),
   ],
 )

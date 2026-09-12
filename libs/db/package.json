@@ -99,6 +99,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./address3d": "./src/address3d.ts",
     "./apiFieldFixtures": "./src/apiFieldFixtures.ts",
     "./client": "./src/client.ts",
     "./registry": "./src/registry/index.ts",
@@ -106,11 +107,12 @@
     "./currentSchema": "./src/schema/current/index.ts",
     "./historySchema": "./src/schema/history/index.ts",
     "./metaSchema": "./src/schema/meta/index.ts",
-    "./sourceSchema": "./src/schema/source/index.ts"
+    "./sourceSchema": "./src/schema/source/index.ts",
+    "./apiFieldInputs": "./src/apiFieldInputs.ts"
   },
   "dependencies": {
-    "@clack/prompts": "^1.7.0",
-    "@types/bun": "^1.4.0",
+    "@clack/prompts": "^1.8.0",
+    "@types/bun": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c"
   },
   "devDependencies": {

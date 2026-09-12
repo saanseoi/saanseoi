@@ -1,4 +1,8 @@
+import { requireDefined } from '../../../core/src/requireDefined'
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
+import { resolve } from 'node:path'
+import { loadMigrationSql } from '../../../core/src/testing/metaFixtures'
 
 import {
   buildMetaRegistrySyncStatements,
@@ -8,17 +12,55 @@ import {
   initialApiEndpoints,
   initialApiVersions,
   initialDatasets,
-  initialDatasetResourceTypes,
   initialDatasetTransforms,
   initialDataShards,
   initialDivisionCodes,
-  initialIdentifierBridges,
   initialPublishers,
   resolveInitialDataShardsForEnvironment,
   validateDivisionCodeFixtures,
+  resolveMergeRulesetDefinitions,
 } from './meta'
+import populationRule from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
+
+test('referenced policy content determines resolved ruleset identity and descriptions', () => {
+  const definition = ruleDeclarationFromFixture(structuredClone(populationRule))
+  const definitions = new Map([['population', definition]])
+  const fixture = {
+    versionHash: 'source-file-hash',
+    code: 'test',
+    resourceType: 'divisionStatistic' as const,
+    strategy: 'merge' as const,
+    version: '1',
+    mergeRules: [{ operationCode: 'scale', ruleFixture: 'population' }],
+  }
+  const first = resolveMergeRulesetDefinitions(fixture, definitions)
+  expect(first.mergeRules[0]?.definition).toEqual(definition)
+  expect(first.mergeRules[0]?.i18n[0]?.description).toBe(definition.summary)
+  definition.parameters.factor = 100
+  const changed = resolveMergeRulesetDefinitions(fixture, definitions)
+  expect(changed.versionHash).not.toBe(first.versionHash)
+  expect(first.mergeRules[0]?.definition?.parameters.factor).toBe(1000)
+  expect(resolveMergeRulesetDefinitions(fixture, definitions)).toEqual(changed)
+  expect(() => resolveMergeRulesetDefinitions(fixture, new Map())).toThrow(
+    'Unknown processing rule',
+  )
+})
 
 describe('fixture version hashes', () => {
+  test.each(['tseung-kwan-o', 'tseung_kwan_o', 'TSEUNG-KWAN-O', '_HK', 'HK__AREA'])(
+    'rejects Division code outside SCREAMING_SNAKE_CASE: %s',
+    divisionCode => {
+      expect(() =>
+        validateDivisionCodeFixtures([
+          {
+            domainCode: 'geographic',
+            assignments: [{ divisionCode, canonicalId: 'division-hk' }],
+          },
+        ]),
+      ).toThrow('Invalid Division code')
+    },
+  )
   test('validates curated Division code fixtures directly', () => {
     const valid = {
       domainCode: 'geographic',
@@ -55,7 +97,7 @@ describe('fixture version hashes', () => {
     ).toBe(173)
     expect(hmaAssignments.every(assignment => !('level' in assignment))).toBe(true)
   })
-  test('retains URL-safe Planning Department New Town Division codes', () => {
+  test('retains SCREAMING_SNAKE_CASE Planning Department New Town Division codes', () => {
     const newTownAssignments = initialDivisionCodes.filter(
       assignment => assignment.domainCode === 'hkgov-pland-new-town',
     )
@@ -64,52 +106,25 @@ describe('fixture version hashes', () => {
     expect(
       newTownAssignments.map(assignment => assignment.divisionCode).sort(),
     ).toEqual([
-      'fanling-sheung-shui-kwu-tung',
-      'hung-shui-kiu-ha-tsuen',
-      'sha-tin-ma-on-shan-area',
-      'sha-tin-sha-tin-area',
-      'tai-po',
-      'tin-shui-wai',
-      'tseung-kwan-o',
-      'tsuen-wan-kwai-chung-area',
-      'tsuen-wan-tsing-yi-area',
-      'tsuen-wan-tsuen-wan-area',
-      'tuen-mun',
-      'tung-chung',
-      'yuen-long',
+      'FANLING_SHEUNG_SHUI_KWU_TUNG',
+      'HUNG_SHUI_KIU_HA_TSUEN',
+      'SHA_TIN_MA_ON_SHAN_AREA',
+      'SHA_TIN_SHA_TIN_AREA',
+      'TAI_PO',
+      'TIN_SHUI_WAI',
+      'TSEUNG_KWAN_O',
+      'TSUEN_WAN_KWAI_CHUNG_AREA',
+      'TSUEN_WAN_TSING_YI_AREA',
+      'TSUEN_WAN_TSUEN_WAN_AREA',
+      'TUEN_MUN',
+      'TUNG_CHUNG',
+      'YUEN_LONG',
     ])
     expect(
       newTownAssignments.find(
-        assignment => assignment.divisionCode === 'tsuen-wan-tsing-yi-area',
+        assignment => assignment.divisionCode === 'TSUEN_WAN_TSING_YI_AREA',
       ),
     ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
-  })
-  test('retains the reviewed 2021 C&SD-to-Planning New Town bridge', () => {
-    const newTownMappings = initialIdentifierBridges.filter(
-      bridge =>
-        bridge.authority === 'hkgov-censtatd' &&
-        bridge.cohortKey === '2021' &&
-        bridge.domain === 'new-town' &&
-        bridge.resourceType === 'division',
-    )
-
-    expect(newTownMappings).toHaveLength(13)
-    expect(newTownMappings.map(mapping => mapping.externalId).sort()).toEqual([
-      '11',
-      '13',
-      '15',
-      '17',
-      '18',
-      '20',
-      '22',
-      '24',
-      '25',
-      '27',
-      '28',
-      '30',
-      '32',
-    ])
-    expect(newTownMappings.every(mapping => mapping.canonicalId)).toBe(true)
   })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
@@ -142,16 +157,31 @@ describe('fixture version hashes', () => {
     expect(addressPaths).toEqual([
       '/addresses/v0',
       '/addresses/v0.1',
+      '/addresses/v0.1/search',
       '/addresses/v0.1/{id}',
+      '/addresses/v0.1/{id}/units',
+      '/addresses/v0/search',
       '/addresses/v0/{id}',
+      '/addresses/v0/{id}/units',
     ])
     expect(divisionPaths).toEqual([
       '/divisions/v0',
       '/divisions/v0.1',
+      '/divisions/v0.1/search',
       '/divisions/v0.1/{id}',
+      '/divisions/v0/search',
       '/divisions/v0/{id}',
     ])
-    expect(placePaths).toEqual(['/places/v0.1/{region}/{id}'])
+    expect(placePaths).toEqual([
+      '/places/v0',
+      '/places/v0.1',
+      '/places/v0.1/by-cell/{h3Level}/{h3Cell}',
+      '/places/v0.1/search',
+      '/places/v0.1/{id}',
+      '/places/v0/by-cell/{h3Level}/{h3Cell}',
+      '/places/v0/search',
+      '/places/v0/{id}',
+    ])
     expect(statsPaths).toEqual([
       '/stats/v0',
       '/stats/v0.1',
@@ -183,17 +213,12 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('registers C&SD statistics under the official Stats domain', () => {
+  test('registers C&SD statistics under the Government Stats domain', () => {
     const censtatdStats = initialDatasets.filter(
       dataset =>
         dataset.publisherCode === 'hkgov-censtatd' &&
         dataset.theme === 'stats' &&
-        initialDatasetResourceTypes.some(
-          resourceType =>
-            resourceType.publisherCode === dataset.publisherCode &&
-            resourceType.datasetCode === dataset.code &&
-            resourceType.resourceType === 'divisionStatistic',
-        ),
+        dataset.resourceTypes.includes('divisionStatistic'),
     )
 
     expect(censtatdStats).toHaveLength(8)
@@ -212,7 +237,7 @@ describe('fixture version hashes', () => {
     expect(
       censtatdStats
         .filter(dataset => dataset.sourceVariant === 'census')
-        .every(dataset => dataset.releaseFrequency === 'five-yearly'),
+        .every(dataset => dataset.releaseFrequency === 'census'),
     ).toBe(true)
     expect(
       censtatdStats
@@ -224,7 +249,7 @@ describe('fixture version hashes', () => {
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
       ),
-    ).toMatchObject({ defaultDomainCode: 'official' })
+    ).toMatchObject({ defaultDomainCode: 'government' })
     expect(
       initialApiCompositionMembers
         .filter(
@@ -296,45 +321,23 @@ describe('fixture version hashes', () => {
         isRequired: true,
         role: 'geometry',
         cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
-        configJson: expect.stringContaining('"variant":"overture"'),
       }),
     ])
   })
 
-  test('renames legacy official domain labels in published registry metadata', () => {
+  test('renames legacy domain labels in published registry metadata', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
     expect(apiDomainCodeRenames).toEqual([
-      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'official' },
-      { apiVersion: 'api-stats-v0.1', from: 'default', to: 'official' },
-      { apiVersion: 'api-streets-v0.1', from: 'hkgov-landsd', to: 'official' },
+      { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'saanseoi' },
+      { apiVersion: 'api-addresses-v0.1', from: 'official', to: 'saanseoi' },
+      { apiVersion: 'api-stats-v0.1', from: 'official', to: 'government' },
+      { apiVersion: 'api-streets-v0.1', from: 'official', to: 'saanseoi' },
     ])
     expect(statements).toContain(
       'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
     )
     expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
-  })
-
-  test('keeps complete reviewed C&SD district bridges for both statistic cohorts', () => {
-    const bridgesFor = (cohortKey: string) =>
-      initialIdentifierBridges.filter(
-        bridge =>
-          bridge.authority === 'hkgov-censtatd' &&
-          bridge.cohortKey === cohortKey &&
-          bridge.domain === 'administrative' &&
-          bridge.resourceType === 'division',
-      )
-
-    const bridges2016 = bridgesFor('2016')
-    const bridges2021 = bridgesFor('2021')
-
-    expect(bridges2016).toHaveLength(18)
-    expect(bridges2021).toHaveLength(18)
-    expect(new Set(bridges2016.map(bridge => bridge.externalCode)).size).toBe(18)
-    expect(new Set(bridges2021.map(bridge => bridge.externalCode)).size).toBe(18)
-    expect(new Set(bridges2016.map(bridge => bridge.canonicalId))).toEqual(
-      new Set(bridges2021.map(bridge => bridge.canonicalId)),
-    )
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
@@ -349,66 +352,53 @@ describe('fixture version hashes', () => {
 
     expect(overtureDivisions?.processingRules).toEqual(
       expect.objectContaining({
-        rulesets: [
+        rulesets: expect.arrayContaining([
           expect.objectContaining({
             rulesetVersion: 'rs-division-merge-v1',
             rules: expect.arrayContaining([
               expect.objectContaining({
-                operationCode: 'normalise_overture_division_hierarchy',
-                sourceFieldPath: 'hierarchies',
-                type: 'bulk',
-              }),
-              expect.objectContaining({
                 operationCode: 'derive_division_type_from_overture_taxonomy',
-                mappings: expect.arrayContaining([
-                  expect.objectContaining({
-                    from: 'subtype = dependency',
-                    to: 'sar',
-                  }),
-                ]),
-              }),
-              expect.objectContaining({
-                operationCode: 'overture_division_locale_inferred',
-                type: 'record',
+                definition: expect.objectContaining({ id: 'normalise-divisions' }),
+                kind: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
-                sourceFieldPath: 'id, subtype, class, admin_level',
-                type: 'record',
+                definition: expect.objectContaining({
+                  id: 'apply-division-classification-patch',
+                }),
+                kind: 'record',
               }),
             ]),
           }),
-        ],
+        ]),
       }),
     )
     expect(censtatdDensity?.processingRules).toEqual(
       expect.objectContaining({
-        rulesets: [
+        rulesets: expect.arrayContaining([
           expect.objectContaining({
             rulesetVersion: 'rs-division-statistic-merge-v1',
             rules: expect.arrayContaining([
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_statistic_source_assertion',
-                type: 'bulk',
+                kind: 'bulk',
               }),
               expect.objectContaining({
                 operationCode: 'map_censtatd_district_code_to_canonical_division',
-                type: 'bulk',
-                mappings: expect.arrayContaining([
-                  expect.objectContaining({
-                    from: 'matching C&SD bridge canonicalId',
-                    to: 'divisionId',
-                  }),
-                ]),
+                kind: 'bulk',
+                definition: expect.objectContaining({
+                  id: 'map_censtatd_district_code_to_canonical_division',
+                  parameters: expect.objectContaining({ targetCohort: '2022' }),
+                }),
               }),
               expect.objectContaining({
                 operationCode: 'normalise_censtatd_population_thousands_to_persons',
-                sourceFieldPath: 'raw_properties.MYPOPN_LAND',
-                type: 'bulk',
+                sourceFieldPath: 'publisher-properties.MYPOPN_LAND',
+                kind: 'bulk',
               }),
             ]),
           }),
-        ],
+        ]),
       }),
     )
   })
@@ -458,6 +448,66 @@ describe('resolveInitialDataShardsForEnvironment', () => {
 })
 
 describe('buildMetaRegistrySyncStatements', () => {
+  test('replaces superseded Division codes and remains idempotent', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(`CREATE TABLE divisionCodes (
+        domainCode TEXT, divisionCode TEXT, canonicalId TEXT,
+        versionHash TEXT, createdAt INTEGER, updatedAt INTEGER,
+        PRIMARY KEY (domainCode, divisionCode)
+      )`)
+      db.exec(`INSERT INTO divisionCodes VALUES (
+        'hkgov-pland-new-town', 'tseung-kwan-o',
+        '9598a407-bc95-5bce-84e1-d284b6322315', 'old', 0, 0
+      )`)
+      const statements = buildMetaRegistrySyncStatements('preview').filter(statement =>
+        /^(INSERT INTO|DELETE FROM) divisionCodes\b/.test(statement.trim()),
+      )
+      for (let attempt = 0; attempt < 2; attempt++) {
+        for (const statement of statements) db.exec(statement)
+        expect(
+          db
+            .query(`SELECT divisionCode FROM divisionCodes
+          WHERE canonicalId = '9598a407-bc95-5bce-84e1-d284b6322315'`)
+            .all(),
+        ).toEqual([{ divisionCode: 'TSEUNG_KWAN_O' }])
+        expect(db.query('SELECT * FROM divisionCodes').all()).toHaveLength(
+          initialDivisionCodes.length,
+        )
+      }
+    } finally {
+      db.close()
+    }
+  })
+  test('seeds resource arrays directly on datasets and preserves them on repeated sync', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
+      const statements = buildMetaRegistrySyncStatements('preview')
+      for (let attempt = 0; attempt < 2; attempt++) {
+        for (const statement of statements) db.exec(statement)
+        const rows = db
+          .query(`
+          SELECT d.code, p.code AS publisherCode, d.resourceTypes
+          FROM datasets d JOIN publishers p ON p.id = d.publisherId
+        `)
+          .all() as { code: string; publisherCode: string; resourceTypes: string }[]
+        expect(rows).toHaveLength(initialDatasets.length)
+        for (const dataset of initialDatasets) {
+          const row = rows.find(
+            row =>
+              row.code === dataset.code && row.publisherCode === dataset.publisherCode,
+          )
+          expect(JSON.parse(requireDefined(row).resourceTypes)).toEqual(
+            dataset.resourceTypes,
+          )
+        }
+      }
+    } finally {
+      db.close()
+    }
+  })
+
   test('allows source-versioned transforms to share a public output variant', () => {
     const sharedVariantTransforms = initialDatasetTransforms.filter(
       transform => transform.outputVariant === 'hkgov-censtatd:simplified',
@@ -532,4 +582,27 @@ describe('buildMetaRegistrySyncStatements', () => {
       /VALUES \(\n {2}'[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}'/,
     )
   })
+})
+
+test('official source datasets retain executable processing definitions and confirmed CRS', () => {
+  for (const code of [
+    'ds-hk-hkgov-dpo-address',
+    'ds-hk-hkgov-had-division-area-district',
+    'ds-hk-hkgov-landsd-division',
+    'ds-hk-hkgov-pland-division-new-town',
+    'ds-hk-hkgov-pland-division-pu',
+  ]) {
+    const dataset = initialDatasets.find(dataset => dataset.code === code)
+    if (!dataset) throw new Error(`Missing dataset fixture: ${code}`)
+    expect(dataset.sourceCrs).toMatch(/^EPSG:/)
+    const processingRules = dataset.processingRules
+    if (!processingRules) throw new Error(`Missing processing rules: ${code}`)
+    const rules = processingRules.rulesets.flatMap(ruleset => ruleset.rules)
+    expect(rules.length).toBeGreaterThan(0)
+    expect(rules.every(rule => rule.definition?.implementation)).toBe(true)
+  }
+  expect(
+    initialDatasets.find(dataset => dataset.code === 'ds-hk-hkgov-pland-division-pu')
+      ?.kind,
+  ).toBe('pu')
 })

@@ -1,0 +1,16 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-division-area-geometry",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas.",
+  "inputs": ["source-geometry"],
+  "outputs": ["divisionAreas"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+    "symbol": "divisionAreaGeometryRule"
+  },
+  "dependencyIds": ["exclude-division-geometry"]
+}

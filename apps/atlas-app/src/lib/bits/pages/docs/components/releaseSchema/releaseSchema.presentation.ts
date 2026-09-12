@@ -214,7 +214,6 @@ const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
     'updatedAt',
     'sources',
     'identifiers',
-    'sourceKeys',
     'i18n',
   ],
 }
@@ -283,7 +282,7 @@ export function getProfileSchema(
         attributes,
         addressAttributesByProfile[profile],
       )
-    if (i18n && profile !== 'full')
+    if (i18n && profile === 'compact')
       schemas.AddressI18nAttributes = retainProperties(i18n, ['formattedAddress'])
   }
 

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:296ce607433bd0f0ab642057b4320ab9739e4d1fdcd643f75394b3a79476994d",
+  "versionHash": "sha256:fa0445c0bd86a9e416ab9288385dbd97f16cf75accdf032739813507df6d4a76",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -7,26 +7,26 @@
   "status": "current",
   "domains": [
     {
-      "code": "official",
+      "code": "saanseoi",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "Official",
-          "descriptionShort": "Hong Kong Government Address Lookup Service addresses.",
-          "description": "Official addresses from Hong Kong's Government Address Lookup Service, with locations and Overture division context."
+          "name": "SaanSeoi",
+          "descriptionShort": "SaanSeoi's curated Hong Kong address collection.",
+          "description": "Government Address Lookup Service addresses and accepted supplementary addresses from Overture Places, with source provenance and Overture division context. Use filter[dataset] to select a contributing dataset."
         },
         {
           "locale": "zh-hant",
-          "name": "官方",
-          "descriptionShort": "香港政府地址查詢服務的地址。",
-          "description": "香港政府地址查詢服務提供的官方地址，附有位置及 Overture 分區資訊。"
+          "name": "SaanSeoi",
+          "descriptionShort": "SaanSeoi 整理的香港地址集合。",
+          "description": "政府地址查詢服務地址及經接納的 Overture 地點補充地址，保留來源及 Overture 分區資訊。可使用 filter[dataset] 選擇資料集。"
         },
         {
           "locale": "zh-hans",
-          "name": "官方",
-          "descriptionShort": "香港政府地址查询服务的地址。",
-          "description": "香港政府地址查询服务提供的官方地址，附有位置及 Overture 分区信息。"
+          "name": "SaanSeoi",
+          "descriptionShort": "SaanSeoi 整理的香港地址集合。",
+          "description": "政府地址查询服务地址及经接纳的 Overture 地点补充地址，保留来源及 Overture 分区信息。可使用 filter[dataset] 选择数据集。"
         }
       ],
       "members": [
@@ -43,6 +43,15 @@
               "variant": "overture"
             }
           ]
+        },
+        {
+          "resourceType": "address",
+          "variant": "overture-places",
+          "role": "supporting",
+          "isRequired": true,
+          "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
+          "anchorResourceType": "address",
+          "priority": 5
         },
         {
           "resourceType": "division",

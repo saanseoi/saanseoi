@@ -1,0 +1,150 @@
+import { readFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+
+import { describe, expect, test } from 'bun:test'
+
+import {
+  HKGOV_TD_PEDESTRIAN_STREET_LAYERS,
+  readHkgovHydStreetArchive,
+  readHkgovStreetArchiveCrs,
+  readHkgovTdPedestrianStreetArchive,
+} from './hkgovHyd.ts'
+
+describe('TD pedestrian street native FileGDB intake', () => {
+  test('reads all publisher layers and maps their published schema', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../..')
+    const archive = await readFile(
+      join(
+        repoRoot,
+        'data/hkgov/csdi/archive/td_rcd_1697081765097_37742/2025-Q1/source.zip',
+      ),
+    )
+    expect(
+      Object.values(
+        readHkgovStreetArchiveCrs(archive, HKGOV_TD_PEDESTRIAN_STREET_LAYERS),
+      ),
+    ).toEqual(HKGOV_TD_PEDESTRIAN_STREET_LAYERS.map(() => 'EPSG:2326'))
+    const layers = readHkgovTdPedestrianStreetArchive(archive)
+    assertHongKongGrid(layers.Full_Time_Pedestrian_Street.features[0]?.geometry)
+
+    expect(Object.keys(layers).sort()).toEqual(
+      [...HKGOV_TD_PEDESTRIAN_STREET_LAYERS].sort(),
+    )
+    expect(
+      Object.fromEntries(
+        Object.entries(layers).map(([name, layer]) => [name, layer.features.length]),
+      ),
+    ).toEqual({
+      Full_Time_Pedestrian_Street: 8,
+      Hawker_Street: 3,
+      Market_Street: 11,
+      Part_time_Pedestrian_Street: 26,
+      Traffic_Calming_Street: 31,
+    })
+
+    expect(layers.Full_Time_Pedestrian_Street.features[0]).toEqual({
+      geometry: expect.objectContaining({ type: 'Polygon' }),
+      properties: {
+        descriptionEn: 'Full-Time Pedestrian Street',
+        descriptionZhHans: '全日行人专用街道',
+        descriptionZhHant: '全日行人專用街道',
+        endTime: undefined,
+        objectId: 44,
+        region: 'HK',
+        shapeArea: 2706.6111331315583,
+        shapeLength: 656.3103296592857,
+        startTime: undefined,
+      },
+      type: 'Feature',
+    })
+
+    // A publisher-null SHAPE is stored as a source record rather than
+    // being silently dropped by the FileGDB reader.
+    expect(
+      layers.Full_Time_Pedestrian_Street.features.find(
+        feature => feature.properties.objectId === 46,
+      )?.geometry,
+    ).toBeNull()
+  })
+})
+
+describe('HyD native FileGDB street intake', () => {
+  test('validates the publisher schemas and historical source feature counts', async () => {
+    const repoRoot = resolve(import.meta.dir, '../../../../../../..')
+    const [nameplates, sensitive, strategic] = await Promise.all([
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632211119955_31211/2026-Q2/source.zip',
+        ),
+      ),
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632361314743_27775/2025-Q1/source.zip',
+        ),
+      ),
+      readFile(
+        join(
+          repoRoot,
+          'data/hkgov/csdi/archive/hyd_rcd_1632361405484_23178/2025-Q1/source.zip',
+        ),
+      ),
+    ])
+    const [snp, sensitiveStreets, strategicStreets] = await Promise.all([
+      readHkgovHydStreetArchive('streetNamePlate', nameplates),
+      readHkgovHydStreetArchive('sensitiveStreet', sensitive),
+      readHkgovHydStreetArchive('strategicStreet', strategic),
+    ])
+
+    for (const [archive, layer] of [
+      [nameplates, 'SNP'],
+      [sensitive, 'sensitive'],
+      [strategic, 'STRATEGIC'],
+    ] as const) {
+      expect(readHkgovStreetArchiveCrs(archive, [layer])).toEqual({
+        [layer]: 'EPSG:2326',
+      })
+    }
+    for (const collection of [snp, sensitiveStreets, strategicStreets])
+      assertHongKongGrid(collection.features[0]?.geometry)
+    expect(snp.features).toHaveLength(31_764)
+    expect(snp.features[0]).toMatchObject({
+      geometry: { type: 'Point' },
+      properties: { lvl: 0, roadName: 'FU MEI STREET', snpId: 'KL10523008I' },
+    })
+    expect(sensitiveStreets.features).toHaveLength(90)
+    expect(sensitiveStreets.features[0]?.geometry).toMatchObject({
+      type: 'MultiPolygon',
+    })
+    expect(sensitiveStreets.features[0]?.properties).toEqual(
+      expect.objectContaining({
+        lvl: 0,
+        sectBtwn: 'FULL LENGTH',
+        stEngnm: "NEW HIRAM'S HIGHWAY",
+      }),
+    )
+    expect(strategicStreets.features).toHaveLength(159)
+    expect(strategicStreets.features[0]?.geometry).toMatchObject({
+      type: 'MultiPolygon',
+    })
+    expect(strategicStreets.features[0]?.properties).toEqual(
+      expect.objectContaining({
+        lvl: -1,
+        sectBtwn: 'FULL LENGTH',
+        stEngnm: 'TSEUNG KWAN O TUNNEL',
+      }),
+    )
+  })
+})
+
+function assertHongKongGrid(geometry: unknown) {
+  let point = (geometry as { coordinates: unknown }).coordinates
+  while (Array.isArray(point) && Array.isArray(point[0])) point = point[0]
+  expect(Array.isArray(point)).toBe(true)
+  const [easting = Number.NaN, northing = Number.NaN] = point as number[]
+  expect(easting).toBeGreaterThan(800_000)
+  expect(easting).toBeLessThan(870_000)
+  expect(northing).toBeGreaterThan(800_000)
+  expect(northing).toBeLessThan(870_000)
+}

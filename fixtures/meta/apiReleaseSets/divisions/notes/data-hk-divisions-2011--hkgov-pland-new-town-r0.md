@@ -65,7 +65,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 備註與限制
 
 - <black>新市鎮</black>屬規劃地理單元。其名稱按 cohort 劃分，因此 API 不會跨 cohort 或根據
-  <black>Overture</black> divisions 推斷身分；即使名稱相同，其所指面積亦不相同。
+  <black>Overture</black> divisions 推斷身分；即使名稱相同，其所指範圍亦不相同。
 - 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
 - 請參閱 <black>{{ primarySourceRelease }}</black>
   的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
@@ -94,7 +94,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 备注与限制
 
 - <black>新市镇</black>属规划地理单元。其名称按 cohort 划分，因此 API 不会跨 cohort 或根据
-  <black>Overture</black> divisions 推断身份；即使名称相同，其所指面积也不相同。
+  <black>Overture</black> divisions 推断身份；即使名称相同，其所指范围也不相同。
 - 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
 - 请参阅 <black>{{ primarySourceRelease }}</black>
   的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。

@@ -34,8 +34,12 @@ export const metaDatasets = sqliteTable(
     }).notNull(),
     theme: text('theme', { enum: datasetThemes }).notNull(),
     // A dataset describes one publisher product. Its independently processable
-    // resource outputs are declared in metaDatasetResourceTypes below.
-    subType: text('subType'),
+    // resource outputs are declared on the dataset.
+    resourceTypes: text('resourceTypes', { mode: 'json' })
+      .$type<(typeof datasetTypes)[number][]>()
+      .notNull()
+      .default([]),
+    kind: text('kind'),
     sourceVariant: text('sourceVariant').notNull().default('default'),
     // Native CRS shared by every release of this source dataset. Source
     // records retain their geometry evidence but must not duplicate this
@@ -63,20 +67,6 @@ export const metaDatasets = sqliteTable(
       table.code,
     ),
     index('datasets_region_theme_idx').on(table.regionCode, table.theme),
-  ],
-)
-
-export const metaDatasetResourceTypes = sqliteTable(
-  'datasetResourceTypes',
-  {
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
-    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
-  },
-  table => [
-    primaryKey({ columns: [table.datasetId, table.resourceType] }),
-    index('datasetResourceTypes_resourceType_idx').on(table.resourceType),
   ],
 )
 
@@ -140,6 +130,10 @@ export const metaSourceReleases = sqliteTable(
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
     sourceVersion: text('sourceVersion').notNull(),
+    expectedResourceTypes: text('expectedResourceTypes', { mode: 'json' })
+      .$type<string[]>()
+      .notNull()
+      .default([]),
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),

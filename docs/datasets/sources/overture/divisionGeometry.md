@@ -1,5 +1,79 @@
 # Overture division geometry ingestion
 
+Unchanged open source versions remain untouched across releases. Complete publisher
+membership closes omissions independently of the assertion release ID. Snapshot
+materialisation and release-specific provenance remain separate from source validity.
+`validFromRelease` and `validToRelease` store only the release's `sourceVersion`, such
+as `2025-09-24.0`, for Division, Division Area and Division Boundary source records.
+Dataset-prefixed release codes belong to release metadata.
+
+Each newly published area or boundary resource release supersedes the preceding release
+of that resource. Current snapshot cleanup removes superseded geometry once it is no
+longer required by a current or draft API release set. Historical requests replay the
+selected area or boundary snapshot from its version journal and history shards; they do
+not require every monthly geometry snapshot to remain in current storage.
+
+[Minimal initialisation](../../minimal-initialisation.md) processes 2025-09-24.0 and
+2025-10-22.0 with all three Division, Division Area and Division Boundary resources.
+
+Area and boundary rule declarations are explicit JSON fixtures in
+`fixtures/meta/processing-rules/`, shared by their normalisers and audit. Both depend on
+`division-geometry-exclusions.json`, whose parameters specify regional and area-only
+referent exclusions. Boundaries retain references to those identities. The Hong Kong
+area geometry patch fixture owns the validated Shenzhen Bay Port exclusion polygon.
+
+The [processing audit](../../processing-provenance.md) retains registered geometry
+normalisation and geometry-patch declarations with counts, including Guangdong spillover
+exclusions. Bulk rules do not copy affected IDs or geometry values. Selected identity
+and geometry patch fixtures remain readable in Audit.
+
+Overture division, area and boundary source rows preserve supplied publisher `sources`.
+When references are absent or empty, source storage uses `null` without generating a
+self-reference from the ingested record ID.
+
+The upload command automatically resumes retained local batches before it opens the
+planning mirror. If an interrupted owning release needs to be re-entered directly,
+`sql:resume` can recover its batches and `--continue` completes release publication. The
+prerequisite lookup recognises only sealed plans owned by the pending release; it does
+not clear ownership or allow another release to bypass unfinished work.
+
+Source areas and boundaries retain publisher attributes in `properties`, original native
+geometry in `sourceGeometry` and attribution in `properties.sources`. Source columns
+track identity and release validity; classification and land/territorial flags are
+projected only into canonical tables.
+
+Geometry snapshots retain effective source rules, lookup selections and assembly runs.
+Replay includes recipe parents under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
+Replay SQL streams from mirror-table iterators during plan preparation. Bounded
+statement packing preserves row order and oversized-geometry append semantics. Retained
+plans reuse payloads without reading the replay tables again.
+
+Ordinary geometry metadata upserts leave identical rows untouched. Changes to release
+assignments, processing actions, statistics and other replayed fields still apply in
+order under the [SQL delivery contract](../../sql-delivery.md), which also describes the
+oversized-row exception.
+
+Replay selects immutable canonical content through the snapshot's upsert journal keys.
+Delete journals determine removed membership. Source closures made by the release use
+exact record and version keys, including their timestamps, without retransmitting
+historical source geometry.
+
+Local area and boundary materialisation runs on WAL-safe SQLite planning copies and
+retains exact current, history and source mutations with checksummed churn counts.
+Receipt-backed replay resumes interrupted writes without recalculating the mutations or
+losing snapshot membership removals. Normalisation remains a separate stage.
+
+Geometry SQL uses [sealed delivery phases](../../sql-delivery.md) with source-file and
+snapshot identities. Remote delivery and exact mirror replay must complete before
+publication.
+
+Division, area and boundary delivery each own a separate publication receipt. Native
+planning and remote replay retain atomic ownership checks with their mutation batches.
+An interrupted geometry delivery leaves its receipt unprepared until the sealed replay
+and its count validation finish, including when the valid inventory is empty.
+
 Overture `division_area` and `division_boundary` parquet files are ingested as the
 `divisionArea` and `divisionBoundary` resource types. The local SQL importer accepts the
 documented geometry unions: Polygon and MultiPolygon for areas, LineString and
@@ -17,8 +91,8 @@ degenerate-ring detection, is opt-in with `--validate-geometry`. This avoids qua
 edge-pair checks on detailed Overture polygons during ordinary ingestion.
 
 The source-neutral contract is in
-[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md). This page records
-the Hong Kong release profile and Overture-specific decisions.
+[`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md). This page
+records the Hong Kong release profile and Overture-specific decisions.
 
 ## Automated refresh
 
@@ -75,32 +149,37 @@ Hong Kong clipping artefact.
 ## Source and canonical mapping
 
 Source rows preserve the Overture `id` as `sourceRecordId`, publisher `sources`,
-`version`, `subtype`, `class`, and land/territorial flags. `rawProperties` retains the
-complete decoded source row, including the native ordered `division_ids`/`division_id`
+`version`, `subtype`, `class`, and land/territorial flags. `properties` retains the
+decoded publisher attributes, including the native ordered `division_ids`/`division_id`
 relationships and dropped fields (`theme`, `type`, `country`, `region`, `is_disputed`,
-and `perspectives`). Source tables do not duplicate canonical relationships.
+and `perspectives`). Publisher geometry is retained once in `sourceGeometry`, and
+attribution once in `sources`. Source tables do not duplicate canonical relationships.
+
+Overture Division IDs are validated against the Overture GERS Registry rather than being
+classified from their UUID shape. The local `cache:gers` command caches the registry
+evidence for retained Division and Place IDs and reports unmatched IDs explicitly.
 
 Boundary canonical rows normalise `division_ids[0]` and `[1]` to left/right division
-IDs; area rows normalise `division_id`. Both expose `sourceKeys` (`version`, `subtype`,
-`class`), enriched Overture source provenance, `type` (`land`, `maritime`, or `mixed`),
-bbox, geometry, and the source land/territorial flags. Boundary rows require exactly two
-distinct division IDs and null `perspectives`.
+IDs; area rows normalise `division_id`. Source-only `version`, `subtype`, and `class`
+remain in `properties`; canonical rows expose enriched Overture source provenance,
+`type` (`land`, `maritime`, or `mixed`), bbox, geometry, and the source land/territorial
+flags. Boundary rows require exactly two distinct division IDs and null `perspectives`.
 
 | Source field                                        | Area treatment                                      | Boundary treatment                                    |
 | --------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
 | `id`, `bbox`, `geometry`                            | retain exactly                                      | retain exactly                                        |
-| `version`, `subtype`, `class`                       | retain; expose through `overture` source keys       | retain; expose through `overture` source keys         |
+| `version`, `subtype`, `class`                       | retain in `properties`                              | retain in `properties`                                |
 | `sources`                                           | retain and enrich as `{ overture: ... }`            | retain and enrich as `{ overture: ... }`              |
 | `isLand`, `isTerritorial`                           | normalise from `is_land`, `is_territorial`          | normalise from `is_land`, `is_territorial`            |
 | `division_id`, `division_ids`                       | retain only in source evidence; derive canonical ID | retain only in source evidence; derive left/right IDs |
-| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `rawProperties`   | drop after preflight; preserve in `rawProperties`     |
+| `theme`, `type`, `country`, `region`, `admin_level` | drop after preflight; preserve in `properties`      | drop after preflight; preserve in `properties`        |
 | `names`                                             | drop as redundant with the referenced division      | —                                                     |
 | `is_disputed`, `perspectives`                       | —                                                   | drop; `perspectives` must be null in preflight        |
 
-The source schema and canonical schema use the same shared source-versioning,
-history-versioning, current-snapshot and `rawProperties` fragments as `division`. Each
-geometry release is assigned to both its source and history shards, allowing the source
-record API to resolve its retained publisher records. Stats include accepted counts,
+Source tables use shared source-versioning columns; canonical tables use
+history-versioning and current-snapshot columns as for `division`. Each geometry release
+is assigned to both its source and history shards, allowing the source record API to
+resolve its retained publisher records. Stats include accepted counts,
 land/maritime/mixed type, land/territorial combinations, and source or canonical change
 counts. Geographic exclusions and rejected rows remain visible in CLI diagnostics rather
 than persisted release stats; `CN-GD` exclusions are also retained as release audit
@@ -109,17 +188,19 @@ actions.
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
 exactly two distinct `division_ids`; `perspectives` must be null. Area and boundary
-source rows retain `rawProperties`, the original source array, Overture version, and
-source-key fields. Canonical rows expose normalised left/right or division references,
-`type` (`land`, `maritime`, or `mixed`), geometry, bbox, and land/territorial flags.
-`mixed` is derived when both source flags are true, including the known upstream
-Overture records where the source class alone would otherwise suggest `land` or
-`maritime`.
+source rows retain Overture version and source-only attributes inside `properties`, with
+original attribution in `properties.sources`, native geometry in `sourceGeometry` and
+release tracking alongside them. The publisher version is accessible as
+`properties.version`. Canonical rows expose normalised left/right or division
+references, `type` (`land`, `maritime`, or `mixed`), geometry, bbox, and
+land/territorial flags. `mixed` is derived when both source flags are true, including
+the known upstream Overture records where the source class alone would otherwise suggest
+`land` or `maritime`.
 
 Starting with the 2026-02-18.0 release, Overture division, area, and boundary rows
 include nullable integer `admin_level`. It is accepted by preflight and retained in
-`rawProperties`; canonical geometry rows do not expose it because the referenced
-division is the canonical owner of that administrative-level attribute.
+`properties`; canonical geometry rows do not expose it because the referenced division
+is the canonical owner of that administrative-level attribute.
 
 When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
 `overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the
@@ -133,17 +214,26 @@ area and boundary uploads can be performed in either order. If one geometry snap
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
 
-## Synthetic Hong Kong areas
+## Reviewed Hong Kong area patches
 
-If the scoped Overture division input omits Hong Kong Island, Kowloon or the New
-Territories, the division processor creates a reviewed level-1 identity from the
-configured district members. The generated row carries the stable canonical ID and the
-corresponding Wikidata ID: `Q3248921`, `Q239143`, or `Q596660`. Kowloon deliberately
-reuses Overture's historic ID `17009785-57fd-4e5b-af86-2d27352e4718`, rather than a new
-synthetic identifier. Whether Overture supplies the identity or not, each recognised
-area receives a derived `divisionArea` when its source area geometry is absent. That
-geometry is the union of its district land geometries and is returned by the Divisions
-API with `include=areas:overture`.
+Administrative areas use independent deterministic identities and district-union
+geometries. Hong Kong Island combines Central and Western, Wan Chai, Eastern and
+Southern. Kowloon area combines its five districts. New Territories combines its nine
+districts and the reviewed Lok Ma Chau Loop identity
+`222b7818-970a-491d-98b6-b88d8c6f0161`, with the Shenzhen Bay Port exclusion. All
+configured inputs must resolve.
+
+Kowloon city retains UUID `17009785-57fd-4e5b-af86-2d27352e4718` and receives the same
+district-union geometry as Kowloon area (`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`). Hong
+Kong city retains an existing source city and its geometry; when absent, its identity
+and geometry are reconstructed from Central and Western, Wan Chai and Eastern, excluding
+Southern.
+
+Canonical area and Kowloon city geometries use the configured unions even when source
+polygons exist. Publisher geometries remain retained as source assertions. Supplemental
+identities do not create publisher rows. Identity and geometry patches retain their
+district evidence in the processing audit. Bulk source normalisation counts do not
+include supplemental rows.
 
 ## Scoped parent fixture
 
@@ -165,3 +255,91 @@ Overture division, area, and boundary snapshots belong to persistent snapshot li
 A complete monthly Overture composition is published as an immutable `overture` domain
 release. HAD area geometry may be selected at or before the Overture cohort, but
 planning domains are published separately and are never mixed into this release.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`properties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+Publisher `sources` is exposed in `properties`; WKB geometry is retained as a lossless
+base64 value with an explicit `wkb-base64` encoding.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+Overture division, division-area and division-boundary dataset metadata declares
+EPSG:4326 for source geometry.
+
+## Retained field locations
+
+Publisher attributes are retained with camelCase keys, including `divisionId`,
+`divisionIds`, `isLand` and `isTerritorial`. Original Overture paths remain in API
+provenance. Source geometry stays in its envelope; public bounding boxes are derived
+from processed geometry. Canonical attribution is wrapped under `overture`.
+
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
+
+## Publication readiness
+
+Current Division rows and localisations use their stable lineage scope. Areas and
+boundaries use lineage/cohort scopes, preserving independent provider variants and
+retained cohorts. Current columns named `snapshotId` contain those physical scopes;
+metadata and immutable history retain logical snapshot IDs.
+
+Local canonical and geometry candidates preserve unchanged rows and timestamps. The
+shared compiler transmits only final content differences. Full replacement membership
+removes absent components only within the owned scope. A new cohort has a separate
+initial geometry materialisation.
+
+Delivery claims and guards the scope with its sealed publication token, validates the
+complete projection and records preparation. Publication alone grants current read
+permission, including for empty snapshots. Exact older geometry can replay from
+immutable history when the selected scope has advanced. See the
+[publication-state contract](../../publication-state-plan.md).
+
+Local candidate preparation and remote replay use the shared final-difference compiler.
+Complete source membership replaces only its lineage/cohort scope. Unchanged geometry
+and source assertions generate no content mutations; a new independent cohort requires
+its initial materialisation. Binary geometry travels as bounded hexadecimal parameters
+without splitting one changed row into assembly writes.
+
+Parented area and boundary snapshots inherit identical selected versions and their
+owning history shards without another payload or child upsert journal. Preparation
+validates complete ancestry, shard assignments, retained content and the selected
+parent's current projection before omitting inherited writes. Missing or inconsistent
+parent evidence blocks preparation. Removals are explicit delete journals derived from
+the parent's membership; changed and reappearing features receive upserts. Parentless
+checkpoints retain full membership, including when their content matches another cohort.
+Arbitrary removed versions in older annual shards are not reused.
+
+Source-release assertions and shard assignments retain their separate lifecycle. Native
+geometry plans retain `sourceResolutions`; remote geometry SQL does not export that
+table, and the separately delivered R2 processing audit does not populate it. Remote
+per-record source-resolution delivery requires separate work; its rows are excluded from
+savings attributed to sparse canonical journals.
+
+CLI Division history compares the base and each locale independently, retaining
+unchanged component versions and their original owning shards. A publication-version
+change alone does not replace canonical source provenance. Identical source
+interpretations inherit through snapshot ancestry; changed interpretations and source
+omissions remain explicit. This component optimisation applies to canonical Divisions;
+area and boundary source-resolution assertions retain their geometry lifecycle.

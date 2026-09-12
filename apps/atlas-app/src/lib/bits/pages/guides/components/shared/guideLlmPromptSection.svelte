@@ -12,7 +12,7 @@ type Props = {
 let { eyebrow, prompt, promptIcon, title }: Props = $props()
 </script>
 
-<div class="border-t border-border-card pt-10">
+<div class="mt-10">
   <GuideSubSectionHeader {eyebrow} {title} />
   <div class="mt-6 max-w-3xl">
     <GuidePromptBlock code={prompt} {promptIcon} />

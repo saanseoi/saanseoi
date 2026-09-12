@@ -1,15 +1,20 @@
 <script lang="ts">
 import {
   GuideCodeBlock,
+  GuideLlmPromptCard,
   GuideParagraph,
   GuidePromptBlock,
 } from '#lib/bits/pages/guides/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
+import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 import GuidePublishRequirement from './guidePublishRequirement.svelte'
 
 type Props = {
   completedRequirements?: number[]
+  llmMode?: CreateAMapSelectionQuery['llmMode']
+  llmPrompt?: string
+  llmPromptIcon?: string
   onCompletedRequirementsChange?: (requirements: number[]) => void
   onAccessibleChange?: (accessible: boolean) => void
   terminalProjectPath: string
@@ -17,6 +22,9 @@ type Props = {
 
 let {
   completedRequirements = [],
+  llmMode,
+  llmPrompt,
+  llmPromptIcon,
   onCompletedRequirementsChange,
   onAccessibleChange,
   terminalProjectPath,
@@ -36,10 +44,33 @@ const resetRequirement = (requirement: number) => {
     completedRequirements.filter(value => value !== requirement),
   )
 }
+
+const llmReferences = $derived([
+  {
+    code: 'bun run build',
+    language: 'bash' as const,
+    path: terminalProjectPath,
+    title: m.guide_publish_other_build_title(),
+    type: 'CLI' as const,
+  },
+])
 </script>
 
 <div class="mt-3 space-y-10">
   <GuideParagraph> {@html m.guide_publish_other_intro()} </GuideParagraph>
+
+  {#if llmMode === 'assisted' && llmPrompt}
+    <div class="max-w-232">
+      <GuideLlmPromptCard
+        prompt={`${llmPrompt}
+
+${m.guide_publish_other_prompt()}`}
+        promptIcon={llmPromptIcon}
+        references={llmReferences}
+        title={m.guide_publish_other_title()}
+      />
+    </div>
+  {/if}
 
   <section aria-labelledby="publish-other-title">
     <p

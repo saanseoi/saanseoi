@@ -74,8 +74,13 @@ let {
 
 let contentPanel = $state<HTMLElement>()
 let observedOutlineId = $state<string | null>(null)
+let retainedOutlineId = $state<string | null>(null)
+let selectedOutlineId = $state<string | null>(null)
 let optimisticVersionCode = $state<string | null>(null)
 let committedVersionCode = $state<string | null>(null)
+let visibleOutlineId = $derived(
+  selectedOutlineId ?? activeOutlineId ?? observedOutlineId ?? retainedOutlineId,
+)
 const persistence = createReleaseNavigationPersistence({
   getContentTarget: () => getReleaseNavContentTarget(contentPanel),
   getVersions: () => versions,
@@ -87,8 +92,35 @@ const nestedScroll = createNestedContentScroll({
 })
 
 function selectTab(tab: string) {
+  selectedOutlineId = null
   activeTab = tab
   onTabChange?.(tab)
+}
+
+function selectOutline(id: string) {
+  selectedOutlineId = id
+}
+
+const scrollingKeys = new Set([
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'End',
+  'Home',
+  'PageDown',
+  'PageUp',
+  ' ',
+])
+
+const isTypingTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || /^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName))
+
+function releaseSelectedOutlineFromKey(event: KeyboardEvent) {
+  if (scrollingKeys.has(event.key) && !isTypingTarget(event.target)) {
+    selectedOutlineId = null
+  }
 }
 
 $effect(() => {
@@ -100,6 +132,7 @@ $effect(() => {
   if (currentVersionCode !== committedVersionCode) {
     committedVersionCode = currentVersionCode
     optimisticVersionCode = null
+    selectedOutlineId = null
   }
   visibleVersionCode
   void persistence.restore()
@@ -107,8 +140,32 @@ $effect(() => {
 
 $effect(() => {
   visibleVersionCode
-  observedOutlineId = null
+  if (loading || nestedContent) return
   return observeReleaseNavOutline(outline, id => (observedOutlineId = id))
+})
+
+$effect(() => {
+  const activeId = activeOutlineId ?? observedOutlineId
+  if (!loading && activeId) retainedOutlineId = activeId
+})
+
+$effect(() => {
+  if (selectedOutlineId && !outline.some(item => item.id === selectedOutlineId)) {
+    selectedOutlineId = null
+  }
+})
+
+$effect(() => {
+  if (!selectedOutlineId) return
+  const release = () => (selectedOutlineId = null)
+  window.addEventListener('wheel', release, { passive: true })
+  window.addEventListener('touchmove', release, { passive: true })
+  window.addEventListener('keydown', releaseSelectedOutlineFromKey)
+  return () => {
+    window.removeEventListener('wheel', release)
+    window.removeEventListener('touchmove', release)
+    window.removeEventListener('keydown', releaseSelectedOutlineFromKey)
+  }
 })
 </script>
 
@@ -133,10 +190,11 @@ $effect(() => {
 
 {#snippet mobileSideNav()}
   <ReleaseNavMobileSideNav
-    activeOutlineId={activeOutlineId ?? observedOutlineId}
+    activeOutlineId={visibleOutlineId}
     canShowToc={outline.length > 0}
     currentVersionCode={visibleVersionCode}
     {loading}
+    onOutlineSelect={selectOutline}
     {outline}
     panel={contentPanel}
     {versions}
@@ -146,9 +204,10 @@ $effect(() => {
 
 {#snippet sideNav()}
   <ReleaseNavSideNav
-    activeOutlineId={activeOutlineId ?? observedOutlineId}
+    activeOutlineId={visibleOutlineId}
     canExpand={nestedContent || outline.length > 0}
     {loading}
+    onOutlineSelect={selectOutline}
     currentVersionCode={visibleVersionCode}
     {currentDomainCode}
     {domains}
@@ -163,6 +222,7 @@ $effect(() => {
 <ReleaseNavContent
   bind:panel={contentPanel}
   {hasContent}
+  hasOutline={outline.length > 0}
   {loading}
   {mobileSideNav}
   {navBar}

@@ -8,6 +8,30 @@ export const REMOTE_GEOMETRY_HEX_CHUNK_BYTES = 32 * 1024
 export const REMOTE_GEOMETRY_HEX_CHUNKS_PER_QUERY = 4
 export const REMOTE_GEOMETRY_BATCH_BYTE_LIMIT = 96 * 1024
 
+/** Seek an inclusive range, or strictly after first when last is omitted. */
+export function remoteGeometryKeyRangeSql(
+  columns: string[],
+  first: Record<string, unknown>,
+  last?: Record<string, unknown>,
+) {
+  if (!columns.length) throw new Error('Geometry range requires a primary key')
+  const tuple = (values: string[]) =>
+    values.length === 1 ? values[0]! : `(${values.join(', ')})`
+  const key = tuple(columns.map(column => `"${column.replaceAll('"', '""')}"`))
+  const value = (row: Record<string, unknown>) =>
+    tuple(
+      columns.map(column => {
+        const entry = row[column]
+        if (typeof entry === 'number' && Number.isFinite(entry)) return String(entry)
+        if (typeof entry === 'string') return `'${entry.replaceAll("'", "''")}'`
+        throw new Error('Geometry range contains an invalid primary-key value')
+      }),
+    )
+  return last
+    ? `${key} >= ${value(first)} AND ${key} <= ${value(last)}`
+    : `${key} > ${value(first)}`
+}
+
 export type RemoteGeometryRowDescriptor = {
   geometryLength: number | null
   geometryType: 'blob' | 'text' | 'null'

@@ -6,6 +6,7 @@ export type MissingPrerequisiteQuestion = {
   deferUntilId?: string
   id: string
   label: string
+  requirementLabel?: string
   reminderTitle?: string
 }
 
@@ -19,7 +20,8 @@ type PrerequisiteStepInput = Pick<
 type MissingPrerequisiteInput = CreateAMapSelectionQuery & {
   isBasemapAccountReady: boolean
   isBasemapApiKeyReady: boolean
-  isDataStepComplete: boolean
+  isDataAdded: boolean
+  isDataPrepared: boolean
   isEditorReadinessComplete: boolean
   isLlmReadinessComplete: boolean
   isMapAccessible: boolean
@@ -82,7 +84,8 @@ export function createMissingPrerequisiteQuestions({
   hosting,
   isBasemapAccountReady,
   isBasemapApiKeyReady,
-  isDataStepComplete,
+  isDataAdded,
+  isDataPrepared,
   isEditorReadinessComplete,
   isLlmReadinessComplete,
   isMapAccessible,
@@ -91,7 +94,6 @@ export function createMissingPrerequisiteQuestions({
   isPaymentConfirmationRequired,
   isVpnRequired,
   isZedSetupGuideProvided,
-  llmGuidanceEnabled,
   llmMode,
   mobilePlatform,
   notebookLibrary,
@@ -109,18 +111,25 @@ export function createMissingPrerequisiteQuestions({
     llmMode === 'manual' || (llmMode === 'assisted' && aiAccess === 'web')
   const platformQuestion: MissingPrerequisiteQuestion | undefined =
     objective === 'web'
-      ? { id: 'platform', label: m.guide_host_label(), answered: Boolean(hosting) }
+      ? {
+          id: 'platform',
+          label: m.guide_host_label(),
+          requirementLabel: m.guide_hosting_provider(),
+          answered: Boolean(hosting),
+        }
       : objective === 'web-embed'
         ? !websitePlatform
           ? {
               id: 'platform',
               label: m.guide_missing_website_platform(),
+              requirementLabel: m.guide_website_platform(),
               answered: false,
             }
           : !hosting
             ? {
                 id: 'platform',
                 label: m.guide_host_label(),
+                requirementLabel: m.guide_hosting_provider(),
                 answered: false,
               }
             : undefined
@@ -243,10 +252,17 @@ export function createMissingPrerequisiteQuestions({
       answered: dataSource !== 'existing' || Boolean(dataFormat),
     },
     {
-      id: 'data-step-readiness',
-      label: m.guide_data_readiness_eyebrow(),
-      reminderTitle: m.guide_missing_confirmation(),
-      answered: !llmGuidanceEnabled || !dataSource || isDataStepComplete,
+      id: 'data-preparation-readiness',
+      label: m.guide_data_missing_preparation(),
+      reminderTitle: m.guide_data_preparation_reminder_title(),
+      answered: dataSource !== 'existing' || !dataFormat || isDataPrepared,
+    },
+    {
+      id: 'data-addition-readiness',
+      label: m.guide_data_missing_addition(),
+      reminderTitle: m.guide_data_addition_reminder_title(),
+      answered:
+        dataSource !== 'existing' || !dataFormat || !isDataPrepared || isDataAdded,
     },
     {
       id:

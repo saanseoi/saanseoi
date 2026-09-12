@@ -1,6 +1,6 @@
 <script lang="ts">
 import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
-import { tick, type ComponentProps } from 'svelte'
+import { onMount, tick, type ComponentProps } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { ExpressionSpecification } from 'maplibre-gl'
@@ -8,6 +8,11 @@ import type { MultiPolygon, Polygon } from 'geojson'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { layers, namedFlavor } from '@protomaps/basemaps'
 import type { StyleSpecification } from 'maplibre-gl'
+import {
+  resolveTheme,
+  THEME_CHANGE_EVENT,
+  type ThemeMode,
+} from '#lib/bits/internal/theme.js'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -30,14 +35,31 @@ type Props = {
   features: ChoroplethFeature[]
   values: ChoroplethValue[]
   valueLabel?: string
+  bounds?: [[number, number], [number, number]]
+  paddingRatio?: number
+  showValues?: boolean
+  maxZoom?: number
+  compact?: boolean
+  exclusion?: Geometry | null
 }
 
-let { ariaLabel, features, values, valueLabel = 'records' }: Props = $props()
+let {
+  ariaLabel,
+  features,
+  values,
+  valueLabel = 'records',
+  bounds,
+  paddingRatio = 0,
+  showValues = true,
+  maxZoom = 13,
+  compact = false,
+  exclusion = null,
+}: Props = $props()
 const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
 
 // SaanSeoi publishes a TileJSON manifest, so it must be mounted as a vector source
 // inside a Style Specification rather than passed to MapLibre as a style URL.
-const SAANSEOI_BASEMAP_STYLE: StyleSpecification = {
+const saanseoiBasemapStyle = (theme: ThemeMode): StyleSpecification => ({
   version: 8,
   sources: {
     'hongkong-latest': {
@@ -50,13 +72,12 @@ const SAANSEOI_BASEMAP_STYLE: StyleSpecification = {
     },
   },
   glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
-  sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/dark',
-  layers: layers(
-    'hongkong-latest',
-    namedFlavor('dark'),
-  ) as StyleSpecification['layers'],
-}
+  sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/${theme}`,
+  layers: layers('hongkong-latest', namedFlavor(theme)) as StyleSpecification['layers'],
+})
 
+let theme = $state<ThemeMode>('light')
+let basemapStyle = $derived(saanseoiBasemapStyle(theme))
 let valueById = $derived(new Map(values.map(value => [value.id, value])))
 let maxValue = $derived(Math.max(1, ...values.map(value => value.value)))
 let sourceData = $derived({
@@ -78,7 +99,7 @@ let fillColor = $derived([
   0,
   '#d8eee8',
   maxValue,
-  '#008f7a',
+  '#6fd9be',
 ] as unknown as ExpressionSpecification)
 let activeFeature = $state<{ label: string; value: number } | null>(null)
 let map = $state<MapLibreMap>()
@@ -87,20 +108,53 @@ const hongKongBounds: [[number, number], [number, number]] = [
   [114.45, 22.58],
 ]
 
+onMount(() => {
+  theme = resolveTheme()
+  const syncTheme = (event: Event) => {
+    theme = (event as CustomEvent<{ theme: ThemeMode }>).detail.theme
+  }
+  window.addEventListener(THEME_CHANGE_EVENT, syncTheme)
+  return () => window.removeEventListener(THEME_CHANGE_EVENT, syncTheme)
+})
+
 $effect(() => {
   sourceData
+  bounds
+  paddingRatio
   if (!map) return
 
   let frame: number | undefined
-  void tick().then(() => {
+  const fitMap = () => {
+    if (frame !== undefined) cancelAnimationFrame(frame)
     frame = requestAnimationFrame(() => {
+      if (!map?.getContainer().clientWidth || !map.getContainer().clientHeight) return
       map?.resize()
-      map?.fitBounds(hongKongBounds, { duration: 0, padding: 0 })
-      if (map) map.setMinZoom(map.getZoom())
+      if (map) {
+        const container = map.getContainer()
+        map.setMinZoom(0)
+        map.fitBounds(bounds ?? hongKongBounds, {
+          duration: 0,
+          padding: {
+            top: container.clientHeight * paddingRatio,
+            bottom: container.clientHeight * paddingRatio,
+            left: container.clientWidth * paddingRatio,
+            right: container.clientWidth * paddingRatio,
+          },
+        })
+      }
+      if (map) map.setMinZoom(map.getZoom() - 2)
     })
+  }
+  const observer = new ResizeObserver(fitMap)
+  observer.observe(map.getContainer())
+  let cancelled = false
+  void tick().then(() => {
+    if (!cancelled) fitMap()
   })
 
   return () => {
+    cancelled = true
+    observer.disconnect()
     if (frame !== undefined) cancelAnimationFrame(frame)
   }
 })
@@ -121,18 +175,18 @@ function updateActiveFeature(event: {
 
 <div class="overflow-hidden bg-data-surface-container-lowest">
   <div
-    class="relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto"
+    class={compact ? 'relative h-72' : 'relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto'}
     role="img"
     aria-label={ariaLabel}
   >
     <MapLibre
       class="size-full"
       bind:map
-      style={SAANSEOI_BASEMAP_STYLE}
-      bounds={hongKongBounds}
+      style={basemapStyle}
+      bounds={bounds ?? hongKongBounds}
       fitBoundsOptions={{ padding: 0 }}
       minZoom={8}
-      maxZoom={13}
+      {maxZoom}
       attributionControl={false}
       autoloadGlobalCss={false}
     >
@@ -141,7 +195,7 @@ function updateActiveFeature(event: {
           id="choropleth-district-fill"
           paint={{
             'fill-color': fillColor,
-            'fill-opacity': 0.72,
+            'fill-opacity': 0.33,
           }}
           onmousemove={updateActiveFeature}
           onmouseleave={() => (activeFeature = null)}
@@ -155,6 +209,18 @@ function updateActiveFeature(event: {
           }}
         />
       </GeoJSONSource>
+      {#if exclusion}
+        <GeoJSONSource id="choropleth-exclusion" data={exclusion}>
+          <FillLayer
+            id="choropleth-exclusion-fill"
+            paint={{ 'fill-color': '#ef4444', 'fill-opacity': 0.55 }}
+          />
+          <LineLayer
+            id="choropleth-exclusion-outline"
+            paint={{ 'line-color': '#f87171', 'line-width': 2 }}
+          />
+        </GeoJSONSource>
+      {/if}
     </MapLibre>
 
     {#if activeFeature}
@@ -164,26 +230,30 @@ function updateActiveFeature(event: {
         <p class="font-body text-label-sm font-semibold text-primary">
           {activeFeature.label}
         </p>
-        <p
-          class="mt-0.5 font-mono text-label-sm font-bold tabular-nums text-data-primary"
-        >
-          {formatValue(activeFeature.value)} {valueLabel}
-        </p>
+        {#if showValues}
+          <p
+            class="mt-0.5 font-mono text-label-sm font-bold tabular-nums text-data-primary"
+          >
+            {formatValue(activeFeature.value)} {valueLabel}
+          </p>
+        {/if}
       </div>
     {/if}
   </div>
-  <div
-    class="flex items-center justify-between gap-3 border-t border-data-outline-variant/60 px-4 py-3"
-  >
-    <p class="font-body text-label-sm text-foreground-alt">{valueLabel}</p>
+  {#if showValues}
     <div
-      class="flex items-center gap-2 font-mono text-label-sm tabular-nums text-foreground-alt"
-      role="img"
-      aria-label={`Scale from 0 to ${formatValue(maxValue)} ${valueLabel}`}
+      class="flex items-center justify-between gap-3 border-t border-data-outline-variant/60 px-4 py-3"
     >
-      <span>0</span>
-      <span class="h-2 w-24 bg-linear-to-r from-[#d8eee8] to-[#008f7a]"></span>
-      <span>{formatValue(maxValue)}</span>
+      <p class="font-body text-label-sm text-foreground-alt">{valueLabel}</p>
+      <div
+        class="flex items-center gap-2 font-mono text-label-sm tabular-nums text-foreground-alt"
+        role="img"
+        aria-label={`Scale from 0 to ${formatValue(maxValue)} ${valueLabel}`}
+      >
+        <span>0</span>
+        <span class="h-2 w-24 bg-linear-to-r from-[#d8eee8] to-[#6fd9be]"></span>
+        <span>{formatValue(maxValue)}</span>
+      </div>
     </div>
-  </div>
+  {/if}
 </div>

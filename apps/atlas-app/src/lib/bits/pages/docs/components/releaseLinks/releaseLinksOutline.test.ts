@@ -41,7 +41,7 @@ describe('getReleaseLinksOutline', () => {
       {
         depth: 2,
         id: 'source-records:division-boundary:2025-09-24',
-        label: 'Division boundary · Source records',
+        label: 'Division boundary',
       },
     ])
   })

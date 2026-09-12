@@ -7,9 +7,10 @@ type Props = {
   loadError?: boolean
   onRetry?: () => void
   query?: string
+  placeholder?: string
 }
 
-let { loadError = false, onRetry, query = $bindable('') }: Props = $props()
+let { loadError = false, onRetry, query = $bindable(''), placeholder }: Props = $props()
 
 function clearQuery() {
   query = ''
@@ -23,7 +24,9 @@ function handleKeydown(event: KeyboardEvent) {
 </script>
 
 <label class="relative mt-5 block">
-  <span class="sr-only">{m.source_audit_search()}</span>
+  <span class="sr-only"
+    >{placeholder ? m.source_audit_search_retained() : m.source_audit_search()}</span
+  >
   <Icon
     icon="proicons:search"
     class="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-foreground-alt"
@@ -31,8 +34,8 @@ function handleKeydown(event: KeyboardEvent) {
   />
   <input
     bind:value={query}
-    class="h-10 w-full rounded-default border border-data-outline-variant bg-data-surface-container-low py-2 pr-10 pl-9 font-body text-label-md text-primary outline-none transition placeholder:text-foreground-alt focus:border-data-primary"
-    placeholder={m.source_audit_search_placeholder()}
+    class="h-10 w-full rounded-lg border border-current/15 bg-transparent py-2 pr-10 pl-9 font-body text-label-md text-primary outline-none transition placeholder:text-foreground-alt focus:border-data-primary"
+    placeholder={placeholder ?? m.source_audit_search_placeholder()}
     type="search"
     onkeydown={handleKeydown}
   >

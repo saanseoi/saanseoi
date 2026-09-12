@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "sourceVersionFrom": "2024-07-25.0",
+  "sourceVersionTo": "2026-08-19.0",
+  "corrections": [
+    {
+      "id": "lower-ngau-tau-kok-plaza-csu",
+      "name": "LOWER NGAU TAU KOK ESTATE PLAZA",
+      "to": "4027420245P20120920",
+      "csus": ["4025720215T20120920", "4027420245P20120920"],
+      "signatures": [
+        {
+          "hash": "6673173e131902c1eb81f4915dbd26c772e72851dd73fe68761b63a464927a67",
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hash": "2392bf81738466f95ec36bf73aa5f4fbe1a1866271ad5f6ceaf6a3f6e3eab1e4",
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "inventoryHashes": [],
+      "authority": "User decision, 2026-09-07: backfill this reviewed CSU throughout retained history."
+    },
+    {
+      "id": "lung-hang-school-csu",
+      "name": "POK OI HOSPITAL CHAN KAI MEMORIAL COLLEGE",
+      "to": "3639525221T20050430",
+      "csus": ["3637425171T20050430", "3639525221T20050430"],
+      "signatures": [
+        {
+          "hash": "c10779a5b4f14a4b66eeb6ed896c31fba914a7921f7953cab2bb771ef2c0c735",
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "df2529f46aa40340bab947772390cc8ad87c1a23089ce8a2a16af37ecab58251",
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hash": "da49d3615198d0985584765f39d71484a40aaeb543b1c2a2251e426b4b3f4dff",
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "inventoryHashes": [],
+      "authority": "User decision, 2026-09-07: backfill this reviewed CSU throughout retained history."
+    },
+    {
+      "id": "ma-hang-koon-ma-csu",
+      "name": "KOON MA HSE",
+      "to": "3934509146T20050430",
+      "csus": ["3935709089T20050430", "3934509146T20050430"],
+      "signatures": [
+        {
+          "hash": "0c15bca919855049f49619256caebb4bb2aeab86cdb6bf7c8f84463803503973",
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hash": "7b930fddbf286cb4a6bfb649ed4d941873c79855d75949046b3916ccd4b1ad25",
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "7d3feab14883dc9b4442ff42b4ee9985ac8840e49cb65444bb632afe1bc3d3f2",
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hash": "b45692622109a26cf4a69405aa66e5aeac37f509975007ac327fdd0cbc92987a",
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "inventoryHashes": [
+        "83d69744005a438406a5a708b042f26f7cd1494f0b3c8e14f5e256e9ed9a942c"
+      ],
+      "authority": "User decision, 2026-09-07: backfill this reviewed CSU throughout retained history."
+    }
+  ],
+  "duplicates": [
+    {
+      "id": "lung-hang-school-empty-alias",
+      "csu": "3639525221T20050430",
+      "ownerName": "POK OI HOSPITAL CHAN KAI MEMORIAL COLLEGE",
+      "ownerCsu": "3639525221T20050430",
+      "estate": "LUNG HANG ESTATE",
+      "assertions": [
+        {
+          "hash": "f8b230096be10022e943209eed80d65583bfc8ded1af335b51f3e3e76832770e",
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "authority": "User decision, 2026-09-07: discard the empty duplicate; retain the named owner and all raw source evidence."
+    },
+    {
+      "id": "on-tai-kam-tai-empty-alias",
+      "csu": "4176420671T20160506",
+      "ownerName": "KAM TAI HOUSE",
+      "ownerCsu": "4176520670P20160506",
+      "estate": "ON TAI ESTATE",
+      "assertions": [
+        {
+          "hash": "24e0dc1275564a128c9de332e5c5fb70b172297b1f19600eeec264f229243634",
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "18448509ee69e23384930605dc8c095d589cd84c1b0ab198c22eb783a5e334e2",
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-07: discard the empty duplicate; retain the named owner and all raw source evidence."
+    },
+    {
+      "id": "on-tat-chun-tat-empty-alias",
+      "csu": "4224520257T20150630",
+      "ownerName": "CHUN TAT HOUSE",
+      "ownerCsu": "4222320278T20150630",
+      "estate": "ON TAT ESTATE",
+      "assertions": [
+        {
+          "hash": "4c81550826fee39d10e9f13c12cc28ba3c1c9396559400e23cf257705bb56bf0",
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "authority": "User decision, 2026-09-07: discard the empty duplicate; retain the named owner and all raw source evidence."
+    }
+  ]
+}

@@ -1,27 +1,34 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import type { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
 
-const preparedTypes: Array<{ sourceVersion: string; type: string }> = []
+const preparedTypes: Array<{ sourceVersion: string; resourceType: string }> = []
 const preparedInputs: string[] = []
 const uploadedTypes: Array<{
+  deferApiReleaseSet: boolean
+  reuseExistingRelease: boolean
   skipSnapshotCleanup: boolean
   sourceVersion: string
-  type: string
+  resourceType: string
 }> = []
 let divisionPublishComplete = false
+const reconciledTargets: unknown[] = []
 
 const prepareHkgovPlandTpuNativeShpZipMock = mock(
   async (options: {
     inputFile: string
     outputFile: string
     sourceVersion: string
-    type: string
+    resourceType: string
   }) => {
     preparedInputs.push(options.inputFile)
-    preparedTypes.push({ sourceVersion: options.sourceVersion, type: options.type })
+    preparedTypes.push({
+      sourceVersion: options.sourceVersion,
+      resourceType: options.resourceType,
+    })
     await mkdir(dirname(options.outputFile), { recursive: true })
     await writeFile(options.outputFile, 'prepared parquet')
     return {
@@ -35,19 +42,25 @@ const prepareHkgovPlandTpuNativeShpZipMock = mock(
 
 const runUploadCommandMock = mock(
   async (
-    _args: { options: { 'source-version'?: unknown; type?: unknown } },
+    _args: { options: { 'source-version'?: unknown; 'resource-type'?: unknown } },
     _target: unknown,
-    options: { skipSnapshotCleanup: boolean },
+    options: {
+      deferApiReleaseSet?: boolean
+      reuseExistingRelease?: boolean
+      skipSnapshotCleanup: boolean
+    },
   ) => {
     const sourceVersion = String(_args.options['source-version'])
-    const type = String(_args.options.type)
+    const resourceType = String(_args.options['resource-type'])
     uploadedTypes.push({
+      deferApiReleaseSet: options.deferApiReleaseSet === true,
+      reuseExistingRelease: options.reuseExistingRelease === true,
       skipSnapshotCleanup: options.skipSnapshotCleanup,
       sourceVersion,
-      type,
+      resourceType,
     })
 
-    if (type === 'division') {
+    if (resourceType === 'division') {
       await Promise.resolve()
       divisionPublishComplete = true
       return
@@ -58,13 +71,67 @@ const runUploadCommandMock = mock(
   },
 )
 
+const runReconcileDraftReleaseSetsCommandMock = mock(
+  async (
+    _args: Parameters<typeof runReconcileDraftReleaseSetsCommand>[0],
+    target: Parameters<typeof runReconcileDraftReleaseSetsCommand>[1],
+    _printUsage: Parameters<typeof runReconcileDraftReleaseSetsCommand>[2],
+  ) => {
+    reconciledTargets.push(target)
+  },
+)
+
 import {
   runHkgovPlandBackfillCommand,
   runHkgovPlandNativeArchiveIngestCommand,
 } from './backfillHkgovPland.ts'
 
 describe('Planning Department backfills', () => {
-  test('publishes each division before attaching its division area', async () => {
+  test('init skips completed Planning domains without continue or preparing uploads', async () => {
+    const previous = process.env.SAANSEOI_INIT_COMMAND
+    const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+    const uploadCalls = runUploadCommandMock.mock.calls.length
+    try {
+      for (const kind of ['pu', 'new-town'] as const) {
+        process.env.SAANSEOI_INIT_COMMAND = `init:divisions:hkgov-pland-${kind}`
+        let inspected = false
+        await runHkgovPlandBackfillCommand(
+          {
+            command: 'hkgov-pland:backfill',
+            positionals: [],
+            options: { target: 'local' },
+          },
+          { environment: 'dev', remote: false },
+          kind,
+          () => undefined,
+          {
+            getCompletedReleaseCodes: async () => {
+              inspected = true
+              return new Set(
+                ['2001', '2006', '2011', '2016', '2021'].flatMap(year =>
+                  ['division', 'division-area'].map(
+                    resourceType => `dr-hk-hkgov-pland-${resourceType}-${kind}-${year}`,
+                  ),
+                ),
+              )
+            },
+            prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+            runReconcileDraftReleaseSetsCommand:
+              runReconcileDraftReleaseSetsCommandMock,
+            runUploadCommand: runUploadCommandMock,
+          },
+        )
+        expect(inspected).toBe(true)
+      }
+      expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(prepareCalls)
+      expect(runUploadCommandMock.mock.calls.length).toBe(uploadCalls)
+    } finally {
+      if (previous === undefined) delete process.env.SAANSEOI_INIT_COMMAND
+      else process.env.SAANSEOI_INIT_COMMAND = previous
+    }
+  })
+
+  test('stages each cohort before reconciling its complete division and area release set', async () => {
     const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
     try {
       await runHkgovPlandBackfillCommand(
@@ -79,6 +146,7 @@ describe('Planning Department backfills', () => {
         {
           prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
           preparedArtefactCacheRoot: cacheRoot,
+          runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
           runUploadCommand: runUploadCommandMock,
         },
       )
@@ -94,17 +162,78 @@ describe('Planning Department backfills', () => {
       ),
     )
     expect(uploadedTypes).toEqual([
-      { skipSnapshotCleanup: true, sourceVersion: '2001', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2001', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2006', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2006', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2011', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2011', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2016', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2016', type: 'divisionArea' },
-      { skipSnapshotCleanup: true, sourceVersion: '2021', type: 'division' },
-      { skipSnapshotCleanup: false, sourceVersion: '2021', type: 'divisionArea' },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
+        sourceVersion: '2001',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
+        sourceVersion: '2001',
+        resourceType: 'divisionArea',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
+        sourceVersion: '2006',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
+        sourceVersion: '2006',
+        resourceType: 'divisionArea',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
+        sourceVersion: '2011',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
+        sourceVersion: '2011',
+        resourceType: 'divisionArea',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
+        sourceVersion: '2016',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
+        sourceVersion: '2016',
+        resourceType: 'divisionArea',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: true,
+        reuseExistingRelease: false,
+        sourceVersion: '2021',
+        resourceType: 'division',
+      },
+      {
+        deferApiReleaseSet: true,
+        skipSnapshotCleanup: false,
+        reuseExistingRelease: true,
+        sourceVersion: '2021',
+        resourceType: 'divisionArea',
+      },
     ])
+    expect(reconciledTargets).toContainEqual({ environment: 'preview', remote: true })
   })
 
   test('reuses verified prepared artefacts on a backfill retry', async () => {
@@ -114,6 +243,7 @@ describe('Planning Department backfills', () => {
       const dependencies = {
         prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
         preparedArtefactCacheRoot: cacheRoot,
+        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
         runUploadCommand: runUploadCommandMock,
       }
       const args = {
@@ -148,6 +278,87 @@ describe('Planning Department backfills', () => {
     }
   })
 
+  test.each(['1', '2', '3'])(
+    'rebuilds version %s cached artefacts when the preparation contract changes',
+    async previousContractVersion => {
+      const cacheRoot = await mkdtemp(join(tmpdir(), 'hkgov-pland-cache-test-'))
+      const previousMinimal = process.env.SAANSEOI_INIT_MINIMAL
+      const prepareCalls = prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length
+      const output = Buffer.from('prepared parquet')
+      try {
+        process.env.SAANSEOI_INIT_MINIMAL = '1'
+        const archive = await readFile(
+          resolve(
+            import.meta.dir,
+            '../../../../data/hkgov/csdi/archive/pland_rcd_1636535158118_80594/2023-Q4/source.zip',
+          ),
+        )
+        const archiveHash = createHash('sha256').update(archive).digest('hex')
+        const cacheDirectory = join(
+          cacheRoot,
+          'hkgov-pland-pu',
+          `v${previousContractVersion}`,
+          archiveHash,
+          '2001',
+        )
+        await mkdir(cacheDirectory, { recursive: true })
+        for (const resourceType of ['division', 'divisionArea'] as const) {
+          await writeFile(join(cacheDirectory, `${resourceType}.parquet`), output)
+          await writeFile(
+            join(cacheDirectory, `${resourceType}.manifest.json`),
+            JSON.stringify({
+              schemaVersion: 1,
+              sourceArchiveSha256: archiveHash,
+              sourceVersion: '2001',
+              parserContractVersion: previousContractVersion,
+              resourceType,
+              outputByteLength: output.byteLength,
+              outputSha256: createHash('sha256').update(output).digest('hex'),
+            }),
+          )
+        }
+
+        const dependencies = {
+          prepareHkgovPlandTpuNativeShpZip: prepareHkgovPlandTpuNativeShpZipMock,
+          preparedArtefactCacheRoot: cacheRoot,
+          runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
+          runUploadCommand: runUploadCommandMock,
+        }
+        const args = {
+          command: 'hkgov-pland:backfill' as const,
+          positionals: [],
+          options: { target: 'preview' },
+        }
+        const target = { environment: 'preview' as const, remote: true }
+
+        await runHkgovPlandBackfillCommand(
+          args,
+          target,
+          'pu',
+          () => undefined,
+          dependencies,
+        )
+        expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+          prepareCalls + 4,
+        )
+        await runHkgovPlandBackfillCommand(
+          args,
+          target,
+          'pu',
+          () => undefined,
+          dependencies,
+        )
+        expect(prepareHkgovPlandTpuNativeShpZipMock.mock.calls.length).toBe(
+          prepareCalls + 4,
+        )
+      } finally {
+        if (previousMinimal === undefined) delete process.env.SAANSEOI_INIT_MINIMAL
+        else process.env.SAANSEOI_INIT_MINIMAL = previousMinimal
+        await rm(cacheRoot, { force: true, recursive: true })
+      }
+    },
+  )
+
   test('continues a remote backfill from that target’s completed releases', async () => {
     const target = { environment: 'production' as const, remote: true }
     let completedTarget: unknown
@@ -177,6 +388,7 @@ describe('Planning Department backfills', () => {
             'dr-hk-hkgov-pland-division-area-pu-2021',
           ])
         },
+        runReconcileDraftReleaseSetsCommand: runReconcileDraftReleaseSetsCommandMock,
       },
     )
 

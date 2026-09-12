@@ -17,6 +17,12 @@ export const profileNames = apiProfileNames
 
 export const resolverCodes = [
   'direct_copy',
+  'lookup_registry',
+  'constant_value',
+  'wrap_publisher_sources',
+  'merge_first_non_null',
+  'derive_release_month',
+  'compose_identifier',
   'join_lookup',
   'lookup_fk',
   'derive_uuid_v5',
@@ -25,6 +31,10 @@ export const resolverCodes = [
   'map_division_type',
   'derive_variant_from_source',
   'derive_bbox_from_geometry',
+  'derive_statistics_record_id',
+  'normalise_statistics',
+  'compose_source_feature_ref',
+  'derive_address_granularity',
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
   'merge_first_non_empty',

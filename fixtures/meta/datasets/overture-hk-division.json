@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ad4b4d8c95ccd0554650aa01b877523bea84975399936b1b16b063ea3119ef8d",
+  "versionHash": "sha256:21bf8825faf8080e9607c5c9d91eb92018c64d2ce18b2f16b8cb6a3777fbafca",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
@@ -78,5 +78,6 @@
       "name": "区划 (香港)",
       "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:4326"
 }

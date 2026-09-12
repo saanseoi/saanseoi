@@ -1,17 +1,48 @@
+import type { DivisionHierarchies } from '@repo/db'
+import type { MultiPolygon, Polygon } from 'geojson'
+
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
+
+type DivisionAttributes = {
+  level: number
+  class: 'district'
+  category: 'administrative'
+  hierarchies: DivisionHierarchies
+  divisionCode: string
+  i18n: { en: { name: string } }
+}
+
 type Division = {
-  attributes: { divisionCode: string }
-  relationships: {
-    hierarchy: {
-      data: Array<{
-        id: string
-        meta: { name: string; subType: string }
-        type: string
-      }>
-    }
+  id: string
+  attributes: DivisionAttributes
+}
+
+type IncludedDivision = {
+  type: 'divisions'
+  id: string
+  attributes: {
+    level: number
+    class: 'sar' | 'area'
+    category: 'administrative'
+    hierarchies: DivisionHierarchies
+    divisionCode?: string
+    i18n: { en: { name: string } }
   }
 }
 
-type DivisionsResponse = { data: Division[] }
+type IncludedDivisionArea = {
+  type: 'division-areas'
+  id: string
+  attributes: {
+    divisionId: string
+    divisionCode: string
+    geometry: Polygon | MultiPolygon
+  }
+}
+
+type IncludedResource = IncludedDivision | IncludedDivisionArea
+
+type DivisionsResponse = { data: Division[]; included: IncludedResource[] }
 
 const areas = {
   'Hong Kong Island': {
@@ -28,23 +59,110 @@ const areas = {
   },
 } as const
 
+const districtNameByCode = {
+  CW: 'Central and Western District',
+  WC: 'Wan Chai District',
+  EST: 'Eastern District',
+  STH: 'Southern District',
+  YTM: 'Yau Tsim Mong District',
+  SSP: 'Sham Shui Po District',
+  KLC: 'Kowloon City District',
+  WTS: 'Wong Tai Sin District',
+  KT: 'Kwun Tong District',
+  KC: 'Kwai Tsing District',
+  KTS: 'Kwai Tsing District',
+  TW: 'Tsuen Wan District',
+  TM: 'Tuen Mun District',
+  YL: 'Yuen Long District',
+  NTH: 'North District',
+  TP: 'Tai Po District',
+  ST: 'Sha Tin District',
+  SK: 'Sai Kung District',
+  ILD: 'Islands District',
+} as const
+
+const hongKongId = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
+
 export const urbanDensityDivisionsResponse: DivisionsResponse = {
   data: Object.entries(areas).flatMap(([name, area]) =>
     area.codes.map(divisionCode => ({
-      attributes: { divisionCode },
-      relationships: {
-        hierarchy: {
-          data: [
-            {
-              type: 'divisions',
-              id: area.id,
-              meta: { subType: 'area', name },
-            },
+      id: `${area.id}-${divisionCode}`,
+      attributes: {
+        level: 2,
+        class: 'district',
+        category: 'administrative',
+        hierarchies: {
+          administrative: [
+            [
+              { id: hongKongId, name: 'Hong Kong SAR', class: 'sar' },
+              { id: area.id, name, class: 'area' },
+            ],
+          ],
+          locality: [],
+          full: [
+            [
+              { id: hongKongId, name: 'Hong Kong SAR', class: 'sar' },
+              { id: area.id, name, class: 'area' },
+            ],
           ],
         },
+        divisionCode,
+        i18n: { en: { name: districtNameByCode[divisionCode] } },
       },
     })),
   ),
+  included: [
+    {
+      type: 'divisions',
+      id: hongKongId,
+      attributes: {
+        level: 0,
+        class: 'sar',
+        category: 'administrative',
+        hierarchies: { administrative: [], locality: [], full: [] },
+        i18n: { en: { name: 'Hong Kong' } },
+      },
+    },
+    ...Object.entries(areas).map(([name, area]) => ({
+      type: 'divisions' as const,
+      id: area.id,
+      attributes: {
+        level: 1,
+        class: 'area' as const,
+        category: 'administrative' as const,
+        hierarchies: {
+          administrative: [[{ id: hongKongId, name: 'Hong Kong SAR', class: 'sar' }]],
+          locality: [],
+          full: [[{ id: hongKongId, name: 'Hong Kong SAR', class: 'sar' }]],
+        },
+        divisionCode:
+          name === 'Hong Kong Island' ? 'HK' : name === 'Kowloon' ? 'KL' : 'NT',
+        i18n: { en: { name } },
+      },
+    })),
+    ...Object.entries(areas).flatMap(([, area]) =>
+      area.codes.map(divisionCode => {
+        const feature = urbanDensityCensusDistricts.features.find(
+          item =>
+            item.properties.divisionCode === divisionCode ||
+            (divisionCode === 'KC' && item.properties.divisionCode === 'KTS'),
+        )
+
+        if (!feature) throw new Error(`No preview geometry for ${divisionCode}`)
+
+        const divisionId = `${area.id}-${divisionCode}`
+        return {
+          type: 'division-areas' as const,
+          id: `${divisionId}-geometry`,
+          attributes: {
+            divisionId,
+            divisionCode,
+            geometry: feature.geometry,
+          },
+        }
+      }),
+    ),
+  ],
 }
 
 export const urbanDensityStatsResponses = [
@@ -103,14 +221,14 @@ export function calculateUrbanDensityMetrics(
 ) {
   const districts = response.data.map(division => {
     const code = division.attributes.divisionCode
-    const area = division.relationships.hierarchy.data.find(
-      item => item.meta.subType === 'area',
-    )
+    const area = division.attributes.hierarchies.administrative
+      .flat()
+      .find(item => item.class === 'area')
 
     if (!area) throw new Error(`No Area ancestor for ${code}`)
     return {
       code,
-      area: area.meta.name,
+      area: area.name!,
       population: Number(populationByDistrict[code]),
       landAreaSqKm: Number(landAreaByDistrict[code]),
     }

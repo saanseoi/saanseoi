@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "compose-place-reference-name",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Combine distinct Traditional Chinese and English place names when their scripts differ; otherwise select Traditional Chinese, English or the first available localised name.",
+  "inputs": ["place-localisations"],
+  "outputs": ["place-reference-name"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/places/place.ts",
+    "symbol": "placeReferenceNameRule"
+  }
+}

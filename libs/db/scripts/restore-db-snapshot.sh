@@ -214,6 +214,12 @@ if [[ "$restored_current_db" -eq 1 && "$environment" != "local" ]]; then
     --env "$environment" \
     --remote \
     --file "$rebuild_places_fts_sql"
+  echo "Synchronising division FTS index"
+  bash "$script_dir/run-d1-execute.sh" DB_CURRENT \
+    --config "$wrangler_config" \
+    --env "$environment" \
+    --remote \
+    --file "$script_dir/sql/rebuild-divisions-fts.sql"
 fi
 
 printf 'Restored snapshot %s into %s\n' "$snapshot_name" "$environment"

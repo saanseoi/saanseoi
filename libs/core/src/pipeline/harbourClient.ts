@@ -17,7 +17,7 @@ export type ApiReleaseSetMetadataDelta = {
   supersedesApiReleaseSetId: string | null
   schemaVersion: string
   rulesetVersion: string
-  status: 'current' | 'draft'
+  status: 'current' | 'draft' | 'archived'
   publishedAt: string | null
   validFrom: string | null
   validTo: string | null
@@ -41,7 +41,7 @@ export type PublishDatasetResult = {
   apiCatalogRevisionId?: string
   apiReleaseSetId?: string
   apiReleaseSetCode?: string
-  apiReleaseSetStatus?: 'current' | 'draft'
+  apiReleaseSetStatus?: 'current' | 'draft' | 'archived'
   apiReleaseSetPublications?: ApiReleaseSetPublication[]
   datasetId?: string
   metadataDelta?: {
@@ -64,6 +64,12 @@ export type HarbourClient = {
     releaseId: string,
     releaseCode?: string,
     options?: {
+      /** Preserve the exact reference snapshots selected by a family adapter. */
+      carriedSnapshots?: Array<{
+        resourceType: ResourceType
+        snapshotId: string
+        variant?: string
+      }>
       /** Publish source data and snapshots while keeping the API release set draft. */
       deferApiReleaseSet?: boolean
       /** Publish source data and snapshots, but leave Statistics cohorts for a launch bootstrap. */
@@ -93,3 +99,4 @@ export type HarbourClient = {
     releaseCode?: string,
   ): Promise<void>
 }
+import type { ResourceType } from '../types'

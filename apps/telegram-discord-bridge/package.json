@@ -13,9 +13,9 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun-types": "^1.4.0",
+    "@types/bun": "1.4.2",
+    "bun-types": "^1.4.2",
     "typescript": "^6.0.3",
-    "wrangler": "^4.127.1"
+    "wrangler": "^4.131.0"
   }
 }

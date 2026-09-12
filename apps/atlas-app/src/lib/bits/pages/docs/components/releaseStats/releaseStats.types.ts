@@ -97,7 +97,11 @@ export type ChurnMetricPresentation = {
 }
 export type OverviewPresentation = {
   recordCount: string
-  churn?: { baseline: boolean; metrics: ChurnMetricPresentation[] }
+  churn?: {
+    unavailable?: boolean
+    baseline: boolean
+    metrics: ChurnMetricPresentation[]
+  }
 }
 export type DistrictDistributionPresentation = {
   features: Array<{ id: string; geometry: Polygon | MultiPolygon; label: string }>
@@ -192,6 +196,8 @@ export type GenericStatGroupPresentation = {
   }>
 }
 export type ReleaseStatsPresentation = {
+  placeProfile?: import('./placeProfile').PlaceProfile
+  statisticsProfile?: StatisticsProfilePresentation
   headings: ReleaseContentHeading[]
   overview?: OverviewPresentation
   districtDistribution?: DistrictDistributionPresentation
@@ -206,4 +212,36 @@ export type ReleaseStatsPresentation = {
   quality?: QualityPresentation
   divisionLinkage?: DivisionLinkagePresentation
   genericGroups: GenericStatGroupPresentation[]
+}
+
+export type StatisticsProfilePresentation = {
+  localeCoverage: Array<{
+    label: string
+    percentage: number
+    value: string
+    count: string
+    unverified: string
+  }>
+  metrics: Array<{ label: string; value: string }>
+  distributions: Array<{
+    id: string
+    title: string
+    unit: string
+    rows: Array<{ label: string; value: string; percentage: number }>
+  }>
+  coverage?: {
+    fieldCount: string
+    standardCount: string
+    observations: string
+    uniform: boolean
+    exceptions: Array<{ label: string; value: string }>
+  }
+  availability: Array<{
+    label: string
+    value: string
+    percentage: number
+    percentageLabel: string
+    description: string
+    tone: 'published' | 'suppressed' | 'unavailable' | 'other'
+  }>
 }

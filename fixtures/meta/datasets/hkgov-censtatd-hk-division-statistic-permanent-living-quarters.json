@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5500bac47d7c7a3860871a5ea33330ee4a3e1aabb0d8028e0c7bf5dd457c4353",
+  "versionHash": "sha256:daac4c1ec92d0f2d708ae38f64f9d8301667ba4f3b6f0ec644c264f8ae10327c",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
@@ -15,7 +15,7 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
+  "resourceTypes": ["divisionStatistic", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491",
@@ -59,7 +59,10 @@
       "rulesetVersion": "rs-division-statistic-merge-v1",
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -88,7 +91,17 @@
     {
       "locale": "en",
       "name": "Permanent Living Quarters",
-      "description": "Planned C&SD source for area-level permanent living-quarters stock by type."
+      "description": "C&SD source for area-level permanent living-quarters stock by type."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "永久性居住屋宇單位",
+      "description": "政府統計處提供的按地區及類型劃分的永久性居住屋宇單位數目統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "永久性居住屋宇单位",
+      "description": "政府统计处提供的按地区及类型划分的永久性居住屋宇单位数目统计。"
     }
   ]
 }

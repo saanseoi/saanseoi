@@ -1,0 +1,21 @@
+{
+  "versionHash": "sha256:c795d8feb016107a9cb7ef1ab2f9d102d3c24dfa0c3b6687f7b1d127d90825f0",
+  "code": "rs-division-hkgov-pland-pu-merge-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "resolve-geography-identities",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "normalise-planning-divisions",
+      "ruleFixture": "planning-division-normalisation"
+    },
+    {
+      "operationCode": "provenance_division_area_geometry",
+      "ruleFixture": "division-area-geometry"
+    }
+  ]
+}

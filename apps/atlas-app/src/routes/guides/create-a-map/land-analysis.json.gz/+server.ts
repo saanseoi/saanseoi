@@ -1,9 +1,10 @@
+import { env } from 'cloudflare:workers'
 import { error, type RequestHandler } from '@sveltejs/kit'
 
 const landAnalysisKey = 'guides/create-a-map/land-analysis.json.gz'
 
-export const GET: RequestHandler = async ({ platform, request }) => {
-  const guideAssets = platform?.env.R2_GUIDE_ASSETS
+export const GET: RequestHandler = async ({ request }) => {
+  const guideAssets = env.R2_GUIDE_ASSETS
   if (!guideAssets) {
     error(503, 'Land-analysis storage is unavailable in this environment.')
   }

@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "suppressions": [
+    {
+      "id": "ap-lei-chau-lei-moon-unnamed-duplicate",
+      "estate": "AP LEI CHAU ESTATE",
+      "zhHantEstateName": "鴨脷洲邨",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "owner": {
+        "csu": "3372511726T20141201",
+        "enBuildingName": "LEI MOON HSE HIGH BLK & LOW BLK",
+        "zhHantBuildingName": "利滿樓高座及低座"
+      },
+      "duplicate": {
+        "csu": "3370111759T20150127",
+        "streetNumber": "322",
+        "enStreetNames": ["AP LEI CHAU BRIDGE ROAD", null],
+        "zhHantStreetNames": ["鴨脷洲橋道", null],
+        "coordinates": [[114.15197, 22.24457], [114.15197, 22.24458]]
+      },
+      "decision": "Suppress the unnamed zero-unit premise as a duplicate of Lei Moon House. Retain it in Lei Moon House provenance, but do not expose it as a Low Block section or a second canonical address.",
+      "authority": "User decision, 2026-09-07: it looks more like Lei Moon House itself; drop it."
+    },
+    {
+      "id": "fu-tung-market-unnamed-duplicate",
+      "estate": "FU TUNG ESTATE",
+      "zhHantEstateName": "富東邨",
+      "sourceVersionFrom": "2024-12-12.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "owner": {
+        "csu": "1207716594T20080104",
+        "enBuildingName": "FU TUNG MARKET",
+        "zhHantBuildingName": "富東街市"
+      },
+      "duplicate": {
+        "csu": "1207716594T20080104",
+        "streetNumber": "6",
+        "enStreetNames": ["FU TUNG STREET"],
+        "zhHantStreetNames": ["富東街"],
+        "coordinates": [[113.94213, 22.28808]]
+      },
+      "decision": "Suppress the two-release unnamed source assertion as an exact component-and-point duplicate of Fu Tung Market. Retain its raw ALS assertion on the market's provenance; it is not a second building, an alias or an unnamed estate premise.",
+      "authority": "Automated application of the reviewed exact unnamed-duplicate rule: same CSU, bilingual estate and street components, point and named owner; no block or building name on the duplicate."
+    }
+  ]
+}

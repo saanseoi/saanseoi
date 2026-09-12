@@ -7,7 +7,6 @@ import {
   formatAddressApiReleaseSetReadiness,
   formatDivisionApiReleaseSetReadiness,
   parseDivisionReleaseSetCohortKey,
-  rainbowWaveText,
   resolveDivisionDomainCode,
   selectPublishedApiReleaseSetPublications,
 } from './upload.ts'
@@ -35,7 +34,7 @@ describe('upload command address prerequisites', () => {
           source: 'path',
           sourceVersion: 'cohortKey',
           theme: 'path',
-          type: 'path',
+          resourceType: 'path',
         },
         originalFileName: 'address.parquet',
         regionCode: 'hk',
@@ -46,7 +45,7 @@ describe('upload command address prerequisites', () => {
         sourceVersion: '2025-09-24.0',
         supersedesDatasetId: null,
         theme: 'addresses',
-        type: 'address',
+        resourceType: 'address',
       },
       {
         divisionCohortKey: '2025-09-10.0',
@@ -63,7 +62,7 @@ describe('upload command address prerequisites', () => {
       expect.objectContaining({
         cohortKey: '2025-09-10.0',
         regionCode: 'hk',
-        type: 'address',
+        resourceType: 'address',
       }),
     )
   })
@@ -86,7 +85,7 @@ describe('division geometry upload prerequisites', () => {
             source: 'path',
             sourceVersion: 'cohortKey',
             theme: 'path',
-            type: 'path',
+            resourceType: 'path',
           },
           originalFileName: 'district-council-districts-2016.gml',
           regionCode: 'hk',
@@ -97,7 +96,7 @@ describe('division geometry upload prerequisites', () => {
           sourceVersion: '2016',
           supersedesDatasetId: null,
           theme: 'divisions',
-          type: 'divisionArea',
+          resourceType: 'divisionArea',
         },
       ),
     ).resolves.toBeUndefined()
@@ -119,12 +118,6 @@ describe('division API release set readiness display', () => {
     expect(
       parseDivisionReleaseSetCohortKey('data-hk-divisions-2025-09-24.0--overture'),
     ).toBe('2025-09-24.0')
-  })
-
-  test('renders a release set code as a rainbow wave', () => {
-    expect(rainbowWaveText('set')).toBe(
-      '\u001B[38;5;196ms\u001B[38;5;202me\u001B[38;5;226mt\u001B[39m',
-    )
   })
 
   test('renders the required members from the active API composition', () => {
@@ -230,10 +223,24 @@ describe('address API release set readiness display', () => {
     ).toBe(
       [
         'HK / official / 2025-09-24.0',
-        '  \u001B[32m✓\u001B[39m address  available',
+        '  \u001B[32m✓\u001B[39m \u001B[32maddress\u001B[39m  \u001B[32mavailable\u001B[39m',
         '',
-        'Out of Cohort',
-        '  \u001B[32m✓\u001B[39m division (overture)  2025-12-17.0',
+        '\u001B[38;5;208mOut of Cohort\u001B[39m',
+        '  \u001B[32m✓\u001B[39m \u001B[32mdivision\u001B[39m \u001B[38;5;208m(overture)\u001B[39m  2025-12-17.0',
+      ].join('\n'),
+    )
+  })
+
+  test('marks an unavailable address as a warning', () => {
+    expect(
+      formatAddressApiReleaseSetReadiness(
+        { cohortKey: '2025-09-24.0', regionCode: 'hk' },
+        false,
+      ),
+    ).toBe(
+      [
+        'HK / official / 2025-09-24.0',
+        '  \u001B[33m○\u001B[39m \u001B[32maddress\u001B[39m  \u001B[33munavailable\u001B[39m',
       ].join('\n'),
     )
   })
@@ -251,7 +258,7 @@ describe('Home Affairs Department geometry prerequisites', () => {
       {
         source: 'hkgov-had',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -282,7 +289,7 @@ describe('C&SD geometry prerequisites', () => {
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -306,7 +313,7 @@ describe('C&SD geometry prerequisites', () => {
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
         source: 'hkgov-censtatd',
         theme: 'divisions',
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       } as never,
       {
         resolveRemotePublishedDivisionSnapshot:
@@ -332,7 +339,7 @@ describe('Planning Department geometry prerequisites', () => {
           source: 'hkgov-pland-pu',
           sourceVersion: '2001',
           theme: 'divisions',
-          type: 'divisionArea',
+          resourceType: 'divisionArea',
         } as never,
         {
           resolveRemotePublishedDivisionSnapshot: async () => null,

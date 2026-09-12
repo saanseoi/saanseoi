@@ -29,6 +29,7 @@ import { divisionRoutes } from './routes/divisions/v0/divisions'
 import { addressRoutes } from './routes/addresses/v0/addresses'
 import { placeRoutes } from './routes/places/v0/places'
 import { registryRoutes } from './routes/v0/registry'
+import { identityBridgeRoutes } from './routes/v0/identityBridge'
 import { managedAssetRoutes } from './routes/v0/assets'
 import { styleRoutes } from './routes/v0/styles'
 import { streetRoutes } from './routes/streets/v0/streets'
@@ -357,6 +358,11 @@ export const sortOperations = (first: { path: string }, second: { path: string }
   return first.path.localeCompare(second.path)
 }
 
+// Forward aliases before middleware so each request is authorised and metered once.
+app.all('/v0/*', c => forwardMajorVersionAlias(c, '/v0'))
+app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
+app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
+
 app.use('*', poweredBy())
 for (const path of apiRoutePaths) {
   app.use(path, prettyJSON())
@@ -379,6 +385,12 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
+for (const path of apiRoutePaths) {
+  app.use(path, async (c, next) => {
+    await next()
+    if (!isPublicMetadataPath(c.req.path)) c.header('cache-control', 'no-store')
+  })
+}
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -559,6 +571,15 @@ for (const path of apiRoutePaths) {
         403,
       )
     }
+    if (lease.status === 'exhausted') {
+      return c.json(
+        {
+          error: 'quota_exceeded',
+          message: 'The public API key quota has been exceeded.',
+        },
+        429,
+      )
+    }
     const rateLimit = await c.env.API_RATE_LIMIT.limit({ key: lease.keyId })
     if (!rateLimit.success) {
       return c.json(
@@ -578,7 +599,13 @@ for (const path of apiRoutePaths) {
   })
 }
 
-for (const family of ['addresses', 'divisions', 'stats'] as const) {
+for (const family of [
+  'addresses',
+  'divisions',
+  'places',
+  'stats',
+  'streets',
+] as const) {
   for (const version of ['v0', 'v0.1'] as const) {
     app.use(`/${family}/${version}/sources`, (c, next) =>
       streamSourceRecordsMiddleware(family, c, next),
@@ -603,7 +630,14 @@ function isSaanSeoiSiteOrigin(origin: string | undefined) {
   if (!origin) return false
   try {
     const url = new URL(origin)
-    return url.protocol === 'https:' && url.hostname === 'saanseoi.hk' && !url.port
+    return (
+      url.origin === 'https://saanseoi.hk' &&
+      !url.username &&
+      !url.password &&
+      url.pathname === '/' &&
+      !url.search &&
+      !url.hash
+    )
   } catch {
     return false
   }
@@ -666,6 +700,7 @@ app.openapiRoutes([
   ...metaRoutes,
   ...probeRoutes,
   ...registryRoutes,
+  ...identityBridgeRoutes,
   ...sourceRoutes,
   ...divisionRoutes,
   ...addressRoutes,
@@ -849,10 +884,6 @@ function forwardMajorVersionAlias(c: Context<AppEnv>, majorPath: string) {
     return app.fetch(request, c.env)
   }
 }
-
-app.all('/v0/*', c => forwardMajorVersionAlias(c, '/v0'))
-app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
-app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
 
 app.get('/llms.txt', async c => {
   const document = getOpenApiDocument(c.env.ATLAS_BASE_URL)

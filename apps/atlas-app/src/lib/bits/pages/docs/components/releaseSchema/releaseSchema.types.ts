@@ -12,7 +12,10 @@ export type OpenApiSchema = {
   enum?: Array<string | number | boolean | null>
   format?: string
   items?: OpenApiSchema
+  maximum?: number
   maxLength?: number
+  minimum?: number
+  minItems?: number
   minLength?: number
   nullable?: boolean
   oneOf?: OpenApiSchema[]

@@ -71,6 +71,7 @@ export const sampleValueTones = [
 const sampleApiTargets = {
   'api-addresses-v0.1': { path: '/addresses/v0' },
   'api-divisions-v0.1': { path: '/divisions/v0' },
+  'api-stats-v0.1': { path: '/stats/v0' },
 } as const
 
 export function supportsReleaseSamples(apiVersion: string) {
@@ -79,6 +80,30 @@ export function supportsReleaseSamples(apiVersion: string) {
 
 export function getSampleApiPath(apiVersion: string) {
   return sampleApiTargets[apiVersion as keyof typeof sampleApiTargets]?.path ?? null
+}
+
+export function getReleaseSampleLoadErrorMessage(status: number, body: unknown) {
+  if (
+    status === 503 &&
+    body &&
+    typeof body === 'object' &&
+    (body as { error?: unknown }).error === 'snapshot_not_ready' &&
+    typeof (body as { message?: unknown }).message === 'string'
+  ) {
+    return (body as { message: string }).message
+  }
+  return 'Examples could not be loaded. Please try again.'
+}
+
+export function getSamplePageOffsets(maximumOffset: number, count: number) {
+  const offsets = new Set<number>()
+  const size = Math.min(count, maximumOffset + 1)
+  // Floyd's sampling algorithm: one iteration per offset, without retries.
+  for (let index = maximumOffset + 1 - size; index <= maximumOffset; index += 1) {
+    const candidate = Math.floor(Math.random() * (index + 1))
+    offsets.add(offsets.has(candidate) ? index : candidate)
+  }
+  return [...offsets]
 }
 
 function toSampleFields(source: unknown): ReleaseSampleField[] {

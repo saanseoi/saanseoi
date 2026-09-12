@@ -1,4 +1,5 @@
-import { command, getRequestEvent } from '$app/server'
+import { env } from 'cloudflare:workers'
+import { command } from '$app/server'
 import { createAMapSelectionChoices } from '#lib/guides/createAMapSelections.js'
 import { writeServerProductUsage } from '#lib/analytics/productUsage.js'
 import { z } from 'zod'
@@ -41,7 +42,7 @@ const notSelected = 'not-selected'
  * `selectionKeys` order; double1: event count.
  */
 export const trackCreateAMapSelection = command(selectionSchema, selection => {
-  getRequestEvent().platform?.env.MAP_GUIDE_SELECTIONS.writeDataPoint({
+  env.MAP_GUIDE_SELECTIONS.writeDataPoint({
     blobs: [
       'configuration',
       'v1',

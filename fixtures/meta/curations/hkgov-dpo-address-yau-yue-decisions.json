@@ -1,0 +1,3301 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "yau-lai-street-complex",
+      "estate": "YAU LAI ESTATE",
+      "district": "kwun_tong",
+      "sourceCsu": "4235218003T20050430",
+      "retainSourcePremise": false,
+      "streetOverride": null,
+      "coordinates": null,
+      "untilRevoked": true,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "f9478e7e4939e5a8ca6d83c9001eb9315e2f7acae51539216cb72b08bfbade85"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hashes": [],
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "da695dba8225a69a51263c4c47ea5d07b0197858edf0e73a178c1a78e2df0576",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23591, 22.30095]
+            },
+            "properties": {
+              "Northing": 818002,
+              "Easting": 842352,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4235218003T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "油塘道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "油麗邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YAU LAI ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "YAU TONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "4235218003T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain this independent estate-level street address as a complex. Yau Lai is the parent of the other estate premises; leave Fung Lai/Ying Lai ownership unresolved. Yue Wan persists until revoked."
+    },
+    {
+      "id": "yau-oi-street-complex",
+      "estate": "YAU OI ESTATE",
+      "district": "tuen_mun",
+      "sourceCsu": "1538627446T20050430",
+      "retainSourcePremise": false,
+      "streetOverride": null,
+      "coordinates": null,
+      "untilRevoked": true,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "0f9fc93dbec1580cb86ddbe25cdbb88ffab614d4c88aaf6e45a9d11563805d36"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [
+            "cc3fe033c43957cc21ada773d4cf92fa4f3409299a45c3e5158a6837bee7d248"
+          ],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "3ea7a7804abc20a55519e63dc631d4c5a76bce60297ebbd4385c1116f3b42fe5",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [113.97393, 22.38612]
+            },
+            "properties": {
+              "Northing": 827447,
+              "Easting": 815369,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "1538627446T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "屯門區",
+                    "ChiStreet": {
+                      "StreetName": "友愛路",
+                      "BuildingNoFrom": "3"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "友愛邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YAU OI ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "3",
+                      "StreetName": "YAU OI ROAD"
+                    },
+                    "EngDistrict": "TUEN MUN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "1538627446T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "b52ca3b032af03ae431085d34be3a773a8c5fc38a94d4efe73a27ec1d3c61e36",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [113.9741, 22.38612]
+            },
+            "properties": {
+              "Northing": 827446,
+              "Easting": 815386,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "1538627446T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "屯門區",
+                    "ChiStreet": {
+                      "StreetName": "友愛路",
+                      "BuildingNoFrom": "3"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "友愛邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YAU OI ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "3",
+                      "StreetName": "YAU OI ROAD"
+                    },
+                    "EngDistrict": "TUEN MUN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "1538627446T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain this independent estate-level street address as a complex. Yau Lai is the parent of the other estate premises; leave Fung Lai/Ying Lai ownership unresolved. Yue Wan persists until revoked."
+    },
+    {
+      "id": "yue-wan-street-complex",
+      "estate": "YUE WAN ESTATE",
+      "district": "eastern",
+      "sourceCsu": "4295214074T20130816",
+      "retainSourcePremise": false,
+      "streetOverride": null,
+      "coordinates": null,
+      "untilRevoked": true,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "5bbcaa8c65b9f06ff912813838583d1fa81b22f471279799dee171d3a6414e7f"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hashes": [],
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "877b45c82cf3910470ab3f301aa2b764a9a9b77a7cfddf32ca54797ea31bc601",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24184, 22.26555]
+            },
+            "properties": {
+              "Northing": 814082,
+              "Easting": 842964,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4295214074T20130816"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4295214074T20130816"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: retain this independent estate-level street address as a complex. Yau Lai is the parent of the other estate premises; leave Fung Lai/Ying Lai ownership unresolved. Yue Wan persists until revoked."
+    }
+  ],
+  "suppression": {
+    "id": "yue-wan-unnamed-pump-vicinity",
+    "csu": "4304314177T20050430",
+    "ownerCsu": "4293914229T20050430",
+    "sourceVersions": [
+      "2024-07-25.0",
+      "2024-07-31.0",
+      "2024-08-21.0",
+      "2024-08-25.0",
+      "2024-08-28.0",
+      "2024-09-01.0",
+      "2024-09-02.0",
+      "2024-09-03.0",
+      "2024-10-18.0",
+      "2024-11-13.0",
+      "2024-12-12.0",
+      "2025-01-23.0",
+      "2025-02-25.0",
+      "2025-03-21.0",
+      "2025-04-26.0",
+      "2025-05-22.0",
+      "2025-06-20.0",
+      "2025-08-13.0",
+      "2025-08-28.0",
+      "2025-09-03.0",
+      "2025-11-04.0",
+      "2025-12-16.0",
+      "2026-02-04.0",
+      "2026-04-03.0",
+      "2026-04-22.0",
+      "2026-04-25.0",
+      "2026-07-08.0",
+      "2026-07-10.0",
+      "2026-07-22.0",
+      "2026-08-19.0"
+    ],
+    "assertions": [
+      {
+        "hashes": [
+          "065c571c4888624756c49a363f2c6055b16b88d829c5caf2c6393e9298574d79",
+          "7f43759a40a57f9f47a5437283dd9fed61157a0960025783e9647ad96fb9f293"
+        ],
+        "sourceVersions": [
+          "2024-07-25.0",
+          "2024-07-31.0",
+          "2024-08-21.0",
+          "2024-08-25.0",
+          "2024-08-28.0",
+          "2024-09-01.0",
+          "2024-09-02.0",
+          "2024-09-03.0",
+          "2024-10-18.0",
+          "2024-11-13.0",
+          "2024-12-12.0",
+          "2025-01-23.0",
+          "2025-02-25.0",
+          "2025-03-21.0",
+          "2025-04-26.0",
+          "2025-05-22.0",
+          "2025-06-20.0",
+          "2025-08-13.0",
+          "2025-08-28.0",
+          "2025-09-03.0",
+          "2025-11-04.0",
+          "2025-12-16.0",
+          "2026-02-04.0"
+        ]
+      },
+      {
+        "hashes": [
+          "8daeef6c7a6c5b87b6ed28321a475bc0ae9c4b6b6415412f6c236e3f32789440",
+          "c037ca56d50006803e23d75715f779d8fbded2f29c0cb61a3413502f18a256ff"
+        ],
+        "sourceVersions": ["2026-04-03.0", "2026-04-22.0"]
+      },
+      {
+        "hashes": [
+          "6fe4489d3bc1512629178db9e7038d6c13a5fe9fa8855409adedb771790e0969",
+          "8daeef6c7a6c5b87b6ed28321a475bc0ae9c4b6b6415412f6c236e3f32789440"
+        ],
+        "sourceVersions": ["2026-04-25.0", "2026-07-08.0", "2026-07-10.0"]
+      },
+      {
+        "hashes": [
+          "4a1536f4a0b98f142d73065d112bbadf745ce851a4212eea9d6adc82457c6fc0",
+          "6fe4489d3bc1512629178db9e7038d6c13a5fe9fa8855409adedb771790e0969"
+        ],
+        "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+      }
+    ],
+    "threeAssertions": [
+      {
+        "hashes": [],
+        "sourceVersions": [
+          "2024-07-25.0",
+          "2024-07-31.0",
+          "2024-08-21.0",
+          "2024-08-25.0",
+          "2024-08-28.0",
+          "2024-09-01.0",
+          "2024-09-02.0",
+          "2024-09-03.0",
+          "2024-10-18.0",
+          "2024-11-13.0",
+          "2024-12-12.0",
+          "2025-01-23.0",
+          "2025-02-25.0",
+          "2025-03-21.0",
+          "2025-04-26.0",
+          "2025-05-22.0",
+          "2025-06-20.0",
+          "2025-08-13.0",
+          "2025-08-28.0",
+          "2025-09-03.0",
+          "2025-11-04.0",
+          "2025-12-16.0",
+          "2026-02-04.0",
+          "2026-04-03.0",
+          "2026-04-22.0",
+          "2026-04-25.0",
+          "2026-07-08.0",
+          "2026-07-10.0",
+          "2026-07-22.0",
+          "2026-08-19.0"
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "version": "2024-07-25.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-07-31.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-08-21.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-08-25.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-08-28.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-09-01.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-09-02.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-09-03.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-10-18.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-11-13.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2024-12-12.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-01-23.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-02-25.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-03-21.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-04-26.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-05-22.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-06-20.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-08-13.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-08-28.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-09-03.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-11-04.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2025-12-16.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-02-04.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26688]
+            },
+            "properties": {
+              "Northing": 814230,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-04-03.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-04-22.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-04-25.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24237, 22.26704]
+            },
+            "properties": {
+              "Northing": 814247,
+              "Easting": 843019,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4301914247T20201005"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-07-08.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24237, 22.26704]
+            },
+            "properties": {
+              "Northing": 814247,
+              "Easting": 843019,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4301914247T20201005"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-07-10.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24237, 22.26704]
+            },
+            "properties": {
+              "Northing": 814247,
+              "Easting": 843019,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4301914247T20201005"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-07-22.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24237, 22.26704]
+            },
+            "properties": {
+              "Northing": 814247,
+              "Easting": 843019,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4301914247T20201005"
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "version": "2026-08-19.0",
+        "features": [
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.2416, 22.26687]
+            },
+            "properties": {
+              "Northing": 814229,
+              "Easting": 842939,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4293914229T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    },
+                    "BuildingName": "房屋署漁灣邨泵房"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "YUE WAN ESTATE PUMP HOUSE",
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4293914229T20050430"
+                }
+              }
+            }
+          },
+          {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.24237, 22.26704]
+            },
+            "properties": {
+              "Northing": 814247,
+              "Easting": 843019,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4304314177T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "柴灣道",
+                      "BuildingNoFrom": "365"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "漁灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "YUE WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "365",
+                      "StreetName": "CHAI WAN ROAD"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4301914247T20201005"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "authority": "User decision, 2026-09-08: drop the unnamed assertion that lingers around the pump house; retain named pump house and raw evidence."
+  }
+}

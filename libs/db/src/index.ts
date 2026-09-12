@@ -4,6 +4,8 @@ export * from './constants'
 export * from './placementProbe'
 export * from './routing'
 export * from './versioning'
+export * from './addressGranularity'
+export * from './divisionTaxonomy'
 export * as metaSchema from './schema/meta'
 export * as currentSchema from './schema/current'
 export * as historySchema from './schema/history'
@@ -21,9 +23,12 @@ export {
   statsFieldComparabilityReasons,
   statsFieldComparabilityStatuses,
   statsStatisticKinds,
+  addressBlockTypes,
   toIsoTimestamp,
   type EvidenceAsset,
+  type AddressBlockType,
   type CanonicalStatsGeography,
+  type CanonicalStatsFieldSource,
   type StreetChangelogKind,
   type StreetEvidenceAsset,
   type StreetEvidenceAssetRole,
@@ -45,4 +50,19 @@ export type {
   LandsdStreetNoticeType,
 } from './schema/source/hkgovLandsd'
 export * from './schema/meta'
-export { and, asc, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
+export {
+  and,
+  asc,
+  desc,
+  eq,
+  getColumnTable,
+  getTableColumns,
+  getTableName,
+  inArray,
+  isNull,
+  ne,
+  or,
+  sql,
+  type AnyColumn,
+  type SQL,
+} from 'drizzle-orm'

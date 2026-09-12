@@ -5,6 +5,7 @@ import {
   ErrorResponseSchema,
   SourceRecordsQuerySchema,
   SourceRecordsResponseSchema,
+  StreetSourceRecordsResponseSchema,
   SourceReleasesQuerySchema,
   SourceReleasesResponseSchema,
   ValidationErrorOpenAPIResponse,
@@ -12,6 +13,7 @@ import {
 } from '../../../schema'
 import {
   listSourceRecords,
+  getSourceRecordSchema,
   listSourceReleases,
   SourceRecordRequestError,
   streamSourceRecordsNdjson,
@@ -22,6 +24,23 @@ import type { AccessAttribution } from '../../../services/accessAnalytics'
 import { openApiText } from '../../../lib/openapi-i18n'
 
 const SOURCE_FAMILIES = [
+  {
+    family: 'streets',
+    label: 'Street',
+    sourceReleasesDescription: 'Published source releases contributing to Streets.',
+    sourceReleaseUnavailableDescription:
+      'Source release is unavailable for street source-record access.',
+  },
+  {
+    family: 'places',
+    label: 'Place',
+    sourceReleasesDescription: openApiText(
+      'openapi_place_source_releases_list_description',
+    ),
+    sourceReleaseUnavailableDescription: openApiText(
+      'openapi_place_source_release_unavailable_description',
+    ),
+  },
   {
     family: 'addresses',
     label: 'Address',
@@ -109,7 +128,10 @@ function sourceRecordsRouteConfig(
       200: {
         content: {
           'application/json': {
-            schema: SourceRecordsResponseSchema,
+            schema:
+              family === 'streets'
+                ? StreetSourceRecordsResponseSchema
+                : SourceRecordsResponseSchema,
           },
           'application/x-ndjson': {
             schema: z.string().openapi({
@@ -142,11 +164,56 @@ function sourceRecordsRouteConfig(
 }
 
 function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number]) {
-  return SOURCE_API_VERSIONS.flatMap(version => {
+  // Streets forwards its entire major alias to v0.1; registering only part of
+  // that alias would hide the canonical Street paths from its OpenAPI document.
+  const versions =
+    familyDefinition.family === 'streets' ? (['v0.1'] as const) : SOURCE_API_VERSIONS
+  return versions.flatMap(version => {
     const sourceReleasesConfig = sourceReleasesRouteConfig(familyDefinition, version)
     const sourceRecordsConfig = sourceRecordsRouteConfig(familyDefinition, version)
+    const sourceSchemaConfig = createRoute({
+      method: 'get',
+      path: `/${familyDefinition.family}/${version}/source-schema`,
+      operationId: `get${familyDefinition.label}SourceSchema${version === 'v0' ? 'V0' : 'V01'}`,
+      tags: ['Sources'],
+      request: {
+        query: SourceRecordsQuerySchema.pick({ sourceRelease: true, region: true }),
+      },
+      responses: {
+        200: {
+          description:
+            'Field types present in all retained publisher records for the selected source release. This inventory is not an upstream validation specification.',
+          content: {
+            'application/json': {
+              schema: z.object({
+                type: z.literal('object'),
+                additionalProperties: z.boolean(),
+                properties: z.record(z.string(), z.unknown()),
+              }),
+            },
+          },
+        },
+        404: sourceRecordsConfig.responses[404],
+        422: ValidationErrorOpenAPIResponse,
+      },
+    })
 
     return [
+      defineOpenAPIRoute<typeof sourceSchemaConfig, AppEnv>({
+        route: sourceSchemaConfig,
+        handler: async c => {
+          const query = c.req.valid('query')
+          const schema = await getSourceRecordSchema({
+            env: c.env,
+            family: familyDefinition.family,
+            metaDb: c.var.metaDb,
+            region: query.region,
+            sourceReleaseCode: query.sourceRelease,
+          })
+          if (!schema) return sourceRecordsUnavailable(c)
+          return c.json(schema, 200)
+        },
+      }),
       defineOpenAPIRoute<typeof sourceReleasesConfig, AppEnv>({
         route: sourceReleasesConfig,
         handler: async c => {
@@ -161,6 +228,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
           const sourceReleases = await listSourceReleases({
             datasetCode: query.dataset,
             family: familyDefinition.family,
+            region: query.region,
             metaDb: c.var.metaDb,
             selector,
           })
@@ -181,6 +249,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
             cursor: query.cursor,
             env: c.env,
             family: familyDefinition.family,
+            region: query.region,
             includeGeometry: query.include === 'geometry',
             metaDb: c.var.metaDb,
             sample: query.sample,
@@ -253,6 +322,7 @@ export async function streamSourceRecordsMiddleware(
       cursor: query.cursor,
       env: c.env,
       family,
+      region: query.region,
       includeGeometry: query.include === 'geometry',
       metaDb: c.var.metaDb,
       sourceReleaseCode: query.sourceRelease,

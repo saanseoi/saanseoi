@@ -7,7 +7,7 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import { readHkgovCenstatdDistrictGmlArchive } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
+import { readHkgovCenstatdDistrictGmlArchive } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatd.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -70,7 +70,7 @@ export async function runHkgovCenstatdDistrictArchiveIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'divisions',
-          type: 'divisionArea',
+          'resource-type': 'divisionArea',
           yes: true,
         },
       },

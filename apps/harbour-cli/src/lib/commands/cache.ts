@@ -6,14 +6,15 @@ import {
   updateDbCacheProgress,
   type CacheTableProfile,
 } from '../dbCache/localDbCache.ts'
-import { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import { readLocalCompletedReleaseCodes } from '../dbCache/localDbCacheReads.ts'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
   colorTeal,
   formatCompletedPhaseLabel,
   formatDurationMs,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 
 export async function runCacheRebuildCommand(
   args: ParsedArgs,
@@ -29,7 +30,8 @@ export async function runCacheRebuildCommand(
     ) ||
     (cacheTableProfile !== undefined &&
       cacheTableProfile !== 'divisionGeometry' &&
-      cacheTableProfile !== 'planningDivisionGeometry') ||
+      cacheTableProfile !== 'planningDivisionGeometry' &&
+      cacheTableProfile !== 'places') ||
     (cohortKey !== undefined &&
       (typeof cohortKey !== 'string' || !/^\d{4}$/.test(cohortKey))) ||
     (cohortKey !== undefined && cacheTableProfile !== 'planningDivisionGeometry') ||
@@ -37,11 +39,11 @@ export async function runCacheRebuildCommand(
   ) {
     printUsage()
     throw new Error(
-      '`cache:rebuild` accepts `--target preview|production`, optional `--table-profile divisionGeometry|planningDivisionGeometry`, and `--cohort-key YYYY` with the Planning profile.',
+      '`cache:rebuild` accepts `--target preview|production`, optional `--table-profile divisionGeometry|planningDivisionGeometry|places`, and `--cohort-key YYYY` with the Planning profile.',
     )
   }
 
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const startedAt = Date.now()
 
   try {
@@ -86,7 +88,7 @@ export async function runCacheSeedResetCommand(
     throw new Error('`cache:seed-reset` accepts only `--target preview|production`.')
   }
 
-  const progress = new LocalUploadProgress()
+  const progress = new OperationProgress()
   const startedAt = Date.now()
 
   try {
@@ -123,18 +125,20 @@ export async function runCacheCompletedReleasesCommand(
       key => key !== 'target' && key !== 'table-profile',
     ) ||
     (cacheTableProfile !== undefined &&
-      cacheTableProfile !== 'planningDivisionGeometry') ||
-    !target.remote
+      cacheTableProfile !== 'planningDivisionGeometry' &&
+      cacheTableProfile !== 'places')
   ) {
     printUsage()
     throw new Error(
-      '`cache:completed-releases` accepts `--target preview|production` and optional `--table-profile planningDivisionGeometry`.',
+      '`cache:completed-releases` accepts `--target local|preview|production` and optional `--table-profile planningDivisionGeometry|places`.',
     )
   }
 
-  const releaseCodes = await readRemoteCachedCompletedReleaseCodes(target, {
-    allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
-  })
+  const releaseCodes = target.remote
+    ? await readRemoteCachedCompletedReleaseCodes(target, {
+        allowPartialCache: cacheTableProfile === 'planningDivisionGeometry',
+      })
+    : await readLocalCompletedReleaseCodes()
   if (releaseCodes.length > 0) {
     process.stdout.write(`${releaseCodes.join('\n')}\n`)
   }

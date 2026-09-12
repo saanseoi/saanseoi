@@ -5,15 +5,101 @@ import { join } from 'node:path'
 
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
+import { mirrorBinaryGeometryTable } from './localDbCacheGeometry.ts'
 
 import {
   partitionRemoteGeometryRows,
+  remoteGeometryKeyRangeSql,
   assertBinaryGeometryRow,
   geometrySha256,
   reassembleHexChunks,
   rejectReplacementCharacter,
   type BinaryGeometryRow,
 } from './binaryGeometryMirror.ts'
+
+test('geometry metadata keyset pagination visits every composite key exactly once', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'geometry-keyset-'))
+  const db = new Database(':memory:')
+  try {
+    db.exec(
+      'CREATE TABLE address2d (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id))',
+    )
+    const insert = db.query('INSERT INTO address2d VALUES (?,?,?)')
+    for (let i = 0; i < 251; i++) {
+      insert.run(
+        i < 137 ? "a'quoted" : 'b',
+        String(i).padStart(4, '0'),
+        '{"type":"Point","coordinates":[114,22]}',
+      )
+    }
+    const queries: string[] = []
+    const result = await mirrorBinaryGeometryTable(
+      {
+        bindingName: 'DB_CURRENT',
+        databaseId: 'test',
+        databaseName: 'test',
+        localDatabaseId: 'test',
+      },
+      'address2d',
+      directory,
+      {
+        query: async sql => {
+          queries.push(sql)
+          return db.query(sql).all() as Record<string, unknown>[]
+        },
+      },
+    )
+    const rows = (await Bun.file(result.binaryRowsPath!).json()) as {
+      values: { id: string }
+    }[]
+    expect(rows.map(row => row.values.id)).toEqual(
+      Array.from({ length: 251 }, (_, i) => String(i).padStart(4, '0')),
+    )
+    expect(queries.filter(sql => sql.startsWith('SELECT')).length).toBe(3)
+    expect(queries.some(sql => /\bOFFSET\b/.test(sql))).toBe(false)
+  } finally {
+    db.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('geometry chunk reads seek composite primary-key bounds and preserve quoted keys', () => {
+  const db = new Database(':memory:')
+  try {
+    db.exec(
+      'CREATE TABLE geometry(snapshotId TEXT, id TEXT, payload TEXT, PRIMARY KEY(snapshotId,id))',
+    )
+    const insert = db.query('INSERT INTO geometry VALUES (?,?,?)')
+    for (const id of ['a', "b'quoted", 'c', 'd']) insert.run('snapshot', id, id)
+    insert.run('other', 'c', 'outside')
+    const predicate = remoteGeometryKeyRangeSql(
+      ['snapshotId', 'id'],
+      { snapshotId: 'snapshot', id: "b'quoted" },
+      { snapshotId: 'snapshot', id: 'c' },
+    )
+    expect(
+      db
+        .query(`SELECT id FROM geometry WHERE ${predicate} ORDER BY snapshotId,id`)
+        .all(),
+    ).toEqual([{ id: "b'quoted" }, { id: 'c' }])
+    const plan = db
+      .query(`EXPLAIN QUERY PLAN SELECT payload FROM geometry WHERE ${predicate}`)
+      .all() as { detail: string }[]
+    expect(plan.some(row => row.detail.includes('SEARCH'))).toBe(true)
+    const after = remoteGeometryKeyRangeSql(['snapshotId', 'id'], {
+      snapshotId: 'snapshot',
+      id: "b'quoted",
+    })
+    expect(
+      db.query(`SELECT id FROM geometry WHERE ${after} ORDER BY snapshotId,id`).all(),
+    ).toEqual([{ id: 'c' }, { id: 'd' }])
+    expect(() => remoteGeometryKeyRangeSql(['id'], { id: null }, { id: 'c' })).toThrow(
+      'invalid primary-key',
+    )
+  } finally {
+    db.close()
+  }
+})
 
 function compressedCsndFixture() {
   // This fixture is deliberately non-UTF-8 after Brotli compression. Its SQL
@@ -140,7 +226,7 @@ describe('binary geometry cache mirror', () => {
           ],
           destinationPath,
           dumpPaths: [dumpPath],
-          type: 'import-dumps',
+          kind: 'import-dumps',
         }),
       )
       const workerPath = join(import.meta.dir, 'sqliteCacheWorker.ts')

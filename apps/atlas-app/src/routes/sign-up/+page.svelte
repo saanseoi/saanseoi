@@ -9,7 +9,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
-import { getAuthRedirectPath } from '#lib/authRedirect.js'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
 
 let { data } = $props()
 let name = $state('')
@@ -25,28 +25,37 @@ let callbackUrl = $derived(
 )
 
 const signUp = async () => {
+  if (busy) return
   busy = true
   error = null
-  const result = await authClient.signUp.email({
-    name,
-    email,
-    password,
-    callbackURL: callbackUrl,
-  })
-  busy = false
-  if (result.error) error = result.error.message ?? m.auth_sign_up_error()
-  else message = m.auth_verify_email_message()
+  message = null
+  try {
+    const result = await authClient.signUp.email({
+      name,
+      email,
+      password,
+      callbackURL: `${getSignInHref(callbackUrl)}&verification=1`,
+    })
+    if (result.error) error = result.error.message ?? m.auth_sign_up_error()
+    else message = m.auth_verify_email_message()
+  } catch {
+    error = m.auth_sign_up_error()
+  } finally {
+    busy = false
+  }
 }
 
 const socialSignUp = async (provider: SocialProvider) => {
   if (busy) return
   busy = true
   error = null
+  message = null
   pendingProvider = provider
   try {
     const result = await authClient.signIn.social({
       provider,
       callbackURL: callbackUrl,
+      errorCallbackURL: getSignInHref(callbackUrl),
     })
     if (!result.error) return
     error = result.error.message ?? m.auth_sign_up_error()
@@ -106,6 +115,7 @@ const openEmailForm = () => {
   </div>
   {#if showEmailForm}
     <form
+      aria-busy={busy}
       class="mt-7 space-y-4"
       onsubmit={event => { event.preventDefault(); signUp() }}
     >
@@ -113,6 +123,7 @@ const openEmailForm = () => {
         >{m.auth_name()}
         <input
           bind:value={name}
+          autocomplete="name"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
         ></label
@@ -120,6 +131,7 @@ const openEmailForm = () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"
@@ -128,6 +140,7 @@ const openEmailForm = () => {
         >{m.common_password()}
         <input
           bind:value={password}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required
@@ -135,21 +148,23 @@ const openEmailForm = () => {
         ></label
       >
       {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
       {#if message}
-        <p class="font-body text-body-sm text-secondary">{message}</p>
+        <p class="font-body text-body-sm text-secondary" role="status">{message}</p>
       {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_creating() : m.auth_create_account()}</Button
       >
     </form>
   {:else if error}
-    <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+      {error}
+    </p>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
     {m.auth_already_have_account()}
-    <a class="text-secondary hover:underline" href="/sign-in"
+    <a class="text-secondary hover:underline" href={getSignInHref(callbackUrl)}
       >{m.auth_sign_in_title()}</a
     >
   </p>

@@ -9,6 +9,7 @@ import {
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
 import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 import {
   buildDatasetCode,
   buildDatasetReleaseCode,
@@ -158,13 +159,13 @@ function normaliseSource(candidate?: string | null) {
 
 function normaliseUploadFileName(
   filePath: string,
-  type: ResourceType,
+  resourceType: ResourceType,
   providedOriginalFileName?: string,
 ) {
   const originalFileName =
     providedOriginalFileName?.trim() || fileNameFromPath(filePath)
   const { extension } = splitFileNameParts(originalFileName)
-  const resourceSlug = resourceTypeCodeSlug(type)
+  const resourceSlug = resourceTypeCodeSlug(resourceType)
 
   return {
     originalFileName,
@@ -563,7 +564,10 @@ function ensureChronologicalUpload(
 
 async function ensureSchemaCompatible(
   latestDataset: DatasetRecord | null,
-  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
   nextInspection: UploadInspection,
   resolveSchemaFingerprint?: RegisterUploadOptions['resolveSchemaFingerprint'],
 ) {
@@ -620,7 +624,7 @@ async function ensureSchemaCompatible(
 
 async function ensureSourcePrerequisites(
   db: HarbourReadableDb,
-  plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'type'>,
+  plan: Pick<UploadPlan, 'regionCode' | 'cohortKey' | 'source' | 'resourceType'>,
 ) {
   // HKGov ALS can establish pre-GERS address cohorts from a reviewed future
   // identity bridge. Overture is therefore preferred, but not a hard source
@@ -634,7 +638,7 @@ function resolveUploadPlan(
   resolvedInspection: UploadInspection,
 ) {
   const directoryPath = directoryPathFromPath(options.filePath)
-  const typeFromFlag = normaliseType(options.type)
+  const typeFromFlag = normaliseType(options.resourceType)
   const typeFromFilename = inferTypeFromFilename(options.filePath)
   const typeFromPath = inferTypeFromPath(directoryPath)
   const typeFromParquet = inferTypeFromParquet(resolvedInspection)
@@ -733,7 +737,7 @@ function resolveUploadPlan(
   const datasetCode = explicitDatasetCode || canonicalDatasetCode
   const releaseCode =
     explicitDatasetCode && explicitDatasetCode !== canonicalDatasetCode
-      ? buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)
+      ? `${buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)}::${type}`
       : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
   const plan: UploadPlan = {
     datasetId: releaseCode,
@@ -743,7 +747,7 @@ function resolveUploadPlan(
     cohortKey,
     shardYear: options.shardYear?.trim() || undefined,
     theme,
-    type,
+    resourceType: type,
     source,
     sourceVersion: resolvedSourceVersion,
     geometryStatus: options.geometryStatus,
@@ -761,7 +765,7 @@ function resolveUploadPlan(
           : themeFromPath
             ? 'path'
             : 'parquet',
-      type: typeFromFlag
+      resourceType: typeFromFlag
         ? 'flag'
         : typeFromFilename
           ? 'filename'
@@ -830,11 +834,21 @@ export async function planUpload(
   })
 
   const {
-    plan: { datasetCode, releaseCode, regionCode, source, sourceVersion, type },
+    plan: {
+      datasetCode,
+      releaseCode,
+      regionCode,
+      source,
+      sourceVersion,
+      resourceType: type,
+    },
   } = preparedUpload
   const existingDataset = await getDatasetById(db, releaseCode)
 
   if (existingDataset) {
+    if (existingDataset.resourceType !== type) {
+      throw new Error(`Resource release ${releaseCode} cannot change resource type.`)
+    }
     await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
   }
 
@@ -877,11 +891,40 @@ export function createRawObjectKey(plan: UploadPlan) {
 
 function isAllowedKnownSchemaTransition(
   latestDataset: DatasetRecord,
-  nextPlan: Pick<UploadPlan, 'datasetCode' | 'source' | 'sourceVersion' | 'type'>,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
   previousFingerprint: string,
   nextInspection: UploadInspection,
 ) {
   const previousSchema = parseSchemaFingerprint(previousFingerprint)
+
+  // ALS preparation retains the untouched publisher payload in this envelope.
+  // Its addition must not conceal any change to the other prepared fields.
+  if (
+    latestDataset.datasetCode === 'ds-hk-hkgov-dpo-address' &&
+    nextPlan.datasetCode === latestDataset.datasetCode &&
+    latestDataset.source === 'hkgov-dpo' &&
+    nextPlan.source === 'hkgov-dpo' &&
+    latestDataset.resourceType === 'address' &&
+    nextPlan.resourceType === 'address' &&
+    previousSchema &&
+    !previousSchema.some(field => field.name === 'publisherSource')
+  ) {
+    const envelopes = nextInspection.schema.filter(
+      field => field.name === 'publisherSource',
+    )
+    if (
+      envelopes.length === 1 &&
+      envelopes[0]?.type === 'utf8' &&
+      envelopes[0]?.nullable === true &&
+      createSchemaFingerprintFromSchema(
+        nextInspection.schema.filter(field => field.name !== 'publisherSource'),
+      ) === previousFingerprint
+    )
+      return true
+  }
 
   if (
     latestDataset.datasetCode ===
@@ -889,8 +932,8 @@ function isAllowedKnownSchemaTransition(
     nextPlan.datasetCode === latestDataset.datasetCode &&
     latestDataset.source === 'hkgov-censtatd' &&
     nextPlan.source === 'hkgov-censtatd' &&
-    latestDataset.type === 'divisionStatistic' &&
-    nextPlan.type === 'divisionStatistic' &&
+    latestDataset.resourceType === 'divisionStatistic' &&
+    nextPlan.resourceType === 'divisionStatistic' &&
     previousSchema &&
     matchesCenstatdDensityReferencePeriodTransition(
       previousSchema,
@@ -900,17 +943,28 @@ function isAllowedKnownSchemaTransition(
     return true
   }
 
+  if (
+    matchesKnownOverturePlaceSchemaTransition(
+      latestDataset,
+      nextPlan,
+      previousFingerprint,
+      nextInspection,
+    )
+  ) {
+    return true
+  }
+
   const divisionTypes = new Set(['division', 'divisionArea', 'divisionBoundary'])
 
   if (
     latestDataset.source !== 'overture' ||
-    !divisionTypes.has(latestDataset.type) ||
-    latestDataset.type !== nextPlan.type
+    !divisionTypes.has(latestDataset.resourceType) ||
+    latestDataset.resourceType !== nextPlan.resourceType
   ) {
     return false
   }
 
-  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.type)) {
+  if (nextPlan.source !== 'overture' || !divisionTypes.has(nextPlan.resourceType)) {
     return false
   }
 
@@ -926,6 +980,57 @@ function isAllowedKnownSchemaTransition(
   }
 
   return matchesAdminLevelTransition(previousSchema, nextInspection.schema)
+}
+
+function matchesKnownOverturePlaceSchemaTransition(
+  latestDataset: DatasetRecord,
+  nextPlan: Pick<
+    UploadPlan,
+    'datasetCode' | 'source' | 'sourceVersion' | 'resourceType'
+  >,
+  previousFingerprint: string,
+  nextInspection: UploadInspection,
+) {
+  if (
+    latestDataset.datasetCode !== 'ds-hk-overture-place' ||
+    nextPlan.datasetCode !== latestDataset.datasetCode ||
+    latestDataset.source !== 'overture' ||
+    nextPlan.source !== 'overture' ||
+    latestDataset.resourceType !== 'place' ||
+    nextPlan.resourceType !== 'place' ||
+    compareSourceVersion(latestDataset.sourceVersion, nextPlan.sourceVersion) >= 0
+  ) {
+    return false
+  }
+
+  const previousSchema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion: latestDataset.sourceVersion,
+  })
+  const nextSchema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion: nextPlan.sourceVersion,
+  })
+
+  if (!previousSchema || !nextSchema || previousSchema.id === nextSchema.id) {
+    return false
+  }
+
+  if (
+    createSchemaFingerprintFromSchema(previousSchema.fields) !== previousFingerprint ||
+    createSchemaFingerprintFromSchema(nextSchema.fields) !==
+      createSchemaFingerprint(nextInspection)
+  ) {
+    return false
+  }
+
+  const nextFields = new Map(nextSchema.fields.map(field => [field.name, field]))
+  return previousSchema.fields.every(field => {
+    const nextField = nextFields.get(field.name)
+    return nextField?.type === field.type && nextField.nullable === field.nullable
+  })
 }
 
 function matchesCenstatdDensityReferencePeriodTransition(
@@ -1151,7 +1256,11 @@ async function assertExistingDatasetCanBeReuploaded(
   )
   const activePhase = runs.find(run => run.status === 'running')
 
-  if (processCompleted && !activePhase) return
+  const recoveredOwner =
+    options.recoveredSqlDeliveryReleaseId === existingDataset.releaseId ||
+    (options.reuseExistingRelease &&
+      options.allowExistingDatasetStatuses?.includes('processing'))
+  if ((processCompleted || recoveredOwner) && !activePhase) return
 
   const datasetIdentifier = formatDatasetIdentifier(
     existingDataset.datasetCode,

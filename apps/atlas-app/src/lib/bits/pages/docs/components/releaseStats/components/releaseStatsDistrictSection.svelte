@@ -21,12 +21,8 @@ onMount(() => {
   return () => cancelAnimationFrame(frame)
 })
 </script>
-<Section>
-  <Header
-    id="stats-records-by-district"
-    eyebrow={labels.coverage}
-    title={labels.recordsByDistrict}
-  />
+<Section id="stats-records-by-district">
+  <Header eyebrow={labels.coverage} title={labels.recordsByDistrict} />
   {#if mapReady}
     <ChoroplethMap.Root
       ariaLabel={labels.recordsByDistrict}

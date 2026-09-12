@@ -1,0 +1,6074 @@
+{
+  "version": 1,
+  "authority": "User decisions, 2026-09-08: suppress reviewed aliases/combined premises; retain individual inventories; 6H community hall, extension label, and 101 Sau Mau Ping Road.",
+  "decisions": [
+    {
+      "id": "tai-ping-ching-empty",
+      "estate": "TAI PING ESTATE",
+      "csus": ["3110439818T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "3111739858T20050430",
+      "ownerPattern": "^PING CHING HOUSE$",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "7b604174a901fddd10cdc34595fe4da95ac0ef80b7845598f1cf7afa4cda179e",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3110439818T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3110439818T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12668, 22.49796]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "cc5c6342e9fd94309155cf3e560e50d225d252900f32a4b01e851c751bafcf4a",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3111739858T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "上水",
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                },
+                "BuildingName": "平靜樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "PING CHING HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD",
+                  "LocationName": "SHEUNG SHUI"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3110439818T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12668, 22.49796]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "7b604174a901fddd10cdc34595fe4da95ac0ef80b7845598f1cf7afa4cda179e",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3110439818T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3110439818T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12668, 22.49796]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "0ee9ac8ba496b164a6e4af48be584f1d62ad4cf7836a607eced08415751b84ec",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3111739858T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "上水",
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                },
+                "BuildingName": "平靜樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "PING CHING HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD",
+                  "LocationName": "SHEUNG SHUI"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3110439818T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12669, 22.49796]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 0
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 0
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 0
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 0
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 0
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 0
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "id": "tai-ping-yee-empty",
+      "estate": "TAI PING ESTATE",
+      "csus": ["3109439737T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "3105339720T20050430",
+      "ownerPattern": "^PING YEE HOUSE$",
+      "assertions": [
+        {
+          "kind": "owner2d",
+          "hash": "880c7fcad3be654fed5dbc334bde8898c11cb6c1b714c871c3f9f7cea5a6682d",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3105339720T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "上水",
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                },
+                "BuildingName": "平易樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "PING YEE HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD",
+                  "LocationName": "SHEUNG SHUI"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1266, 22.49724]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "a3e3bd5d70c69801c35946ea0af1543d46cf8d3a408c83000c25c37c5b9bc0f3",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3109439737T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1266, 22.49724]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "a3e3bd5d70c69801c35946ea0af1543d46cf8d3a408c83000c25c37c5b9bc0f3",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3109439737T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1266, 22.49724]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "bc896d82779567f06e1424036cc10b589fb651d16717c960d7e4192d4fac13f9",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3109439737T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12659, 22.49723]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "98ed330816126e724eecf4c5c443f9e31ee835a28ec0a5c4ef995e9155ab9662",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3105339720T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "LocationName": "上水",
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                },
+                "BuildingName": "平易樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "PING YEE HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD",
+                  "LocationName": "SHEUNG SHUI"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12659, 22.49723]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "bc896d82779567f06e1424036cc10b589fb651d16717c960d7e4192d4fac13f9",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3109439737T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "北區",
+                "ChiStreet": {
+                  "StreetName": "保平路",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "太平邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "PO PING ROAD"
+                },
+                "EngDistrict": "NORTH DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3109439737T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.12659, 22.49723]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "sheung-lok-empty",
+      "estate": "SHEUNG LOK ESTATE",
+      "csus": ["3672520115T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "3675620124T20050430",
+      "ownerPattern": "^SHEUNG LOK HOUSE$",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "09dac38694832e72c28b607bcd5499fef618cdde4929cd19e57af9d2a8fe4289",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3672520115T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18135, 22.31999]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "979c91d4fdd0ba2fd200af5e56f43b2d9c65e378c287af06f20226c5c33df64d",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3675620124T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                },
+                "BuildingName": "常樂樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG LOK HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18135, 22.31999]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "09dac38694832e72c28b607bcd5499fef618cdde4929cd19e57af9d2a8fe4289",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3672520115T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18135, 22.31999]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "aeaeaee83ed7dce92551455a72d654e3bd56ff646d7733cea3c31067b78357dd",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3672520115T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18131, 22.32004]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "dd60a4bbea1432ab968580990363bb254b4b03c9d2c39e6b009143b251484b5c",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3675620124T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                },
+                "BuildingName": "常樂樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG LOK HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18131, 22.32004]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "aeaeaee83ed7dce92551455a72d654e3bd56ff646d7733cea3c31067b78357dd",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3672520115T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "九龍城區",
+                "ChiStreet": {
+                  "StreetName": "常盛街",
+                  "BuildingNoFrom": "33"
+                },
+                "ChiEstate": {
+                  "EstateName": "常樂邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG LOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "33",
+                  "StreetName": "SHEUNG SHING STREET"
+                },
+                "EngDistrict": "KOWLOON CITY DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3672520115T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.18131, 22.32004]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "sheung-tak-nim-empty",
+      "estate": "SHEUNG TAK ESTATE",
+      "csus": ["4446419043T20190906"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "4443719049T20050430",
+      "ownerPattern": "^SHEUNG NIM HOUSE$",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "8b891a549c50ba487e97a22e00cc4974111f077a920d83ae0b360e476cbe51d2",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4446419043T20190906"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25645, 22.31056]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "f88b723c0dffaa55f833895f7453f4ee958f01f4c0f60f8c95038750700a0f80",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4443719049T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "LocationName": "將軍澳",
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                },
+                "BuildingName": "尚廉樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG NIM HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET",
+                  "LocationName": "TSEUNG KWAN O"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25645, 22.31056]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "8b891a549c50ba487e97a22e00cc4974111f077a920d83ae0b360e476cbe51d2",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4446419043T20190906"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25645, 22.31056]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "d912c6576589d99b950013a1be205b4b1aa79122b54f25bc221caebb381b497a",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4446419043T20190906"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25642, 22.31034]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "d69c5d1c4ea6f4b30c102e7a18941d32bc1af06e474bd8d76f09595d9474003a",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4443719049T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "LocationName": "將軍澳",
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                },
+                "BuildingName": "尚廉樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG NIM HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET",
+                  "LocationName": "TSEUNG KWAN O"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25642, 22.31034]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "d912c6576589d99b950013a1be205b4b1aa79122b54f25bc221caebb381b497a",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4446419043T20190906"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4446419043T20190906"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25642, 22.31034]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "id": "sheung-tak-yee-empty",
+      "estate": "SHEUNG TAK ESTATE",
+      "csus": ["4455219166T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "4456219135T20050430",
+      "ownerPattern": "^SHEUNG YEE HOUSE$",
+      "assertions": [
+        {
+          "kind": "owner2d",
+          "hash": "bcb58a7ac393889ae2d7e15156366b8c5dcba4a997c9d6c1e64c532e56a71868",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4456219135T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "LocationName": "將軍澳",
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                },
+                "BuildingName": "尚義樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG YEE HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET",
+                  "LocationName": "TSEUNG KWAN O"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4456219135T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25737, 22.31116]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "389240d6b7949bc9888c7cd67ac5f22a5d7ef134757167ac35c1550fe27ba2de",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4456219135T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "LocationName": "將軍澳",
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                },
+                "BuildingName": "尚義樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SHEUNG YEE HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET",
+                  "LocationName": "TSEUNG KWAN O"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4456219135T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25737, 22.31117]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "1e1d0c4ae25f0c016c144605e1445cbd6e82257e082506c2cc3cc14afc76c206",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4455219166T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4456219135T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25737, 22.31117]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        },
+        {
+          "kind": "3d",
+          "hash": "1e1d0c4ae25f0c016c144605e1445cbd6e82257e082506c2cc3cc14afc76c206",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4455219166T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "西貢區",
+                "ChiStreet": {
+                  "StreetName": "唐明街",
+                  "BuildingNoFrom": "2"
+                },
+                "ChiEstate": {
+                  "EstateName": "尚德邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEUNG TAK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "2",
+                  "StreetName": "TONG MING STREET"
+                },
+                "EngDistrict": "SAI KUNG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "4456219135T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.25737, 22.31117]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 0
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 0
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 0
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 0
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 0
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 0
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "shui-pin-wai-bik-empty",
+      "estate": "SHUI PIN WAI ESTATE",
+      "csus": ["2009233965T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "2012033974T20050430",
+      "ownerPattern": "^BIK SHUI HOUSE$",
+      "assertions": [
+        {
+          "kind": "owner2d",
+          "hash": "38410d7f08f349603f1519ddc48c0eb06d1e4054baaefd1efa5021beb8ac1734",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "2012033974T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "元朗區",
+                "ChiStreet": {
+                  "LocationName": "元朗",
+                  "StreetName": "媽廟路",
+                  "BuildingNoFrom": "17"
+                },
+                "ChiEstate": {
+                  "EstateName": "水邊圍邨"
+                },
+                "BuildingName": "碧水樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "BIK SHUI HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHUI PIN WAI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "17",
+                  "StreetName": "MA MIU ROAD",
+                  "LocationName": "YUEN LONG"
+                },
+                "EngDistrict": "YUEN LONG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2009233965T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.01984, 22.44507]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "e11d2770679d591de16a4c4948193c7f9a1ce97f405d4c6a245fd6e3903d7b66",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "2012033974T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "元朗區",
+                "ChiStreet": {
+                  "LocationName": "元朗",
+                  "StreetName": "媽廟路",
+                  "BuildingNoFrom": "17"
+                },
+                "ChiEstate": {
+                  "EstateName": "水邊圍邨"
+                },
+                "BuildingName": "碧水樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "BIK SHUI HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHUI PIN WAI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "17",
+                  "StreetName": "MA MIU ROAD",
+                  "LocationName": "YUEN LONG"
+                },
+                "EngDistrict": "YUEN LONG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2009233965T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.01973, 22.44504]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "8cca5c34db3974094f6c229adc405ad77d4301c34ed94ff08b724a5de1ab32fb",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "2009233965T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "元朗區",
+                "ChiStreet": {
+                  "StreetName": "媽廟路",
+                  "BuildingNoFrom": "17"
+                },
+                "ChiEstate": {
+                  "EstateName": "水邊圍邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHUI PIN WAI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "17",
+                  "StreetName": "MA MIU ROAD"
+                },
+                "EngDistrict": "YUEN LONG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2009233965T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.01973, 22.44504]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        },
+        {
+          "kind": "3d",
+          "hash": "8cca5c34db3974094f6c229adc405ad77d4301c34ed94ff08b724a5de1ab32fb",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "2009233965T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "元朗區",
+                "ChiStreet": {
+                  "StreetName": "媽廟路",
+                  "BuildingNoFrom": "17"
+                },
+                "ChiEstate": {
+                  "EstateName": "水邊圍邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHUI PIN WAI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "17",
+                  "StreetName": "MA MIU ROAD"
+                },
+                "EngDistrict": "YUEN LONG DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "2009233965T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.01973, 22.44504]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 0
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 0
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 0
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 0
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 0
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 0
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "tai-hang-tung-wong-empty",
+      "estate": "TAI HANG TUNG ESTATE",
+      "csus": ["3573021258T20110217"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "3575321200T20050430",
+      "ownerPattern": "^TUNG WONG HOUSE$",
+      "assertions": [
+        {
+          "kind": "owner2d",
+          "hash": "3542e134e83f0e3f85034ee44bbd8f7679fdff5074a71150697040974fae73f4",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3575321200T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "大坑東道",
+                  "BuildingNoFrom": "83"
+                },
+                "ChiEstate": {
+                  "EstateName": "大坑東邨"
+                },
+                "BuildingName": "東旺樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "TUNG WONG HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI HANG TUNG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "83",
+                  "StreetName": "TAI HANG TUNG ROAD"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3572321238T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.17165, 22.33014]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "ec2d70a02dfe02592129d66e077fa9bf98d49902df2230c3852676b2d02ab21b",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3575321200T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "大坑東道",
+                  "BuildingNoFrom": "83"
+                },
+                "ChiEstate": {
+                  "EstateName": "大坑東邨"
+                },
+                "BuildingName": "東旺樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "TUNG WONG HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI HANG TUNG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "83",
+                  "StreetName": "TAI HANG TUNG ROAD"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3572321238T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.17158, 22.33018]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-04-03.0", "2026-04-22.0"]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "2074f2923ae84fed31f1d8c972ed78ce9920309cf6339b2ebc3608dc12adb8f4",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3575321200T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "大坑東道",
+                  "BuildingNoFrom": "83"
+                },
+                "ChiEstate": {
+                  "EstateName": "大坑東邨"
+                },
+                "BuildingName": "東旺樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "TUNG WONG HOUSE",
+                "EngEstate": {
+                  "EstateName": "TAI HANG TUNG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "83",
+                  "StreetName": "TAI HANG TUNG ROAD"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3573021258T20110217"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.17165, 22.33036]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "13da82925655a2db9b5f186ba3766078f8df5e5c4672936369ae8ce4747eb342",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3573021258T20110217"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "大坑東道",
+                  "BuildingNoFrom": "83",
+                  "BuildingNoTo": "88"
+                },
+                "ChiEstate": {
+                  "EstateName": "大坑東邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "TAI HANG TUNG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "83",
+                  "BuildingNoTo": "88",
+                  "StreetName": "TAI HANG TUNG ROAD"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3573021258T20110217"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.17165, 22.33036]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 0
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 0
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 0
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 0
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 0
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 0
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "on-yam-combined",
+      "estate": "ON YAM ESTATE",
+      "csus": ["3270325746T20050430", "3271925774T20050430"],
+      "pattern": "YIU YAM HSE.*&",
+      "action": "suppress",
+      "ownerCsu": "3270325746T20050430",
+      "ownerPattern": "^TAK YAM",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "7fda378501abba17ca8ab4b5a456352dc73761222ff89e5c1d679ca8723c823f",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3271925774T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1423, 22.37087]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "76b536d98fca9174eaa848e7694eadbeeab83a1b8446c8e86d466ea7ffa94c9e",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "5",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "5",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1423, 22.37087]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "7fda378501abba17ca8ab4b5a456352dc73761222ff89e5c1d679ca8723c823f",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3271925774T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1423, 22.37087]
+            }
+          },
+          "inventory": {
+            "hash": "092f645eeb892b1d3c40a8d68d8d991bc15f9556a767e945e87f18ec705818a2",
+            "enCount": 834,
+            "zhCount": 834
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "d6dc37e4d9afb46ee5bceb08420235ace470ecd97810e7f977b4c563855bc7b2",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3271925774T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "3be54185b6aa7351ed8a8b5b82b65016ac0b3ea426111707a7c95cb5abe18fe8",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "5",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "5",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "d6dc37e4d9afb46ee5bceb08420235ace470ecd97810e7f977b4c563855bc7b2",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3271925774T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": {
+            "hash": "092f645eeb892b1d3c40a8d68d8d991bc15f9556a767e945e87f18ec705818a2",
+            "enCount": 834,
+            "zhCount": 834
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "d53ca2293b1d56fb51972662ecf111090622a34a77aa08fcb51de7ece81b85f5",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-07-22.0"]
+        },
+        {
+          "kind": "3d",
+          "hash": "d53ca2293b1d56fb51972662ecf111090622a34a77aa08fcb51de7ece81b85f5",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": {
+            "hash": "092f645eeb892b1d3c40a8d68d8d991bc15f9556a767e945e87f18ec705818a2",
+            "enCount": 834,
+            "zhCount": 834
+          },
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        },
+        {
+          "kind": "2d",
+          "hash": "f435d664d6cb57329e1c9cd7909e72a6e422763795e5f84d7a10984590c860fc",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "BuildingName": "耀蔭樓(第4座)及德蔭樓(第5座)"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "YIU YAM HSE(BLK 4) & TAK YAM HSE (BLK 5)",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-08-19.0"]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "ce85d944249b67d5caf4bf7010f5580d74a3d99331b549f9990e4ef0ef9dc422",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3270325746T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "葵青區",
+                "ChiStreet": {
+                  "LocationName": "葵涌",
+                  "StreetName": "安足街",
+                  "BuildingNoFrom": "7"
+                },
+                "ChiEstate": {
+                  "EstateName": "安蔭邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "5",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "德蔭樓(第5座)"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "5",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "TAK YAM HSE (BLK 5)",
+                "EngEstate": {
+                  "EstateName": "ON YAM ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "7",
+                  "StreetName": "ON CHUK STREET",
+                  "LocationName": "KWAI CHUNG"
+                },
+                "EngDistrict": "KWAI TSING DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3270325746T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14226, 22.37089]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "ping-tin-empty",
+      "estate": "PING TIN ESTATE",
+      "csus": ["4240718805T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "4241218786T20050430",
+      "ownerPattern": "ANCILLARY",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "07fbc2ed5d47ff7b728870eb856fa9d2e2d76b50e31de4ee75367e84e55458ad",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4240718805T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "安田街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "平田邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "PING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON TIN STREET"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4240718805T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23647, 22.30824]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "a6bb7492bbd712f6b5f5d8b0d510885b86f7b30c81dce2a513c8cc7de70c9897",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4241218786T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "安田街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "平田邨"
+                },
+                "BuildingName": "服務設施大樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "ANCILLARY FACILITIES BLOCK",
+                "EngEstate": {
+                  "EstateName": "PING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON TIN STREET"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4240718805T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23647, 22.30824]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "07fbc2ed5d47ff7b728870eb856fa9d2e2d76b50e31de4ee75367e84e55458ad",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4240718805T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "安田街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "平田邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "PING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON TIN STREET"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4240718805T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23647, 22.30824]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "7cd9227b5feb58ee7e731b4614553d98e1846f594dead98e2ea6cfe0a8bb6cd8",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4241218786T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "安田街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "平田邨"
+                },
+                "BuildingName": "服務設施大樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "ANCILLARY FACILITIES BLOCK",
+                "EngEstate": {
+                  "EstateName": "PING TIN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON TIN STREET"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4240718805T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23645, 22.3082]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "id": "pok-hong-hall",
+      "estate": "POK HONG ESTATE",
+      "csus": ["3807526262T20050430"],
+      "pattern": "COMMUNITY HALL",
+      "action": "number",
+      "number": "6H",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "fe56ead208ab4100b08d7fc2ac7d9d20a4e39da6e266abff4e524ca9ffb787cd",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3807526262T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "6"
+                },
+                "ChiEstate": {
+                  "EstateName": "博康邨"
+                },
+                "BuildingName": "民政事務總署博康社區會堂"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "HOME AFFAIRS DEPARTMENT POK HONG COMMUNITY HALL",
+                "EngEstate": {
+                  "EstateName": "POK HONG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "6",
+                  "StreetName": "SHA KOK STREET"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3807526262T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19451, 22.37561]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "c7a2c1750872687a396ee0426adeaab04e190e0683c72e0f53613f2469394079",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3807526262T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "6H"
+                },
+                "ChiEstate": {
+                  "EstateName": "博康邨"
+                },
+                "BuildingName": "民政事務總署博康社區會堂"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "HOME AFFAIRS DEPARTMENT POK HONG COMMUNITY HALL",
+                "EngEstate": {
+                  "EstateName": "POK HONG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "6H",
+                  "StreetName": "SHA KOK STREET"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3807526262T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19451, 22.37561]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "e708773c144a0056bf95d1bc7d4dd0ddcfad4b8033da305b0153e64581a7a501",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3807526262T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "6H"
+                },
+                "ChiEstate": {
+                  "EstateName": "博康邨"
+                },
+                "BuildingName": "民政事務總署博康社區會堂"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "HOME AFFAIRS DEPARTMENT POK HONG COMMUNITY HALL",
+                "EngEstate": {
+                  "EstateName": "POK HONG ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "6H",
+                  "StreetName": "SHA KOK STREET"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3807526262T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19442, 22.37555]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 2
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 2
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 2
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 2
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 2
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 2
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 2
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "sau-king-empty",
+      "estate": "SAU MAU PING ESTATE",
+      "csus": ["4213419855T20050430"],
+      "pattern": "^$",
+      "action": "suppress",
+      "ownerCsu": "4215019855T20050430",
+      "ownerPattern": "SAU KING",
+      "assertions": [
+        {
+          "kind": "owner2d",
+          "hash": "5dae267139e8ca4b7fb7bf8d2f84a953ba4c0c3b13115eee508b87089d594e18",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23382, 22.31768]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "5a4bbcae78f6420d94b833b252ae14b8bb71d3af72e01cb32bd1fb0e2b1db429",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4213419855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23382, 22.31768]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "5a4bbcae78f6420d94b833b252ae14b8bb71d3af72e01cb32bd1fb0e2b1db429",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4213419855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23382, 22.31768]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "9a76ae9086b22290afb4122992c52e6da26a4e6d295efd5e3083fa866cb837ff",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23381, 22.31768]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "id": "sau-king-address",
+      "estate": "SAU MAU PING ESTATE",
+      "csus": ["4215019855T20050430"],
+      "pattern": "SAU KING",
+      "action": "street",
+      "number": "101",
+      "enStreet": "SAU MAU PING ROAD",
+      "zhStreet": "秀茂坪道",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "5dae267139e8ca4b7fb7bf8d2f84a953ba4c0c3b13115eee508b87089d594e18",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23382, 22.31768]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "5dae267139e8ca4b7fb7bf8d2f84a953ba4c0c3b13115eee508b87089d594e18",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23382, 22.31768]
+            }
+          },
+          "inventory": {
+            "hash": "02324559de479c60a10e28cf52de619c3517f4e872fad3e7bf30df16f61c1eea",
+            "enCount": 799,
+            "zhCount": 799
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "9a76ae9086b22290afb4122992c52e6da26a4e6d295efd5e3083fa866cb837ff",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23381, 22.31768]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "9a76ae9086b22290afb4122992c52e6da26a4e6d295efd5e3083fa866cb837ff",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "4215019855T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "觀塘區",
+                "ChiStreet": {
+                  "StreetName": "秀明道",
+                  "BuildingNoFrom": "101"
+                },
+                "ChiEstate": {
+                  "EstateName": "秀茂坪邨"
+                },
+                "BuildingName": "秀景樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "SAU KING HOUSE",
+                "EngEstate": {
+                  "EstateName": "SAU MAU PING ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "101",
+                  "StreetName": "SAU MING ROAD"
+                },
+                "EngDistrict": "KWUN TONG DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "4213419855T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.23381, 22.31768]
+            }
+          },
+          "inventory": {
+            "hash": "02324559de479c60a10e28cf52de619c3517f4e872fad3e7bf30df16f61c1eea",
+            "enCount": 799,
+            "zhCount": 799
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "sha-kok-extension",
+      "estate": "SHA KOK ESTATE",
+      "csus": ["3798826701T20050430"],
+      "pattern": "BUDDHIST KOK KWONG SECONDARY SCHOOL",
+      "action": "label",
+      "enName": "BUDDHIST KOK KWONG SECONDARY SCHOOL (EXTENSION)",
+      "zhName": "佛教覺光法師中學(擴建部分)",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "7bc44549255e0c75a523a330f9af7be7a29237266acf0e05c96661dd2db50c58",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3798826701T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "LocationName": "沙田",
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "5"
+                },
+                "ChiEstate": {
+                  "EstateName": "沙角邨"
+                },
+                "BuildingName": "佛教覺光法師中學"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "BUDDHIST KOK KWONG SECONDARY SCHOOL",
+                "EngEstate": {
+                  "EstateName": "SHA KOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "5",
+                  "StreetName": "SHA KOK STREET",
+                  "LocationName": "SHA TIN"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3798826701T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19351, 22.3796]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "e24fc47f34f0f7bcdf6a147929c458b86da6891deadc895973c1a7906d6aed18",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3798826701T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "LocationName": "沙田",
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "5"
+                },
+                "ChiEstate": {
+                  "EstateName": "沙角邨"
+                },
+                "BuildingName": "佛教覺光法師中學"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "BUDDHIST KOK KWONG SECONDARY SCHOOL",
+                "EngEstate": {
+                  "EstateName": "SHA KOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "5",
+                  "StreetName": "SHA KOK STREET",
+                  "LocationName": "SHA TIN"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3798826701T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19358, 22.37952]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "b55ebf604585d38e9232be222eae3e42210e2dbfa76186d077b60bc648f99a93",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3798826701T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "LocationName": "沙田",
+                  "StreetName": "沙角街",
+                  "BuildingNoFrom": "5"
+                },
+                "ChiEstate": {
+                  "EstateName": "沙角邨"
+                },
+                "BuildingName": "佛教覺光法師中學(擴建部分)"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "BUDDHIST KOK KWONG SECONDARY SCHOOL (EXTENSION)",
+                "EngEstate": {
+                  "EstateName": "SHA KOK ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "5",
+                  "StreetName": "SHA KOK STREET",
+                  "LocationName": "SHA TIN"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3798826701T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.19358, 22.37952]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "shek-kip-mei-combined",
+      "estate": "SHEK KIP MEI ESTATE",
+      "csus": ["3508021518T20050430"],
+      "pattern": "MEI SHAN HOUSE &",
+      "action": "suppress",
+      "ownerCsu": "3508021518T20050430",
+      "ownerPattern": "^MEI HUNG",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "3dbd5be553cd4587a78a544e53572d467e9bbff3a302a4ab5477cac8a307be01",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "42/43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美山樓及美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLKS",
+                  "BlockNo": "42/43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI SHAN HOUSE & MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33272]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "cf678a16a9e71396b0f715841d09cdb3193b352bb90d6f03e5911239e5212d96",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33272]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "3dbd5be553cd4587a78a544e53572d467e9bbff3a302a4ab5477cac8a307be01",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "42/43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美山樓及美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLKS",
+                  "BlockNo": "42/43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI SHAN HOUSE & MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33272]
+            }
+          },
+          "inventory": {
+            "hash": "4615fa349fa5660f011f0bc8e6a61c63d01f216a949d759fb9bc93413b5fece1",
+            "enCount": 200,
+            "zhCount": 200
+          },
+          "versions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "54408580b608d6ad6f3ed5fb2d707bfa52f28ff7f484f09d1cb912714996c3d7",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "42/43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美山樓及美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLKS",
+                  "BlockNo": "42/43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI SHAN HOUSE & MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33271]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0"
+          ]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "fa96277f2638a8f18fcbeb3db3cdbe5ca1f709cc5258cb20422a7c8d22da591c",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33271]
+            }
+          },
+          "inventory": null,
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0"
+          ]
+        },
+        {
+          "kind": "3d",
+          "hash": "54408580b608d6ad6f3ed5fb2d707bfa52f28ff7f484f09d1cb912714996c3d7",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "42/43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美山樓及美虹樓"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLKS",
+                  "BlockNo": "42/43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI SHAN HOUSE & MEI HUNG HOUSE",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33271]
+            }
+          },
+          "inventory": {
+            "hash": "4615fa349fa5660f011f0bc8e6a61c63d01f216a949d759fb9bc93413b5fece1",
+            "enCount": 200,
+            "zhCount": 200
+          },
+          "versions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        },
+        {
+          "kind": "2d",
+          "hash": "ad80b596e2ff7125bd4cb16cfa3f22e9362e7161ac02b3e5ce88be5c8e01e3cc",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "42/43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美山樓及美虹樓(第42/43座)"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLKS",
+                  "BlockNo": "42/43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI SHAN HOUSE & MEI HUNG HOUSE (BLKS 42/43)",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "50",
+                  "BuildingNoTo": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33271]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-08-19.0"]
+        },
+        {
+          "kind": "owner2d",
+          "hash": "af5ef18d9cb94fb4a086c1c01e364edb7c67ec0d18ac6c863f3f296aef384fca",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3508021518T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "九龍",
+                "ChiDistrict": "深水埗區",
+                "ChiStreet": {
+                  "StreetName": "巴域街",
+                  "BuildingNoFrom": "52"
+                },
+                "ChiEstate": {
+                  "EstateName": "石硤尾邨"
+                },
+                "ChiBlock": {
+                  "BlockNo": "43",
+                  "BlockDescriptor": "座"
+                },
+                "BuildingName": "美虹樓(第43座)"
+              },
+              "EngPremisesAddress": {
+                "EngBlock": {
+                  "BlockDescriptor": "BLK",
+                  "BlockNo": "43",
+                  "BlockDescriptorPrecedenceIndicator": "Y"
+                },
+                "BuildingName": "MEI HUNG HOUSE (BLK 43)",
+                "EngEstate": {
+                  "EstateName": "SHEK KIP MEI ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "52",
+                  "StreetName": "BERWICK STREET"
+                },
+                "EngDistrict": "SHAM SHUI PO DISTRICT",
+                "Region": "KLN"
+              },
+              "GeoAddress": "3508021518T20050430"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16534, 22.33271]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 1
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 1
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 1
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 1
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 1
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 1
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 1
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 1
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 1
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 1
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 1
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 1
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 1
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 1
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 1
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 1
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "shek-mun-empty",
+      "estate": "SHEK MUN ESTATE",
+      "csus": ["3959427525T20090226"],
+      "pattern": "^$",
+      "action": "suppress",
+      "assertions": [
+        {
+          "kind": "2d",
+          "hash": "68165e8eb0ecdab0aaab9e680bd07ff6f08bc6edaf003ea235e3a547b0e51bfd",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3959427525T20090226"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "StreetName": "安睦街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "碩門邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEK MUN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON MUK STREET"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3959427525T20090226"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.20917, 22.38695]
+            }
+          },
+          "inventory": null,
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        },
+        {
+          "kind": "3d",
+          "hash": "68165e8eb0ecdab0aaab9e680bd07ff6f08bc6edaf003ea235e3a547b0e51bfd",
+          "evidence": {
+            "premises": {
+              "BuildingCsuInformation": {
+                "CsuId": "3959427525T20090226"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "沙田區",
+                "ChiStreet": {
+                  "StreetName": "安睦街",
+                  "BuildingNoFrom": "18"
+                },
+                "ChiEstate": {
+                  "EstateName": "碩門邨"
+                }
+              },
+              "EngPremisesAddress": {
+                "EngEstate": {
+                  "EstateName": "SHEK MUN ESTATE"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "18",
+                  "StreetName": "ON MUK STREET"
+                },
+                "EngDistrict": "SHA TIN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "3959427525T20090226"
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.20917, 22.38695]
+            }
+          },
+          "inventory": {
+            "hash": "95cb9b4f84ceff132cc7a875d8c192bf4997016a939ee64141c1fd628c0e8738",
+            "enCount": 0,
+            "zhCount": 0
+          },
+          "versions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "releases": [
+        {
+          "version": "2024-07-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-07-31.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-21.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-25.0",
+          "count": 0
+        },
+        {
+          "version": "2024-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-01.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-02.0",
+          "count": 0
+        },
+        {
+          "version": "2024-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2024-10-18.0",
+          "count": 0
+        },
+        {
+          "version": "2024-11-13.0",
+          "count": 0
+        },
+        {
+          "version": "2024-12-12.0",
+          "count": 0
+        },
+        {
+          "version": "2025-01-23.0",
+          "count": 0
+        },
+        {
+          "version": "2025-02-25.0",
+          "count": 0
+        },
+        {
+          "version": "2025-03-21.0",
+          "count": 0
+        },
+        {
+          "version": "2025-04-26.0",
+          "count": 0
+        },
+        {
+          "version": "2025-05-22.0",
+          "count": 0
+        },
+        {
+          "version": "2025-06-20.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-13.0",
+          "count": 0
+        },
+        {
+          "version": "2025-08-28.0",
+          "count": 0
+        },
+        {
+          "version": "2025-09-03.0",
+          "count": 0
+        },
+        {
+          "version": "2025-11-04.0",
+          "count": 0
+        },
+        {
+          "version": "2025-12-16.0",
+          "count": 0
+        },
+        {
+          "version": "2026-02-04.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-03.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-22.0",
+          "count": 0
+        },
+        {
+          "version": "2026-04-25.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-08.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-10.0",
+          "count": 0
+        },
+        {
+          "version": "2026-07-22.0",
+          "count": 1
+        },
+        {
+          "version": "2026-08-19.0",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

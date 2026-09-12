@@ -13,7 +13,7 @@ does not calculate demographic values from Saanseoi records, and it does not sil
 attach a value from one district-boundary vintage to another.
 
 The initial C&SD District Land Area, Population and Density processor writes source and
-history records. The source layer retains C&SD's numeric `DC`; the history layer alone
+history records. The source layer includes C&SD's numeric `DC`; the history layer alone
 resolves it through the reviewed C&SD numeric and HAD district-code bridges to the
 canonical `divisionId` and district code. A snapshot-scoped current table is reserved
 for the Stats API composition stage, which remains pending.

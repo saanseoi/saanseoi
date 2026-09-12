@@ -3,6 +3,8 @@ import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { canonicalDivisionGeometry } from '../shared'
 import { historyVersioning } from './shared'
 
+// Geometry content versions are immutable. Snapshot journals and current scope
+// projections define membership; historyVersioning.isCurrent is not liveness.
 export const divisionAreas = sqliteTable(
   'divisionAreas',
   {

@@ -1,3 +1,4 @@
+import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
 
@@ -8,7 +9,6 @@ import {
   ApiLocale,
   BBoxSchema,
   CartographicHintsSchema,
-  GeometrySchema,
   IdSchema,
   JsonApiLinkMapSchema,
   JsonApiVersionSchema,
@@ -18,6 +18,15 @@ import {
   WikidataIdSchema,
 } from './common'
 
+const divisionGeometryTypes = ['land', 'maritime', 'mixed'] as const
+const divisionGeometryVariants = [
+  'hkgov-censtatd',
+  'hkgov-censtatd-landclipped',
+  'hkgov-had',
+  'hkgov-pland-new-town',
+  'hkgov-pland-pu',
+  'overture',
+] as const
 const DivisionResourceIdentifierSchema = z
   .object({
     type: z.literal('divisions'),
@@ -78,38 +87,27 @@ const DivisionI18nSchema = z
     'x-recordKeyName': openApiText('openapi_divisions_i18n_locale_label'),
   })
 
-const DivisionHierarchyResourceIdentifierSchema =
-  DivisionResourceIdentifierSchema.extend({
-    meta: z
-      .object({
-        name: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText('openapi_divisions_hierarchy_name_description'),
-          }),
-        subType: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText(
-              'openapi_divisions_hierarchy_sub_type_description',
-            ),
-          }),
-      })
-      .openapi({
-        description: openApiText('openapi_divisions_hierarchy_meta_description'),
-      })
-      .optional(),
-  }).openapi('DivisionHierarchyIdentifier')
-
-const DivisionHierarchyRelationshipSchema = z
+export const DivisionHierarchyEntrySchema = z
   .object({
-    data: z.array(DivisionHierarchyResourceIdentifierSchema).openapi({
-      description: openApiText('openapi_divisions_hierarchy_description'),
+    id: IdSchema,
+    name: z.string().nullable().openapi({
+      description:
+        'Stored Traditional Chinese and English display name, with duplicate names omitted.',
     }),
+    class: z.string(),
   })
-  .openapi('DivisionHierarchy')
+  .openapi('DivisionHierarchyEntry')
+
+export const DivisionHierarchiesSchema = z
+  .object({
+    administrative: z.array(z.array(DivisionHierarchyEntrySchema)),
+    locality: z.array(z.array(DivisionHierarchyEntrySchema)),
+    full: z.array(z.array(DivisionHierarchyEntrySchema)),
+  })
+  .openapi('DivisionHierarchies', {
+    description:
+      'Stored broadest-to-narrowest ancestor paths, excluding the division itself. Full paths omit cities only. Each path preserves evidenced branching.',
+  })
 
 const DivisionPositionSchema = z
   .array(z.number())
@@ -119,55 +117,97 @@ const DivisionPositionSchema = z
     description: openApiText('openapi_geojson_position_description'),
   })
 
+const DivisionPointGeometrySchema = z
+  .object({
+    type: z.literal('Point').openapi({
+      description: openApiText('openapi_geojson_geometry_type_description'),
+    }),
+    coordinates: DivisionPositionSchema.openapi({
+      description: openApiText('openapi_geojson_coordinates_description'),
+    }),
+  })
+  .openapi({
+    description: openApiText('openapi_divisions_geometry_point_description'),
+  })
+
+const DivisionPolygonGeometrySchema = z
+  .object({
+    type: z.literal('Polygon').openapi({
+      description: openApiText('openapi_geojson_geometry_type_description'),
+    }),
+    coordinates: z
+      .array(z.array(DivisionPositionSchema).min(4))
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_geojson_coordinates_description'),
+      }),
+  })
+  .openapi({
+    description: openApiText('openapi_divisions_geometry_polygon_description'),
+  })
+
+const DivisionMultiPolygonGeometrySchema = z
+  .object({
+    type: z.literal('MultiPolygon').openapi({
+      description: openApiText('openapi_geojson_geometry_type_description'),
+    }),
+    coordinates: z
+      .array(z.array(z.array(DivisionPositionSchema).min(4)).min(1))
+      .min(1)
+      .openapi({
+        description: openApiText('openapi_geojson_coordinates_description'),
+      }),
+  })
+  .openapi({
+    description: openApiText('openapi_divisions_geometry_multi_polygon_description'),
+  })
+
+const DivisionAreaGeometrySchema = z
+  .union([DivisionPolygonGeometrySchema, DivisionMultiPolygonGeometrySchema])
+  .openapi('DivisionAreaGeometry', {
+    description: openApiText(
+      'openapi_divisions_geometry_resource_geometry_description',
+    ),
+  })
+
+const DivisionLineStringGeometrySchema = z.object({
+  type: z.literal('LineString').openapi({
+    description: openApiText('openapi_geojson_geometry_type_description'),
+  }),
+  coordinates: z
+    .array(DivisionPositionSchema)
+    .min(2)
+    .openapi({
+      description: openApiText('openapi_geojson_coordinates_description'),
+    }),
+})
+
+const DivisionMultiLineStringGeometrySchema = z.object({
+  type: z.literal('MultiLineString').openapi({
+    description: openApiText('openapi_geojson_geometry_type_description'),
+  }),
+  coordinates: z
+    .array(z.array(DivisionPositionSchema).min(2))
+    .min(1)
+    .openapi({
+      description: openApiText('openapi_geojson_coordinates_description'),
+    }),
+})
+
+const DivisionBoundaryGeometrySchema = z
+  .union([DivisionLineStringGeometrySchema, DivisionMultiLineStringGeometrySchema])
+  .openapi('DivisionBoundaryGeometry', {
+    description: openApiText(
+      'openapi_divisions_geometry_resource_geometry_description',
+    ),
+  })
+
 const DivisionGeometrySchema = z
-  .lazy(() =>
-    z.union([
-      z
-        .object({
-          type: z.literal('Point').openapi({
-            description: openApiText('openapi_geojson_geometry_type_description'),
-          }),
-          coordinates: DivisionPositionSchema.openapi({
-            description: openApiText('openapi_geojson_coordinates_description'),
-          }),
-        })
-        .openapi({
-          description: openApiText('openapi_divisions_geometry_point_description'),
-        }),
-      z
-        .object({
-          type: z.literal('Polygon').openapi({
-            description: openApiText('openapi_geojson_geometry_type_description'),
-          }),
-          coordinates: z
-            .array(z.array(DivisionPositionSchema).min(4))
-            .min(1)
-            .openapi({
-              description: openApiText('openapi_geojson_coordinates_description'),
-            }),
-        })
-        .openapi({
-          description: openApiText('openapi_divisions_geometry_polygon_description'),
-        }),
-      z
-        .object({
-          type: z.literal('MultiPolygon').openapi({
-            description: openApiText('openapi_geojson_geometry_type_description'),
-          }),
-          coordinates: z
-            .array(z.array(z.array(DivisionPositionSchema).min(4)).min(1))
-            .min(1)
-            .openapi({
-              description: openApiText('openapi_geojson_coordinates_description'),
-            }),
-        })
-        .openapi({
-          description: openApiText(
-            'openapi_divisions_geometry_multi_polygon_description',
-          ),
-        }),
-    ]),
-  )
+  .union([
+    DivisionPointGeometrySchema,
+    DivisionPolygonGeometrySchema,
+    DivisionMultiPolygonGeometrySchema,
+  ])
   .openapi('DivisionGeometry', {
     description: openApiText('openapi_divisions_geometry_field_description'),
   })
@@ -181,9 +221,9 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_level_field_description'),
       }),
-    type: z.string().openapi({
-      description: openApiText('openapi_divisions_type_field_description'),
-    }),
+    class: z.string().openapi({ description: 'Canonical division class.' }),
+    category: z.enum(['administrative', 'locality', 'hood']).nullable(),
+    hierarchies: DivisionHierarchiesSchema,
     divisionCode: z
       .string()
       .optional()
@@ -202,9 +242,25 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_geometry_field_description'),
       }),
-    bbox: z.union([BBoxSchema, z.null()]).optional(),
-    cartography: z.union([CartographicHintsSchema, z.null()]).optional(),
-    wikidata: z.union([WikidataIdSchema, z.null()]).optional(),
+    bbox: z
+      .union([BBoxSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_bbox_field_description'),
+      }),
+    cartography: z
+      .union([CartographicHintsSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_cartography_field_description'),
+      }),
+    wikidataId: z
+      .union([WikidataIdSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_wikidata_id_field_description'),
+        examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
+      }),
     createdAt: z
       .string()
       .optional()
@@ -217,18 +273,17 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_updated_at_field_description'),
       }),
-    sources: z.union([SourcesSchema, z.null()]).optional(),
+    sources: z
+      .union([SourcesSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_sources_field_description'),
+      }),
     identifiers: z
       .unknown()
       .optional()
       .openapi({
         description: openApiText('openapi_divisions_identifiers_field_description'),
-      }),
-    sourceKeys: z
-      .unknown()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_source_keys_description'),
       }),
     i18n: DivisionI18nSchema.optional().openapi({
       description: openApiText('openapi_divisions_i18n_field_description'),
@@ -238,7 +293,6 @@ const DivisionAttributesSchema = z
 
 const DivisionRelationshipsSchema = z
   .object({
-    hierarchy: DivisionHierarchyRelationshipSchema,
     areas: z
       .object({
         data: z.array(z.object({ type: z.literal('division-areas'), id: IdSchema })),
@@ -254,30 +308,103 @@ const DivisionRelationshipsSchema = z
   })
   .openapi('DivisionRelationships')
 
-export const DivisionGeometryResourceSchema = z
-  .object({
-    type: z.union([z.literal('division-areas'), z.literal('division-boundaries')]),
-    id: IdSchema,
-    attributes: z.object({
-      divisionId: IdSchema.optional(),
-      leftDivisionId: IdSchema.optional(),
-      rightDivisionId: IdSchema.optional(),
-      geometry: z.union([GeometrySchema, z.null()]),
-      bbox: z.union([BBoxSchema, z.null()]),
-      type: z.string(),
-      isLand: z.boolean().nullable(),
-      isTerritorial: z.boolean().nullable(),
-      variant: z.string().optional(),
-      sources: z.union([SourcesSchema, z.null()]).optional(),
-      sourceKeys: z
-        .unknown()
-        .optional()
-        .openapi({
-          description: openApiText('openapi_source_keys_description'),
-        }),
+const DivisionGeometryResourceAttributesSchema = z.object({
+  bbox: z.union([BBoxSchema, z.null()]).openapi({
+    description: openApiText('openapi_divisions_geometry_resource_bbox_description'),
+  }),
+  type: z.enum(divisionGeometryTypes).openapi({
+    description: openApiText('openapi_divisions_geometry_resource_type_description'),
+    examples: ['mixed', 'land', 'maritime'],
+    enum: [...divisionGeometryTypes],
+  }),
+  isLand: z
+    .boolean()
+    .nullable()
+    .openapi({
+      description: openApiText('openapi_divisions_geometry_is_land_description'),
     }),
-  })
-  .openapi('DivisionGeometry')
+  isTerritorial: z
+    .boolean()
+    .nullable()
+    .openapi({
+      description: openApiText('openapi_divisions_geometry_is_territorial_description'),
+    }),
+  variant: z
+    .enum(divisionGeometryVariants)
+    .optional()
+    .openapi({
+      description: openApiText('openapi_divisions_geometry_variant_description'),
+      examples: [
+        'overture',
+        'hkgov-had',
+        'hkgov-censtatd',
+        'hkgov-censtatd-landclipped',
+        'hkgov-pland-pu',
+        'hkgov-pland-new-town',
+      ],
+      enum: [...divisionGeometryVariants],
+    }),
+  sources: z
+    .union([SourcesSchema, z.null()])
+    .optional()
+    .openapi({
+      description: openApiText('openapi_divisions_geometry_sources_description'),
+    }),
+  identifiers: z
+    .unknown()
+    .optional()
+    .openapi({
+      description: openApiText('openapi_divisions_identifiers_field_description'),
+    }),
+})
+
+const DivisionAreaGeometryResourceSchema = z.object({
+  type: z.literal('division-areas'),
+  id: IdSchema.openapi({
+    description: openApiText('openapi_divisions_geometry_resource_id_description'),
+  }),
+  attributes: DivisionGeometryResourceAttributesSchema.extend({
+    divisionId: IdSchema.openapi({
+      description: openApiText('openapi_divisions_geometry_division_id_description'),
+    }),
+    geometry: z.union([DivisionAreaGeometrySchema, z.null()]).openapi({
+      description: openApiText(
+        'openapi_divisions_geometry_resource_geometry_description',
+      ),
+    }),
+  }),
+})
+
+const DivisionBoundaryGeometryResourceSchema = z.object({
+  type: z.literal('division-boundaries'),
+  id: IdSchema.openapi({
+    description: openApiText('openapi_divisions_geometry_resource_id_description'),
+  }),
+  attributes: DivisionGeometryResourceAttributesSchema.extend({
+    leftDivisionId: IdSchema.openapi({
+      description: openApiText(
+        'openapi_divisions_geometry_left_division_id_description',
+      ),
+    }),
+    rightDivisionId: IdSchema.openapi({
+      description: openApiText(
+        'openapi_divisions_geometry_right_division_id_description',
+      ),
+    }),
+    geometry: z.union([DivisionBoundaryGeometrySchema, z.null()]).openapi({
+      description: openApiText(
+        'openapi_divisions_geometry_resource_geometry_description',
+      ),
+    }),
+  }),
+})
+
+export const DivisionGeometryResourceSchema = z
+  .discriminatedUnion('type', [
+    DivisionAreaGeometryResourceSchema,
+    DivisionBoundaryGeometryResourceSchema,
+  ])
+  .openapi('DivisionGeometryResource')
 
 const RequestedLocalesQuerySchema = z
   .string()
@@ -322,7 +449,8 @@ const DivisionDocumentMetaSchema = z
     filters: z
       .object({
         level: z.number().int().optional(),
-        divisionType: z.string().optional(),
+        class: z.string().optional(),
+        category: z.enum(['administrative', 'locality', 'hood']).optional(),
         parent: z.string().optional(),
       })
       .optional(),
@@ -339,6 +467,7 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z
       .string()
       .min(1)
@@ -405,7 +534,8 @@ export const DivisionsListQuerySchema = z
     'page[limit]': z.coerce.number().int().min(1).max(100).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
-    'filter[divisionType]': z.string().optional(),
+    'filter[class]': z.string().optional(),
+    'filter[category]': z.enum(['administrative', 'locality', 'hood']).optional(),
     'filter[parent]': z.string().optional(),
   })
   .openapi('DivisionsListQuery')
@@ -418,6 +548,7 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
+    region: RegionFilterSchema,
     catalogRevision: z
       .string()
       .min(1)

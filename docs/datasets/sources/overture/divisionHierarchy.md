@@ -1,67 +1,61 @@
-# division hierarchy normalisation
+# Division hierarchy materialisation
 
 ## v1
 
 ### EN
 
-SaanSeoi unwrap Overture's nested <black>hierarchies</black> payload into a singleton
-`hierarchy` list, with the following process:
+Ingestion materialises `hierarchies.administrative`, `hierarchies.locality` and
+`hierarchies.full` as arrays of paths. Each entry is `{ id, name, class }`; paths
+exclude the division itself and the country referent. Administrative paths contain SAR →
+area → district. Locality paths contain the nearest locality and up to three hood
+ancestors; a hood need not belong to a locality. Full paths combine the correlated
+administrative and locality ancestry, omitting the locality only when its class is
+`city`.
 
-- The country ancestor and the entry for the division itself are omitted: both are
-  implicit in a Hong Kong division record and add no useful hierarchy information.
-- For each remaining ancestor, SaanSeoi first looks up the referenced canonical
-  division. When found, it uses that row's canonical `level`, `type`, and localised
-  names rather than trusting Overture's locale-less hierarchy label.
-- The lookup is built from the complete division file before rows are normalised. For a
-  raw <black>locality</black> ancestor, the matching division row therefore supplies the
-  omitted <black>class</black>: its canonical `level`, `type`, and localised names are
-  copied into the normalised hierarchy entry.
-- If an ancestor has no canonical lookup row, SaanSeoi can still derive its level and
-  type from supported raw subtype hints and infer a label from the supplied name. A raw
-  <black>locality</black> ancestor is the exception: it requires the lookup row because
-  the hierarchy payload omits the <black>class</black> needed to distinguish city, town,
-  village, and hamlet. If that lookup row is missing, normalisation fails with an
-  explicit error.
-- The original Overture payload is retained under <black>overture.hierarchies</black>.
-- For a district, and for every division that has a district ancestor, SaanSeoi inserts
-  Hong Kong Island, Kowloon, or the New Territories immediately after Hong Kong SAR. The
-  release audit records one automatic action for each area with its assigned division
-  count.
+Multiple district or hood branches remain separate paths. Ingestion does not form a
+Cartesian product of unrelated branches. The SAR → area → district guard validates each
+evidenced path. Missing or conflicting required district ancestry blocks ingestion.
+
+Names come from canonical translations during ingestion. The shared display-name helper
+trims Traditional Chinese (`zh-hant`) and English (`en`), joins distinct values with one
+space, uses the sole available value, or returns null when neither exists. Stored paths
+and labels are returned directly by the API; loading does not reconstruct them.
+`include=hierarchy` optionally includes distinct ancestor resources, including cities.
+
+The complete source file and supplemental identities supply the ancestor lookup. Source
+locality ancestors require a resolvable class. Original source hierarchies remain in
+`properties`.
 
 ### ZH-HANT
 
-SaanSeoi 會將 Overture 巢狀的 <black>hierarchies</black> 資料解包為只包含一個項目的
-`hierarchy` 清單，流程如下：
+匯入時會將 `hierarchies.administrative`、`hierarchies.locality` 及 `hierarchies.full`
+儲存為路徑陣列。每個項目為 `{ id, name, class }`，不包含自身或國家參照點。行政路徑為 SAR
+→ area →
+district；聚落路徑包含最近的聚落及最多三個 hood 祖先，也容許沒有聚落的 hood。完整路徑保留相關分支，只在聚落 class 為
+`city` 時省略該聚落。
 
-- 國家祖先及代表該區劃本身的項目會被省略：兩者在香港區劃資料列中都是隱含的，並不會提供有用的層級資訊。
-- 對於每個其餘的祖先，SaanSeoi 會先查找所參照的標準區劃。找到後，會使用該資料列的標準
-  `level`、`type` 和本地化名稱，而不是依賴 Overture 沒有語言地區資訊的層級標籤。
-- 查找表會在資料列正規化前，根據完整的區劃檔案建立。因此，對於原始的
-  <black>locality</black> 祖先，相符的區劃資料列會提供已省略的
-  <black>class</black>；其標準 `level`、`type`
-  和本地化名稱會複製到正規化後的層級項目中。
-- 如果祖先沒有相符的標準查找資料列，仍可根據受支援的原始 subtype 提示推導其層級和類型，並從所提供的名稱推斷標籤。原始的
-  <black>locality</black>
-  祖先是例外：由於層級資料省略了用來區分 city、town、village 和 hamlet 的
-  <black>class</black>，因此必須有查找資料列。如果缺少該資料列，正規化會因明確的錯誤而失敗。
-- 原始 Overture 資料會保留在 <black>overture.hierarchies</black> 下。
-- 對於地區，以及層級中有地區祖先的每個區劃，SaanSeoi 會在香港特別行政區之後立即加入香港島、九龍或新界。發布審計會為每個地區記錄一項自動操作及其獲指派的區劃數目。
+跨行政區或 hood 的分支分開保存，不會任意交叉組合。每條路徑均通過行政層級驗證。名稱在匯入時以去除首尾空白的
+`zh-hant` 及 `en`
+組合，中間加一個空格；相同字串只顯示一次，只有一種語言則使用該值，兩者皆無則為 null。API 直接回傳已儲存的路徑，不在載入時重建。`include=hierarchy`
+可附帶祖先資源，包括城市。原始層級保留於 `properties`。
 
 ### ZH-HANS
 
-SaanSeoi 会将 Overture 嵌套的 <black>hierarchies</black> 数据解包为只包含一个项目的
-`hierarchy` 列表，流程如下：
+导入时会将 `hierarchies.administrative`、`hierarchies.locality` 及 `hierarchies.full`
+储存为路径数组。每个项目为 `{ id, name, class }`，不包含自身或国家参照点。行政路径为 SAR
+→ area →
+district；聚落路径包含最近的聚落及最多三个 hood 祖先，也允许没有聚落的 hood。完整路径保留相关分支，只在聚落 class 为
+`city` 时省略该聚落。
 
-- 国家祖先以及代表该区划本身的项目会被省略：两者在香港区划数据行中都是隐含的，不会提供有用的层级信息。
-- 对于每个其余的祖先，SaanSeoi 会先查找所引用的标准区划。找到后，会使用该数据行的标准
-  `level`、`type` 和本地化名称，而不是依赖 Overture 没有语言区域信息的层级标签。
-- 查找表会在数据行规范化前，根据完整的区划文件建立。因此，对于原始的
-  <black>locality</black> 祖先，相符的区划数据行会提供被省略的
-  <black>class</black>；其标准 `level`、`type`
-  和本地化名称会复制到规范化后的层级项目中。
-- 如果祖先没有相符的标准查找数据行，仍可根据受支持的原始 subtype 提示推导其层级和类型，并从所提供的名称推断标签。原始的
-  <black>locality</black>
-  祖先是例外：由于层级数据省略了用于区分 city、town、village 和 hamlet 的
-  <black>class</black>，因此必须有查找数据行。如果缺少该数据行，规范化会因明确的错误而失败。
-- 原始 Overture 数据会保留在 <black>overture.hierarchies</black> 下。
-- 对于地区，以及层级中有地区祖先的每个区划，SaanSeoi 会在香港特别行政区之后立即加入香港岛、九龙或新界。发布审计会为每个地区记录一项自动操作及其获指派的区划数目。
+跨行政区或 hood 的分支分开保存，不会任意交叉组合。每条路径均通过行政层级验证。名称在导入时以去除首尾空白的
+`zh-hant` 及 `en`
+组合，中间加一个空格；相同字符串只显示一次，只有一种语言则使用该值，两者皆无则为 null。API 直接返回已储存的路径，不在加载时重建。`include=hierarchy`
+可附带祖先资源，包括城市。原始层级保留于 `properties`。
+
+## Published search
+
+Latest-release Division search indexes localised names, aliases, name-rule values and
+curated codes. Stored ancestor names participate only when the request sets
+`ancestors=true`; all correlated hierarchy paths are retained. Finalisation compares the
+stored projection after the upload sequence, so unchanged snapshot promotion writes only
+its scope mapping. See [Division text search](../../families/divisions.md#text-search).

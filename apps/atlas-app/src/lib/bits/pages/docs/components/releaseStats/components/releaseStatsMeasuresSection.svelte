@@ -10,10 +10,9 @@ const unitLabel = (unitCode: string) =>
     : unitCode.replaceAll('-', ' ').replace(/\b\w/g, letter => letter.toUpperCase())
 </script>
 
-<Section class="overflow-hidden">
+<Section id={measures.id} class="overflow-hidden">
   <div class="px-5 pb-4 pt-5">
     <h2
-      id={measures.id}
       class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
     >
       {measures.title}

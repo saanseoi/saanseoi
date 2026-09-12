@@ -8,7 +8,7 @@ let {
   labels,
 }: { overview: OverviewPresentation; labels: ReleaseStatsLabels } = $props()
 </script>
-<Section
+<Section id="stats-overview"
   ><div
     class="flex flex-wrap items-start justify-between gap-4 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
   >
@@ -18,10 +18,7 @@ let {
       >
         {labels.dataset}
       </p>
-      <h2
-        id="stats-overview"
-        class="mt-1 font-mono text-title-lg font-bold tabular-nums text-primary"
-      >
+      <h2 class="mt-1 font-mono text-title-lg font-bold tabular-nums text-primary">
         {overview.recordCount} {labels.records}
       </h2>
     </div>
@@ -29,12 +26,17 @@ let {
       <span class="ml-auto"
         ><InfoTooltip
           label={labels.changeSummary}
-          description={overview.churn.baseline ? labels.comparisonBaseline : labels.comparisonPrevious}
+          description={overview.churn.unavailable ? "Change counts are not available for this release." : overview.churn.baseline ? labels.comparisonBaseline : labels.comparisonPrevious}
         /></span
       >
     {/if}
   </div>
   {#if overview.churn}
+    {#if overview.churn.unavailable}
+      <p class="px-5 py-3 text-caption text-foreground-alt">
+        Change counts are not available for this release.
+      </p>
+    {/if}
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
       {#each overview.churn.metrics as metric}
         <ChurnMetric {metric} />

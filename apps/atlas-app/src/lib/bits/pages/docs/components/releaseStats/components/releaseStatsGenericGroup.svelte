@@ -3,9 +3,8 @@ import type { GenericStatGroupPresentation } from '../releaseStats.types'
 import Section from './releaseStatsSection.svelte'
 let { group }: { group: GenericStatGroupPresentation } = $props()
 </script>
-<Section class="p-5"
+<Section id={group.id} class="p-5"
   ><h2
-    id={group.id}
     class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
   >
     {group.label}

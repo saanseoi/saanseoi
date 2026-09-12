@@ -37,7 +37,7 @@ export class ResponseCache {
     if (this.#latestRequest) return undefined
 
     const cached = await caches.default.match(this.#cacheKey)
-    if (cached?.status === 404) {
+    if (cached && !cached.ok) {
       await caches.default.delete(this.#cacheKey)
       return undefined
     }
@@ -56,7 +56,7 @@ export class ResponseCache {
     cacheControl: string = this.#env.CACHE_CONTROL ||
       'public, max-age=31536000, immutable',
   ): Response {
-    const cacheable = status !== 404
+    const cacheable = status >= 200 && status < 300
     headers.set('Cache-Control', cacheable ? cacheControl : 'no-store')
     if (cacheable && !this.#latestRequest) {
       this.#ctx.waitUntil(

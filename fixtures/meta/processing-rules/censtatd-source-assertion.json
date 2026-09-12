@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise_censtatd_statistic_source_assertion",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Check that each C&SD statistic has a valid reporting period, then keep its published fields, map shape, references and release details.",
+  "inputs": ["prepared-censtatd-district-statistics"],
+  "outputs": ["source-statistic-assertions"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts",
+    "symbol": "censtatdSourceAssertionRule"
+  }
+}

@@ -1,0 +1,526 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "tai-yuen-estate-street-complex",
+      "estate": "TAI YUEN ESTATE",
+      "district": "tai_po",
+      "coordinates": [114.1667207, 22.4555134],
+      "untilRevoked": false,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": null,
+      "assertions": [
+        {
+          "hashes": [
+            "0475712ae7bc9731074d2392dee94a84ce26955fcd87c6d492edf0ad47375763"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hashes": [
+            "8ea51897220d71e27ac51a7f680905e5300427015f378f88635d1f42d048cfdb"
+          ],
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [
+            "df7efd714294d76a9b0b8391f67641e612677ddb0afb687a1e88ac6ec763c137"
+          ],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hashes": [
+            "29c968fd086c05689866798686e48fdc4be20a2a8de4b1334d6128c1f4008546"
+          ],
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "3476ae9d63c84f278e0edbf0934b2cac2905337c610400ace47197f73322f299",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16858, 22.45611]
+            },
+            "properties": {
+              "Northing": 835183,
+              "Easting": 835414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3544135192T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "大埔區",
+                    "ChiStreet": {
+                      "StreetName": "汀角路",
+                      "BuildingNoFrom": "10"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大元邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TAI YUEN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "TING KOK ROAD"
+                    },
+                    "EngDistrict": "TAI PO DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3544135192T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0"
+          ]
+        },
+        {
+          "hash": "0a75705d6b7f2d32426972b84c97ac5f1e8146d69f230d5fd5f1b17f0a06e3f9",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.1708, 22.4554]
+            },
+            "properties": {
+              "Northing": 835105,
+              "Easting": 835642,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3563135105T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "大埔區",
+                    "ChiStreet": {
+                      "StreetName": "汀角路",
+                      "BuildingNoFrom": "10"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大元邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TAI YUEN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "TING KOK ROAD"
+                    },
+                    "EngDistrict": "TAI PO DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3563135105T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "1ff794dbef74ac3fbefe0e9122caa33407896d9286640fa0a9bce2f16ff45321",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.17069, 22.45541]
+            },
+            "properties": {
+              "Northing": 835105,
+              "Easting": 835631,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3563135105T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "大埔區",
+                    "ChiStreet": {
+                      "StreetName": "汀角路",
+                      "BuildingNoFrom": "10"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大元邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TAI YUEN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "TING KOK ROAD"
+                    },
+                    "EngDistrict": "TAI PO DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3563135105T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hash": "d53889225e73065ba8dc91d32ec6d1b220ecd136054ee072a811f2d7531e3a1e",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.16976, 22.45581]
+            },
+            "properties": {
+              "Northing": 835150,
+              "Easting": 835536,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3553635150T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "大埔區",
+                    "ChiStreet": {
+                      "StreetName": "汀角路",
+                      "BuildingNoFrom": "10"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "大元邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TAI YUEN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "TING KOK ROAD"
+                    },
+                    "EngDistrict": "TAI PO DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3553635150T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: materialise this distinct estate-level street address under a SaanSeoi identity; retain publisher house identifiers only as source evidence. Tai Yuen uses the supplied marker. Tin Wan persists until revoked. No house inventory is assigned to the estate."
+    },
+    {
+      "id": "tin-wan-estate-street-complex",
+      "estate": "TIN WAN ESTATE",
+      "district": "southern",
+      "coordinates": null,
+      "untilRevoked": true,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "hashes": [
+            "474c0e56c528c73cf97cc7a74ecb70ada1b77e6c4519f793239703fac15f8baf"
+          ],
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hashes": [],
+          "sourceVersions": [
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0"
+          ]
+        },
+        {
+          "hashes": [
+            "c588805c24732cd64dbbfefe70cf626fd1981f191ab0864438990e6d3c011db5"
+          ],
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "evidence": [
+        {
+          "hash": "082ad38589a9f0a691180c1970807fc14d5840ee4eb860123489a93335451520",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14997, 22.25016]
+            },
+            "properties": {
+              "Northing": 812378,
+              "Easting": 833494,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3349412374T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "南區",
+                    "ChiStreet": {
+                      "StreetName": "田灣街",
+                      "BuildingNoFrom": "26"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "田灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TIN WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "26",
+                      "StreetName": "TIN WAN STREET"
+                    },
+                    "EngDistrict": "SOUTHERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3349412374T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "3339d2de5b561bd581baa3632c6dbf65fbcac297936d98c1ebb7bbd1a1804118",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.14996, 22.25013]
+            },
+            "properties": {
+              "Northing": 812374,
+              "Easting": 833494,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3349412374T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "南區",
+                    "ChiStreet": {
+                      "StreetName": "田灣街",
+                      "BuildingNoFrom": "26"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "田灣邨"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngEstate": {
+                      "EstateName": "TIN WAN ESTATE"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "26",
+                      "StreetName": "TIN WAN STREET"
+                    },
+                    "EngDistrict": "SOUTHERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3349412374T20050430"
+                }
+              }
+            }
+          },
+          "sourceVersions": ["2026-07-22.0", "2026-08-19.0"]
+        }
+      ],
+      "authority": "User decision, 2026-09-08: materialise this distinct estate-level street address under a SaanSeoi identity; retain publisher house identifiers only as source evidence. Tai Yuen uses the supplied marker. Tin Wan persists until revoked. No house inventory is assigned to the estate."
+    }
+  ]
+}

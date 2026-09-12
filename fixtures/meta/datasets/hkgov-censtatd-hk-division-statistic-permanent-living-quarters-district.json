@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7c48ffbb5f3ec539fc788615d698e699a4f4275ee7d98d01234c4691c661d762",
+  "versionHash": "sha256:a1bcc83e6d9995cad73211eed8dea936040184e383b5fc4d143c1e15f08ce2a4",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
@@ -60,7 +60,10 @@
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
         "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -89,7 +92,17 @@
     {
       "locale": "en",
       "name": "Permanent Living Quarters by District Council District",
-      "description": "Planned C&SD source for District Council district permanent living-quarters stock."
+      "description": "C&SD source for District Council district permanent living-quarters stock."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "按區議會分區劃分的永久性居住屋宇單位",
+      "description": "政府統計處提供的按區議會分區劃分的永久性居住屋宇單位數目統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "按区议会分区划分的永久性居住屋宇单位",
+      "description": "政府统计处提供的按区议会分区划分的永久性居住屋宇单位数目统计。"
     }
   ]
 }

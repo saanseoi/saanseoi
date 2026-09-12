@@ -1,4 +1,8 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { finalisePublishedSearch } from '@repo/core/pipeline/services/search/finalise'
+import { finalisePublishedResources } from '@repo/core/pipeline/services/publicationState'
+import { finalisePublishedStatistics } from '../../lib/services/statisticsPublication'
+import { scheduleReconciledSnapshotCleanup } from '../../lib/services/controlCleanup'
 
 import {
   handleBootstrapStatsReleaseSets,
@@ -325,6 +329,24 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
+      await finalisePublishedResources(db, c.env.DB_CURRENT, {
+        deferred: request.deferApiReleaseSet || request.deferSourcePublish,
+        publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
+          publication => publication.apiFamily,
+        ),
+        snapshotIds: result.snapshotId ? [result.snapshotId] : [],
+      })
+      await finalisePublishedStatistics(db, c.env, {
+        publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
+          publication => publication.apiFamily,
+        ),
+      })
+      await finalisePublishedSearch(db, c.env.DB_CURRENT, {
+        deferred: request.deferApiReleaseSet || request.deferSourcePublish,
+        publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
+          publication => publication.apiFamily,
+        ),
+      })
       await announcePublishedReleaseSets(c.env, result.apiReleaseSetAnnouncements)
       const { apiReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)
@@ -363,7 +385,20 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const result = await handleReconcileDraftReleaseSets(db, c.req.valid('json'))
+      const request = c.req.valid('json')
+      const result = await handleReconcileDraftReleaseSets(db, request)
+      const options = {
+        publishedFamilies: request.apiFamily ? [request.apiFamily] : undefined,
+      }
+      await finalisePublishedResources(db, c.env.DB_CURRENT, options)
+      // Also repairs a publication whose current promotion failed after the
+      // metadata transaction committed, including when no drafts remain.
+      await finalisePublishedStatistics(db, c.env, options)
+      await finalisePublishedSearch(db, c.env.DB_CURRENT, {
+        ...options,
+        pendingReleaseSetCodes: result.pendingReleaseSetCodes,
+      })
+      await scheduleReconciledSnapshotCleanup(db, c.env.DATASET_QUEUE, request)
       await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
       const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)
@@ -382,7 +417,11 @@ export const bootstrapStatsReleaseSetsRoute = defineOpenAPIRoute<
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      return c.json(await handleBootstrapStatsReleaseSets(db, c.req.valid('json')), 200)
+      const result = await handleBootstrapStatsReleaseSets(db, c.req.valid('json'))
+      const options = { publishedFamilies: ['stats'] }
+      await finalisePublishedResources(db, c.env.DB_CURRENT, options)
+      await finalisePublishedStatistics(db, c.env, options)
+      return c.json(result, 200)
     } catch (error) {
       const response = createControlError(error)
       return c.json(response, response.httpStatus)

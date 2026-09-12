@@ -7,13 +7,20 @@ import {
 } from './createAMapLlmInstructions'
 import {
   createAMapAgenticHandoverPrompt,
+  createAMapGuideHandbackUrl,
+  createAMapAgenticDataStepPrompt,
   createAMapAgenticSectionPrompt,
+  createAMapChatHandoverPrompt,
+  createAMapChatDataStepPrompt,
+  createAMapCustomDataPrompt,
+  createAMapExistingDataPrompt,
   createAMapBasemapPromptFragments,
   createAMapChatSectionPrompt,
   createAMapRenderPromptFragments,
   createAMapProjectSetupPromptFragments,
   isCreateAMapAgentCapableEditor,
   shouldShowCreateAMapEditorSetup,
+  type CreateAMapDataPromptReferences,
 } from './createAMapLlmPrompt'
 import {
   createAMapRendererBasemapCode,
@@ -28,7 +35,11 @@ import {
   urbanDensityLiveableAreaCode,
   urbanDensityLiveableAreaMapCode,
   urbanDensityLiveableMetricsCode,
+  urbanDensityMapCode,
+  urbanDensityMetricsCode,
   urbanDensitySetupZ14TileFetcherCode,
+  urbanDensityTurfInstallCode,
+  urbanDensityTurfInstallOutput,
 } from './snippets'
 
 describe('Create a Map LLM instructions', () => {
@@ -142,7 +153,7 @@ describe('Create a Map LLM instructions', () => {
     expect(mapSetup).not.toContain('type DistrictProperties')
     expect(stats).toContain('type DistrictProperties')
     expect(stats).toContain(
-      "const savedResultUrl = new URL(/* @vite-ignore */ './land-analysis.json.gz', import.meta.url)",
+      "const savedResultUrl = new URL('./land-analysis.json.gz', import.meta.url)",
     )
     expect(stats).toContain('const savedResultResponse = await fetch(savedResultUrl)')
     expect(stats).toContain(
@@ -251,10 +262,126 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('bun add mapbox-gl')
     expect(instructions).toContain('bun add leaflet')
     expect(instructions).toContain('## Publish')
+    expect(instructions.toLowerCase()).toMatch(
+      /follow the os commands for the system you are\s+on and ignore the commands for other operating systems/,
+    )
+    expect(instructions).not.toContain('What operating system are you using')
     expect(instructions).toContain('current workspace root only if it is not the')
     expect(instructions).toContain(
       'An HTTP 200 response does not visually verify the app',
     )
+    expect(instructions).toContain(
+      'folder (an agentic LLM should inspect and confirm this itself).\n\n5. Use the renderer-specific',
+    )
+    expect(instructions.endsWith('\n')).toBe(true)
+    for (const listStart of [
+      '- As a web chat, we expect you cannot inspect or edit my computer directly.',
+      '- Before setup, have me inspect the operating system and shell,',
+      '- For every action, name the exact paste target:',
+    ]) {
+      const line = instructions
+        .split('\n')
+        .find(candidate => candidate.startsWith(listStart))
+      expect(line).toBeDefined()
+      expect(line?.length).toBeLessThanOrEqual(88)
+    }
+    expect(instructions).toContain('## Decision matrix and order')
+    expect(instructions).toContain('Use the preceding **Decision matrix and order**')
+    expect(instructions).toContain('If you are an agentic LLM')
+    expect(instructions).toContain('If you are a non-agentic LLM')
+    expect(instructions).not.toContain('Which language would you prefer')
+    expect(instructions).toContain('https://saanseoi.hk/sign-up')
+    expect(instructions).toContain('https://saanseoi.hk/api-keys')
+    expect(instructions).toContain('do not rely on the guide UI to compose the iframe')
+  })
+
+  test('includes the guide code references in the canonical handover guide', () => {
+    const instructions = createAMapLlmInstructions()
+
+    expect(instructions).toContain('## Render the map')
+    expect(instructions).toContain('## Add the SaanSeoi basemap')
+    expect(instructions).toContain('## Choose a style')
+    expect(instructions).toContain('## Add data')
+    expect(instructions).toContain('## Publish')
+    expect(instructions).toContain('bun create vite . --template vanilla-ts')
+    expect(instructions).toContain("import * as maplibregl from 'maplibre-gl'")
+    expect(instructions).toContain('const basemapUrl = ')
+    expect(instructions).toContain('access_token=')
+    expect(instructions).toContain("const places = await fetch('/features.geojson')")
+    expect(instructions).toContain('const nonLiveableLandUse = [')
+    expect(instructions).toContain(
+      'bun add @turf/turf @mapbox/vector-tile pbf geos-wasm',
+    )
+    expect(instructions).toContain('bunx wrangler deploy')
+    expect(instructions).toContain('<iframe')
+    expect(instructions).not.toContain('mobile-embed')
+    expect(instructions).not.toContain('notebook-embed')
+    expect(instructions).not.toContain('MapLibre Jupyter')
+  })
+
+  test('creates a handback URL from the known guide decisions', () => {
+    const url = createAMapGuideHandbackUrl(
+      {
+        preferredLocale: 'en',
+        selectionQuery: {
+          objective: 'web-embed',
+          aiAccess: 'web',
+          llm: 'chatgpt',
+          websitePlatform: 'wordpress',
+          hosting: 'cloudflare',
+          renderer: 'maplibre',
+          region: 'hk',
+          style: 'midnight',
+          dataSource: 'existing',
+          dataFormat: 'geojson',
+        },
+      },
+      'https://saanseoi.hk/guides/create-a-map',
+    )
+
+    expect(url).toContain('objective=web-embed')
+    expect(url).toContain('llm-mode=assisted')
+    expect(url).toContain('website=wordpress')
+    expect(url).toContain('data-format=geojson')
+    expect(url).not.toContain('agent-tool=')
+  })
+
+  test('makes full handover prompts mode-specific and uses the site-selected locale', () => {
+    const agentPrompt = createAMapAgenticHandoverPrompt(
+      { preferredLocale: 'zh-Hant' },
+      'https://saanseoi.hk/guides/create-a-map',
+      'https://saanseoi.hk/guides/create-a-map/llms.txt',
+    )
+    const chatPrompt = createAMapChatHandoverPrompt(
+      { preferredLocale: 'zh-Hans' },
+      'https://saanseoi.hk/guides/create-a-map',
+      'https://saanseoi.hk/guides/create-a-map/llms.txt',
+    )
+
+    expect(agentPrompt).toContain('If you are an agentic LLM')
+    expect(agentPrompt).toContain('AI route: agentic')
+    expect(agentPrompt).toContain('ai-access=agentic')
+    expect(agentPrompt).not.toContain('If you are a non-agentic LLM')
+    expect(chatPrompt).toContain('If you are a non-agentic LLM')
+    expect(chatPrompt).toContain('AI route: web')
+    expect(chatPrompt).toContain('llm-mode=assisted')
+    expect(chatPrompt).not.toContain('If you are an agentic LLM, inspect')
+    expect(agentPrompt).toContain('The site-selected user locale is `zh-Hant`')
+    expect(chatPrompt).toContain('The site-selected user locale is `zh-Hans`')
+    expect(agentPrompt).toStartWith('# Full handover: SaanSeoi Create a Map')
+    expect(agentPrompt).toContain('## Purpose')
+    expect(agentPrompt).toContain('## How to work')
+    expect(agentPrompt).toContain('## Supplied project decisions')
+    expect(agentPrompt).toContain('### Guide URL parameters')
+    expect(agentPrompt).toContain('## Returning to the guide')
+    expect(agentPrompt).toContain(
+      'Respond to me in this locale throughout the interaction',
+    )
+    expect(chatPrompt).not.toContain('Which language would you prefer')
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).not.toContain('https://saanseoi.hk/sign-up')
+      expect(prompt).not.toContain('https://saanseoi.hk/api-keys')
+    }
   })
 
   test('provides the working agreement and setup instructions for assistance', () => {
@@ -268,19 +395,47 @@ describe('Create a Map LLM instructions', () => {
     expect(instructions).toContain('BUN_TMPDIR="$PWD/.bun-tmp"')
     expect(instructions).toContain('BUN_INSTALL="$PWD/.bun-install"')
     expect(instructions).toContain('rm -rf .bun-tmp .bun-install')
-    expect(instructions).toMatch(/check it yourself when you\s+have browser access/)
-    expect(instructions).toMatch(
-      /otherwise ask the user to open it and report the result/,
+    expect(instructions).toContain('Visibly open that reported URL in a')
+    expect(instructions).toContain(
+      'ask the user to open the reported URL and describe what they see',
     )
     expect(instructions).toContain(
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
     expect(instructions).toContain('“Ignore files and continue”')
     expect(instructions).toContain('never “Remove existing files.”')
-    expect(instructions).toContain('default only when a new subdirectory is required')
+    expect(instructions).toContain(
+      'Create the project only as `/path/to/saanseoi-project`',
+    )
     expect(instructions).not.toContain('### Ask these questions first')
     expect(instructions).not.toContain('## Render the map')
     expect(instructions).not.toContain('Inspect the existing workspace')
+  })
+
+  test('gives agents Linux commands to adapt after inspecting the environment', () => {
+    const prompt = createAMapAgenticSectionPrompt(
+      { objective: 'local', preferredLocale: 'en' },
+      'prerequisites',
+    )
+
+    expect(prompt).toContain(
+      'Before creating anything, inspect the operating system and shell',
+    )
+    expect(prompt).toContain('If Bun is installed, do not run its installation command')
+    expect(prompt).toContain('never overwrite it')
+    expect(prompt).toContain('#### Linux')
+    expect(prompt).toContain('#### macOS')
+    expect(prompt).toContain('#### Windows PowerShell')
+    expect(prompt).toContain('curl -fsSL https://bun.sh/install | bash')
+    expect(prompt).toContain('irm bun.sh/install.ps1 | iex')
+    expect(prompt).toContain('#### Linux or macOS')
+    expect(prompt).toContain(
+      'New-Item -ItemType Directory -Force .bun-tmp, .bun-install',
+    )
+    expect(prompt.indexOf('#### Linux')).toBeLessThan(prompt.indexOf('#### macOS'))
+    expect(prompt.indexOf('#### macOS')).toBeLessThan(
+      prompt.indexOf('#### Windows PowerShell'),
+    )
   })
 
   test('composes the project setup prompt for agents and web chat', () => {
@@ -304,10 +459,11 @@ describe('Create a Map LLM instructions', () => {
         'In this first session, help me establish the project foundation only',
       )
       expect(prompt).toEndWith(
-        'The single next action is for you to continue with the “Render” section of the guide. Read it until it provides you with a prompt to share with me again.”',
+        'Once the user confirms that the default Vite page is visibly displayed, summarise the setup and stop. Do not make further changes or begin the “Render your map” section.',
       )
       expect(prompt).toContain('collaborative assistance session, not a full hand-over')
       expect(prompt).toContain('### Project decisions')
+      expect(prompt).toContain('- Operating system: Linux')
       expect(prompt).toContain('### Working agreement')
       expect(prompt).toContain('## Project setup')
       expect(prompt).toContain('### Verification')
@@ -326,23 +482,20 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).toContain(
       'As an agent, you will implement the requests locally',
     )
-    expect(agentPrompt).toContain('create a new `saanseoi-project` subdirectory')
+    expect(agentPrompt).toContain('Create only `/path/to/saanseoi-project`')
 
     expect(chatPrompt).toContain('#### Linux')
     expect(chatPrompt).not.toContain('#### macOS')
     expect(chatPrompt).not.toContain('#### Windows PowerShell')
     expect(chatPrompt).toContain(
-      'For this stand-alone web app, use Bun and TypeScript.',
+      'For this stand-alone web app, use Bun and TypeScript in `/path/to/saanseoi-project`.',
     )
-    expect(chatPrompt).toContain('### Install the Wrangler dependency')
     expect(chatPrompt).toContain('bun add -d wrangler')
-    expect(chatPrompt).toContain('open another terminal tab or window')
-    expect(chatPrompt).toContain('navigate to the same project directory')
-    expect(chatPrompt).toContain('such as `cd saanseoi-project`')
+    expect(chatPrompt).toContain('bun dev -- --host 0.0.0.0')
+    expect(chatPrompt).toContain('`/path/to/saanseoi-project`')
     expect(chatPrompt).toContain(
       'It uses workspace-local temporary directories for `bun install`',
     )
-    expect(chatPrompt).toContain('does not sign in, configure an account, or deploy')
     expect(chatPrompt).toContain(
       'Managed hidden folders such as `.agents`, `.codex`, and `.git`',
     )
@@ -354,7 +507,7 @@ describe('Create a Map LLM instructions', () => {
       'IMPORTANT: This is a collaborative assistance session, not a full hand-over.',
     )
     expect(chatPrompt).toContain(
-      'State whether I should create, replace, or append the content.\n\nIMPORTANT: This is a collaborative assistance session',
+      'State whether I should create, replace, or append the content.',
     )
     expect(chatPrompt).toContain('Give me one command at a time')
     expect(chatPrompt).toContain('### Starting with the terminal')
@@ -362,10 +515,10 @@ describe('Create a Map LLM instructions', () => {
     expect(agentPrompt).not.toContain('### Starting with the terminal')
     expect(agentPrompt).toContain('Stop for confirmation before any paid action')
     expect(agentPrompt).toContain(
-      'An HTTP 200 response does not visually verify the app',
+      'Browser verification succeeds only when a browser visibly displays',
     )
     expect(agentPrompt).toContain('If browser access is unavailable,')
-    expect(chatPrompt).toContain('Terminal in `saanseoi-project`')
+    expect(chatPrompt).toContain('/path/to/saanseoi-project')
     expect(chatPrompt).toContain('Editor window in `src/main.ts`')
     expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
 
@@ -448,7 +601,9 @@ describe('Create a Map LLM instructions', () => {
         { objective: 'local', operatingSystem: 'Linux', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).toContain('For this local map on my computer, use Bun and TypeScript.')
+    ).toContain(
+      'For this local map on my computer, use Bun and TypeScript in `/path/to/saanseoi-project`.',
+    )
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'web-embed', operatingSystem: 'Linux', preferredLocale: 'en' },
@@ -459,7 +614,7 @@ describe('Create a Map LLM instructions', () => {
     )
   })
 
-  test('installs the selected hosting dependency for hosted web projects', () => {
+  test('installs Wrangler but no other hosting dependency during project setup', () => {
     expect(
       createAMapAgenticSectionPrompt(
         {
@@ -470,13 +625,13 @@ describe('Create a Map LLM instructions', () => {
         },
         'prerequisites',
       ),
-    ).toContain('bun add -d gh-pages')
+    ).toContain('bun add -d wrangler')
     expect(
       createAMapAgenticSectionPrompt(
         { objective: 'local', operatingSystem: 'Linux', preferredLocale: 'en' },
         'prerequisites',
       ),
-    ).not.toContain('### Install the')
+    ).not.toContain('bun add -d gh-pages')
   })
 
   test('provides a project-local Bun installation fallback', () => {
@@ -498,6 +653,15 @@ describe('Create a Map LLM instructions', () => {
       },
       'prerequisites',
     )
+    const macosPrompt = createAMapChatSectionPrompt(
+      {
+        objective: 'web',
+        hostingValue: 'cloudflare',
+        operatingSystem: 'macOS',
+        preferredLocale: 'en',
+      },
+      'prerequisites',
+    )
 
     expect(unixPrompt).toContain('mkdir -p .bun-tmp .bun-install')
     expect(unixPrompt).toContain('BUN_TMPDIR="$PWD/.bun-tmp"')
@@ -510,6 +674,15 @@ describe('Create a Map LLM instructions', () => {
     expect(windowsPrompt).toContain('$env:BUN_INSTALL = "$PWD\\.bun-install"')
     expect(windowsPrompt).toContain(
       'Remove-Item -Recurse -Force .bun-tmp, .bun-install',
+    )
+    expect(macosPrompt).toContain('#### macOS')
+    expect(macosPrompt).toContain('bun --version')
+    expect(macosPrompt).toContain(
+      'Run this only when the command above reports that Bun is unavailable',
+    )
+    expect(macosPrompt).toContain('open a new Terminal\nwindow before continuing')
+    expect(macosPrompt).not.toContain(
+      'Use the Linux command sequence after inspecting the shell.',
     )
   })
 
@@ -537,15 +710,16 @@ describe('Create a Map LLM instructions', () => {
     expect(hostingDependency).toBeLessThan(server)
     expect(prompt).not.toContain('echo "" | bun create vite')
     expect(prompt).toContain(
-      String.raw`printf '\033[B\033[B\r' | bun create vite . --template vanilla-ts --no-immediate --interactive`,
+      'bun create vite . --template vanilla-ts --no-immediate --interactive',
     )
+    expect(prompt).toContain('bun dev -- --host 0.0.0.0')
+    expect(prompt).toContain('http://localhost:5174/')
+    expect(prompt).toContain('do not stop or restart another process using it')
+    expect(prompt).toContain('build, or HTTP response is not visual verification')
     expect(prompt).toContain(
-      'successful Bun command, build, or HTTP response is not visual verification',
+      'Do not install map libraries or add basemap, style, data, Cloudflare configuration,',
     )
-    expect(prompt).toContain(
-      'do not add map libraries, basemaps, hosting configuration, or',
-    )
-    expect(prompt).toContain('deployment settings in this section')
+    expect(prompt).toContain('Vite page is visible, summarise the setup and stop')
   })
 
   test('keeps model selection in the user-only preflight note', () => {
@@ -642,7 +816,7 @@ describe('Create a Map LLM instructions', () => {
         'If you have no context for the SaanSeoi project, stop immediately',
       )
       expect(prompt).toContain(
-        'Continue the “Render” section of my SaanSeoi map project.\n\nIf you have no context',
+        'Continue the “Render the map” section of my SaanSeoi map project.\n\nIf you have no context',
       )
     }
   })
@@ -671,10 +845,14 @@ describe('Create a Map LLM instructions', () => {
       expect(prompt).toContain('browser visibly shows')
     }
 
-    expect(agentPrompt).toContain(
+    expect(agentPrompt).not.toContain(
       'As an agent, you will implement the requests locally',
     )
-    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain(
+      'Implement the requested renderer changes locally',
+    )
+    expect(agentPrompt).not.toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).not.toContain('collaborative assistance session')
     expect(agentPrompt).not.toContain('create a new `saanseoi-project` subdirectory')
     expect(agentPrompt).not.toContain('For every action, name the exact paste target')
     expect(chatPrompt).toContain(
@@ -694,6 +872,7 @@ describe('Create a Map LLM instructions', () => {
 
   test('composes basemap instructions for agent and chat workspaces', () => {
     const state = {
+      basemapApiKey: 'pk.guide-test',
       codeEditorValue: 'vscode',
       operatingSystemValue: 'windows',
       preferredLocale: 'en',
@@ -708,73 +887,325 @@ describe('Create a Map LLM instructions', () => {
     const chatPrompt = createAMapChatSectionPrompt(state, 'basemap')
 
     for (const prompt of [agentPrompt, chatPrompt]) {
-      expect(prompt).toStartWith('## Basemap Section')
-      expect(prompt).toContain('selected mapping library is MapLibre')
-      expect(prompt).toContain('selected SaanSeoi coverage is Hong Kong')
+      expect(prompt).toStartWith('## Basemap')
+      expect(prompt).toContain('existing MapLibre map')
+      expect(prompt).toContain('Hong Kong TileJSON endpoint')
       expect(prompt).toContain('https://tiles.saanseoi.hk/hongkong-latest.json')
       expect(prompt).toContain('`VITE_SAANSEOI_API_KEY`')
-      expect(prompt).toContain('`access_token` query parameter')
+      expect(prompt).toContain('`access_token`')
+      expect(prompt).toContain('`pk.guide-test`')
+      expect(prompt).toContain('do not use an existing key')
       expect(prompt).toContain('src\\main.ts')
-      expect(prompt).toContain(
-        'The basemap is not expected to be visible until the Style section',
-      )
+      expect(prompt).toContain('A blank map is expected')
       expect(prompt).not.toContain('https://styles.saanseoi.hk/light.json')
-      expect(prompt).not.toContain('pk.')
+      expect(prompt).toContain(
+        'The single next action is for you to continue with the “Style” section',
+      )
     }
 
-    expect(agentPrompt).toContain('Implement the requested basemap changes locally')
-    expect(agentPrompt).toContain('never print, reveal, log or commit its value')
-    expect(agentPrompt).toContain('Stop for confirmation before any paid action')
-    expect(agentPrompt).not.toContain('Never ask me to paste the public key into chat')
-
-    expect(chatPrompt).toContain('Give one safe action at a time')
-    expect(chatPrompt).toContain('Never ask me to paste the public key into chat')
-    expect(chatPrompt).not.toContain('Implement the requested basemap changes locally')
-    expect(chatPrompt).not.toContain('Stop for confirmation before any paid action')
+    expect(agentPrompt).toBe(chatPrompt)
+    expect(agentPrompt).not.toContain('collaborative assistance session')
+    expect(agentPrompt).not.toContain('Give one safe action at a time')
 
     const agentFragments = createAMapBasemapPromptFragments(state, 'agentic')
     const chatFragments = createAMapBasemapPromptFragments(state, 'chat')
-    expect(agentFragments.some(fragment => fragment.llmType === 'chat')).toBe(false)
-    expect(chatFragments.some(fragment => fragment.llmType === 'agent')).toBe(false)
+    expect(agentFragments.every(fragment => fragment.llmType === 'all')).toBe(true)
+    expect(chatFragments.every(fragment => fragment.llmType === 'all')).toBe(true)
     expect(agentFragments.some(fragment => fragment.os === 'windows')).toBe(true)
   })
 
   test('adds headings to the later progressive prompts', () => {
-    for (const section of ['basemap', 'style', 'data', 'publish'] as const) {
+    for (const section of ['style', 'data', 'publish'] as const) {
       expect(
         createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, section),
       ).toStartWith(`## ${section.charAt(0).toUpperCase() + section.slice(1)} Section`)
     }
+
+    expect(
+      createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'basemap'),
+    ).toStartWith('## Basemap')
   })
 
-  test('provides the selected renderer reference without exposing a Mapbox token', () => {
-    const prompt = createAMapAgenticSectionPrompt(
+  test('guides chat and agents through adding custom GeoJSON data', () => {
+    const state = {
+      hosting: 'Cloudflare Pages',
+      preferredLocale: 'en',
+      regionLabel: 'Hong Kong',
+    }
+    const chatPrompt = createAMapCustomDataPrompt(state, 'chat')
+    const agentPrompt = createAMapCustomDataPrompt(state, 'agentic')
+
+    for (const prompt of [chatPrompt, agentPrompt]) {
+      expect(prompt).toContain('Continue the “Craft a custom map” section')
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('Hong Kong basemap')
+      expect(prompt).toContain('valid GeoJSON')
+      expect(prompt).toContain('attributes, data source, and desired interaction')
+      expect(prompt).toContain('clarify the rest as we go along')
+      expect(prompt).toContain('I selected Cloudflare Pages for hosting')
+      expect(prompt).toContain('current static-asset size limits')
+      expect(prompt).toContain('simplification, splitting, tiling, or hosted data')
+      expect(prompt).toContain(
+        'build, smoke-test, and prepare the map for Cloudflare Pages',
+      )
+      expect(prompt).toContain('ready to publish to Cloudflare Pages')
+    }
+
+    expect(chatPrompt).toContain('Ask me for the GeoJSON asset’s actual size')
+    expect(agentPrompt).toContain('inspect its actual size yourself')
+    expect(agentPrompt).not.toContain('Ask me for the GeoJSON asset’s actual size')
+    expect(chatPrompt).toContain('Guide me one small action at a time')
+    expect(chatPrompt).toContain('exactly which file or terminal command')
+    expect(agentPrompt).toContain('Inspect the project first')
+    expect(agentPrompt).not.toContain('Guide me one small action at a time')
+
+    const localPrompt = createAMapCustomDataPrompt(
+      { preferredLocale: 'en', regionLabel: 'Macau' },
+      'chat',
+    )
+    expect(localPrompt).toContain('Macau basemap')
+    expect(localPrompt).not.toContain('Prepare for selected hosting')
+    expect(localPrompt).not.toContain('static-asset size limits')
+    expect(localPrompt).not.toContain('ready to publish')
+  })
+
+  test('guides chat and agents through adding an existing GeoJSON file', () => {
+    const state = {
+      objective: 'web',
+      operatingSystem: 'Windows',
+      operatingSystemValue: 'windows',
+      preferredLocale: 'en',
+    }
+    const references = [
       {
-        preferredLocale: 'en',
-        renderer: 'mapbox',
-        rendererLabel: 'Mapbox GL JS',
+        code: "const places = await fetch('/features.geojson').then(response => response.json())",
+        language: 'typescript' as const,
+        path: 'src\\main.ts',
+        title: 'src/main.ts - add your GeoJSON',
+        type: 'TS' as const,
       },
-      'render',
-    )
+    ]
+    const agentPrompt = createAMapExistingDataPrompt(state, 'agentic', references)
+    const chatPrompt = createAMapExistingDataPrompt(state, 'chat', references)
 
-    expect(prompt).toContain(
-      'If you have no context for the SaanSeoi project, stop immediately',
+    for (const prompt of [agentPrompt, chatPrompt]) {
+      expect(prompt).toStartWith('## Add GeoJSON to your map')
+      expect(prompt).toContain('Continue the “Add your data” section')
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('features.geojson')
+      expect(prompt).toContain('C:\\Users\\YourName\\saanseoi-project\\public')
+      expect(prompt).toContain('Target: `src\\main.ts`')
+      expect(prompt).toContain(references[0].code)
+      expect(prompt).toContain('verify that the features appear in the right places')
+      expect(prompt).toContain(
+        'The single next action is for you to continue with the “Publish the map” section',
+      )
+    }
+
+    expect(agentPrompt).toContain('Inspect the existing project before changing it.')
+    expect(agentPrompt).toContain('move or copy it to')
+    expect(agentPrompt).not.toContain('Guide me through one safe action at a time')
+    expect(chatPrompt).toContain('Guide me through one safe action at a time')
+    expect(chatPrompt).toContain(
+      'go to the end of the existing map setup, append the GeoJSON loading code below',
     )
-    expect(prompt).toContain('### Setup')
-    expect(prompt).toContain('bun add mapbox-gl')
-    expect(prompt).toContain('Replace the existing `src/main.ts` with:')
-    expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
-    expect(prompt).toContain('### Verify')
-    expect(prompt).toContain(
-      'Use the Mapbox access token already stored in local `.env` as `VITE_MAPBOX_TOKEN`.',
-    )
-    expect(prompt).not.toContain('### This section')
-    expect(prompt).not.toContain('### Project decisions')
-    expect(prompt).toContain('access_token')
-    expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
+    expect(chatPrompt).not.toContain('Inspect the existing project before changing it.')
   })
 
-  test('includes renderer-specific style code in agent and chat hand-offs', () => {
+  test('keeps urban-density data hand-offs self-contained and scoped', () => {
+    const state = {
+      dataSource: 'api',
+      dataSourceLabel: 'No, use SaanSeoi',
+      preferredLocale: 'en',
+    }
+    const references = {
+      fetchStats: [
+        {
+          code: createUrbanDensityStatsCode('https://api.example', 'saved result'),
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Fetch District statistics',
+          type: 'TS',
+        },
+      ],
+      calculateDensity: [
+        {
+          code: urbanDensityCalculationCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Calculate Area density',
+          type: 'TS',
+        },
+      ],
+      addStatsToMap: [
+        {
+          code: urbanDensityMetricsCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Show Area metrics',
+          type: 'TS',
+        },
+      ],
+      findUnliveableLand: [
+        {
+          code: urbanDensityMapCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Highlight excluded land',
+          type: 'TS',
+        },
+      ],
+      calculateLiveableArea: [
+        {
+          code: urbanDensityTurfInstallCode,
+          language: 'bash',
+          path: 'saanseoi-project',
+          title: 'Install geospatial tools',
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityTurfInstallOutput,
+          language: 'text',
+          path: 'saanseoi-project',
+          title: 'Expected installation output',
+          type: 'CLI',
+        },
+        {
+          code: urbanDensityGeometryWorkerCode,
+          language: 'typescript',
+          path: 'src/land-analysis.worker.ts',
+          title: 'Analyse land geometry',
+          type: 'TS',
+        },
+      ],
+      finaliseMap: [
+        {
+          code: urbanDensityLiveableMetricsCode,
+          language: 'typescript',
+          path: 'src/main.ts',
+          title: 'Show revised Area metrics',
+          type: 'TS',
+        },
+      ],
+    } satisfies CreateAMapDataPromptReferences
+    const steps = [
+      ['fetchStats', 'Calculate population density'],
+      ['calculateDensity', 'Put the stats on the map'],
+      ['addStatsToMap', 'Identifying land without human habitats'],
+      ['findUnliveableLand', 'Calculate liveable area'],
+    ] as const
+
+    for (const [step, next] of steps) {
+      const chatPrompt = createAMapChatDataStepPrompt(state, step, references[step])
+      const agentPrompt = createAMapAgenticDataStepPrompt(state, step, references[step])
+
+      expect(chatPrompt).toContain(
+        `Continue the “${step === 'fetchStats' ? 'Data Section' : step === 'calculateDensity' ? 'Calculate population density' : step === 'addStatsToMap' ? 'Put the stats on the map' : 'Identifying land without human habitats'}” section`,
+      )
+      expect(chatPrompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(chatPrompt).not.toContain('As a web chat')
+      const workedExampleDecision =
+        '- Data source: User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
+      if (step === 'fetchStats') {
+        expect(chatPrompt).toContain('### Project decisions')
+        expect(chatPrompt).toContain(workedExampleDecision)
+      } else {
+        expect(chatPrompt).not.toContain('### Project decisions')
+        expect(chatPrompt).not.toContain(workedExampleDecision)
+      }
+      expect(chatPrompt).toContain('### Implementation references')
+      expect(chatPrompt).toContain(`Target: \`${references[step]?.[0]?.path}\``)
+      expect(chatPrompt).toContain(
+        `Open \`${references[step]?.[0]?.path}\`, go to the end of its existing code, append this code, then save the file before continuing.`,
+      )
+      expect(chatPrompt).toContain(references[step]?.[0]?.code ?? '')
+      expect(chatPrompt).toContain(`“${next}” section of the guide`)
+      expect(agentPrompt).toContain(
+        'Apply the following references to their named targets in the displayed order.',
+      )
+      expect(agentPrompt).not.toContain('go to the end of its existing code')
+      expect(agentPrompt).not.toContain('As a coding agent')
+      expect(agentPrompt).not.toContain('As a web chat')
+    }
+
+    const fetchPrompt = createAMapChatDataStepPrompt(
+      state,
+      'fetchStats',
+      references.fetchStats,
+    )
+    expect(fetchPrompt).toContain("url.searchParams.set('cohort', '2024')")
+    expect(fetchPrompt).toContain(
+      "url.searchParams.set('filter[referencePeriod]', '2024')",
+    )
+    expect(fetchPrompt).toContain('x-api-key')
+
+    const dataSectionPrompt = createAMapChatSectionPrompt(state, 'data', references)
+    expect(dataSectionPrompt).not.toContain('### Project decisions')
+    expect(dataSectionPrompt).not.toContain('Data source: User has opted')
+
+    for (const step of ['calculateLiveableArea', 'finaliseMap'] as const) {
+      const prompt = createAMapChatDataStepPrompt(state, step, references[step])
+      expect(prompt).not.toContain('### Project decisions')
+      expect(prompt).not.toContain('Data source: User has opted')
+      expect(prompt).toContain(`Target: \`${references[step]?.[0]?.path}\``)
+      expect(prompt).toContain(
+        step === 'calculateLiveableArea'
+          ? 'In the terminal at `saanseoi-project`, run this command and wait for it to finish before continuing.'
+          : 'Open `src/main.ts`, go to the end of its existing code, append this code, then save the file before continuing.',
+      )
+      if (step === 'calculateLiveableArea') {
+        expect(prompt).toContain(
+          'In the terminal at `saanseoi-project`, compare the result with this expected output before continuing.',
+        )
+        expect(prompt).toContain(
+          'Create `src/land-analysis.worker.ts` with this code, then save the file before continuing.',
+        )
+      }
+      expect(prompt).toContain(references[step]?.[0]?.code ?? '')
+    }
+  })
+
+  test('guides both LLM modes through local Mapbox token setup without exposing it', () => {
+    const state = {
+      preferredLocale: 'en',
+      renderer: 'mapbox',
+      rendererLabel: 'Mapbox GL JS',
+    }
+    const prompts = [
+      createAMapAgenticSectionPrompt(state, 'render'),
+      createAMapChatSectionPrompt(state, 'render'),
+    ]
+
+    for (const prompt of prompts) {
+      expect(prompt).toContain(
+        'If you have no context for the SaanSeoi project, stop immediately',
+      )
+      expect(prompt).toContain('### Setup')
+      expect(prompt).toContain('bun add mapbox-gl')
+      expect(prompt).toContain('Replace the existing `src/main.ts` with:')
+      expect(prompt).toContain('Replace the existing styles in `src/style.css` with:')
+      expect(prompt).toContain('### Verify')
+      expect(prompt).toContain('### Mapbox access token')
+      expect(prompt).toContain('Access Tokens dashboard')
+      expect(prompt).toContain('VITE_MAPBOX_TOKEN=...')
+      expect(prompt).toContain('Do not ask me to paste or reveal the token in chat')
+      expect(prompt.indexOf('### Mapbox access token')).toBeLessThan(
+        prompt.indexOf('### Setup'),
+      )
+      expect(prompt).not.toContain('### This section')
+      expect(prompt).not.toContain('### Project decisions')
+      expect(prompt).toContain('access_token')
+      expect(prompt).not.toContain('VITE_SAANSEOI_API_KEY')
+    }
+  })
+
+  test('keeps agent and chat style hand-offs limited to the style section', () => {
     const renderers = [
       ['maplibre', 'MapLibre', "import * as maplibregl from 'maplibre-gl'"],
       ['mapbox', 'Mapbox GL JS', "import mapboxgl from 'mapbox-gl'"],
@@ -790,27 +1221,38 @@ describe('Create a Map LLM instructions', () => {
         styleUrl: 'https://api.saanseoi.hk/v0/styles/light/1.0.0.json',
         tilejsonUrl: 'https://tiles.saanseoi.hk/hongkong-latest.json',
       }
-      const expectedCode = createAMapRendererBasemapCode(
+      const expectedCode = createAMapRendererStyleCode(
         renderer,
         state.styleUrl,
         state.tilejsonUrl,
       )
 
-      for (const prompt of [
-        createAMapAgenticSectionPrompt(state, 'style'),
-        createAMapChatSectionPrompt(state, 'style'),
-      ]) {
+      const agentPrompt = createAMapAgenticSectionPrompt(state, 'style')
+      const chatPrompt = createAMapChatSectionPrompt(state, 'style')
+
+      expect(agentPrompt).toBe(chatPrompt)
+
+      for (const prompt of [agentPrompt, chatPrompt]) {
         expect(prompt).toContain(`The selected renderer is ${rendererLabel}.`)
         expect(prompt).toContain(importLine)
         expect(prompt).toContain(expectedCode)
         expect(prompt).toContain('Make only the style-related changes')
+        expect(prompt).toContain('\n```ts\n')
+        expect(prompt).not.toContain('- ```ts')
+        expect(prompt).not.toContain(`- ${importLine}`)
+        expect(prompt).not.toContain('### Project decisions')
+        expect(prompt).not.toContain('collaborative assistance session')
+        expect(prompt).toContain(
+          'The single next action is for you to continue with the “Data” section',
+        )
+        expect(prompt).toContain('“Data” section of the guide')
       }
     }
   })
 
   test('names the next section or confirms guide completion', () => {
     expect(createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'data')).toContain(
-      'The single next action is for you to continue with the “Publish” section of the guide. Read it until it provides you with a prompt to share with me again.”',
+      'The single next action is for you to continue with the “Calculate population density” section of the guide. Read it until it provides you with a prompt to share with me again.”',
     )
     expect(
       createAMapAgenticSectionPrompt({ preferredLocale: 'en' }, 'publish'),
