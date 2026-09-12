@@ -1,3 +1,4 @@
+import reviewedPremiseRetentions from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-premise-retentions.json'
 import buildingOverrides from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-building-overrides.json'
 import blockDetailBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-block-detail-backfills.json'
 import identityComponentBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-identity-component-backfills.json'
@@ -40,6 +41,10 @@ import fixture33 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-ad
 
 /** These are the same imported documents used by the ALS processors. */
 export const alsAuditFixtures = [
+  {
+    type: 'hkgov-dpo-address-reviewed-premise-retentions',
+    document: reviewedPremiseRetentions,
+  },
   {
     type: 'hkgov-dpo-address-house-street-identities',
     document: houseStreetIdentities,

@@ -482,3 +482,39 @@ test('reviewed redevelopment approves only the exact four Bay View houses', asyn
   const future = { ...after, sourceVersion: '2027-01-01.0' }
   expect(buildAlsDeletionReport(before, future).requiresReview).toBeTrue()
 })
+
+test('Hankow redevelopment covers both exact source generations without approving inventory loss', async () => {
+  const fixture = (
+    await import(
+      '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-retirements.json'
+    )
+  ).default
+  const decision = fixture.decisions.find(
+    d => d.id === 'hankow-apartments-redeveloped',
+  )!
+  const addresses: AlsMembershipAddress[] = structuredClone(
+    decision.previousAddresses,
+  ).map(a => ({ ...a, coordinates: [a.coordinates[0]!, a.coordinates[1]!] }))
+  const before: AlsMembership = {
+    schemaVersion: 1,
+    sourceVersion: '2024-07-25.0',
+    addresses,
+    collections: [],
+    aliases: [],
+    sources: addresses.flatMap(a =>
+      a.sourceIds.map(id => ({ id, kind: '2d' as const, canonicalIds: [a.id] })),
+    ),
+  }
+  const after: AlsMembership = {
+    ...before,
+    sourceVersion: '2024-11-13.0',
+    addresses: [],
+    sources: [],
+  }
+  expect(buildAlsDeletionReport(before, after).reviewedRetirements).toHaveLength(6)
+  expect(buildAlsDeletionReport(before, after).requiresReview).toBeFalse()
+  before.addresses.push(address('dependent', 'building', addresses[0]!.id))
+  const report = buildAlsDeletionReport(before, after)
+  expect(report.reviewedRetirements).toHaveLength(5)
+  expect(report.requiresReview).toBeTrue()
+})
