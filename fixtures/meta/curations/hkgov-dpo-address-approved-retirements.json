@@ -346,6 +346,104 @@
           "curations": []
         }
       ]
+    },
+    {
+      "id": "hankow-apartments-redeveloped",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: Hankow Apartments redeveloped. Approve retirement of both reviewed CSU generations.",
+      "previousAddresses": [
+        {
+          "id": "ss-26c50bd0-a806-5226-a60b-26afd9d179ec",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 43 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈43漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "186e8ac0-c545-5d28-8099-919a4d3e27ea"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-33ed24e0-c156-51d5-b8b3-92df695076ab",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 47A-49 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈47A49漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "983a669f-0850-54d7-854f-541979a2faba"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-582a2d21-f3e8-539a-97d5-ea6e397e23d4",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 49A HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈49A漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "33ab2a3a-6053-5bf6-92fe-9156041032cc"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-5aa0e2b3-392f-50ac-831b-4145f9486cfa",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 47 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈47漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "abe4cb59-1a26-5ea5-a991-6578cd39c38d"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ac4791b8-e755-5c48-9e13-07439b4368d7",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 45 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈45漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "8c28e183-6d3e-5241-ab7c-29bdf33cba14"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-2b227e6c-14eb-5b8e-baf2-59fdbbf41b40",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 45 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈45漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17065,
+            22.29772
+          ],
+          "sourceIds": [
+            "2f45f722-f1b2-53b5-bf59-8ec17a270319"
+          ],
+          "curations": []
+        }
+      ]
     }
   ]
 }

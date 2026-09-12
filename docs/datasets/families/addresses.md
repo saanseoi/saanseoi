@@ -882,3 +882,39 @@ treated as a phase. Bougainvilea Gardens is represented as the estate
 `BOUGAINVILEA GARDENS` with numbered blocks 1–4, including the reviewed Block 2
 component, without adding a building name. Raw ALS names and coordinates remain in
 source provenance.
+
+The reviewed premise-retention fixture preserves the baseline El Futuro tower and house
+IDs and bilingual names. Its 22 houses use individually matched Centaline points from
+<https://hk.centanet.com/estate/en/El-Futuro/2-DBAPWPPEPA>, retrieved on 12 September
+2026; the fixture retains Centaline building codes, coordinates and floor-plan links.
+Existing ALS house records are patched without duplicating buildings. Tower names
+`TOWER 1` / `第１座` and `TOWER 2` / `第２座` remain available when ALS supplies only
+numbered block components. Raw ALS premises and geometry remain source evidence.
+
+One Soho and The Harmonie retain their reviewed building names on existing unnamed
+address records. Kai Chuen Court backfills Kai Chi, Kai Tao and Kai Wu from their first
+retained evidence on 3 September 2024 to the July baseline, alongside the existing Kai
+Wang and Kai Chun retention decisions. These address-only reconstructions do not create
+historical flat inventories.
+
+Tin Wang Court retains a complex and three separate building children from the baseline:
+Wang King House / 宏景閣 (A) at `[114.187272, 22.344419]`, Wang Yuen House / 宏遠閣 (B)
+at `[114.186855, 22.344509]`, and Wang Mei House / 宏美閣 (C) at
+`[114.186602, 22.344148]`. Named Wang Yuen and unnamed complex assertions are
+distinguished even when ALS reuses the complex CSU for the house. The complex is
+restored on omission; church and car-park records remain independent premises.
+
+Victoria Garden uses blocks A and B throughout, including releases with I/II source
+labels. Releases named Victoria Coast keep that publisher estate name and the same
+reviewed building identities; this decision does not override estate names.
+
+These premise rules are active until revoked. Historical release assertions guard the
+full bilingual premise and point, including expected presence or omission. Future
+applications accept only recognised source evidence and are labelled unverified; changed
+assertions fail for review. Revocation stops future application while retaining
+scheduled historical repairs. Restoration is scoped to the input district, and retained
+source evidence is not represented as a current publisher assertion.
+
+Hankow Apartments is reviewed as redeveloped. Retirement approval covers the five
+baseline addresses and the later 45 Hankow Road identity, bounded to retained releases
+and matched against exact membership evidence. It permits no descendant inventory loss.

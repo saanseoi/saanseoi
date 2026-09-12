@@ -1,3 +1,8 @@
+import {
+  retainReviewedAlsPremises,
+  applyReviewedAlsPremiseRetentions,
+  finishReviewedAlsPremiseRetentions,
+} from './hkgovAlsReviewedPremiseRetentions'
 import { applyReviewedBuildingOverrides } from './hkgovAlsBuildingOverrides'
 import { applyReviewedBlockDetailBackfills } from './hkgovAlsBlockDetailBackfills'
 import { applyReviewedIdentityComponentBackfills } from './hkgovAlsIdentityComponentBackfills'
@@ -162,6 +167,10 @@ async function prepareHkgovAlsAddressParquetInternal(
     sourceFeatures,
     options.sourceVersion,
   )
+  const reviewedPremiseRetentions = retainReviewedAlsPremises(
+    sourceFeatures,
+    options.sourceVersion,
+  )
   const auditGuards = createAlsAuditGuards()
   const retainedCommercialPremises = retainAlsCommercialPremises(
     sourceFeatures,
@@ -247,6 +256,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyReviewedPremiseRenames(rows, options.sourceVersion)
   applyReviewedBuildingOverrides(rows, options.sourceVersion)
   applyReviewedIdentityComponentBackfills(rows, options.sourceVersion)
+  applyReviewedAlsPremiseRetentions(rows, reviewedPremiseRetentions)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
@@ -337,6 +347,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   )
   backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
   assertUniquePreparedRowIds(rows)
+  finishReviewedAlsPremiseRetentions(rows)
   auditGuards.passed('unique-identities', rows.length)
   auditGuards.passed('coordinate-source', coordinateChanges.backfilled)
   auditGuards.passed(
