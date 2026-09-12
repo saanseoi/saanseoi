@@ -6043,7 +6043,7 @@
     },
     {
       "id": "el-futuro-tower-2",
-      "authority": "User decision, 2026-09-12",
+      "authority": "User decision, 2026-09-12: keep the new Chinese tower name and backfill it while preserving identity.",
       "sourceFile": "als_addresses_(sha_tin_district).geojson",
       "csus": [
         "3937130175T20220705"
@@ -6051,7 +6051,7 @@
       "canonicalId": "ss-029373c7-ae07-5753-a93c-83250104e97c",
       "patch": {
         "enName": "TOWER 2",
-        "zhName": "第２座"
+        "zhName": "座2"
       },
       "retain": true,
       "application": {
@@ -8480,7 +8480,7 @@
     },
     {
       "id": "el-futuro-tower-1",
-      "authority": "User decision, 2026-09-12",
+      "authority": "User decision, 2026-09-12: keep the new Chinese tower name and backfill it while preserving identity.",
       "sourceFile": "als_addresses_(sha_tin_district).geojson",
       "csus": [
         "3938830205T20220705"
@@ -8488,7 +8488,7 @@
       "canonicalId": "ss-e35e5747-fa56-56d3-8165-746f55a02291",
       "patch": {
         "enName": "TOWER 1",
-        "zhName": "第１座"
+        "zhName": "座1"
       },
       "retain": true,
       "application": {
