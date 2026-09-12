@@ -1,5 +1,14 @@
 # HKGov DPO ALS addresses
 
+ALS ingestion reuses complete prepared releases only when source contents, processing
+code, fixtures, runtime, identity history, decisions and the exact selected Division
+lookup match. Every prepared Parquet, Address3D, seal, membership and audit file is
+checksummed on reuse. Missing or altered files require preparation; dependencies changed
+during preparation prevent caching. `--no-cache-artefacts` disables this reuse.
+Completed releases are filtered before preparing their Division prerequisites. Cached
+preparation does not replace publication, predecessor-membership validation or review
+recording.
+
 ALS upload sequences defer Address search finalisation until all selected source
 releases succeed. Without `--defer-api-release-set`, `hkgov-dpo:ingest` reconciles once
 at the end, including when completed releases are skipped on retry. With that option,
@@ -984,3 +993,27 @@ Address metadata replay writes release statistics using `dimension`, `metric`, a
 Building-number history compares the retained versions for each exact address and number
 before selecting matching baseline content. Multiple lookups can reuse the same prepared
 query safely within one release.
+
+Address3D validation compares canonical unit IDs and localisation keys as sets. Counts
+and content checks remain mandatory; a missing key fails validation even when an
+unrelated extra translation keeps the total count unchanged.
+
+Retirement dependency planning scans baseline parents before indexed deletion lookups.
+Surviving children and deferred descendant deletions retain their dependency ordering
+without repeating a full parent-table scan for each retirement.
+
+Historical Address replay selects each immutable version by record ID and content hash,
+plus locale for translated rows. Bounded queries use the existing composite identity
+indexes and remain within D1 parameter limits. SQL planning uses the configured
+`TMPDIR`; full local history copies require sufficient temporary disk space.
+
+Retirement preparation batches historical row updates and locale tombstones in
+transactions on isolated candidate shards. A failed preparation discards those copies
+before any delivery is emitted.
+
+Combined publisher-ledger reconciliation runs inside transactions on disposable source,
+history and current candidates. Per-record batches use nested savepoints; failed
+preparation rolls back open transactions and emits no delivery.
+
+Preparation-cache code fingerprints exclude test files; runtime code and all source,
+curation and division dependencies still invalidate reuse when their contents change.

@@ -1,5 +1,13 @@
 # Retained processing provenance
 
+CLI provenance transfer checks batches of up to 64 object references through the private
+`POST /v1/provenance/objects/check` endpoint. The destination verifies retained lengths,
+checksums and canonical JSON before acknowledging reuse; missing objects are uploaded.
+Local source objects remain validated, the manifest follows its dependencies, and
+release registration validates the complete graph. Retries query current destination
+contents. Local D1 ingestion with a separate R2 target independently confirms that
+destination.
+
 Divisions, Statistics, Addresses and Places retain a `processing-audit` manifest. Other
 consumers can use the separate `processing-result` effects contract described below.
 
