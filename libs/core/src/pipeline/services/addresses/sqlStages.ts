@@ -45,7 +45,7 @@ import {
   type AddressSqlImportFile,
 } from './sqlImport'
 import { logStructuredInfo } from '../../logging'
-import { resolvePreparedPublicationScope } from '../publication/execute'
+import { resolveAddressDivisionScope } from './divisionScope'
 
 export async function normaliseAddressSqlChunkStage(
   metaDb: MetaDatabase,
@@ -207,9 +207,9 @@ export async function writeAddressCurrentSqlChunkStage(
       'Prepared Address rows do not match their exact Division selection.',
     )
   const currentDivisionScopeId = selectedDivisionSnapshotId
-    ? await resolvePreparedPublicationScope(
+    ? await resolveAddressDivisionScope(
+        metaDb as unknown as HarbourReadableDb,
         currentDb as unknown as HarbourReadableDb,
-        'divisionPublicationState',
         selectedDivisionSnapshotId,
       )
     : undefined
@@ -634,37 +634,7 @@ export async function buildAddressMetaSqlFile(
       snapshotShardAssignmentRows,
       'ON CONFLICT(snapshotId, dataShardId) DO NOTHING',
     ),
-    buildInsertStatement(
-      'stats',
-      [
-        'id',
-        'type',
-        'releaseId',
-        'snapshotId',
-        'apiReleaseSetId',
-        'dimension',
-        'metric',
-        'metricUnit',
-        'value',
-        'groupBy',
-        'groupValue',
-        'createdAt',
-        'updatedAt',
-      ],
-      releaseStatsRows.filter(row => row.metric !== 'processing'),
-      `ON CONFLICT(id) DO UPDATE SET
-  type = excluded.type,
-  releaseId = excluded.releaseId,
-  snapshotId = excluded.snapshotId,
-  apiReleaseSetId = excluded.apiReleaseSetId,
-  dimension = excluded.dimension,
-  metric = excluded.metric,
-  metricUnit = excluded.metricUnit,
-  value = excluded.value,
-  groupBy = excluded.groupBy,
-  groupValue = excluded.groupValue,
-  updatedAt = excluded.updatedAt`,
-    ),
+    buildAddressStatsMetaSql(releaseStatsRows),
   ].filter(Boolean)
   const sql = `${statements.join('\n\n')}\n`
 
@@ -675,6 +645,36 @@ export async function buildAddressMetaSqlFile(
     statementCount: statements.length,
     target: 'meta',
   }
+}
+
+export function buildAddressStatsMetaSql(rows: Array<Record<string, unknown>>) {
+  return buildInsertStatement(
+    'stats',
+    [
+      'id',
+      'releaseId',
+      'apiReleaseSetId',
+      'dimension',
+      'metric',
+      'metricUnit',
+      'value',
+      'groupBy',
+      'groupValue',
+      'createdAt',
+      'updatedAt',
+    ],
+    rows.filter(row => row.metric !== 'processing'),
+    `ON CONFLICT(id) DO UPDATE SET
+  releaseId = excluded.releaseId,
+  apiReleaseSetId = excluded.apiReleaseSetId,
+  dimension = excluded.dimension,
+  metric = excluded.metric,
+  metricUnit = excluded.metricUnit,
+  value = excluded.value,
+  groupBy = excluded.groupBy,
+  groupValue = excluded.groupValue,
+  updatedAt = excluded.updatedAt`,
+  )
 }
 
 export function finaliseAddressSqlDatasetStage(message: DatasetProcessingMessage) {
