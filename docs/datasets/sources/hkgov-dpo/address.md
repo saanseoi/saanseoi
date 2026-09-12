@@ -492,6 +492,17 @@ future retained releases are marked unverified. Earlier evidence is backfilled o
 these explicitly approved houses, without changing other retention rules' dated-evidence
 requirements.
 
+Ban Tip House at Fu Tip Estate and Kai Wang House and Kai Chun House at Kai Chuen Court
+have omission-only retention rules from July 2024 until revoked. A present publisher
+house bypasses the patch entirely, including on reappearance: its identity, components
+and source payload remain authoritative. When the house is absent, the latest preceding
+retained evidence supplies its address and inventory. The 3D fallback applies only to an
+omitted 2D house and never replaces a present publisher 3D record. The retained
+inventories contain 655, 550 and 468 units respectively. All thirty retained releases
+through August 2026 contain these houses and therefore skip the fallback. Later
+omissions retain dated evidence with unverified curation status; revocation disables
+application to later releases.
+
 `hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
 house assertions and guards. Replayable publisher features live in the ignored
 `.local/hkgov-dpo/curations/house-retention-evidence.jsonl` cache, regenerated on demand

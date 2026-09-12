@@ -75,6 +75,11 @@ curations can retain a canonical address while preserving the publisher omission
 evidence for the retention. Invalid or incomplete preparation cannot retire the last
 accepted state.
 
+The ALS omission-only house rules for Ban Tip, Kai Wang and Kai Chun apply only while
+the publisher house is absent. They forward-fill the latest preceding address and
+inventory evidence until revoked; a returning house bypasses the patch. These rules do
+not override identities or payloads in releases where the publisher house is present.
+
 Deletion preflight compares the complete, prepared membership of consecutive releases
 and emits JSON grouped by address level. Building and complex removals, whole inventory
 loss and substantial deletion spikes require explicit review. Ordinary flat removals
