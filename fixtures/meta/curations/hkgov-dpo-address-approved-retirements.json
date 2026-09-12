@@ -444,6 +444,104 @@
           "curations": []
         }
       ]
+    },
+    {
+      "id": "reviewed-villa-mansion-kindergarten-removals",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: accept removal of Ming Yiu Villa, Nam Tak Mansion and Sheng Kung Hiu Kindergarten.",
+      "previousAddresses": [
+        {
+          "id": "ss-d0709bd1-7f30-5d20-a013-0deca13ab233",
+          "level": "building",
+          "parentId": null,
+          "en": "MING YIU VILLA, 30, MA LIU SHUI SAN TSUEN, FANLING, NORTH DISTRICT, NT",
+          "zhHant": "MING YIU VILLA30馬料水新村粉嶺北區新界",
+          "coordinates": [
+            114.15521,
+            22.50642
+          ],
+          "sourceIds": [
+            "c6d3cc34-4799-52cd-b703-7d7c285503ae"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-575e7f6b-0d5e-5c4f-b560-33554d2134a1",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 37 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓37新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "f87c587f-f8a3-5c80-800c-f7511c2bf8a6"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-71f2ee48-13e2-552f-9764-11eb1f258178",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 37-39 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓3739新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "81a5fe3b-1739-5801-96a4-a48283a2ca35"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-f9773e3b-a17d-5e2d-9410-298e5e2500c4",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 39 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓39新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "9acfa4af-7548-54bd-a620-cfa69fbcc6ac"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ac67ed13-fec2-5fd8-99df-4afa25e05d18",
+          "level": "building",
+          "parentId": null,
+          "en": "SHENG KUNG HIU KINDERGARTEN, CLEMENTI ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "聖公會幼稚園金文泰道灣仔區香港",
+          "coordinates": [
+            114.19603,
+            22.27049
+          ],
+          "sourceIds": [
+            "6d993627-4890-5bd2-a506-fe9a4d89bc80"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-dee3bb6f-ae13-566f-9022-be5546b0bf9e",
+          "level": "building",
+          "parentId": null,
+          "en": "MING YIU VILLA, 30, MA LIU SHUI SAN TSUEN, FANLING, NORTH DISTRICT, NT",
+          "zhHant": "MING YIU VILLA30馬料水新村粉嶺北區新界",
+          "coordinates": [
+            114.15522,
+            22.50622
+          ],
+          "sourceIds": [
+            "a904001d-e2c3-5eac-a7ab-0f096c23fdcc"
+          ],
+          "curations": []
+        }
+      ]
     }
   ]
 }

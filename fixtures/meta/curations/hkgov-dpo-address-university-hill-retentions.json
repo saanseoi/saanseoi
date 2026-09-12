@@ -1,0 +1,2279 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "university-hill-marina-tower-2",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3876232057T20240510",
+        "3875932055P20240517"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "MARINA TOWER 2",
+        "section": "MARINA",
+        "number": "2"
+      },
+      "canonicalId": "ss-10cbd029-55b9-5e59-83a5-3c53041217f2",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "2d72ef690327587a642161c7656890f1bee6916c5e19515606e92e55dcf2c3bb"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "3b58e514f8adbab8c984a36b3621b2929cbd59d54a06a300828648e3bc7e250f"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "3b58e514f8adbab8c984a36b3621b2929cbd59d54a06a300828648e3bc7e250f"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "3b58e514f8adbab8c984a36b3621b2929cbd59d54a06a300828648e3bc7e250f"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "617ba6a67e3b26d002822d9dd65b6364e60769f451577f72cc698923933630d5"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "617ba6a67e3b26d002822d9dd65b6364e60769f451577f72cc698923933630d5"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "617ba6a67e3b26d002822d9dd65b6364e60769f451577f72cc698923933630d5"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "617ba6a67e3b26d002822d9dd65b6364e60769f451577f72cc698923933630d5"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20109,
+              22.42788
+            ]
+          },
+          "properties": {
+            "Northing": 832057,
+            "Easting": 838762,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3876232057T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "漾景閣第２座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "MARINA TOWER 2",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3876232057T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "MARINA TOWER 2"
+      }
+    },
+    {
+      "id": "university-hill-scenic-tower-3",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3875732146T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "SCENIC TOWER 3",
+        "section": "SCENIC",
+        "number": "3"
+      },
+      "canonicalId": "ss-2847ca5f-fe24-5768-a381-45f087e51b90",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "43710e8adb62f342f93616e8f42ef9e71648d2fcb8c52c5fb3f29edd95d2edd0"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "d811e06809c14d5e0ad56714e9557812582b3ec8b763258aebe89c9688796a52"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "d811e06809c14d5e0ad56714e9557812582b3ec8b763258aebe89c9688796a52"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "d811e06809c14d5e0ad56714e9557812582b3ec8b763258aebe89c9688796a52"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "d811e06809c14d5e0ad56714e9557812582b3ec8b763258aebe89c9688796a52"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20105,
+              22.42868
+            ]
+          },
+          "properties": {
+            "Northing": 832146,
+            "Easting": 838757,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3875732146T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "優景閣第３座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SCENIC TOWER 3",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3875732146T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "SCENIC TOWER 3"
+      }
+    },
+    {
+      "id": "university-hill-marina-tower-1",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3878632036T20240510",
+        "3875932055P20240517"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "MARINA TOWER 1",
+        "section": "MARINA",
+        "number": "1"
+      },
+      "canonicalId": "ss-453dbfae-f55b-5fd1-9fdf-7337dd75071b",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "4a014b666ace1f6e11493efc0d06f2d6d4f0666ff4f5ab9a009e0a898c3d620a"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "a8747e51e44d454be124987c36a2d1058812886c0fe70006b30d4b2d55768624"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "a8747e51e44d454be124987c36a2d1058812886c0fe70006b30d4b2d55768624"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "a8747e51e44d454be124987c36a2d1058812886c0fe70006b30d4b2d55768624"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "00bf7ef0e1b8a6c80061c3a0bf03fd19fbdff08cb3ea8f755e0192941b79ed0c"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "00bf7ef0e1b8a6c80061c3a0bf03fd19fbdff08cb3ea8f755e0192941b79ed0c"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "00bf7ef0e1b8a6c80061c3a0bf03fd19fbdff08cb3ea8f755e0192941b79ed0c"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "00bf7ef0e1b8a6c80061c3a0bf03fd19fbdff08cb3ea8f755e0192941b79ed0c"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20133,
+              22.42769
+            ]
+          },
+          "properties": {
+            "Northing": 832036,
+            "Easting": 838786,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3878632036T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "漾景閣第１座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "MARINA TOWER 1",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3878632036T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "MARINA TOWER 1"
+      }
+    },
+    {
+      "id": "university-hill-scenic-tower-1",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3881532179T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "SCENIC TOWER 1",
+        "section": "SCENIC",
+        "number": "1"
+      },
+      "canonicalId": "ss-573a91e8-582a-5a2a-9a59-f77175ae7acb",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "89cb385bb74e0b5d43356cf8bb9727c4d228a51a7d9622a9ce51eb8ed15b67d9"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "0c2f890b96c5ffe7917e88c6b0f5a18af2f8975dc247f5a0db88a1210502b691"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "0c2f890b96c5ffe7917e88c6b0f5a18af2f8975dc247f5a0db88a1210502b691"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "0c2f890b96c5ffe7917e88c6b0f5a18af2f8975dc247f5a0db88a1210502b691"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "70056b7414242de416d41e2b89a096e4b0899ea74a934320ba8438488d5b592f"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "70056b7414242de416d41e2b89a096e4b0899ea74a934320ba8438488d5b592f"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "70056b7414242de416d41e2b89a096e4b0899ea74a934320ba8438488d5b592f"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "70056b7414242de416d41e2b89a096e4b0899ea74a934320ba8438488d5b592f"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20161,
+              22.42898
+            ]
+          },
+          "properties": {
+            "Northing": 832179,
+            "Easting": 838815,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3881532179T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "優景閣第１座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SCENIC TOWER 1",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3881532179T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "SCENIC TOWER 1"
+      }
+    },
+    {
+      "id": "university-hill-marina-tower-5b",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3882232127T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "MARINA TOWER 5B",
+        "section": "MARINA",
+        "number": "5B"
+      },
+      "canonicalId": "ss-6092d86f-4d4c-5a78-9989-113189a9092c",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "6aeb9b10db8a6ab0fb459c1dc0c697b39a5e9538f188473382aba07e391504d3"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "9d5de34016c75cae1726af04b2aae4ebb72aecd2099b4dbac6d8e274ad33c0d9"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "9d5de34016c75cae1726af04b2aae4ebb72aecd2099b4dbac6d8e274ad33c0d9"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "9d5de34016c75cae1726af04b2aae4ebb72aecd2099b4dbac6d8e274ad33c0d9"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "5d52415e576355b4ab3e50a80d56a85c32400849d37247c793689e7b22c4379b"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "5d52415e576355b4ab3e50a80d56a85c32400849d37247c793689e7b22c4379b"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "5d52415e576355b4ab3e50a80d56a85c32400849d37247c793689e7b22c4379b"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "5d52415e576355b4ab3e50a80d56a85c32400849d37247c793689e7b22c4379b"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20168,
+              22.42851
+            ]
+          },
+          "properties": {
+            "Northing": 832127,
+            "Easting": 838822,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3882232127T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "漾景閣第５Ｂ座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "MARINA TOWER 5B",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3882232127T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "MARINA TOWER 5B"
+      }
+    },
+    {
+      "id": "university-hill-marina-tower-3",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3873032077T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "MARINA TOWER 3",
+        "section": "MARINA",
+        "number": "3"
+      },
+      "canonicalId": "ss-7aae63a8-0ec8-5ff3-83b8-7517adf0e4b6",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "2ced90fb5f5d631629ef062dd4f33801e3314a9d3718358e6819e49de7a9584e"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "100aa0878a1ed67d0016d45ba6aa71069abc745195e1472c6bac8eed070e2fef"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "100aa0878a1ed67d0016d45ba6aa71069abc745195e1472c6bac8eed070e2fef"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "100aa0878a1ed67d0016d45ba6aa71069abc745195e1472c6bac8eed070e2fef"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "9258ac58661aac9b79e63499b90eb33e4ec9ae92bab6330dc3a51f302bd1d881"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "9258ac58661aac9b79e63499b90eb33e4ec9ae92bab6330dc3a51f302bd1d881"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "9258ac58661aac9b79e63499b90eb33e4ec9ae92bab6330dc3a51f302bd1d881"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "9258ac58661aac9b79e63499b90eb33e4ec9ae92bab6330dc3a51f302bd1d881"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20078,
+              22.42806
+            ]
+          },
+          "properties": {
+            "Northing": 832077,
+            "Easting": 838730,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3873032077T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "漾景閣第３座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "MARINA TOWER 3",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3873032077T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "MARINA TOWER 3"
+      }
+    },
+    {
+      "id": "university-hill-scenic-tower-2",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3878632162T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "SCENIC TOWER 2",
+        "section": "SCENIC",
+        "number": "2"
+      },
+      "canonicalId": "ss-7b4f05fc-9676-5d06-a963-cf0d8e65c02a",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "50fa8ce5b7bdacaef91c70a2ced1608309a20e4f0f1e303b9519885137641f4c"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "5550a9081309302cec8aaa2954edcd3a0d185da989bc5f71b525941ab456a3fb"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "5550a9081309302cec8aaa2954edcd3a0d185da989bc5f71b525941ab456a3fb"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "5550a9081309302cec8aaa2954edcd3a0d185da989bc5f71b525941ab456a3fb"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "aba706ea596ed21b632fa9b2779aa789e93d3e734b42b219b097aba4ac6f9d9c"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "aba706ea596ed21b632fa9b2779aa789e93d3e734b42b219b097aba4ac6f9d9c"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "aba706ea596ed21b632fa9b2779aa789e93d3e734b42b219b097aba4ac6f9d9c"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "aba706ea596ed21b632fa9b2779aa789e93d3e734b42b219b097aba4ac6f9d9c"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20133,
+              22.42883
+            ]
+          },
+          "properties": {
+            "Northing": 832162,
+            "Easting": 838786,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3878632162T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "優景閣第２座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SCENIC TOWER 2",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3878632162T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "SCENIC TOWER 2"
+      }
+    },
+    {
+      "id": "university-hill-marina-tower-5a",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3883132087T20240510",
+        "3882432109P20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "MARINA TOWER 5A",
+        "section": "MARINA",
+        "number": "5A"
+      },
+      "canonicalId": "ss-b10ccf8a-48ef-5fd5-a8ca-8618e42aa055",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "b2cdcc3cce32a1dc6d336e2837568155fd29696874a3f22f8eec8e24a09da25e"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "1af09fdb190424b4cc59b6e59139138ad7fd18ad902be5bd04d713ffd9f8d6da"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "1af09fdb190424b4cc59b6e59139138ad7fd18ad902be5bd04d713ffd9f8d6da"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "1af09fdb190424b4cc59b6e59139138ad7fd18ad902be5bd04d713ffd9f8d6da"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "60ddd0206c8c3de5e5c2519407fa8496b160b801fdb71b404a74e8512bc0a11e"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "60ddd0206c8c3de5e5c2519407fa8496b160b801fdb71b404a74e8512bc0a11e"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "60ddd0206c8c3de5e5c2519407fa8496b160b801fdb71b404a74e8512bc0a11e"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "60ddd0206c8c3de5e5c2519407fa8496b160b801fdb71b404a74e8512bc0a11e"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20177,
+              22.42815
+            ]
+          },
+          "properties": {
+            "Northing": 832087,
+            "Easting": 838831,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3883132087T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "漾景閣第５Ａ座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "MARINA TOWER 5A",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3883132087T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "MARINA TOWER 5A"
+      }
+    },
+    {
+      "id": "university-hill-scenic-tower-6",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3870032116T20240510"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "SCENIC TOWER 6",
+        "section": "SCENIC",
+        "number": "6"
+      },
+      "canonicalId": "ss-ed2e0cca-c314-5a4d-9767-be9b35ff9090",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "b42a29df82745fddc7a22dd5723808670fe173e185503f53e14ec0b304b97086"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "89bce031e6a6f61ea64478d139b46379e7e614f2a2ea514d08398ed7c7309523"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "89bce031e6a6f61ea64478d139b46379e7e614f2a2ea514d08398ed7c7309523"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "89bce031e6a6f61ea64478d139b46379e7e614f2a2ea514d08398ed7c7309523"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "f4c0d739dbbf40fc2df031248d8f1ea4b70aa98dd11d259cd8fa406a052f8b73"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "f4c0d739dbbf40fc2df031248d8f1ea4b70aa98dd11d259cd8fa406a052f8b73"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "f4c0d739dbbf40fc2df031248d8f1ea4b70aa98dd11d259cd8fa406a052f8b73"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "f4c0d739dbbf40fc2df031248d8f1ea4b70aa98dd11d259cd8fa406a052f8b73"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20049,
+              22.42841
+            ]
+          },
+          "properties": {
+            "Northing": 832116,
+            "Easting": 838700,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3870032116T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "優景閣第６座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SCENIC TOWER 6",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3870032116T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "SCENIC TOWER 6"
+      }
+    },
+    {
+      "id": "university-hill-scenic-tower-5",
+      "authority": "User decision, 2026-09-12: retain the ten University Hill towers on omissions until revoked, preserving their IDs and publisher coordinates. Skip fallback when the tower returns.",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3872932129T20240510",
+        "3871032124P20240513"
+      ],
+      "publisherTower": {
+        "estate": "UNIVERSITY HILL",
+        "name": "SCENIC TOWER 5",
+        "section": "SCENIC",
+        "number": "5"
+      },
+      "canonicalId": "ss-ee3af73c-d0c0-5b7c-a55e-da23f99f82fe",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-07-31.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "3c8d2d42988955e658c3d8ec6dbc8a03c573d4fdf9b0738f1689d6f506da6304"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "25a00ea15d44f52e2ea02c5d8b7defe2fe5e2cec1335eeb05ec70c618a48f899"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "25a00ea15d44f52e2ea02c5d8b7defe2fe5e2cec1335eeb05ec70c618a48f899"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "25a00ea15d44f52e2ea02c5d8b7defe2fe5e2cec1335eeb05ec70c618a48f899"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "25a00ea15d44f52e2ea02c5d8b7defe2fe5e2cec1335eeb05ec70c618a48f899"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20077,
+              22.42853
+            ]
+          },
+          "properties": {
+            "Northing": 832129,
+            "Easting": 838729,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3872932129T20240510"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "StreetName": "優景里",
+                    "BuildingNoFrom": "63"
+                  },
+                  "BuildingName": "優景閣第５座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SCENIC TOWER 5",
+                  "EngEstate": {
+                    "EstateName": "UNIVERSITY HILL"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "63",
+                    "StreetName": "YAU KING LANE"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3872932129T20240510"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "sourceUrls": [
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2A/2-GWPPWPPEEG",
+          "https://hk.centanet.com/estate/en/Silicon-Hill-University-Hill-Phase-2B/2-GWPPWPPEAG"
+        ],
+        "retrievedOn": "2026-09-12",
+        "buildingName": "SCENIC TOWER 5"
+      }
+    }
+  ]
+}
