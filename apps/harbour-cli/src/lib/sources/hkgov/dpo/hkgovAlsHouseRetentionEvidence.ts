@@ -30,8 +30,8 @@ type HouseRetentionFixture = Omit<typeof policy, 'retentions'> & {
   retentions: HouseRetentionRule[]
 }
 
-function loadCache(): CachedEvidence {
-  if (!existsSync(cachePath)) {
+function loadCache(rebuild = false): CachedEvidence {
+  if (rebuild || !existsSync(cachePath)) {
     const repositoryRoot = resolve(import.meta.dir, '../../../../../../../')
     execFileSync('bun', ['scripts/build-als-house-retention-evidence.ts'], {
       cwd: repositoryRoot,
@@ -44,6 +44,11 @@ function loadCache(): CachedEvidence {
       .split('\n')
       .map(line => JSON.parse(line))
     if (header?.version !== 1) throw new Error('Invalid ALS house-retention cache.')
+    if (
+      !rebuild &&
+      policy.retentions.some(rule => !records.some(record => record.id === rule.id))
+    )
+      return loadCache(true)
     return {
       version: 1,
       retentions: Object.fromEntries(

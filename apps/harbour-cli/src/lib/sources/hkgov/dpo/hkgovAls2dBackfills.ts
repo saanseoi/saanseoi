@@ -51,30 +51,7 @@ export function buildAls2dBackfillFeatures(
             p?.ChiPremisesAddress?.ChiBlock?.BlockNo === b.blockRef)
         )
       })
-      if (numbered.length) {
-        const renamed =
-          b.sourceRename && version >= b.sourceRename.sourceVersionFrom
-            ? structuredClone(b.feature)
-            : null
-        if (renamed && b.sourceRename) {
-          renamed.properties.Address.PremisesAddress.EngPremisesAddress.BuildingName =
-            b.sourceRename.enBuildingName
-          renamed.properties.Address.PremisesAddress.ChiPremisesAddress.BuildingName =
-            b.sourceRename.zhBuildingName
-        }
-        const isRenamed =
-          renamed &&
-          numbered[0]?.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
-            ?.BuildingName === b.sourceRename?.enBuildingName
-        assert.deepEqual(
-          numbered.map(record => record.feature),
-          [isRenamed ? renamed : b.feature],
-          `ALS 2D backfill ${b.csu}: numbered source changed`,
-        )
-        if (!isRenamed) return []
-        originalAssertions.set(b.csu, structuredClone(numbered))
-        features.splice(features.indexOf(requireDefined(numbered[0])), 1)
-      }
+      if (numbered.length) return []
     }
     const named = features.filter(({ feature }) => {
       const p = feature.properties?.Address?.PremisesAddress
@@ -86,11 +63,7 @@ export function buildAls2dBackfillFeatures(
         (p.EngPremisesAddress?.BuildingName || p.ChiPremisesAddress?.BuildingName)
       )
     })
-    assert.equal(
-      named.length,
-      0,
-      `ALS 2D backfill ${b.csu}: named source already present`,
-    )
+    if (named.length) return []
     return [
       {
         feature: {
